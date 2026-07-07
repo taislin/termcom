@@ -8,6 +8,7 @@ import (
 	"github.com/civ13/ycom/internal/base"
 	"github.com/civ13/ycom/internal/battle"
 	"github.com/civ13/ycom/internal/engine"
+	"github.com/civ13/ycom/internal/save"
 	"github.com/gdamore/tcell/v2"
 )
 
@@ -220,7 +221,6 @@ func (gs *Geoscape) Autoresolve() {
 		return
 	}
 
-	// Simple autoresolve: success based on number of soldiers
 	squadSize := len(gs.Base.Soldiers)
 	chance := 30 + squadSize*10
 	if chance > 85 {
@@ -233,7 +233,6 @@ func (gs *Geoscape) Autoresolve() {
 		gs.Game.Funds += int64(nearest.Type.Points * 1000)
 		gs.Message = fmt.Sprintf("Autoresolve: Victory! %s destroyed. +$%dK", nearest.Type.Name, nearest.Type.Points)
 	} else {
-		// Lose one random soldier
 		if squadSize > 0 {
 			idx := rand.Intn(squadSize)
 			gs.Base.Soldiers[idx].HP = 0
@@ -243,6 +242,85 @@ func (gs *Geoscape) Autoresolve() {
 			gs.Message = "Autoresolve: No soldiers available!"
 		}
 	}
+	gs.MessageTimer = time.Now()
+}
+
+func (gs *Geoscape) SaveGameToFile() {
+	ufoSaves := make([]*save.UFOSave, 0)
+	for _, u := range gs.UFOs {
+		ufoSaves = append(ufoSaves, &save.UFOSave{
+			TypeName: u.Type.Name,
+			X:        u.X,
+			Y:        u.Y,
+			Active:   u.Active,
+		})
+	}
+	missionSaves := make([]*save.MissionSave, 0)
+	for _, m := range gs.Missions {
+		missionSaves = append(missionSaves, &save.MissionSave{
+			Type:      m.Type,
+			CityName:  m.CityName,
+			TurnsLeft: m.TurnsLeft,
+			X:         m.X,
+			Y:         m.Y,
+		})
+	}
+	sd := &save.SaveData{
+		GameTime:      gs.Game.GameTime,
+		Funds:         gs.Game.Funds,
+		Paused:        gs.Game.Paused,
+		TimeSpeed:     gs.Game.TimeSpeed,
+		AlienActivity: gs.AlienActivity,
+		Base:          save.FromBase(gs.Base),
+		UFOs:          ufoSaves,
+		Missions:      missionSaves,
+	}
+	err := save.SaveGame("xcom_save.json", sd)
+	if err != nil {
+		gs.Message = "Save failed: " + err.Error()
+	} else {
+		gs.Message = "Game saved to xcom_save.json"
+	}
+	gs.MessageTimer = time.Now()
+}
+
+func (gs *Geoscape) LoadGameFromFile() {
+	sd, err := save.LoadGame("xcom_save.json")
+	if err != nil {
+		gs.Message = "Load failed: " + err.Error()
+		gs.MessageTimer = time.Now()
+		return
+	}
+	gs.Game.GameTime = sd.GameTime
+	gs.Game.Funds = sd.Funds
+	gs.Game.Paused = sd.Paused
+	gs.Game.TimeSpeed = sd.TimeSpeed
+	gs.AlienActivity = sd.AlienActivity
+	gs.Base = save.ToBase(sd.Base)
+	gs.UFOs = nil
+	for _, u := range sd.UFOs {
+		ufoType := GetUFOTypeByName(u.TypeName)
+		if ufoType != nil {
+			gs.UFOs = append(gs.UFOs, &UFO{
+				Type:   *ufoType,
+				X:      u.X,
+				Y:      u.Y,
+				Active: u.Active,
+			})
+		}
+	}
+	gs.Missions = nil
+	for _, m := range sd.Missions {
+		gs.Missions = append(gs.Missions, &AlienMission{
+			Type:      m.Type,
+			CityName:  m.CityName,
+			TurnsLeft: m.TurnsLeft,
+			X:         m.X,
+			Y:         m.Y,
+		})
+	}
+	gs.BaseName = gs.Base.Name
+	gs.Message = "Game loaded successfully!"
 	gs.MessageTimer = time.Now()
 }
 
@@ -289,6 +367,7 @@ func (gs *Geoscape) LaunchInterceptor() {
 	gs.Interceptors = append(gs.Interceptors, inter)
 	gs.Message = fmt.Sprintf("Interceptor launched! Pursuing %s.", nearest.Type.Name)
 	gs.MessageTimer = time.Now()
+	gs.Game.Bell()
 }
 
 func (gs *Geoscape) Render(ctx *engine.ScreenCtx) {
@@ -449,6 +528,10 @@ func (gs *Geoscape) HandleKey(e *tcell.EventKey) {
 		case 'q', 'Q':
 			gs.Game.Quit()
 		}
+	case tcell.KeyF5:
+		gs.SaveGameToFile()
+	case tcell.KeyF9:
+		gs.LoadGameFromFile()
 	}
 }
 

@@ -32,6 +32,15 @@ type UFO struct {
 	Active   bool
 }
 
+func GetUFOTypeByName(name string) *UFOType {
+	for i := range UFOTypes {
+		if UFOTypes[i].Name == name {
+			return &UFOTypes[i]
+		}
+	}
+	return nil
+}
+
 var ufoIDCounter int
 
 func NewUFO(x, y float64) *UFO {

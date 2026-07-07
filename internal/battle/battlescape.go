@@ -39,10 +39,16 @@ type Battlescape struct {
 
 func NewBattlescape(g *engine.Game, squad []*soldier.Soldier, ufoName string) *Battlescape {
 	var m *BattleMap
-	if rand.Intn(2) == 0 {
+	r := rand.Intn(4)
+	switch r {
+	case 0:
 		m = GenerateCrashSite(30, 24)
-	} else {
+	case 1:
 		m = GenerateTerrorSite(30, 24)
+	case 2:
+		m = GenerateUFOInterior(30, 24)
+	case 3:
+		m = GenerateCydonia(30, 24)
 	}
 
 	bs := &Battlescape{

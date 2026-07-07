@@ -34,7 +34,7 @@
 - [x] Transfer screen (stores display)
 
 ## Phase 5 — Battlescape (done)
-- [x] Tile-based tactical map (crash site / terror)
+- [x] Tile-based tactical map (crash site / terror / UFO interior / Cydonia)
 - [x] Time-unit system: move, turn, fire, reload, crouch
 - [x] Line-of-sight (Bresenham)
 - [x] Cover system
@@ -69,12 +69,12 @@
 - [x] Injury recovery progresses each day
 - [x] Alien missions spawn and countdown
 
-## Phase 9 — Polish
-- [ ] Save / load game
-- [ ] Sound effects (terminal bell)
-- [ ] More map variety (UFO interior, Cydonia)
+## Phase 9 — Polish (done)
+- [x] Save / load game (F5/F9, JSON format)
+- [x] Sound effects (terminal bell on events)
+- [x] Map variety: Crash Site, Terror, UFO Interior, Cydonia
 
 ## Phase 10 — Quality
-- [ ] Increase test coverage (currently ~45%)
+- [ ] Increase test coverage (currently ~50%)
 - [ ] Add integration tests for game loop
 - [ ] Benchmarks for AI and pathfinding

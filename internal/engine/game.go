@@ -159,3 +159,7 @@ func (g *Game) ScreenSize() (int, int) {
 func (g *Game) Quit() {
 	g.running = false
 }
+
+func (g *Game) Bell() {
+	g.screen.screen.Beep()
+}
