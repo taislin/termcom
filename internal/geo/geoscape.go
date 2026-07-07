@@ -20,6 +20,7 @@ type Geoscape struct {
 	MessageTimer time.Time
 	TickCounter  int
 	Base         *base.Base
+	LastMonth    int
 }
 
 func NewGeoscape(g *engine.Game) *Geoscape {
@@ -38,6 +39,7 @@ func NewGeoscape(g *engine.Game) *Geoscape {
 		Message:      "Welcome, Commander. Your mission: defend Earth from alien invasion.",
 		MessageTimer: time.Now(),
 		Base:         b,
+		LastMonth:    int(g.GameTime.Month()),
 	}
 	return gs
 }
@@ -52,6 +54,7 @@ func (gs *Geoscape) Update() {
 		dead := gs.Base.RemoveDeadSoldiers()
 
 		if r.Won {
+			gs.Base.AddLoot(r.LootItems)
 			gs.Message = fmt.Sprintf("Victory! %d aliens killed. Loot: %v", r.Kills, r.LootItems)
 		} else {
 			gs.Message = fmt.Sprintf("Defeat! Lost: %v", dead)
@@ -85,6 +88,19 @@ func (gs *Geoscape) Update() {
 		speedMult := []int{0, 1, 5, 20, 60}
 		minutes := speedMult[gs.Game.TimeSpeed]
 		gs.Game.GameTime = gs.Game.GameTime.Add(time.Duration(minutes) * time.Minute)
+	}
+
+	// Monthly budget check
+	curMonth := int(gs.Game.GameTime.Month())
+	if curMonth != gs.LastMonth {
+		gs.LastMonth = curMonth
+		salary, funding := gs.Base.AdvanceMonth()
+		gs.Game.Funds += int64(funding - salary)
+		gs.Base.AdvanceDay()
+		gs.Base.AdvanceDay()
+		gs.Base.AdvanceDay()
+		gs.Message = fmt.Sprintf("MONTHLY REPORT: Funding +$%dK  Salaries -$%dK", funding/1000, salary/1000)
+		gs.MessageTimer = time.Now()
 	}
 }
 

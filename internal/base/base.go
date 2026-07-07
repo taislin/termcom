@@ -106,7 +106,7 @@ func (bs *BaseScreen) Render(ctx *engine.ScreenCtx) {
 	}
 	help := "[B]uild  [H]ire  1-5=Tab  j/k=Navigate  Esc=Back"
 	if bs.Tab == 1 {
-		help = "[H]ire  [D]ismiss  j/k=Navigate  Esc=Back"
+		help = "[H]ire  [E]quip  [D]ismiss  j/k=Navigate  Esc=Back"
 	}
 	ctx.DrawString(2, h-1, help, engine.StyleGray)
 }
@@ -242,6 +242,10 @@ func (bs *BaseScreen) HandleKey(e *tcell.EventKey) {
 			bs.HireSoldier()
 		case 'd', 'D':
 			bs.DismissSoldier()
+		case 'e', 'E':
+			if bs.Tab == 1 && len(bs.Base.Soldiers) > 0 {
+				bs.Game.PushState(engine.StateEquip)
+			}
 		}
 	}
 }

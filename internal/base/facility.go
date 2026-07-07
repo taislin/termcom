@@ -55,6 +55,7 @@ type Base struct {
 	Engineers   int
 	MaxStorage  int
 	UsedStorage int
+	Stores      map[string]int
 }
 
 func NewBase(name string) *Base {
@@ -63,6 +64,7 @@ func NewBase(name string) *Base {
 		Scientists: 10,
 		Engineers:  10,
 		MaxStorage: 50,
+		Stores:     make(map[string]int),
 	}
 }
 
@@ -170,4 +172,102 @@ func GetBuildableArmor() []string {
 		}
 	}
 	return items
+}
+
+func (b *Base) AddItem(item string, qty int) {
+	b.Stores[item] += qty
+}
+
+func (b *Base) RemoveItem(item string, qty int) bool {
+	if b.Stores[item] < qty {
+		return false
+	}
+	b.Stores[item] -= qty
+	if b.Stores[item] == 0 {
+		delete(b.Stores, item)
+	}
+	return true
+}
+
+func (b *Base) CountItem(item string) int {
+	return b.Stores[item]
+}
+
+func (b *Base) AddLoot(items []string) {
+	for _, item := range items {
+		b.AddItem(item, 1)
+	}
+}
+
+func (b *Base) EquipWeapon(soldierIdx int, weaponKey string) bool {
+	if soldierIdx < 0 || soldierIdx >= len(b.Soldiers) {
+		return false
+	}
+	if b.CountItem(weaponKey) <= 0 {
+		return false
+	}
+	s := b.Soldiers[soldierIdx]
+	if s.Weapon != "" && s.Weapon != "pistol" {
+		b.AddItem(s.Weapon, 1)
+	}
+	if !b.RemoveItem(weaponKey, 1) {
+		return false
+	}
+	s.Weapon = weaponKey
+	return true
+}
+
+func (b *Base) EquipArmor(soldierIdx int, armorKey string) bool {
+	if soldierIdx < 0 || soldierIdx >= len(b.Soldiers) {
+		return false
+	}
+	if armorKey != "none" && b.CountItem(armorKey) <= 0 {
+		return false
+	}
+	s := b.Soldiers[soldierIdx]
+	if s.Armor != "none" {
+		b.AddItem(s.Armor, 1)
+	}
+	if armorKey != "none" {
+		if !b.RemoveItem(armorKey, 1) {
+			return false
+		}
+	}
+	s.Armor = armorKey
+	return true
+}
+
+func (b *Base) MonthlySalary() int {
+	return (len(b.Soldiers) + b.Scientists + b.Engineers) * 2000
+}
+
+func (b *Base) GovernmentFunding() int {
+	radarCount := b.CountFacility(FacRadar)
+	baseFunding := 200000
+	return baseFunding + radarCount*50000
+}
+
+func (b *Base) AdvanceMonth() (salary, funding int) {
+	salary = b.MonthlySalary()
+	funding = b.GovernmentFunding()
+	return salary, funding
+}
+
+func (b *Base) StorageCapacity() int {
+	return b.CountFacility(FacStorage) * 50
+}
+
+func (b *Base) TotalWeight() int {
+	total := 0
+	for item, qty := range b.Stores {
+		if it, ok := data.Items[item]; ok {
+			total += it.Weight * qty
+		} else if w, ok := data.Weapons[item]; ok {
+			total += 5 * qty
+			_ = w
+		} else if _, ok := data.Armors[item]; ok {
+			total += 8 * qty
+		}
+	}
+	return total
 }

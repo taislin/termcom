@@ -16,20 +16,21 @@
 - [x] Interceptor launch and vector-based pursuit
 - [x] Dogfight resolution (simplified)
 
-## Phase 3 — Base Management (partial)
+## Phase 3 — Base Management (done)
 - [x] Base with facilities (Lab, Workshop, Quarters, Storage, Radar, Containment)
 - [x] Build facilities (deducts funds, construction timer)
+- [x] Hire / dismiss soldiers
+- [x] Stores system (track inventory)
+- [x] Equip soldiers (weapon + armor from stores)
+- [x] Monthly budget cycle (salaries, government funding)
 - [ ] Sell facilities
-- [ ] Hire / dismiss soldiers (PLANNED)
-- [ ] Equip soldiers (armour + two weapons)
-- [ ] Monthly budget cycle
 
 ## Phase 4 — Research & Manufacturing (stub)
 - [ ] Research screen (assign scientists, track progress)
 - [ ] Manufacture screen (queue items, assign engineers)
 - [ ] Transfer screen between bases
 
-## Phase 5 — Battlescape (partial)
+## Phase 5 — Battlescape (done)
 - [x] Tile-based tactical map (crash site / terror)
 - [x] Time-unit system: move, turn, fire, reload, crouch
 - [x] Line-of-sight (Bresenham)
@@ -37,17 +38,16 @@
 - [x] Weapon firing with accuracy + damage
 - [x] Alien AI: patrol, seek, attack, flee
 - [x] Win/lose conditions
-- [ ] Use base soldier roster instead of hardcoded rookies (PLANNED)
-- [ ] Award XP on kills (PLANNED)
-- [ ] Loot recovery after battle (PLANNED)
-- [ ] Sync soldier state back to base after battle
+- [x] Use base soldier roster
+- [x] Award XP on kills
+- [x] Loot recovery after battle (goes to stores)
+- [x] Sync soldier state back to base after battle
 
-## Phase 6 — Soldiers (partial)
+## Phase 6 — Soldiers (done)
 - [x] Stats: HP, TU, Accuracy, Bravery, Reactions, Strength, Psi
 - [x] Rank progression (Rookie → Colonel) with stat bonuses
-- [ ] Soldier roster in base screen (PLANNED)
+- [x] Soldier roster in base screen
 - [ ] Injury / recovery system
-- [ ] Equipment screen (PLANNED)
 
 ## Phase 7 — Data (done)
 - [x] Weapons: Pistol, Rifle, Heavy, Rocket, Laser, Plasma
@@ -56,11 +56,10 @@
 - [x] Items: Medikit, Motion Scanner, Grenades, Alloys, Elerium
 - [x] Research tree with prerequisites
 
-## Phase 8 — Wiring the Game Loop
-- [ ] Geoscape → Battlescape transition on UFO crash
-- [ ] Post-battle: XP gain, loot recovery, soldier sync
-- [ ] Monthly budget cycle (salaries, funding)
-- [ ] Funding & diplomacy system
+## Phase 8 — Wiring the Game Loop (done)
+- [x] Geoscape → Battlescape transition on UFO crash
+- [x] Post-battle: XP gain, loot recovery, soldier sync
+- [x] Monthly budget cycle (salaries, funding)
 
 ## Phase 9 — Polish
 - [ ] Save / load game
@@ -71,6 +70,6 @@
 - [ ] Campaign victory condition (destroy alien base)
 
 ## Phase 10 — Quality
-- [ ] Increase test coverage (currently 28%)
+- [ ] Increase test coverage (currently ~35%)
 - [ ] Add integration tests for game loop
 - [ ] Benchmarks for AI and pathfinding

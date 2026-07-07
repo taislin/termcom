@@ -134,3 +134,151 @@ func TestFacilityDefs(t *testing.T) {
 		}
 	}
 }
+
+func TestAddItem(t *testing.T) {
+	b := NewBase("Test")
+	b.AddItem("rifle", 3)
+	if b.CountItem("rifle") != 3 {
+		t.Errorf("expected 3 rifles, got %d", b.CountItem("rifle"))
+	}
+	b.AddItem("rifle", 2)
+	if b.CountItem("rifle") != 5 {
+		t.Errorf("expected 5 rifles after add, got %d", b.CountItem("rifle"))
+	}
+}
+
+func TestRemoveItem(t *testing.T) {
+	b := NewBase("Test")
+	b.AddItem("rifle", 3)
+	if !b.RemoveItem("rifle", 2) {
+		t.Error("should succeed")
+	}
+	if b.CountItem("rifle") != 1 {
+		t.Errorf("expected 1, got %d", b.CountItem("rifle"))
+	}
+	if b.RemoveItem("rifle", 5) {
+		t.Error("should fail")
+	}
+}
+
+func TestAddLoot(t *testing.T) {
+	b := NewBase("Test")
+	b.AddLoot([]string{"alloys", "elerium", "corpse_sect"})
+	if b.CountItem("alloys") != 1 {
+		t.Error("expected 1 alloys")
+	}
+	if b.CountItem("elerium") != 1 {
+		t.Error("expected 1 elerium")
+	}
+	if b.CountItem("corpse_sect") != 1 {
+		t.Error("expected 1 corpse_sect")
+	}
+}
+
+func TestEquipWeapon(t *testing.T) {
+	b := NewBase("Test")
+	b.Facilities = append(b.Facilities, &Facility{Type: FacLivingQuarters})
+	b.HireSoldier()
+	b.AddItem("laser_rifle", 1)
+	s := b.Soldiers[0]
+	s.Weapon = "rifle"
+	if !b.EquipWeapon(0, "laser_rifle") {
+		t.Error("should equip")
+	}
+	if s.Weapon != "laser_rifle" {
+		t.Errorf("expected laser_rifle, got %s", s.Weapon)
+	}
+	if b.CountItem("rifle") != 1 {
+		t.Error("old weapon should be returned to stores")
+	}
+}
+
+func TestEquipWeaponNoStock(t *testing.T) {
+	b := NewBase("Test")
+	b.Facilities = append(b.Facilities, &Facility{Type: FacLivingQuarters})
+	b.HireSoldier()
+	if b.EquipWeapon(0, "plasma_rifle") {
+		t.Error("should fail with no stock")
+	}
+}
+
+func TestEquipArmor(t *testing.T) {
+	b := NewBase("Test")
+	b.Facilities = append(b.Facilities, &Facility{Type: FacLivingQuarters})
+	b.HireSoldier()
+	b.AddItem("personal", 1)
+	s := b.Soldiers[0]
+	s.Armor = "none"
+	if !b.EquipArmor(0, "personal") {
+		t.Error("should equip")
+	}
+	if s.Armor != "personal" {
+		t.Errorf("expected personal, got %s", s.Armor)
+	}
+}
+
+func TestEquipArmorSwap(t *testing.T) {
+	b := NewBase("Test")
+	b.Scientists = 0
+	b.Engineers = 0
+	b.Facilities = append(b.Facilities, &Facility{Type: FacLivingQuarters})
+	b.HireSoldier()
+	b.AddItem("medium", 1)
+	s := b.Soldiers[0]
+	s.Armor = "light"
+	if !b.EquipArmor(0, "medium") {
+		t.Error("should equip")
+	}
+	if s.Armor != "medium" {
+		t.Errorf("expected medium, got %s", s.Armor)
+	}
+	if b.CountItem("light") != 1 {
+		t.Errorf("old armor should be returned, got %d", b.CountItem("light"))
+	}
+}
+
+func TestEquipArmorNone(t *testing.T) {
+	b := NewBase("Test")
+	b.Scientists = 0
+	b.Engineers = 0
+	b.Facilities = append(b.Facilities, &Facility{Type: FacLivingQuarters})
+	b.HireSoldier()
+	s := b.Soldiers[0]
+	s.Armor = "personal"
+	if !b.EquipArmor(0, "none") {
+		t.Error("should equip none")
+	}
+	if s.Armor != "none" {
+		t.Errorf("expected none, got %s", s.Armor)
+	}
+	if b.CountItem("personal") != 1 {
+		t.Errorf("armor should return to stores, got %d", b.CountItem("personal"))
+	}
+}
+
+func TestMonthlyBudget(t *testing.T) {
+	b := NewBase("Test")
+	b.Scientists = 0
+	b.Engineers = 0
+	b.Facilities = append(b.Facilities, &Facility{Type: FacLivingQuarters})
+	b.HireSoldier()
+	salary := b.MonthlySalary()
+	if salary != 2000 {
+		t.Errorf("expected 2000, got %d", salary)
+	}
+	funding := b.GovernmentFunding()
+	if funding != 200000 {
+		t.Errorf("expected 200000, got %d", funding)
+	}
+}
+
+func TestStorageCapacity(t *testing.T) {
+	b := NewBase("Test")
+	if b.StorageCapacity() != 0 {
+		t.Error("no storage should be 0")
+	}
+	b.Facilities = append(b.Facilities, &Facility{Type: FacStorage})
+	if b.StorageCapacity() != 50 {
+		t.Errorf("expected 50, got %d", b.StorageCapacity())
+	}
+}
