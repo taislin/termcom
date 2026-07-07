@@ -228,8 +228,31 @@ func (m *BattleMap) generateCorridor(x1, y1, x2, y2 int, w int) {
 	}
 }
 
-// GenerateCrashSite creates a crash site map (OpenXcom: 50x50)
-func GenerateCrashSite(w, h int) *BattleMap {
+// GenerateProcedural creates a map based on a terrain biome definition.
+func GenerateProcedural(biomeName string, w, h int) *BattleMap {
+	biome, ok := Biomes[biomeName]
+	if !ok {
+		return GenerateCrashSite(w, h)
+	}
+	m := NewBattleMap(w, h)
+
+	for y := 0; y < h; y++ {
+		for x := 0; x < w; x++ {
+			m.Set(x, y, biome.DefaultTile)
+
+			r := rand.Intn(100)
+			cumulative := 0
+			for tileType, prob := range biome.TileProbs {
+				cumulative += prob
+				if r < cumulative {
+					m.Set(x, y, tileType)
+					break
+				}
+			}
+		}
+	}
+	return m
+}
 	m := NewBattleMap(w, h)
 
 	// Scatter terrain based on OpenXcom forest/jungle patterns

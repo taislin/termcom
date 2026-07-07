@@ -66,6 +66,7 @@ internal/
 - All rendering via tcell; no raw fmt.Print in game code
 - Coordinates: (x, y) where x=col, y=row (screen convention)
 - Map tiles: rune-based, colored via tcell.Style
+- Always update `docs/manual.md` whenever game data, balance, or mechanics change.
 
 ### Game Conventions (faithful to original X-COM)
 - Time Units (TU) for all actions in Battlescape

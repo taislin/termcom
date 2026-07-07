@@ -5,6 +5,7 @@ import (
 	"sort"
 
 	"github.com/civ13/ycom/internal/engine"
+	"github.com/civ13/ycom/internal/language"
 	"github.com/gdamore/tcell/v2"
 )
 
@@ -47,18 +48,18 @@ func (ms *ManufactureScreen) Update() {}
 
 func (ms *ManufactureScreen) Render(ctx *engine.ScreenCtx) {
 	w, h := ctx.Size()
-	ctx.DrawPanel(0, 0, w, h, "MANUFACTURING", engine.StyleDefault)
+	ctx.DrawPanel(0, 0, w, h, language.String("MANUFACTURE_TITLE"), engine.StyleDefault)
 
 	if ms.Base.TotalWorkshops() == 0 {
-		ctx.DrawString(2, 3, "No workshops. Build a Workshop first.", engine.StyleGray)
-		ctx.DrawString(2, 5, "Press Esc to return.", engine.StyleGray)
+		ctx.DrawString(2, 3, language.String("NO_WORKSHOPS_MFG"), engine.StyleGray)
+		ctx.DrawString(2, 5, language.String("PRESS_ESC"), engine.StyleGray)
 		return
 	}
 
-	ctx.DrawString(2, 2, fmt.Sprintf("Workshops: %d  Engineers: %d", ms.Base.TotalWorkshops(), ms.Base.Engineers), engine.StyleCyanBold)
+	ctx.DrawString(2, 2, fmt.Sprintf(language.String("WORKSHOPS_INFO"), ms.Base.TotalWorkshops(), ms.Base.Engineers), engine.StyleCyanBold)
 
 	if len(ms.Base.ManufactureQueue) > 0 {
-		ctx.DrawString(2, 3, "ACTIVE QUEUE:", engine.StyleGreen)
+		ctx.DrawString(2, 3, language.String("MFG_ACTIVE_QUEUE"), engine.StyleGreen)
 		y := 4
 		for _, job := range ms.Base.ManufactureQueue {
 			if y >= h-4 {
@@ -70,18 +71,18 @@ func (ms *ManufactureScreen) Render(ctx *engine.ScreenCtx) {
 			}
 			status := fmt.Sprintf("%s x%d (%d%%)", job.ItemKey, job.Count, pct)
 			if job.Completed {
-				status += " [DONE]"
+				status += language.String("MFG_DONE")
 			}
 			ctx.DrawString(2, y, status, engine.StyleDefault)
 			y++
 		}
 	}
 
-	ctx.DrawString(2, h/2, "BUILDABLE ITEMS:", engine.StyleCyanBold)
+	ctx.DrawString(2, h/2, language.String("MFG_BUILDABLE"), engine.StyleCyanBold)
 
 	plans := ms.getBuildablePlans()
 	if len(plans) == 0 {
-		ctx.DrawString(2, h/2+2, "No items available. Collect more alloys/elerium.", engine.StyleGray)
+		ctx.DrawString(2, h/2+2, language.String("MFG_NO_ITEMS"), engine.StyleGray)
 		return
 	}
 	if ms.Selection >= len(plans) {
@@ -107,7 +108,7 @@ func (ms *ManufactureScreen) Render(ctx *engine.ScreenCtx) {
 	}
 
 	ctx.DrawPanel(0, h-1, w, 1, "", engine.StyleGray)
-	help := "j/k=Select  Enter=Build  Esc=Back"
+	help := language.String("HELP_MANUFACTURE")
 	ctx.DrawString(1, h-1, help, engine.StyleGray)
 
 	if ms.Message != "" {
@@ -145,9 +146,9 @@ func (ms *ManufactureScreen) startManufacture() {
 	}
 	plan := plans[ms.Selection]
 	if ms.Base.StartManufacture(plan.ItemKey, 1, plan.Materials) {
-		ms.Message = fmt.Sprintf("Manufacturing started: %s", plan.Name)
+		ms.Message = fmt.Sprintf(language.String("MSG_MFG_STARTED"), plan.Name)
 	} else {
-		ms.Message = "Cannot manufacture!"
+		ms.Message = language.String("MSG_CANNOT_MFG")
 	}
 }
 

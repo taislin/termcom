@@ -3,6 +3,7 @@ package engine
 import (
 	"os"
 
+	"github.com/civ13/ycom/internal/language"
 	"github.com/gdamore/tcell/v2"
 )
 
@@ -56,7 +57,7 @@ func (ms *MenuScreen) Render(ctx *ScreenCtx) {
 	}
 
 	subY := startY + len(title) + 1
-	subtitle := "U F O   D E F E N S E"
+	subtitle := language.String("MENU_TITLE")
 	subX := (w - len(subtitle)) / 2
 	if subX < 0 {
 		subX = 0
@@ -75,7 +76,7 @@ func (ms *MenuScreen) Render(ctx *ScreenCtx) {
 	if verX < 0 {
 		verX = 0
 	}
-	ctx.DrawString(verX, subY+3, "ASCII Demake v0.1", StyleGray)
+	ctx.DrawString(verX, subY+3, language.String("MENU_SUBTITLE"), StyleGray)
 
 	menuY := subY + 6
 	options := ms.options()
@@ -91,14 +92,14 @@ func (ms *MenuScreen) Render(ctx *ScreenCtx) {
 	}
 
 	ctx.DrawPanel(0, h-1, w, 1, "", StyleGray)
-	ctx.DrawString(1, h-1, "j/k=Select  Enter=Confirm  Q=Quit", StyleGray)
+	ctx.DrawString(1, h-1, language.String("MENU_HELP"), StyleGray)
 }
 
 func (ms *MenuScreen) options() []string {
 	if HasSave() {
-		return []string{"New Game", "Continue", "Quit"}
+		return []string{language.String("MENU_NEW_GAME"), language.String("MENU_CONTINUE"), language.String("MENU_QUIT")}
 	}
-	return []string{"New Game", "Quit"}
+	return []string{language.String("MENU_NEW_GAME"), language.String("MENU_QUIT")}
 }
 
 func (ms *MenuScreen) HandleKey(e *tcell.EventKey) {
@@ -155,15 +156,15 @@ func (ms *MenuScreen) confirm() {
 		return
 	}
 	switch opts[ms.Selection] {
-	case "New Game":
+	case language.String("MENU_NEW_GAME"):
 		if ms.Game.OnNewGame != nil {
 			ms.Game.OnNewGame()
 		}
-	case "Continue":
+	case language.String("MENU_CONTINUE"):
 		if ms.Game.OnContinue != nil {
 			ms.Game.OnContinue()
 		}
-	case "Quit":
+	case language.String("MENU_QUIT"):
 		ms.Game.Quit()
 	}
 }

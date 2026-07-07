@@ -6,6 +6,7 @@ import (
 
 	"github.com/civ13/ycom/internal/data"
 	"github.com/civ13/ycom/internal/engine"
+	"github.com/civ13/ycom/internal/language"
 	"github.com/gdamore/tcell/v2"
 )
 
@@ -29,11 +30,11 @@ func (es *EquipScreen) Update() {}
 
 func (es *EquipScreen) Render(ctx *engine.ScreenCtx) {
 	w, h := ctx.Size()
-	ctx.DrawPanel(0, 0, w, h, "EQUIP SOLDIERS", engine.StyleDefault)
+	ctx.DrawPanel(0, 0, w, h, language.String("EQUIP_TITLE"), engine.StyleDefault)
 
 	if len(es.Base.Soldiers) == 0 {
-		ctx.DrawString(2, 3, "No soldiers in roster.", engine.StyleGray)
-		ctx.DrawString(2, 5, "Press Esc to return.", engine.StyleGray)
+		ctx.DrawString(2, 3, language.String("NO_SOLDIERS"), engine.StyleGray)
+		ctx.DrawString(2, 5, language.String("PRESS_ESC"), engine.StyleGray)
 		return
 	}
 
@@ -43,7 +44,7 @@ func (es *EquipScreen) Render(ctx *engine.ScreenCtx) {
 
 	rightX := w / 2
 
-	ctx.DrawString(2, 2, "SOLDIER:", engine.StyleCyanBold)
+	ctx.DrawString(2, 2, language.String("SECTION_SOLDIER"), engine.StyleCyanBold)
 	for i, s := range es.Base.Soldiers {
 		style := engine.StyleDefault
 		if i == es.SelectedSol {
@@ -55,10 +56,10 @@ func (es *EquipScreen) Render(ctx *engine.ScreenCtx) {
 
 	s := es.Base.Soldiers[es.SelectedSol]
 
-	ctx.DrawString(rightX, 2, "EQUIPMENT:", engine.StyleCyanBold)
+	ctx.DrawString(rightX, 2, language.String("SECTION_EQUIPMENT"), engine.StyleCyanBold)
 
-	weaponLabel := "Weapon:"
-	armorLabel := "Armor:"
+	weaponLabel := language.String("LABEL_WEAPON")
+	armorLabel := language.String("LABEL_ARMOR")
 	weaponStyle := engine.StyleDefault
 	armorStyle := engine.StyleDefault
 	if es.SelectedSlot == 0 {
@@ -85,7 +86,7 @@ func (es *EquipScreen) Render(ctx *engine.ScreenCtx) {
 	ctx.DrawString(rightX, 4, armorLabel, armorStyle)
 	ctx.DrawString(rightX+8, 4, aName, armorStyle)
 
-	ctx.DrawString(rightX, 6, "AVAILABLE IN STORES:", engine.StyleCyanBold)
+	ctx.DrawString(rightX, 6, language.String("SECTION_AVAILABLE"), engine.StyleCyanBold)
 
 	available := es.getAvailableItems()
 	y := 7
@@ -111,13 +112,13 @@ func (es *EquipScreen) Render(ctx *engine.ScreenCtx) {
 	}
 
 	if len(available) == 0 {
-		ctx.DrawString(rightX, 7, "No items in stores.", engine.StyleGray)
+		ctx.DrawString(rightX, 7, language.String("SECTION_NO_ITEMS"), engine.StyleGray)
 	}
 
 	ctx.DrawPanel(0, h-1, w, 1, "", engine.StyleGray)
-	help := "j/k=Select  1=Weapon  2=Armor  Space=Equip  Esc=Back"
+	help := language.String("HELP_EQUIP")
 	if len(available) > 0 {
-		help = "j/k=Soldier  Tab=Cycle  1=Wpn  2=Arm  Space=Equip  Esc=Back"
+		help = language.String("HELP_EQUIP_TAB")
 	}
 	ctx.DrawString(1, h-1, help, engine.StyleGray)
 
@@ -151,7 +152,7 @@ func (es *EquipScreen) getAvailableItems() []string {
 func (es *EquipScreen) equipSelected() {
 	available := es.getAvailableItems()
 	if len(available) == 0 {
-		es.Message = "No items available!"
+		es.Message = language.String("MSG_NO_ITEMS")
 		return
 	}
 	if es.CycleIdx >= len(available) {
@@ -162,22 +163,22 @@ func (es *EquipScreen) equipSelected() {
 	if es.SelectedSlot == 0 {
 		if es.Base.EquipWeapon(es.SelectedSol, item) {
 			if w, ok := data.RuleItems[item]; ok {
-				es.Message = fmt.Sprintf("Equipped %s.", w.Name)
+				es.Message = fmt.Sprintf(language.String("MSG_EQUIPPED"), w.Name)
 			} else {
-				es.Message = "Equipped."
+				es.Message = language.String("MSG_EQUIPPED_DONE")
 			}
 		} else {
-			es.Message = "Cannot equip!"
+			es.Message = language.String("MSG_CANNOT_EQUIP")
 		}
 	} else {
 		if es.Base.EquipArmor(es.SelectedSol, item) {
 			if a, ok := data.Armors[item]; ok {
-				es.Message = fmt.Sprintf("Equipped %s.", a.Name)
+				es.Message = fmt.Sprintf(language.String("MSG_EQUIPPED"), a.Name)
 			} else {
-				es.Message = "Equipped."
+				es.Message = language.String("MSG_EQUIPPED_DONE")
 			}
 		} else {
-			es.Message = "Cannot equip!"
+			es.Message = language.String("MSG_CANNOT_EQUIP")
 		}
 	}
 }

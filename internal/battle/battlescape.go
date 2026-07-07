@@ -6,6 +6,7 @@ import (
 
 	"github.com/civ13/ycom/internal/data"
 	"github.com/civ13/ycom/internal/engine"
+	"github.com/civ13/ycom/internal/language"
 	"github.com/civ13/ycom/internal/soldier"
 	"github.com/civ13/ycom/internal/audio"
 	"github.com/gdamore/tcell/v2"
@@ -79,7 +80,7 @@ func NewBattlescape(g *engine.Game, squad []*soldier.Soldier, ufoName string) *B
 		UFOName: ufoName,
 	}
 
-	bs.AddMessage(fmt.Sprintf("Mission: Eliminate all hostiles! UFO: %s", ufoName))
+	bs.AddMessage(fmt.Sprintf(language.String("BATTLE_MISSION_START"), ufoName))
 
 	for i, s := range squad {
 		if s.HP <= 0 {
@@ -271,10 +272,10 @@ func (bs *Battlescape) checkVictory() {
 	aliens := bs.Units.Faction(1).Alive()
 	if len(aliens) == 0 {
 		bs.Phase = PhaseVictory
-		bs.AddMessage("MISSION COMPLETE! All hostiles eliminated.")
+		bs.AddMessage(language.String("MSG_MISSION_COMPLETE"))
 	} else if len(humans) == 0 {
 		bs.Phase = PhaseDefeat
-		bs.AddMessage("MISSION FAILED! All soldiers KIA.")
+		bs.AddMessage(language.String("MSG_MISSION_FAILED"))
 	}
 }
 
@@ -341,7 +342,7 @@ func (bs *Battlescape) SelectUnit() {
 	unit := bs.Units.At(bs.CursorX, bs.CursorY)
 	if unit != nil && unit.Faction == 0 && unit.Alive && unit.Soldier != nil {
 		bs.Selected = unit
-		bs.AddMessage(fmt.Sprintf("Selected %s (HP:%d TU:%d)", unit.Soldier.Name, unit.HP, unit.TU))
+		bs.AddMessage(fmt.Sprintf(language.String("MSG_UNIT_SELECTED"), unit.Soldier.Name, unit.HP, unit.TU))
 	} else {
 		bs.cycleUnit(1)
 	}
@@ -356,18 +357,18 @@ func (bs *Battlescape) Confirm() {
 	// Click on friendly unit → select it
 	if unit != nil && unit.Faction == 0 && unit.Alive && unit.Soldier != nil {
 		bs.Selected = unit
-		bs.AddMessage(fmt.Sprintf("Selected %s (HP:%d TU:%d)", unit.Soldier.Name, unit.HP, unit.TU))
+		bs.AddMessage(fmt.Sprintf(language.String("MSG_UNIT_SELECTED"), unit.Soldier.Name, unit.HP, unit.TU))
 		return
 	}
 
 	// Click on enemy → fire at it (if selected soldier can see it)
 	if unit != nil && unit.Faction == 1 && unit.Alive {
 		if bs.Selected == nil {
-			bs.AddMessage("No soldier selected.")
+			bs.AddMessage(language.String("MSG_NO_SOLDIER_SELECTED"))
 			return
 		}
 		if !bs.Selected.CanSee(unit.X, unit.Y, bs.Map) {
-			bs.AddMessage("Target not in line of sight.")
+			bs.AddMessage(language.String("MSG_TARGET_NO_LOS"))
 			return
 		}
 		damage, hit, err := bs.Selected.FireAt(unit)
@@ -381,10 +382,10 @@ func (bs *Battlescape) Confirm() {
 			if unit.AlienType != nil {
 				name = unit.AlienType.Name
 			}
-			bs.AddMessage(fmt.Sprintf("HIT! %d damage to %s (HP:%d)", damage, name, unit.HP))
+			bs.AddMessage(fmt.Sprintf(language.String("MSG_HIT_TARGET"), damage, name, unit.HP))
 		} else {
 			audio.PlayShoot()
-			bs.AddMessage("Missed!")
+			bs.AddMessage(language.String("MSG_MISSED"))
 		}
 		return
 	}
@@ -392,13 +393,13 @@ func (bs *Battlescape) Confirm() {
 	// Click on empty ground → move selected soldier there
 	if unit == nil {
 		if bs.Selected == nil {
-			bs.AddMessage("No soldier selected.")
+			bs.AddMessage(language.String("MSG_NO_SOLDIER_SELECTED"))
 			return
 		}
 		if bs.Selected.MoveTo(bs.CursorX, bs.CursorY, bs.Map) {
-			bs.AddMessage(fmt.Sprintf("Moved %s to [%d,%d]", bs.Selected.Soldier.Name, bs.CursorX, bs.CursorY))
+			bs.AddMessage(fmt.Sprintf(language.String("MSG_MOVED"), bs.Selected.Soldier.Name, bs.CursorX, bs.CursorY))
 		} else {
-			bs.AddMessage("Cannot move there.")
+			bs.AddMessage(language.String("MSG_CANNOT_MOVE"))
 		}
 		return
 	}
@@ -409,9 +410,9 @@ func (bs *Battlescape) MoveSelected() {
 		return
 	}
 	if bs.Selected.MoveTo(bs.CursorX, bs.CursorY, bs.Map) {
-		bs.AddMessage(fmt.Sprintf("Moved %s to [%d,%d]", bs.Selected.Soldier.Name, bs.CursorX, bs.CursorY))
+		bs.AddMessage(fmt.Sprintf(language.String("MSG_MOVED"), bs.Selected.Soldier.Name, bs.CursorX, bs.CursorY))
 	} else {
-		bs.AddMessage("Cannot move there.")
+		bs.AddMessage(language.String("MSG_CANNOT_MOVE"))
 	}
 }
 
@@ -421,11 +422,11 @@ func (bs *Battlescape) FireWeapon() {
 	}
 	target := bs.Units.At(bs.CursorX, bs.CursorY)
 	if target == nil || target.Faction == 0 {
-		bs.AddMessage("No target.")
+		bs.AddMessage(language.String("MSG_NO_TARGET"))
 		return
 	}
 	if !bs.Selected.CanSee(target.X, target.Y, bs.Map) {
-		bs.AddMessage("Target not in line of sight.")
+		bs.AddMessage(language.String("MSG_TARGET_NO_LOS"))
 		return
 	}
 	damage, hit, err := bs.Selected.FireAt(target)
@@ -439,10 +440,10 @@ func (bs *Battlescape) FireWeapon() {
 		if target.AlienType != nil {
 			name = target.AlienType.Name
 		}
-		bs.AddMessage(fmt.Sprintf("HIT! %d damage to %s (HP:%d)", damage, name, target.HP))
+		bs.AddMessage(fmt.Sprintf(language.String("MSG_HIT_TARGET"), damage, name, target.HP))
 	} else {
 		audio.PlayShoot()
-		bs.AddMessage("Missed!")
+		bs.AddMessage(language.String("MSG_MISSED"))
 	}
 }
 
@@ -451,23 +452,23 @@ func (bs *Battlescape) Reload() {
 		return
 	}
 	if bs.Selected.TU < 8 {
-		bs.AddMessage("Not enough TU to reload.")
+		bs.AddMessage(language.String("MSG_NOT_ENOUGH_TU_RELOAD"))
 		return
 	}
 	w := data.Weapons[bs.Selected.Weapon]
 	if w.AmmoMax >= 99 {
-		bs.AddMessage("Energy weapon — no reload needed.")
+		bs.AddMessage(language.String("MSG_ENERGY_WEAPON"))
 		return
 	}
 	if w.AmmoCur >= w.AmmoMax {
-		bs.AddMessage("Weapon already fully loaded.")
+		bs.AddMessage(language.String("MSG_WEAPON_LOADED"))
 		return
 	}
 	bs.Selected.TU -= 8
 	w.AmmoCur = w.AmmoMax
 	data.Weapons[bs.Selected.Weapon] = w
 	audio.PlayClick()
-	bs.AddMessage(fmt.Sprintf("Reloaded %s. (%d/%d)", w.Name, w.AmmoCur, w.AmmoMax))
+	bs.AddMessage(fmt.Sprintf(language.String("MSG_RELOADED"), w.Name, w.AmmoCur, w.AmmoMax))
 }
 
 func (bs *Battlescape) EndTurn() {
@@ -476,7 +477,7 @@ func (bs *Battlescape) EndTurn() {
 	}
 	audio.PlayClick()
 	bs.Phase = PhaseAlienTurn
-	bs.AddMessage("Alien turn...")
+	bs.AddMessage(language.String("MSG_ALIEN_TURN"))
 }
 
 func (bs *Battlescape) Crouch() {
@@ -485,11 +486,11 @@ func (bs *Battlescape) Crouch() {
 	}
 	if bs.Selected.Crouching {
 		bs.Selected.Crouching = false
-		bs.AddMessage("Standing up.")
+		bs.AddMessage(language.String("MSG_STANDING_UP"))
 	} else if bs.Selected.TU >= 4 {
 		bs.Selected.Crouching = true
 		bs.Selected.TU -= 4
-		bs.AddMessage("Crouching.")
+		bs.AddMessage(language.String("MSG_CROUCHING"))
 	}
 }
 
@@ -498,7 +499,7 @@ func (bs *Battlescape) Grenade() {
 		return
 	}
 	if bs.Selected.TU < 20 {
-		bs.AddMessage("Not enough TU to throw grenade.")
+		bs.AddMessage(language.String("MSG_NOT_ENOUGH_TU_GRENADE"))
 		return
 	}
 
@@ -510,7 +511,7 @@ func (bs *Battlescape) Grenade() {
 	dy := ay - bs.Selected.Y
 	dist := dx*dx + dy*dy
 	if dist > grenadeRange*grenadeRange {
-		bs.AddMessage("Target out of grenade range!")
+		bs.AddMessage(language.String("MSG_GRENADE_OUT_OF_RANGE"))
 		return
 	}
 
@@ -536,7 +537,7 @@ func (bs *Battlescape) Grenade() {
 		}
 	}
 
-	bs.AddMessage(fmt.Sprintf("Grenade detonated at [%d,%d]!", ax, ay))
+	bs.AddMessage(fmt.Sprintf(language.String("MSG_GRENADE_DETONATED"), ax, ay))
 }
 
 func (bs *Battlescape) UseMedikit() {
@@ -544,7 +545,7 @@ func (bs *Battlescape) UseMedikit() {
 		return
 	}
 	if bs.Selected.TU < 25 {
-		bs.AddMessage("Not enough TU to use medikit.")
+		bs.AddMessage(language.String("MSG_NOT_ENOUGH_TU_MEDIKIT"))
 		return
 	}
 
@@ -554,11 +555,11 @@ func (bs *Battlescape) UseMedikit() {
 
 	target := bs.Units.At(mx, my)
 	if target == nil || target.Faction != 0 {
-		bs.AddMessage("Select a friendly unit to heal.")
+		bs.AddMessage(language.String("MSG_SELECT_FRIENDLY"))
 		return
 	}
 	if target.HP >= target.MaxHP {
-		bs.AddMessage("Soldier is already at full health.")
+		bs.AddMessage(language.String("MSG_ALREADY_FULL_HP"))
 		return
 	}
 
@@ -571,7 +572,7 @@ func (bs *Battlescape) UseMedikit() {
 	if target.Soldier != nil {
 		name = target.Soldier.Name
 	}
-	bs.AddMessage(fmt.Sprintf("Healed %s for %d HP. (HP:%d/%d)", name, healAmount, target.HP, target.MaxHP))
+	bs.AddMessage(fmt.Sprintf(language.String("MSG_HEALED"), name, healAmount, target.HP, target.MaxHP))
 }
 
 func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
@@ -651,7 +652,7 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 	}
 
 	// Draw log in sidebar
-	logTitle := "-- LOG --"
+	logTitle := language.String("BATTLE_LOG")
 	ctx.DrawString(sidebarX, 1, logTitle, engine.StyleCyanBold)
 
 	availableLines := viewH - 2
@@ -668,19 +669,19 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 		ctx.DrawString(sidebarX, 2+i, msg, engine.StyleDefault)
 	}
 
-	ctx.DrawPanel(0, h-4, w, 3, "BATTLESCAPE", engine.StyleDefault)
-	turnStr := fmt.Sprintf("Turn: %d | %s", bs.Turn, bs.phaseStr())
+	ctx.DrawPanel(0, h-4, w, 3, language.String("BATTLESCAPE"), engine.StyleDefault)
+	turnStr := fmt.Sprintf(language.String("STATUS_TURN"), bs.Turn, bs.phaseStr())
 	ctx.DrawString(2, h-3, turnStr, engine.StyleDefault)
 
 	if bs.Selected != nil {
-		selStr := fmt.Sprintf("Sel: %s HP:%d/%d TU:%d/%d W:%s",
+		selStr := fmt.Sprintf(language.String("STATUS_SELECTED"),
 			bs.Selected.Soldier.Name, bs.Selected.HP, bs.Selected.MaxHP,
 			bs.Selected.TU, bs.Selected.MaxTU, data.RuleItems[bs.Selected.Weapon].ShortName)
 		ctx.DrawString(w/2, h-3, selStr, engine.StyleCyan)
 	}
 
 	tile := bs.Map.At(bs.CursorX, bs.CursorY)
-	cursorStr := fmt.Sprintf("[%d,%d] %s", bs.CursorX, bs.CursorY, tileTypeName(tile.Type))
+	cursorStr := fmt.Sprintf(language.String("STATUS_CURSOR"), bs.CursorX, bs.CursorY, tileTypeName(tile.Type))
 	ctx.DrawString(w-30, h-3, cursorStr, engine.StyleGray)
 
 	if bs.Message != "" {
@@ -688,19 +689,19 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 	}
 
 	ctx.DrawPanel(0, h-1, w, 1, "", engine.StyleGray)
-	ctx.DrawString(1, h-1, " hjkl=Move Space/Enter=Act s=Cycle f=Fire r=Reload g=Grenade m=Medikit e=End c=Crouch", engine.StyleGray)
+	ctx.DrawString(1, h-1, language.String("BATTLE_HELP"), engine.StyleGray)
 }
 
 func (bs *Battlescape) phaseStr() string {
 	switch bs.Phase {
 	case PhasePlayerTurn:
-		return "YOUR TURN"
+		return language.String("PHASE_YOUR_TURN")
 	case PhaseAlienTurn:
-		return "ALIEN TURN"
+		return language.String("PHASE_ALIEN_TURN")
 	case PhaseVictory:
-		return "VICTORY"
+		return language.String("PHASE_VICTORY")
 	case PhaseDefeat:
-		return "DEFEAT"
+		return language.String("PHASE_DEFEAT")
 	}
 	return ""
 }
@@ -811,31 +812,31 @@ func (bs *Battlescape) cycleUnit(dir int) {
 	bs.Selected = humans[idx]
 	bs.CursorX = bs.Selected.X
 	bs.CursorY = bs.Selected.Y
-	bs.AddMessage(fmt.Sprintf("Selected %s (HP:%d TU:%d)", bs.Selected.Soldier.Name, bs.Selected.HP, bs.Selected.TU))
+	bs.AddMessage(fmt.Sprintf(language.String("MSG_UNIT_SELECTED"), bs.Selected.Soldier.Name, bs.Selected.HP, bs.Selected.TU))
 }
 
 func tileTypeName(t TileType) string {
 	switch t {
 	case TileFloor:
-		return "Floor"
+		return language.String("TILE_FLOOR")
 	case TileWall:
-		return "Wall"
+		return language.String("TILE_WALL")
 	case TileDoor:
-		return "Door"
+		return language.String("TILE_DOOR")
 	case TileGrass:
-		return "Grass"
+		return language.String("TILE_GRASS")
 	case TileTree:
-		return "Tree"
+		return language.String("TILE_TREE")
 	case TileRock:
-		return "Rock"
+		return language.String("TILE_ROCK")
 	case TileWater:
-		return "Water"
+		return language.String("TILE_WATER")
 	case TileUFOFloor:
-		return "UFO Floor"
+		return language.String("TILE_UFO_FLOOR")
 	case TileUFOWall:
-		return "UFO Wall"
+		return language.String("TILE_UFO_WALL")
 	}
-	return "Unknown"
+	return language.String("TILE_UNKNOWN")
 }
 
 func (ul UnitList) Faction(f int) UnitList {

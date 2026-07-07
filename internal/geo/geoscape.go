@@ -9,6 +9,7 @@ import (
 	"github.com/civ13/ycom/internal/base"
 	"github.com/civ13/ycom/internal/battle"
 	"github.com/civ13/ycom/internal/engine"
+	"github.com/civ13/ycom/internal/language"
 	"github.com/civ13/ycom/internal/save"
 	"github.com/civ13/ycom/internal/soldier"
 	"github.com/gdamore/tcell/v2"
@@ -54,8 +55,8 @@ func NewGeoscape(g *engine.Game) *Geoscape {
 		BaseY:        32,
 		ScrollX:      28,
 		ScrollY:      32,
-		BaseName:     "Base 1",
-		Message:      "Welcome, Commander. Your mission: defend Earth from alien invasion.",
+		BaseName:     language.String("MSG_BASE_NAME"),
+		Message:      language.String("MSG_WELCOME"),
 		MessageTimer: time.Now(),
 		Base:         b,
 		LastMonth:    int(g.GameTime.Month()),
@@ -73,7 +74,7 @@ func NewGeoscapeFromSave(g *engine.Game, sd *save.SaveData) *Geoscape {
 		ScrollX:       28,
 		ScrollY:       32,
 		BaseName:      b.Name,
-		Message:       "Game loaded successfully!",
+		Message:       language.String("MSG_GAME_LOADED"),
 		MessageTimer:  time.Now(),
 		Base:          b,
 		LastMonth:     int(sd.GameTime.Month()),
@@ -121,9 +122,9 @@ func (gs *Geoscape) Update() {
 		if r.Won {
 			gs.Base.AddLoot(r.LootItems)
 			gs.MissionsWon++
-			gs.Message = fmt.Sprintf("Victory! %d aliens killed. Loot: %v", r.Kills, r.LootItems)
+			gs.Message = fmt.Sprintf(language.String("MSG_VICTORY_LOOT"), r.Kills, r.LootItems)
 		} else {
-			gs.Message = fmt.Sprintf("Defeat! Lost: %v", dead)
+			gs.Message = fmt.Sprintf(language.String("MSG_DEFEAT_LOST"), dead)
 		}
 		gs.MessageTimer = time.Now()
 		gs.Game.ActiveBattle = nil
@@ -131,7 +132,7 @@ func (gs *Geoscape) Update() {
 
 	// Defeat check — alien activity too high
 	if gs.AlienActivity >= 100 && !gs.Victory {
-		gs.Message = "Earth has fallen! Alien activity is overwhelming!"
+		gs.Message = language.String("MSG_GAME_OVER_ACTIVITY")
 		gs.MessageTimer = time.Now()
 		gs.Victory = true
 		gs.Game.Paused = true
@@ -139,7 +140,7 @@ func (gs *Geoscape) Update() {
 
 	// Victory check — enough missions completed
 	if gs.MissionsWon >= 10 && !gs.Victory {
-		gs.Message = "Alien threat neutralized! You have saved Earth!"
+		gs.Message = language.String("MSG_GAME_WON")
 		gs.MessageTimer = time.Now()
 		gs.Victory = true
 		gs.Game.Paused = true
@@ -150,7 +151,7 @@ func (gs *Geoscape) Update() {
 		if gs.TickCounter%600 == 0 && gs.UFOs.Count() < 5 {
 			ufo := SpawnUFO()
 			gs.UFOs = append(gs.UFOs, ufo)
-			gs.Message = fmt.Sprintf("UFO detected! %s at [%d,%d]", ufo.Type.Name, ufo.TileX(), ufo.TileY())
+			gs.Message = fmt.Sprintf(language.String("MSG_UFO_DETECTED"), ufo.Type.Name, ufo.TileX(), ufo.TileY())
 			gs.MessageTimer = time.Now()
 		}
 
@@ -165,7 +166,7 @@ func (gs *Geoscape) Update() {
 		for _, m := range gs.Missions {
 			m.TurnsLeft--
 			if m.TurnsLeft <= 0 {
-				gs.Message = fmt.Sprintf("%s attack on %s! Panic spreads!", m.Type, m.CityName)
+				gs.Message = fmt.Sprintf(language.String("MSG_ATTACK_CITY"), m.Type, m.CityName)
 				gs.MessageTimer = time.Now()
 				gs.AlienActivity += 10
 			} else {
@@ -193,15 +194,15 @@ func (gs *Geoscape) Update() {
 
 		// Advance research and manufacturing
 		if gs.TickCounter%30 == 0 {
-			var msgs []string
-			done := gs.Base.AdvanceResearch()
-			for _, name := range done {
-				msgs = append(msgs, fmt.Sprintf("Research complete: %s", name))
-			}
-			crafted := gs.Base.AdvanceManufacture()
-			for _, item := range crafted {
-				msgs = append(msgs, fmt.Sprintf("Manufacturing complete: %s", item))
-			}
+		var msgs []string
+		done := gs.Base.AdvanceResearch()
+		for _, name := range done {
+			msgs = append(msgs, fmt.Sprintf(language.String("MSG_RESEARCH_COMPLETE"), name))
+		}
+		crafted := gs.Base.AdvanceManufacture()
+		for _, item := range crafted {
+			msgs = append(msgs, fmt.Sprintf(language.String("MSG_MANUFACTURE_COMPLETE"), item))
+		}
 			if len(msgs) > 0 {
 				gs.Message = msgs[0]
 				gs.MessageTimer = time.Now()
@@ -218,7 +219,7 @@ func (gs *Geoscape) Update() {
 		gs.Base.AdvanceDay()
 		gs.Base.AdvanceDay()
 		gs.Base.AdvanceDay()
-		gs.Message = fmt.Sprintf("MONTHLY REPORT: Funding +$%dK  Salaries -$%dK", funding/1000, salary/1000)
+		gs.Message = fmt.Sprintf(language.String("MSG_MONTHLY_REPORT"), funding/1000, salary/1000)
 		gs.MessageTimer = time.Now()
 	}
 }
@@ -234,7 +235,7 @@ func (gs *Geoscape) dogfight(inter *Interceptor) {
 		inter.Disengage()
 		gs.startBattle(ufo)
 	} else {
-		gs.Message = fmt.Sprintf("Hit UFO for %d damage!", damage)
+		gs.Message = fmt.Sprintf(language.String("MSG_HIT_UFO"), damage)
 		gs.MessageTimer = time.Now()
 	}
 
@@ -242,11 +243,11 @@ func (gs *Geoscape) dogfight(inter *Interceptor) {
 	if ufo.Active && inter.HP > 0 {
 		ufoDmg := ufo.FireAtInterceptor(inter)
 		if ufoDmg > 0 {
-			gs.Message = fmt.Sprintf("UFO hit interceptor for %d damage! (HP:%d/%d)", ufoDmg, inter.HP, inter.MaxHP)
+			gs.Message = fmt.Sprintf(language.String("MSG_UFO_HIT_INTERCEPTOR"), ufoDmg, inter.HP, inter.MaxHP)
 			gs.MessageTimer = time.Now()
 		}
 		if inter.HP <= 0 {
-			gs.Message = "Interceptor destroyed!"
+			gs.Message = language.String("MSG_INTERCEPTOR_DESTROYED")
 			gs.MessageTimer = time.Now()
 			inter.Disengage()
 		}
@@ -261,12 +262,12 @@ func (gs *Geoscape) startBattle(ufo *UFO) {
 		}
 	}
 	if aliveCount == 0 {
-		gs.Message = "No soldiers available to deploy!"
+		gs.Message = language.String("MSG_NO_SOLDIERS")
 		gs.MessageTimer = time.Now()
 		return
 	}
 	gs.Game.Paused = true
-	gs.Message = fmt.Sprintf("%s shot down! Sending squad...", ufo.Type.Name)
+	gs.Message = fmt.Sprintf(language.String("MSG_SHOT_DOWN"), ufo.Type.Name)
 	gs.MessageTimer = time.Now()
 
 	bs := battle.NewBattlescape(gs.Game, gs.Base.Soldiers, ufo.Type.Name)
@@ -275,7 +276,7 @@ func (gs *Geoscape) startBattle(ufo *UFO) {
 }
 
 func (gs *Geoscape) spawnMission() {
-	types := []string{"Terror", "Supply", "Alien Base Assault"}
+	types := []string{language.String("MISSION_TERROR"), language.String("MISSION_SUPPLY"), language.String("MISSION_ALIEN_BASE")}
 	cityNames := []string{"London", "Tokyo", "New York", "Moscow", "Sydney", "Paris", "Berlin"}
 	cityX := []int{85, 145, 50, 95, 150, 82, 88}
 	cityY := []int{28, 32, 32, 26, 55, 28, 27}
@@ -294,7 +295,7 @@ func (gs *Geoscape) spawnMission() {
 		Y:         cityY[cityIdx],
 	}
 	gs.Missions = append(gs.Missions, mission)
-	gs.Message = fmt.Sprintf("ALERT: %s mission near %s detected!", types[idx], cityNames[cityIdx])
+	gs.Message = fmt.Sprintf(language.String("MSG_ALERT_MISSION"), types[idx], cityNames[cityIdx])
 	gs.MessageTimer = time.Now()
 	gs.Game.Bell()
 	audio.PlayAlert()
@@ -302,7 +303,7 @@ func (gs *Geoscape) spawnMission() {
 
 func (gs *Geoscape) RespondToMission(idx int) {
 	if idx < 0 || idx >= len(gs.Missions) {
-		gs.Message = "Invalid mission index."
+		gs.Message = language.String("MSG_INVALID_MISSION")
 		gs.MessageTimer = time.Now()
 		return
 	}
@@ -314,24 +315,24 @@ func (gs *Geoscape) RespondToMission(idx int) {
 		}
 	}
 	if aliveCount == 0 {
-		gs.Message = "No healthy soldiers available to deploy!"
+		gs.Message = language.String("MSG_NO_HEALTHY_SOLDIERS")
 		gs.MessageTimer = time.Now()
 		return
 	}
 	mission := gs.Missions[idx]
 	gs.Missions = append(gs.Missions[:idx], gs.Missions[idx+1:]...)
-	gs.Message = fmt.Sprintf("Squad deployed to %s mission at %s!", mission.Type, mission.CityName)
+	gs.Message = fmt.Sprintf(language.String("MSG_SQUAD_DEPLOYED"), mission.Type, mission.CityName)
 	gs.MessageTimer = time.Now()
 	gs.Game.Paused = true
 
-	ufoName := "Crash Site"
+	ufoName := language.String("MISSION_CRASH_SITE")
 	switch mission.Type {
-	case "Terror":
-		ufoName = "Terror"
-	case "Supply":
-		ufoName = "Supply"
-	case "Alien Base Assault":
-		ufoName = "Alien Base"
+	case language.String("MISSION_TERROR"):
+		ufoName = language.String("MISSION_TYPE_TERROR")
+	case language.String("MISSION_SUPPLY"):
+		ufoName = language.String("MISSION_TYPE_SUPPLY")
+	case language.String("MISSION_ALIEN_BASE"):
+		ufoName = language.String("MISSION_TYPE_BASE")
 	}
 	bs := battle.NewBattlescape(gs.Game, gs.Base.Soldiers, ufoName)
 	gs.Game.SetScreen(engine.StateBattlescape, bs)
@@ -354,7 +355,7 @@ func (gs *Geoscape) Autoresolve() {
 		}
 	}
 	if nearest == nil {
-		gs.Message = "No UFOs to autoresolve."
+		gs.Message = language.String("MSG_NO_UFO_AUTO")
 		gs.MessageTimer = time.Now()
 		return
 	}
@@ -375,7 +376,7 @@ func (gs *Geoscape) Autoresolve() {
 	nearest.Active = false
 	if won {
 		gs.Game.Funds += int64(nearest.Type.Points * 1000)
-		gs.Message = fmt.Sprintf("Autoresolve: Victory! %s destroyed. +$%dK", nearest.Type.Name, nearest.Type.Points)
+		gs.Message = fmt.Sprintf(language.String("MSG_AUTO_VICTORY"), nearest.Type.Name, nearest.Type.Points)
 	} else {
 		if squadSize > 0 {
 			// build list of alive soldiers
@@ -388,9 +389,9 @@ func (gs *Geoscape) Autoresolve() {
 			idx := rand.Intn(len(alive))
 			alive[idx].HP = 0
 			gs.Base.RemoveDeadSoldiers()
-			gs.Message = fmt.Sprintf("Autoresolve: Defeat! Lost a soldier. %s escaped.", nearest.Type.Name)
+			gs.Message = fmt.Sprintf(language.String("MSG_AUTO_DEFEAT"), nearest.Type.Name)
 		} else {
-			gs.Message = "Autoresolve: No soldiers available!"
+			gs.Message = language.String("MSG_AUTO_NO_SOLDIERS")
 		}
 	}
 	gs.MessageTimer = time.Now()
@@ -428,9 +429,9 @@ func (gs *Geoscape) SaveGameToFile() {
 	}
 	err := save.SaveGame("xcom_save.json", sd)
 	if err != nil {
-		gs.Message = "Save failed: " + err.Error()
+		gs.Message = language.String("MSG_SAVE_FAILED") + err.Error()
 	} else {
-		gs.Message = "Game saved to xcom_save.json"
+		gs.Message = language.String("MSG_GAME_SAVED")
 	}
 	gs.MessageTimer = time.Now()
 }
@@ -438,7 +439,7 @@ func (gs *Geoscape) SaveGameToFile() {
 func (gs *Geoscape) LoadGameFromFile() {
 	sd, err := save.LoadGame("xcom_save.json")
 	if err != nil {
-		gs.Message = "Load failed: " + err.Error()
+		gs.Message = language.String("MSG_LOAD_FAILED") + err.Error()
 		gs.MessageTimer = time.Now()
 		return
 	}
@@ -471,16 +472,16 @@ func (gs *Geoscape) LoadGameFromFile() {
 		})
 	}
 	gs.BaseName = gs.Base.Name
-	gs.Message = "Game loaded successfully!"
+	gs.Message = language.String("MSG_GAME_LOADED")
 	gs.MessageTimer = time.Now()
 }
 
 func (gs *Geoscape) TogglePause() {
 	gs.Game.Paused = !gs.Game.Paused
 	if gs.Game.Paused {
-		gs.Message = "TIME PAUSED"
+		gs.Message = language.String("GEOSCAPE_TIME_PAUSED")
 	} else {
-		gs.Message = fmt.Sprintf("TIME RUNNING (Speed %dx)", gs.Game.TimeSpeed)
+		gs.Message = fmt.Sprintf(language.String("GEOSCAPE_TIME_RUNNING"), gs.Game.TimeSpeed)
 	}
 	gs.MessageTimer = time.Now()
 }
@@ -488,7 +489,7 @@ func (gs *Geoscape) TogglePause() {
 func (gs *Geoscape) SetSpeed(s int) {
 	gs.Game.TimeSpeed = s
 	gs.Game.Paused = false
-	gs.Message = fmt.Sprintf("Time speed: %dx", s)
+	gs.Message = fmt.Sprintf(language.String("GEOSCAPE_TIME_SPEED"), s)
 	gs.MessageTimer = time.Now()
 }
 
@@ -508,7 +509,7 @@ func (gs *Geoscape) LaunchInterceptor() {
 		}
 	}
 	if nearest == nil {
-		gs.Message = "No UFOs detected on radar."
+		gs.Message = language.String("GEOSCAPE_NO_UFO")
 		gs.MessageTimer = time.Now()
 		return
 	}
@@ -516,7 +517,7 @@ func (gs *Geoscape) LaunchInterceptor() {
 	inter := NewInterceptor(gs.BaseX, gs.BaseY)
 	inter.Launch(nearest)
 	gs.Interceptors = append(gs.Interceptors, inter)
-	gs.Message = fmt.Sprintf("Interceptor launched! Pursuing %s.", nearest.Type.Name)
+	gs.Message = fmt.Sprintf(language.String("MSG_INTERCEPTOR_LAUNCHED"), nearest.Type.Name)
 	gs.MessageTimer = time.Now()
 	gs.Game.Bell()
 	audio.PlayClick()
@@ -629,21 +630,21 @@ func (gs *Geoscape) Render(ctx *engine.ScreenCtx) {
 	// Legend
 	lx := w - 22
 	ly := 2
-	ctx.DrawPanel(lx, ly, 21, 10, "LEGEND", engine.StyleDefault)
+	ctx.DrawPanel(lx, ly, 21, 10, language.String("LEGEND"), engine.StyleDefault)
 	ctx.SetCell(lx+1, ly+1, '·', engine.StyleBlue)
-	ctx.DrawString(lx+3, ly+1, "Water", engine.StyleBlue)
+	ctx.DrawString(lx+3, ly+1, language.String("LEGEND_WATER"), engine.StyleBlue)
 	ctx.SetCell(lx+1, ly+2, '.', engine.StyleGreen)
-	ctx.DrawString(lx+3, ly+2, "Land", engine.StyleGreen)
+	ctx.DrawString(lx+3, ly+2, language.String("LEGEND_LAND"), engine.StyleGreen)
 	ctx.SetCell(lx+1, ly+3, '○', engine.StyleYellow)
-	ctx.DrawString(lx+3, ly+3, "City", engine.StyleYellow)
+	ctx.DrawString(lx+3, ly+3, language.String("LEGEND_CITY"), engine.StyleYellow)
 	ctx.SetCell(lx+1, ly+4, '▲', engine.StyleCyan)
-	ctx.DrawString(lx+3, ly+4, "Base", engine.StyleCyan)
+	ctx.DrawString(lx+3, ly+4, language.String("LEGEND_BASE"), engine.StyleCyan)
 	ctx.SetCell(lx+1, ly+5, '?', engine.StyleRed)
-	ctx.DrawString(lx+3, ly+5, "UFO", engine.StyleRed)
+	ctx.DrawString(lx+3, ly+5, language.String("LEGEND_UFO"), engine.StyleRed)
 	ctx.SetCell(lx+1, ly+6, '▸', engine.StyleCyanBold)
-	ctx.DrawString(lx+3, ly+6, "Interceptor", engine.StyleCyanBold)
+	ctx.DrawString(lx+3, ly+6, language.String("LEGEND_INTERCEPTOR"), engine.StyleCyanBold)
 	ctx.SetCell(lx+1, ly+7, '★', engine.StyleMagenta)
-	ctx.DrawString(lx+3, ly+7, "Mission", engine.StyleMagenta)
+	ctx.DrawString(lx+3, ly+7, language.String("LEGEND_MISSION"), engine.StyleMagenta)
 
 	for _, m := range gs.Missions {
 		mx := m.X - offsetX + 1
@@ -653,20 +654,20 @@ func (gs *Geoscape) Render(ctx *engine.ScreenCtx) {
 		}
 	}
 
-	ctx.DrawPanel(0, h-4, w, 3, "GEOSCAPE", engine.StyleDefault)
-	fundsStr := fmt.Sprintf("Funds: $%dK", gs.Game.Funds/1000)
-	timeStr := fmt.Sprintf("Time: %s", gs.Game.GameTime.Format("02/01/2006 15:04"))
-	pauseStr := "RUNNING"
+	ctx.DrawPanel(0, h-4, w, 3, language.String("GEOSCAPE"), engine.StyleDefault)
+	fundsStr := fmt.Sprintf(language.String("GEOSCAPE_FUNDS"), gs.Game.Funds/1000)
+	timeStr := fmt.Sprintf(language.String("GEOSCAPE_TIME"), gs.Game.GameTime.Format("02/01/2006 15:04"))
+	pauseStr := language.String("GEOSCAPE_RUNNING")
 	if gs.Game.Paused {
-		pauseStr = "PAUSED"
+		pauseStr = language.String("GEOSCAPE_PAUSED")
 	}
 	ctx.DrawString(2, h-3, fundsStr, engine.StyleGreen)
 	ctx.DrawString(w/3, h-3, timeStr, engine.StyleDefault)
 	ctx.DrawString(w*2/3, h-3, pauseStr, engine.StyleYellow)
 
-	soldiersStr := fmt.Sprintf("Squad: %d", len(gs.Base.Soldiers))
-	alienStr := fmt.Sprintf("Alien Activity: %d%%", gs.AlienActivity)
-	missionStr := fmt.Sprintf("Missions: %d Active, %d Won", len(gs.Missions), gs.MissionsWon)
+	soldiersStr := fmt.Sprintf(language.String("GEOSCAPE_SQUAD"), len(gs.Base.Soldiers))
+	alienStr := fmt.Sprintf(language.String("GEOSCAPE_ACTIVITY"), gs.AlienActivity)
+	missionStr := fmt.Sprintf(language.String("GEOSCAPE_MISSIONS"), len(gs.Missions), gs.MissionsWon)
 
 	ctx.DrawString(w-54, h-3, missionStr, engine.StyleMagenta)
 	ctx.DrawString(w-28, h-3, alienStr, engine.StyleRed)
@@ -677,7 +678,7 @@ func (gs *Geoscape) Render(ctx *engine.ScreenCtx) {
 	}
 
 	ctx.DrawPanel(0, h-1, w, 1, "", engine.StyleGray)
-	help := "[B]ase  [L]aunch  [A]utoresolve  [M]ission  Space=Pause  1-4=Speed  Q=Quit"
+	help := language.String("GEOSCAPE_HELP")
 	if gs.Victory {
 		help = "VICTORY ACHIEVED!  Q=Quit"
 	}
@@ -789,7 +790,7 @@ func (gs *Geoscape) HandleMouse(e *tcell.EventMouse) {
 		mx := x - 1 + offsetX
 		my := y - 1 + offsetY
 		if mx >= 0 && mx < mw && my >= 0 && my < mh {
-			gs.Message = fmt.Sprintf("Cursor at [%d,%d]", mx, my)
+			gs.Message = fmt.Sprintf(language.String("GEOSCAPE_CURSOR"), mx, my)
 			gs.MessageTimer = time.Now()
 		}
 	}

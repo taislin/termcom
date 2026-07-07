@@ -6,6 +6,7 @@ import (
 
 	"github.com/civ13/ycom/internal/data"
 	"github.com/civ13/ycom/internal/engine"
+	"github.com/civ13/ycom/internal/language"
 	"github.com/gdamore/tcell/v2"
 )
 
@@ -27,32 +28,32 @@ func (rs *ResearchScreen) Update() {}
 
 func (rs *ResearchScreen) Render(ctx *engine.ScreenCtx) {
 	w, h := ctx.Size()
-	ctx.DrawPanel(0, 0, w, h, "RESEARCH", engine.StyleDefault)
+	ctx.DrawPanel(0, 0, w, h, language.String("RESEARCH_TITLE"), engine.StyleDefault)
 
 	if rs.Base.TotalLabs() == 0 {
-		ctx.DrawString(2, 3, "No laboratories. Build a Lab first.", engine.StyleGray)
-		ctx.DrawString(2, 5, "Press Esc to return.", engine.StyleGray)
+		ctx.DrawString(2, 3, language.String("NO_LABS_RESEARCH"), engine.StyleGray)
+		ctx.DrawString(2, 5, language.String("PRESS_ESC"), engine.StyleGray)
 		return
 	}
 
-	ctx.DrawString(2, 2, fmt.Sprintf("Labs: %d  Scientists: %d", rs.Base.TotalLabs(), rs.Base.Scientists), engine.StyleCyanBold)
+	ctx.DrawString(2, 2, fmt.Sprintf(language.String("LABS_INFO"), rs.Base.TotalLabs(), rs.Base.Scientists), engine.StyleCyanBold)
 
 	if rs.Base.ActiveResearch != nil && !rs.Base.ActiveResearch.Completed {
 		topic := data.ResearchByID(rs.Base.ActiveResearch.TopicID)
 		if topic != nil {
 			pct := rs.Base.ActiveResearch.Progress * 100 / rs.Base.ActiveResearch.Cost
-			ctx.DrawString(2, 3, fmt.Sprintf("IN PROGRESS: %s (%d%% complete, %d scientists)",
+			ctx.DrawString(2, 3, fmt.Sprintf(language.String("RESEARCH_IN_PROGRESS"),
 				topic.Name, pct, rs.Base.ActiveResearch.Scientists), engine.StyleGreen)
 		}
 	} else {
-		ctx.DrawString(2, 3, "No active research. Select a topic below.", engine.StyleGray)
+		ctx.DrawString(2, 3, language.String("NO_ACTIVE_RESEARCH"), engine.StyleGray)
 	}
 
-	ctx.DrawString(2, 5, "AVAILABLE TOPICS:", engine.StyleCyanBold)
+	ctx.DrawString(2, 5, language.String("AVAILABLE_TOPICS"), engine.StyleCyanBold)
 
 	topics := rs.getAvailableTopics()
 	if len(topics) == 0 {
-		ctx.DrawString(2, 7, "No topics available. Collect more artifacts.", engine.StyleGray)
+		ctx.DrawString(2, 7, language.String("NO_TOPICS"), engine.StyleGray)
 		return
 	}
 	if rs.Selection >= len(topics) {
@@ -81,14 +82,14 @@ func (rs *ResearchScreen) Render(ctx *engine.ScreenCtx) {
 					reqStr += r
 				}
 			}
-			req = fmt.Sprintf(" [Requires: %s]", reqStr)
+			req = fmt.Sprintf(language.String("RESEARCH_REQUIRES"), reqStr)
 		}
-		line := fmt.Sprintf("%-25s Cost: %d man-days%s", topic.Name, topic.Cost, req)
+		line := fmt.Sprintf(language.String("RESEARCH_COST"), topic.Name, topic.Cost, req)
 		ctx.DrawString(2, 7+i, line, style)
 	}
 
 	ctx.DrawPanel(0, h-1, w, 1, "", engine.StyleGray)
-	help := "j/k=Select  Enter=Start  Esc=Back"
+	help := language.String("HELP_RESEARCH")
 	ctx.DrawString(1, h-1, help, engine.StyleGray)
 
 	if rs.Message != "" {
@@ -120,9 +121,9 @@ func (rs *ResearchScreen) startResearch() {
 	}
 	topic := topics[rs.Selection]
 	if rs.Base.StartResearch(topic.ID) {
-		rs.Message = fmt.Sprintf("Research started: %s", topic.Name)
+		rs.Message = fmt.Sprintf(language.String("MSG_RESEARCH_STARTED"), topic.Name)
 	} else {
-		rs.Message = "Cannot start research!"
+		rs.Message = language.String("MSG_CANNOT_RESEARCH")
 	}
 }
 
