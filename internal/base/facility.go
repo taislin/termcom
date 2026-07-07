@@ -167,6 +167,21 @@ func (b *Base) AdvanceDay() {
 			}
 		}
 	}
+	for _, s := range b.Soldiers {
+		if s.Wounds > 0 {
+			s.Wounds--
+			if s.Wounds <= 0 {
+				s.Wounds = 0
+				s.HP = s.MaxHP
+			} else {
+				healRate := 2
+				s.HP += healRate
+				if s.HP > s.MaxHP {
+					s.HP = s.MaxHP
+				}
+			}
+		}
+	}
 }
 
 type ManufactureItem struct {

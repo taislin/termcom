@@ -120,6 +120,12 @@ func (bs *Battlescape) finishBattle() {
 			if u.HP <= 0 {
 				u.Soldier.HP = 0
 				u.Soldier.Wounds = 30
+			} else if u.HP < u.MaxHP {
+				dmg := u.MaxHP - u.HP
+				u.Soldier.Wounds = dmg * 3
+				if u.Soldier.Wounds > 30 {
+					u.Soldier.Wounds = 30
+				}
 			}
 		}
 	}

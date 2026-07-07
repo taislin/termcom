@@ -38,6 +38,27 @@ func (bs *BaseScreen) BuildFacility() {
 	}
 }
 
+func (bs *BaseScreen) SellFacility() {
+	if bs.Tab == 0 && bs.Selection >= 0 && bs.Selection < len(bs.Base.Facilities) {
+		fac := bs.Base.Facilities[bs.Selection]
+		if fac.Building {
+			bs.Message = "Cannot sell under construction!"
+			return
+		}
+		def := FacilityDefs[fac.Type]
+		refund := int64(def.Cost) / 2
+		bs.Game.Funds += refund
+		bs.Base.Facilities = append(bs.Base.Facilities[:bs.Selection], bs.Base.Facilities[bs.Selection+1:]...)
+		bs.Message = fmt.Sprintf("Sold %s for $%dK", def.Name, refund/1000)
+		if bs.Selection >= len(bs.Base.Facilities) {
+			bs.Selection = len(bs.Base.Facilities) - 1
+		}
+		if bs.Selection < 0 {
+			bs.Selection = 0
+		}
+	}
+}
+
 func (bs *BaseScreen) HireSoldier() {
 	ok, msg := bs.Base.HireSoldier()
 	if ok {
@@ -105,7 +126,9 @@ func (bs *BaseScreen) Render(ctx *engine.ScreenCtx) {
 		ctx.DrawString(w/2, h-2, bs.Message, engine.StyleYellow)
 	}
 	help := "[B]uild  [H]ire  1-5=Tab  j/k=Navigate  Esc=Back"
-	if bs.Tab == 1 {
+	if bs.Tab == 0 {
+		help = "[B]uild  [S]ell  j/k=Navigate  Esc=Back"
+	} else if bs.Tab == 1 {
 		help = "[H]ire  [E]quip  [D]ismiss  j/k=Navigate  Esc=Back"
 	} else if bs.Tab == 2 {
 		help = "[R]esearch  j/k=Navigate  Esc=Back"
@@ -145,8 +168,8 @@ func (bs *BaseScreen) renderSoldiers(ctx *engine.ScreenCtx, x, y, w, h int) {
 		return
 	}
 
-	header := fmt.Sprintf("%-12s %-10s %4s %4s %4s %4s %4s %4s",
-		"Name", "Rank", "HP", "TU", "ACC", "BRA", "STR", "Kills")
+	header := fmt.Sprintf("%-12s %-10s %4s %4s %4s %4s %4s %4s %6s",
+		"Name", "Rank", "HP", "TU", "ACC", "BRA", "STR", "Kills", "Wounds")
 	ctx.DrawString(x, y+1, header, engine.StyleGray)
 
 	for i, s := range squad {
@@ -157,9 +180,17 @@ func (bs *BaseScreen) renderSoldiers(ctx *engine.ScreenCtx, x, y, w, h int) {
 		if i == bs.Selection {
 			style = engine.StyleHighlight
 		}
-		line := fmt.Sprintf("%-12s %-10s %4d %4d %4d %4d %4d %4d",
-			s.Name, s.Rank, s.HP, s.MaxTU, s.Accuracy, s.Bravery, s.Strength, s.Kills)
-		ctx.DrawString(x, y+3+i, line, style)
+		woundsStr := ""
+		if s.Wounds > 0 {
+			woundsStr = fmt.Sprintf("%dd", s.Wounds)
+		}
+		line := fmt.Sprintf("%-12s %-10s %4d %4d %4d %4d %4d %4d %6s",
+			s.Name, s.Rank, s.HP, s.MaxTU, s.Accuracy, s.Bravery, s.Strength, s.Kills, woundsStr)
+		if s.Wounds > 0 {
+			ctx.DrawString(x, y+3+i, line, engine.StyleRed)
+		} else {
+			ctx.DrawString(x, y+3+i, line, style)
+		}
 	}
 
 	info := fmt.Sprintf("Hire cost: $%dK  |  [H]ire  [D]ismiss", HireCost/1000)
@@ -172,7 +203,10 @@ func (bs *BaseScreen) renderResearch(ctx *engine.ScreenCtx, x, y, w, h int) {
 	if labs == 0 {
 		ctx.DrawString(x, y+2, "Build a Laboratory first.", engine.StyleGray)
 	} else {
-		ctx.DrawString(x, y+2, fmt.Sprintf("%d lab(s) operational. (Research screen coming soon)", labs), engine.StyleGray)
+		ctx.DrawString(x, y+2, fmt.Sprintf("%d lab(s) operational. [R] to open.", labs), engine.StyleGray)
+	}
+	if bs.Base.ActiveResearch != nil && !bs.Base.ActiveResearch.Completed {
+		ctx.DrawString(x, y+4, fmt.Sprintf("Active: %s", bs.Base.ActiveResearch.TopicID), engine.StyleGreen)
 	}
 }
 
@@ -182,13 +216,25 @@ func (bs *BaseScreen) renderManufacture(ctx *engine.ScreenCtx, x, y, w, h int) {
 	if wrks == 0 {
 		ctx.DrawString(x, y+2, "Build a Workshop first.", engine.StyleGray)
 	} else {
-		ctx.DrawString(x, y+2, fmt.Sprintf("%d workshop(s) operational. (Manufacturing coming soon)", wrks), engine.StyleGray)
+		ctx.DrawString(x, y+2, fmt.Sprintf("%d workshop(s) operational. [M] to open.", wrks), engine.StyleGray)
+	}
+	if len(bs.Base.ManufactureQueue) > 0 {
+		ctx.DrawString(x, y+4, fmt.Sprintf("Active jobs: %d", len(bs.Base.ManufactureQueue)), engine.StyleGreen)
 	}
 }
 
 func (bs *BaseScreen) renderTransfer(ctx *engine.ScreenCtx, x, y, w, h int) {
-	ctx.DrawString(x, y, "TRANSFERS:", engine.StyleCyanBold)
-	ctx.DrawString(x, y+2, "Single base. No transfers.", engine.StyleGray)
+	ctx.DrawString(x, y, "STORES:", engine.StyleCyanBold)
+	y += 2
+	for item, qty := range bs.Base.Stores {
+		if qty > 0 && y < h+2 {
+			ctx.DrawString(x, y, fmt.Sprintf("%-15s x%d", item, qty), engine.StyleDefault)
+			y++
+		}
+	}
+	if y == 2 {
+		ctx.DrawString(x, y, "No items in stores.", engine.StyleGray)
+	}
 }
 
 func (bs *BaseScreen) HandleKey(e *tcell.EventKey) {
@@ -242,6 +288,8 @@ func (bs *BaseScreen) HandleKey(e *tcell.EventKey) {
 			}
 		case 'b', 'B':
 			bs.BuildFacility()
+		case 's', 'S':
+			bs.SellFacility()
 		case 'h', 'H':
 			bs.HireSoldier()
 		case 'd', 'D':

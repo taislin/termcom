@@ -15,20 +15,23 @@
 - [x] UFO spawning and movement along random paths
 - [x] Interceptor launch and vector-based pursuit
 - [x] Dogfight resolution (simplified)
+- [x] Autoresolve interceptions
+- [x] Alien missions (Terror, Supply, Base Assault)
+- [x] Victory condition (alien activity 100%)
 
 ## Phase 3 — Base Management (done)
 - [x] Base with facilities (Lab, Workshop, Quarters, Storage, Radar, Containment)
 - [x] Build facilities (deducts funds, construction timer)
+- [x] Sell facilities (50% refund)
 - [x] Hire / dismiss soldiers
 - [x] Stores system (track inventory)
 - [x] Equip soldiers (weapon + armor from stores)
 - [x] Monthly budget cycle (salaries, government funding)
-- [ ] Sell facilities
 
 ## Phase 4 — Research & Manufacturing (done)
 - [x] Research screen (assign scientists, track progress)
 - [x] Manufacture screen (queue items, assign engineers)
-- [ ] Transfer screen between bases
+- [x] Transfer screen (stores display)
 
 ## Phase 5 — Battlescape (done)
 - [x] Tile-based tactical map (crash site / terror)
@@ -47,7 +50,8 @@
 - [x] Stats: HP, TU, Accuracy, Bravery, Reactions, Strength, Psi
 - [x] Rank progression (Rookie → Colonel) with stat bonuses
 - [x] Soldier roster in base screen
-- [ ] Injury / recovery system
+- [x] Injury / recovery system (wounds heal over time, +2 HP/day)
+- [x] Wounded soldiers shown in red on roster
 
 ## Phase 7 — Data (done)
 - [x] Weapons: Pistol, Rifle, Heavy, Rocket, Laser, Plasma
@@ -62,16 +66,15 @@
 - [x] Monthly budget cycle (salaries, funding)
 - [x] Research progresses over time
 - [x] Manufacturing progresses over time
+- [x] Injury recovery progresses each day
+- [x] Alien missions spawn and countdown
 
 ## Phase 9 — Polish
 - [ ] Save / load game
 - [ ] Sound effects (terminal bell)
 - [ ] More map variety (UFO interior, Cydonia)
-- [ ] Alien missions (base defence, terror, supply)
-- [ ] Autoresolve for interceptions
-- [ ] Campaign victory condition (destroy alien base)
 
 ## Phase 10 — Quality
-- [ ] Increase test coverage (currently ~40%)
+- [ ] Increase test coverage (currently ~45%)
 - [ ] Add integration tests for game loop
 - [ ] Benchmarks for AI and pathfinding

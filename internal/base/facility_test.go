@@ -403,3 +403,50 @@ func TestAdvanceManufacture(t *testing.T) {
 		t.Error("pistol should be in stores")
 	}
 }
+
+func TestAdvanceDayHealing(t *testing.T) {
+	b := NewBase("Test")
+	b.Facilities = append(b.Facilities, &Facility{Type: FacLivingQuarters})
+	b.HireSoldier()
+	s := b.Soldiers[0]
+	s.HP = 10
+	s.MaxHP = 20
+	s.Wounds = 5
+	b.AdvanceDay()
+	if s.Wounds != 4 {
+		t.Errorf("expected 4 wounds, got %d", s.Wounds)
+	}
+	if s.HP != 12 {
+		t.Errorf("expected 12 HP, got %d", s.HP)
+	}
+}
+
+func TestAdvanceDayFullHeal(t *testing.T) {
+	b := NewBase("Test")
+	b.Facilities = append(b.Facilities, &Facility{Type: FacLivingQuarters})
+	b.HireSoldier()
+	s := b.Soldiers[0]
+	s.HP = 10
+	s.MaxHP = 20
+	s.Wounds = 1
+	b.AdvanceDay()
+	if s.Wounds != 0 {
+		t.Errorf("expected 0 wounds, got %d", s.Wounds)
+	}
+	if s.HP != s.MaxHP {
+		t.Errorf("expected full HP %d, got %d", s.MaxHP, s.HP)
+	}
+}
+
+func TestSellFacility(t *testing.T) {
+	b := NewBase("Test")
+	b.Facilities = append(b.Facilities, &Facility{Type: FacLab, Building: false})
+	b.Facilities = append(b.Facilities, &Facility{Type: FacWorkshop, Building: false})
+	if len(b.Facilities) != 2 {
+		t.Fatal("expected 2 facilities")
+	}
+	b.Facilities = append(b.Facilities[:0], b.Facilities[1:]...)
+	if len(b.Facilities) != 1 {
+		t.Errorf("expected 1 facility, got %d", len(b.Facilities))
+	}
+}
