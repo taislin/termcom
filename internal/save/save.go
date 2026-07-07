@@ -185,6 +185,7 @@ func FromBase(b *base.Base) *BaseSave {
 
 func ToBase(bs *BaseSave) *base.Base {
 	b := base.NewBase(bs.Name)
+	b.Soldiers = nil
 	b.Scientists = bs.Scientists
 	b.Engineers = bs.Engineers
 	b.CompletedResearch = bs.CompletedResearch

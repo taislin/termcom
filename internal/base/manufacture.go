@@ -84,6 +84,9 @@ func (ms *ManufactureScreen) Render(ctx *engine.ScreenCtx) {
 		ctx.DrawString(2, h/2+2, "No items available. Collect more alloys/elerium.", engine.StyleGray)
 		return
 	}
+	if ms.Selection >= len(plans) {
+		ms.Selection = len(plans) - 1
+	}
 
 	startY := h/2 + 1
 	for i, plan := range plans {
@@ -156,11 +159,19 @@ func (ms *ManufactureScreen) HandleKey(e *tcell.EventKey) {
 			ms.Selection = 0
 		}
 	case tcell.KeyDown:
+		plans := ms.getBuildablePlans()
 		ms.Selection++
+		if ms.Selection >= len(plans) {
+			ms.Selection = len(plans) - 1
+		}
 	case tcell.KeyRune:
 		switch e.Rune() {
 		case 'j':
+			plans := ms.getBuildablePlans()
 			ms.Selection++
+			if ms.Selection >= len(plans) {
+				ms.Selection = len(plans) - 1
+			}
 		case 'k':
 			ms.Selection--
 			if ms.Selection < 0 {

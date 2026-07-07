@@ -4,6 +4,13 @@ import (
 	"math/rand"
 )
 
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
 type TileType int
 
 const (
@@ -194,8 +201,8 @@ func GenerateUFOInterior(w, h int) *BattleMap {
 	for i := 0; i < rooms; i++ {
 		rw := 4 + rand.Intn(4)
 		rh := 3 + rand.Intn(3)
-		rx := 2 + rand.Intn(w-rw-4)
-		ry := 2 + rand.Intn(h-rh-4)
+		rx := 2 + rand.Intn(max(1, w-rw-4))
+		ry := 2 + rand.Intn(max(1, h-rh-4))
 		for x := 0; x < rw; x++ {
 			m.Set(rx+x, ry, TileUFOWall)
 			m.Set(rx+x, ry+rh-1, TileUFOWall)

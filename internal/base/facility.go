@@ -82,13 +82,18 @@ type Base struct {
 }
 
 func NewBase(name string) *Base {
-	return &Base{
+	b := &Base{
 		Name:       name,
 		Scientists: 10,
 		Engineers:  10,
 		MaxStorage: 50,
 		Stores:     make(map[string]int),
 	}
+	for i := 0; i < 4; i++ {
+		s := soldier.NewSoldier(soldier.RandomName())
+		b.Soldiers = append(b.Soldiers, s)
+	}
+	return b
 }
 
 func (b *Base) CountFacility(ft FacilityType) int {
@@ -245,11 +250,11 @@ func (b *Base) EquipWeapon(soldierIdx int, weaponKey string) bool {
 		return false
 	}
 	s := b.Soldiers[soldierIdx]
-	if s.Weapon != "" && s.Weapon != "pistol" {
-		b.AddItem(s.Weapon, 1)
-	}
 	if !b.RemoveItem(weaponKey, 1) {
 		return false
+	}
+	if s.Weapon != "" && s.Weapon != "pistol" {
+		b.AddItem(s.Weapon, 1)
 	}
 	s.Weapon = weaponKey
 	return true
@@ -263,13 +268,13 @@ func (b *Base) EquipArmor(soldierIdx int, armorKey string) bool {
 		return false
 	}
 	s := b.Soldiers[soldierIdx]
-	if s.Armor != "none" {
-		b.AddItem(s.Armor, 1)
-	}
 	if armorKey != "none" {
 		if !b.RemoveItem(armorKey, 1) {
 			return false
 		}
+	}
+	if s.Armor != "none" {
+		b.AddItem(s.Armor, 1)
 	}
 	s.Armor = armorKey
 	return true
@@ -411,16 +416,19 @@ func (b *Base) StartManufacture(item string, count int, materials map[string]int
 
 func (b *Base) AdvanceManufacture() []string {
 	var completed []string
+	remaining := make([]*ManufactureJob, 0, len(b.ManufactureQueue))
 	for _, job := range b.ManufactureQueue {
 		if job.Completed {
 			continue
 		}
 		job.Progress += job.Engineers
 		if job.Progress >= job.CostDays {
-			job.Completed = true
 			b.AddItem(job.ItemKey, job.Count)
 			completed = append(completed, job.ItemKey)
+		} else {
+			remaining = append(remaining, job)
 		}
 	}
+	b.ManufactureQueue = remaining
 	return completed
 }

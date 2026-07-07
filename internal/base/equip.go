@@ -161,13 +161,21 @@ func (es *EquipScreen) equipSelected() {
 
 	if es.SelectedSlot == 0 {
 		if es.Base.EquipWeapon(es.SelectedSol, item) {
-			es.Message = fmt.Sprintf("Equipped %s.", data.Weapons[item].Name)
+			if w, ok := data.Weapons[item]; ok {
+				es.Message = fmt.Sprintf("Equipped %s.", w.Name)
+			} else {
+				es.Message = "Equipped."
+			}
 		} else {
 			es.Message = "Cannot equip!"
 		}
 	} else {
 		if es.Base.EquipArmor(es.SelectedSol, item) {
-			es.Message = fmt.Sprintf("Equipped %s.", data.Armors[item].Name)
+			if a, ok := data.Armors[item]; ok {
+				es.Message = fmt.Sprintf("Equipped %s.", a.Name)
+			} else {
+				es.Message = "Equipped."
+			}
 		} else {
 			es.Message = "Cannot equip!"
 		}

@@ -40,6 +40,12 @@ func (s *ScreenRaw) Size() (int, int) {
 	return s.width, s.height
 }
 
+func (s *ScreenRaw) UpdateSize() {
+	w, h := s.screen.Size()
+	s.width = w
+	s.height = h
+}
+
 func (s *ScreenRaw) SetCell(x, y int, ch rune, style tcell.Style) {
 	if x >= 0 && x < s.width && y >= 0 && y < s.height {
 		s.screen.SetContent(x, y, ch, nil, style)

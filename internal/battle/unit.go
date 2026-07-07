@@ -77,17 +77,17 @@ func (u *Unit) Name() string {
 }
 
 func (u *Unit) FireAt(target *Unit) (int, bool) {
-	if u.TU < 15 {
+	w := data.Weapons[u.Weapon]
+	if u.TU < w.TU {
 		return 0, false
 	}
-	w := data.Weapons[u.Weapon]
 	if w.AmmoCur <= 0 && w.AmmoMax < 99 {
 		return 0, false
 	}
 	if w.AmmoMax < 99 {
 		w.AmmoCur--
 	}
-	u.TU -= 15
+	u.TU -= w.TU
 
 	dist := math.Sqrt(float64((target.X-u.X)*(target.X-u.X) + (target.Y-u.Y)*(target.Y-u.Y)))
 	accMod := 100 - int(dist*3)
@@ -115,6 +115,8 @@ func (u *Unit) FireAt(target *Unit) (int, bool) {
 	if target.HP <= 0 {
 		target.Alive = false
 	}
+	// persist ammo change back to the global weapon map
+	data.Weapons[u.Weapon] = w
 	return damage, true
 }
 

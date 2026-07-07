@@ -70,8 +70,8 @@ func TestHireSoldier(t *testing.T) {
 	if !ok {
 		t.Errorf("HireSoldier failed: %s", msg)
 	}
-	if len(b.Soldiers) != 1 {
-		t.Errorf("expected 1 soldier, got %d", len(b.Soldiers))
+	if len(b.Soldiers) != 5 {
+		t.Errorf("expected 5 soldiers (4 starting + 1 hired), got %d", len(b.Soldiers))
 	}
 }
 
@@ -91,22 +91,22 @@ func TestDismissSoldier(t *testing.T) {
 	b.Facilities = append(b.Facilities, &Facility{Type: FacLivingQuarters})
 	b.HireSoldier()
 	b.HireSoldier()
-	if len(b.Soldiers) != 2 {
-		t.Fatal("expected 2 soldiers")
+	if len(b.Soldiers) != 6 {
+		t.Fatal("expected 6 soldiers (4 starting + 2 hired)")
 	}
 	b.DismissSoldier(0)
-	if len(b.Soldiers) != 1 {
-		t.Errorf("expected 1 soldier, got %d", len(b.Soldiers))
+	if len(b.Soldiers) != 5 {
+		t.Errorf("expected 5 soldiers, got %d", len(b.Soldiers))
 	}
 }
 
 func TestDismissOutOfBounds(t *testing.T) {
 	b := NewBase("Test")
-	if b.DismissSoldier(0) {
-		t.Error("should fail on empty roster")
-	}
 	if b.DismissSoldier(-1) {
 		t.Error("should fail on negative index")
+	}
+	if b.DismissSoldier(100) {
+		t.Error("should fail on out-of-bounds index")
 	}
 }
 
@@ -115,14 +115,15 @@ func TestRemoveDeadSoldiers(t *testing.T) {
 	b.Facilities = append(b.Facilities, &Facility{Type: FacLivingQuarters})
 	b.HireSoldier()
 	b.HireSoldier()
-	b.Soldiers[0].HP = 0
-	b.Soldiers[1].HP = 20
+	// b has 4 starting + 2 hired = 6, kill the 5th soldier (index 4)
+	b.Soldiers[4].HP = 0
+	b.Soldiers[5].HP = 20
 	dead := b.RemoveDeadSoldiers()
 	if len(dead) != 1 {
 		t.Errorf("expected 1 dead, got %d", len(dead))
 	}
-	if len(b.Soldiers) != 1 {
-		t.Errorf("expected 1 alive, got %d", len(b.Soldiers))
+	if len(b.Soldiers) != 5 {
+		t.Errorf("expected 5 alive, got %d", len(b.Soldiers))
 	}
 }
 
@@ -264,6 +265,8 @@ func TestMonthlyBudget(t *testing.T) {
 	b := NewBase("Test")
 	b.Scientists = 0
 	b.Engineers = 0
+	// HireSoldier already decreases soldiers - remove starting soldiers for clean test
+	b.Soldiers = nil
 	b.Facilities = append(b.Facilities, &Facility{Type: FacLivingQuarters})
 	b.HireSoldier()
 	salary := b.MonthlySalary()

@@ -37,7 +37,7 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList) {
 		return
 	}
 
-	nearest, dist := ai.findNearest(humanUnits)
+	nearest, dist := ai.findNearest(humanUnits, m)
 
 	switch ai.State {
 	case AIPatrol:
@@ -174,14 +174,14 @@ func (ai *AlienAI) meleeAttack(target *Unit) {
 	}
 }
 
-func (ai *AlienAI) findNearest(humanUnits UnitList) (*Unit, float64) {
+func (ai *AlienAI) findNearest(humanUnits UnitList, m *BattleMap) (*Unit, float64) {
 	var nearest *Unit
 	bestDist := 999.0
 	for _, h := range humanUnits {
 		if !h.Alive {
 			continue
 		}
-		if !ai.Unit.CanSee(h.X, h.Y, nil) {
+		if !ai.Unit.CanSee(h.X, h.Y, m) {
 			continue
 		}
 		dx := float64(h.X - ai.Unit.X)

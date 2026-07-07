@@ -79,6 +79,7 @@ func (s *Soldier) FireWeapon(target *Soldier) (int, bool) {
 		return 0, false
 	}
 	w.AmmoCur--
+	data.Weapons[s.Weapon] = w
 
 	// Accuracy roll
 	hit := rand.Intn(100) < s.Accuracy

@@ -52,6 +52,7 @@ type Game struct {
 
 	screens      map[GameState]Screen
 	keyChan      chan tcell.Event
+	eventDone    chan struct{}
 	ActiveBattle *BattleResult
 }
 
@@ -72,6 +73,7 @@ func NewGame() (*Game, error) {
 		Funds:     500000,
 		screens:   make(map[GameState]Screen),
 		keyChan:   make(chan tcell.Event, 20),
+		eventDone: make(chan struct{}),
 	}
 	return g, nil
 }
@@ -87,6 +89,7 @@ func (g *Game) SetScreen(s GameState, sc Screen) {
 func (g *Game) Run() {
 	defer g.screen.Close()
 	defer audio.Close()
+	defer close(g.eventDone)
 
 	go func() {
 		for {
@@ -94,7 +97,11 @@ func (g *Game) Run() {
 			if ev == nil {
 				return
 			}
-			g.keyChan <- ev
+			select {
+			case g.keyChan <- ev:
+			case <-g.eventDone:
+				return
+			}
 		}
 	}()
 
@@ -120,21 +127,19 @@ func (g *Game) drainEvents() {
 		select {
 		case ev := <-g.keyChan:
 			switch e := ev.(type) {
+			case *tcell.EventResize:
+				g.screen.UpdateSize()
 			case *tcell.EventKey:
-				if e.Key() == tcell.KeyEscape && e.Rune() == 0 {
+				if e.Key() == tcell.KeyEscape || (e.Key() == tcell.KeyRune && e.Rune() == 27) {
 					switch g.state {
 					case StateGeoscape:
 						g.running = false
 					default:
 						g.PopState()
 					}
-					return
-				}
-				if e.Rune() == '?' {
+				} else if e.Rune() == '?' {
 					g.PushState(StateHelp)
-					return
-				}
-				if sc, ok := g.screens[g.state]; ok {
+				} else if sc, ok := g.screens[g.state]; ok {
 					sc.HandleKey(e)
 				}
 			case *tcell.EventMouse:

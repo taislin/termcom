@@ -55,6 +55,9 @@ func (rs *ResearchScreen) Render(ctx *engine.ScreenCtx) {
 		ctx.DrawString(2, 7, "No topics available. Collect more artifacts.", engine.StyleGray)
 		return
 	}
+	if rs.Selection >= len(topics) {
+		rs.Selection = len(topics) - 1
+	}
 
 	for i, topic := range topics {
 		if 7+i >= h-3 {
@@ -131,11 +134,19 @@ func (rs *ResearchScreen) HandleKey(e *tcell.EventKey) {
 			rs.Selection = 0
 		}
 	case tcell.KeyDown:
+		topics := rs.getAvailableTopics()
 		rs.Selection++
+		if rs.Selection >= len(topics) {
+			rs.Selection = len(topics) - 1
+		}
 	case tcell.KeyRune:
 		switch e.Rune() {
 		case 'j':
+			topics := rs.getAvailableTopics()
 			rs.Selection++
+			if rs.Selection >= len(topics) {
+				rs.Selection = len(topics) - 1
+			}
 		case 'k':
 			rs.Selection--
 			if rs.Selection < 0 {

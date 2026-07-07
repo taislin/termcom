@@ -72,10 +72,10 @@ func TestSaveLoadGame(t *testing.T) {
 	if loadedBase.Name != "Test Base" {
 		t.Errorf("expected Test Base, got %s", loadedBase.Name)
 	}
-	if len(loadedBase.Soldiers) != 1 {
-		t.Fatalf("expected 1 soldier, got %d", len(loadedBase.Soldiers))
+	if len(loadedBase.Soldiers) != 5 {
+		t.Fatalf("expected 5 soldiers (4 starting + 1 custom), got %d", len(loadedBase.Soldiers))
 	}
-	sol := loadedBase.Soldiers[0]
+	sol := loadedBase.Soldiers[4]
 	if sol.Name != "TestGuy" {
 		t.Errorf("expected TestGuy, got %s", sol.Name)
 	}
@@ -134,10 +134,10 @@ func TestFromBaseToBase(t *testing.T) {
 	if b2.Scientists != 20 {
 		t.Errorf("expected 20 scientists, got %d", b2.Scientists)
 	}
-	if len(b2.Soldiers) != 1 {
-		t.Fatalf("expected 1 soldier, got %d", len(b2.Soldiers))
+	if len(b2.Soldiers) != 5 {
+		t.Fatalf("expected 5 soldiers (4 starting + 1 custom), got %d", len(b2.Soldiers))
 	}
-	s2 := b2.Soldiers[0]
+	s2 := b2.Soldiers[4]
 	if s2.Name != "Alice" {
 		t.Errorf("expected Alice, got %s", s2.Name)
 	}

@@ -278,7 +278,7 @@ func (bs *Battlescape) MoveCursor(dx, dy int) {
 
 	scrW, scrH := bs.Game.ScreenSize()
 	viewW := scrW - 2
-	viewH := scrH - 4
+	viewH := scrH - 5
 	if bs.CursorX < bs.ScrollX+2 {
 		bs.ScrollX = bs.CursorX - 2
 	}
@@ -304,15 +304,17 @@ func (bs *Battlescape) SelectUnit() {
 		return
 	}
 	unit := bs.Units.At(bs.CursorX, bs.CursorY)
-	if unit != nil && unit.Faction == 0 && unit.Alive {
+	if unit != nil && unit.Faction == 0 && unit.Alive && unit.Soldier != nil {
 		bs.Selected = unit
 		bs.Message = fmt.Sprintf("Selected %s (HP:%d TU:%d)", unit.Soldier.Name, unit.HP, unit.TU)
-	} else if bs.Selected != nil {
+	} else if bs.Selected != nil && unit == nil {
 		if bs.Selected.MoveTo(bs.CursorX, bs.CursorY, bs.Map) {
 			bs.Message = fmt.Sprintf("Moved %s to [%d,%d]", bs.Selected.Soldier.Name, bs.CursorX, bs.CursorY)
 		} else {
 			bs.Message = "Cannot move there."
 		}
+	} else {
+		bs.cycleUnit(1)
 	}
 }
 
@@ -418,7 +420,7 @@ func (bs *Battlescape) Grenade() {
 	bs.Selected.TU -= 20
 
 	for _, u := range bs.Units {
-		if !u.Alive || u.Faction == 0 {
+		if !u.Alive {
 			continue
 		}
 		udx := u.X - ax
@@ -478,7 +480,7 @@ func (bs *Battlescape) UseMedikit() {
 func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 	w, h := ctx.Size()
 	viewW := w - 2
-	viewH := h - 4
+	viewH := h - 5
 
 	for y := 0; y < viewH; y++ {
 		for x := 0; x < viewW; x++ {
@@ -536,30 +538,33 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 		if u == bs.Selected {
 			style = style.Reverse(true)
 		}
+		if u.X == bs.CursorX && u.Y == bs.CursorY {
+			style = style.Reverse(true)
+		}
 		ctx.SetCell(sx, sy, ch, style)
 	}
 
-	ctx.DrawPanel(0, h-3, w, 2, "BATTLESCAPE", engine.StyleDefault)
+	ctx.DrawPanel(0, h-4, w, 3, "BATTLESCAPE", engine.StyleDefault)
 	turnStr := fmt.Sprintf("Turn: %d | %s", bs.Turn, bs.phaseStr())
-	ctx.DrawString(2, h-2, turnStr, engine.StyleDefault)
+	ctx.DrawString(2, h-3, turnStr, engine.StyleDefault)
 
 	if bs.Selected != nil {
 		selStr := fmt.Sprintf("Sel: %s HP:%d/%d TU:%d/%d W:%s",
 			bs.Selected.Soldier.Name, bs.Selected.HP, bs.Selected.MaxHP,
 			bs.Selected.TU, bs.Selected.MaxTU, data.Weapons[bs.Selected.Weapon].ShortName)
-		ctx.DrawString(w/2, h-2, selStr, engine.StyleCyan)
+		ctx.DrawString(w/2, h-3, selStr, engine.StyleCyan)
 	}
 
 	tile := bs.Map.At(bs.CursorX, bs.CursorY)
 	cursorStr := fmt.Sprintf("[%d,%d] %s", bs.CursorX, bs.CursorY, tileTypeName(tile.Type))
-	ctx.DrawString(w-30, h-2, cursorStr, engine.StyleGray)
-
-	ctx.DrawPanel(0, h-1, w, 1, "", engine.StyleGray)
-	ctx.DrawString(1, h-1, " hjkl=Move s=Sel f=Fire r=Reload g=Grenade m=Medikit e=End c=Crouch ?=Help", engine.StyleGray)
+	ctx.DrawString(w-30, h-3, cursorStr, engine.StyleGray)
 
 	if bs.Message != "" {
 		ctx.DrawString(2, h-2, bs.Message, engine.StyleYellow)
 	}
+
+	ctx.DrawPanel(0, h-1, w, 1, "", engine.StyleGray)
+	ctx.DrawString(1, h-1, " hjkl=Move s=Sel f=Fire r=Reload g=Grenade m=Medikit e=End c=Crouch ?=Help", engine.StyleGray)
 }
 
 func (bs *Battlescape) phaseStr() string {
@@ -599,23 +604,23 @@ func (bs *Battlescape) HandleKey(e *tcell.EventKey) {
 			bs.Reload()
 		case 'e', 'E':
 			bs.EndTurn()
-		case 'h':
+		case 'h', 'H':
 			bs.MoveCursor(-1, 0)
-		case 'j':
+		case 'j', 'J':
 			bs.MoveCursor(0, 1)
-		case 'k':
+		case 'k', 'K':
 			bs.MoveCursor(0, -1)
-		case 'l':
+		case 'l', 'L':
 			bs.MoveCursor(1, 0)
-		case 's':
+		case 's', 'S':
 			bs.SelectUnit()
-		case 'c':
+		case 'c', 'C':
 			bs.Crouch()
-		case 'g':
+		case 'g', 'G':
 			bs.Grenade()
-		case 'm':
+		case 'm', 'M':
 			bs.UseMedikit()
-		case 'n':
+		case 'n', 'N':
 			bs.EndTurn()
 		}
 	}

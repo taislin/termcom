@@ -60,15 +60,14 @@ func (bs *BaseScreen) SellFacility() {
 }
 
 func (bs *BaseScreen) HireSoldier() {
+	if bs.Game.Funds < int64(HireCost) {
+		bs.Message = "Insufficient funds to hire!"
+		return
+	}
 	ok, msg := bs.Base.HireSoldier()
 	if ok {
-		if bs.Game.Funds >= int64(HireCost) {
-			bs.Game.Funds -= int64(HireCost)
-			bs.Message = msg + fmt.Sprintf(" ($%dK)", HireCost/1000)
-		} else {
-			bs.Base.DismissSoldier(len(bs.Base.Soldiers) - 1)
-			bs.Message = "Insufficient funds to hire!"
-		}
+		bs.Game.Funds -= int64(HireCost)
+		bs.Message = msg + fmt.Sprintf(" ($%dK)", HireCost/1000)
 	} else {
 		bs.Message = msg
 	}
@@ -151,7 +150,12 @@ func (bs *BaseScreen) renderFacilities(ctx *engine.ScreenCtx, x, y, w, h int) {
 		building := ""
 		for _, f := range bs.Base.Facilities {
 			if f.Type == ft && f.Building {
-				building = fmt.Sprintf(" (Building: %d days)", f.DaysLeft)
+				if building == "" {
+					building = fmt.Sprintf(" (Building: %d days)", f.DaysLeft)
+				} else {
+					building = " (Building)"
+				}
+				break
 			}
 		}
 		line := fmt.Sprintf("%-20s x%d $%dK%s", def.Name, count, def.Cost/1000, building)
@@ -242,7 +246,11 @@ func (bs *BaseScreen) HandleKey(e *tcell.EventKey) {
 	case tcell.KeyUp:
 		bs.Selection--
 		if bs.Selection < 0 {
-			bs.Selection = 6
+			if bs.Tab == 1 {
+				bs.Selection = len(bs.Base.Soldiers) - 1
+			} else {
+				bs.Selection = 6
+			}
 		}
 	case tcell.KeyDown:
 		bs.Selection++
@@ -281,10 +289,23 @@ func (bs *BaseScreen) HandleKey(e *tcell.EventKey) {
 			bs.Tab = 4
 		case 'j':
 			bs.Selection++
+			if bs.Tab == 1 {
+				if bs.Selection >= len(bs.Base.Soldiers) {
+					bs.Selection = 0
+				}
+			} else {
+				if bs.Selection > 6 {
+					bs.Selection = 0
+				}
+			}
 		case 'k':
 			bs.Selection--
 			if bs.Selection < 0 {
-				bs.Selection = 0
+				if bs.Tab == 1 {
+					bs.Selection = len(bs.Base.Soldiers) - 1
+				} else {
+					bs.Selection = 6
+				}
 			}
 		case 'b', 'B':
 			bs.BuildFacility()
@@ -336,9 +357,9 @@ func (bs *BaseScreen) HandleMouse(e *tcell.EventMouse) {
 
 	if y == h-2 {
 		switch {
-		case x >= 1 && x <= 9:
+		case x >= 1 && x <= 9 && bs.Tab == 0:
 			bs.BuildFacility()
-		case x >= 11 && x <= 18:
+		case x >= 11 && x <= 18 && bs.Tab == 1:
 			bs.HireSoldier()
 		}
 	}

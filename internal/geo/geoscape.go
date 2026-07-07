@@ -5,11 +5,12 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/civ13/ycom/internal/audio"
 	"github.com/civ13/ycom/internal/base"
 	"github.com/civ13/ycom/internal/battle"
 	"github.com/civ13/ycom/internal/engine"
 	"github.com/civ13/ycom/internal/save"
-	"github.com/civ13/ycom/internal/audio"
+	"github.com/civ13/ycom/internal/soldier"
 	"github.com/gdamore/tcell/v2"
 )
 
@@ -25,6 +26,8 @@ type Geoscape struct {
 	UFOs          UFOList
 	Interceptors  InterceptorList
 	BaseX, BaseY  int
+	ScrollX       int
+	ScrollY       int
 	BaseName      string
 	Message       string
 	MessageTimer  time.Time
@@ -49,6 +52,8 @@ func NewGeoscape(g *engine.Game) *Geoscape {
 		Game:         g,
 		BaseX:        28,
 		BaseY:        32,
+		ScrollX:      28,
+		ScrollY:      32,
 		BaseName:     "Base 1",
 		Message:      "Welcome, Commander. Your mission: defend Earth from alien invasion.",
 		MessageTimer: time.Now(),
@@ -78,30 +83,6 @@ func (gs *Geoscape) Update() {
 		gs.Game.ActiveBattle = nil
 	}
 
-	// Spawn UFOs periodically
-	if gs.TickCounter%600 == 0 && gs.UFOs.Count() < 5 {
-		ufo := SpawnUFO()
-		gs.UFOs = append(gs.UFOs, ufo)
-		gs.Message = fmt.Sprintf("UFO detected! %s at [%d,%d]", ufo.Type.Name, ufo.TileX(), ufo.TileY())
-		gs.MessageTimer = time.Now()
-	}
-
-	// Spawn alien missions periodically
-	if gs.TickCounter%1800 == 0 {
-		gs.spawnMission()
-	}
-
-	// Check mission timers
-	for _, m := range gs.Missions {
-		m.TurnsLeft--
-		if m.TurnsLeft <= 0 {
-			gs.Message = fmt.Sprintf("%s attack on %s! Panic spreads!", m.Type, m.CityName)
-			gs.MessageTimer = time.Now()
-			gs.AlienActivity += 10
-			gs.Missions = gs.Missions[1:]
-		}
-	}
-
 	// Defeat check — alien activity too high
 	if gs.AlienActivity >= 100 && !gs.Victory {
 		gs.Message = "Earth has fallen! Alien activity is overwhelming!"
@@ -118,20 +99,48 @@ func (gs *Geoscape) Update() {
 		gs.Game.Paused = true
 	}
 
-	for _, u := range gs.UFOs {
-		u.Update()
-	}
+	if !gs.Game.Paused && gs.Game.TimeSpeed > 0 {
+		// Spawn UFOs periodically
+		if gs.TickCounter%600 == 0 && gs.UFOs.Count() < 5 {
+			ufo := SpawnUFO()
+			gs.UFOs = append(gs.UFOs, ufo)
+			gs.Message = fmt.Sprintf("UFO detected! %s at [%d,%d]", ufo.Type.Name, ufo.TileX(), ufo.TileY())
+			gs.MessageTimer = time.Now()
+		}
 
-	for _, i := range gs.Interceptors {
-		if i.Launching {
-			reached := i.Update()
-			if reached {
-				gs.dogfight(i)
+		// Spawn alien missions periodically
+		if gs.TickCounter%1800 == 0 {
+			gs.spawnMission()
+		}
+
+		// Check mission timers — iterate over a copy of the slice
+		// to avoid mutating the slice during iteration
+		remaining := make([]*AlienMission, 0, len(gs.Missions))
+		for _, m := range gs.Missions {
+			m.TurnsLeft--
+			if m.TurnsLeft <= 0 {
+				gs.Message = fmt.Sprintf("%s attack on %s! Panic spreads!", m.Type, m.CityName)
+				gs.MessageTimer = time.Now()
+				gs.AlienActivity += 10
+			} else {
+				remaining = append(remaining, m)
 			}
 		}
-	}
+		gs.Missions = remaining
 
-	if !gs.Game.Paused && gs.Game.TimeSpeed > 0 {
+		for _, u := range gs.UFOs {
+			u.Update()
+		}
+
+		for _, i := range gs.Interceptors {
+			if i.Launching {
+				reached := i.Update()
+				if reached {
+					gs.dogfight(i)
+				}
+			}
+		}
+
 		speedMult := []int{0, 1, 5, 20, 60}
 		minutes := speedMult[gs.Game.TimeSpeed]
 		gs.Game.GameTime = gs.Game.GameTime.Add(time.Duration(minutes) * time.Minute)
@@ -199,6 +208,17 @@ func (gs *Geoscape) dogfight(inter *Interceptor) {
 }
 
 func (gs *Geoscape) startBattle(ufo *UFO) {
+	aliveCount := 0
+	for _, s := range gs.Base.Soldiers {
+		if s.HP > 0 {
+			aliveCount++
+		}
+	}
+	if aliveCount == 0 {
+		gs.Message = "No soldiers available to deploy!"
+		gs.MessageTimer = time.Now()
+		return
+	}
 	gs.Game.Paused = true
 	gs.Message = fmt.Sprintf("%s shot down! Sending squad...", ufo.Type.Name)
 	gs.MessageTimer = time.Now()
@@ -237,6 +257,18 @@ func (gs *Geoscape) spawnMission() {
 func (gs *Geoscape) RespondToMission(idx int) {
 	if idx < 0 || idx >= len(gs.Missions) {
 		gs.Message = "Invalid mission index."
+		gs.MessageTimer = time.Now()
+		return
+	}
+	// Check for alive soldiers
+	aliveCount := 0
+	for _, s := range gs.Base.Soldiers {
+		if s.HP > 0 {
+			aliveCount++
+		}
+	}
+	if aliveCount == 0 {
+		gs.Message = "No healthy soldiers available to deploy!"
 		gs.MessageTimer = time.Now()
 		return
 	}
@@ -281,7 +313,13 @@ func (gs *Geoscape) Autoresolve() {
 		return
 	}
 
-	squadSize := len(gs.Base.Soldiers)
+	aliveCount := 0
+	for _, s := range gs.Base.Soldiers {
+		if s.HP > 0 {
+			aliveCount++
+		}
+	}
+	squadSize := aliveCount
 	chance := 30 + squadSize*10
 	if chance > 85 {
 		chance = 85
@@ -294,8 +332,15 @@ func (gs *Geoscape) Autoresolve() {
 		gs.Message = fmt.Sprintf("Autoresolve: Victory! %s destroyed. +$%dK", nearest.Type.Name, nearest.Type.Points)
 	} else {
 		if squadSize > 0 {
-			idx := rand.Intn(squadSize)
-			gs.Base.Soldiers[idx].HP = 0
+			// build list of alive soldiers
+			var alive []*soldier.Soldier
+			for _, s := range gs.Base.Soldiers {
+				if s.HP > 0 {
+					alive = append(alive, s)
+				}
+			}
+			idx := rand.Intn(len(alive))
+			alive[idx].HP = 0
 			gs.Base.RemoveDeadSoldiers()
 			gs.Message = fmt.Sprintf("Autoresolve: Defeat! Lost a soldier. %s escaped.", nearest.Type.Name)
 		} else {
@@ -435,17 +480,36 @@ func (gs *Geoscape) Render(ctx *engine.ScreenCtx) {
 	w, h := ctx.Size()
 	mw, mh := MapSize()
 
-	offsetX := 0
-	if mw > w-2 {
-		offsetX = (mw - w + 2) / 2
+	viewW := w - 2
+	viewH := h - 6
+
+	halfVW := viewW / 2
+	halfVH := viewH / 2
+
+	offsetX := gs.ScrollX - halfVW
+	offsetY := gs.ScrollY - halfVH
+
+	if offsetX < 0 {
+		offsetX = 0
 	}
-	offsetY := 0
-	if mh > h-6 {
-		offsetY = (mh - h + 6) / 2
+	if offsetY < 0 {
+		offsetY = 0
+	}
+	if offsetX+viewW > mw {
+		offsetX = mw - viewW
+	}
+	if offsetX < 0 {
+		offsetX = 0
+	}
+	if offsetY+viewH > mh {
+		offsetY = mh - viewH
+	}
+	if offsetY < 0 {
+		offsetY = 0
 	}
 
-	for y := 0; y < h-6 && y < mh; y++ {
-		for x := 0; x < w-2 && x < mw; x++ {
+	for y := 0; y < viewH && y < mh; y++ {
+		for x := 0; x < viewW && x < mw; x++ {
 			mx := x + offsetX
 			my := y + offsetY
 			if mx >= mw || my >= mh {
@@ -519,21 +583,21 @@ func (gs *Geoscape) Render(ctx *engine.ScreenCtx) {
 	// Legend
 	lx := w - 22
 	ly := 2
-	ctx.DrawPanel(lx, ly, 21, 9, "LEGEND", engine.StyleDefault)
-	ctx.SetCell(lx+1, ly+2, '·', engine.StyleBlue)
-	ctx.DrawString(lx+3, ly+2, "Water", engine.StyleBlue)
-	ctx.SetCell(lx+1, ly+3, '.', engine.StyleGreen)
-	ctx.DrawString(lx+3, ly+3, "Land", engine.StyleGreen)
-	ctx.SetCell(lx+1, ly+4, '○', engine.StyleYellow)
-	ctx.DrawString(lx+3, ly+4, "City", engine.StyleYellow)
-	ctx.SetCell(lx+1, ly+5, '▲', engine.StyleCyan)
-	ctx.DrawString(lx+3, ly+5, "Base", engine.StyleCyan)
-	ctx.SetCell(lx+1, ly+6, '?', engine.StyleRed)
-	ctx.DrawString(lx+3, ly+6, "UFO", engine.StyleRed)
-	ctx.SetCell(lx+1, ly+7, '▸', engine.StyleCyanBold)
-	ctx.DrawString(lx+3, ly+7, "Interceptor", engine.StyleCyanBold)
-	ctx.SetCell(lx+1, ly+8, '★', engine.StyleMagenta)
-	ctx.DrawString(lx+3, ly+8, "Mission", engine.StyleMagenta)
+	ctx.DrawPanel(lx, ly, 21, 10, "LEGEND", engine.StyleDefault)
+	ctx.SetCell(lx+1, ly+1, '·', engine.StyleBlue)
+	ctx.DrawString(lx+3, ly+1, "Water", engine.StyleBlue)
+	ctx.SetCell(lx+1, ly+2, '.', engine.StyleGreen)
+	ctx.DrawString(lx+3, ly+2, "Land", engine.StyleGreen)
+	ctx.SetCell(lx+1, ly+3, '○', engine.StyleYellow)
+	ctx.DrawString(lx+3, ly+3, "City", engine.StyleYellow)
+	ctx.SetCell(lx+1, ly+4, '▲', engine.StyleCyan)
+	ctx.DrawString(lx+3, ly+4, "Base", engine.StyleCyan)
+	ctx.SetCell(lx+1, ly+5, '?', engine.StyleRed)
+	ctx.DrawString(lx+3, ly+5, "UFO", engine.StyleRed)
+	ctx.SetCell(lx+1, ly+6, '▸', engine.StyleCyanBold)
+	ctx.DrawString(lx+3, ly+6, "Interceptor", engine.StyleCyanBold)
+	ctx.SetCell(lx+1, ly+7, '★', engine.StyleMagenta)
+	ctx.DrawString(lx+3, ly+7, "Mission", engine.StyleMagenta)
 
 	for _, m := range gs.Missions {
 		mx := m.X - offsetX + 1
@@ -555,13 +619,12 @@ func (gs *Geoscape) Render(ctx *engine.ScreenCtx) {
 	ctx.DrawString(w*2/3, h-3, pauseStr, engine.StyleYellow)
 
 	soldiersStr := fmt.Sprintf("Squad: %d", len(gs.Base.Soldiers))
-	ctx.DrawString(w-15, h-3, soldiersStr, engine.StyleCyan)
-
 	alienStr := fmt.Sprintf("Alien Activity: %d%%", gs.AlienActivity)
-	ctx.DrawString(w-40, h-3, alienStr, engine.StyleRed)
-
 	missionStr := fmt.Sprintf("Missions: %d Active, %d Won", len(gs.Missions), gs.MissionsWon)
-	ctx.DrawString(w-55, h-3, missionStr, engine.StyleMagenta)
+
+	ctx.DrawString(w-54, h-3, missionStr, engine.StyleMagenta)
+	ctx.DrawString(w-28, h-3, alienStr, engine.StyleRed)
+	ctx.DrawString(w-9, h-3, soldiersStr, engine.StyleCyan)
 
 	if time.Since(gs.MessageTimer) < 4*time.Second && gs.Message != "" {
 		ctx.DrawString(2, h-2, gs.Message, engine.StyleDefault)
@@ -575,28 +638,34 @@ func (gs *Geoscape) Render(ctx *engine.ScreenCtx) {
 	ctx.DrawString(1, h-1, help, engine.StyleGray)
 }
 
+func (gs *Geoscape) scrollMap(dx, dy int) {
+	mw, mh := MapSize()
+	gs.ScrollX += dx
+	gs.ScrollY += dy
+	if gs.ScrollX < 0 {
+		gs.ScrollX = 0
+	}
+	if gs.ScrollY < 0 {
+		gs.ScrollY = 0
+	}
+	if gs.ScrollX >= mw {
+		gs.ScrollX = mw - 1
+	}
+	if gs.ScrollY >= mh {
+		gs.ScrollY = mh - 1
+	}
+}
+
 func (gs *Geoscape) HandleKey(e *tcell.EventKey) {
 	switch e.Key() {
 	case tcell.KeyUp:
-		gs.BaseY--
-		if gs.BaseY < 0 {
-			gs.BaseY = 0
-		}
+		gs.scrollMap(0, -1)
 	case tcell.KeyDown:
-		gs.BaseY++
-		if gs.BaseY >= 90 {
-			gs.BaseY = 89
-		}
+		gs.scrollMap(0, 1)
 	case tcell.KeyLeft:
-		gs.BaseX--
-		if gs.BaseX < 0 {
-			gs.BaseX = 0
-		}
+		gs.scrollMap(-1, 0)
 	case tcell.KeyRight:
-		gs.BaseX++
-		if gs.BaseX >= 180 {
-			gs.BaseX = 179
-		}
+		gs.scrollMap(1, 0)
 	case tcell.KeyRune:
 		switch e.Rune() {
 		case 'b', 'B':
@@ -647,13 +716,29 @@ func (gs *Geoscape) HandleMouse(e *tcell.EventMouse) {
 
 	if y > 0 && y < h-4 && x > 0 && x < w-1 {
 		mw, mh := MapSize()
-		offsetX := 0
-		if mw > w-2 {
-			offsetX = (mw - w + 2) / 2
+		viewW := w - 2
+		viewH := h - 6
+		halfVW := viewW / 2
+		halfVH := viewH / 2
+		offsetX := gs.ScrollX - halfVW
+		offsetY := gs.ScrollY - halfVH
+		if offsetX < 0 {
+			offsetX = 0
 		}
-		offsetY := 0
-		if mh > h-6 {
-			offsetY = (mh - h + 6) / 2
+		if offsetY < 0 {
+			offsetY = 0
+		}
+		if offsetX+viewW > mw {
+			offsetX = mw - viewW
+		}
+		if offsetX < 0 {
+			offsetX = 0
+		}
+		if offsetY+viewH > mh {
+			offsetY = mh - viewH
+		}
+		if offsetY < 0 {
+			offsetY = 0
 		}
 		mx := x - 1 + offsetX
 		my := y - 1 + offsetY
