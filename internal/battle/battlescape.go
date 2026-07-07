@@ -156,10 +156,33 @@ func (bs *Battlescape) finishBattle() {
 		}
 	}
 
-	// Collect loot
+	// Collect loot — type-specific corpses
 	var loot []string
 	if won {
-		loot = append(loot, "alien_corpse")
+		corpseMap := map[string]string{
+			"SEC": "corpse_sect",
+			"SEL": "corpse_sect",
+			"FLT": "corpse_float",
+			"FLL": "corpse_float",
+			"MUT": "corpse_muton",
+			"MUL": "corpse_muton",
+			"ETH": "corpse_ether",
+			"EHL": "corpse_ether",
+		}
+		corpses := make(map[string]bool)
+		for _, u := range bs.Units {
+			if u.Faction == 1 && !u.Alive && u.AlienType != nil {
+				if key, ok := corpseMap[u.AlienType.ShortName]; ok {
+					corpses[key] = true
+				}
+			}
+		}
+		for key := range corpses {
+			loot = append(loot, key)
+		}
+		if len(loot) == 0 {
+			loot = append(loot, "alien_corpse")
+		}
 		if rand.Intn(100) < 40 {
 			loot = append(loot, "alloys")
 		}

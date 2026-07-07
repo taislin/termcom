@@ -138,14 +138,17 @@ func (gs *Geoscape) Update() {
 
 		// Advance research and manufacturing
 		if gs.TickCounter%30 == 0 {
+			var msgs []string
 			done := gs.Base.AdvanceResearch()
 			for _, name := range done {
-				gs.Message = fmt.Sprintf("Research complete: %s", name)
-				gs.MessageTimer = time.Now()
+				msgs = append(msgs, fmt.Sprintf("Research complete: %s", name))
 			}
 			crafted := gs.Base.AdvanceManufacture()
 			for _, item := range crafted {
-				gs.Message = fmt.Sprintf("Manufacturing complete: %s", item)
+				msgs = append(msgs, fmt.Sprintf("Manufacturing complete: %s", item))
+			}
+			if len(msgs) > 0 {
+				gs.Message = msgs[0]
 				gs.MessageTimer = time.Now()
 			}
 		}
@@ -178,6 +181,20 @@ func (gs *Geoscape) dogfight(inter *Interceptor) {
 	} else {
 		gs.Message = fmt.Sprintf("Hit UFO for %d damage!", damage)
 		gs.MessageTimer = time.Now()
+	}
+
+	// UFO fires back
+	if ufo.Active && inter.HP > 0 {
+		ufoDmg := ufo.FireAtInterceptor(inter)
+		if ufoDmg > 0 {
+			gs.Message = fmt.Sprintf("UFO hit interceptor for %d damage! (HP:%d/%d)", ufoDmg, inter.HP, inter.MaxHP)
+			gs.MessageTimer = time.Now()
+		}
+		if inter.HP <= 0 {
+			gs.Message = "Interceptor destroyed!"
+			gs.MessageTimer = time.Now()
+			inter.Disengage()
+		}
 	}
 }
 
@@ -217,19 +234,19 @@ func (gs *Geoscape) spawnMission() {
 	audio.PlayAlert()
 }
 
-func (gs *Geoscape) RespondToMission() {
-	if len(gs.Missions) == 0 {
-		gs.Message = "No active missions."
+func (gs *Geoscape) RespondToMission(idx int) {
+	if idx < 0 || idx >= len(gs.Missions) {
+		gs.Message = "Invalid mission index."
 		gs.MessageTimer = time.Now()
 		return
 	}
-	mission := gs.Missions[0]
-	gs.Missions = gs.Missions[1:]
+	mission := gs.Missions[idx]
+	gs.Missions = append(gs.Missions[:idx], gs.Missions[idx+1:]...)
 	gs.Message = fmt.Sprintf("Squad deployed to %s mission at %s!", mission.Type, mission.CityName)
 	gs.MessageTimer = time.Now()
 	gs.Game.Paused = true
 
-	ufoName := "Alien Base"
+	ufoName := "Crash Site"
 	switch mission.Type {
 	case "Terror":
 		ufoName = "Terror"
@@ -589,7 +606,7 @@ func (gs *Geoscape) HandleKey(e *tcell.EventKey) {
 		case 'a', 'A':
 			gs.Autoresolve()
 		case 'm', 'M':
-			gs.RespondToMission()
+			gs.RespondToMission(0) // Default to first mission for now, could be improved
 		case ' ':
 			gs.TogglePause()
 		case '1':
@@ -641,11 +658,8 @@ func (gs *Geoscape) HandleMouse(e *tcell.EventMouse) {
 		mx := x - 1 + offsetX
 		my := y - 1 + offsetY
 		if mx >= 0 && mx < mw && my >= 0 && my < mh {
-			gs.BaseX = mx
-			gs.BaseY = my
-			gs.Message = fmt.Sprintf("Base moved to [%d,%d]", mx, my)
-	gs.MessageTimer = time.Now()
-	audio.PlayClick()
-}
+			gs.Message = fmt.Sprintf("Cursor at [%d,%d]", mx, my)
+			gs.MessageTimer = time.Now()
+		}
 	}
 }

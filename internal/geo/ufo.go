@@ -97,6 +97,22 @@ func (u *UFO) TileY() int {
 	return int(u.Y)
 }
 
+func (u *UFO) FireAtInterceptor(inter *Interceptor) int {
+	if !u.Active {
+		return 0
+	}
+	accuracy := 30
+	damage := 5 + rand.Intn(10)
+	if rand.Intn(100) < accuracy {
+		inter.HP -= damage
+		if inter.HP < 0 {
+			inter.HP = 0
+		}
+		return damage
+	}
+	return 0
+}
+
 func SpawnUFO() *UFO {
 	// Spawn on edge of map at a random land tile
 	side := rand.Intn(4)

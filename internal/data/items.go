@@ -125,6 +125,7 @@ type Item struct {
 var Items = map[string]Item{
 	"alloys":      {Name: "Aluminium Alloys", ShortName: "ALY", Weight: 2, Value: 8000, Alien: true},
 	"elerium":     {Name: "Elerium-115", ShortName: "ELR", Weight: 3, Value: 12000, Alien: true},
+	"alien_corpse":{Name: "Alien Corpse", ShortName: "ALC", Weight: 10, Value: 2000, Alien: true},
 	"corpse_sect": {Name: "Sectoid Corpse", ShortName: "SEC", Weight: 10, Value: 3000, Alien: true},
 	"corpse_float":{Name: "Floater Corpse", ShortName: "FLT", Weight: 10, Value: 4000, Alien: true},
 	"corpse_muton":{Name: "Muton Corpse", ShortName: "MUT", Weight: 15, Value: 6000, Alien: true},
