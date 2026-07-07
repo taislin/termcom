@@ -9,6 +9,7 @@ import (
 	"github.com/civ13/ycom/internal/battle"
 	"github.com/civ13/ycom/internal/engine"
 	"github.com/civ13/ycom/internal/save"
+	"github.com/civ13/ycom/internal/audio"
 	"github.com/gdamore/tcell/v2"
 )
 
@@ -32,6 +33,7 @@ type Geoscape struct {
 	LastMonth     int
 	Missions      []*AlienMission
 	AlienActivity int
+	MissionsWon   int
 	Victory       bool
 }
 
@@ -67,6 +69,7 @@ func (gs *Geoscape) Update() {
 
 		if r.Won {
 			gs.Base.AddLoot(r.LootItems)
+			gs.MissionsWon++
 			gs.Message = fmt.Sprintf("Victory! %d aliens killed. Loot: %v", r.Kills, r.LootItems)
 		} else {
 			gs.Message = fmt.Sprintf("Defeat! Lost: %v", dead)
@@ -99,8 +102,16 @@ func (gs *Geoscape) Update() {
 		}
 	}
 
-	// Victory check
+	// Defeat check — alien activity too high
 	if gs.AlienActivity >= 100 && !gs.Victory {
+		gs.Message = "Earth has fallen! Alien activity is overwhelming!"
+		gs.MessageTimer = time.Now()
+		gs.Victory = true
+		gs.Game.Paused = true
+	}
+
+	// Victory check — enough missions completed
+	if gs.MissionsWon >= 10 && !gs.Victory {
 		gs.Message = "Alien threat neutralized! You have saved Earth!"
 		gs.MessageTimer = time.Now()
 		gs.Victory = true
@@ -203,6 +214,7 @@ func (gs *Geoscape) spawnMission() {
 	gs.Message = fmt.Sprintf("ALERT: %s mission near %s detected!", types[idx], cityNames[cityIdx])
 	gs.MessageTimer = time.Now()
 	gs.Game.Bell()
+	audio.PlayAlert()
 }
 
 func (gs *Geoscape) RespondToMission() {
@@ -399,6 +411,7 @@ func (gs *Geoscape) LaunchInterceptor() {
 	gs.Message = fmt.Sprintf("Interceptor launched! Pursuing %s.", nearest.Type.Name)
 	gs.MessageTimer = time.Now()
 	gs.Game.Bell()
+	audio.PlayClick()
 }
 
 func (gs *Geoscape) Render(ctx *engine.ScreenCtx) {
@@ -450,9 +463,11 @@ func (gs *Geoscape) Render(ctx *engine.ScreenCtx) {
 		sy := c.Y - offsetY + 1
 		if sx > 0 && sx < w-1 && sy > 0 && sy < h-6 {
 			ctx.SetCell(sx, sy, '●', engine.StyleYellow)
-			if len(c.Name) < 6 {
-				ctx.DrawString(sx+1, sy, c.Name[:5], engine.StyleGray)
+			name := c.Name
+			if len(name) > 8 {
+				name = name[:8]
 			}
+			ctx.DrawString(sx+1, sy, name, engine.StyleGray)
 		}
 	}
 
@@ -528,7 +543,7 @@ func (gs *Geoscape) Render(ctx *engine.ScreenCtx) {
 	alienStr := fmt.Sprintf("Alien Activity: %d%%", gs.AlienActivity)
 	ctx.DrawString(w-40, h-3, alienStr, engine.StyleRed)
 
-	missionStr := fmt.Sprintf("Missions: %d", len(gs.Missions))
+	missionStr := fmt.Sprintf("Missions: %d Active, %d Won", len(gs.Missions), gs.MissionsWon)
 	ctx.DrawString(w-55, h-3, missionStr, engine.StyleMagenta)
 
 	if time.Since(gs.MessageTimer) < 4*time.Second && gs.Message != "" {
@@ -629,7 +644,8 @@ func (gs *Geoscape) HandleMouse(e *tcell.EventMouse) {
 			gs.BaseX = mx
 			gs.BaseY = my
 			gs.Message = fmt.Sprintf("Base moved to [%d,%d]", mx, my)
-			gs.MessageTimer = time.Now()
-		}
+	gs.MessageTimer = time.Now()
+	audio.PlayClick()
+}
 	}
 }

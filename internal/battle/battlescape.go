@@ -7,6 +7,7 @@ import (
 	"github.com/civ13/ycom/internal/data"
 	"github.com/civ13/ycom/internal/engine"
 	"github.com/civ13/ycom/internal/soldier"
+	"github.com/civ13/ycom/internal/audio"
 	"github.com/gdamore/tcell/v2"
 )
 
@@ -307,12 +308,14 @@ func (bs *Battlescape) FireWeapon() {
 	}
 	damage, hit := bs.Selected.FireAt(target)
 	if hit {
+		audio.PlayShoot()
 		name := "alien"
 		if target.AlienType != nil {
 			name = target.AlienType.Name
 		}
 		bs.Message = fmt.Sprintf("HIT! %d damage to %s (HP:%d)", damage, name, target.HP)
 	} else {
+		audio.PlayShoot()
 		bs.Message = "Missed!"
 	}
 }
@@ -337,6 +340,7 @@ func (bs *Battlescape) Reload() {
 	bs.Selected.TU -= 8
 	w.AmmoCur = w.AmmoMax
 	data.Weapons[bs.Selected.Weapon] = w
+	audio.PlayClick()
 	bs.Message = fmt.Sprintf("Reloaded %s. (%d/%d)", w.Name, w.AmmoCur, w.AmmoMax)
 }
 
@@ -344,6 +348,7 @@ func (bs *Battlescape) EndTurn() {
 	if bs.Phase != PhasePlayerTurn {
 		return
 	}
+	audio.PlayClick()
 	bs.Phase = PhaseAlienTurn
 	bs.Message = "Alien turn..."
 }

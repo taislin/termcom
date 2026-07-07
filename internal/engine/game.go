@@ -3,6 +3,7 @@ package engine
 import (
 	"time"
 
+	"github.com/civ13/ycom/internal/audio"
 	"github.com/civ13/ycom/internal/soldier"
 	"github.com/gdamore/tcell/v2"
 )
@@ -59,6 +60,7 @@ func NewGame() (*Game, error) {
 	if err != nil {
 		return nil, err
 	}
+	audio.Init()
 
 	g := &Game{
 		screen:    scr,
@@ -84,6 +86,7 @@ func (g *Game) SetScreen(s GameState, sc Screen) {
 
 func (g *Game) Run() {
 	defer g.screen.Close()
+	defer audio.Close()
 
 	go func() {
 		for {

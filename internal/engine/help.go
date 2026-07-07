@@ -72,7 +72,8 @@ func (hs *HelpScreen) getPages() []helpPage {
 				">Downed UFOs trigger tactical battles",
 				">Win battles to earn XP, loot, and funds",
 				">Alien missions increase Alien Activity",
-				">Reach 100% Alien Activity to win",
+				">Reach 100% Alien Activity to lose",
+				">Win 10 battles to save Earth",
 			},
 		},
 		{
@@ -161,10 +162,9 @@ func (hs *HelpScreen) getPages() []helpPage {
 				">Alien missions increase activity — intercept!",
 				"",
 				"#Victory Condition:",
-				">Destroy enough aliens to reach 100%",
-				">Alien Activity represents global threat",
+				">Victory: Win 10 battles to save Earth",
+				">Defeat: Alien Activity reaches 100%",
 				">Unresolved missions raise activity +10%",
-				">Complete missions and shoot down UFOs to win",
 			},
 		},
 	}

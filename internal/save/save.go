@@ -26,6 +26,8 @@ type BaseSave struct {
 	Scientists        int
 	Engineers         int
 	CompletedResearch []string
+	UnlockedWeapons   []string
+	UnlockedArmor     []string
 	Stores            map[string]int
 	Soldiers          []*SoldierSave
 	Facilities        []*FacilitySave
@@ -66,6 +68,7 @@ type ManufJobSave struct {
 	Count     int
 	Progress  int
 	CostDays  int
+	Materials map[string]int
 	Engineers int
 	Completed bool
 }
@@ -123,6 +126,8 @@ func FromBase(b *base.Base) *BaseSave {
 		Scientists:        b.Scientists,
 		Engineers:         b.Engineers,
 		CompletedResearch: b.CompletedResearch,
+		UnlockedWeapons:   b.UnlockedWeapons,
+		UnlockedArmor:     b.UnlockedArmor,
 		Stores:            b.Stores,
 	}
 	for _, s := range b.Soldiers {
@@ -161,6 +166,7 @@ func FromBase(b *base.Base) *BaseSave {
 			Count:     j.Count,
 			Progress:  j.Progress,
 			CostDays:  j.CostDays,
+			Materials: j.Materials,
 			Engineers: j.Engineers,
 			Completed: j.Completed,
 		})
@@ -182,6 +188,8 @@ func ToBase(bs *BaseSave) *base.Base {
 	b.Scientists = bs.Scientists
 	b.Engineers = bs.Engineers
 	b.CompletedResearch = bs.CompletedResearch
+	b.UnlockedWeapons = bs.UnlockedWeapons
+	b.UnlockedArmor = bs.UnlockedArmor
 	b.Stores = bs.Stores
 	if b.Stores == nil {
 		b.Stores = make(map[string]int)
@@ -221,6 +229,7 @@ func ToBase(bs *BaseSave) *base.Base {
 			Count:     js.Count,
 			Progress:  js.Progress,
 			CostDays:  js.CostDays,
+			Materials: js.Materials,
 			Engineers: js.Engineers,
 			Completed: js.Completed,
 		})

@@ -25,7 +25,7 @@ var ManufacturePlans = []ManufacturePlan{
 	{Name: "Personal Armour", ItemKey: "personal", Days: 6, Materials: map[string]int{"alloys": 2}},
 	{Name: "Light Suit", ItemKey: "light", Days: 10, Materials: map[string]int{"alloys": 4, "elerium": 1}},
 	{Name: "Medium Suit", ItemKey: "medium", Days: 14, Materials: map[string]int{"alloys": 6, "elerium": 2}},
-	{Name: "Heavy Suit", ItemKey: "heavy_armor", Days: 18, Materials: map[string]int{"alloys": 8, "elerium": 3}},
+	{Name: "Heavy Suit", ItemKey: "heavy", Days: 18, Materials: map[string]int{"alloys": 8, "elerium": 3}},
 	{Name: "Medi-Kit", ItemKey: "medi_kit", Days: 3, Materials: map[string]int{"alloys": 1}},
 }
 
