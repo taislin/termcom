@@ -24,6 +24,7 @@ func main() {
 	g.RegisterScreen(engine.StateEquip, base.NewEquipScreen(g, gs.Base))
 	g.RegisterScreen(engine.StateResearch, base.NewResearchScreen(g, gs.Base))
 	g.RegisterScreen(engine.StateManufacture, base.NewManufactureScreen(g, gs.Base))
+	g.RegisterScreen(engine.StateHelp, engine.NewHelpScreen(g))
 
 	g.Run()
 }

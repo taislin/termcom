@@ -16,6 +16,7 @@ const (
 	StateResearch
 	StateManufacture
 	StateEquip
+	StateHelp
 	StateQuit
 )
 
@@ -124,6 +125,10 @@ func (g *Game) drainEvents() {
 					default:
 						g.PopState()
 					}
+					return
+				}
+				if e.Rune() == '?' {
+					g.PushState(StateHelp)
 					return
 				}
 				if sc, ok := g.screens[g.state]; ok {

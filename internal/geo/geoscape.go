@@ -181,23 +181,54 @@ func (gs *Geoscape) startBattle(ufo *UFO) {
 }
 
 func (gs *Geoscape) spawnMission() {
-	types := []string{"Terror", "Supply", "Base Assault"}
+	types := []string{"Terror", "Supply", "Alien Base Assault"}
 	cityNames := []string{"London", "Tokyo", "New York", "Moscow", "Sydney", "Paris", "Berlin"}
 	cityX := []int{85, 145, 50, 95, 150, 82, 88}
 	cityY := []int{28, 32, 32, 26, 55, 28, 27}
 
 	idx := rand.Intn(len(types))
 	cityIdx := rand.Intn(len(cityNames))
+	turnsLeft := 5
+	if types[idx] == "Alien Base Assault" {
+		turnsLeft = 3
+	}
 	mission := &AlienMission{
 		Type:      types[idx],
 		CityName:  cityNames[cityIdx],
-		TurnsLeft: 5,
+		TurnsLeft: turnsLeft,
 		X:         cityX[cityIdx],
 		Y:         cityY[cityIdx],
 	}
 	gs.Missions = append(gs.Missions, mission)
 	gs.Message = fmt.Sprintf("ALERT: %s mission near %s detected!", types[idx], cityNames[cityIdx])
 	gs.MessageTimer = time.Now()
+	gs.Game.Bell()
+}
+
+func (gs *Geoscape) RespondToMission() {
+	if len(gs.Missions) == 0 {
+		gs.Message = "No active missions."
+		gs.MessageTimer = time.Now()
+		return
+	}
+	mission := gs.Missions[0]
+	gs.Missions = gs.Missions[1:]
+	gs.Message = fmt.Sprintf("Squad deployed to %s mission at %s!", mission.Type, mission.CityName)
+	gs.MessageTimer = time.Now()
+	gs.Game.Paused = true
+
+	ufoName := "Alien Base"
+	switch mission.Type {
+	case "Terror":
+		ufoName = "Terror"
+	case "Supply":
+		ufoName = "Supply"
+	case "Alien Base Assault":
+		ufoName = "Alien Base"
+	}
+	bs := battle.NewBattlescape(gs.Game, gs.Base.Soldiers, ufoName)
+	gs.Game.SetScreen(engine.StateBattlescape, bs)
+	gs.Game.PushState(engine.StateBattlescape)
 }
 
 func (gs *Geoscape) Autoresolve() {
@@ -453,6 +484,33 @@ func (gs *Geoscape) Render(ctx *engine.ScreenCtx) {
 		}
 	}
 
+	// Legend
+	lx := w - 22
+	ly := 2
+	ctx.DrawPanel(lx, ly, 21, 9, "LEGEND", engine.StyleDefault)
+	ctx.SetCell(lx+1, ly+2, '·', engine.StyleBlue)
+	ctx.DrawString(lx+3, ly+2, "Water", engine.StyleBlue)
+	ctx.SetCell(lx+1, ly+3, '.', engine.StyleGreen)
+	ctx.DrawString(lx+3, ly+3, "Land", engine.StyleGreen)
+	ctx.SetCell(lx+1, ly+4, '○', engine.StyleYellow)
+	ctx.DrawString(lx+3, ly+4, "City", engine.StyleYellow)
+	ctx.SetCell(lx+1, ly+5, '▲', engine.StyleCyan)
+	ctx.DrawString(lx+3, ly+5, "Base", engine.StyleCyan)
+	ctx.SetCell(lx+1, ly+6, '?', engine.StyleRed)
+	ctx.DrawString(lx+3, ly+6, "UFO", engine.StyleRed)
+	ctx.SetCell(lx+1, ly+7, '▸', engine.StyleCyanBold)
+	ctx.DrawString(lx+3, ly+7, "Interceptor", engine.StyleCyanBold)
+	ctx.SetCell(lx+1, ly+8, '★', engine.StyleMagenta)
+	ctx.DrawString(lx+3, ly+8, "Mission", engine.StyleMagenta)
+
+	for _, m := range gs.Missions {
+		mx := m.X - offsetX + 1
+		my := m.Y - offsetY + 1
+		if mx > 0 && mx < w-1 && my > 0 && my < h-6 {
+			ctx.SetCell(mx, my, '★', engine.StyleMagenta)
+		}
+	}
+
 	ctx.DrawPanel(0, h-4, w, 3, "GEOSCAPE", engine.StyleDefault)
 	fundsStr := fmt.Sprintf("Funds: $%dK", gs.Game.Funds/1000)
 	timeStr := fmt.Sprintf("Time: %s", gs.Game.GameTime.Format("02/01/2006 15:04"))
@@ -478,7 +536,7 @@ func (gs *Geoscape) Render(ctx *engine.ScreenCtx) {
 	}
 
 	ctx.DrawPanel(0, h-1, w, 1, "", engine.StyleGray)
-	help := "[B]ase  [L]aunch  [A]utoresolve  Space=Pause  1-4=Speed  Q=Quit"
+	help := "[B]ase  [L]aunch  [A]utoresolve  [M]ission  Space=Pause  1-4=Speed  Q=Quit"
 	if gs.Victory {
 		help = "VICTORY ACHIEVED!  Q=Quit"
 	}
@@ -515,6 +573,8 @@ func (gs *Geoscape) HandleKey(e *tcell.EventKey) {
 			gs.LaunchInterceptor()
 		case 'a', 'A':
 			gs.Autoresolve()
+		case 'm', 'M':
+			gs.RespondToMission()
 		case ' ':
 			gs.TogglePause()
 		case '1':

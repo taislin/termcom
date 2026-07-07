@@ -39,16 +39,15 @@ type Battlescape struct {
 
 func NewBattlescape(g *engine.Game, squad []*soldier.Soldier, ufoName string) *Battlescape {
 	var m *BattleMap
-	r := rand.Intn(4)
-	switch r {
-	case 0:
-		m = GenerateCrashSite(30, 24)
-	case 1:
+	switch ufoName {
+	case "Terror":
 		m = GenerateTerrorSite(30, 24)
-	case 2:
+	case "Supply":
 		m = GenerateUFOInterior(30, 24)
-	case 3:
+	case "Alien Base":
 		m = GenerateCydonia(30, 24)
+	default:
+		m = GenerateCrashSite(30, 24)
 	}
 
 	bs := &Battlescape{
@@ -319,13 +318,26 @@ func (bs *Battlescape) FireWeapon() {
 }
 
 func (bs *Battlescape) Reload() {
-	if bs.Selected == nil {
+	if bs.Selected == nil || bs.Phase != PhasePlayerTurn {
+		return
+	}
+	if bs.Selected.TU < 8 {
+		bs.Message = "Not enough TU to reload."
 		return
 	}
 	w := data.Weapons[bs.Selected.Weapon]
-	if w.AmmoMax < 99 {
-		bs.Message = "Reloaded."
+	if w.AmmoMax >= 99 {
+		bs.Message = "Energy weapon — no reload needed."
+		return
 	}
+	if w.AmmoCur >= w.AmmoMax {
+		bs.Message = "Weapon already fully loaded."
+		return
+	}
+	bs.Selected.TU -= 8
+	w.AmmoCur = w.AmmoMax
+	data.Weapons[bs.Selected.Weapon] = w
+	bs.Message = fmt.Sprintf("Reloaded %s. (%d/%d)", w.Name, w.AmmoCur, w.AmmoMax)
 }
 
 func (bs *Battlescape) EndTurn() {
@@ -355,10 +367,84 @@ func (bs *Battlescape) Crouch() {
 }
 
 func (bs *Battlescape) Grenade() {
-	if bs.Selected == nil {
+	if bs.Selected == nil || bs.Phase != PhasePlayerTurn {
 		return
 	}
-	bs.Message = "Grenade thrown!"
+	if bs.Selected.TU < 20 {
+		bs.Message = "Not enough TU to throw grenade."
+		return
+	}
+
+	grenadeRange := 6
+	damage := 40 + bs.Selected.Strength*2
+	ax := bs.CursorX
+	ay := bs.CursorY
+	dx := ax - bs.Selected.X
+	dy := ay - bs.Selected.Y
+	dist := dx*dx + dy*dy
+	if dist > grenadeRange*grenadeRange {
+		bs.Message = "Target out of grenade range!"
+		return
+	}
+
+	bs.Selected.TU -= 20
+
+	for _, u := range bs.Units {
+		if !u.Alive || u.Faction == 0 {
+			continue
+		}
+		udx := u.X - ax
+		udy := u.Y - ay
+		udist := udx*udx + udy*udy
+		if udist <= 4 {
+			splashDmg := damage - udist*5
+			if splashDmg < 5 {
+				splashDmg = 5
+			}
+			u.HP -= splashDmg
+			if u.HP <= 0 {
+				u.HP = 0
+				u.Alive = false
+			}
+		}
+	}
+
+	bs.Message = fmt.Sprintf("Grenade detonated at [%d,%d]!", ax, ay)
+}
+
+func (bs *Battlescape) UseMedikit() {
+	if bs.Selected == nil || bs.Phase != PhasePlayerTurn {
+		return
+	}
+	if bs.Selected.TU < 25 {
+		bs.Message = "Not enough TU to use medikit."
+		return
+	}
+
+	healAmount := 10
+	mx := bs.CursorX
+	my := bs.CursorY
+
+	target := bs.Units.At(mx, my)
+	if target == nil || target.Faction != 0 {
+		bs.Message = "Select a friendly unit to heal."
+		return
+	}
+	if target.HP >= target.MaxHP {
+		bs.Message = "Soldier is already at full health."
+		return
+	}
+
+	bs.Selected.TU -= 25
+	target.HP += healAmount
+	if target.HP > target.MaxHP {
+		target.HP = target.MaxHP
+	}
+	name := "ally"
+	if target.Soldier != nil {
+		name = target.Soldier.Name
+	}
+	bs.Message = fmt.Sprintf("Healed %s for %d HP. (HP:%d/%d)", name, healAmount, target.HP, target.MaxHP)
 }
 
 func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
@@ -441,7 +527,7 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 	ctx.DrawString(w-30, h-2, cursorStr, engine.StyleGray)
 
 	ctx.DrawPanel(0, h-1, w, 1, "", engine.StyleGray)
-	ctx.DrawString(1, h-1, " hjkl=Move  s=Select  f=Fire  r=Reload  e=End Turn  c=Crouch", engine.StyleGray)
+	ctx.DrawString(1, h-1, " hjkl=Move s=Sel f=Fire r=Reload g=Grenade m=Medikit e=End c=Crouch ?=Help", engine.StyleGray)
 
 	if bs.Message != "" {
 		ctx.DrawString(2, h-2, bs.Message, engine.StyleYellow)
@@ -499,6 +585,8 @@ func (bs *Battlescape) HandleKey(e *tcell.EventKey) {
 			bs.Crouch()
 		case 'g':
 			bs.Grenade()
+		case 'm':
+			bs.UseMedikit()
 		case 'n':
 			bs.EndTurn()
 		}
