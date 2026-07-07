@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/civ13/ycom/internal/engine"
-	"github.com/civ13/ycom/internal/geo"
 	"github.com/civ13/ycom/internal/base"
 	"github.com/civ13/ycom/internal/battle"
+	"github.com/civ13/ycom/internal/engine"
+	"github.com/civ13/ycom/internal/geo"
 )
 
 func main() {
@@ -17,9 +17,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	g.RegisterScreen(engine.StateGeoscape, geo.NewGeoscape(g))
-	g.RegisterScreen(engine.StateBase, base.NewBaseScreen(g))
-	g.RegisterScreen(engine.StateBattlescape, battle.NewBattlescape(g))
+	gs := geo.NewGeoscape(g)
+	g.RegisterScreen(engine.StateGeoscape, gs)
+	g.RegisterScreen(engine.StateBase, base.NewBaseScreen(g, gs.Base))
+	g.RegisterScreen(engine.StateBattlescape, battle.NewBattlescape(g, nil, ""))
 
 	g.Run()
 }

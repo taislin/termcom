@@ -32,9 +32,12 @@ type Battlescape struct {
 	Message    string
 	ScrollX    int
 	ScrollY    int
+	Squad      []*soldier.Soldier
+	UFOName    string
+	ExitTimer  int
 }
 
-func NewBattlescape(g *engine.Game) *Battlescape {
+func NewBattlescape(g *engine.Game, squad []*soldier.Soldier, ufoName string) *Battlescape {
 	var m *BattleMap
 	if rand.Intn(2) == 0 {
 		m = GenerateCrashSite(30, 24)
@@ -49,19 +52,15 @@ func NewBattlescape(g *engine.Game) *Battlescape {
 		Turn:    1,
 		CursorX: m.Width / 2,
 		CursorY: m.Height / 2,
-		Message: "Mission start! Eliminate all hostiles.",
-	}
-
-	squad := []*soldier.Soldier{
-		soldier.NewSoldier("Rookie A"),
-		soldier.NewSoldier("Rookie B"),
-		soldier.NewSoldier("Rookie C"),
-		soldier.NewSoldier("Rookie D"),
-		soldier.NewSoldier("Rookie E"),
-		soldier.NewSoldier("Rookie F"),
+		Message: fmt.Sprintf("Mission: Eliminate all hostiles! UFO: %s", ufoName),
+		Squad:   squad,
+		UFOName: ufoName,
 	}
 
 	for i, s := range squad {
+		if s.HP <= 0 {
+			continue
+		}
 		u := NewSoldierUnit(s)
 		u.X = 3 + i*2
 		u.Y = m.Height - 3
@@ -73,7 +72,7 @@ func NewBattlescape(g *engine.Game) *Battlescape {
 		data.GetAlienByRank(alienRank),
 		data.GetAlienByRank(alienRank),
 		data.GetAlienByRank(alienRank),
-		data.GetAlienByRank(alienRank),
+		data.GetAlienByRank(alienRank + 1),
 		data.GetAlienByRank(alienRank + 1),
 	}
 
@@ -102,6 +101,97 @@ func (bs *Battlescape) Update() {
 		bs.Turn++
 		bs.checkVictory()
 	}
+
+	if bs.Phase == PhaseVictory || bs.Phase == PhaseDefeat {
+		bs.ExitTimer++
+		if bs.ExitTimer > 60 {
+			bs.finishBattle()
+		}
+	}
+}
+
+func (bs *Battlescape) finishBattle() {
+	won := bs.Phase == PhaseVictory
+
+	// Sync soldier HP back to roster
+	for _, u := range bs.Units {
+		if u.Faction == 0 && u.Soldier != nil {
+			u.Soldier.HP = u.HP
+			if u.HP <= 0 {
+				u.Soldier.HP = 0
+				u.Soldier.Wounds = 30
+			}
+		}
+	}
+
+	// Count alien kills
+	alienKills := 0
+	for _, u := range bs.Units {
+		if u.Faction == 1 && !u.Alive {
+			alienKills++
+		}
+	}
+
+	// Award XP to surviving soldiers
+	for _, u := range bs.Units {
+		if u.Faction == 0 && u.Alive && u.Soldier != nil {
+			xp := alienKills * 5
+			if won {
+				xp += 10
+			}
+			u.Soldier.GainXP(xp)
+			u.Soldier.Missions++
+		}
+	}
+
+	// Collect loot
+	var loot []string
+	if won {
+		loot = append(loot, "alien_corpse")
+		if rand.Intn(100) < 40 {
+			loot = append(loot, "alloys")
+		}
+		if rand.Intn(100) < 25 {
+			loot = append(loot, "elerium")
+		}
+	}
+
+	// Find surviving squad soldiers
+	var surviving []*soldier.Soldier
+	for _, s := range bs.Squad {
+		for _, u := range bs.Units {
+			if u.Faction == 0 && u.Soldier == s {
+				surviving = append(surviving, u.Soldier)
+				break
+			}
+		}
+	}
+	// Add soldiers that weren't deployed (HP <= 0 at start)
+	for _, s := range bs.Squad {
+		found := false
+		for _, u := range bs.Units {
+			if u.Soldier == s {
+				found = true
+				break
+			}
+		}
+		if !found {
+			surviving = append(surviving, s)
+		}
+	}
+
+	// Award funds
+	if won {
+		bs.Game.Funds += 50000
+	}
+
+	bs.Game.ActiveBattle = &engine.BattleResult{
+		Won:       won,
+		Kills:     alienKills,
+		Soldiers:  surviving,
+		LootItems: loot,
+	}
+	bs.Game.PopState()
 }
 
 func (bs *Battlescape) doAlienTurn() {
@@ -291,9 +381,9 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 				style = engine.StyleCyanBold
 			}
 
-		if mx == bs.CursorX && my == bs.CursorY {
-			style = style.Reverse(true)
-		}
+			if mx == bs.CursorX && my == bs.CursorY {
+				style = style.Reverse(true)
+			}
 
 			ctx.SetCell(x+1, y+1, ch, style)
 		}
@@ -361,6 +451,9 @@ func (bs *Battlescape) phaseStr() string {
 }
 
 func (bs *Battlescape) HandleKey(e *tcell.EventKey) {
+	if bs.Phase == PhaseVictory || bs.Phase == PhaseDefeat {
+		return
+	}
 	switch e.Key() {
 	case tcell.KeyUp:
 		bs.MoveCursor(0, -1)
@@ -407,7 +500,6 @@ func (bs *Battlescape) HandleMouse(e *tcell.EventMouse) {
 	}
 	x, y := e.Position()
 
-	// Map click → move cursor + select
 	mx := x - 1 + bs.ScrollX
 	my := y - 1 + bs.ScrollY
 	if mx >= 0 && mx < bs.Map.Width && my >= 0 && my < bs.Map.Height {
@@ -421,7 +513,6 @@ func (bs *Battlescape) HandleMouse(e *tcell.EventMouse) {
 		}
 	}
 
-	// Scroll wheel to cycle units
 	if buttons&tcell.WheelUp != 0 {
 		bs.cycleUnit(1)
 	}

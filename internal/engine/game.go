@@ -3,6 +3,7 @@ package engine
 import (
 	"time"
 
+	"github.com/civ13/ycom/internal/soldier"
 	"github.com/gdamore/tcell/v2"
 )
 
@@ -29,6 +30,13 @@ type ScreenCtx struct {
 	*ScreenRaw
 }
 
+type BattleResult struct {
+	Won       bool
+	Kills     int
+	Soldiers  []*soldier.Soldier
+	LootItems []string
+}
+
 type Game struct {
 	screen     *ScreenRaw
 	state      GameState
@@ -40,8 +48,9 @@ type Game struct {
 	Paused    bool
 	Funds     int64
 
-	screens  map[GameState]Screen
-	keyChan  chan tcell.Event
+	screens      map[GameState]Screen
+	keyChan      chan tcell.Event
+	ActiveBattle *BattleResult
 }
 
 func NewGame() (*Game, error) {
@@ -65,6 +74,10 @@ func NewGame() (*Game, error) {
 }
 
 func (g *Game) RegisterScreen(s GameState, sc Screen) {
+	g.screens[s] = sc
+}
+
+func (g *Game) SetScreen(s GameState, sc Screen) {
 	g.screens[s] = sc
 }
 

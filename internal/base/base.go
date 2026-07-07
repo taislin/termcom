@@ -15,13 +15,7 @@ type BaseScreen struct {
 	Message   string
 }
 
-func NewBaseScreen(g *engine.Game) *BaseScreen {
-	b := NewBase("Base 1")
-	b.Facilities = append(b.Facilities, &Facility{Type: FacLivingQuarters, Row: 0, Col: 0})
-	b.Facilities = append(b.Facilities, &Facility{Type: FacLab, Row: 0, Col: 1})
-	b.Facilities = append(b.Facilities, &Facility{Type: FacWorkshop, Row: 0, Col: 2})
-	b.Facilities = append(b.Facilities, &Facility{Type: FacStorage, Row: 0, Col: 3})
-	b.Facilities = append(b.Facilities, &Facility{Type: FacRadar, Row: 0, Col: 4})
+func NewBaseScreen(g *engine.Game, b *Base) *BaseScreen {
 	return &BaseScreen{
 		Game: g,
 		Base: b,
@@ -45,11 +39,31 @@ func (bs *BaseScreen) BuildFacility() {
 }
 
 func (bs *BaseScreen) HireSoldier() {
-	cap := bs.Base.LivingCapacity()
-	if cap > 0 {
-		bs.Message = fmt.Sprintf("Hiring soldiers... Capacity: %d", cap)
+	ok, msg := bs.Base.HireSoldier()
+	if ok {
+		if bs.Game.Funds >= int64(HireCost) {
+			bs.Game.Funds -= int64(HireCost)
+			bs.Message = msg + fmt.Sprintf(" ($%dK)", HireCost/1000)
+		} else {
+			bs.Base.DismissSoldier(len(bs.Base.Soldiers) - 1)
+			bs.Message = "Insufficient funds to hire!"
+		}
 	} else {
-		bs.Message = "Build Living Quarters first!"
+		bs.Message = msg
+	}
+}
+
+func (bs *BaseScreen) DismissSoldier() {
+	if bs.Tab == 1 && bs.Selection >= 0 && bs.Selection < len(bs.Base.Soldiers) {
+		name := bs.Base.Soldiers[bs.Selection].Name
+		bs.Base.DismissSoldier(bs.Selection)
+		bs.Message = name + " dismissed."
+		if bs.Selection >= len(bs.Base.Soldiers) {
+			bs.Selection = len(bs.Base.Soldiers) - 1
+		}
+		if bs.Selection < 0 {
+			bs.Selection = 0
+		}
 	}
 }
 
@@ -84,11 +98,17 @@ func (bs *BaseScreen) Render(ctx *engine.ScreenCtx) {
 	}
 
 	ctx.DrawPanel(0, h-2, w, 2, "", engine.StyleDefault)
-	ctx.DrawString(2, h-2, fmt.Sprintf("Scientists: %d  Engineers: %d", bs.Base.Scientists, bs.Base.Engineers), engine.StyleDefault)
+	cap := bs.Base.LivingCapacity()
+	soldStr := fmt.Sprintf("Soldiers: %d/%d", len(bs.Base.Soldiers), cap)
+	ctx.DrawString(2, h-2, fmt.Sprintf("Scientists: %d  Engineers: %d  %s", bs.Base.Scientists, bs.Base.Engineers, soldStr), engine.StyleDefault)
 	if bs.Message != "" {
 		ctx.DrawString(w/2, h-2, bs.Message, engine.StyleYellow)
 	}
-	ctx.DrawString(2, h-1, "[B]uild  [H]ire  1-5=Tab  j/k=Navigate  Esc=Back", engine.StyleGray)
+	help := "[B]uild  [H]ire  1-5=Tab  j/k=Navigate  Esc=Back"
+	if bs.Tab == 1 {
+		help = "[H]ire  [D]ismiss  j/k=Navigate  Esc=Back"
+	}
+	ctx.DrawString(2, h-1, help, engine.StyleGray)
 }
 
 func (bs *BaseScreen) renderFacilities(ctx *engine.ScreenCtx, x, y, w, h int) {
@@ -114,17 +134,52 @@ func (bs *BaseScreen) renderFacilities(ctx *engine.ScreenCtx, x, y, w, h int) {
 
 func (bs *BaseScreen) renderSoldiers(ctx *engine.ScreenCtx, x, y, w, h int) {
 	ctx.DrawString(x, y, "SOLDIERS:", engine.StyleCyanBold)
-	ctx.DrawString(x, y+2, "No soldiers yet.", engine.StyleGray)
+
+	squad := bs.Base.Soldiers
+	if len(squad) == 0 {
+		ctx.DrawString(x, y+2, "No soldiers. Press [H] to hire.", engine.StyleGray)
+		return
+	}
+
+	header := fmt.Sprintf("%-12s %-10s %4s %4s %4s %4s %4s %4s",
+		"Name", "Rank", "HP", "TU", "ACC", "BRA", "STR", "Kills")
+	ctx.DrawString(x, y+1, header, engine.StyleGray)
+
+	for i, s := range squad {
+		if y+3+i >= y+h {
+			break
+		}
+		style := engine.StyleDefault
+		if i == bs.Selection {
+			style = engine.StyleHighlight
+		}
+		line := fmt.Sprintf("%-12s %-10s %4d %4d %4d %4d %4d %4d",
+			s.Name, s.Rank, s.HP, s.MaxTU, s.Accuracy, s.Bravery, s.Strength, s.Kills)
+		ctx.DrawString(x, y+3+i, line, style)
+	}
+
+	info := fmt.Sprintf("Hire cost: $%dK  |  [H]ire  [D]ismiss", HireCost/1000)
+	ctx.DrawString(x, y+h-1, info, engine.StyleGray)
 }
 
 func (bs *BaseScreen) renderResearch(ctx *engine.ScreenCtx, x, y, w, h int) {
 	ctx.DrawString(x, y, "RESEARCH LABS:", engine.StyleCyanBold)
-	ctx.DrawString(x, y+2, "No active research.", engine.StyleGray)
+	labs := bs.Base.TotalLabs()
+	if labs == 0 {
+		ctx.DrawString(x, y+2, "Build a Laboratory first.", engine.StyleGray)
+	} else {
+		ctx.DrawString(x, y+2, fmt.Sprintf("%d lab(s) operational. (Research screen coming soon)", labs), engine.StyleGray)
+	}
 }
 
 func (bs *BaseScreen) renderManufacture(ctx *engine.ScreenCtx, x, y, w, h int) {
 	ctx.DrawString(x, y, "WORKSHOPS:", engine.StyleCyanBold)
-	ctx.DrawString(x, y+2, "No production.", engine.StyleGray)
+	wrks := bs.Base.TotalWorkshops()
+	if wrks == 0 {
+		ctx.DrawString(x, y+2, "Build a Workshop first.", engine.StyleGray)
+	} else {
+		ctx.DrawString(x, y+2, fmt.Sprintf("%d workshop(s) operational. (Manufacturing coming soon)", wrks), engine.StyleGray)
+	}
 }
 
 func (bs *BaseScreen) renderTransfer(ctx *engine.ScreenCtx, x, y, w, h int) {
@@ -141,19 +196,27 @@ func (bs *BaseScreen) HandleKey(e *tcell.EventKey) {
 		}
 	case tcell.KeyDown:
 		bs.Selection++
-		if bs.Selection > 6 {
-			bs.Selection = 0
+		if bs.Tab == 1 {
+			if bs.Selection >= len(bs.Base.Soldiers) {
+				bs.Selection = 0
+			}
+		} else {
+			if bs.Selection > 6 {
+				bs.Selection = 0
+			}
 		}
 	case tcell.KeyLeft:
 		bs.Tab--
 		if bs.Tab < 0 {
 			bs.Tab = 4
 		}
+		bs.Selection = 0
 	case tcell.KeyRight:
 		bs.Tab++
 		if bs.Tab > 4 {
 			bs.Tab = 0
 		}
+		bs.Selection = 0
 	case tcell.KeyRune:
 		switch e.Rune() {
 		case '1':
@@ -168,18 +231,17 @@ func (bs *BaseScreen) HandleKey(e *tcell.EventKey) {
 			bs.Tab = 4
 		case 'j':
 			bs.Selection++
-			if bs.Selection > 6 {
-				bs.Selection = 0
-			}
 		case 'k':
 			bs.Selection--
 			if bs.Selection < 0 {
-				bs.Selection = 6
+				bs.Selection = 0
 			}
 		case 'b', 'B':
 			bs.BuildFacility()
 		case 'h', 'H':
 			bs.HireSoldier()
+		case 'd', 'D':
+			bs.DismissSoldier()
 		}
 	}
 }
@@ -192,24 +254,22 @@ func (bs *BaseScreen) HandleMouse(e *tcell.EventMouse) {
 	x, y := e.Position()
 	_, h := bs.Game.ScreenSize()
 
-	// Click on tabs
 	if y == 1 {
 		for i := 0; i < 5; i++ {
 			tx := 2 + i*14
 			if x >= tx && x <= tx+12 {
 				bs.Tab = i
+				bs.Selection = 0
 				return
 			}
 		}
 	}
 
-	// Click on facility list (content area)
 	if y >= 5 && y <= 11 && bs.Tab == 0 {
 		bs.Selection = y - 5
 		return
 	}
 
-	// Click on bottom bar actions
 	if y == h-2 {
 		switch {
 		case x >= 1 && x <= 9:

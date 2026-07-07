@@ -4,35 +4,63 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/civ13/ycom/internal/base"
+	"github.com/civ13/ycom/internal/battle"
 	"github.com/civ13/ycom/internal/engine"
 	"github.com/gdamore/tcell/v2"
 )
 
 type Geoscape struct {
-	Game          *engine.Game
-	UFOs          UFOList
-	Interceptors  InterceptorList
-	BaseX, BaseY  int
-	BaseName      string
-	Message       string
-	MessageTimer  time.Time
-	TickCounter   int
+	Game         *engine.Game
+	UFOs         UFOList
+	Interceptors InterceptorList
+	BaseX, BaseY int
+	BaseName     string
+	Message      string
+	MessageTimer time.Time
+	TickCounter  int
+	Base         *base.Base
 }
 
 func NewGeoscape(g *engine.Game) *Geoscape {
-	return &Geoscape{
+	b := base.NewBase("Base 1")
+	b.Facilities = append(b.Facilities, &base.Facility{Type: base.FacLivingQuarters, Row: 0, Col: 0})
+	b.Facilities = append(b.Facilities, &base.Facility{Type: base.FacLab, Row: 0, Col: 1})
+	b.Facilities = append(b.Facilities, &base.Facility{Type: base.FacWorkshop, Row: 0, Col: 2})
+	b.Facilities = append(b.Facilities, &base.Facility{Type: base.FacStorage, Row: 0, Col: 3})
+	b.Facilities = append(b.Facilities, &base.Facility{Type: base.FacRadar, Row: 0, Col: 4})
+
+	gs := &Geoscape{
 		Game:         g,
 		BaseX:        28,
 		BaseY:        32,
 		BaseName:     "Base 1",
 		Message:      "Welcome, Commander. Your mission: defend Earth from alien invasion.",
 		MessageTimer: time.Now(),
+		Base:         b,
 	}
+	return gs
 }
 
 func (gs *Geoscape) Update() {
 	gs.TickCounter++
 
+	// Check for battle results
+	if gs.Game.ActiveBattle != nil {
+		r := gs.Game.ActiveBattle
+		gs.Base.Soldiers = r.Soldiers
+		dead := gs.Base.RemoveDeadSoldiers()
+
+		if r.Won {
+			gs.Message = fmt.Sprintf("Victory! %d aliens killed. Loot: %v", r.Kills, r.LootItems)
+		} else {
+			gs.Message = fmt.Sprintf("Defeat! Lost: %v", dead)
+		}
+		gs.MessageTimer = time.Now()
+		gs.Game.ActiveBattle = nil
+	}
+
+	// Spawn UFOs periodically
 	if gs.TickCounter%600 == 0 && gs.UFOs.Count() < 5 {
 		ufo := SpawnUFO()
 		gs.UFOs = append(gs.UFOs, ufo)
@@ -67,14 +95,23 @@ func (gs *Geoscape) dogfight(inter *Interceptor) {
 	ufo := inter.Target
 	damage := inter.FireAt(ufo)
 	if damage == -1 {
-		gs.Message = fmt.Sprintf("UFO DESTROYED! %s shot down.", ufo.Type.Name)
-		gs.MessageTimer = time.Now()
 		gs.Game.Funds += int64(ufo.Type.Points * 1000)
 		inter.Disengage()
+		gs.startBattle(ufo)
 	} else {
 		gs.Message = fmt.Sprintf("Hit UFO for %d damage!", damage)
 		gs.MessageTimer = time.Now()
 	}
+}
+
+func (gs *Geoscape) startBattle(ufo *UFO) {
+	gs.Game.Paused = true
+	gs.Message = fmt.Sprintf("%s shot down! Sending squad...", ufo.Type.Name)
+	gs.MessageTimer = time.Now()
+
+	bs := battle.NewBattlescape(gs.Game, gs.Base.Soldiers, ufo.Type.Name)
+	gs.Game.SetScreen(engine.StateBattlescape, bs)
+	gs.Game.PushState(engine.StateBattlescape)
 }
 
 func (gs *Geoscape) TogglePause() {
@@ -216,6 +253,9 @@ func (gs *Geoscape) Render(ctx *engine.ScreenCtx) {
 	ctx.DrawString(w/3, h-3, timeStr, engine.StyleDefault)
 	ctx.DrawString(w*2/3, h-3, pauseStr, engine.StyleYellow)
 
+	soldiersStr := fmt.Sprintf("Squad: %d", len(gs.Base.Soldiers))
+	ctx.DrawString(w-15, h-3, soldiersStr, engine.StyleCyan)
+
 	if time.Since(gs.MessageTimer) < 4*time.Second && gs.Message != "" {
 		ctx.DrawString(2, h-2, gs.Message, engine.StyleDefault)
 	}
@@ -276,7 +316,6 @@ func (gs *Geoscape) HandleMouse(e *tcell.EventMouse) {
 	x, y := e.Position()
 	w, h := gs.Game.ScreenSize()
 
-	// Click on status bar buttons
 	if y >= h-4 && y <= h-2 {
 		switch {
 		case x >= 1 && x <= 8:
@@ -287,7 +326,6 @@ func (gs *Geoscape) HandleMouse(e *tcell.EventMouse) {
 		return
 	}
 
-	// Click on map to set base position
 	if y > 0 && y < h-4 && x > 0 && x < w-1 {
 		mw, mh := MapSize()
 		offsetX := 0
