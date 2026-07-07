@@ -25,9 +25,9 @@
 - [x] Monthly budget cycle (salaries, government funding)
 - [ ] Sell facilities
 
-## Phase 4 — Research & Manufacturing (stub)
-- [ ] Research screen (assign scientists, track progress)
-- [ ] Manufacture screen (queue items, assign engineers)
+## Phase 4 — Research & Manufacturing (done)
+- [x] Research screen (assign scientists, track progress)
+- [x] Manufacture screen (queue items, assign engineers)
 - [ ] Transfer screen between bases
 
 ## Phase 5 — Battlescape (done)
@@ -60,6 +60,8 @@
 - [x] Geoscape → Battlescape transition on UFO crash
 - [x] Post-battle: XP gain, loot recovery, soldier sync
 - [x] Monthly budget cycle (salaries, funding)
+- [x] Research progresses over time
+- [x] Manufacturing progresses over time
 
 ## Phase 9 — Polish
 - [ ] Save / load game
@@ -70,6 +72,6 @@
 - [ ] Campaign victory condition (destroy alien base)
 
 ## Phase 10 — Quality
-- [ ] Increase test coverage (currently ~35%)
+- [ ] Increase test coverage (currently ~40%)
 - [ ] Add integration tests for game loop
 - [ ] Benchmarks for AI and pathfinding

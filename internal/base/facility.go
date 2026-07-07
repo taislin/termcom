@@ -47,15 +47,38 @@ type Facility struct {
 
 const HireCost = 50000
 
-type Base struct {
-	Name        string
-	Facilities  []*Facility
-	Soldiers    []*soldier.Soldier
+type ResearchProject struct {
+	TopicID     string
+	Progress    int
+	Cost        int
 	Scientists  int
+	Completed   bool
+}
+
+type ManufactureJob struct {
+	ItemKey     string
+	Count       int
+	Progress    int
+	CostDays    int
+	Materials   map[string]int
 	Engineers   int
-	MaxStorage  int
-	UsedStorage int
-	Stores      map[string]int
+	Completed   bool
+}
+
+type Base struct {
+	Name              string
+	Facilities        []*Facility
+	Soldiers          []*soldier.Soldier
+	Scientists        int
+	Engineers         int
+	MaxStorage        int
+	UsedStorage       int
+	Stores            map[string]int
+	CompletedResearch []string
+	ActiveResearch    *ResearchProject
+	ManufactureQueue  []*ManufactureJob
+	UnlockedWeapons   []string
+	UnlockedArmor     []string
 }
 
 func NewBase(name string) *Base {
@@ -270,4 +293,119 @@ func (b *Base) TotalWeight() int {
 		}
 	}
 	return total
+}
+
+func (b *Base) HasResearch(topicID string) bool {
+	for _, id := range b.CompletedResearch {
+		if id == topicID {
+			return true
+		}
+	}
+	return false
+}
+
+func (b *Base) CanResearch(topic *data.ResearchTopic) bool {
+	if b.HasResearch(topic.ID) {
+		return false
+	}
+	if b.TotalLabs() == 0 {
+		return false
+	}
+	for _, req := range topic.Requires {
+		if !b.HasResearch(req) {
+			return false
+		}
+	}
+	return true
+}
+
+func (b *Base) StartResearch(topicID string) bool {
+	topic := data.ResearchByID(topicID)
+	if topic == nil || !b.CanResearch(topic) {
+		return false
+	}
+	if b.ActiveResearch != nil && !b.ActiveResearch.Completed {
+		return false
+	}
+	sci := b.Scientists
+	if sci <= 0 {
+		return false
+	}
+	b.ActiveResearch = &ResearchProject{
+		TopicID:    topicID,
+		Cost:       topic.Cost,
+		Scientists: sci,
+	}
+	return true
+}
+
+func (b *Base) AdvanceResearch() []string {
+	if b.ActiveResearch == nil || b.ActiveResearch.Completed {
+		return nil
+	}
+	b.ActiveResearch.Progress += b.ActiveResearch.Scientists
+	if b.ActiveResearch.Progress >= b.ActiveResearch.Cost {
+		b.ActiveResearch.Completed = true
+		topic := data.ResearchByID(b.ActiveResearch.TopicID)
+		b.CompletedResearch = append(b.CompletedResearch, b.ActiveResearch.TopicID)
+		b.UnlockedWeapons = append(b.UnlockedWeapons, topic.UnlockWeap...)
+		b.UnlockedArmor = append(b.UnlockedArmor, topic.UnlockArmor...)
+		for _, item := range topic.UnlockItems {
+			b.AddItem(item, 1)
+		}
+		name := topic.Name
+		b.ActiveResearch = nil
+		return []string{name}
+	}
+	return nil
+}
+
+func (b *Base) CanManufacture(item string, count int) bool {
+	if b.TotalWorkshops() == 0 {
+		return false
+	}
+	if b.Engineers <= 0 {
+		return false
+	}
+	_ = count
+	return true
+}
+
+func (b *Base) StartManufacture(item string, count int, materials map[string]int) bool {
+	if !b.CanManufacture(item, count) {
+		return false
+	}
+	for mat, qty := range materials {
+		if b.CountItem(mat) < qty*count {
+			return false
+		}
+	}
+	for mat, qty := range materials {
+		b.RemoveItem(mat, qty*count)
+	}
+	job := &ManufactureJob{
+		ItemKey:   item,
+		Count:     count,
+		CostDays:  5 + count*2,
+		Materials: materials,
+		Engineers: b.Engineers,
+	}
+	b.ManufactureQueue = append(b.ManufactureQueue, job)
+	return true
+}
+
+func (b *Base) AdvanceManufacture() []string {
+	var completed []string
+	for _, job := range b.ManufactureQueue {
+		if job.Completed {
+			continue
+		}
+		job.Progress += job.Engineers
+		if job.Progress >= job.CostDays {
+			job.Completed = true
+			b.AddItem(job.ItemKey, job.Count)
+			completed = append(completed, job.ItemKey)
+		}
+	}
+	return completed
 }

@@ -88,6 +88,20 @@ func (gs *Geoscape) Update() {
 		speedMult := []int{0, 1, 5, 20, 60}
 		minutes := speedMult[gs.Game.TimeSpeed]
 		gs.Game.GameTime = gs.Game.GameTime.Add(time.Duration(minutes) * time.Minute)
+
+		// Advance research and manufacturing
+		if gs.TickCounter%30 == 0 {
+			done := gs.Base.AdvanceResearch()
+			for _, name := range done {
+				gs.Message = fmt.Sprintf("Research complete: %s", name)
+				gs.MessageTimer = time.Now()
+			}
+			crafted := gs.Base.AdvanceManufacture()
+			for _, item := range crafted {
+				gs.Message = fmt.Sprintf("Manufacturing complete: %s", item)
+				gs.MessageTimer = time.Now()
+			}
+		}
 	}
 
 	// Monthly budget check

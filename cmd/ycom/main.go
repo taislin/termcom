@@ -22,6 +22,8 @@ func main() {
 	g.RegisterScreen(engine.StateBase, base.NewBaseScreen(g, gs.Base))
 	g.RegisterScreen(engine.StateBattlescape, battle.NewBattlescape(g, nil, ""))
 	g.RegisterScreen(engine.StateEquip, base.NewEquipScreen(g, gs.Base))
+	g.RegisterScreen(engine.StateResearch, base.NewResearchScreen(g, gs.Base))
+	g.RegisterScreen(engine.StateManufacture, base.NewManufactureScreen(g, gs.Base))
 
 	g.Run()
 }

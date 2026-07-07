@@ -1,6 +1,10 @@
 package base
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/civ13/ycom/internal/data"
+)
 
 func TestNewBase(t *testing.T) {
 	b := NewBase("Test")
@@ -280,5 +284,122 @@ func TestStorageCapacity(t *testing.T) {
 	b.Facilities = append(b.Facilities, &Facility{Type: FacStorage})
 	if b.StorageCapacity() != 50 {
 		t.Errorf("expected 50, got %d", b.StorageCapacity())
+	}
+}
+
+func TestHasResearch(t *testing.T) {
+	b := NewBase("Test")
+	if b.HasResearch("alien_alloys") {
+		t.Error("should not have alien_alloys yet")
+	}
+	b.CompletedResearch = append(b.CompletedResearch, "alien_alloys")
+	if !b.HasResearch("alien_alloys") {
+		t.Error("should have alien_alloys now")
+	}
+}
+
+func TestCanResearch(t *testing.T) {
+	b := NewBase("Test")
+	b.Facilities = append(b.Facilities, &Facility{Type: FacLab})
+	topic := data.ResearchByID("sectoid_autopsy")
+	if !b.CanResearch(topic) {
+		t.Error("should be able to research sectoid_autopsy")
+	}
+	topic2 := data.ResearchByID("ethereal_autopsy")
+	if b.CanResearch(topic2) {
+		t.Error("should not be able to research ethereal_autopsy (missing prereqs)")
+	}
+}
+
+func TestStartResearch(t *testing.T) {
+	b := NewBase("Test")
+	b.Facilities = append(b.Facilities, &Facility{Type: FacLab})
+	ok := b.StartResearch("sectoid_autopsy")
+	if !ok {
+		t.Error("should start research")
+	}
+	if b.ActiveResearch == nil {
+		t.Fatal("ActiveResearch should be set")
+	}
+	if b.ActiveResearch.TopicID != "sectoid_autopsy" {
+		t.Errorf("expected sectoid_autopsy, got %s", b.ActiveResearch.TopicID)
+	}
+}
+
+func TestAdvanceResearch(t *testing.T) {
+	b := NewBase("Test")
+	b.Facilities = append(b.Facilities, &Facility{Type: FacLab})
+	b.StartResearch("sectoid_autopsy")
+	b.ActiveResearch.Cost = 10
+	b.ActiveResearch.Scientists = 5
+	done := b.AdvanceResearch()
+	if len(done) > 0 {
+		t.Error("should not be done yet")
+	}
+	if b.ActiveResearch.Progress != 5 {
+		t.Errorf("expected 5, got %d", b.ActiveResearch.Progress)
+	}
+	done = b.AdvanceResearch()
+	if len(done) == 0 {
+		t.Error("should be done now")
+	}
+	if !b.HasResearch("sectoid_autopsy") {
+		t.Error("should have completed research")
+	}
+}
+
+func TestStartManufacture(t *testing.T) {
+	b := NewBase("Test")
+	b.Facilities = append(b.Facilities, &Facility{Type: FacWorkshop})
+	b.AddItem("alloys", 5)
+	ok := b.StartManufacture("pistol", 1, map[string]int{"alloys": 1})
+	if !ok {
+		t.Error("should start manufacture")
+	}
+	if len(b.ManufactureQueue) != 1 {
+		t.Errorf("expected 1 job, got %d", len(b.ManufactureQueue))
+	}
+	if b.CountItem("alloys") != 4 {
+		t.Errorf("expected 4 alloys, got %d", b.CountItem("alloys"))
+	}
+}
+
+func TestStartManufactureNoMaterials(t *testing.T) {
+	b := NewBase("Test")
+	b.Facilities = append(b.Facilities, &Facility{Type: FacWorkshop})
+	ok := b.StartManufacture("pistol", 1, map[string]int{"alloys": 1})
+	if ok {
+		t.Error("should fail without materials")
+	}
+}
+
+func TestAdvanceManufacture(t *testing.T) {
+	b := NewBase("Test")
+	b.Facilities = append(b.Facilities, &Facility{Type: FacWorkshop})
+	b.AddItem("alloys", 5)
+	b.StartManufacture("pistol", 1, map[string]int{"alloys": 1})
+	b.ManufactureQueue[0].CostDays = 10
+	b.ManufactureQueue[0].Engineers = 3
+	crafted := b.AdvanceManufacture()
+	if len(crafted) > 0 {
+		t.Error("should not be done yet")
+	}
+	if b.ManufactureQueue[0].Progress != 3 {
+		t.Errorf("expected 3 progress, got %d", b.ManufactureQueue[0].Progress)
+	}
+	crafted = b.AdvanceManufacture()
+	if len(crafted) > 0 {
+		t.Error("should not be done yet (6/10)")
+	}
+	crafted = b.AdvanceManufacture()
+	if len(crafted) > 0 {
+		t.Error("should not be done yet (9/10)")
+	}
+	crafted = b.AdvanceManufacture()
+	if len(crafted) == 0 {
+		t.Error("should be done now (12/10)")
+	}
+	if b.CountItem("pistol") != 1 {
+		t.Error("pistol should be in stores")
 	}
 }
