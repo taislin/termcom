@@ -2,12 +2,12 @@
 
 package audio
 
-import "fmt"
+import "os"
 
 func Init() {}
 func Close() {}
-func PlayClick() { fmt.Print("\a") }
-func PlayShoot() { fmt.Print("\a") }
-func PlayExplosion() { fmt.Print("\a") }
-func PlayChime() { fmt.Print("\a") }
-func PlayAlert() { fmt.Print("\a") }
+func PlayClick() { os.Stdout.WriteString("\a") }
+func PlayShoot() { os.Stdout.WriteString("\a") }
+func PlayExplosion() { os.Stdout.WriteString("\a") }
+func PlayChime() { os.Stdout.WriteString("\a") }
+func PlayAlert() { os.Stdout.WriteString("\a") }
