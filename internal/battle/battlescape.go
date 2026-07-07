@@ -400,6 +400,61 @@ func (bs *Battlescape) HandleKey(e *tcell.EventKey) {
 	}
 }
 
+func (bs *Battlescape) HandleMouse(e *tcell.EventMouse) {
+	buttons := e.Buttons()
+	if buttons == 0 {
+		return
+	}
+	x, y := e.Position()
+
+	// Map click → move cursor + select
+	mx := x - 1 + bs.ScrollX
+	my := y - 1 + bs.ScrollY
+	if mx >= 0 && mx < bs.Map.Width && my >= 0 && my < bs.Map.Height {
+		bs.CursorX = mx
+		bs.CursorY = my
+		if buttons&tcell.Button1 != 0 {
+			bs.SelectUnit()
+		}
+		if buttons&tcell.Button3 != 0 {
+			bs.FireWeapon()
+		}
+	}
+
+	// Scroll wheel to cycle units
+	if buttons&tcell.WheelUp != 0 {
+		bs.cycleUnit(1)
+	}
+	if buttons&tcell.WheelDown != 0 {
+		bs.cycleUnit(-1)
+	}
+}
+
+func (bs *Battlescape) cycleUnit(dir int) {
+	humans := bs.Units.Faction(0).Alive()
+	if len(humans) == 0 {
+		return
+	}
+	idx := -1
+	for i, u := range humans {
+		if u == bs.Selected {
+			idx = i
+			break
+		}
+	}
+	idx += dir
+	if idx < 0 {
+		idx = len(humans) - 1
+	}
+	if idx >= len(humans) {
+		idx = 0
+	}
+	bs.Selected = humans[idx]
+	bs.CursorX = bs.Selected.X
+	bs.CursorY = bs.Selected.Y
+	bs.Message = fmt.Sprintf("Selected %s (HP:%d TU:%d)", bs.Selected.Soldier.Name, bs.Selected.HP, bs.Selected.TU)
+}
+
 func tileTypeName(t TileType) string {
 	switch t {
 	case TileFloor:

@@ -22,6 +22,7 @@ type Screen interface {
 	Update()
 	Render(*ScreenCtx)
 	HandleKey(*tcell.EventKey)
+	HandleMouse(*tcell.EventMouse)
 }
 
 type ScreenCtx struct {
@@ -29,17 +30,18 @@ type ScreenCtx struct {
 }
 
 type Game struct {
-	screen   *ScreenRaw
-	state    GameState
+	screen     *ScreenRaw
+	state      GameState
 	stateStack []GameState
-	running  bool
+	running    bool
 
-	GameTime     time.Time
-	TimeSpeed    int
-	Paused       bool
-	Funds        int64
+	GameTime  time.Time
+	TimeSpeed int
+	Paused    bool
+	Funds     int64
 
-	screens map[GameState]Screen
+	screens  map[GameState]Screen
+	keyChan  chan tcell.Event
 }
 
 func NewGame() (*Game, error) {
@@ -57,6 +59,7 @@ func NewGame() (*Game, error) {
 		Paused:    true,
 		Funds:     500000,
 		screens:   make(map[GameState]Screen),
+		keyChan:   make(chan tcell.Event, 20),
 	}
 	return g, nil
 }
@@ -67,9 +70,21 @@ func (g *Game) RegisterScreen(s GameState, sc Screen) {
 
 func (g *Game) Run() {
 	defer g.screen.Close()
+
+	go func() {
+		for {
+			ev := g.screen.screen.PollEvent()
+			if ev == nil {
+				return
+			}
+			g.keyChan <- ev
+		}
+	}()
+
 	for g.running {
 		g.screen.Clear()
-		g.HandleInput()
+		g.drainEvents()
+
 		if sc, ok := g.screens[g.state]; ok {
 			sc.Update()
 		}
@@ -77,8 +92,38 @@ func (g *Game) Run() {
 		if sc, ok := g.screens[g.state]; ok {
 			sc.Render(ctx)
 		}
+
 		g.screen.Flush()
 		time.Sleep(16 * time.Millisecond)
+	}
+}
+
+func (g *Game) drainEvents() {
+	for {
+		select {
+		case ev := <-g.keyChan:
+			switch e := ev.(type) {
+			case *tcell.EventKey:
+				if e.Key() == tcell.KeyEscape && e.Rune() == 0 {
+					switch g.state {
+					case StateGeoscape:
+						g.running = false
+					default:
+						g.PopState()
+					}
+					return
+				}
+				if sc, ok := g.screens[g.state]; ok {
+					sc.HandleKey(e)
+				}
+			case *tcell.EventMouse:
+				if sc, ok := g.screens[g.state]; ok {
+					sc.HandleMouse(e)
+				}
+			}
+		default:
+			return
+		}
 	}
 }
 
@@ -91,30 +136,6 @@ func (g *Game) PopState() {
 	if len(g.stateStack) > 0 {
 		g.state = g.stateStack[len(g.stateStack)-1]
 		g.stateStack = g.stateStack[:len(g.stateStack)-1]
-	}
-}
-
-func (g *Game) HandleInput() {
-	for {
-		ev := g.screen.screen.PollEvent()
-		if ev == nil {
-			return
-		}
-		switch e := ev.(type) {
-		case *tcell.EventKey:
-			if e.Key() == tcell.KeyEscape && e.Rune() == 0 {
-				switch g.state {
-				case StateGeoscape:
-					g.running = false
-				default:
-					g.PopState()
-				}
-				return
-			}
-			if sc, ok := g.screens[g.state]; ok {
-				sc.HandleKey(e)
-			}
-		}
 	}
 }
 

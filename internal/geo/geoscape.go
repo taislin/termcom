@@ -225,25 +225,86 @@ func (gs *Geoscape) Render(ctx *engine.ScreenCtx) {
 }
 
 func (gs *Geoscape) HandleKey(e *tcell.EventKey) {
-	if e.Key() != tcell.KeyRune {
+	switch e.Key() {
+	case tcell.KeyUp:
+		gs.BaseY--
+		if gs.BaseY < 0 {
+			gs.BaseY = 0
+		}
+	case tcell.KeyDown:
+		gs.BaseY++
+		if gs.BaseY >= 90 {
+			gs.BaseY = 89
+		}
+	case tcell.KeyLeft:
+		gs.BaseX--
+		if gs.BaseX < 0 {
+			gs.BaseX = 0
+		}
+	case tcell.KeyRight:
+		gs.BaseX++
+		if gs.BaseX >= 180 {
+			gs.BaseX = 179
+		}
+	case tcell.KeyRune:
+		switch e.Rune() {
+		case 'b', 'B':
+			gs.Game.PushState(engine.StateBase)
+		case 'l', 'L':
+			gs.LaunchInterceptor()
+		case ' ':
+			gs.TogglePause()
+		case '1':
+			gs.SetSpeed(1)
+		case '2':
+			gs.SetSpeed(2)
+		case '3':
+			gs.SetSpeed(3)
+		case '4':
+			gs.SetSpeed(4)
+		case 'q', 'Q':
+			gs.Game.Quit()
+		}
+	}
+}
+
+func (gs *Geoscape) HandleMouse(e *tcell.EventMouse) {
+	buttons := e.Buttons()
+	if buttons == 0 {
 		return
 	}
-	switch e.Rune() {
-	case 'b', 'B':
-		gs.Game.PushState(engine.StateBase)
-	case 'l', 'L':
-		gs.LaunchInterceptor()
-	case ' ':
-		gs.TogglePause()
-	case '1':
-		gs.SetSpeed(1)
-	case '2':
-		gs.SetSpeed(2)
-	case '3':
-		gs.SetSpeed(3)
-	case '4':
-		gs.SetSpeed(4)
-	case 'q', 'Q':
-		gs.Game.Quit()
+	x, y := e.Position()
+	w, h := gs.Game.ScreenSize()
+
+	// Click on status bar buttons
+	if y >= h-4 && y <= h-2 {
+		switch {
+		case x >= 1 && x <= 8:
+			gs.TogglePause()
+		case x >= 10 && x <= 20:
+			gs.LaunchInterceptor()
+		}
+		return
+	}
+
+	// Click on map to set base position
+	if y > 0 && y < h-4 && x > 0 && x < w-1 {
+		mw, mh := MapSize()
+		offsetX := 0
+		if mw > w-2 {
+			offsetX = (mw - w + 2) / 2
+		}
+		offsetY := 0
+		if mh > h-6 {
+			offsetY = (mh - h + 6) / 2
+		}
+		mx := x - 1 + offsetX
+		my := y - 1 + offsetY
+		if mx >= 0 && mx < mw && my >= 0 && my < mh {
+			gs.BaseX = mx
+			gs.BaseY = my
+			gs.Message = fmt.Sprintf("Base moved to [%d,%d]", mx, my)
+			gs.MessageTimer = time.Now()
+		}
 	}
 }

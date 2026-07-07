@@ -18,6 +18,7 @@ func NewScreenRaw() (*ScreenRaw, error) {
 	if err := s.Init(); err != nil {
 		return nil, err
 	}
+	s.EnableMouse()
 	s.SetStyle(tcell.StyleDefault.Background(tcell.ColorBlack).Foreground(tcell.ColorWhite))
 	w, h := s.Size()
 	return &ScreenRaw{screen: s, width: w, height: h}, nil

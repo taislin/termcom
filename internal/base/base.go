@@ -133,33 +133,89 @@ func (bs *BaseScreen) renderTransfer(ctx *engine.ScreenCtx, x, y, w, h int) {
 }
 
 func (bs *BaseScreen) HandleKey(e *tcell.EventKey) {
-	if e.Key() != tcell.KeyRune {
-		return
-	}
-	switch e.Rune() {
-	case '1':
-		bs.Tab = 0
-	case '2':
-		bs.Tab = 1
-	case '3':
-		bs.Tab = 2
-	case '4':
-		bs.Tab = 3
-	case '5':
-		bs.Tab = 4
-	case 'j':
-		bs.Selection++
-		if bs.Selection > 6 {
-			bs.Selection = 0
-		}
-	case 'k':
+	switch e.Key() {
+	case tcell.KeyUp:
 		bs.Selection--
 		if bs.Selection < 0 {
 			bs.Selection = 6
 		}
-	case 'b', 'B':
-		bs.BuildFacility()
-	case 'h', 'H':
-		bs.HireSoldier()
+	case tcell.KeyDown:
+		bs.Selection++
+		if bs.Selection > 6 {
+			bs.Selection = 0
+		}
+	case tcell.KeyLeft:
+		bs.Tab--
+		if bs.Tab < 0 {
+			bs.Tab = 4
+		}
+	case tcell.KeyRight:
+		bs.Tab++
+		if bs.Tab > 4 {
+			bs.Tab = 0
+		}
+	case tcell.KeyRune:
+		switch e.Rune() {
+		case '1':
+			bs.Tab = 0
+		case '2':
+			bs.Tab = 1
+		case '3':
+			bs.Tab = 2
+		case '4':
+			bs.Tab = 3
+		case '5':
+			bs.Tab = 4
+		case 'j':
+			bs.Selection++
+			if bs.Selection > 6 {
+				bs.Selection = 0
+			}
+		case 'k':
+			bs.Selection--
+			if bs.Selection < 0 {
+				bs.Selection = 6
+			}
+		case 'b', 'B':
+			bs.BuildFacility()
+		case 'h', 'H':
+			bs.HireSoldier()
+		}
+	}
+}
+
+func (bs *BaseScreen) HandleMouse(e *tcell.EventMouse) {
+	buttons := e.Buttons()
+	if buttons == 0 {
+		return
+	}
+	x, y := e.Position()
+	_, h := bs.Game.ScreenSize()
+
+	// Click on tabs
+	if y == 1 {
+		for i := 0; i < 5; i++ {
+			tx := 2 + i*14
+			if x >= tx && x <= tx+12 {
+				bs.Tab = i
+				return
+			}
+		}
+	}
+
+	// Click on facility list (content area)
+	if y >= 5 && y <= 11 && bs.Tab == 0 {
+		bs.Selection = y - 5
+		return
+	}
+
+	// Click on bottom bar actions
+	if y == h-2 {
+		switch {
+		case x >= 1 && x <= 9:
+			bs.BuildFacility()
+		case x >= 11 && x <= 18:
+			bs.HireSoldier()
+		}
 	}
 }
