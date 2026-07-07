@@ -35,3 +35,4 @@ saves/
 *.log
 ycom.code-workspace
 ycom.exe
+_assets/

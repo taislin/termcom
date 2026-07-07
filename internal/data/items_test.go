@@ -5,25 +5,31 @@ import "testing"
 func TestWeaponsExist(t *testing.T) {
 	required := []string{"pistol", "rifle", "heavy", "auto", "rocket", "laser_pistol", "laser_rifle", "plasma_rifle", "plasma_pistol", "stun_rod", "medi_kit"}
 	for _, name := range required {
-		if _, ok := Weapons[name]; !ok {
+		if _, ok := RuleItems[name]; !ok {
 			t.Errorf("missing weapon: %s", name)
 		}
 	}
 }
 
 func TestWeaponStatsPositive(t *testing.T) {
-	for name, w := range Weapons {
-		if w.Damage < 0 {
-			t.Errorf("%s: negative damage %d", name, w.Damage)
-		}
-		if w.Accuracy < 0 || w.Accuracy > 100 {
-			t.Errorf("%s: accuracy out of range %d", name, w.Accuracy)
-		}
-		if w.TU <= 0 {
-			t.Errorf("%s: invalid TU %d", name, w.TU)
-		}
-		if w.Range <= 0 {
-			t.Errorf("%s: invalid range %d", name, w.Range)
+	for name, w := range RuleItems {
+		// Only check if it's a weapon (BattleType != BT_CORPSE for example)
+		if w.BattleType == BT_FIREARM || w.BattleType == BT_MELEE {
+			if w.Damage < 0 {
+				t.Errorf("%s: negative damage %d", name, w.Damage)
+			}
+			if w.Accuracy < 0 || w.Accuracy > 100 {
+				// Accuracy for medi-kit is 0, which is fine
+				if w.BattleType != BT_MEDIKIT {
+					t.Errorf("%s: accuracy out of range %d", name, w.Accuracy)
+				}
+			}
+			if w.TU <= 0 {
+				t.Errorf("%s: invalid TU %d", name, w.TU)
+			}
+			if w.Range <= 0 {
+				t.Errorf("%s: invalid range %d", name, w.Range)
+			}
 		}
 	}
 }

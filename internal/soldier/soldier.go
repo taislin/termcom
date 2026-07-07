@@ -48,6 +48,7 @@ type Soldier struct {
 	PosX      int
 	PosY      int
 	Weapon    string
+	WeaponAmmo int // Current ammo for the weapon
 	Armor     string
 	Kills     int
 	Missions  int
@@ -69,17 +70,17 @@ func NewSoldier(name string) *Soldier {
 		PsiSkill:  0,
 		PsiStr:    rand.Intn(40),
 		Weapon:    "rifle",
+		WeaponAmmo: data.RuleItems["rifle"].AmmoMax,
 		Armor:     "none",
 	}
 }
 
 func (s *Soldier) FireWeapon(target *Soldier) (int, bool) {
-	w := data.Weapons[s.Weapon]
-	if w.AmmoCur <= 0 {
+	w := data.RuleItems[s.Weapon]
+	if s.WeaponAmmo <= 0 {
 		return 0, false
 	}
-	w.AmmoCur--
-	data.Weapons[s.Weapon] = w
+	s.WeaponAmmo--
 
 	// Accuracy roll
 	hit := rand.Intn(100) < s.Accuracy
@@ -215,5 +216,5 @@ func RandomName() string {
 func FormatSoldier(s *Soldier) string {
 	return fmt.Sprintf("%-12s %s  HP:%d/%d TU:%d ACC:%d BRA:%d STR:%d W:%s A:%s Kills:%d",
 		s.Name, s.Rank, s.HP, s.MaxHP, s.TU, s.Accuracy, s.Bravery, s.Strength,
-		data.Weapons[s.Weapon].ShortName, data.Armors[s.Armor].ShortName, s.Kills)
+		data.RuleItems[s.Weapon].ShortName, data.Armors[s.Armor].ShortName, s.Kills)
 }

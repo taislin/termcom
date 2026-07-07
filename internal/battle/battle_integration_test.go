@@ -68,7 +68,7 @@ func TestFullBattleSimulation(t *testing.T) {
 	target := alienUnits[0]
 	soldier.X = target.X - 1
 	soldier.Y = target.Y
-	damage, hit := soldier.FireAt(target)
+	damage, hit, _ := soldier.FireAt(target)
 	if hit {
 		if damage <= 0 {
 			t.Error("damage should be positive")
@@ -89,7 +89,7 @@ func TestFullBattleSimulation(t *testing.T) {
 	}
 
 	humanUnits[0].TU = humanUnits[0].MaxTU
-	humanUnits[0].FireAt(alienUnits[0])
+	_, _, _ = humanUnits[0].FireAt(alienUnits[0])
 
 	alienHPAfter := 0
 	for _, u := range alienUnits {
@@ -260,7 +260,7 @@ func TestWeaponFireCombat(t *testing.T) {
 			X: 6, Y: 5, HP: 50, MaxHP: 50,
 			Armour: 0, Alive: true, Faction: 1,
 		}
-		damage, hit := attacker.FireAt(defender)
+		damage, hit, _ := attacker.FireAt(defender)
 		if hit {
 			if damage <= 0 {
 				t.Error("damage should be positive")

@@ -69,7 +69,7 @@ func (es *EquipScreen) Render(ctx *engine.ScreenCtx) {
 
 	wName := "---"
 	if s.Weapon != "" {
-		if w, ok := data.Weapons[s.Weapon]; ok {
+		if w, ok := data.RuleItems[s.Weapon]; ok {
 			wName = fmt.Sprintf("%s (DMG:%d ACC:%d TU:%d)", w.Name, w.Damage, w.Accuracy, w.TU)
 		}
 	}
@@ -99,7 +99,7 @@ func (es *EquipScreen) Render(ctx *engine.ScreenCtx) {
 		}
 		qty := es.Base.CountItem(item)
 		var info string
-		if w, ok := data.Weapons[item]; ok {
+		if w, ok := data.RuleItems[item]; ok {
 			info = fmt.Sprintf("%-14s x%d  DMG:%d ACC:%d", w.Name, qty, w.Damage, w.Accuracy)
 		} else if a, ok := data.Armors[item]; ok {
 			info = fmt.Sprintf("%-14s x%d  DEF:%d", a.Name, qty, a.Undersuit)
@@ -129,7 +129,7 @@ func (es *EquipScreen) Render(ctx *engine.ScreenCtx) {
 func (es *EquipScreen) getAvailableItems() []string {
 	var items []string
 	if es.SelectedSlot == 0 {
-		for k := range data.Weapons {
+		for k := range data.RuleItems {
 			if es.Base.CountItem(k) > 0 {
 				items = append(items, k)
 			}
@@ -161,7 +161,7 @@ func (es *EquipScreen) equipSelected() {
 
 	if es.SelectedSlot == 0 {
 		if es.Base.EquipWeapon(es.SelectedSol, item) {
-			if w, ok := data.Weapons[item]; ok {
+			if w, ok := data.RuleItems[item]; ok {
 				es.Message = fmt.Sprintf("Equipped %s.", w.Name)
 			} else {
 				es.Message = "Equipped."

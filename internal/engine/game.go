@@ -11,7 +11,8 @@ import (
 type GameState int
 
 const (
-	StateGeoscape GameState = iota
+	StateMenu GameState = iota
+	StateGeoscape
 	StateBase
 	StateBattlescape
 	StateResearch
@@ -54,6 +55,9 @@ type Game struct {
 	keyChan      chan tcell.Event
 	eventDone    chan struct{}
 	ActiveBattle *BattleResult
+
+	OnNewGame  func()
+	OnContinue func()
 }
 
 func NewGame() (*Game, error) {
@@ -65,7 +69,7 @@ func NewGame() (*Game, error) {
 
 	g := &Game{
 		screen:    scr,
-		state:     StateGeoscape,
+		state:     StateMenu,
 		running:   true,
 		GameTime:  time.Date(1999, time.March, 1, 0, 0, 0, 0, time.UTC),
 		TimeSpeed: 0,
@@ -130,11 +134,11 @@ func (g *Game) drainEvents() {
 			case *tcell.EventResize:
 				g.screen.UpdateSize()
 			case *tcell.EventKey:
-				if e.Key() == tcell.KeyEscape || (e.Key() == tcell.KeyRune && e.Rune() == 27) {
-					switch g.state {
-					case StateGeoscape:
-						g.running = false
-					default:
+			if e.Key() == tcell.KeyEscape || (e.Key() == tcell.KeyRune && e.Rune() == 27) {
+				switch g.state {
+				case StateGeoscape, StateMenu:
+					g.running = false
+				default:
 						g.PopState()
 					}
 				} else if e.Rune() == '?' {
@@ -155,6 +159,10 @@ func (g *Game) drainEvents() {
 
 func (g *Game) PushState(s GameState) {
 	g.stateStack = append(g.stateStack, g.state)
+	g.state = s
+}
+
+func (g *Game) SetState(s GameState) {
 	g.state = s
 }
 

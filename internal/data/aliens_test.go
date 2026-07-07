@@ -19,7 +19,7 @@ func TestAlienStatsPositive(t *testing.T) {
 		if at.Weapon == "" {
 			t.Errorf("%s: no weapon assigned", at.Name)
 		}
-		if _, ok := Weapons[at.Weapon]; !ok {
+		if _, ok := RuleItems[at.Weapon]; !ok {
 			t.Errorf("%s: unknown weapon %s", at.Name, at.Weapon)
 		}
 	}

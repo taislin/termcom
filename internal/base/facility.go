@@ -199,7 +199,7 @@ type ManufactureItem struct {
 
 func GetBuildableWeapons() []string {
 	var items []string
-	for k, w := range data.Weapons {
+	for k, w := range data.RuleItems {
 		if !w.IsAlien {
 			items = append(items, k)
 		}
@@ -305,9 +305,8 @@ func (b *Base) TotalWeight() int {
 	for item, qty := range b.Stores {
 		if it, ok := data.Items[item]; ok {
 			total += it.Weight * qty
-		} else if w, ok := data.Weapons[item]; ok {
-			total += 5 * qty
-			_ = w
+		} else if w, ok := data.RuleItems[item]; ok {
+			total += w.Weight * qty
 		} else if _, ok := data.Armors[item]; ok {
 			total += 8 * qty
 		}

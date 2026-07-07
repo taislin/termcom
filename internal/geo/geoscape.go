@@ -63,6 +63,52 @@ func NewGeoscape(g *engine.Game) *Geoscape {
 	return gs
 }
 
+func NewGeoscapeFromSave(g *engine.Game, sd *save.SaveData) *Geoscape {
+	b := save.ToBase(sd.Base)
+
+	gs := &Geoscape{
+		Game:          g,
+		BaseX:         28,
+		BaseY:         32,
+		ScrollX:       28,
+		ScrollY:       32,
+		BaseName:      b.Name,
+		Message:       "Game loaded successfully!",
+		MessageTimer:  time.Now(),
+		Base:          b,
+		LastMonth:     int(sd.GameTime.Month()),
+		AlienActivity: sd.AlienActivity,
+	}
+
+	g.GameTime = sd.GameTime
+	g.Funds = sd.Funds
+	g.Paused = sd.Paused
+	g.TimeSpeed = sd.TimeSpeed
+
+	for _, u := range sd.UFOs {
+		ufoType := GetUFOTypeByName(u.TypeName)
+		if ufoType != nil {
+			gs.UFOs = append(gs.UFOs, &UFO{
+				Type:   *ufoType,
+				X:      u.X,
+				Y:      u.Y,
+				Active: u.Active,
+			})
+		}
+	}
+	for _, m := range sd.Missions {
+		gs.Missions = append(gs.Missions, &AlienMission{
+			Type:      m.Type,
+			CityName:  m.CityName,
+			TurnsLeft: m.TurnsLeft,
+			X:         m.X,
+			Y:         m.Y,
+		})
+	}
+
+	return gs
+}
+
 func (gs *Geoscape) Update() {
 	gs.TickCounter++
 
@@ -520,7 +566,7 @@ func (gs *Geoscape) Render(ctx *engine.ScreenCtx) {
 			style := engine.StyleBlue
 			switch tile {
 			case 1:
-				ch = '.'
+				ch = '█'
 				style = engine.StyleGreen
 			case 2:
 				ch = '○'

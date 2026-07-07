@@ -175,7 +175,7 @@ func TestUnitFireAt(t *testing.T) {
 	defender.HP = 100
 	defender.Armour = 0
 
-	_, _ = attacker.FireAt(defender)
+	_, _, _ = attacker.FireAt(defender)
 }
 
 func TestUnitCanSee(t *testing.T) {

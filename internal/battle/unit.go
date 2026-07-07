@@ -1,6 +1,7 @@
 package battle
 
 import (
+	"fmt"
 	"math"
 	"math/rand"
 
@@ -23,6 +24,7 @@ type Unit struct {
 	Strength  int
 	Armour    int
 	Weapon    string
+	WeaponAmmo int
 	Alive     bool
 	Crouching bool
 	Faction   int
@@ -42,6 +44,7 @@ func NewSoldierUnit(s *soldier.Soldier) *Unit {
 		Strength:  s.Strength,
 		Armour:    data.Armors[s.Armor].Undersuit,
 		Weapon:    s.Weapon,
+		WeaponAmmo: s.WeaponAmmo,
 		Alive:     true,
 		Faction:   0,
 	}
@@ -61,6 +64,7 @@ func NewAlienUnit(at *data.AlienType) *Unit {
 		Strength:  at.Strength,
 		Armour:    at.Armour,
 		Weapon:    at.Weapon,
+		WeaponAmmo: data.RuleItems[at.Weapon].AmmoMax,
 		Alive:     true,
 		Faction:   1,
 	}
@@ -76,16 +80,19 @@ func (u *Unit) Name() string {
 	return "Unknown"
 }
 
-func (u *Unit) FireAt(target *Unit) (int, bool) {
-	w := data.Weapons[u.Weapon]
-	if u.TU < w.TU {
-		return 0, false
+func (u *Unit) FireAt(target *Unit) (int, bool, error) {
+	w, ok := data.RuleItems[u.Weapon]
+	if !ok {
+		return 0, false, fmt.Errorf("unknown weapon: %s", u.Weapon)
 	}
-	if w.AmmoCur <= 0 && w.AmmoMax < 99 {
-		return 0, false
+	if u.TU < w.TU {
+		return 0, false, fmt.Errorf("not enough TU")
+	}
+	if u.WeaponAmmo <= 0 && w.AmmoMax < 99 {
+		return 0, false, fmt.Errorf("out of ammo")
 	}
 	if w.AmmoMax < 99 {
-		w.AmmoCur--
+		u.WeaponAmmo--
 	}
 	u.TU -= w.TU
 
@@ -100,7 +107,7 @@ func (u *Unit) FireAt(target *Unit) (int, bool) {
 	}
 
 	if rand.Intn(100) >= hitChance {
-		return 0, false
+		return 0, false, nil
 	}
 
 	damage := w.Damage + rand.Intn(w.Damage/3+1)
@@ -115,9 +122,7 @@ func (u *Unit) FireAt(target *Unit) (int, bool) {
 	if target.HP <= 0 {
 		target.Alive = false
 	}
-	// persist ammo change back to the global weapon map
-	data.Weapons[u.Weapon] = w
-	return damage, true
+	return damage, true, nil
 }
 
 func (u *Unit) MoveTo(x, y int, m *BattleMap) bool {

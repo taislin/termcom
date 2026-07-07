@@ -93,10 +93,8 @@ func TestFireWeapon(t *testing.T) {
 	s1 := NewSoldier("Attacker")
 	s2 := NewSoldier("Target")
 	s1.Weapon = "rifle"
+	s1.WeaponAmmo = data.RuleItems["rifle"].AmmoMax
 	s2.Armor = "none"
-	w := data.Weapons["rifle"]
-	w.AmmoCur = w.AmmoMax
-	data.Weapons["rifle"] = w
 
 	s2.HP = 100
 	_, _ = s1.FireWeapon(s2)
