@@ -74,7 +74,8 @@
 - [x] Sound effects (terminal bell on events)
 - [x] Map variety: Crash Site, Terror, UFO Interior, Cydonia
 
-## Phase 10 — Quality
-- [ ] Increase test coverage (currently ~50%)
-- [ ] Add integration tests for game loop
-- [ ] Benchmarks for AI and pathfinding
+## Phase 10 — Quality (done)
+- [x] Integration tests: battle sim, victory/defeat, map gen, LOS, movement
+- [x] Benchmarks: AI update, patrol, LOS, fire, movement, map gen, creation
+- [x] All 110+ tests pass
+- [x] vet + staticcheck clean
