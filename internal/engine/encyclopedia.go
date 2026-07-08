@@ -275,4 +275,31 @@ func (es *EncyclopediaScreen) HandleKey(e *tcell.EventKey) {
 }
 
 func (es *EncyclopediaScreen) HandleMouse(e *tcell.EventMouse) {
+	buttons := e.Buttons()
+	if buttons == 0 {
+		return
+	}
+	x, y := e.Position()
+	_, h := es.Game.ScreenSize()
+
+	// Handle help bar clicks (bottom bar)
+	if y == h-1 {
+		// Help bar: "h/l=Tab  j/k=Navigate  Esc=Back"
+		switch {
+		case x >= 1 && x <= 3: // h/l=Tab
+			// Previous tab
+			if es.Tab > 0 {
+				es.Tab--
+				es.Selection = 0
+			}
+		case x >= 5 && x <= 10: // j/k=Navigate
+			// Scroll down
+			if es.Selection < len(es.Entries)-1 {
+				es.Selection++
+			}
+		case x >= 12 && x <= 18: // Esc=Back
+			es.Game.PopState()
+		}
+		return
+	}
 }

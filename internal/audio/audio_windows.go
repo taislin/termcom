@@ -47,7 +47,17 @@ func PlayClick() { playNote(70, 100, 0, 50*time.Millisecond) }
 func PlayShoot() { playNote(38, 120, 9, 100*time.Millisecond) }
 func PlayExplosion() { playNote(35, 127, 9, 300*time.Millisecond) }
 func PlayChime() { playNote(72, 100, 0, 200*time.Millisecond) }
-func PlayAlert() { playNote(60, 100, 0, 500*time.Millisecond) }
+
+// PlayAlert - 4 note siren: high-low-high-low, 0.25s per note
+func PlayAlert() {
+	notes := []byte{72, 60, 72, 60} // C5, C4, C5, C4
+	for i, note := range notes {
+		go func(n byte, delay int) {
+			time.Sleep(time.Duration(delay) * 250 * time.Millisecond)
+			playNote(n, 100, 0, 250*time.Millisecond)
+		}(note, i)
+	}
+}
 
 func PlayHit() {
 	playNote(50, 100, 9, 50*time.Millisecond)

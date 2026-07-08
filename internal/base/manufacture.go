@@ -191,6 +191,24 @@ func (ms *ManufactureScreen) HandleMouse(e *tcell.EventMouse) {
 	x, y := e.Position()
 	_, h := ms.Game.ScreenSize()
 
+	// Handle help bar clicks (bottom bar)
+	if y == h-1 {
+		// Help bar: "j/k=Select  Enter=Build  Esc=Back"
+		switch {
+		case x >= 1 && x <= 3: // j/k=Select
+			// Scroll down
+			plans := ms.getBuildablePlans()
+			if ms.Selection < len(plans)-1 {
+				ms.Selection++
+			}
+		case x >= 5 && x <= 12: // Enter=Build
+			ms.startManufacture()
+		case x >= 14 && x <= 20: // Esc=Back
+			ms.Game.PopState()
+		}
+		return
+	}
+
 	startY := h/2 + 1
 	if y >= startY && y < h-2 {
 		ms.Selection = y - startY

@@ -353,6 +353,26 @@ func (bs *BaseScreen) HandleMouse(e *tcell.EventMouse) {
 	x, y := e.Position()
 	_, h := bs.Game.ScreenSize()
 
+	// Handle help bar clicks (bottom bar)
+	if y == h-1 {
+		// Help bar: "[B]uild  [H]ire  1-5=Tab  j/k=Navigate  Esc=Back"
+		switch {
+		case x >= 1 && x <= 3: // [B]uild
+			bs.Tab = 0
+			bs.BuildFacility()
+		case x >= 5 && x <= 9: // [H]ire
+			bs.Tab = 1
+			bs.HireSoldier()
+		case x >= 11 && x <= 15: // 1-5=Tab
+			// Cycle tabs
+			bs.Tab = (bs.Tab + 1) % 5
+			bs.Selection = 0
+		case x >= 24 && x <= 30: // Esc=Back
+			bs.Game.PopState()
+		}
+		return
+	}
+
 	if y == 1 {
 		for i := 0; i < 5; i++ {
 			tx := 2 + i*14

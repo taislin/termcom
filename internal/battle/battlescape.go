@@ -1115,6 +1115,29 @@ func (bs *Battlescape) HandleMouse(e *tcell.EventMouse) {
 		return
 	}
 	x, y := e.Position()
+	_, scrH := bs.Game.ScreenSize()
+
+	// Handle help bar clicks (bottom bar)
+	if y == scrH-1 {
+		// Help bar: " hjkl/WSAD=Move Space/Enter=Act q=Cycle f=Fire r=Reload g=Grenade m=Medikit e=End c=Crouch"
+		switch {
+		case x >= 22 && x <= 25: // q=Cycle
+			bs.cycleUnit(1)
+		case x >= 27 && x <= 31: // f=Fire
+			bs.FireWeapon()
+		case x >= 33 && x <= 39: // r=Reload
+			bs.Reload()
+		case x >= 41 && x <= 51: // g=Grenade
+			bs.Grenade()
+		case x >= 53 && x <= 63: // m=Medikit
+			bs.UseMedikit()
+		case x >= 65 && x <= 69: // e=End
+			bs.EndTurn()
+		case x >= 71 && x <= 77: // c=Crouch
+			bs.Crouch()
+		}
+		return
+	}
 
 	// Don't process clicks on the sidebar
 	scrW, _ := bs.Game.ScreenSize()

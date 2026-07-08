@@ -238,6 +238,27 @@ func (es *EquipScreen) HandleMouse(e *tcell.EventMouse) {
 	x, y := e.Position()
 	w, h := es.Game.ScreenSize()
 
+	// Handle help bar clicks (bottom bar)
+	if y == h-1 {
+		// Help bar: "j/k=Select  1=Weapon  2=Armor  Space=Equip  Esc=Back"
+		switch {
+		case x >= 1 && x <= 3: // j/k=Select
+			// Scroll down
+			if es.CycleIdx < len(es.getAvailableItems())-1 {
+				es.CycleIdx++
+			}
+		case x >= 5 && x <= 11: // 1=Weapon
+			es.SelectedSlot = 0
+		case x >= 13 && x <= 19: // 2=Armor
+			es.SelectedSlot = 1
+		case x >= 21 && x <= 29: // Space=Equip
+			es.equipSelected()
+		case x >= 31 && x <= 37: // Esc=Back
+			es.Game.PopState()
+		}
+		return
+	}
+
 	if y >= 3 && y < 3+len(es.Base.Soldiers) {
 		es.SelectedSol = y - 3
 		es.CycleIdx = 0

@@ -857,6 +857,30 @@ func (gs *Geoscape) HandleMouse(e *tcell.EventMouse) {
 	x, y := e.Position()
 	w, h := gs.Game.ScreenSize()
 
+	// Handle help bar clicks (bottom bar)
+	if y == h-1 {
+		switch {
+		case x >= 1 && x <= 3: // [B]ase
+			gs.Game.PushState(engine.StateBase)
+		case x >= 5 && x <= 12: // [L]aunch
+			gs.LaunchInterceptor()
+		case x >= 14 && x <= 25: // [A]utoresolve
+			gs.Autoresolve()
+		case x >= 27 && x <= 36: // [M]ission
+			gs.RespondToMission(0)
+		case x >= 38 && x <= 47: // [R]etrieve
+			gs.sendTransportToNearest()
+		case x >= 49 && x <= 57: // Space=Pause
+			gs.TogglePause()
+		case x >= 59 && x <= 64: // 1-4=Speed
+			gs.SetSpeed(1)
+		case x >= 66 && x <= 70: // Q=Quit
+			gs.Game.Quit()
+		}
+		return
+	}
+
+	// Handle status bar clicks (second to last row)
 	if y >= h-4 && y <= h-2 {
 		switch {
 		case x >= 1 && x <= 8:

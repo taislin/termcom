@@ -83,7 +83,6 @@
 ## Phase 11 — Polish & Depth
 - [x] UFO retrieval (crash sites + transport)
 - [x] In-game encyclopedia (discovered via research/autopsy)
-- [ ] Multi-level maps (stairs/elevators for UFO interiors)
 - [ ] Psi combat (use Psi stat in battlescape)
 - [ ] Night/day missions (lighting system affecting accuracy and LOS)
 - [ ] More alien types (Cyberdisk, Chryssalid, Sectopod with unique behaviors)

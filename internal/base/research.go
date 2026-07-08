@@ -166,6 +166,24 @@ func (rs *ResearchScreen) HandleMouse(e *tcell.EventMouse) {
 	x, y := e.Position()
 	_, h := rs.Game.ScreenSize()
 
+	// Handle help bar clicks (bottom bar)
+	if y == h-1 {
+		// Help bar: "j/k=Select  Enter=Start  Esc=Back"
+		switch {
+		case x >= 1 && x <= 3: // j/k=Select
+			// Scroll down
+			topics := rs.getAvailableTopics()
+			if rs.Selection < len(topics)-1 {
+				rs.Selection++
+			}
+		case x >= 5 && x <= 12: // Enter=Start
+			rs.startResearch()
+		case x >= 14 && x <= 20: // Esc=Back
+			rs.Game.PopState()
+		}
+		return
+	}
+
 	if y >= 7 && y < h-2 {
 		rs.Selection = y - 7
 	}
