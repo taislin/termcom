@@ -29,13 +29,15 @@ func (ms *MenuScreen) Render(ctx *ScreenCtx) {
 	w, h := ctx.Size()
 
 	title := []string{
-		" __   __   ____  _______  __       __   __ ",
-		" \\ \\ / /  /\\  _\\/\\  ___/\\ \\     /\\ \\ / / ",
-		"  \\ V /   \\ \\ \\\\ \\___/\\ \\ \\____\\ \\ '  /  ",
-		"   / \\    \\ \\ \\\\/\\ \\   \\ \\  __`\\ \\ , <   ",
-		"  / /'\\ \\   \\ \\ \\\\ \\   \\ \\ \\_/ \\ \\ \\\\`\\  ",
-		" /_/   \\_\\   \\ \\_\\\\ \\   \\ \\____/\\ \\_\\ \\_",
-		" \\_/         \\/_/ \\_/    \\___/  \\/_/\\/_/",
+		" _________ _______  _______  _______         _______  _______  _______ ",
+		" \\__   __/(  ____ \\(  ____ )(       )       (  ____ \\(  ___  )(       )",
+		"    ) (   | (    \\/| (    )|| () () |       | (    \\/| (   ) || () () |",
+		"    | |   | (__    | (____)|| || || | _____ | |      | |   | || || || |",
+		"    | |   |  __)   |     __)| |(_)| |(_____)| |      | |   | || |(_)| |",
+		"    | |   | (      | (\\ (   | |   | |       | |      | |   | || |   | |",
+		"    | |   | (____/\\| ) \\ \\__| )   ( |       | (____/\\| (___) || )   ( |",
+		"    )_(   (_______/|/   \\__/|/     \\|       (_______/(_______)|/     \\|",
+		"                                                                         ",
 	}
 
 	startY := 2
@@ -46,11 +48,11 @@ func (ms *MenuScreen) Render(ctx *ScreenCtx) {
 		}
 		style := StyleDefault
 		switch {
-		case i == 0 || i == 6:
+		case i == 0 || i == 8:
 			style = StyleMagenta
-		case i == 1 || i == 5:
+		case i == 1 || i == 7:
 			style = StyleMagenta.Bold(true)
-		case i == 2 || i == 3 || i == 4:
+		case i == 2 || i == 3 || i == 4 || i == 5 || i == 6:
 			style = StyleDefault.Foreground(tcell.ColorFuchsia).Bold(true)
 		}
 		ctx.DrawString(x, startY+i, line, style)
@@ -70,9 +72,9 @@ func (ms *MenuScreen) Render(ctx *ScreenCtx) {
 		decX = 0
 	}
 	ctx.DrawString(decX, subY-1, deco, StyleGray)
-	ctx.DrawString(decX, subY+2, deco, StyleGray)
+	ctx.DrawString(decX, subY+1, deco, StyleGray)
 
-	verX := (w - 17) / 2
+	verX := (w - 9) / 2
 	if verX < 0 {
 		verX = 0
 	}
