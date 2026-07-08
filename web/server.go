@@ -25,7 +25,6 @@ type Message struct {
 type Client struct {
 	conn *websocket.Conn
 	send chan []byte
-	mu   sync.Mutex
 }
 
 type Server struct {
