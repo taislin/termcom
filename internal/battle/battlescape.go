@@ -837,10 +837,10 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 		if u.Faction == 1 && !bs.Map.IsVisible(u.X, u.Y) {
 			continue
 		}
-		ch := '@'
+		ch := '\u263B' // ☻ human face
 		style := engine.StyleCyanBold
 		if u.Faction == 1 {
-			ch = 'E'
+			ch = '\u03A9' // Ω alien (Omega)
 			style = engine.StyleRedBold
 		} else if u.Faction == 2 {
 			ch = 'c'

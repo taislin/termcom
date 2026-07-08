@@ -91,7 +91,7 @@ func (ms *MenuScreen) Render(ctx *ScreenCtx) {
 		ctx.DrawString(w/2-8, menuY+i*2, opt, style)
 	}
 
-	ctx.DrawPanel(0, h-2, w, 2, "", StyleGray)
+	ctx.DrawPanel(0, h-3, w, 3, "", StyleGray)
 	ctx.DrawString(1, h-2, language.String("MENU_HELP"), StyleGray)
 }
 

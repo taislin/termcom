@@ -22,11 +22,11 @@ func TestTileChar(t *testing.T) {
 		{TileFloor, '.'},
 		{TileWall, '#'},
 		{TileDoor, '+'},
-		{TileGrass, ','},
-		{TileTree, 'T'},
-		{TileRock, '%'},
-		{TileWater, '~'},
-		{TileUFOFloor, '='},
+		{TileGrass, '·'},
+		{TileTree, '♣'},
+		{TileRock, '∩'},
+		{TileWater, '≈'},
+		{TileUFOFloor, '≡'},
 		{TileUFOWall, '█'},
 	}
 	for _, tt := range tests {
