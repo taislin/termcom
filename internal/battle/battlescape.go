@@ -837,10 +837,10 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 		if u.Faction == 1 && !bs.Map.IsVisible(u.X, u.Y) {
 			continue
 		}
-		ch := '\u263B' // ☻
+		ch := '@'
 		style := engine.StyleCyanBold
 		if u.Faction == 1 {
-			ch = '\U0001F47D' // 👽
+			ch = 'E'
 			style = engine.StyleRedBold
 		} else if u.Faction == 2 {
 			ch = 'c'
