@@ -66,6 +66,7 @@ internal/
 - All rendering via tcell; no raw fmt.Print in game code
 - Coordinates: (x, y) where x=col, y=row (screen convention)
 - Map tiles: rune-based, colored via tcell.Style
+- **NO EMOJIS**: Never use emoji characters (U+1F300-U+1F9FF, U+FE00-U+FE0F, U+200D, etc.) in tileChars or anywhere in game code. Use Unicode symbols from BMP only (U+0000-U+FFFF) — box drawing, technical symbols, miscellaneous symbols (⚙, ⌁, etc.) are fine.
 - Always update `docs/manual.md` whenever game data, balance, or mechanics change.
 
 ### Game Conventions (faithful to original X-COM)

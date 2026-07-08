@@ -78,9 +78,9 @@ var tileChars = map[TileType]rune{
 	TileObject:     '■',
 	// UFO furniture characters
 	TileConsole:     '░',  // Console panel
-	TileMachinery:   '⚙',  // Machinery
+	TileMachinery:   '⚙',  // Machinery (U+2699 GEAR - BMP symbol)
 	TilePod:         '◈',  // Alien pod
-	TilePowerSource: '⚡',  // Power source
+	TilePowerSource: '⌁',  // Power source (U+2301 ELECTRICAL ARC)
 	TileStorage:     '▤',  // Storage container
 	TileAlienTech:   '⊕',  // Alien technology
 }

@@ -31,7 +31,7 @@ func TestTileChar(t *testing.T) {
 		{TileConsole, '░'},
 		{TileMachinery, '⚙'},
 		{TilePod, '◈'},
-		{TilePowerSource, '⚡'},
+		{TilePowerSource, '⌁'},
 		{TileStorage, '▤'},
 		{TileAlienTech, '⊕'},
 	}
