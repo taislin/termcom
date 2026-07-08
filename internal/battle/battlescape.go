@@ -13,6 +13,20 @@ import (
 	"github.com/gdamore/tcell/v3"
 )
 
+// getAlienByRank returns the closest alien type at or above the given rank
+// from a custom list (procedural aliens).
+func getAlienByRank(types []*data.AlienType, minRank int) *data.AlienType {
+	var best *data.AlienType
+	for _, at := range types {
+		if at.Rank >= minRank {
+			if best == nil || at.Rank < best.Rank {
+				best = at
+			}
+		}
+	}
+	return best
+}
+
 type BattlePhase int
 
 const (
@@ -174,16 +188,17 @@ func NewBattlescape(g *engine.Game, squad []*soldier.Soldier, ufoName string) *B
 		bs.Units = append(bs.Units, u)
 	}
 
+	alienTypes := g.GetAlienTypes()
 	alienRank := 0
-	alienTypes := []*data.AlienType{
-		data.GetAlienByRank(alienRank),
-		data.GetAlienByRank(alienRank),
-		data.GetAlienByRank(alienRank),
-		data.GetAlienByRank(alienRank + 1),
-		data.GetAlienByRank(alienRank + 1),
+	spawnAliens := []*data.AlienType{
+		getAlienByRank(alienTypes, alienRank),
+		getAlienByRank(alienTypes, alienRank),
+		getAlienByRank(alienTypes, alienRank),
+		getAlienByRank(alienTypes, alienRank+1),
+		getAlienByRank(alienTypes, alienRank+1),
 	}
 
-	for _, at := range alienTypes {
+	for _, at := range spawnAliens {
 		if at == nil {
 			continue
 		}
@@ -221,6 +236,11 @@ func (bs *Battlescape) ComputeFOVForTeam() {
 	for _, u := range bs.Units {
 		if u.Faction == 0 && u.Alive {
 			bs.Map.ComputeFOV(u.X, u.Y)
+		}
+	}
+	for _, u := range bs.Units {
+		if u.Faction == 1 && u.Alive && u.AlienType != nil && bs.Map.IsVisible(u.X, u.Y) {
+			bs.Game.LearnAlien(u.AlienType.Name, 1)
 		}
 	}
 }
@@ -456,7 +476,18 @@ func (bs *Battlescape) finishAlienTurn() {
 	bs.restorePlayerTU()
 	bs.ComputeFOVForTeam()
 	bs.Turn++
+	bs.learnFromKills()
 	bs.checkVictory()
+}
+
+// learnFromKills scans dead aliens and increases knowledge level for each.
+func (bs *Battlescape) learnFromKills() {
+	for _, u := range bs.Units {
+		if u.Faction != 1 || u.Alive || u.AlienType == nil {
+			continue
+		}
+		bs.Game.LearnAlien(u.AlienType.Name, 2)
+	}
 }
 
 func (bs *Battlescape) restorePlayerTU() {

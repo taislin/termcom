@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/civ13/ycom/internal/audio"
+	"github.com/civ13/ycom/internal/data"
 	"github.com/civ13/ycom/internal/soldier"
 	"github.com/gdamore/tcell/v3"
 )
@@ -57,6 +58,11 @@ type Game struct {
 	eventDone    chan struct{}
 	ActiveBattle *BattleResult
 
+	SpeciesSeed  int64
+	AlienSpecies []*data.AlienSpecies
+	AlienTypes   []*data.AlienType
+	AlienKnowledge map[string]int // alien name -> knowledge level (0=unknown, 1=sighted, 2=killed, 3=autopsied)
+
 	OnNewGame  func()
 	OnContinue func()
 }
@@ -69,18 +75,46 @@ func NewGame() (*Game, error) {
 	audio.Init()
 
 	g := &Game{
-		screen:    scr,
-		state:     StateMenu,
-		running:   true,
-		GameTime:  time.Date(1999, time.March, 1, 0, 0, 0, 0, time.UTC),
-		TimeSpeed: 0,
-		Paused:    true,
-		Funds:     500000,
-		screens:   make(map[GameState]Screen),
-		keyChan:   make(chan tcell.Event, 20),
-		eventDone: make(chan struct{}),
+		screen:         scr,
+		state:          StateMenu,
+		running:        true,
+		GameTime:       time.Date(1999, time.March, 1, 0, 0, 0, 0, time.UTC),
+		TimeSpeed:      0,
+		Paused:         true,
+		Funds:          500000,
+		screens:        make(map[GameState]Screen),
+		keyChan:        make(chan tcell.Event, 20),
+		eventDone:      make(chan struct{}),
+		AlienKnowledge: make(map[string]int),
 	}
+	g.initSpecies()
 	return g, nil
+}
+
+func (g *Game) initSpecies() {
+	g.SpeciesSeed = time.Now().UnixNano()
+	g.AlienSpecies, g.AlienTypes = data.GenerateSpecies(g.SpeciesSeed)
+	g.AlienKnowledge = make(map[string]int)
+}
+
+// LearnAlien increases knowledge level for an alien type.
+// Levels: 0=unknown, 1=sighted, 2=killed, 3=autopsied
+func (g *Game) LearnAlien(name string, level int) {
+	if g.AlienKnowledge[name] < level {
+		g.AlienKnowledge[name] = level
+	}
+}
+
+// GetAlienTypes returns the procedural alien types for the current run.
+func (g *Game) GetAlienTypes() []*data.AlienType {
+	if len(g.AlienTypes) > 0 {
+		return g.AlienTypes
+	}
+	result := make([]*data.AlienType, len(data.AlienTypes))
+	for i := range data.AlienTypes {
+		result[i] = &data.AlienTypes[i]
+	}
+	return result
 }
 
 func (g *Game) RegisterScreen(s GameState, sc Screen) {

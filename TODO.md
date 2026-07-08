@@ -83,9 +83,14 @@
 ## Phase 11 — Polish & Depth
 - [x] UFO retrieval (crash sites + transport)
 - [x] In-game encyclopedia (discovered via research/autopsy)
+- [x] Roguelike pivot (procedural alien species generation per run)
+  - [x] Damage type system (Plasma/Laser/Explosive/Melee/Kinetic/Psionic)
+  - [x] Alien resistance/weakness per damage type
+  - [x] Procedural name generation from syllable pools
+  - [x] Species with 2-5 rank variants per run
+  - [x] KnowledgeLevel tracking (unknown → sighted → killed → autopsied)
+  - [x] Save/load persists species seed + knowledge state
+- [ ] Object-specific cover system (e.g. walls block 80%, trees 60%, fences 30%, affecting shot accuracy)
 - [ ] Multi-level maps (stairs/elevators for UFO interiors)
 - [ ] Psi combat (use Psi stat in battlescape)
 - [ ] Night/day missions (lighting system affecting accuracy and LOS)
-- [ ] More alien types (Cyberdisk, Chryssalid, Sectopod with unique behaviors)
-- [ ] Roguelike pivot (procedural alien species generation & investigation level mechanics)
-- [ ] Object-specific cover system (e.g. walls block 80%, trees 60%, fences 30%, affecting shot accuracy)

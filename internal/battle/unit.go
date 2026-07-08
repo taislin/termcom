@@ -144,6 +144,18 @@ func (u *Unit) FireAt(target *Unit) (int, bool, error) {
 	if target.Crouching {
 		damage = damage * 7 / 10
 	}
+
+	// Apply damage type resistance/weakness from target
+	weapDMG := WeaponDamageType(u.Weapon)
+	if target.AlienType != nil {
+		resist := target.AlienType.Resist(weapDMG)
+		if resist > 0 {
+			damage = damage * (100 - resist) / 100
+		} else if resist < 0 {
+			damage = damage * (100 - resist) / 100
+		}
+	}
+
 	if damage < 1 {
 		damage = 1
 	}
@@ -152,6 +164,22 @@ func (u *Unit) FireAt(target *Unit) (int, bool, error) {
 		target.Alive = false
 	}
 	return damage, true, nil
+}
+
+// WeaponDamageType returns the damage type for a given weapon ID.
+func WeaponDamageType(weapon string) int {
+	switch weapon {
+	case "plasma_pistol", "plasma_rifle", "heavy_plasma", "alien_grenade":
+		return data.DMG_PLASMA
+	case "laser_pistol", "laser_rifle":
+		return data.DMG_LASER
+	case "rocket":
+		return data.DMG_EXPLOSIVE
+	case "chryssalid_claw", "reaper_claw", "stun_rod":
+		return data.DMG_MELEE
+	default:
+		return data.DMG_KINETIC
+	}
 }
 
 func (u *Unit) MoveTo(x, y int, m *BattleMap) bool {

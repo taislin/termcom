@@ -10,18 +10,20 @@ import (
 	"github.com/civ13/ycom/internal/soldier"
 )
 
-const CurrentVersion = 2
+const CurrentVersion = 3
 
 type SaveData struct {
-	Version       int
-	GameTime      time.Time
-	Funds         int64
-	Paused        bool
-	TimeSpeed     int
-	AlienActivity int
-	Base          *BaseSave
-	UFOs          []*UFOSave
-	Missions      []*MissionSave
+	Version        int
+	GameTime       time.Time
+	Funds          int64
+	Paused         bool
+	TimeSpeed      int
+	AlienActivity  int
+	SpeciesSeed    int64
+	AlienKnowledge map[string]int
+	Base           *BaseSave
+	UFOs           []*UFOSave
+	Missions       []*MissionSave
 }
 
 type BaseSave struct {
@@ -137,6 +139,9 @@ func migrateSave(data *SaveData) error {
 	if data.Version == 1 {
 		migrateV1toV2(data)
 	}
+	if data.Version == 2 {
+		migrateV2toV3(data)
+	}
 	return nil
 }
 
@@ -149,6 +154,13 @@ func migrateV1toV2(data *SaveData) {
 		}
 	}
 	data.Version = 2
+}
+
+func migrateV2toV3(data *SaveData) {
+	if data.AlienKnowledge == nil {
+		data.AlienKnowledge = make(map[string]int)
+	}
+	data.Version = 3
 }
 
 func FromBase(b *base.Base) *BaseSave {

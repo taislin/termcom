@@ -8,6 +8,7 @@ import (
 	"github.com/civ13/ycom/internal/audio"
 	"github.com/civ13/ycom/internal/base"
 	"github.com/civ13/ycom/internal/battle"
+	"github.com/civ13/ycom/internal/data"
 	"github.com/civ13/ycom/internal/engine"
 	"github.com/civ13/ycom/internal/language"
 	"github.com/civ13/ycom/internal/save"
@@ -473,14 +474,16 @@ func (gs *Geoscape) SaveGameToFile() {
 		})
 	}
 	sd := &save.SaveData{
-		GameTime:      gs.Game.GameTime,
-		Funds:         gs.Game.Funds,
-		Paused:        gs.Game.Paused,
-		TimeSpeed:     gs.Game.TimeSpeed,
-		AlienActivity: gs.AlienActivity,
-		Base:          save.FromBase(gs.Base),
-		UFOs:          ufoSaves,
-		Missions:      missionSaves,
+		GameTime:       gs.Game.GameTime,
+		Funds:          gs.Game.Funds,
+		Paused:         gs.Game.Paused,
+		TimeSpeed:      gs.Game.TimeSpeed,
+		AlienActivity:  gs.AlienActivity,
+		SpeciesSeed:    gs.Game.SpeciesSeed,
+		AlienKnowledge: gs.Game.AlienKnowledge,
+		Base:           save.FromBase(gs.Base),
+		UFOs:           ufoSaves,
+		Missions:       missionSaves,
 	}
 	err := save.SaveGame("xcom_save.json", sd)
 	if err != nil {
@@ -503,6 +506,11 @@ func (gs *Geoscape) LoadGameFromFile() {
 	gs.Game.Paused = sd.Paused
 	gs.Game.TimeSpeed = sd.TimeSpeed
 	gs.AlienActivity = sd.AlienActivity
+	gs.Game.SpeciesSeed = sd.SpeciesSeed
+	if sd.AlienKnowledge != nil {
+		gs.Game.AlienKnowledge = sd.AlienKnowledge
+	}
+	gs.Game.AlienSpecies, gs.Game.AlienTypes = data.GenerateSpecies(sd.SpeciesSeed)
 	gs.Base = save.ToBase(sd.Base)
 	gs.UFOs = nil
 	for _, u := range sd.UFOs {
