@@ -1115,7 +1115,11 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 	}
 
 	ctx.DrawPanel(0, h-4, w, 3, language.String("BATTLESCAPE"), engine.StyleDefault)
-	turnStr := fmt.Sprintf(language.String("STATUS_TURN"), bs.Turn, bs.phaseStr())
+	lightStr := language.String("LIGHT_DAY")
+	if bs.IsNight {
+		lightStr = language.String("LIGHT_NIGHT")
+	}
+	turnStr := fmt.Sprintf(language.String("STATUS_TURN"), bs.Turn, bs.phaseStr()+" ("+lightStr+")")
 	ctx.DrawString(2, h-3, turnStr, engine.StyleDefault)
 
 	if bs.Selected != nil {

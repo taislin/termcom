@@ -112,6 +112,8 @@ func init() {
 		"PHASE_ALIEN_TURN":     "ALIEN TURN",
 		"PHASE_VICTORY":        "VICTORY",
 		"PHASE_DEFEAT":         "DEFEAT",
+		"LIGHT_DAY":            "Day",
+		"LIGHT_NIGHT":          "Night",
 
 		// Tile names
 		"TILE_FLOOR":           "Floor",
