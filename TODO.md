@@ -9,11 +9,11 @@
 - [x] Arrow key navigation
 
 ## Phase 2 — Geoscape (done)
-- [x] Equirectangular world map rendered as ASCII
+- [x] Network graph with 19 regional hub nodes
 - [x] Real-time clock with pause / time-compression
 - [x] City & base placement on map
-- [x] UFO spawning and movement along random paths
-- [x] Interceptor launch and vector-based pursuit
+- [x] UFO movement along edges with progress
+- [x] Interceptor launch and node/UFO targeting
 - [x] Dogfight resolution (simplified)
 - [x] Autoresolve interceptions
 - [x] Alien missions (Terror, Supply, Base Assault)
