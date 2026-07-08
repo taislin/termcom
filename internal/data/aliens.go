@@ -18,6 +18,7 @@ type AlienType struct {
 }
 
 var AlienTypes = []AlienType{
+	// Rank 0 - Low tier
 	{
 		Name: "Sectoid", ShortName: "SEC",
 		HP: 10, TU: 50, Accuracy: 55, Bravery: 40, Reactions: 50,
@@ -30,6 +31,7 @@ var AlienTypes = []AlienType{
 		Strength: 9, Psi: 60, Armour: 8, Weapon: "plasma_rifle",
 		Points: 10, Rank: 1, Aggression: 4,
 	},
+	// Rank 1 - Mid tier
 	{
 		Name: "Floater", ShortName: "FLT",
 		HP: 15, TU: 55, Accuracy: 60, Bravery: 50, Reactions: 60,
@@ -43,6 +45,19 @@ var AlienTypes = []AlienType{
 		Points: 14, Rank: 2, Aggression: 7,
 	},
 	{
+		Name: "Chryssalid", ShortName: "CHR",
+		HP: 14, TU: 65, Accuracy: 70, Bravery: 100, Reactions: 75,
+		Strength: 18, Psi: 0, Armour: 8, Weapon: "chryssalid_claw",
+		Points: 15, Rank: 1, Aggression: 10,
+	},
+	{
+		Name: "Hyperworm", ShortName: "HYP",
+		HP: 8, TU: 70, Accuracy: 50, Bravery: 30, Reactions: 65,
+		Strength: 6, Psi: 0, Armour: 3, Weapon: "plasma_pistol",
+		Points: 4, Rank: 0, Aggression: 5,
+	},
+	// Rank 2 - High tier
+	{
 		Name: "Muton", ShortName: "MUT",
 		HP: 25, TU: 55, Accuracy: 55, Bravery: 70, Reactions: 50,
 		Strength: 20, Psi: 0, Armour: 18, Weapon: "plasma_rifle",
@@ -55,6 +70,19 @@ var AlienTypes = []AlienType{
 		Points: 18, Rank: 3, Aggression: 9,
 	},
 	{
+		Name: "Cyberdisc", ShortName: "CYB",
+		HP: 30, TU: 50, Accuracy: 65, Bravery: 100, Reactions: 60,
+		Strength: 15, Psi: 0, Armour: 22, Weapon: "heavy_plasma",
+		Points: 20, Rank: 2, Aggression: 7,
+	},
+	{
+		Name: "Celatid", ShortName: "CEL",
+		HP: 12, TU: 60, Accuracy: 60, Bravery: 50, Reactions: 55,
+		Strength: 10, Psi: 0, Armour: 6, Weapon: "plasma_pistol",
+		Points: 8, Rank: 1, Aggression: 6,
+	},
+	// Rank 3 - Elite
+	{
 		Name: "Ethereal", ShortName: "ETH",
 		HP: 18, TU: 65, Accuracy: 70, Bravery: 100, Reactions: 70,
 		Strength: 10, Psi: 80, Armour: 12, Weapon: "plasma_rifle",
@@ -65,6 +93,25 @@ var AlienTypes = []AlienType{
 		HP: 22, TU: 70, Accuracy: 75, Bravery: 100, Reactions: 75,
 		Strength: 12, Psi: 100, Armour: 15, Weapon: "plasma_rifle",
 		Points: 40, Rank: 5, Aggression: 4,
+	},
+	// Rank 4 - Boss
+	{
+		Name: "Reaper", ShortName: "REAP",
+		HP: 50, TU: 45, Accuracy: 50, Bravery: 100, Reactions: 40,
+		Strength: 30, Psi: 0, Armour: 25, Weapon: "reaper_claw",
+		Points: 30, Rank: 3, Aggression: 9,
+	},
+	{
+		Name: "Sectopod", ShortName: "SEC2",
+		HP: 60, TU: 40, Accuracy: 70, Bravery: 100, Reactions: 50,
+		Strength: 25, Psi: 0, Armour: 30, Weapon: "heavy_plasma",
+		Points: 50, Rank: 5, Aggression: 8,
+	},
+	{
+		Name: "Chryssalid Queen", ShortName: "CHQ",
+		HP: 35, TU: 60, Accuracy: 75, Bravery: 100, Reactions: 80,
+		Strength: 25, Psi: 0, Armour: 12, Weapon: "chryssalid_claw",
+		Points: 35, Rank: 4, Aggression: 10,
 	},
 }
 
