@@ -40,6 +40,13 @@ const (
 	TileFence
 	TileRubble
 	TileObject
+	// UFO furniture tiles
+	TileConsole     // Control panels, navigation consoles
+	TileMachinery   // Engines, generators, equipment
+	TilePod         // Alien pods, containment units
+	TilePowerSource // Power source, fuel cells
+	TileStorage     // Storage containers, crates
+	TileAlienTech   // Alien technology, artifacts
 )
 
 type Tile struct {
@@ -50,25 +57,32 @@ type Tile struct {
 }
 
 var tileChars = map[TileType]rune{
-	TileFloor:    '.',
-	TileWall:     '#',
-	TileDoor:     '+',
-	TileWindow:   '¤',
-	TileGrass:    '·',
-	TileTree:     '♣',
-	TileRock:     '∩',
-	TileWater:    '≈',
-	TileUFOFloor: '≡',
-	TileUFOWall:  '█',
-	TileStairs:   '▓',
-	TilePavement: '░',
-	TileSand:     '·',
-	TileSnow:     '∗',
-	TileMarsh:   '≋',
-	TileBush:     '†',
-	TileFence:    '║',
-	TileRubble:   '░',
-	TileObject:   '■',
+	TileFloor:      '.',
+	TileWall:       '#',
+	TileDoor:       '+',
+	TileWindow:     '¤',
+	TileGrass:      '·',
+	TileTree:       '♣',
+	TileRock:       '∩',
+	TileWater:      '≈',
+	TileUFOFloor:   '≡',
+	TileUFOWall:    '█',
+	TileStairs:     '▓',
+	TilePavement:   '░',
+	TileSand:       '·',
+	TileSnow:       '∗',
+	TileMarsh:     '≋',
+	TileBush:       '†',
+	TileFence:      '║',
+	TileRubble:     '▒',
+	TileObject:     '■',
+	// UFO furniture characters
+	TileConsole:     '░',  // Console panel
+	TileMachinery:   '⚙',  // Machinery
+	TilePod:         '◈',  // Alien pod
+	TilePowerSource: '⚡',  // Power source
+	TileStorage:     '▤',  // Storage container
+	TileAlienTech:   '⊕',  // Alien technology
 }
 
 func TileChar(t TileType) rune {
@@ -116,7 +130,8 @@ func (m *BattleMap) Set(x, y int, t TileType) {
 func (m *BattleMap) Passable(x, y int) bool {
 	t := m.At(x, y)
 	switch t.Type {
-	case TileFloor, TileDoor, TileGrass, TileUFOFloor, TileStairs, TilePavement, TileSand:
+	case TileFloor, TileDoor, TileGrass, TileUFOFloor, TileStairs, TilePavement, TileSand,
+		TileConsole, TileMachinery, TilePod, TilePowerSource, TileStorage, TileAlienTech:
 		return true
 	}
 	return false
@@ -472,7 +487,7 @@ func GenerateUFOInterior(w, h int) *BattleMap {
 	// Fill with UFO floor
 	m.fillRect(0, 0, w, h, TileUFOFloor)
 
-	// Outer walls
+	// Outer hull walls
 	m.drawRect(0, 0, w, h, TileUFOWall)
 
 	// Generate rooms
@@ -523,9 +538,62 @@ func GenerateUFOInterior(w, h int) *BattleMap {
 	cy := h/2 - 3
 	m.ApplyCommand(MapCommand{Type: CmdPlaceBuilding, X: cx, Y: cy, W: 8, H: 6, DoorSide: 0})
 
-	// Add some objects
+	// Add furniture and machinery to rooms
+	for _, room := range roomCenters {
+		rx, ry := room[0], room[1]
+		roomType := rand.Intn(4)
+		switch roomType {
+		case 0: // Control room - consoles along walls
+			for dx := -2; dx <= 2; dx++ {
+				if m.At(rx+dx, ry-1).Type == TileUFOFloor {
+					m.Set(rx+dx, ry-1, TileConsole)
+				}
+				if m.At(rx+dx, ry+1).Type == TileUFOFloor {
+					m.Set(rx+dx, ry+1, TileConsole)
+				}
+			}
+		case 1: // Engine room - machinery in center
+			for dx := -1; dx <= 1; dx++ {
+				for dy := -1; dy <= 1; dy++ {
+					if m.At(rx+dx, ry+dy).Type == TileUFOFloor {
+						m.Set(rx+dx, ry+dy, TileMachinery)
+					}
+				}
+			}
+		case 2: // Pod room - alien pods
+			for dx := -2; dx <= 2; dx += 2 {
+				if m.At(rx+dx, ry).Type == TileUFOFloor {
+					m.Set(rx+dx, ry, TilePod)
+				}
+			}
+		case 3: // Storage room - crates
+			for dx := -1; dx <= 1; dx++ {
+				for dy := -1; dy <= 0; dy++ {
+					if m.At(rx+dx, ry+dy).Type == TileUFOFloor {
+						m.Set(rx+dx, ry+dy, TileStorage)
+					}
+				}
+			}
+		}
+	}
+
+	// Add power source in command center
+	if m.At(cx+4, cy+3).Type == TileUFOFloor {
+		m.Set(cx+4, cy+3, TilePowerSource)
+	}
+
+	// Add alien tech scattered around
+	for i := 0; i < 8; i++ {
+		x := rand.Intn(w-4) + 2
+		y := rand.Intn(h-4) + 2
+		if m.At(x, y).Type == TileUFOFloor {
+			m.Set(x, y, TileAlienTech)
+		}
+	}
+
+	// Add some regular objects
 	ApplyCommands(m, []MapCommand{
-		{Type: CmdScatter, X: 2, Y: 2, W: w - 4, H: h - 4, Tile: TileObject, Prob: 20, Count: 15},
+		{Type: CmdScatter, X: 2, Y: 2, W: w - 4, H: h - 4, Tile: TileObject, Prob: 10, Count: 10},
 	})
 
 	return m

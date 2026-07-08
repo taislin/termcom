@@ -121,6 +121,12 @@ func init() {
 		"TILE_WATER":           "Water",
 		"TILE_UFO_FLOOR":       "UFO Floor",
 		"TILE_UFO_WALL":        "UFO Wall",
+		"TILE_CONSOLE":         "Console",
+		"TILE_MACHINERY":       "Machinery",
+		"TILE_POD":             "Alien Pod",
+		"TILE_POWER_SOURCE":    "Power Source",
+		"TILE_STORAGE":         "Storage",
+		"TILE_ALIEN_TECH":      "Alien Tech",
 		"TILE_UNKNOWN":         "Unknown",
 
 		// Battle messages

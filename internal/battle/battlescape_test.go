@@ -28,6 +28,12 @@ func TestTileChar(t *testing.T) {
 		{TileWater, '≈'},
 		{TileUFOFloor, '≡'},
 		{TileUFOWall, '█'},
+		{TileConsole, '░'},
+		{TileMachinery, '⚙'},
+		{TilePod, '◈'},
+		{TilePowerSource, '⚡'},
+		{TileStorage, '▤'},
+		{TileAlienTech, '⊕'},
 	}
 	for _, tt := range tests {
 		if got := TileChar(tt.tile); got != tt.want {
@@ -252,6 +258,12 @@ func TestTileTypeNames(t *testing.T) {
 		{TileWater, "Water"},
 		{TileUFOFloor, "UFO Floor"},
 		{TileUFOWall, "UFO Wall"},
+		{TileConsole, "Console"},
+		{TileMachinery, "Machinery"},
+		{TilePod, "Alien Pod"},
+		{TilePowerSource, "Power Source"},
+		{TileStorage, "Storage"},
+		{TileAlienTech, "Alien Tech"},
 		{TileType(99), "Unknown"},
 	}
 	for _, tt := range tests {

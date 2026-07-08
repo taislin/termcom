@@ -859,6 +859,19 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 					style = engine.StyleCyan
 				case TileUFOWall:
 					style = engine.StyleCyanBold
+				// UFO furniture - visible
+				case TileConsole:
+					style = engine.StyleYellow
+				case TileMachinery:
+					style = engine.StyleGray
+				case TilePod:
+					style = engine.StyleGreenBold
+				case TilePowerSource:
+					style = engine.StyleRed
+				case TileStorage:
+					style = engine.StyleYellow
+				case TileAlienTech:
+					style = engine.StyleMagenta
 				}
 			} else {
 				switch tile.Type {
@@ -877,6 +890,9 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 				case TileUFOFloor:
 					style = engine.StyleGray
 				case TileUFOWall:
+					style = engine.StyleGray
+				// UFO furniture - not visible
+				case TileConsole, TileMachinery, TilePod, TilePowerSource, TileStorage, TileAlienTech:
 					style = engine.StyleGray
 				}
 			}
@@ -1245,6 +1261,18 @@ func tileTypeName(t TileType) string {
 		return language.String("TILE_UFO_FLOOR")
 	case TileUFOWall:
 		return language.String("TILE_UFO_WALL")
+	case TileConsole:
+		return language.String("TILE_CONSOLE")
+	case TileMachinery:
+		return language.String("TILE_MACHINERY")
+	case TilePod:
+		return language.String("TILE_POD")
+	case TilePowerSource:
+		return language.String("TILE_POWER_SOURCE")
+	case TileStorage:
+		return language.String("TILE_STORAGE")
+	case TileAlienTech:
+		return language.String("TILE_ALIEN_TECH")
 	}
 	return language.String("TILE_UNKNOWN")
 }
