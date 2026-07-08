@@ -116,4 +116,10 @@
 - [x] Battlescape: night lighting — soldiers emit warm glow (radius 4), aliens emit blue glow (radius 2)
 - [x] Battlescape: SpawnSmoke on grenade detonation
 - [x] Battlescape: TileWater rendered with night-appropriate dark blue palette
-- [ ] Geoscape: water tiles (network graph has no tile map — skipped)
+
+### 12c — Geoscape & Menu Polish (done)
+- [x] Geoscape redesign: regional dashboard split-view (left=region table, right=minimap)
+- [x] Region table: threat bar, radar, interceptor count, status columns
+- [x] Minimap with auto-scaled node positions and edge rendering
+- [x] Menu title: per-character sine-wave glow with radial light source
+- [ ] Geoscape: animated water tiles (no tile map in dashboard view — skipped)

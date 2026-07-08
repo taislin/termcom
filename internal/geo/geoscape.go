@@ -667,109 +667,25 @@ func (gs *Geoscape) LaunchInterceptor() {
 func (gs *Geoscape) Render(ctx *engine.ScreenCtx) {
 	w, h := ctx.Size()
 
-	// Clear screen
+	// Layout: left=region table, right=minimap
+	tableW := w * 60 / 100
+	if tableW < 30 {
+		tableW = 30
+	}
+	mapW := w - tableW - 2
+	mapX := tableW + 2
+
+	// Clear
 	for y := 1; y < h-5; y++ {
 		for x := 1; x < w-1; x++ {
 			ctx.SetCell(x, y, ' ', engine.StyleDefault)
 		}
 	}
 
-	// Draw the network graph
-	gs.Network.Render(ctx, w, h)
+	gs.renderRegionTable(ctx, 1, 1, tableW-1, h-7)
+	gs.renderMinimap(ctx, mapX, 1, mapW-1, h-7)
 
-	// Draw UFOs on edges
-	for _, u := range gs.UFOs {
-		if !u.Active {
-			continue
-		}
-		ux := int(u.X) + 1
-		uy := int(u.Y) + 1
-		if ux > 0 && ux < w-1 && uy > 0 && uy < h-6 {
-			ctx.SetCell(ux, uy, '?', engine.StyleRedBold)
-		}
-	}
-
-	// Draw interceptors
-	for _, i := range gs.Interceptors {
-		if i.HP <= 0 {
-			continue
-		}
-		ix := int(i.X) + 1
-		iy := int(i.Y) + 1
-		if ix > 0 && ix < w-1 && iy > 0 && iy < h-6 {
-			ctx.SetCell(ix, iy, '\u25B8', engine.StyleCyanBold) // ▸
-		}
-	}
-
-	// Draw crash sites
-	for _, cs := range gs.CrashSites {
-		if cs.Looted {
-			continue
-		}
-		node := gs.Network.NodeByID(cs.NodeID)
-		if node == nil {
-			continue
-		}
-		csx := node.X + 1
-		csy := node.Y + 1
-		if csx > 0 && csx < w-1 && csy > 0 && csy < h-6 {
-			ctx.SetCell(csx, csy, '\u2297', engine.StyleYellow.Bold(true)) // ⊗
-		}
-	}
-
-	// Draw transport
-	if gs.Transport != nil {
-		fromNode := gs.Network.NodeByID(gs.Transport.FromNode)
-		toNode := gs.Network.NodeByID(gs.Transport.ToNode)
-		if fromNode != nil && toNode != nil {
-			tx := float64(fromNode.X) + float64(toNode.X-fromNode.X)*gs.Transport.Progress
-			ty := float64(fromNode.Y) + float64(toNode.Y-fromNode.Y)*gs.Transport.Progress
-			sx := int(tx) + 1
-			sy := int(ty) + 1
-			if sx > 0 && sx < w-1 && sy > 0 && sy < h-6 {
-				ctx.SetCell(sx, sy, '\u2666', engine.StyleGreenBold) // ♦
-			}
-		}
-	}
-
-	// Draw mission markers
-	for _, m := range gs.Missions {
-		node := gs.Network.NodeByID(m.NodeID)
-		if node == nil {
-			continue
-		}
-		mx := node.X + 1
-		my := node.Y - 1
-		if mx > 0 && mx < w-1 && my > 0 && my < h-6 {
-			ctx.SetCell(mx, my, '\u2605', engine.StyleMagenta) // ★
-		}
-	}
-
-	// Legend
-	lx := w - 22
-	ly := 2
-	ctx.DrawPanel(lx, ly, 21, 10, language.String("LEGEND"), engine.StyleDefault)
-	for y := ly + 1; y < ly+9; y++ {
-		for x := lx + 1; x < lx+20; x++ {
-			ctx.SetCell(x, y, ' ', engine.StyleDefault)
-		}
-	}
-	ctx.SetCell(lx+1, ly+1, '\u25CB', engine.StyleGreen)
-	ctx.DrawString(lx+3, ly+1, language.String("LEGEND_NODE_SAFE"), engine.StyleGreen)
-	ctx.SetCell(lx+1, ly+2, '\u25CB', engine.StyleYellow)
-	ctx.DrawString(lx+3, ly+2, language.String("LEGEND_NODE_THREAT"), engine.StyleYellow)
-	ctx.SetCell(lx+1, ly+3, '\u25CF', engine.StyleRed)
-	ctx.DrawString(lx+3, ly+3, language.String("LEGEND_NODE_DANGER"), engine.StyleRed)
-	ctx.SetCell(lx+1, ly+4, '\u25C6', engine.StyleCyan)
-	ctx.DrawString(lx+3, ly+4, language.String("LEGEND_BASE"), engine.StyleCyan)
-	ctx.SetCell(lx+1, ly+5, '?', engine.StyleRedBold)
-	ctx.DrawString(lx+3, ly+5, language.String("LEGEND_UFO"), engine.StyleRedBold)
-	ctx.SetCell(lx+1, ly+6, '\u25B8', engine.StyleCyanBold)
-	ctx.DrawString(lx+3, ly+6, language.String("LEGEND_INTERCEPTOR"), engine.StyleCyanBold)
-	ctx.SetCell(lx+1, ly+7, '\u2666', engine.StyleGreenBold)
-	ctx.DrawString(lx+3, ly+7, language.String("LEGEND_TRANSPORT"), engine.StyleGreenBold)
-
-	// Bottom status bar
+	// Bottom status
 	ctx.DrawPanel(0, h-6, w, 5, language.String("GEOSCAPE"), engine.StyleDefault)
 	fundsStr := fmt.Sprintf(language.String("GEOSCAPE_FUNDS"), gs.Game.Funds/1000)
 	timeStr := fmt.Sprintf(language.String("GEOSCAPE_TIME"), gs.Game.GameTime.Format("02/01/2006 15:04"))
@@ -799,6 +715,226 @@ func (gs *Geoscape) Render(ctx *engine.ScreenCtx) {
 		help = "VICTORY ACHIEVED!  Q=Quit"
 	}
 	ctx.DrawString(1, h-1, help, engine.StyleGray)
+}
+
+func (gs *Geoscape) renderRegionTable(ctx *engine.ScreenCtx, x, y, w, h int) {
+	// Header
+	hdr := " REGION          THREAT  RADAR  SQD  STATUS"
+	if len(hdr) > w {
+		hdr = hdr[:w]
+	}
+	ctx.DrawString(x, y, hdr, engine.StyleCyanBold)
+
+	sep := ""
+	for i := 0; i < w; i++ {
+		sep += "\u2500"
+	}
+	ctx.DrawString(x, y+1, sep, engine.StyleGray)
+
+	row := 0
+	for _, n := range gs.Network.Nodes {
+		if row >= h-2 {
+			break
+		}
+		ry := y + 2 + row
+
+		// Highlight selected
+		sel := n.ID == gs.CursorNode
+		baseStyle := engine.StyleDefault
+		if sel {
+			baseStyle = engine.StyleHighlight
+		}
+
+		// Region name (truncated)
+		name := n.Name
+		if len(name) > 14 {
+			name = name[:14]
+		}
+		prefix := "  "
+		if sel {
+			prefix = "> "
+		}
+		ctx.DrawString(x, ry, prefix+name, baseStyle)
+
+		// Threat bar
+		tx := x + 17
+		if n.Threat > 0 {
+			barLen := n.Threat * 6 / 100
+			if barLen < 1 {
+				barLen = 1
+			}
+			threatStyle := engine.StyleYellow
+			if n.Threat > 50 {
+				threatStyle = engine.StyleRedBold
+			}
+			bar := ""
+			for i := 0; i < 6; i++ {
+				if i < barLen {
+					bar += "\u2588"
+				} else {
+					bar += "\u2591"
+				}
+			}
+			ctx.DrawString(tx, ry, bar, threatStyle)
+		} else {
+			ctx.DrawString(tx, ry, "\u2591\u2591\u2591\u2591\u2591\u2591", engine.StyleGray)
+		}
+
+		// Radar
+		rx := x + 24
+		if n.HasRadar {
+			ctx.DrawString(rx, ry, " R ", engine.StyleCyan)
+		} else {
+			ctx.DrawString(rx, ry, " - ", engine.StyleGray)
+		}
+
+		// Interceptor count
+		ix := x + 28
+		if n.InterceptorCount > 0 {
+			ctx.DrawString(ix, ry, fmt.Sprintf(" %d ", n.InterceptorCount), engine.StyleGreen)
+		} else {
+			ctx.DrawString(ix, ry, " - ", engine.StyleGray)
+		}
+
+		// Status
+		sx := x + 32
+		if n.MissionHere {
+			ctx.DrawString(sx, ry, "MISSION", engine.StyleMagenta)
+		} else if n.ID == 0 {
+			ctx.DrawString(sx, ry, "BASE", engine.StyleCyanBold)
+		} else if n.Threat > 50 {
+			ctx.DrawString(sx, ry, "DANGER", engine.StyleRedBold)
+		} else if n.Threat > 0 {
+			ctx.DrawString(sx, ry, "ALERT", engine.StyleYellow)
+		} else {
+			ctx.DrawString(sx, ry, "clear", engine.StyleGray)
+		}
+
+		row++
+	}
+
+	// Legend at bottom of table
+	ly := y + h - 2
+	if ly > y+3 {
+		ctx.DrawPanel(x, ly, w, 2, "", engine.StyleGray)
+		ctx.DrawString(x+1, ly+1, "j/k=Select L=Launch A=Auto M=Mission B=Base", engine.StyleGray)
+	}
+}
+
+func (gs *Geoscape) renderMinimap(ctx *engine.ScreenCtx, x, y, w, h int) {
+	ctx.DrawPanel(x, y, w, h, "MAP", engine.StyleGray)
+
+	innerW := w - 2
+	innerH := h - 2
+	if innerW < 10 || innerH < 5 {
+		return
+	}
+
+	// Find bounds of all nodes
+	minX, minY := 9999, 9999
+	maxX, maxY := -9999, -9999
+	for _, n := range gs.Network.Nodes {
+		if n.X < minX {
+			minX = n.X
+		}
+		if n.Y < minY {
+			minY = n.Y
+		}
+		if n.X > maxX {
+			maxX = n.X
+		}
+		if n.Y > maxY {
+			maxY = n.Y
+		}
+	}
+
+	// Pad bounds
+	minX -= 2
+	minY -= 2
+	maxX += 2
+	maxY += 2
+	rangeX := maxX - minX
+	rangeY := maxY - minY
+	if rangeX < 1 {
+		rangeX = 1
+	}
+	if rangeY < 1 {
+		rangeY = 1
+	}
+
+	// Draw edges
+	for _, e := range gs.Network.Edges {
+		from := gs.Network.NodeByID(e.From)
+		to := gs.Network.NodeByID(e.To)
+		if from == nil || to == nil {
+			continue
+		}
+		sx1 := x + 1 + (from.X-minX)*innerW/rangeX
+		sy1 := y + 1 + (from.Y-minY)*innerH/rangeY
+		sx2 := x + 1 + (to.X-minX)*innerW/rangeX
+		sy2 := y + 1 + (to.Y-minY)*innerH/rangeY
+		gn := gs.Network
+		gn.drawMiniEdge(ctx, sx1, sy1, sx2, sy2, from.Threat, to.Threat)
+	}
+
+	// Draw nodes
+	for _, n := range gs.Network.Nodes {
+		sx := x + 1 + (n.X-minX)*innerW/rangeX
+		sy := y + 1 + (n.Y-minY)*innerH/rangeY
+		if sx <= x || sx >= x+w-1 || sy <= y || sy >= y+h-1 {
+			continue
+		}
+
+		ch, style := gs.Network.nodeStyle(n)
+		if n.ID == gs.CursorNode {
+			ch = '\u25C9'
+			style = engine.StyleDefault.Bold(true)
+		}
+		ctx.SetCell(sx, sy, ch, style)
+	}
+}
+
+func (gs *GeoNetwork) drawMiniEdge(ctx *engine.ScreenCtx, x1, y1, x2, y2, t1, t2 int) {
+	edgeStyle := tcell.StyleDefault.Foreground(tcell.NewRGBColor(50, 70, 50))
+	if t1 > 50 || t2 > 50 {
+		edgeStyle = tcell.StyleDefault.Foreground(tcell.NewRGBColor(100, 30, 20))
+	} else if t1 > 0 || t2 > 0 {
+		edgeStyle = tcell.StyleDefault.Foreground(tcell.NewRGBColor(100, 80, 20))
+	}
+
+	dx := x2 - x1
+	if dx < 0 {
+		dx = -dx
+	}
+	dy := y2 - y1
+	if dy < 0 {
+		dy = -dy
+	}
+	sx := 1
+	if x1 > x2 {
+		sx = -1
+	}
+	sy := 1
+	if y1 > y2 {
+		sy = -1
+	}
+	err := dx - dy
+
+	for {
+		ctx.SetCell(x1, y1, '\u00B7', edgeStyle) // ·
+		if x1 == x2 && y1 == y2 {
+			break
+		}
+		e2 := 2 * err
+		if e2 > -dy {
+			err -= dy
+			x1 += sx
+		}
+		if e2 < dx {
+			err += dx
+			y1 += sy
+		}
+	}
 }
 
 func (gs *Geoscape) HandleKey(e *tcell.EventKey) {
@@ -903,7 +1039,6 @@ func (gs *Geoscape) HandleMouse(e *tcell.EventMouse) {
 	x, y := e.Position()
 	w, h := gs.Game.ScreenSize()
 
-	// Handle help bar clicks (bottom bar)
 	if y == h-1 {
 		switch {
 		case x >= 1 && x <= 3:
@@ -926,12 +1061,13 @@ func (gs *Geoscape) HandleMouse(e *tcell.EventMouse) {
 		return
 	}
 
-	// Click on a node
-	if y > 0 && y < h-5 && x > 0 && x < w-1 {
-		node := gs.Network.NearestNode(x-1, y-1)
-		if node != nil {
-			gs.CursorNode = node.ID
-			gs.Message = fmt.Sprintf(language.String("GEOSCAPE_NODE_SELECTED"), node.Name, node.Region)
+	// Click in table region (left pane)
+	tableW := w * 60 / 100
+	if x > 1 && x < tableW && y > 2 && y < h-7 {
+		row := y - 3
+		if row >= 0 && row < len(gs.Network.Nodes) {
+			gs.CursorNode = gs.Network.Nodes[row].ID
+			gs.Message = fmt.Sprintf(language.String("GEOSCAPE_NODE_SELECTED"), gs.Network.Nodes[row].Name, gs.Network.Nodes[row].Region)
 			gs.MessageTimer = time.Now()
 		}
 	}

@@ -47,7 +47,9 @@ internal/
   engine/particles.go      Particle system with sync.Pool (explosions, smoke, rain)
   engine/water.go          Animated water with sine-wave color cycling
   engine/camera.go         Screen shake with decay and thread-safe offsets
-  geo/geoscape.go          Geoscape: world map, time, interceptions
+  engine/menu.go           Title screen with per-character glow effect
+  geo/geoscape.go          Geoscape: regional dashboard, time, interceptions
+  geo/network.go           Regional hub network, minimap rendering
   geo/world.go             World map data (equirectangular ASCII)
   geo/ufo.go               UFO spawning, movement
   geo/interceptor.go       Interceptor launch, dogfight

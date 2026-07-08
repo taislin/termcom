@@ -1,7 +1,9 @@
 package engine
 
 import (
+	"math"
 	"os"
+	"time"
 
 	"github.com/civ13/ycom/internal/language"
 	"github.com/gdamore/tcell/v3"
@@ -40,18 +42,7 @@ func (ms *MenuScreen) Render(ctx *ScreenCtx) {
 		"                                                                         ",
 	}
 
-	// Purple gradient from light (top) to dark (bottom)
-	purpleGradient := []tcell.Color{
-		tcell.ColorFuchsia,
-		tcell.ColorPurple,
-		tcell.ColorDarkMagenta,
-		tcell.ColorDarkMagenta,
-		tcell.ColorDarkMagenta,
-		tcell.ColorDarkMagenta,
-		tcell.ColorDarkMagenta,
-		tcell.ColorDarkMagenta,
-		tcell.ColorDarkMagenta,
-	}
+	now := float64(time.Now().UnixNano()) / 1e9
 
 	startY := 2
 	for i, line := range title {
@@ -59,8 +50,36 @@ func (ms *MenuScreen) Render(ctx *ScreenCtx) {
 		if x < 0 {
 			x = 0
 		}
-		style := StyleDefault.Foreground(purpleGradient[i]).Bold(true)
-		ctx.DrawString(x, startY+i, line, style)
+
+		// Per-character glow: sine wave shifts hue over time
+		for j, ch := range line {
+			if ch == ' ' {
+				continue
+			}
+			phase := float64(j)*0.3 + float64(i)*0.2 + now*2.0
+			glow := (math.Sin(phase) + 1) / 2 // 0..1
+
+			r := int32(128 + glow*127) // 128..255
+			g := int32(40 + glow*60)   // 40..100
+			b := int32(180 + glow*75)  // 180..255
+			fg := tcell.NewRGBColor(r, g, b)
+
+			style := StyleDefault.Foreground(fg).Bold(true)
+			ctx.SetCell(x+j, startY+i, ch, style)
+		}
+
+		// Glow behind title: radial light source
+		midX := x + len(line)/2
+		midY := startY + i
+		glowPhase := now*1.5 + float64(i)*0.4
+		glowIntensity := (math.Sin(glowPhase) + 1) / 2
+		radius := 3.0 + glowIntensity*2.0
+		glowColor := tcell.NewRGBColor(
+			int32(80+glowIntensity*60),
+			int32(20+glowIntensity*30),
+			int32(120+glowIntensity*80),
+		)
+		ApplyLightSource(ctx.ScreenRaw, ctx.FrameBuffer(), midX, midY, radius, glowColor)
 	}
 
 	subY := startY + len(title) + 1

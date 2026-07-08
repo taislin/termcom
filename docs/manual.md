@@ -65,29 +65,42 @@ After shooting down a UFO or engaging an alien mission, you deploy your soldiers
 
 ## Geoscape
 
-The Geoscape uses a **network graph** of regional hubs connected by flight paths.
-Each node represents a strategic location with its own threat level and facilities.
+The Geoscape uses a **regional dashboard** layout:
 
-### Network View
+- **Left pane (60%):** Table of all regions with status columns
+- **Right pane (40%):** ASCII minimap showing node positions and connections
+
+### Region Table Columns
+
+| Column | Description |
+|--------|-------------|
+| REGION | City name (j/k to select) |
+| THREAT | Visual bar: `█` = threat level, `░` = safe |
+| RADAR | `R` if you have radar coverage, `-` otherwise |
+| SQD | Number of interceptors stationed |
+| STATUS | BASE, clear, ALERT, DANGER, or MISSION |
+
+### Minimap Symbols
 
 | Symbol | Meaning |
 |--------|---------|
 | ◆ | Your base (home node) |
+| ◉ | Currently selected node |
 | ○ | Regional hub (green=safe, yellow=threat, red=danger) |
-| ? | UFO in transit along an edge |
-| ▸ | Interceptor in flight |
-| ♦ | Transport dispatch |
-| ★ | Active alien mission |
-| R | Radar coverage at node |
-| ! / !! | Threat level indicators |
+| · | Flight path connections |
 
-### Node Info
+### Controls
 
-Each node displays:
-- **Name** below the node
-- **R** if you have radar coverage
-- **Interceptor count** above the node
-- **Threat level** (! or !!) based on alien activity
+| Key | Action |
+|-----|--------|
+| j/k | Navigate region list |
+| L | Launch interceptor at selected node |
+| A | Autoresolve interception |
+| M | Respond to alien mission |
+| B | Open base management |
+| R | Dispatch transport to crash site |
+| Space | Pause/unpause time |
+| 1-4 | Time compression |
 
 ### Time Controls
 
