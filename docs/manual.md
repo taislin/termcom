@@ -285,8 +285,44 @@ Crouch bonus: × 110 / 100
 damage = weapon.Damage + random(0 to weapon.Damage / 3)
 damage -= target.Armour value
 Crouching: × 70 / 100
+Cover from objects: × (100 - cover%) / 100
 Minimum: 1
 ```
+
+#### Object Cover
+
+Shots passing through tiles with cover values have their damage reduced.
+The highest cover value along the line of fire (excluding shooter and target)
+is applied as damage reduction.
+
+| Object | Cover % | Tile Symbol |
+|--------|---------|-------------|
+| Wall / UFO Wall | 80% | # / █ |
+| Rock | 70% | ∩ |
+| Tree | 60% | ♣ |
+| UFO Furniture | 50% | ░ ⚙ ◈ ⌁ ▤ ⊕ |
+| Bush | 40% | † |
+| Fence | 30% | ║ |
+| Rubble | 20% | ▒ |
+
+**Strategy:** Position soldiers behind walls (80% reduction) for maximum protection.
+Trees (60%) are decent野外 cover. Fences (30%) provide minimal protection.
+
+#### Damage Types & Resistance
+
+Each alien species has a primary damage type and unique resistance/weakness
+spread. These are discovered as you encounter and autopsy aliens.
+
+| Damage Type | Weapons |
+|-------------|---------|
+| Plasma | Plasma Pistol, Plasma Rifle, Heavy Plasma, Alien Grenade |
+| Laser | Laser Pistol, Laser Rifle |
+| Explosive | Rocket Launcher |
+| Melee | Chryssalid Claw, Reaper Claw, Stun Rod |
+| Kinetic | Pistol, Rifle, Heavy Cannon, Auto Cannon |
+| Psionic | Ethereal attacks |
+
+Alien resistance values: positive = damage reduced, negative = damage increased.
 
 ### Line of Sight
 
@@ -391,18 +427,30 @@ Higher armour reduces damage but imposes a TU penalty, reducing actions per turn
 
 ## Aliens
 
-### Alien Types
+### Procedural Species
 
-| Alien | HP | TU | ACC | BRA | Armour | Weapon |
-|-------|----|----|-----|-----|--------|--------|
-| Sectoid | 10 | 50 | 55% | 40 | 5 | Plasma Pistol |
-| Sectoid Leader | 12 | 55 | 60% | 50 | 8 | Plasma Rifle |
-| Floater | 15 | 55 | 60% | 50 | 10 | Plasma Rifle |
-| Floater Leader | 18 | 60 | 65% | 60 | 12 | Plasma Rifle |
-| Muton | 25 | 55 | 55% | 70 | 18 | Plasma Rifle |
-| Muton Leader | 28 | 60 | 60% | 80 | 20 | Plasma Rifle |
-| Ethereal | 18 | 65 | 70% | 100 | 12 | Plasma Rifle |
-| Ethereal Leader | 22 | 70 | 75% | 100 | 15 | Plasma Rifle |
+Each game session generates 5–7 unique alien species from a seed. Every species
+has 2–5 rank variants (Soldier → Navigator → Commander → Elite → Overlord).
+
+Species traits are determined at generation:
+- **Primary damage type** — the damage type the species deals
+- **Resistance spread** — each species has unique resistances and weaknesses
+- **Weapon preference** — lower ranks use pistols, higher ranks use heavy weapons
+
+This means every playthrough features different alien threats. One run may have
+a psionic-heavy species resistant to plasma, while another has melee predators
+weak to explosives.
+
+### Knowledge Levels
+
+As you encounter aliens, your knowledge increases:
+
+| Level | Trigger | Effect |
+|-------|---------|--------|
+| 0 — Unknown | Never seen | Name appears as "???" in encyclopedia |
+| 1 — Sighted | Alien visible in FOV | Name and icon revealed |
+| 2 — Killed | Alien killed in combat | Stats and resistances revealed |
+| 3 — Autopsied | Research completed | Full lore and detailed weaknesses |
 
 ### Alien AI Behavior
 
@@ -472,7 +520,9 @@ Aliens spawn in groups: 3 lowest-rank + 2 rank-1 aliens (if available).
 | F9 | Load game from `xcom_save.json` |
 
 Saves include: game time, funds, pausing, speed, alien activity, base state, UFOs,
-and active missions.
+active missions, procedural species seed, and alien knowledge levels.
+
+The species seed ensures the same alien species are regenerated when loading a save.
 
 ---
 
@@ -489,6 +539,8 @@ and active missions.
 | L | Launch interceptor |
 | A | Autoresolve nearest UFO |
 | M | Respond to mission |
+| R | Dispatch transport to crash site |
+| E | Open encyclopedia |
 | F5 | Save |
 | F9 | Load |
 | Q | Quit |
@@ -536,10 +588,11 @@ and active missions.
 
 ### Combat Tips
 
+- **Use object cover** — position behind walls (80% reduction) or trees (60%).
 - **Crouch before firing** — +10% accuracy and 30% damage reduction.
 - **Reload early** — don't wait until empty.
-- **Use cover** — stand behind walls and trees to block line of sight.
-- **Grenades** are powerful against grouped aliens, especially high-STR soldiers.
+- **Grenades** bypass cover — useful against enemies behind walls.
+- **Learn alien weaknesses** — each species has unique resistances. Use the right weapon.
 - **Medikits** — keep one on a dedicated medic. 25 TU is expensive, but saves lives.
 - **Don't overextend** — advance cautiously; aliens get reaction shots.
 

@@ -51,9 +51,34 @@ const (
 
 type Tile struct {
 	Type      TileType
+	Cover     int  // 0-100, damage reduction % from shots passing through
 	Destroyed bool
 	Visible   bool
 	Seen      bool
+}
+
+// TileCover returns the base cover value for a tile type.
+func TileCover(t TileType) int {
+	switch t {
+	case TileWall, TileUFOWall:
+		return 80
+	case TileTree:
+		return 60
+	case TileRock:
+		return 70
+	case TileBush:
+		return 40
+	case TileFence:
+		return 30
+	case TileObject, TileConsole, TileMachinery, TilePod, TilePowerSource, TileStorage, TileAlienTech:
+		return 50
+	case TileRubble:
+		return 20
+	case TileDoor:
+		return 0
+	default:
+		return 0
+	}
 }
 
 var tileChars = map[TileType]rune{
@@ -108,7 +133,7 @@ func NewBattleMap(w, h int) *BattleMap {
 	for y := 0; y < h; y++ {
 		m.Tiles[y] = make([]Tile, w)
 		for x := 0; x < w; x++ {
-			m.Tiles[y][x] = Tile{Type: TileGrass}
+			m.Tiles[y][x] = Tile{Type: TileGrass, Cover: TileCover(TileGrass)}
 		}
 	}
 	return m
@@ -116,7 +141,7 @@ func NewBattleMap(w, h int) *BattleMap {
 
 func (m *BattleMap) At(x, y int) Tile {
 	if x < 0 || x >= m.Width || y < 0 || y >= m.Height {
-		return Tile{Type: TileWall}
+		return Tile{Type: TileWall, Cover: TileCover(TileWall)}
 	}
 	return m.Tiles[y][x]
 }
@@ -124,6 +149,7 @@ func (m *BattleMap) At(x, y int) Tile {
 func (m *BattleMap) Set(x, y int, t TileType) {
 	if x >= 0 && x < m.Width && y >= 0 && y < m.Height {
 		m.Tiles[y][x].Type = t
+		m.Tiles[y][x].Cover = TileCover(t)
 	}
 }
 
@@ -144,6 +170,55 @@ func (m *BattleMap) Opaque(x, y int) bool {
 		return true
 	}
 	return false
+}
+
+// CoverAlongLine returns the maximum cover value (%) of tiles between (x1,y1)
+// and (x2,y2), exclusive of the endpoints. Uses Bresenham's line.
+func (m *BattleMap) CoverAlongLine(x1, y1, x2, y2 int) int {
+	dx := x2 - x1
+	if dx < 0 {
+		dx = -dx
+	}
+	dy := y2 - y1
+	if dy < 0 {
+		dy = -dy
+	}
+	sx := 1
+	if x1 > x2 {
+		sx = -1
+	}
+	sy := 1
+	if y1 > y2 {
+		sy = -1
+	}
+	err := dx - dy
+
+	x, y := x1, y1
+	maxCover := 0
+	for {
+		if x == x2 && y == y2 {
+			break
+		}
+		e2 := 2 * err
+		if e2 > -dy {
+			err -= dy
+			x += sx
+		}
+		if e2 < dx {
+			err += dx
+			y += sy
+		}
+		if x == x2 && y == y2 {
+			break
+		}
+		if x >= 0 && x < m.Width && y >= 0 && y < m.Height {
+			c := m.Tiles[y][x].Cover
+			if c > maxCover {
+				maxCover = c
+			}
+		}
+	}
+	return maxCover
 }
 
 const SightRange = 20

@@ -72,7 +72,7 @@ func BenchmarkFireAt(b *testing.B) {
 		attacker.TU = 50
 		defender.HP = 50
 		defender.Alive = true
-		_, _, _ = attacker.FireAt(defender)
+		_, _, _ = attacker.FireAt(defender, nil)
 	}
 }
 

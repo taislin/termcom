@@ -290,7 +290,7 @@ func (bs *Battlescape) executeAlienAction(action AlienAction) {
 		if action.Target == nil || !action.Target.Alive {
 			return
 		}
-		damage, hit, err := action.Unit.FireAt(action.Target)
+		damage, hit, err := action.Unit.FireAt(action.Target, bs.Map)
 		if err != nil {
 			return
 		}
@@ -621,7 +621,7 @@ func (bs *Battlescape) Confirm() {
 			bs.AddMessage(language.String("MSG_TARGET_NO_LOS"))
 			return
 		}
-		damage, hit, err := bs.Selected.FireAt(unit)
+		damage, hit, err := bs.Selected.FireAt(unit, bs.Map)
 		if err != nil {
 			bs.AddMessage(err.Error())
 			return
@@ -683,7 +683,7 @@ func (bs *Battlescape) FireWeapon() {
 		bs.AddMessage(language.String("MSG_TARGET_NO_LOS"))
 		return
 	}
-	damage, hit, err := bs.Selected.FireAt(target)
+	damage, hit, err := bs.Selected.FireAt(target, bs.Map)
 	if err != nil {
 		bs.AddMessage(err.Error())
 		return

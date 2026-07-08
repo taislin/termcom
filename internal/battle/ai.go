@@ -166,7 +166,7 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList) {
 			if dist <= 1 {
 				ai.meleeAttack(nearest)
 			} else if ai.Unit.TU >= 15 {
-				_, _, _ = ai.Unit.FireAt(nearest)
+				_, _, _ = ai.Unit.FireAt(nearest, m)
 			}
 
 			if ai.Unit.AlienType != nil && ai.Unit.AlienType.Aggression > 5 && dist > 3 {

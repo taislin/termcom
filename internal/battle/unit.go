@@ -109,7 +109,7 @@ func (u *Unit) Name() string {
 	return "Civilian"
 }
 
-func (u *Unit) FireAt(target *Unit) (int, bool, error) {
+func (u *Unit) FireAt(target *Unit, m *BattleMap) (int, bool, error) {
 	w, ok := data.RuleItems[u.Weapon]
 	if !ok {
 		return 0, false, fmt.Errorf("unknown weapon: %s", u.Weapon)
@@ -143,6 +143,14 @@ func (u *Unit) FireAt(target *Unit) (int, bool, error) {
 	damage -= target.Armour
 	if target.Crouching {
 		damage = damage * 7 / 10
+	}
+
+	// Apply cover from intervening tiles
+	if m != nil {
+		cover := m.CoverAlongLine(u.X, u.Y, target.X, target.Y)
+		if cover > 0 {
+			damage = damage * (100 - cover) / 100
+		}
 	}
 
 	// Apply damage type resistance/weakness from target
