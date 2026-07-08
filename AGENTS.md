@@ -26,26 +26,32 @@ make clean          # Remove binary and coverage
 ```
 
 ### Coverage
-- `internal/data` — 100%
-- `internal/soldier` — 78%
-- `internal/geo` — 43%
-- `internal/battle` — 28%
-- `internal/base` — 15%
+- `internal/data` — 14%
+- `internal/soldier` — 92%
+- `internal/geo` — 15%
+- `internal/battle` — 25%
+- `internal/base` — 19%
+- `internal/engine` — 1%
+- `internal/save` — 81%
 
 ### Dependencies
-- `github.com/gdamore/tcell/v2` — Terminal rendering, input, colors
+- `github.com/gdamore/tcell/v3` — Terminal rendering, input, colors
 
 ### Architecture
 ```
 cmd/ycom/main.go          Entry point
 internal/
   engine/game.go           Game state machine, main loop, input dispatch
-  engine/screen.go         Low-level screen/cell rendering helpers
+  engine/screen.go         Low-level screen/cell rendering helpers + FrameBuffer
+  engine/vfx.go            True-color lighting, alpha blending, half-block rendering
+  engine/particles.go      Particle system with sync.Pool (explosions, smoke, rain)
+  engine/water.go          Animated water with sine-wave color cycling
+  engine/camera.go         Screen shake with decay and thread-safe offsets
   geo/geoscape.go          Geoscape: world map, time, interceptions
   geo/world.go             World map data (equirectangular ASCII)
   geo/ufo.go               UFO spawning, movement
   geo/interceptor.go       Interceptor launch, dogfight
-  battle/battlescape.go    Battlescape: turn logic, TU, line-of-sight
+  battle/battlescape.go    Battlescape: turn logic, TU, line-of-sight, VFX integration
   battle/map.go            Tactical map generation (crash sites, terror)
   battle/unit.go           Soldiers and aliens on the tactical map
   battle/ai.go             Alien AI (patrol, seek, attack, flee)

@@ -8,6 +8,7 @@ type ScreenRaw struct {
 	screen tcell.Screen
 	width  int
 	height int
+	fb     *FrameBuffer
 }
 
 func NewScreenRaw() (*ScreenRaw, error) {
@@ -21,7 +22,7 @@ func NewScreenRaw() (*ScreenRaw, error) {
 	s.EnableMouse()
 	s.SetStyle(tcell.StyleDefault.Background(tcell.ColorBlack).Foreground(tcell.ColorWhite))
 	w, h := s.Size()
-	return &ScreenRaw{screen: s, width: w, height: h}, nil
+	return &ScreenRaw{screen: s, width: w, height: h, fb: NewFrameBuffer(w, h)}, nil
 }
 
 func (s *ScreenRaw) Close() {
@@ -30,6 +31,7 @@ func (s *ScreenRaw) Close() {
 
 func (s *ScreenRaw) Clear() {
 	s.screen.Clear()
+	s.fb.Clear()
 }
 
 func (s *ScreenRaw) Flush() {
@@ -44,12 +46,21 @@ func (s *ScreenRaw) UpdateSize() {
 	w, h := s.screen.Size()
 	s.width = w
 	s.height = h
+	s.fb.Resize(w, h)
 }
 
 func (s *ScreenRaw) SetCell(x, y int, ch rune, style tcell.Style) {
 	if x >= 0 && x < s.width && y >= 0 && y < s.height {
 		s.screen.SetContent(x, y, ch, nil, style)
+		fg := style.GetForeground()
+		bg := style.GetBackground()
+		attr := style.GetAttributes()
+		s.fb.Set(x, y, ch, fg, bg, attr)
 	}
+}
+
+func (s *ScreenRaw) FrameBuffer() *FrameBuffer {
+	return s.fb
 }
 
 func (s *ScreenRaw) DrawString(x, y int, str string, style tcell.Style) {

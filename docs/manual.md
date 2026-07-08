@@ -378,6 +378,38 @@ Heals 10 HP per use, costs 25 TU. Must target a friendly unit.
 - +10% accuracy bonus
 - 30% damage reduction when hit
 
+### Night/Day Missions
+
+Battles occur in real-time. The game hour determines whether it's night:
+- **Night:** Before 6:00 or after 18:00
+- **Day:** 6:00 to 18:00
+
+Night penalties:
+- **Accuracy:** 75% of daytime accuracy
+- **Sight range:** Reduced from 20 to 10 tiles
+- **Visual effects:** Soldiers emit a warm glow, aliens emit a faint blue glow
+
+### Psi Combat
+
+Requires a **Psi-Amplifier** weapon and the **Psi-Lab** facility.
+
+| Action | TU Cost |
+|--------|---------|
+| Psi attack | 20 |
+
+**Formula:** `success chance = attacker.PsiSkill - (target.Psi / 2)`
+
+Success: Target loses all TU for the turn. Psi resistance varies by alien species
+(Ethereals are highly resistant, Chryssalids have none).
+
+### Visual Effects
+
+The Battlescape includes dynamic visual effects:
+- **Explosions:** Grenade detonations and weapon impacts spawn particle bursts
+- **Screen shake:** Camera shakes on explosions (intensity scales with damage)
+- **Smoke:** Grenade impacts produce lingering smoke particles
+- **Night lighting:** Units emit subtle radial glow in dark missions
+
 ### Map Types
 
 | Map | Description |

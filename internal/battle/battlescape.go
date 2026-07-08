@@ -79,6 +79,9 @@ type Battlescape struct {
 	AlienTurnIdx    int
 	AlienTurnDelay  int
 	Projectile      *Projectile
+
+	Camera   *engine.Camera
+	Particles *engine.ParticleSystem
 }
 
 func (bs *Battlescape) AddMessage(msg string) {
@@ -176,6 +179,8 @@ func NewBattlescape(g *engine.Game, squad []*soldier.Soldier, ufoName string) *B
 		Squad:   squad,
 		UFOName: ufoName,
 		IsNight: g.GameTime.Hour() < 6 || g.GameTime.Hour() > 18,
+		Camera:   engine.NewCamera(m.Width/2, m.Height/2),
+		Particles: engine.NewParticleSystem(512),
 	}
 
 	bs.AddMessage(fmt.Sprintf(language.String("MSG_MISSION_START"), ufoName))
@@ -255,6 +260,10 @@ func (bs *Battlescape) ComputeFOVForTeam() {
 }
 
 func (bs *Battlescape) Update() {
+	dt := 0.016
+	bs.Camera.UpdateShake(dt)
+	bs.Particles.Update(dt)
+
 	if bs.Phase == PhaseAlienTurn {
 		if bs.Projectile != nil {
 			bs.Projectile.Progress++
@@ -320,7 +329,10 @@ func (bs *Battlescape) executeAlienAction(action AlienAction) {
 			Symbol: symbol,
 			Style:  engine.StyleYellow,
 		}
+		engine.SpawnExplosion(bs.Particles, action.Unit.X-bs.ScrollX+1, action.Unit.Y-bs.ScrollY+1, tcell.NewRGBColor(255, 200, 50), 4)
 		if hit {
+			engine.SpawnExplosion(bs.Particles, action.Target.X-bs.ScrollX+1, action.Target.Y-bs.ScrollY+1, tcell.NewRGBColor(255, 80, 30), 8)
+			bs.Camera.TriggerShake(0.5)
 			name := action.Target.Soldier.Name
 			if action.Target.AlienType != nil {
 				name = action.Target.AlienType.Name
@@ -697,8 +709,11 @@ func (bs *Battlescape) FireWeapon() {
 		bs.AddMessage(err.Error())
 		return
 	}
+	engine.SpawnExplosion(bs.Particles, bs.Selected.X-bs.ScrollX+1, bs.Selected.Y-bs.ScrollY+1, tcell.NewRGBColor(255, 200, 50), 4)
 	if hit {
 		audio.PlayHit()
+		engine.SpawnExplosion(bs.Particles, target.X-bs.ScrollX+1, target.Y-bs.ScrollY+1, tcell.NewRGBColor(255, 80, 30), 8)
+		bs.Camera.TriggerShake(0.5)
 		name := "alien"
 		if target.AlienType != nil {
 			name = target.AlienType.Name
@@ -821,6 +836,10 @@ func (bs *Battlescape) Grenade() {
 
 	audio.PlayGrenade()
 	bs.AddMessage(fmt.Sprintf(language.String("MSG_GRENADE_DETONATED"), ax, ay))
+
+	bs.Camera.TriggerShake(3.0)
+	engine.SpawnExplosion(bs.Particles, ax-bs.ScrollX+1, ay-bs.ScrollY+1, tcell.NewRGBColor(255, 180, 50), 24)
+	engine.SpawnSmoke(bs.Particles, ax-bs.ScrollX+1, ay-bs.ScrollY+1, 8)
 }
 
 func (bs *Battlescape) UseMedikit() {
@@ -906,6 +925,18 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 	}
 	viewH := h - 5
 
+	camX, camY := bs.Camera.Pos()
+	scrollX := camX - viewW/2
+	scrollY := camY - viewH/2
+	if scrollX < 0 {
+		scrollX = 0
+	}
+	if scrollY < 0 {
+		scrollY = 0
+	}
+	bs.ScrollX = scrollX
+	bs.ScrollY = scrollY
+
 	for y := 0; y < viewH; y++ {
 		for x := 0; x < viewW; x++ {
 			mx := x + bs.ScrollX
@@ -933,12 +964,19 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 				case TileRock:
 					style = engine.StyleGray
 				case TileWater:
-					style = engine.StyleBlue
+					if bs.IsNight {
+						style = tcell.StyleDefault.Foreground(
+							tcell.NewRGBColor(20, 60, 140),
+						).Background(tcell.NewRGBColor(0, 10, 60))
+					} else {
+						style = tcell.StyleDefault.Foreground(
+							tcell.NewRGBColor(40, 100, 200),
+						).Background(tcell.NewRGBColor(0, 30, 120))
+					}
 				case TileUFOFloor:
 					style = engine.StyleCyan
 				case TileUFOWall:
 					style = engine.StyleCyanBold
-				// UFO furniture - visible
 				case TileConsole:
 					style = engine.StyleYellow
 				case TileMachinery:
@@ -970,17 +1008,14 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 					style = engine.StyleGray
 				case TileUFOWall:
 					style = engine.StyleGray
-				// UFO furniture - not visible
 				case TileConsole, TileMachinery, TilePod, TilePowerSource, TileStorage, TileAlienTech:
 					style = engine.StyleGray
 				}
 			}
 
-			// Highlight movement range
 			if bs.Selected != nil && bs.Phase == PhasePlayerTurn {
 				movementRange := bs.GetMovementRange()
 				if movementRange[[2]int{mx, my}] {
-					// Add blue background to show movement range
 					style = style.Background(tcell.NewRGBColor(20, 40, 80))
 				}
 			}
@@ -990,6 +1025,29 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 			}
 
 			ctx.SetCell(x+1, y+1, ch, style)
+		}
+	}
+
+	if bs.IsNight {
+		for _, u := range bs.Units {
+			if !u.Alive || u.Faction != 0 {
+				continue
+			}
+			sx := u.X - bs.ScrollX + 1
+			sy := u.Y - bs.ScrollY + 1
+			if sx >= 1 && sx < viewW+1 && sy >= 1 && sy < viewH+1 {
+				engine.ApplyLightSource(ctx.ScreenRaw, ctx.FrameBuffer(), sx, sy, 4, tcell.NewRGBColor(180, 160, 100))
+			}
+		}
+		for _, u := range bs.Units {
+			if !u.Alive || u.Faction != 1 {
+				continue
+			}
+			sx := u.X - bs.ScrollX + 1
+			sy := u.Y - bs.ScrollY + 1
+			if sx >= 1 && sx < viewW+1 && sy >= 1 && sy < viewH+1 {
+				engine.ApplyLightSource(ctx.ScreenRaw, ctx.FrameBuffer(), sx, sy, 2, tcell.NewRGBColor(100, 140, 255))
+			}
 		}
 	}
 
@@ -1040,6 +1098,8 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 			ctx.SetCell(sx, sy, p.Symbol, p.Style)
 		}
 	}
+
+	bs.Particles.Draw(ctx.ScreenRaw)
 
 	// Draw sidebar border
 	sidebarX := viewW + 2

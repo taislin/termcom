@@ -92,5 +92,28 @@
   - [x] Save/load persists species seed + knowledge state
 - [x] Object-specific cover system (walls 80%, trees 60%, fences 30%, affecting shot damage)
 - [ ] Multi-level maps (stairs/elevators for UFO interiors)
-- [ ] Psi combat (use Psi stat in battlescape)
-- [ ] Night/day missions (lighting system affecting accuracy and LOS)
+- [x] Psi combat (use Psi stat in battlescape)
+- [x] Night/day missions (lighting system affecting accuracy and LOS)
+
+## Phase 12 — VFX & Visual Effects
+### 12a — VFX Library (done)
+- [x] Create `internal/engine/vfx.go` — modular VFX package
+- [x] FrameBuffer back-buffer for pixel readback
+- [x] True Color Lighting & Shadows (`ApplyLightSource` with smoothstep radial falloff)
+- [x] Half-Block Sub-Cell Rendering (`DrawPixel` with `▀`)
+- [x] Alpha Blending for Transparent Overlays (`DrawTransparentRect`)
+- [x] Dynamic Particle System with `sync.Pool` and `sync.RWMutex`
+- [x] `SpawnExplosion`, `SpawnRain`, `SpawnSmoke`
+- [x] Animated Water (`DrawWater` with sine/cosine wave color cycling)
+- [x] Screen Shake (`Camera` with decay and thread-safe offsets)
+- [x] Zero heap allocations in render path (pooled buffers)
+
+### 12b — VFX Integration (done)
+- [x] Battlescape: Camera + ParticleSystem added to struct, UpdateShake/Particles ticked each frame
+- [x] Battlescape: viewport offset reads Camera.Pos() for scroll
+- [x] Battlescape: SpawnExplosion on grenade/weapon fire impacts
+- [x] Battlescape: TriggerShake on explosions (grenade=3.0, hit=0.5)
+- [x] Battlescape: night lighting — soldiers emit warm glow (radius 4), aliens emit blue glow (radius 2)
+- [x] Battlescape: SpawnSmoke on grenade detonation
+- [x] Battlescape: TileWater rendered with night-appropriate dark blue palette
+- [ ] Geoscape: water tiles (network graph has no tile map — skipped)
