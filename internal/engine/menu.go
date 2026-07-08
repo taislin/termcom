@@ -42,15 +42,15 @@ func (ms *MenuScreen) Render(ctx *ScreenCtx) {
 
 	// Purple gradient from light (top) to dark (bottom)
 	purpleGradient := []tcell.Color{
-		tcell.GetColor("#E0FF"), // lightest
-		tcell.GetColor("#D0EF"),
-		tcell.GetColor("#C0DF"),
-		tcell.GetColor("#B0CF"),
-		tcell.GetColor("#A0BF"),
-		tcell.GetColor("#90AF"),
-		tcell.GetColor("#809F"),
-		tcell.GetColor("#708F"),
-		tcell.GetColor("#607F"), // darkest
+		tcell.ColorFuchsia,
+		tcell.ColorPurple,
+		tcell.ColorDarkMagenta,
+		tcell.ColorDarkMagenta,
+		tcell.ColorDarkMagenta,
+		tcell.ColorDarkMagenta,
+		tcell.ColorDarkMagenta,
+		tcell.ColorDarkMagenta,
+		tcell.ColorDarkMagenta,
 	}
 
 	startY := 2
@@ -104,7 +104,7 @@ func (ms *MenuScreen) Render(ctx *ScreenCtx) {
 
 func (ms *MenuScreen) options() []string {
 	if HasSave() {
-		return []string{language.String("MENU_NEW_GAME"), language.String("MENU_CONTINUE"), language.String("MENU_QUIT")}
+		return []string{language.String("MENU_NEW_GAME"), language.String("MENU_CONTINUE"), language.String("MENU_LOAD_GAME"), language.String("MENU_QUIT")}
 	}
 	return []string{language.String("MENU_NEW_GAME"), language.String("MENU_QUIT")}
 }
@@ -166,7 +166,7 @@ func (ms *MenuScreen) confirm() {
 		if ms.Game.OnNewGame != nil {
 			ms.Game.OnNewGame()
 		}
-	case language.String("MENU_CONTINUE"):
+	case language.String("MENU_CONTINUE"), language.String("MENU_LOAD_GAME"):
 		if ms.Game.OnContinue != nil {
 			ms.Game.OnContinue()
 		}

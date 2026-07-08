@@ -7,8 +7,9 @@ func init() {
 		"MENU_SUBTITLE":       "v0.1",
 		"MENU_NEW_GAME":       "New Game",
 		"MENU_CONTINUE":       "Continue",
+		"MENU_LOAD_GAME":      "Load Game",
 		"MENU_QUIT":           "Quit",
-		"MENU_HELP":           "j/k=Select  Enter=Confirm  Q=Quit",
+		"MENU_HELP":           "j/k=Select  Enter=Confirm  Q=Quit  F5=Save  F9=Load",
 
 		// ── Geoscape ──────────────────────────────────────
 		"GEOSCAPE":            "GEOSCAPE",
