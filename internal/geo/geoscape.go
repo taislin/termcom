@@ -17,9 +17,9 @@ import (
 )
 
 type AlienMission struct {
-	Type     string
-	NodeID   int    // target node ID
-	TurnsLeft int
+	Type      string
+	NodeID    int     // target node ID
+	HoursLeft float64 // hours remaining to respond
 }
 
 type CrashSite struct {
@@ -120,7 +120,7 @@ func NewGeoscapeFromSave(g *engine.Game, sd *save.SaveData) *Geoscape {
 		gs.Missions = append(gs.Missions, &AlienMission{
 			Type:      m.Type,
 			NodeID:    int(m.X),
-			TurnsLeft: m.TurnsLeft,
+			HoursLeft: m.HoursLeft,
 		})
 	}
 
@@ -164,6 +164,9 @@ func (gs *Geoscape) Update() {
 	}
 
 	if !gs.Game.Paused && gs.Game.TimeSpeed > 0 {
+		speedMult := []int{0, 1, 5, 20, 60}
+		minutes := speedMult[gs.Game.TimeSpeed]
+
 		// Spawn UFOs periodically
 		if gs.TickCounter%600 == 0 && gs.UFOs.Count() < 5 {
 			ufo := SpawnUFOOnNetwork(gs.Network)
@@ -186,8 +189,8 @@ func (gs *Geoscape) Update() {
 		// Check mission timers
 		remaining := make([]*AlienMission, 0, len(gs.Missions))
 		for _, m := range gs.Missions {
-			m.TurnsLeft--
-			if m.TurnsLeft <= 0 {
+			m.HoursLeft -= float64(minutes) / 60.0
+			if m.HoursLeft <= 0 {
 				node := gs.Network.NodeByID(m.NodeID)
 				nodeName := "?"
 				if node != nil {
@@ -267,8 +270,6 @@ func (gs *Geoscape) Update() {
 			}
 		}
 
-		speedMult := []int{0, 1, 5, 20, 60}
-		minutes := speedMult[gs.Game.TimeSpeed]
 		gs.Game.GameTime = gs.Game.GameTime.Add(time.Duration(minutes) * time.Minute)
 
 		// Advance research and manufacturing
@@ -388,14 +389,14 @@ func (gs *Geoscape) spawnMission() {
 	target := candidates[rand.Intn(len(candidates))]
 
 	idx := rand.Intn(len(types))
-	turnsLeft := 5
-	if types[idx] == "Alien Base Assault" {
-		turnsLeft = 3
+	turnsLeft := 24.0 // 24 game hours to respond
+	if types[idx] == language.String("MISSION_ALIEN_BASE") {
+		turnsLeft = 12.0 // 12 game hours for base assaults
 	}
 	mission := &AlienMission{
 		Type:      types[idx],
 		NodeID:    target.ID,
-		TurnsLeft: turnsLeft,
+		HoursLeft: turnsLeft,
 	}
 	gs.Missions = append(gs.Missions, mission)
 	target.MissionHere = true
@@ -526,7 +527,7 @@ func (gs *Geoscape) SaveGameToFile() {
 		missionSaves = append(missionSaves, &save.MissionSave{
 			Type:      m.Type,
 			CityName:  "",
-			TurnsLeft: m.TurnsLeft,
+			HoursLeft: m.HoursLeft,
 			X:         m.NodeID,
 			Y:         0,
 		})
@@ -588,7 +589,7 @@ func (gs *Geoscape) LoadGameFromFile() {
 		gs.Missions = append(gs.Missions, &AlienMission{
 			Type:      m.Type,
 			NodeID:    int(m.X),
-			TurnsLeft: m.TurnsLeft,
+			HoursLeft: m.HoursLeft,
 		})
 	}
 	gs.Message = language.String("MSG_GAME_LOADED")

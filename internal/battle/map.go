@@ -231,15 +231,15 @@ func (m *BattleMap) ClearVisibility() {
 	}
 }
 
-func (m *BattleMap) ComputeFOV(ux, uy int) {
-	for dy := -SightRange; dy <= SightRange; dy++ {
-		for dx := -SightRange; dx <= SightRange; dx++ {
+func (m *BattleMap) ComputeFOV(ux, uy int, sightRange int) {
+	for dy := -sightRange; dy <= sightRange; dy++ {
+		for dx := -sightRange; dx <= sightRange; dx++ {
 			tx := ux + dx
 			ty := uy + dy
 			if tx < 0 || tx >= m.Width || ty < 0 || ty >= m.Height {
 				continue
 			}
-			if dx*dx+dy*dy > SightRange*SightRange {
+			if dx*dx+dy*dy > sightRange*sightRange {
 				continue
 			}
 			if m.hasLOS(ux, uy, tx, ty) {

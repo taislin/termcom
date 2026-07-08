@@ -29,6 +29,7 @@ type Unit struct {
 	Alive     bool
 	Crouching bool
 	Faction   int
+	IsNight   bool
 }
 
 func NewSoldierUnit(s *soldier.Soldier) *Unit {
@@ -133,6 +134,9 @@ func (u *Unit) FireAt(target *Unit, m *BattleMap) (int, bool, error) {
 	hitChance := u.Accuracy * accMod / 100
 	if u.Crouching {
 		hitChance = hitChance * 110 / 100
+	}
+	if u.IsNight {
+		hitChance = hitChance * 75 / 100
 	}
 
 	if rand.Intn(100) >= hitChance {

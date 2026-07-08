@@ -112,8 +112,8 @@ UFOs travel along edges between nodes. You can:
 ### Alien Missions
 
 Every ~30 minutes (game time), alien missions spawn targeting random nodes:
-- **Terror missions** and **Supply missions**: 5 minutes to respond
-- **Alien Base missions**: 3 minutes to respond
+- **Terror missions** and **Supply missions**: 24 game hours to respond
+- **Alien Base missions**: 12 game hours to respond
 
 If the timer expires without response, Alien Activity increases by 10%.
 

@@ -73,6 +73,7 @@ type Battlescape struct {
 	Squad      []*soldier.Soldier
 	UFOName    string
 	ExitTimer  int
+	IsNight    bool
 
 	AlienTurnQueue  []AlienAction
 	AlienTurnIdx    int
@@ -174,6 +175,7 @@ func NewBattlescape(g *engine.Game, squad []*soldier.Soldier, ufoName string) *B
 		CursorY: m.Height / 2,
 		Squad:   squad,
 		UFOName: ufoName,
+		IsNight: g.GameTime.Hour() < 6 || g.GameTime.Hour() > 18,
 	}
 
 	bs.AddMessage(fmt.Sprintf(language.String("MSG_MISSION_START"), ufoName))
@@ -185,6 +187,7 @@ func NewBattlescape(g *engine.Game, squad []*soldier.Soldier, ufoName string) *B
 		u := NewSoldierUnit(s)
 		u.X = 3 + i*2
 		u.Y = m.Height - 3
+		u.IsNight = bs.IsNight
 		bs.Units = append(bs.Units, u)
 	}
 
@@ -205,6 +208,7 @@ func NewBattlescape(g *engine.Game, squad []*soldier.Soldier, ufoName string) *B
 		u := NewAlienUnit(at)
 		u.X = 10 + rand.Intn(m.Width-14)
 		u.Y = 3 + rand.Intn(m.Height/2-4)
+		u.IsNight = bs.IsNight
 		bs.Units = append(bs.Units, u)
 		ai := NewAlienAI(u)
 		ai.PatrolX = u.X + rand.Intn(6) - 3
@@ -220,6 +224,7 @@ func NewBattlescape(g *engine.Game, squad []*soldier.Soldier, ufoName string) *B
 			u.X = 5 + rand.Intn(m.Width-10)
 			u.Y = m.Height/2 + rand.Intn(m.Height/2-5)
 			if m.Passable(u.X, u.Y) {
+				u.IsNight = bs.IsNight
 				bs.Units = append(bs.Units, u)
 				bs.CivilianAIs = append(bs.CivilianAIs, NewCivilianAI(u))
 			}
@@ -233,9 +238,13 @@ func NewBattlescape(g *engine.Game, squad []*soldier.Soldier, ufoName string) *B
 
 func (bs *Battlescape) ComputeFOVForTeam() {
 	bs.Map.ClearVisibility()
+	sightRange := SightRange
+	if bs.IsNight {
+		sightRange = 10
+	}
 	for _, u := range bs.Units {
 		if u.Faction == 0 && u.Alive {
-			bs.Map.ComputeFOV(u.X, u.Y)
+			bs.Map.ComputeFOV(u.X, u.Y, sightRange)
 		}
 	}
 	for _, u := range bs.Units {

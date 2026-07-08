@@ -97,6 +97,7 @@ type MissionSave struct {
 	Type      string
 	CityName  string
 	TurnsLeft int
+	HoursLeft float64
 	X, Y      int
 }
 
