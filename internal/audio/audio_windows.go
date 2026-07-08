@@ -48,3 +48,69 @@ func PlayShoot() { playNote(38, 120, 9, 100*time.Millisecond) }
 func PlayExplosion() { playNote(35, 127, 9, 300*time.Millisecond) }
 func PlayChime() { playNote(72, 100, 0, 200*time.Millisecond) }
 func PlayAlert() { playNote(60, 100, 0, 500*time.Millisecond) }
+
+func PlayHit() {
+	playNote(50, 100, 9, 50*time.Millisecond)
+	go func() {
+		time.Sleep(60 * time.Millisecond)
+		playNote(55, 100, 9, 50*time.Millisecond)
+	}()
+}
+
+func PlayMiss() { playNote(40, 80, 9, 80*time.Millisecond) }
+
+func PlayAlienTurn() {
+	playNote(45, 100, 0, 100*time.Millisecond)
+	go func() {
+		time.Sleep(120 * time.Millisecond)
+		playNote(40, 100, 0, 100*time.Millisecond)
+	}()
+}
+
+func PlayVictory() {
+	notes := []byte{60, 64, 67, 72}
+	for i, note := range notes {
+		go func(n byte, delay int) {
+			time.Sleep(time.Duration(delay) * 150 * time.Millisecond)
+			playNote(n, 100, 0, 200*time.Millisecond)
+		}(note, i)
+	}
+}
+
+func PlayDefeat() {
+	notes := []byte{60, 55, 50, 45}
+	for i, note := range notes {
+		go func(n byte, delay int) {
+			time.Sleep(time.Duration(delay) * 200 * time.Millisecond)
+			playNote(n, 100, 0, 250*time.Millisecond)
+		}(note, i)
+	}
+}
+
+func PlayGrenade() {
+	playNote(35, 127, 9, 150*time.Millisecond)
+	go func() {
+		time.Sleep(160 * time.Millisecond)
+		playNote(30, 127, 9, 200*time.Millisecond)
+	}()
+}
+
+func PlaySelect() { playNote(65, 80, 0, 30*time.Millisecond) }
+
+func PlayMove() { playNote(60, 60, 0, 20*time.Millisecond) }
+
+func PlayReload() {
+	playNote(55, 80, 0, 30*time.Millisecond)
+	go func() {
+		time.Sleep(40 * time.Millisecond)
+		playNote(60, 80, 0, 30*time.Millisecond)
+	}()
+}
+
+func PlayMedikit() {
+	playNote(67, 100, 0, 100*time.Millisecond)
+	go func() {
+		time.Sleep(120 * time.Millisecond)
+		playNote(72, 100, 0, 100*time.Millisecond)
+	}()
+}

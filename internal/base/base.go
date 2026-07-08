@@ -2,6 +2,7 @@ package base
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/civ13/ycom/internal/engine"
 	"github.com/civ13/ycom/internal/language"
@@ -233,13 +234,24 @@ func (bs *BaseScreen) renderManufacture(ctx *engine.ScreenCtx, x, y, w, h int) {
 func (bs *BaseScreen) renderTransfer(ctx *engine.ScreenCtx, x, y, w, h int) {
 	ctx.DrawString(x, y, language.String("SECTION_STORES"), engine.StyleCyanBold)
 	y += 2
+
+	// Sort items alphabetically to prevent flickering
+	var items []string
 	for item, qty := range bs.Base.Stores {
-		if qty > 0 && y < h+2 {
+		if qty > 0 {
+			items = append(items, item)
+		}
+	}
+	sort.Strings(items)
+
+	for _, item := range items {
+		if y < h+2 {
+			qty := bs.Base.Stores[item]
 			ctx.DrawString(x, y, fmt.Sprintf("%-15s x%d", item, qty), engine.StyleDefault)
 			y++
 		}
 	}
-	if y == 2 {
+	if len(items) == 0 {
 		ctx.DrawString(x, y, language.String("SECTION_NO_ITEMS"), engine.StyleGray)
 	}
 }

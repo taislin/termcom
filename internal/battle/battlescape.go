@@ -74,6 +74,64 @@ func (bs *Battlescape) AddMessage(msg string) {
 	}
 }
 
+// GetMovementRange returns a map of tiles the selected unit can reach
+func (bs *Battlescape) GetMovementRange() map[[2]int]bool {
+	result := make(map[[2]int]bool)
+	if bs.Selected == nil || bs.Selected.TU <= 0 {
+		return result
+	}
+
+	startX, startY := bs.Selected.X, bs.Selected.Y
+	maxTU := bs.Selected.TU
+
+	// BFS to find reachable tiles
+	type node struct {
+		x, y, tu int
+	}
+	queue := []node{{startX, startY, maxTU}}
+	visited := make(map[[2]int]bool)
+	visited[[2]int{startX, startY}] = true
+
+	for len(queue) > 0 {
+		current := queue[0]
+		queue = queue[1:]
+
+		// Add current tile to reachable set
+		result[[2]int{current.x, current.y}] = true
+
+		// Check all 4 directions
+		dirs := [][2]int{{0, 1}, {0, -1}, {1, 0}, {-1, 0}}
+		for _, d := range dirs {
+			nx, ny := current.x+d[0], current.y+d[1]
+			if nx < 0 || nx >= bs.Map.Width || ny < 0 || ny >= bs.Map.Height {
+				continue
+			}
+			if visited[[2]int{nx, ny}] {
+				continue
+			}
+
+			tile := bs.Map.At(nx, ny)
+			if !bs.Map.Passable(nx, ny) {
+				continue
+			}
+
+			// TU cost: 4 for normal terrain, 8 for difficult terrain
+			cost := 4
+			if tile.Type == TileTree || tile.Type == TileRock || tile.Type == TileWater {
+				cost = 8
+			}
+
+			remainingTU := current.tu - cost
+			if remainingTU >= 0 {
+				visited[[2]int{nx, ny}] = true
+				queue = append(queue, node{nx, ny, remainingTU})
+			}
+		}
+	}
+
+	return result
+}
+
 func NewBattlescape(g *engine.Game, squad []*soldier.Soldier, ufoName string) *Battlescape {
 	var m *BattleMap
 	switch ufoName {
@@ -415,6 +473,7 @@ func (bs *Battlescape) checkVictory() {
 	civilians := bs.Units.Faction(2).Alive()
 	if len(aliens) == 0 {
 		bs.Phase = PhaseVictory
+		audio.PlayVictory()
 		if bs.UFOName == "Terror" {
 			totalCiv := 0
 			for _, u := range bs.Units {
@@ -429,9 +488,11 @@ func (bs *Battlescape) checkVictory() {
 		}
 	} else if len(humans) == 0 {
 		bs.Phase = PhaseDefeat
+		audio.PlayDefeat()
 		bs.AddMessage(language.String("MSG_MISSION_FAILED"))
 	} else if bs.UFOName == "Terror" && len(civilians) == 0 && len(aliens) > 0 {
 		bs.Phase = PhaseDefeat
+		audio.PlayDefeat()
 		bs.AddMessage(language.String("MSG_MISSION_FAILED_CIV"))
 	}
 }
@@ -498,6 +559,7 @@ func (bs *Battlescape) SelectUnit() {
 	}
 	unit := bs.Units.At(bs.CursorX, bs.CursorY)
 	if unit != nil && unit.Faction == 0 && unit.Alive && unit.Soldier != nil {
+		audio.PlaySelect()
 		bs.Selected = unit
 		bs.AddMessage(fmt.Sprintf(language.String("MSG_UNIT_SELECTED"), unit.Soldier.Name, unit.HP, unit.TU))
 	} else {
@@ -534,14 +596,14 @@ func (bs *Battlescape) Confirm() {
 			return
 		}
 		if hit {
-			audio.PlayShoot()
+			audio.PlayHit()
 			name := "alien"
 			if unit.AlienType != nil {
 				name = unit.AlienType.Name
 			}
 			bs.AddMessage(fmt.Sprintf(language.String("MSG_HIT_TARGET"), damage, name, unit.HP))
 		} else {
-			audio.PlayShoot()
+			audio.PlayMiss()
 			bs.AddMessage(language.String("MSG_MISSED"))
 		}
 		return
@@ -554,6 +616,7 @@ func (bs *Battlescape) Confirm() {
 			return
 		}
 		if bs.Selected.MoveTo(bs.CursorX, bs.CursorY, bs.Map) {
+			audio.PlayMove()
 			bs.AddMessage(fmt.Sprintf(language.String("MSG_MOVED"), bs.Selected.Soldier.Name, bs.CursorX, bs.CursorY))
 			bs.ComputeFOVForTeam()
 		} else {
@@ -568,6 +631,7 @@ func (bs *Battlescape) MoveSelected() {
 		return
 	}
 	if bs.Selected.MoveTo(bs.CursorX, bs.CursorY, bs.Map) {
+		audio.PlayMove()
 		bs.AddMessage(fmt.Sprintf(language.String("MSG_MOVED"), bs.Selected.Soldier.Name, bs.CursorX, bs.CursorY))
 		bs.ComputeFOVForTeam()
 	} else {
@@ -594,14 +658,14 @@ func (bs *Battlescape) FireWeapon() {
 		return
 	}
 	if hit {
-		audio.PlayShoot()
+		audio.PlayHit()
 		name := "alien"
 		if target.AlienType != nil {
 			name = target.AlienType.Name
 		}
 		bs.AddMessage(fmt.Sprintf(language.String("MSG_HIT_TARGET"), damage, name, target.HP))
 	} else {
-		audio.PlayShoot()
+		audio.PlayMiss()
 		bs.AddMessage(language.String("MSG_MISSED"))
 	}
 }
@@ -626,7 +690,7 @@ func (bs *Battlescape) Reload() {
 	bs.Selected.TU -= 8
 	w.AmmoCur = w.AmmoMax
 	data.Weapons[bs.Selected.Weapon] = w
-	audio.PlayClick()
+	audio.PlayReload()
 	bs.AddMessage(fmt.Sprintf(language.String("MSG_RELOADED"), w.Name, w.AmmoCur, w.AmmoMax))
 }
 
@@ -634,7 +698,7 @@ func (bs *Battlescape) EndTurn() {
 	if bs.Phase != PhasePlayerTurn {
 		return
 	}
-	audio.PlayClick()
+	audio.PlayAlienTurn()
 	bs.Phase = PhaseAlienTurn
 	bs.AddMessage(language.String("MSG_ALIEN_TURN"))
 
@@ -715,6 +779,7 @@ func (bs *Battlescape) Grenade() {
 		}
 	}
 
+	audio.PlayGrenade()
 	bs.AddMessage(fmt.Sprintf(language.String("MSG_GRENADE_DETONATED"), ax, ay))
 }
 
@@ -750,6 +815,7 @@ func (bs *Battlescape) UseMedikit() {
 	if target.Soldier != nil {
 		name = target.Soldier.Name
 	}
+	audio.PlayMedikit()
 	bs.AddMessage(fmt.Sprintf(language.String("MSG_HEALED"), name, healAmount, target.HP, target.MaxHP))
 }
 
@@ -812,6 +878,15 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 					style = engine.StyleGray
 				case TileUFOWall:
 					style = engine.StyleGray
+				}
+			}
+
+			// Highlight movement range
+			if bs.Selected != nil && bs.Phase == PhasePlayerTurn {
+				movementRange := bs.GetMovementRange()
+				if movementRange[[2]int{mx, my}] {
+					// Add blue background to show movement range
+					style = style.Background(tcell.NewRGBColor(20, 40, 80))
 				}
 			}
 
