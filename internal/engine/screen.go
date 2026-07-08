@@ -69,6 +69,27 @@ func (s *ScreenRaw) DrawString(x, y int, str string, style tcell.Style) {
 	}
 }
 
+func (s *ScreenRaw) DrawMarkupString(x, y int, str string, normalStyle, highlightStyle tcell.Style) {
+	currX := x
+	highlight := false
+	for _, ch := range str {
+		if ch == '[' {
+			highlight = true
+			continue
+		} else if ch == ']' {
+			highlight = false
+			continue
+		}
+		
+		style := normalStyle
+		if highlight {
+			style = highlightStyle
+		}
+		s.SetCell(currX, y, ch, style)
+		currX++
+	}
+}
+
 func (s *ScreenRaw) DrawRect(x, y, w, h int, ch rune, style tcell.Style) {
 	for dy := 0; dy < h; dy++ {
 		for dx := 0; dx < w; dx++ {
@@ -114,3 +135,4 @@ var StyleGray = tcell.StyleDefault.Background(tcell.ColorBlack).Foreground(tcell
 var StyleCyanBold = StyleCyan.Bold(true)
 var StyleRedBold = StyleRed.Bold(true)
 var StyleGreenBold = StyleGreen.Bold(true)
+var StyleHotkey = tcell.StyleDefault.Background(tcell.ColorBlack).Foreground(tcell.ColorOrange)

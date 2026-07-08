@@ -1197,8 +1197,10 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 		ctx.DrawString(2, h-2, bs.Message, engine.StyleYellow)
 	}
 
+	// Draw help bar
 	ctx.DrawPanel(0, h-1, w, 1, "", engine.StyleGray)
-	ctx.DrawString(1, h-1, language.String("BATTLE_HELP"), engine.StyleGray)
+	help := "[hjkl]/[WSAD]=Move [Space]/[Enter]=Act [q]=Cycle [f]=Fire [r]=Reload [g]=Grenade [m]=Medikit [e]=End [c]=Crouch"
+	ctx.DrawMarkupString(1, h-1, help, engine.StyleGray, engine.StyleHotkey)
 }
 
 func (bs *Battlescape) phaseStr() string {

@@ -710,11 +710,9 @@ func (gs *Geoscape) Render(ctx *engine.ScreenCtx) {
 	}
 
 	ctx.DrawPanel(0, h-1, w, 1, "", engine.StyleGray)
-	help := language.String("GEOSCAPE_HELP")
-	if gs.Victory {
-		help = "VICTORY ACHIEVED!  Q=Quit"
-	}
-	ctx.DrawString(1, h-1, help, engine.StyleGray)
+	// Example hotkey highlighting
+	help := "[j]/[k]=Select [L]=Launch [A]=Autoresolve [M]=Mission [B]=Base [R]=Transport [Space]=Pause [Q]=Quit"
+	ctx.DrawMarkupString(1, h-1, help, engine.StyleGray, engine.StyleHotkey)
 }
 
 func (gs *Geoscape) renderRegionTable(ctx *engine.ScreenCtx, x, y, w, h int) {

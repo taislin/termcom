@@ -67,20 +67,17 @@ func (ms *MenuScreen) Render(ctx *ScreenCtx) {
 			style := StyleDefault.Foreground(fg).Bold(true)
 			ctx.SetCell(x+j, startY+i, ch, style)
 		}
-
-		// Glow behind title: radial light source
-		midX := x + len(line)/2
-		midY := startY + i
-		glowPhase := now*1.5 + float64(i)*0.4
-		glowIntensity := (math.Sin(glowPhase) + 1) / 2
-		radius := 3.0 + glowIntensity*2.0
-		glowColor := tcell.NewRGBColor(
-			int32(80+glowIntensity*60),
-			int32(20+glowIntensity*30),
-			int32(120+glowIntensity*80),
-		)
-		ApplyLightSource(ctx.ScreenRaw, ctx.FrameBuffer(), midX, midY, radius, glowColor)
 	}
+
+	// Glow behind title: single radial light source at the center of the block
+	midX := w / 2
+	midY := startY + len(title)/2
+	glowPhase := now*1.5
+	glowIntensity := (math.Sin(glowPhase) + 1) / 2
+	radius := 8.0 + glowIntensity*4.0
+	glowColor := tcell.NewRGBColor(120, 20, 180)
+	ApplyLightSource(ctx.ScreenRaw, ctx.FrameBuffer(), midX, midY, radius, glowColor)
+
 
 	subY := startY + len(title) + 1
 	subtitle := language.String("MENU_TITLE")
@@ -118,7 +115,8 @@ func (ms *MenuScreen) Render(ctx *ScreenCtx) {
 	}
 
 	ctx.DrawPanel(0, h-3, w, 3, "", StyleGray)
-	ctx.DrawString(1, h-2, language.String("MENU_HELP"), StyleGray)
+	// Example: j/k=Select -> [j]/[k]=Select
+	ctx.DrawMarkupString(1, h-2, "[j]/[k]=Select [Enter]=Confirm [Q]=Quit", StyleGray, StyleHotkey)
 }
 
 func (ms *MenuScreen) options() []string {
