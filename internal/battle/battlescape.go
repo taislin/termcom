@@ -1086,8 +1086,16 @@ func (bs *Battlescape) HandleKey(e *tcell.EventKey) {
 		bs.MoveCursor(0, -1)
 	case "l", "L":
 		bs.MoveCursor(1, 0)
-	case "s", "S":
+	case "q", "Q":
 		bs.cycleUnit(1)
+	case "w", "W":
+		bs.MoveCursor(0, -1)
+	case "a", "A":
+		bs.MoveCursor(-1, 0)
+	case "s", "S":
+		bs.MoveCursor(0, 1)
+	case "d", "D":
+		bs.MoveCursor(1, 0)
 	case "c", "C":
 		bs.Crouch()
 	case "g", "G":
@@ -1158,6 +1166,39 @@ func (bs *Battlescape) cycleUnit(dir int) {
 	bs.Selected = humans[idx]
 	bs.CursorX = bs.Selected.X
 	bs.CursorY = bs.Selected.Y
+
+	// Center screen on the soldier
+	scrW, scrH := bs.Game.ScreenSize()
+	viewW := scrW - sidebarW - 2
+	viewH := scrH - 5
+	if viewW < 10 {
+		viewW = 10
+	}
+	bs.ScrollX = bs.Selected.X - viewW/2
+	bs.ScrollY = bs.Selected.Y - viewH/2
+
+	// Clamp scroll to map bounds
+	if bs.ScrollX < 0 {
+		bs.ScrollX = 0
+	}
+	if bs.ScrollY < 0 {
+		bs.ScrollY = 0
+	}
+	maxScrollX := bs.Map.Width - viewW
+	if maxScrollX < 0 {
+		maxScrollX = 0
+	}
+	maxScrollY := bs.Map.Height - viewH
+	if maxScrollY < 0 {
+		maxScrollY = 0
+	}
+	if bs.ScrollX > maxScrollX {
+		bs.ScrollX = maxScrollX
+	}
+	if bs.ScrollY > maxScrollY {
+		bs.ScrollY = maxScrollY
+	}
+
 	bs.AddMessage(fmt.Sprintf(language.String("MSG_UNIT_SELECTED"), bs.Selected.Soldier.Name, bs.Selected.HP, bs.Selected.TU))
 }
 

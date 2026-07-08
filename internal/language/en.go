@@ -103,7 +103,7 @@ func init() {
 		"SIDE_POS":             "[%d,%d]",
 		"SIDE_CROUCH":          "Crouching",
 		"SIDE_NONE":            "(none)",
-		"BATTLE_HELP":          " hjkl=Move Space/Enter=Act s=Cycle f=Fire r=Reload g=Grenade m=Medikit e=End c=Crouch",
+		"BATTLE_HELP":          " hjkl/WSAD=Move Space/Enter=Act q=Cycle f=Fire r=Reload g=Grenade m=Medikit e=End c=Crouch",
 
 		// Phases
 		"PHASE_YOUR_TURN":      "YOUR TURN",

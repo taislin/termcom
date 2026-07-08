@@ -169,6 +169,7 @@ func (gs *Geoscape) Update() {
 			gs.UFOs = append(gs.UFOs, ufo)
 			gs.Message = fmt.Sprintf(language.String("MSG_UFO_DETECTED"), ufo.Type.Name, ufo.TileX(), ufo.TileY())
 			gs.MessageTimer = time.Now()
+			audio.PlayAlert()
 		}
 
 		// Spawn alien missions periodically
