@@ -90,7 +90,7 @@
   - [x] Species with 2-5 rank variants per run
   - [x] KnowledgeLevel tracking (unknown → sighted → killed → autopsied)
   - [x] Save/load persists species seed + knowledge state
-- [ ] Object-specific cover system (e.g. walls block 80%, trees 60%, fences 30%, affecting shot accuracy)
+- [x] Object-specific cover system (walls 80%, trees 60%, fences 30%, affecting shot damage)
 - [ ] Multi-level maps (stairs/elevators for UFO interiors)
 - [ ] Psi combat (use Psi stat in battlescape)
 - [ ] Night/day missions (lighting system affecting accuracy and LOS)
