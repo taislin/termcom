@@ -7,23 +7,23 @@
 | Sectoid | Ω | 10 | 50 | 55 | 40 | 50 | 8 | 40 | 5 | plasma_pistol | 5 | 0 | 3 |
 | Sectoid Navigator | Ω | 11 | 52 | 58 | 45 | 52 | 8 | 50 | 6 | plasma_pistol | 8 | 1 | 3 |
 | Sectoid Commander | Ω | 14 | 55 | 62 | 55 | 58 | 9 | 70 | 8 | plasma_rifle | 15 | 2 | 4 |
-| Floater | Ω | 15 | 55 | 60 | 50 | 60 | 12 | 10 | 10 | plasma_rifle | 8 | 1 | 6 |
-| Floater Navigator | Ω | 16 | 58 | 63 | 55 | 63 | 13 | 18 | 11 | plasma_rifle | 12 | 2 | 6 |
-| Floater Commander | Ω | 20 | 62 | 68 | 65 | 68 | 15 | 30 | 14 | plasma_rifle | 20 | 3 | 7 |
-| Chryssalid | Ω | 14 | 65 | 70 | 100 | 75 | 18 | 0 | 8 | chryssalid_claw | 15 | 1 | 10 |
-| Chryssalid Queen | Ω | 35 | 60 | 75 | 100 | 80 | 25 | 0 | 12 | chryssalid_claw | 35 | 4 | 10 |
-| Hyperworm | Ω | 8 | 70 | 50 | 30 | 65 | 6 | 0 | 3 | plasma_pistol | 4 | 0 | 5 |
-| Silacoid | Ω | 20 | 40 | 45 | 80 | 35 | 16 | 0 | 20 | plasma_pistol | 10 | 1 | 4 |
-| Muton | Ω | 25 | 55 | 55 | 70 | 50 | 20 | 0 | 18 | plasma_rifle | 12 | 2 | 8 |
-| Muton Navigator | Ω | 27 | 58 | 58 | 75 | 53 | 21 | 0 | 19 | plasma_rifle | 16 | 3 | 8 |
-| Muton Commander | Ω | 30 | 62 | 62 | 85 | 58 | 23 | 0 | 22 | heavy_plasma | 25 | 4 | 9 |
-| Cyberdisc | Ω | 30 | 50 | 65 | 100 | 60 | 15 | 0 | 22 | heavy_plasma | 20 | 2 | 7 |
-| Celatid | Ω | 12 | 60 | 60 | 50 | 55 | 10 | 0 | 6 | plasma_pistol | 8 | 1 | 6 |
-| Ethereal | Ω | 18 | 65 | 70 | 100 | 70 | 10 | 80 | 12 | plasma_rifle | 25 | 4 | 5 |
-| Ethereal Navigator | Ω | 20 | 68 | 73 | 100 | 73 | 11 | 90 | 13 | plasma_rifle | 30 | 5 | 4 |
-| Ethereal Commander | Ω | 24 | 72 | 78 | 100 | 78 | 13 | 100 | 16 | heavy_plasma | 50 | 6 | 4 |
-| Reaper | Ω | 50 | 45 | 50 | 100 | 40 | 30 | 0 | 25 | reaper_claw | 30 | 3 | 9 |
-| Sectopod | Ω | 60 | 40 | 70 | 100 | 50 | 25 | 0 | 30 | heavy_plasma | 50 | 5 | 8 |
+| Floater | ∞ | 15 | 55 | 60 | 50 | 60 | 12 | 10 | 10 | plasma_rifle | 8 | 1 | 6 |
+| Floater Navigator | ∞ | 16 | 58 | 63 | 55 | 63 | 13 | 18 | 11 | plasma_rifle | 12 | 2 | 6 |
+| Floater Commander | ∞ | 20 | 62 | 68 | 65 | 68 | 15 | 30 | 14 | plasma_rifle | 20 | 3 | 7 |
+| Chryssalid | ψ | 14 | 65 | 70 | 100 | 75 | 18 | 0 | 8 | chryssalid_claw | 15 | 1 | 10 |
+| Chryssalid Queen | ψ | 35 | 60 | 75 | 100 | 80 | 25 | 0 | 12 | chryssalid_claw | 35 | 4 | 10 |
+| Hyperworm | ≈ | 8 | 70 | 50 | 30 | 65 | 6 | 0 | 3 | plasma_pistol | 4 | 0 | 5 |
+| Silacoid | ▓ | 20 | 40 | 45 | 80 | 35 | 16 | 0 | 20 | plasma_pistol | 10 | 1 | 4 |
+| Muton | Σ | 25 | 55 | 55 | 70 | 50 | 20 | 0 | 18 | plasma_rifle | 12 | 2 | 8 |
+| Muton Navigator | Σ | 27 | 58 | 58 | 75 | 53 | 21 | 0 | 19 | plasma_rifle | 16 | 3 | 8 |
+| Muton Commander | Σ | 30 | 62 | 62 | 85 | 58 | 23 | 0 | 22 | heavy_plasma | 25 | 4 | 9 |
+| Cyberdisc | ◎ | 30 | 50 | 65 | 100 | 60 | 15 | 0 | 22 | heavy_plasma | 20 | 2 | 7 |
+| Celatid | ◇ | 12 | 60 | 60 | 50 | 55 | 10 | 0 | 6 | plasma_pistol | 8 | 1 | 6 |
+| Ethereal | Ψ | 18 | 65 | 70 | 100 | 70 | 10 | 80 | 12 | plasma_rifle | 25 | 4 | 5 |
+| Ethereal Navigator | Ψ | 20 | 68 | 73 | 100 | 73 | 11 | 90 | 13 | plasma_rifle | 30 | 5 | 4 |
+| Ethereal Commander | Ψ | 24 | 72 | 78 | 100 | 78 | 13 | 100 | 16 | heavy_plasma | 50 | 6 | 4 |
+| Reaper | ♠ | 50 | 45 | 50 | 100 | 40 | 30 | 0 | 25 | reaper_claw | 30 | 3 | 9 |
+| Sectopod | ⊞ | 60 | 40 | 70 | 100 | 50 | 25 | 0 | 30 | heavy_plasma | 50 | 5 | 8 |
 
 ## Human Soldiers
 

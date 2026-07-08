@@ -3,6 +3,7 @@ package data
 type AlienType struct {
 	Name       string
 	ShortName  string
+	Icon       rune   // Display character for this alien type
 	HP         int
 	TU         int
 	Accuracy   int
@@ -20,125 +21,125 @@ type AlienType struct {
 var AlienTypes = []AlienType{
 	// Rank 0 - Low tier
 	{
-		Name: "Sectoid", ShortName: "SEC",
+		Name: "Sectoid", ShortName: "SEC", Icon: '\u03A9', // Ω
 		HP: 10, TU: 50, Accuracy: 55, Bravery: 40, Reactions: 50,
 		Strength: 8, Psi: 40, Armour: 5, Weapon: "plasma_pistol",
 		Points: 5, Rank: 0, Aggression: 3,
 	},
 	{
-		Name: "Sectoid Navigator", ShortName: "SEN",
+		Name: "Sectoid Navigator", ShortName: "SEN", Icon: '\u03A9', // Ω
 		HP: 11, TU: 52, Accuracy: 58, Bravery: 45, Reactions: 52,
 		Strength: 8, Psi: 50, Armour: 6, Weapon: "plasma_pistol",
 		Points: 8, Rank: 1, Aggression: 3,
 	},
 	{
-		Name: "Sectoid Commander", ShortName: "SEC2",
+		Name: "Sectoid Commander", ShortName: "SEC2", Icon: '\u03A9', // Ω
 		HP: 14, TU: 55, Accuracy: 62, Bravery: 55, Reactions: 58,
 		Strength: 9, Psi: 70, Armour: 8, Weapon: "plasma_rifle",
 		Points: 15, Rank: 2, Aggression: 4,
 	},
 	// Rank 1 - Mid tier
 	{
-		Name: "Floater", ShortName: "FLT",
+		Name: "Floater", ShortName: "FLT", Icon: '\u221E', // ∞
 		HP: 15, TU: 55, Accuracy: 60, Bravery: 50, Reactions: 60,
 		Strength: 12, Psi: 10, Armour: 10, Weapon: "plasma_rifle",
 		Points: 8, Rank: 1, Aggression: 6,
 	},
 	{
-		Name: "Floater Navigator", ShortName: "FLN",
+		Name: "Floater Navigator", ShortName: "FLN", Icon: '\u221E', // ∞
 		HP: 16, TU: 58, Accuracy: 63, Bravery: 55, Reactions: 63,
 		Strength: 13, Psi: 18, Armour: 11, Weapon: "plasma_rifle",
 		Points: 12, Rank: 2, Aggression: 6,
 	},
 	{
-		Name: "Floater Commander", ShortName: "FLC",
+		Name: "Floater Commander", ShortName: "FLC", Icon: '\u221E', // ∞
 		HP: 20, TU: 62, Accuracy: 68, Bravery: 65, Reactions: 68,
 		Strength: 15, Psi: 30, Armour: 14, Weapon: "plasma_rifle",
 		Points: 20, Rank: 3, Aggression: 7,
 	},
 	{
-		Name: "Chryssalid", ShortName: "CHR",
+		Name: "Chryssalid", ShortName: "CHR", Icon: '\u03C8', // ψ
 		HP: 14, TU: 65, Accuracy: 70, Bravery: 100, Reactions: 75,
 		Strength: 18, Psi: 0, Armour: 8, Weapon: "chryssalid_claw",
 		Points: 15, Rank: 1, Aggression: 10,
 	},
 	{
-		Name: "Chryssalid Queen", ShortName: "CHQ",
+		Name: "Chryssalid Queen", ShortName: "CHQ", Icon: '\u03C8', // ψ
 		HP: 35, TU: 60, Accuracy: 75, Bravery: 100, Reactions: 80,
 		Strength: 25, Psi: 0, Armour: 12, Weapon: "chryssalid_claw",
 		Points: 35, Rank: 4, Aggression: 10,
 	},
 	{
-		Name: "Hyperworm", ShortName: "HYP",
+		Name: "Hyperworm", ShortName: "HYP", Icon: '\u2248', // ≈
 		HP: 8, TU: 70, Accuracy: 50, Bravery: 30, Reactions: 65,
 		Strength: 6, Psi: 0, Armour: 3, Weapon: "plasma_pistol",
 		Points: 4, Rank: 0, Aggression: 5,
 	},
 	{
-		Name: "Silacoid", ShortName: "SIL",
+		Name: "Silacoid", ShortName: "SIL", Icon: '\u2593', // ▓
 		HP: 20, TU: 40, Accuracy: 45, Bravery: 80, Reactions: 35,
 		Strength: 16, Psi: 0, Armour: 20, Weapon: "plasma_pistol",
 		Points: 10, Rank: 1, Aggression: 4,
 	},
 	// Rank 2 - High tier
 	{
-		Name: "Muton", ShortName: "MUT",
+		Name: "Muton", ShortName: "MUT", Icon: '\u03A3', // Σ
 		HP: 25, TU: 55, Accuracy: 55, Bravery: 70, Reactions: 50,
 		Strength: 20, Psi: 0, Armour: 18, Weapon: "plasma_rifle",
 		Points: 12, Rank: 2, Aggression: 8,
 	},
 	{
-		Name: "Muton Navigator", ShortName: "MUN",
+		Name: "Muton Navigator", ShortName: "MUN", Icon: '\u03A3', // Σ
 		HP: 27, TU: 58, Accuracy: 58, Bravery: 75, Reactions: 53,
 		Strength: 21, Psi: 0, Armour: 19, Weapon: "plasma_rifle",
 		Points: 16, Rank: 3, Aggression: 8,
 	},
 	{
-		Name: "Muton Commander", ShortName: "MUC",
+		Name: "Muton Commander", ShortName: "MUC", Icon: '\u03A3', // Σ
 		HP: 30, TU: 62, Accuracy: 62, Bravery: 85, Reactions: 58,
 		Strength: 23, Psi: 0, Armour: 22, Weapon: "heavy_plasma",
 		Points: 25, Rank: 4, Aggression: 9,
 	},
 	{
-		Name: "Cyberdisc", ShortName: "CYB",
+		Name: "Cyberdisc", ShortName: "CYB", Icon: '\u25CE', // ◎
 		HP: 30, TU: 50, Accuracy: 65, Bravery: 100, Reactions: 60,
 		Strength: 15, Psi: 0, Armour: 22, Weapon: "heavy_plasma",
 		Points: 20, Rank: 2, Aggression: 7,
 	},
 	{
-		Name: "Celatid", ShortName: "CEL",
+		Name: "Celatid", ShortName: "CEL", Icon: '\u25C7', // ◇
 		HP: 12, TU: 60, Accuracy: 60, Bravery: 50, Reactions: 55,
 		Strength: 10, Psi: 0, Armour: 6, Weapon: "plasma_pistol",
 		Points: 8, Rank: 1, Aggression: 6,
 	},
 	// Rank 3 - Elite
 	{
-		Name: "Ethereal", ShortName: "ETH",
+		Name: "Ethereal", ShortName: "ETH", Icon: '\u03A8', // Ψ
 		HP: 18, TU: 65, Accuracy: 70, Bravery: 100, Reactions: 70,
 		Strength: 10, Psi: 80, Armour: 12, Weapon: "plasma_rifle",
 		Points: 25, Rank: 4, Aggression: 5,
 	},
 	{
-		Name: "Ethereal Navigator", ShortName: "ETN",
+		Name: "Ethereal Navigator", ShortName: "ETN", Icon: '\u03A8', // Ψ
 		HP: 20, TU: 68, Accuracy: 73, Bravery: 100, Reactions: 73,
 		Strength: 11, Psi: 90, Armour: 13, Weapon: "plasma_rifle",
 		Points: 30, Rank: 5, Aggression: 4,
 	},
 	{
-		Name: "Ethereal Commander", ShortName: "ETC",
+		Name: "Ethereal Commander", ShortName: "ETC", Icon: '\u03A8', // Ψ
 		HP: 24, TU: 72, Accuracy: 78, Bravery: 100, Reactions: 78,
 		Strength: 13, Psi: 100, Armour: 16, Weapon: "heavy_plasma",
 		Points: 50, Rank: 6, Aggression: 4,
 	},
 	// Rank 4 - Boss
 	{
-		Name: "Reaper", ShortName: "REAP",
+		Name: "Reaper", ShortName: "REAP", Icon: '\u2660', // ♠
 		HP: 50, TU: 45, Accuracy: 50, Bravery: 100, Reactions: 40,
 		Strength: 30, Psi: 0, Armour: 25, Weapon: "reaper_claw",
 		Points: 30, Rank: 3, Aggression: 9,
 	},
 	{
-		Name: "Sectopod", ShortName: "SEC3",
+		Name: "Sectopod", ShortName: "SEC3", Icon: '\u229E', // ⊞
 		HP: 60, TU: 40, Accuracy: 70, Bravery: 100, Reactions: 50,
 		Strength: 25, Psi: 0, Armour: 30, Weapon: "heavy_plasma",
 		Points: 50, Rank: 5, Aggression: 8,

@@ -931,7 +931,10 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 		ch := '\u263B' // ☻ human face
 		style := engine.StyleCyanBold
 		if u.Faction == 1 {
-			ch = '\u03A9' // Ω alien (Omega)
+			ch = '\u03A9' // Ω alien (default)
+			if u.AlienType != nil {
+				ch = u.AlienType.Icon
+			}
 			style = engine.StyleRedBold
 		} else if u.Faction == 2 {
 			ch = 'c'
