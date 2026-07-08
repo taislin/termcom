@@ -20,6 +20,7 @@ test-cover:
 
 lint:
 	go vet ./...
+	which staticcheck || go install honnef.co/go/tools/cmd/staticcheck@latest
 	staticcheck ./...
 
 clean:

@@ -150,39 +150,6 @@ func (m *BattleMap) drawRect(x, y, w, h int, t TileType) {
 	}
 }
 
-// placeDoor places a door on a wall
-func (m *BattleMap) placeDoor(x, y int) {
-	m.Set(x, y, TileDoor)
-}
-
-// isPassable checks if a tile is passable
-func (m *BattleMap) isPassable(x, y int) bool {
-	return m.Passable(x, y)
-}
-
-// connectDoors connects two rooms with a door
-func (m *BattleMap) connectDoors(x1, y1, x2, y2 int) {
-	if x1 == x2 {
-		start := min(y1, y2)
-		end := max(y1, y2)
-		for y := start; y <= end; y++ {
-			if m.At(x1, y).Type == TileWall {
-				m.Set(x1, y, TileDoor)
-				return
-			}
-		}
-	} else if y1 == y2 {
-		start := min(x1, x2)
-		end := max(x1, x2)
-		for x := start; x <= end; x++ {
-			if m.At(x, y1).Type == TileWall {
-				m.Set(x, y1, TileDoor)
-				return
-			}
-		}
-	}
-}
-
 // generateCorridor creates an L-shaped corridor between two points
 func (m *BattleMap) generateCorridor(x1, y1, x2, y2 int, w int) {
 	if rand.Intn(2) == 0 {

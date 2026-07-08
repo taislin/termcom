@@ -2,6 +2,7 @@ package battle
 
 import (
 	"fmt"
+	"math"
 	"math/rand"
 
 	"github.com/civ13/ycom/internal/data"
@@ -23,6 +24,23 @@ const (
 
 const sidebarW = 24
 
+type Projectile struct {
+	FromX, FromY int
+	ToX, ToY     int
+	Progress     int
+	Length       int
+	Symbol       rune
+	Style        tcell.Style
+}
+
+type AlienAction struct {
+	Type   string // "move", "fire", "melee", "patrol"
+	Unit   *Unit
+	Target *Unit
+	FromX, FromY int
+	ToX, ToY     int
+}
+
 type Battlescape struct {
 	Game       *engine.Game
 	Map        *BattleMap
@@ -40,6 +58,11 @@ type Battlescape struct {
 	Squad      []*soldier.Soldier
 	UFOName    string
 	ExitTimer  int
+
+	AlienTurnQueue  []AlienAction
+	AlienTurnIdx    int
+	AlienTurnDelay  int
+	Projectile      *Projectile
 }
 
 func (bs *Battlescape) AddMessage(msg string) {
@@ -120,11 +143,27 @@ func NewBattlescape(g *engine.Game, squad []*soldier.Soldier, ufoName string) *B
 
 func (bs *Battlescape) Update() {
 	if bs.Phase == PhaseAlienTurn {
-		bs.doAlienTurn()
-		bs.Phase = PhasePlayerTurn
-		bs.restorePlayerTU()
-		bs.Turn++
-		bs.checkVictory()
+		if bs.Projectile != nil {
+			bs.Projectile.Progress++
+			if bs.Projectile.Progress >= bs.Projectile.Length {
+				bs.Projectile = nil
+			}
+			return
+		}
+
+		if bs.AlienTurnDelay > 0 {
+			bs.AlienTurnDelay--
+			return
+		}
+
+		if bs.AlienTurnIdx < len(bs.AlienTurnQueue) {
+			action := bs.AlienTurnQueue[bs.AlienTurnIdx]
+			bs.AlienTurnIdx++
+			bs.executeAlienAction(action)
+			bs.AlienTurnDelay = 3
+		} else {
+			bs.finishAlienTurn()
+		}
 	}
 
 	if bs.Phase == PhaseVictory || bs.Phase == PhaseDefeat {
@@ -132,6 +171,80 @@ func (bs *Battlescape) Update() {
 		if bs.ExitTimer > 60 {
 			bs.finishBattle()
 		}
+	}
+}
+
+func (bs *Battlescape) executeAlienAction(action AlienAction) {
+	switch action.Type {
+	case "fire":
+		if action.Target == nil || !action.Target.Alive {
+			return
+		}
+		damage, hit, err := action.Unit.FireAt(action.Target)
+		if err != nil {
+			return
+		}
+		dx := action.Target.X - action.Unit.X
+		dy := action.Target.Y - action.Unit.Y
+		length := int(math.Sqrt(float64(dx*dx+dy*dy)))
+		if length < 1 {
+			length = 1
+		}
+		symbol := '*'
+		if data.RuleItems[action.Unit.Weapon].AmmoMax >= 99 {
+			symbol = '|'
+		}
+		bs.Projectile = &Projectile{
+			FromX: action.Unit.X, FromY: action.Unit.Y,
+			ToX: action.Target.X, ToY: action.Target.Y,
+			Progress: 0, Length: length,
+			Symbol: symbol,
+			Style:  engine.StyleYellow,
+		}
+		if hit {
+			name := action.Target.Soldier.Name
+			if action.Target.AlienType != nil {
+				name = action.Target.AlienType.Name
+			}
+			bs.AddMessage(fmt.Sprintf(language.String("MSG_ALIEN_HIT"), name, damage))
+			if !action.Target.Alive {
+				bs.AddMessage(fmt.Sprintf(language.String("MSG_ALIEN_KILL"), name))
+			}
+		} else {
+			bs.AddMessage(language.String("MSG_ALIEN_MISS"))
+		}
+	case "melee":
+		if action.Target == nil || !action.Target.Alive {
+			return
+		}
+		damage := action.Unit.Strength + rand.Intn(10)
+		damage -= action.Target.Armour
+		if damage < 1 {
+			damage = 1
+		}
+		action.Target.HP -= damage
+		if action.Target.HP <= 0 {
+			action.Target.Alive = false
+		}
+		bs.Projectile = &Projectile{
+			FromX: action.Unit.X, FromY: action.Unit.Y,
+			ToX: action.Target.X, ToY: action.Target.Y,
+			Progress: 0, Length: 1,
+			Symbol: 'X',
+			Style:  engine.StyleRedBold,
+		}
+		name := action.Target.Soldier.Name
+		if action.Target.AlienType != nil {
+			name = action.Target.AlienType.Name
+		}
+		bs.AddMessage(fmt.Sprintf(language.String("MSG_ALIEN_MELEE"), action.Unit.AlienType.Name, name, damage))
+		if !action.Target.Alive {
+			bs.AddMessage(fmt.Sprintf(language.String("MSG_ALIEN_KILL"), name))
+		}
+	case "move":
+		action.Unit.MoveTo(action.ToX, action.ToY, bs.Map)
+	case "patrol":
+		action.Unit.MoveTo(action.ToX, action.ToY, bs.Map)
 	}
 }
 
@@ -249,14 +362,31 @@ func (bs *Battlescape) finishBattle() {
 }
 
 func (bs *Battlescape) doAlienTurn() {
+	bs.AlienTurnQueue = nil
+	bs.AlienTurnIdx = 0
+
 	for _, ai := range bs.AlienAIs {
 		if !ai.Unit.Alive {
 			continue
 		}
 		ai.Unit.TU = ai.Unit.MaxTU
 		humanUnits := bs.Units.Faction(0)
-		ai.Update(bs.Units, bs.Map, humanUnits)
+		actions := ai.GenerateActions(bs.Units, bs.Map, humanUnits)
+		bs.AlienTurnQueue = append(bs.AlienTurnQueue, actions...)
 	}
+
+	if len(bs.AlienTurnQueue) == 0 {
+		bs.finishAlienTurn()
+	} else {
+		bs.AlienTurnDelay = 3
+	}
+}
+
+func (bs *Battlescape) finishAlienTurn() {
+	bs.Phase = PhasePlayerTurn
+	bs.restorePlayerTU()
+	bs.Turn++
+	bs.checkVictory()
 }
 
 func (bs *Battlescape) restorePlayerTU() {
@@ -627,14 +757,11 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 		if sx < 1 || sx >= viewW+1 || sy < 1 || sy >= viewH+1 {
 			continue
 		}
-		ch := '@'
-		style := engine.StyleGreenBold
+		ch := '\u263B' // ☻
+		style := engine.StyleCyanBold
 		if u.Faction == 1 {
-			ch = 'E'
+			ch = '\U0001F47D' // 👽
 			style = engine.StyleRedBold
-			if u.AlienType != nil {
-				ch = rune(u.AlienType.ShortName[0])
-			}
 		}
 		if u == bs.Selected {
 			style = style.Reverse(true)
@@ -645,17 +772,79 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 		ctx.SetCell(sx, sy, ch, style)
 	}
 
+	// Draw projectile
+	if bs.Projectile != nil {
+		p := bs.Projectile
+		progress := float64(p.Progress) / float64(p.Length)
+		px := float64(p.FromX) + float64(p.ToX-p.FromX)*progress
+		py := float64(p.FromY) + float64(p.ToY-p.FromY)*progress
+		sx := int(px) - bs.ScrollX + 1
+		sy := int(py) - bs.ScrollY + 1
+		if sx >= 1 && sx < viewW+1 && sy >= 1 && sy < viewH+1 {
+			ctx.SetCell(sx, sy, p.Symbol, p.Style)
+		}
+	}
+
 	// Draw sidebar border
 	sidebarX := viewW + 2
 	for y := 0; y < viewH; y++ {
 		ctx.SetCell(sidebarX-1, y+1, '|', engine.StyleGray)
 	}
 
+	// Draw unit info in sidebar
+	sy := 1
+	if bs.Selected != nil {
+		ctx.DrawString(sidebarX, sy, language.String("SIDE_UNIT_INFO"), engine.StyleCyanBold)
+		sy++
+
+		name := bs.Selected.Soldier.Name
+		if len(name) > sidebarW-1 {
+			name = name[:sidebarW-1]
+		}
+		ctx.DrawString(sidebarX, sy, name, engine.StyleDefault.Bold(true))
+		sy++
+
+		ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_HP"), bs.Selected.HP, bs.Selected.MaxHP), engine.StyleDefault)
+		sy++
+
+		ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_TU"), bs.Selected.TU, bs.Selected.MaxTU), engine.StyleDefault)
+		sy++
+
+		ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_ACC"), bs.Selected.Accuracy), engine.StyleDefault)
+		sy++
+
+		weaponName := data.RuleItems[bs.Selected.Weapon].ShortName
+		ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_WEAPON"), weaponName, bs.Selected.WeaponAmmo), engine.StyleDefault)
+		sy++
+
+		armourName := "None"
+		if bs.Selected.Armour > 0 {
+			for k, v := range data.Armors {
+				if v.Undersuit == bs.Selected.Armour {
+					armourName = k
+					break
+				}
+			}
+		}
+		ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_ARMOR"), armourName), engine.StyleDefault)
+		sy++
+
+		ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_POS"), bs.Selected.X, bs.Selected.Y), engine.StyleGray)
+		sy++
+
+		if bs.Selected.Crouching {
+			ctx.DrawString(sidebarX, sy, language.String("SIDE_CROUCH"), engine.StyleYellow)
+			sy++
+		}
+		sy++
+	}
+
 	// Draw log in sidebar
 	logTitle := language.String("BATTLE_LOG")
-	ctx.DrawString(sidebarX, 1, logTitle, engine.StyleCyanBold)
+	ctx.DrawString(sidebarX, sy, logTitle, engine.StyleCyanBold)
+	sy++
 
-	availableLines := viewH - 2
+	availableLines := viewH - sy
 	logEntries := len(bs.Log)
 	startIdx := 0
 	if logEntries > availableLines {
@@ -666,7 +855,7 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 		if len(msg) > sidebarW-1 {
 			msg = msg[:sidebarW-1]
 		}
-		ctx.DrawString(sidebarX, 2+i, msg, engine.StyleDefault)
+		ctx.DrawString(sidebarX, sy+i, msg, engine.StyleDefault)
 	}
 
 	ctx.DrawPanel(0, h-4, w, 3, language.String("BATTLESCAPE"), engine.StyleDefault)

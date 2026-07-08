@@ -83,6 +83,15 @@ func init() {
 		// ── Battlescape ────────────────────────────────────
 		"BATTLESCAPE":          "BATTLESCAPE",
 		"BATTLE_LOG":           "-- LOG --",
+		"SIDE_UNIT_INFO":       "-- UNIT --",
+		"SIDE_HP":              "HP: %d/%d",
+		"SIDE_TU":              "TU: %d/%d",
+		"SIDE_ACC":             "ACC: %d",
+		"SIDE_WEAPON":          "W: %s (%d)",
+		"SIDE_ARMOR":           "A: %s",
+		"SIDE_POS":             "[%d,%d]",
+		"SIDE_CROUCH":          "Crouching",
+		"SIDE_NONE":            "(none)",
 		"BATTLE_HELP":          " hjkl=Move Space/Enter=Act s=Cycle f=Fire r=Reload g=Grenade m=Medikit e=End c=Crouch",
 
 		// Phases
@@ -129,6 +138,10 @@ func init() {
 		"MSG_SELECT_FRIENDLY":      "Select a friendly unit to heal.",
 		"MSG_ALREADY_FULL_HP":      "Soldier is already at full health.",
 		"MSG_HEALED":               "Healed %s for %d HP. (HP:%d/%d)",
+		"MSG_ALIEN_HIT":            "Alien hits %s for %d damage!",
+		"MSG_ALIEN_KILL":            "%s eliminated!",
+		"MSG_ALIEN_MISS":            "Alien shot misses!",
+		"MSG_ALIEN_MELEE":           "%s attacks %s for %d damage!",
 
 		// Status bar
 		"STATUS_TURN":          "Turn: %d | %s",
