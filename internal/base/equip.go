@@ -7,7 +7,7 @@ import (
 	"github.com/civ13/ycom/internal/data"
 	"github.com/civ13/ycom/internal/engine"
 	"github.com/civ13/ycom/internal/language"
-	"github.com/gdamore/tcell/v2"
+	"github.com/gdamore/tcell/v3"
 )
 
 type EquipScreen struct {
@@ -205,29 +205,28 @@ func (es *EquipScreen) HandleKey(e *tcell.EventKey) {
 				es.CycleIdx = 0
 			}
 		}
-	case tcell.KeyRune:
-		switch e.Rune() {
-		case 'j':
-			es.SelectedSol++
-			if es.SelectedSol >= len(es.Base.Soldiers) {
-				es.SelectedSol = 0
-			}
-			es.CycleIdx = 0
-		case 'k':
-			es.SelectedSol--
-			if es.SelectedSol < 0 {
-				es.SelectedSol = len(es.Base.Soldiers) - 1
-			}
-			es.CycleIdx = 0
-		case '1':
-			es.SelectedSlot = 0
-			es.CycleIdx = 0
-		case '2':
-			es.SelectedSlot = 1
-			es.CycleIdx = 0
-		case ' ':
-			es.equipSelected()
+	}
+	switch e.Str() {
+	case "j":
+		es.SelectedSol++
+		if es.SelectedSol >= len(es.Base.Soldiers) {
+			es.SelectedSol = 0
 		}
+		es.CycleIdx = 0
+	case "k":
+		es.SelectedSol--
+		if es.SelectedSol < 0 {
+			es.SelectedSol = len(es.Base.Soldiers) - 1
+		}
+		es.CycleIdx = 0
+	case "1":
+		es.SelectedSlot = 0
+		es.CycleIdx = 0
+	case "2":
+		es.SelectedSlot = 1
+		es.CycleIdx = 0
+	case " ":
+		es.equipSelected()
 	}
 }
 

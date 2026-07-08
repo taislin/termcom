@@ -10,7 +10,7 @@ import (
 	"github.com/civ13/ycom/internal/language"
 	"github.com/civ13/ycom/internal/soldier"
 	"github.com/civ13/ycom/internal/audio"
-	"github.com/gdamore/tcell/v2"
+	"github.com/gdamore/tcell/v3"
 )
 
 type BattlePhase int
@@ -908,37 +908,36 @@ func (bs *Battlescape) HandleKey(e *tcell.EventKey) {
 		bs.MoveCursor(1, 0)
 	case tcell.KeyEnter:
 		bs.Confirm()
-	case tcell.KeyRune:
-		switch e.Rune() {
-		case ' ':
-			bs.Confirm()
-		case 'f', 'F':
-			bs.FireWeapon()
-		case 'r', 'R':
-			bs.Reload()
-		case 'e', 'E':
-			bs.EndTurn()
-		case 'h', 'H':
-			bs.MoveCursor(-1, 0)
-		case 'j', 'J':
-			bs.MoveCursor(0, 1)
-		case 'k', 'K':
-			bs.MoveCursor(0, -1)
-		case 'l', 'L':
-			bs.MoveCursor(1, 0)
-		case 's', 'S':
-			bs.cycleUnit(1)
-		case 'c', 'C':
-			bs.Crouch()
-		case 'g', 'G':
-			bs.Grenade()
-		case 'm', 'M':
-			bs.UseMedikit()
-		case 'n', 'N':
-			bs.EndTurn()
-		case '.':
-			bs.MoveSelected()
-		}
+	}
+	switch e.Str() {
+	case " ":
+		bs.Confirm()
+	case "f", "F":
+		bs.FireWeapon()
+	case "r", "R":
+		bs.Reload()
+	case "e", "E":
+		bs.EndTurn()
+	case "h", "H":
+		bs.MoveCursor(-1, 0)
+	case "j", "J":
+		bs.MoveCursor(0, 1)
+	case "k", "K":
+		bs.MoveCursor(0, -1)
+	case "l", "L":
+		bs.MoveCursor(1, 0)
+	case "s", "S":
+		bs.cycleUnit(1)
+	case "c", "C":
+		bs.Crouch()
+	case "g", "G":
+		bs.Grenade()
+	case "m", "M":
+		bs.UseMedikit()
+	case "n", "N":
+		bs.EndTurn()
+	case ".":
+		bs.MoveSelected()
 	}
 }
 

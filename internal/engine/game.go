@@ -5,7 +5,7 @@ import (
 
 	"github.com/civ13/ycom/internal/audio"
 	"github.com/civ13/ycom/internal/soldier"
-	"github.com/gdamore/tcell/v2"
+	"github.com/gdamore/tcell/v3"
 )
 
 type GameState int
@@ -97,12 +97,13 @@ func (g *Game) Run() {
 
 	go func() {
 		for {
-			ev := g.screen.screen.PollEvent()
-			if ev == nil {
-				return
-			}
 			select {
-			case g.keyChan <- ev:
+			case ev := <-g.screen.screen.EventQ():
+				select {
+				case g.keyChan <- ev:
+				case <-g.eventDone:
+					return
+				}
 			case <-g.eventDone:
 				return
 			}
@@ -134,14 +135,14 @@ func (g *Game) drainEvents() {
 			case *tcell.EventResize:
 				g.screen.UpdateSize()
 			case *tcell.EventKey:
-			if e.Key() == tcell.KeyEscape || (e.Key() == tcell.KeyRune && e.Rune() == 27) {
+			if e.Key() == tcell.KeyEscape || e.Str() == "\x1b" {
 				switch g.state {
 				case StateGeoscape, StateMenu:
 					g.running = false
 				default:
 						g.PopState()
 					}
-				} else if e.Rune() == '?' {
+				} else if e.Str() == "?" {
 					g.PushState(StateHelp)
 				} else if sc, ok := g.screens[g.state]; ok {
 					sc.HandleKey(e)

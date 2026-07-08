@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"github.com/civ13/ycom/internal/language"
-	"github.com/gdamore/tcell/v2"
+	"github.com/gdamore/tcell/v3"
 )
 
 const SaveFile = "xcom_save.json"
@@ -119,33 +119,32 @@ func (ms *MenuScreen) HandleKey(e *tcell.EventKey) {
 		}
 	case tcell.KeyEnter:
 		ms.confirm()
-	case tcell.KeyRune:
-		switch e.Rune() {
-		case 'j':
-			ms.Selection++
-			if ms.Selection > maxSel {
-				ms.Selection = 0
-			}
-		case 'k':
-			ms.Selection--
-			if ms.Selection < 0 {
-				ms.Selection = maxSel
-			}
-		case 'q', 'Q':
-			ms.Game.Quit()
-		case '1':
+	}
+	switch e.Str() {
+	case "j":
+		ms.Selection++
+		if ms.Selection > maxSel {
 			ms.Selection = 0
+		}
+	case "k":
+		ms.Selection--
+		if ms.Selection < 0 {
+			ms.Selection = maxSel
+		}
+	case "q", "Q":
+		ms.Game.Quit()
+	case "1":
+		ms.Selection = 0
+		ms.confirm()
+	case "2":
+		if HasSave() {
+			ms.Selection = 1
 			ms.confirm()
-		case '2':
-			if HasSave() {
-				ms.Selection = 1
-				ms.confirm()
-			}
-		case '3':
-			if HasSave() {
-				ms.Selection = 2
-				ms.confirm()
-			}
+		}
+	case "3":
+		if HasSave() {
+			ms.Selection = 2
+			ms.confirm()
 		}
 	}
 }

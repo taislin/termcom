@@ -7,7 +7,7 @@ import (
 	"github.com/civ13/ycom/internal/data"
 	"github.com/civ13/ycom/internal/engine"
 	"github.com/civ13/ycom/internal/language"
-	"github.com/gdamore/tcell/v2"
+	"github.com/gdamore/tcell/v3"
 )
 
 type ResearchScreen struct {
@@ -140,23 +140,20 @@ func (rs *ResearchScreen) HandleKey(e *tcell.EventKey) {
 		if rs.Selection >= len(topics) {
 			rs.Selection = len(topics) - 1
 		}
-	case tcell.KeyRune:
-		switch e.Rune() {
-		case 'j':
-			topics := rs.getAvailableTopics()
-			rs.Selection++
-			if rs.Selection >= len(topics) {
-				rs.Selection = len(topics) - 1
-			}
-		case 'k':
-			rs.Selection--
-			if rs.Selection < 0 {
-				rs.Selection = 0
-			}
-		case '\r':
-			rs.startResearch()
+	}
+	switch e.Str() {
+	case "j":
+		topics := rs.getAvailableTopics()
+		rs.Selection++
+		if rs.Selection >= len(topics) {
+			rs.Selection = len(topics) - 1
 		}
-	case tcell.KeyEnter:
+	case "k":
+		rs.Selection--
+		if rs.Selection < 0 {
+			rs.Selection = 0
+		}
+	case "\r":
 		rs.startResearch()
 	}
 }

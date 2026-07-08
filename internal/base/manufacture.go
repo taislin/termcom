@@ -6,7 +6,7 @@ import (
 
 	"github.com/civ13/ycom/internal/engine"
 	"github.com/civ13/ycom/internal/language"
-	"github.com/gdamore/tcell/v2"
+	"github.com/gdamore/tcell/v3"
 )
 
 type ManufacturePlan struct {
@@ -165,23 +165,20 @@ func (ms *ManufactureScreen) HandleKey(e *tcell.EventKey) {
 		if ms.Selection >= len(plans) {
 			ms.Selection = len(plans) - 1
 		}
-	case tcell.KeyRune:
-		switch e.Rune() {
-		case 'j':
-			plans := ms.getBuildablePlans()
-			ms.Selection++
-			if ms.Selection >= len(plans) {
-				ms.Selection = len(plans) - 1
-			}
-		case 'k':
-			ms.Selection--
-			if ms.Selection < 0 {
-				ms.Selection = 0
-			}
-		case '\r':
-			ms.startManufacture()
+	}
+	switch e.Str() {
+	case "j":
+		plans := ms.getBuildablePlans()
+		ms.Selection++
+		if ms.Selection >= len(plans) {
+			ms.Selection = len(plans) - 1
 		}
-	case tcell.KeyEnter:
+	case "k":
+		ms.Selection--
+		if ms.Selection < 0 {
+			ms.Selection = 0
+		}
+	case "\r":
 		ms.startManufacture()
 	}
 }

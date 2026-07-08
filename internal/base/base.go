@@ -5,7 +5,7 @@ import (
 
 	"github.com/civ13/ycom/internal/engine"
 	"github.com/civ13/ycom/internal/language"
-	"github.com/gdamore/tcell/v2"
+	"github.com/gdamore/tcell/v3"
 )
 
 type BaseScreen struct {
@@ -278,58 +278,57 @@ func (bs *BaseScreen) HandleKey(e *tcell.EventKey) {
 			bs.Tab = 0
 		}
 		bs.Selection = 0
-	case tcell.KeyRune:
-		switch e.Rune() {
-		case '1':
-			bs.Tab = 0
-		case '2':
-			bs.Tab = 1
-		case '3':
-			bs.Tab = 2
-		case '4':
-			bs.Tab = 3
-		case '5':
-			bs.Tab = 4
-		case 'j':
-			bs.Selection++
+	}
+	switch e.Str() {
+	case "1":
+		bs.Tab = 0
+	case "2":
+		bs.Tab = 1
+	case "3":
+		bs.Tab = 2
+	case "4":
+		bs.Tab = 3
+	case "5":
+		bs.Tab = 4
+	case "j":
+		bs.Selection++
+		if bs.Tab == 1 {
+			if bs.Selection >= len(bs.Base.Soldiers) {
+				bs.Selection = 0
+			}
+		} else {
+			if bs.Selection > 6 {
+				bs.Selection = 0
+			}
+		}
+	case "k":
+		bs.Selection--
+		if bs.Selection < 0 {
 			if bs.Tab == 1 {
-				if bs.Selection >= len(bs.Base.Soldiers) {
-					bs.Selection = 0
-				}
+				bs.Selection = len(bs.Base.Soldiers) - 1
 			} else {
-				if bs.Selection > 6 {
-					bs.Selection = 0
-				}
+				bs.Selection = 6
 			}
-		case 'k':
-			bs.Selection--
-			if bs.Selection < 0 {
-				if bs.Tab == 1 {
-					bs.Selection = len(bs.Base.Soldiers) - 1
-				} else {
-					bs.Selection = 6
-				}
-			}
-		case 'b', 'B':
-			bs.BuildFacility()
-		case 's', 'S':
-			bs.SellFacility()
-		case 'h', 'H':
-			bs.HireSoldier()
-		case 'd', 'D':
-			bs.DismissSoldier()
-		case 'e', 'E':
-			if bs.Tab == 1 && len(bs.Base.Soldiers) > 0 {
-				bs.Game.PushState(engine.StateEquip)
-			}
-		case 'r', 'R':
-			if bs.Tab == 2 {
-				bs.Game.PushState(engine.StateResearch)
-			}
-		case 'm', 'M':
-			if bs.Tab == 3 {
-				bs.Game.PushState(engine.StateManufacture)
-			}
+		}
+	case "b", "B":
+		bs.BuildFacility()
+	case "s", "S":
+		bs.SellFacility()
+	case "h", "H":
+		bs.HireSoldier()
+	case "d", "D":
+		bs.DismissSoldier()
+	case "e", "E":
+		if bs.Tab == 1 && len(bs.Base.Soldiers) > 0 {
+			bs.Game.PushState(engine.StateEquip)
+		}
+	case "r", "R":
+		if bs.Tab == 2 {
+			bs.Game.PushState(engine.StateResearch)
+		}
+	case "m", "M":
+		if bs.Tab == 3 {
+			bs.Game.PushState(engine.StateManufacture)
 		}
 	}
 }

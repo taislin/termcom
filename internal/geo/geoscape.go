@@ -12,7 +12,7 @@ import (
 	"github.com/civ13/ycom/internal/language"
 	"github.com/civ13/ycom/internal/save"
 	"github.com/civ13/ycom/internal/soldier"
-	"github.com/gdamore/tcell/v2"
+	"github.com/gdamore/tcell/v3"
 )
 
 type AlienMission struct {
@@ -719,33 +719,32 @@ func (gs *Geoscape) HandleKey(e *tcell.EventKey) {
 		gs.scrollMap(-1, 0)
 	case tcell.KeyRight:
 		gs.scrollMap(1, 0)
-	case tcell.KeyRune:
-		switch e.Rune() {
-		case 'b', 'B':
-			gs.Game.PushState(engine.StateBase)
-		case 'l', 'L':
-			gs.LaunchInterceptor()
-		case 'a', 'A':
-			gs.Autoresolve()
-		case 'm', 'M':
-			gs.RespondToMission(0) // Default to first mission for now, could be improved
-		case ' ':
-			gs.TogglePause()
-		case '1':
-			gs.SetSpeed(1)
-		case '2':
-			gs.SetSpeed(2)
-		case '3':
-			gs.SetSpeed(3)
-		case '4':
-			gs.SetSpeed(4)
-		case 'q', 'Q':
-			gs.Game.Quit()
-		}
 	case tcell.KeyF5:
 		gs.SaveGameToFile()
 	case tcell.KeyF9:
 		gs.LoadGameFromFile()
+	}
+	switch e.Str() {
+	case "b", "B":
+		gs.Game.PushState(engine.StateBase)
+	case "l", "L":
+		gs.LaunchInterceptor()
+	case "a", "A":
+		gs.Autoresolve()
+	case "m", "M":
+		gs.RespondToMission(0)
+	case " ":
+		gs.TogglePause()
+	case "1":
+		gs.SetSpeed(1)
+	case "2":
+		gs.SetSpeed(2)
+	case "3":
+		gs.SetSpeed(3)
+	case "4":
+		gs.SetSpeed(4)
+	case "q", "Q":
+		gs.Game.Quit()
 	}
 }
 

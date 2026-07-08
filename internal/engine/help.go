@@ -2,7 +2,7 @@ package engine
 
 import (
 	"github.com/civ13/ycom/internal/language"
-	"github.com/gdamore/tcell/v2"
+	"github.com/gdamore/tcell/v3"
 )
 
 type HelpScreen struct {
@@ -186,18 +186,18 @@ func (hs *HelpScreen) HandleKey(e *tcell.EventKey) {
 			pages := hs.getPages()
 			hs.Page = len(pages) - 1
 		}
-	case tcell.KeyRune:
-		if e.Rune() == '1' {
-			hs.Page = 0
-		} else if e.Rune() == '2' {
-			hs.Page = 1
-		} else if e.Rune() == '3' {
-			hs.Page = 2
-		} else if e.Rune() == '4' {
-			hs.Page = 3
-		} else if e.Rune() == '5' {
-			hs.Page = 4
-		}
+	}
+	switch e.Str() {
+	case "1":
+		hs.Page = 0
+	case "2":
+		hs.Page = 1
+	case "3":
+		hs.Page = 2
+	case "4":
+		hs.Page = 3
+	case "5":
+		hs.Page = 4
 	}
 }
 
