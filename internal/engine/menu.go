@@ -29,13 +29,13 @@ func (ms *MenuScreen) Render(ctx *ScreenCtx) {
 	w, h := ctx.Size()
 
 	title := []string{
-		" ____    __    ____  _______  __       __   __ ",
-		"/\\  _`\\ /\\ \\  /\\  _\\/\\  ___\\/\\ \\     /\\ \\ / / ",
-		"\\ \\ ,__\\ \\ \\ \\ \\ \\__\\ \\___/\\ \\ \\____\\ \\ '/ /  ",
-		" \\ \\  _\\ \\ \\ \\ \\ \\__/\\ \\    \\ \\  __`\\ \\ , <   ",
-		"  \\ \\ \\  \\ \\_/ /\\ \\  \\ \\    \\ \\ \\_/ \\ \\ \\`\\  ",
-		"   \\ \\_/  \\___/  \\ \\  \\ \\    \\ \\____/\\ \\_\\ \\_",
-		"   \\ /    \\___/    \\_/  \\_/    \\___/  \\/_/\\/_/",
+		" __   __   ____  _______  __       __   __ ",
+		" \\ \\ / /  /\\  _\\/\\  ___/\\ \\     /\\ \\ / / ",
+		"  \\ V /   \\ \\ \\\\ \\___/\\ \\ \\____\\ \\ '  /  ",
+		"   / \\    \\ \\ \\\\/\\ \\   \\ \\  __`\\ \\ , <   ",
+		"  / /'\\ \\   \\ \\ \\\\ \\   \\ \\ \\_/ \\ \\ \\\\`\\  ",
+		" /_/   \\_\\   \\ \\_\\\\ \\   \\ \\____/\\ \\_\\ \\_",
+		" \\_/         \\/_/ \\_/    \\___/  \\/_/\\/_/",
 	}
 
 	startY := 2
@@ -78,7 +78,7 @@ func (ms *MenuScreen) Render(ctx *ScreenCtx) {
 	}
 	ctx.DrawString(verX, subY+3, language.String("MENU_SUBTITLE"), StyleGray)
 
-	menuY := subY + 6
+	menuY := subY + 8
 	options := ms.options()
 
 	for i, opt := range options {
@@ -91,8 +91,8 @@ func (ms *MenuScreen) Render(ctx *ScreenCtx) {
 		ctx.DrawString(w/2-8, menuY+i*2, opt, style)
 	}
 
-	ctx.DrawPanel(0, h-1, w, 1, "", StyleGray)
-	ctx.DrawString(1, h-1, language.String("MENU_HELP"), StyleGray)
+	ctx.DrawPanel(0, h-2, w, 2, "", StyleGray)
+	ctx.DrawString(1, h-2, language.String("MENU_HELP"), StyleGray)
 }
 
 func (ms *MenuScreen) options() []string {
@@ -177,7 +177,8 @@ func (ms *MenuScreen) HandleMouse(e *tcell.EventMouse) {
 	x, y := e.Position()
 	w, _ := ms.Game.ScreenSize()
 
-	menuY := 16
+	subY := 10
+	menuY := subY + 8
 	opts := ms.options()
 
 	for i := range opts {

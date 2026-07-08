@@ -228,6 +228,73 @@ func (m *BattleMap) generateCorridor(x1, y1, x2, y2 int, w int) {
 	}
 }
 
+type MapCommandType int
+
+const (
+	CmdFillRect MapCommandType = iota
+	CmdDrawRect
+	CmdScatter
+	CmdPlaceBuilding
+	CmdCorridor
+	CmdClearArea
+)
+
+type MapCommand struct {
+	Type     MapCommandType
+	X, Y     int
+	W, H     int
+	Tile     TileType
+	Prob     int     // for Scatter: probability 0-100
+	Count    int     // for Scatter: number of attempts
+	X2, Y2   int     // for Corridor: endpoint
+	DoorSide int     // for PlaceBuilding: 0=south, 1=east, 2=north, 3=west
+}
+
+func (m *BattleMap) ApplyCommand(cmd MapCommand) {
+	switch cmd.Type {
+	case CmdFillRect:
+		m.fillRect(cmd.X, cmd.Y, cmd.W, cmd.H, cmd.Tile)
+	case CmdDrawRect:
+		m.drawRect(cmd.X, cmd.Y, cmd.W, cmd.H, cmd.Tile)
+	case CmdScatter:
+		for i := 0; i < cmd.Count; i++ {
+			x := cmd.X + rand.Intn(cmd.W)
+			y := cmd.Y + rand.Intn(cmd.H)
+			if rand.Intn(100) < cmd.Prob {
+				m.Set(x, y, cmd.Tile)
+			}
+		}
+	case CmdPlaceBuilding:
+		m.placeBuilding(cmd.X, cmd.Y, cmd.W, cmd.H, cmd.DoorSide)
+	case CmdCorridor:
+		m.generateCorridor(cmd.X, cmd.Y, cmd.X2, cmd.Y2, max(1, cmd.W))
+	case CmdClearArea:
+		m.fillRect(cmd.X, cmd.Y, cmd.W, cmd.H, cmd.Tile)
+	}
+}
+
+func (m *BattleMap) placeBuilding(bx, by, bw, bh, doorSide int) {
+	m.drawRect(bx, by, bw, bh, TileWall)
+	m.fillRect(bx+1, by+1, bw-2, bh-2, TileFloor)
+
+	switch doorSide {
+	case 0:
+		m.Set(bx+1+rand.Intn(max(1, bw-2)), by+bh-1, TileDoor)
+	case 1:
+		m.Set(bx+bw-1, by+1+rand.Intn(max(1, bh-2)), TileDoor)
+	case 2:
+		m.Set(bx+1+rand.Intn(max(1, bw-2)), by, TileDoor)
+	case 3:
+		m.Set(bx, by+1+rand.Intn(max(1, bh-2)), TileDoor)
+	}
+}
+
+func ApplyCommands(m *BattleMap, cmds []MapCommand) {
+	for _, cmd := range cmds {
+		m.ApplyCommand(cmd)
+	}
+}
+
 // GenerateProcedural creates a map based on a terrain biome definition.
 func GenerateProcedural(biomeName string, w, h int) *BattleMap {
 	biome, ok := Biomes[biomeName]
@@ -253,46 +320,26 @@ func GenerateProcedural(biomeName string, w, h int) *BattleMap {
 	}
 	return m
 }
+
+// GenerateCrashSite creates a crash site map (OpenXcom: 50x50)
+func GenerateCrashSite(w, h int) *BattleMap {
 	m := NewBattleMap(w, h)
 
-	// Scatter terrain based on OpenXcom forest/jungle patterns
-	for y := 0; y < h; y++ {
-		for x := 0; x < w; x++ {
-			r := rand.Intn(100)
-			if r < 3 {
-				m.Set(x, y, TileTree)
-			} else if r < 5 {
-				m.Set(x, y, TileBush)
-			} else if r < 7 {
-				m.Set(x, y, TileRock)
-			} else if r < 8 {
-				m.Set(x, y, TileFence)
-			}
-		}
-	}
+	ApplyCommands(m, []MapCommand{
+		{Type: CmdScatter, X: 0, Y: 0, W: w, H: h, Tile: TileTree, Prob: 3, Count: w * h},
+		{Type: CmdScatter, X: 0, Y: 0, W: w, H: h, Tile: TileBush, Prob: 2, Count: w * h},
+		{Type: CmdScatter, X: 0, Y: 0, W: w, H: h, Tile: TileRock, Prob: 2, Count: w * h},
+		{Type: CmdScatter, X: 0, Y: 0, W: w, H: h, Tile: TileFence, Prob: 1, Count: w * h},
+	})
 
-	// UFO crash site in center (OpenXcom: 8x6 default UFO size)
 	ufoX := w/2 - 4
 	ufoY := h/2 - 3
 
-	// UFO walls with irregular edges
-	for x := 0; x < 8; x++ {
-		m.Set(ufoX+x, ufoY, TileUFOWall)
-		m.Set(ufoX+x, ufoY+5, TileUFOWall)
-	}
-	for y := 0; y < 6; y++ {
-		m.Set(ufoX, ufoY+y, TileUFOWall)
-		m.Set(ufoX+7, ufoY+y, TileUFOWall)
-	}
+	ApplyCommands(m, []MapCommand{
+		{Type: CmdDrawRect, X: ufoX, Y: ufoY, W: 8, H: 6, Tile: TileUFOWall},
+		{Type: CmdFillRect, X: ufoX + 1, Y: ufoY + 1, W: 6, H: 4, Tile: TileUFOFloor},
+	})
 
-	// UFO interior
-	for y := 1; y < 5; y++ {
-		for x := 1; x < 7; x++ {
-			m.Set(ufoX+x, ufoY+y, TileUFOFloor)
-		}
-	}
-
-	// UFO door
 	m.Set(ufoX+4, ufoY+5, TileDoor)
 
 	// Scatter some debris around crash
@@ -314,33 +361,19 @@ func GenerateTerrorSite(w, h int) *BattleMap {
 	m := NewBattleMap(w, h)
 
 	// Fill with pavement (roads)
-	for y := 0; y < h; y++ {
-		for x := 0; x < w; x++ {
-			m.Set(x, y, TilePavement)
-		}
-	}
+	m.fillRect(0, 0, w, h, TilePavement)
 
 	// Generate roads (OpenXcom urban script pattern)
-	// Vertical road
 	if rand.Intn(2) == 0 {
 		roadX := w/4 + rand.Intn(w/2)
-		for y := 0; y < h; y++ {
-			m.Set(roadX-1, y, TilePavement)
-			m.Set(roadX, y, TilePavement)
-			m.Set(roadX+1, y, TilePavement)
-		}
+		m.fillRect(roadX-1, 0, 3, h, TilePavement)
 	}
-	// Horizontal road
 	if rand.Intn(2) == 0 {
 		roadY := h/4 + rand.Intn(h/2)
-		for x := 0; x < w; x++ {
-			m.Set(x, roadY-1, TilePavement)
-			m.Set(x, roadY, TilePavement)
-			m.Set(x, roadY+1, TilePavement)
-		}
+		m.fillRect(0, roadY-1, w, 3, TilePavement)
 	}
 
-	// Generate buildings (OpenXcom urban blocks: 10x10 areas)
+	// Generate buildings
 	buildings := 0
 	maxBuildings := 12
 	attempts := 0
@@ -351,7 +384,7 @@ func GenerateTerrorSite(w, h int) *BattleMap {
 		bx := rand.Intn(w-bw-2) + 1
 		by := rand.Intn(h-bh-2) + 1
 
-		// Check for overlap
+		// Check for overlap (simple check)
 		overlap := false
 		for dy := -1; dy <= bh; dy++ {
 			for dx := -1; dx <= bw; dx++ {
@@ -368,45 +401,13 @@ func GenerateTerrorSite(w, h int) *BattleMap {
 			continue
 		}
 
-		// Draw building walls
-		m.drawRect(bx, by, bw, bh, TileWall)
-
-		// Fill interior with floor
-		m.fillRect(bx+1, by+1, bw-2, bh-2, TileFloor)
-
-		// Place door (usually on south wall)
-		doorX := bx + 1 + rand.Intn(bw-2)
-		m.Set(doorX, by+bh-1, TileDoor)
-
-		// Place windows
-		if bw > 4 {
-			m.Set(bx+bw/2, by, TileWindow)
-			m.Set(bx+bw/2, by+bh-1, TileWindow)
-		}
-		if bh > 4 {
-			m.Set(bx, by+bh/2, TileWindow)
-			m.Set(bx+bw-1, by+bh/2, TileWindow)
-		}
-
-		// Add some interior walls for rooms
-		if bw >= 8 && bh >= 6 {
-			wallX := bx + bw/2
-			m.Set(wallX, by+1, TileWall)
-			m.Set(wallX, by+2, TileWall)
-			m.Set(wallX, by+3, TileDoor)
-		}
-
+		m.ApplyCommand(MapCommand{Type: CmdPlaceBuilding, X: bx, Y: by, W: bw, H: bh, DoorSide: 0})
 		buildings++
 	}
 
-	// Scatter some objects (furniture, etc.)
-	for i := 0; i < 20; i++ {
-		x := rand.Intn(w-2) + 1
-		y := rand.Intn(h-2) + 1
-		if m.At(x, y).Type == TileFloor {
-			m.Set(x, y, TileObject)
-		}
-	}
+	ApplyCommands(m, []MapCommand{
+		{Type: CmdScatter, X: 1, Y: 1, W: w - 2, H: h - 2, Tile: TileObject, Prob: 10, Count: 20},
+	})
 
 	return m
 }
@@ -416,16 +417,12 @@ func GenerateUFOInterior(w, h int) *BattleMap {
 	m := NewBattleMap(w, h)
 
 	// Fill with UFO floor
-	for y := 0; y < h; y++ {
-		for x := 0; x < w; x++ {
-			m.Set(x, y, TileUFOFloor)
-		}
-	}
+	m.fillRect(0, 0, w, h, TileUFOFloor)
 
 	// Outer walls
 	m.drawRect(0, 0, w, h, TileUFOWall)
 
-	// Generate rooms (OpenXcom UFO interior pattern)
+	// Generate rooms
 	rooms := 6 + rand.Intn(4)
 	roomCenters := make([][2]int, 0, rooms)
 
@@ -454,43 +451,29 @@ func GenerateUFOInterior(w, h int) *BattleMap {
 			continue
 		}
 
-		// Draw room walls
-		m.drawRect(rx, ry, rw, rh, TileUFOWall)
-
-		// Fill interior
-		m.fillRect(rx+1, ry+1, rw-2, rh-2, TileUFOFloor)
-
-		// Place door
-		doorX := rx + 1 + rand.Intn(rw-2)
-		m.Set(doorX, ry+rh-1, TileDoor)
-
+		m.ApplyCommand(MapCommand{Type: CmdPlaceBuilding, X: rx, Y: ry, W: rw, H: rh, DoorSide: 0})
 		roomCenters = append(roomCenters, [2]int{rx + rw/2, ry + rh/2})
 	}
 
 	// Connect rooms with corridors
 	for i := 0; i < len(roomCenters)-1; i++ {
-		m.generateCorridor(
-			roomCenters[i][0], roomCenters[i][1],
-			roomCenters[i+1][0], roomCenters[i+1][1],
-			1,
-		)
+		m.ApplyCommand(MapCommand{
+			Type: CmdCorridor,
+			X:    roomCenters[i][0], Y: roomCenters[i][1],
+			X2:   roomCenters[i+1][0], Y2: roomCenters[i+1][1],
+			W: 1,
+		})
 	}
 
 	// Command center in the middle
 	cx := w/2 - 4
 	cy := h/2 - 3
-	m.drawRect(cx, cy, 8, 6, TileUFOWall)
-	m.fillRect(cx+1, cy+1, 6, 4, TileUFOFloor)
-	m.Set(cx+4, cy+5, TileDoor)
+	m.ApplyCommand(MapCommand{Type: CmdPlaceBuilding, X: cx, Y: cy, W: 8, H: 6, DoorSide: 0})
 
 	// Add some objects
-	for i := 0; i < 15; i++ {
-		x := rand.Intn(w-4) + 2
-		y := rand.Intn(h-4) + 2
-		if m.At(x, y).Type == TileUFOFloor {
-			m.Set(x, y, TileObject)
-		}
-	}
+	ApplyCommands(m, []MapCommand{
+		{Type: CmdScatter, X: 2, Y: 2, W: w - 4, H: h - 4, Tile: TileObject, Prob: 20, Count: 15},
+	})
 
 	return m
 }
@@ -568,73 +551,46 @@ func GenerateCydonia(w, h int) *BattleMap {
 // GenerateForest creates a forest map (OpenXcom: 50x50)
 func GenerateForest(w, h int) *BattleMap {
 	m := NewBattleMap(w, h)
-
-	// Dense forest
-	for y := 0; y < h; y++ {
-		for x := 0; x < w; x++ {
-			r := rand.Intn(100)
-			if r < 15 {
-				m.Set(x, y, TileTree)
-			} else if r < 20 {
-				m.Set(x, y, TileBush)
-			} else if r < 22 {
-				m.Set(x, y, TileRock)
-			}
-		}
-	}
-
-	// Small clearing
+	ApplyCommands(m, []MapCommand{
+		{Type: CmdScatter, X: 0, Y: 0, W: w, H: h, Tile: TileTree, Prob: 15, Count: w * h},
+		{Type: CmdScatter, X: 0, Y: 0, W: w, H: h, Tile: TileBush, Prob: 5, Count: w * h},
+		{Type: CmdScatter, X: 0, Y: 0, W: w, H: h, Tile: TileRock, Prob: 2, Count: w * h},
+	})
 	clearX := w/4 + rand.Intn(w/2)
 	clearY := h/4 + rand.Intn(h/2)
-	for dy := -3; dy <= 3; dy++ {
-		for dx := -3; dx <= 3; dx++ {
-			if dx*dx+dy*dy <= 9 {
-				m.Set(clearX+dx, clearY+dy, TileGrass)
-			}
-		}
-	}
-
+	ApplyCommands(m, []MapCommand{
+		{Type: CmdClearArea, X: clearX - 3, Y: clearY - 3, W: 7, H: 7, Tile: TileGrass},
+	})
 	return m
 }
 
 // GenerateDesert creates a desert map (OpenXcom: 50x50)
 func GenerateDesert(w, h int) *BattleMap {
 	m := NewBattleMap(w, h)
-
-	// Sandy terrain
 	for y := 0; y < h; y++ {
 		for x := 0; x < w; x++ {
-			r := rand.Intn(100)
-			if r < 5 {
-				m.Set(x, y, TileRock)
-			} else if r < 8 {
-				m.Set(x, y, TileSand)
-			} else if r < 10 {
-				m.Set(x, y, TileBush)
-			}
+			m.Set(x, y, TilePavement)
 		}
 	}
-
+	ApplyCommands(m, []MapCommand{
+		{Type: CmdScatter, X: 0, Y: 0, W: w, H: h, Tile: TileRock, Prob: 5, Count: w * h},
+		{Type: CmdScatter, X: 0, Y: 0, W: w, H: h, Tile: TileSand, Prob: 3, Count: w * h},
+		{Type: CmdScatter, X: 0, Y: 0, W: w, H: h, Tile: TileBush, Prob: 2, Count: w * h},
+	})
 	return m
 }
 
 // GeneratePolar creates a polar map (OpenXcom: 50x50)
 func GeneratePolar(w, h int) *BattleMap {
 	m := NewBattleMap(w, h)
-
-	// Snowy terrain
 	for y := 0; y < h; y++ {
 		for x := 0; x < w; x++ {
-			r := rand.Intn(100)
-			if r < 3 {
-				m.Set(x, y, TileRock)
-			} else if r < 10 {
-				m.Set(x, y, TileSnow)
-			} else if r < 12 {
-				m.Set(x, y, TileMarsh)
-			}
+			m.Set(x, y, TileSnow)
 		}
 	}
-
+	ApplyCommands(m, []MapCommand{
+		{Type: CmdScatter, X: 0, Y: 0, W: w, H: h, Tile: TileRock, Prob: 3, Count: w * h},
+		{Type: CmdScatter, X: 0, Y: 0, W: w, H: h, Tile: TileMarsh, Prob: 2, Count: w * h},
+	})
 	return m
 }

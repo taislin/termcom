@@ -3,8 +3,8 @@ package language
 func init() {
 	register("en", map[string]string{
 		// ── Menu ──────────────────────────────────────────
-		"MENU_TITLE":          "U F O   D E F E N S E",
-		"MENU_SUBTITLE":       "ASCII Demake v0.1",
+		"MENU_TITLE":          "T U R N   B A S E D   T A C T I C S",
+		"MENU_SUBTITLE":       "v0.1",
 		"MENU_NEW_GAME":       "New Game",
 		"MENU_CONTINUE":       "Continue",
 		"MENU_QUIT":           "Quit",

@@ -631,6 +631,12 @@ func (gs *Geoscape) Render(ctx *engine.ScreenCtx) {
 	lx := w - 22
 	ly := 2
 	ctx.DrawPanel(lx, ly, 21, 10, language.String("LEGEND"), engine.StyleDefault)
+	// Clear the legend background
+	for y := ly + 1; y < ly + 9; y++ {
+		for x := lx + 1; x < lx + 20; x++ {
+			ctx.SetCell(x, y, ' ', engine.StyleDefault)
+		}
+	}
 	ctx.SetCell(lx+1, ly+1, '·', engine.StyleBlue)
 	ctx.DrawString(lx+3, ly+1, language.String("LEGEND_WATER"), engine.StyleBlue)
 	ctx.SetCell(lx+1, ly+2, '.', engine.StyleGreen)
@@ -654,27 +660,27 @@ func (gs *Geoscape) Render(ctx *engine.ScreenCtx) {
 		}
 	}
 
-	ctx.DrawPanel(0, h-4, w, 3, language.String("GEOSCAPE"), engine.StyleDefault)
+	ctx.DrawPanel(0, h-6, w, 5, language.String("GEOSCAPE"), engine.StyleDefault)
 	fundsStr := fmt.Sprintf(language.String("GEOSCAPE_FUNDS"), gs.Game.Funds/1000)
 	timeStr := fmt.Sprintf(language.String("GEOSCAPE_TIME"), gs.Game.GameTime.Format("02/01/2006 15:04"))
 	pauseStr := language.String("GEOSCAPE_RUNNING")
 	if gs.Game.Paused {
 		pauseStr = language.String("GEOSCAPE_PAUSED")
 	}
-	ctx.DrawString(2, h-3, fundsStr, engine.StyleGreen)
-	ctx.DrawString(w/3, h-3, timeStr, engine.StyleDefault)
-	ctx.DrawString(w*2/3, h-3, pauseStr, engine.StyleYellow)
+	ctx.DrawString(2, h-5, fundsStr, engine.StyleGreen)
+	ctx.DrawString(w/3, h-5, timeStr, engine.StyleDefault)
+	ctx.DrawString(w*2/3, h-5, pauseStr, engine.StyleYellow)
 
 	soldiersStr := fmt.Sprintf(language.String("GEOSCAPE_SQUAD"), len(gs.Base.Soldiers))
 	alienStr := fmt.Sprintf(language.String("GEOSCAPE_ACTIVITY"), gs.AlienActivity)
 	missionStr := fmt.Sprintf(language.String("GEOSCAPE_MISSIONS"), len(gs.Missions), gs.MissionsWon)
 
-	ctx.DrawString(w-54, h-3, missionStr, engine.StyleMagenta)
-	ctx.DrawString(w-28, h-3, alienStr, engine.StyleRed)
-	ctx.DrawString(w-9, h-3, soldiersStr, engine.StyleCyan)
+	ctx.DrawString(2, h-4, missionStr, engine.StyleMagenta)
+	ctx.DrawString(w/3, h-4, alienStr, engine.StyleRed)
+	ctx.DrawString(w*2/3, h-4, soldiersStr, engine.StyleCyan)
 
 	if time.Since(gs.MessageTimer) < 4*time.Second && gs.Message != "" {
-		ctx.DrawString(2, h-2, gs.Message, engine.StyleDefault)
+		ctx.DrawString(2, h-3, gs.Message, engine.StyleDefault)
 	}
 
 	ctx.DrawPanel(0, h-1, w, 1, "", engine.StyleGray)
