@@ -361,27 +361,6 @@ func (bs *Battlescape) finishBattle() {
 	bs.Game.PopState()
 }
 
-func (bs *Battlescape) doAlienTurn() {
-	bs.AlienTurnQueue = nil
-	bs.AlienTurnIdx = 0
-
-	for _, ai := range bs.AlienAIs {
-		if !ai.Unit.Alive {
-			continue
-		}
-		ai.Unit.TU = ai.Unit.MaxTU
-		humanUnits := bs.Units.Faction(0)
-		actions := ai.GenerateActions(bs.Units, bs.Map, humanUnits)
-		bs.AlienTurnQueue = append(bs.AlienTurnQueue, actions...)
-	}
-
-	if len(bs.AlienTurnQueue) == 0 {
-		bs.finishAlienTurn()
-	} else {
-		bs.AlienTurnDelay = 3
-	}
-}
-
 func (bs *Battlescape) finishAlienTurn() {
 	bs.Phase = PhasePlayerTurn
 	bs.restorePlayerTU()
@@ -608,6 +587,25 @@ func (bs *Battlescape) EndTurn() {
 	audio.PlayClick()
 	bs.Phase = PhaseAlienTurn
 	bs.AddMessage(language.String("MSG_ALIEN_TURN"))
+
+	bs.AlienTurnQueue = nil
+	bs.AlienTurnIdx = 0
+
+	for _, ai := range bs.AlienAIs {
+		if !ai.Unit.Alive {
+			continue
+		}
+		ai.Unit.TU = ai.Unit.MaxTU
+		humanUnits := bs.Units.Faction(0)
+		actions := ai.GenerateActions(bs.Units, bs.Map, humanUnits)
+		bs.AlienTurnQueue = append(bs.AlienTurnQueue, actions...)
+	}
+
+	if len(bs.AlienTurnQueue) == 0 {
+		bs.finishAlienTurn()
+	} else {
+		bs.AlienTurnDelay = 3
+	}
 }
 
 func (bs *Battlescape) Crouch() {

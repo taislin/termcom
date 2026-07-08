@@ -17,25 +17,6 @@ type City struct {
 
 var cities []City
 
-// lonLat converts standard degrees (positive=north, positive=east) to map coords.
-func lonLat(lon, lat float64) (int, int) {
-	x := int(lon / 2.0)
-	y := int((90.0 - lat) / 2.0)
-	if x < 0 {
-		x += mapW
-	}
-	if x >= mapW {
-		x -= mapW
-	}
-	if y < 0 {
-		y = 0
-	}
-	if y >= mapH {
-		y = mapH - 1
-	}
-	return x, y
-}
-
 
 
 func init() {
