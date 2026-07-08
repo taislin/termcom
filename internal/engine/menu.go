@@ -40,21 +40,26 @@ func (ms *MenuScreen) Render(ctx *ScreenCtx) {
 		"                                                                         ",
 	}
 
+	// Purple gradient from light (top) to dark (bottom)
+	purpleGradient := []tcell.Color{
+		tcell.GetColor("#E0FF"), // lightest
+		tcell.GetColor("#D0EF"),
+		tcell.GetColor("#C0DF"),
+		tcell.GetColor("#B0CF"),
+		tcell.GetColor("#A0BF"),
+		tcell.GetColor("#90AF"),
+		tcell.GetColor("#809F"),
+		tcell.GetColor("#708F"),
+		tcell.GetColor("#607F"), // darkest
+	}
+
 	startY := 2
 	for i, line := range title {
 		x := (w - len(line)) / 2
 		if x < 0 {
 			x = 0
 		}
-		style := StyleDefault
-		switch {
-		case i == 0 || i == 8:
-			style = StyleMagenta
-		case i == 1 || i == 7:
-			style = StyleMagenta.Bold(true)
-		case i == 2 || i == 3 || i == 4 || i == 5 || i == 6:
-			style = StyleDefault.Foreground(tcell.ColorFuchsia).Bold(true)
-		}
+		style := StyleDefault.Foreground(purpleGradient[i]).Bold(true)
 		ctx.DrawString(x, startY+i, line, style)
 	}
 
