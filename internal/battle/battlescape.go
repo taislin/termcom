@@ -186,7 +186,7 @@ func (bs *Battlescape) Update() {
 			action := bs.AlienTurnQueue[bs.AlienTurnIdx]
 			bs.AlienTurnIdx++
 			bs.executeAlienAction(action)
-			bs.AlienTurnDelay = 3
+			bs.AlienTurnDelay = 8  // Increased delay so messages are visible
 		} else {
 			for _, cai := range bs.CivilianAIs {
 				actions := cai.GenerateActions(bs.Units, bs.Map)
