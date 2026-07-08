@@ -22,10 +22,26 @@ type AlienMission struct {
 	X, Y      int
 }
 
+type CrashSite struct {
+	UFOName string
+	X, Y    float64
+	Looted  bool
+}
+
+type Transport struct {
+	X, Y      float64
+	TargetX   float64
+	TargetY   float64
+	Speed     float64
+	Returning bool
+}
+
 type Geoscape struct {
 	Game          *engine.Game
 	UFOs          UFOList
 	Interceptors  InterceptorList
+	CrashSites    []*CrashSite
+	Transport     *Transport
 	BaseX, BaseY  int
 	ScrollX       int
 	ScrollY       int
@@ -188,6 +204,37 @@ func (gs *Geoscape) Update() {
 			}
 		}
 
+		if gs.Transport != nil {
+			t := gs.Transport
+			dx := t.TargetX - t.X
+			dy := t.TargetY - t.Y
+			dist := dx*dx + dy*dy
+			if dist < 1.0 {
+				if !t.Returning {
+					for _, cs := range gs.CrashSites {
+						if !cs.Looted && int(cs.X) == int(t.TargetX) && int(cs.Y) == int(t.TargetY) {
+							cs.Looted = true
+							loot := generateUFOLoot(cs.UFOName)
+							gs.Base.AddLoot(loot)
+							gs.Message = fmt.Sprintf(language.String("MSG_TRANSPORT_RETRIEVED"), cs.UFOName, len(loot))
+							gs.MessageTimer = time.Now()
+							break
+						}
+					}
+					t.Returning = true
+					t.TargetX = float64(gs.BaseX)
+					t.TargetY = float64(gs.BaseY)
+				} else {
+					gs.Transport = nil
+					gs.Message = language.String("MSG_TRANSPORT_RETURNED")
+					gs.MessageTimer = time.Now()
+				}
+			} else {
+				t.X += dx * t.Speed
+				t.Y += dy * t.Speed
+			}
+		}
+
 		speedMult := []int{0, 1, 5, 20, 60}
 		minutes := speedMult[gs.Game.TimeSpeed]
 		gs.Game.GameTime = gs.Game.GameTime.Add(time.Duration(minutes) * time.Minute)
@@ -232,6 +279,13 @@ func (gs *Geoscape) dogfight(inter *Interceptor) {
 	damage := inter.FireAt(ufo)
 	if damage == -1 {
 		gs.Game.Funds += int64(ufo.Type.Points * 1000)
+		gs.CrashSites = append(gs.CrashSites, &CrashSite{
+			UFOName: ufo.Type.Name,
+			X:       ufo.X,
+			Y:       ufo.Y,
+		})
+		gs.Message = fmt.Sprintf(language.String("MSG_UFO_CRASHED"), ufo.Type.Name)
+		gs.MessageTimer = time.Now()
 		inter.Disengage()
 		gs.startBattle(ufo)
 	} else {
@@ -627,6 +681,25 @@ func (gs *Geoscape) Render(ctx *engine.ScreenCtx) {
 		}
 	}
 
+	for _, cs := range gs.CrashSites {
+		if cs.Looted {
+			continue
+		}
+		csx := int(cs.X) - offsetX + 1
+		csy := int(cs.Y) - offsetY + 1
+		if csx > 0 && csx < w-1 && csy > 0 && csy < h-6 {
+			ctx.SetCell(csx, csy, '⊗', engine.StyleYellow.Bold(true))
+		}
+	}
+
+	if gs.Transport != nil {
+		tx := int(gs.Transport.X) - offsetX + 1
+		ty := int(gs.Transport.Y) - offsetY + 1
+		if tx > 0 && tx < w-1 && ty > 0 && ty < h-6 {
+			ctx.SetCell(tx, ty, '♦', engine.StyleGreenBold)
+		}
+	}
+
 	// Legend
 	lx := w - 22
 	ly := 2
@@ -745,7 +818,34 @@ func (gs *Geoscape) HandleKey(e *tcell.EventKey) {
 		gs.SetSpeed(4)
 	case "q", "Q":
 		gs.Game.Quit()
+	case "r", "R":
+		gs.sendTransportToNearest()
+	case "e", "E":
+		gs.Game.OpenEncyclopedia(gs.Base.CompletedResearch, gs.Base.UnlockedWeapons, gs.Base.UnlockedArmor)
 	}
+}
+
+func (gs *Geoscape) sendTransportToNearest() {
+	var nearest *CrashSite
+	bestDist := 999999.0
+	for _, cs := range gs.CrashSites {
+		if cs.Looted {
+			continue
+		}
+		dx := cs.X - float64(gs.BaseX)
+		dy := cs.Y - float64(gs.BaseY)
+		dist := dx*dx + dy*dy
+		if dist < bestDist {
+			bestDist = dist
+			nearest = cs
+		}
+	}
+	if nearest == nil {
+		gs.Message = language.String("MSG_NO_CRASH_SITES")
+		gs.MessageTimer = time.Now()
+		return
+	}
+	gs.DispatchTransport(nearest)
 }
 
 func (gs *Geoscape) HandleMouse(e *tcell.EventMouse) {
@@ -799,4 +899,44 @@ func (gs *Geoscape) HandleMouse(e *tcell.EventMouse) {
 			gs.MessageTimer = time.Now()
 		}
 	}
+}
+
+func generateUFOLoot(ufoName string) []string {
+	var loot []string
+	loot = append(loot, "alloys", "alloys")
+	if rand.Intn(100) < 60 {
+		loot = append(loot, "elerium")
+	}
+	switch ufoName {
+	case "Small Scout":
+		loot = append(loot, "ufo_nav")
+	case "Medium Scout":
+		loot = append(loot, "ufo_nav", "ufo_weapon")
+	case "Large Scout":
+		loot = append(loot, "ufo_nav", "ufo_weapon", "ufo_armor")
+	case "Harvester":
+		loot = append(loot, "ufo_nav", "ufo_power", "ufo_weapon")
+	case "Bomber":
+		loot = append(loot, "ufo_nav", "ufo_power", "ufo_weapon", "ufo_armor")
+	case "Transport":
+		loot = append(loot, "ufo_nav", "ufo_power", "ufo_armor")
+	}
+	return loot
+}
+
+func (gs *Geoscape) DispatchTransport(cs *CrashSite) {
+	if gs.Transport != nil {
+		gs.Message = language.String("MSG_TRANSPORT_BUSY")
+		gs.MessageTimer = time.Now()
+		return
+	}
+	gs.Transport = &Transport{
+		X:       float64(gs.BaseX),
+		Y:       float64(gs.BaseY),
+		TargetX: cs.X,
+		TargetY: cs.Y,
+		Speed:   0.05,
+	}
+	gs.Message = fmt.Sprintf(language.String("MSG_TRANSPORT_DISPATCHED"), cs.UFOName)
+	gs.MessageTimer = time.Now()
 }

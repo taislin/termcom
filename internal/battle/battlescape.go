@@ -46,6 +46,7 @@ type Battlescape struct {
 	Map        *BattleMap
 	Units      UnitList
 	AlienAIs   []*AlienAI
+	CivilianAIs []*CivilianAI
 	Phase      BattlePhase
 	Turn       int
 	CursorX    int
@@ -138,7 +139,32 @@ func NewBattlescape(g *engine.Game, squad []*soldier.Soldier, ufoName string) *B
 		bs.AlienAIs = append(bs.AlienAIs, ai)
 	}
 
+	if ufoName == "Terror" {
+		civCount := 8 + rand.Intn(5)
+		for i := 0; i < civCount; i++ {
+			name := civNames[rand.Intn(len(civNames))]
+			u := NewCivilianUnit(name)
+			u.X = 5 + rand.Intn(m.Width-10)
+			u.Y = m.Height/2 + rand.Intn(m.Height/2-5)
+			if m.Passable(u.X, u.Y) {
+				bs.Units = append(bs.Units, u)
+				bs.CivilianAIs = append(bs.CivilianAIs, NewCivilianAI(u))
+			}
+		}
+	}
+
+	bs.ComputeFOVForTeam()
+
 	return bs
+}
+
+func (bs *Battlescape) ComputeFOVForTeam() {
+	bs.Map.ClearVisibility()
+	for _, u := range bs.Units {
+		if u.Faction == 0 && u.Alive {
+			bs.Map.ComputeFOV(u.X, u.Y)
+		}
+	}
 }
 
 func (bs *Battlescape) Update() {
@@ -162,6 +188,12 @@ func (bs *Battlescape) Update() {
 			bs.executeAlienAction(action)
 			bs.AlienTurnDelay = 3
 		} else {
+			for _, cai := range bs.CivilianAIs {
+				actions := cai.GenerateActions(bs.Units, bs.Map)
+				for _, a := range actions {
+					bs.executeAlienAction(a)
+				}
+			}
 			bs.finishAlienTurn()
 		}
 	}
@@ -364,6 +396,7 @@ func (bs *Battlescape) finishBattle() {
 func (bs *Battlescape) finishAlienTurn() {
 	bs.Phase = PhasePlayerTurn
 	bs.restorePlayerTU()
+	bs.ComputeFOVForTeam()
 	bs.Turn++
 	bs.checkVictory()
 }
@@ -379,12 +412,27 @@ func (bs *Battlescape) restorePlayerTU() {
 func (bs *Battlescape) checkVictory() {
 	humans := bs.Units.Faction(0).Alive()
 	aliens := bs.Units.Faction(1).Alive()
+	civilians := bs.Units.Faction(2).Alive()
 	if len(aliens) == 0 {
 		bs.Phase = PhaseVictory
-		bs.AddMessage(language.String("MSG_MISSION_COMPLETE"))
+		if bs.UFOName == "Terror" {
+			totalCiv := 0
+			for _, u := range bs.Units {
+				if u.Faction == 2 {
+					totalCiv++
+				}
+			}
+			saved := len(civilians)
+			bs.AddMessage(fmt.Sprintf(language.String("MSG_MISSION_COMPLETE_CIV"), saved, totalCiv))
+		} else {
+			bs.AddMessage(language.String("MSG_MISSION_COMPLETE"))
+		}
 	} else if len(humans) == 0 {
 		bs.Phase = PhaseDefeat
 		bs.AddMessage(language.String("MSG_MISSION_FAILED"))
+	} else if bs.UFOName == "Terror" && len(civilians) == 0 && len(aliens) > 0 {
+		bs.Phase = PhaseDefeat
+		bs.AddMessage(language.String("MSG_MISSION_FAILED_CIV"))
 	}
 }
 
@@ -507,6 +555,7 @@ func (bs *Battlescape) Confirm() {
 		}
 		if bs.Selected.MoveTo(bs.CursorX, bs.CursorY, bs.Map) {
 			bs.AddMessage(fmt.Sprintf(language.String("MSG_MOVED"), bs.Selected.Soldier.Name, bs.CursorX, bs.CursorY))
+			bs.ComputeFOVForTeam()
 		} else {
 			bs.AddMessage(language.String("MSG_CANNOT_MOVE"))
 		}
@@ -520,6 +569,7 @@ func (bs *Battlescape) MoveSelected() {
 	}
 	if bs.Selected.MoveTo(bs.CursorX, bs.CursorY, bs.Map) {
 		bs.AddMessage(fmt.Sprintf(language.String("MSG_MOVED"), bs.Selected.Soldier.Name, bs.CursorX, bs.CursorY))
+		bs.ComputeFOVForTeam()
 	} else {
 		bs.AddMessage(language.String("MSG_CANNOT_MOVE"))
 	}
@@ -716,26 +766,53 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 			mx := x + bs.ScrollX
 			my := y + bs.ScrollY
 			tile := bs.Map.At(mx, my)
+
+			if !tile.Seen {
+				ctx.SetCell(x+1, y+1, ' ', engine.StyleDefault)
+				continue
+			}
+
 			ch := TileChar(tile.Type)
 			style := engine.StyleGreen
 
-			switch tile.Type {
-			case TileGrass:
-				style = engine.StyleGreen
-			case TileWall:
-				style = engine.StyleGray
-			case TileDoor:
-				style = engine.StyleYellow
-			case TileTree:
-				style = engine.StyleGreen
-			case TileRock:
-				style = engine.StyleGray
-			case TileWater:
-				style = engine.StyleBlue
-			case TileUFOFloor:
-				style = engine.StyleCyan
-			case TileUFOWall:
-				style = engine.StyleCyanBold
+			if tile.Visible {
+				switch tile.Type {
+				case TileGrass:
+					style = engine.StyleGreen
+				case TileWall:
+					style = engine.StyleGray
+				case TileDoor:
+					style = engine.StyleYellow
+				case TileTree:
+					style = engine.StyleGreen
+				case TileRock:
+					style = engine.StyleGray
+				case TileWater:
+					style = engine.StyleBlue
+				case TileUFOFloor:
+					style = engine.StyleCyan
+				case TileUFOWall:
+					style = engine.StyleCyanBold
+				}
+			} else {
+				switch tile.Type {
+				case TileGrass:
+					style = engine.StyleGray
+				case TileWall:
+					style = engine.StyleGray
+				case TileDoor:
+					style = engine.StyleGray
+				case TileTree:
+					style = engine.StyleGray
+				case TileRock:
+					style = engine.StyleGray
+				case TileWater:
+					style = engine.StyleGray
+				case TileUFOFloor:
+					style = engine.StyleGray
+				case TileUFOWall:
+					style = engine.StyleGray
+				}
 			}
 
 			if mx == bs.CursorX && my == bs.CursorY {
@@ -752,7 +829,12 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 		}
 		sx := u.X - bs.ScrollX + 1
 		sy := u.Y - bs.ScrollY + 1
-		if sx < 1 || sx >= viewW+1 || sy < 1 || sy >= viewH+1 {
+		if sx < 1 || sx >= viewW+1 || sy < 1 || sy < viewH+1 {
+			if u.Faction == 1 && !bs.Map.IsVisible(u.X, u.Y) {
+				continue
+			}
+		}
+		if u.Faction == 1 && !bs.Map.IsVisible(u.X, u.Y) {
 			continue
 		}
 		ch := '\u263B' // ☻
@@ -760,6 +842,9 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 		if u.Faction == 1 {
 			ch = '\U0001F47D' // 👽
 			style = engine.StyleRedBold
+		} else if u.Faction == 2 {
+			ch = 'c'
+			style = engine.StyleGreen
 		}
 		if u == bs.Selected {
 			style = style.Reverse(true)

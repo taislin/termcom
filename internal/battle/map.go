@@ -43,8 +43,10 @@ const (
 )
 
 type Tile struct {
-	Type    TileType
+	Type      TileType
 	Destroyed bool
+	Visible   bool
+	Seen      bool
 }
 
 var tileChars = map[TileType]rune{
@@ -127,6 +129,90 @@ func (m *BattleMap) Opaque(x, y int) bool {
 		return true
 	}
 	return false
+}
+
+const SightRange = 20
+
+func (m *BattleMap) ClearVisibility() {
+	for y := 0; y < m.Height; y++ {
+		for x := 0; x < m.Width; x++ {
+			m.Tiles[y][x].Visible = false
+		}
+	}
+}
+
+func (m *BattleMap) ComputeFOV(ux, uy int) {
+	for dy := -SightRange; dy <= SightRange; dy++ {
+		for dx := -SightRange; dx <= SightRange; dx++ {
+			tx := ux + dx
+			ty := uy + dy
+			if tx < 0 || tx >= m.Width || ty < 0 || ty >= m.Height {
+				continue
+			}
+			if dx*dx+dy*dy > SightRange*SightRange {
+				continue
+			}
+			if m.hasLOS(ux, uy, tx, ty) {
+				m.Tiles[ty][tx].Visible = true
+				m.Tiles[ty][tx].Seen = true
+			}
+		}
+	}
+}
+
+func (m *BattleMap) hasLOS(x1, y1, x2, y2 int) bool {
+	dx := x2 - x1
+	dy := y2 - y1
+	absDx := dx
+	absDy := dy
+	if absDx < 0 {
+		absDx = -absDx
+	}
+	if absDy < 0 {
+		absDy = -absDy
+	}
+	sx := 1
+	if dx < 0 {
+		sx = -1
+	}
+	sy := 1
+	if dy < 0 {
+		sy = -1
+	}
+	err := absDx - absDy
+	x := x1
+	y := y1
+	for {
+		if x == x2 && y == y2 {
+			return true
+		}
+		if m.Opaque(x, y) && !(x == x1 && y == y1) {
+			return false
+		}
+		e2 := 2 * err
+		if e2 > -absDy {
+			err -= absDy
+			x += sx
+		}
+		if e2 < absDx {
+			err += absDx
+			y += sy
+		}
+	}
+}
+
+func (m *BattleMap) IsVisible(x, y int) bool {
+	if x < 0 || x >= m.Width || y < 0 || y >= m.Height {
+		return false
+	}
+	return m.Tiles[y][x].Visible
+}
+
+func (m *BattleMap) IsSeen(x, y int) bool {
+	if x < 0 || x >= m.Width || y < 0 || y >= m.Height {
+		return false
+	}
+	return m.Tiles[y][x].Seen
 }
 
 // fillRect fills a rectangle with a tile type

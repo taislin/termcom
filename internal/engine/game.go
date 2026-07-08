@@ -19,6 +19,7 @@ const (
 	StateManufacture
 	StateEquip
 	StateHelp
+	StateEncyclopedia
 	StateQuit
 )
 
@@ -84,6 +85,12 @@ func NewGame() (*Game, error) {
 
 func (g *Game) RegisterScreen(s GameState, sc Screen) {
 	g.screens[s] = sc
+}
+
+func (g *Game) OpenEncyclopedia(completed []string, weapons []string, armor []string) {
+	enc := NewEncyclopediaScreen(g, completed, weapons, armor)
+	g.screens[StateEncyclopedia] = enc
+	g.PushState(StateEncyclopedia)
 }
 
 func (g *Game) SetScreen(s GameState, sc Screen) {

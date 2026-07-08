@@ -13,6 +13,7 @@ type Unit struct {
 	Type      int
 	Soldier   *soldier.Soldier
 	AlienType *data.AlienType
+	CivName   string
 	X, Y      int
 	HP        int
 	MaxHP     int
@@ -70,6 +71,31 @@ func NewAlienUnit(at *data.AlienType) *Unit {
 	}
 }
 
+var civNames = []string{
+	"Alex", "Sam", "Jordan", "Casey", "Morgan", "Taylor", "Riley", "Quinn",
+	"Drew", "Jamie", "Robin", "Pat", "Terry", "Leslie", "Sandy", "Dee",
+	"Lee", "Kim", "Avery", "Reese", "Dakota", "Skyler", "Blair", "Emery",
+}
+
+func NewCivilianUnit(name string) *Unit {
+	return &Unit{
+		Type:     2,
+		CivName:  name,
+		HP:       5,
+		MaxHP:    5,
+		TU:       20,
+		MaxTU:    20,
+		Accuracy: 0,
+		Bravery:  30,
+		Reactions: 0,
+		Strength: 5,
+		Armour:   0,
+		Weapon:   "",
+		Alive:    true,
+		Faction:  2,
+	}
+}
+
 func (u *Unit) Name() string {
 	if u.Soldier != nil {
 		return u.Soldier.Name
@@ -77,7 +103,10 @@ func (u *Unit) Name() string {
 	if u.AlienType != nil {
 		return u.AlienType.Name
 	}
-	return "Unknown"
+	if u.CivName != "" {
+		return u.CivName
+	}
+	return "Civilian"
 }
 
 func (u *Unit) FireAt(target *Unit) (int, bool, error) {

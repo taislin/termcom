@@ -278,6 +278,10 @@ var Items = map[string]Item{
 	"medikit":     {Name: "Medi-Kit", ShortName: "MDK", Weight: 2, Value: 6000},
 	"motion_scanner":{Name: "Motion Scanner", ShortName: "MSC", Weight: 3, Value: 5000},
 	"psi_amplifier":{Name: "Psi-Amplifier", ShortName: "PSI", Weight: 2, Value: 30000},
+	"ufo_nav":     {Name: "UFO Navigation", ShortName: "NAV", Weight: 5, Value: 15000, Alien: true},
+	"ufo_power":   {Name: "UFO Power Source", ShortName: "PWR", Weight: 8, Value: 20000, Alien: true},
+	"ufo_weapon":  {Name: "UFO Weapon System", ShortName: "UFW", Weight: 6, Value: 18000, Alien: true},
+	"ufo_armor":   {Name: "UFO Hull Plating", ShortName: "UHL", Weight: 7, Value: 16000, Alien: true},
 }
 
 func init() {

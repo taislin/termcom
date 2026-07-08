@@ -2,12 +2,15 @@ package save
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"time"
 
 	"github.com/civ13/ycom/internal/base"
 	"github.com/civ13/ycom/internal/soldier"
 )
+
+const CurrentVersion = 2
 
 type SaveData struct {
 	Version       int
@@ -36,23 +39,24 @@ type BaseSave struct {
 }
 
 type SoldierSave struct {
-	Name     string
-	Rank     int
-	HP       int
-	MaxHP    int
-	TU       int
-	MaxTU    int
-	Accuracy int
-	Bravery  int
+	Name      string
+	Rank      int
+	HP        int
+	MaxHP     int
+	TU        int
+	MaxTU     int
+	Accuracy  int
+	Bravery   int
 	Reactions int
-	Strength int
-	PsiSkill int
-	PsiStr   int
-	Weapon   string
-	Armor    string
-	Kills    int
-	Missions int
-	Wounds   int
+	Strength  int
+	PsiSkill  int
+	PsiStr    int
+	Weapon    string
+	Armor     string
+	Kills     int
+	Missions  int
+	Wounds    int
+	WeaponAmmo int
 }
 
 type FacilitySave struct {
@@ -74,11 +78,11 @@ type ManufJobSave struct {
 }
 
 type ResearchSave struct {
-	TopicID   string
-	Progress  int
-	Cost      int
+	TopicID    string
+	Progress   int
+	Cost       int
 	Scientists int
-	Completed bool
+	Completed  bool
 }
 
 type UFOSave struct {
@@ -95,7 +99,7 @@ type MissionSave struct {
 }
 
 func SaveGame(path string, data *SaveData) error {
-	data.Version = 1
+	data.Version = CurrentVersion
 	file, err := os.Create(path)
 	if err != nil {
 		return err
@@ -117,7 +121,34 @@ func LoadGame(path string) (*SaveData, error) {
 	if err != nil {
 		return nil, err
 	}
+	if err := migrateSave(&data); err != nil {
+		return nil, err
+	}
 	return &data, nil
+}
+
+func migrateSave(data *SaveData) error {
+	if data.Version > CurrentVersion {
+		return fmt.Errorf("save version %d is newer than current version %d", data.Version, CurrentVersion)
+	}
+	if data.Version < 1 {
+		return fmt.Errorf("save version %d is too old or invalid", data.Version)
+	}
+	if data.Version == 1 {
+		migrateV1toV2(data)
+	}
+	return nil
+}
+
+func migrateV1toV2(data *SaveData) {
+	if data.Base != nil {
+		for _, s := range data.Base.Soldiers {
+			if s.WeaponAmmo == 0 {
+				s.WeaponAmmo = 50
+			}
+		}
+	}
+	data.Version = 2
 }
 
 func FromBase(b *base.Base) *BaseSave {
@@ -132,23 +163,24 @@ func FromBase(b *base.Base) *BaseSave {
 	}
 	for _, s := range b.Soldiers {
 		bs.Soldiers = append(bs.Soldiers, &SoldierSave{
-			Name:      s.Name,
-			Rank:      int(s.Rank),
-			HP:        s.HP,
-			MaxHP:     s.MaxHP,
-			TU:        s.TU,
-			MaxTU:     s.MaxTU,
-			Accuracy:  s.Accuracy,
-			Bravery:   s.Bravery,
-			Reactions: s.Reactions,
-			Strength:  s.Strength,
-			PsiSkill:  s.PsiSkill,
-			PsiStr:    s.PsiStr,
-			Weapon:    s.Weapon,
-			Armor:     s.Armor,
-			Kills:     s.Kills,
-			Missions:  s.Missions,
-			Wounds:    s.Wounds,
+			Name:       s.Name,
+			Rank:       int(s.Rank),
+			HP:         s.HP,
+			MaxHP:      s.MaxHP,
+			TU:         s.TU,
+			MaxTU:      s.MaxTU,
+			Accuracy:   s.Accuracy,
+			Bravery:    s.Bravery,
+			Reactions:  s.Reactions,
+			Strength:   s.Strength,
+			PsiSkill:   s.PsiSkill,
+			PsiStr:     s.PsiStr,
+			Weapon:     s.Weapon,
+			Armor:      s.Armor,
+			Kills:      s.Kills,
+			Missions:   s.Missions,
+			Wounds:     s.Wounds,
+			WeaponAmmo: s.WeaponAmmo,
 		})
 	}
 	for _, f := range b.Facilities {
@@ -213,6 +245,7 @@ func ToBase(bs *BaseSave) *base.Base {
 		s.Kills = ss.Kills
 		s.Missions = ss.Missions
 		s.Wounds = ss.Wounds
+		s.WeaponAmmo = ss.WeaponAmmo
 		b.Soldiers = append(b.Soldiers, s)
 	}
 	for _, fs := range bs.Facilities {

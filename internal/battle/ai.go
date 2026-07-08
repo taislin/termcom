@@ -349,3 +349,78 @@ func signum(x int) int {
 	}
 	return 0
 }
+
+type CivilianAI struct {
+	Unit   *Unit
+	Scared bool
+}
+
+func NewCivilianAI(u *Unit) *CivilianAI {
+	return &CivilianAI{Unit: u}
+}
+
+func (cai *CivilianAI) GenerateActions(units UnitList, m *BattleMap) []AlienAction {
+	if !cai.Unit.Alive {
+		return nil
+	}
+
+	var nearestThreat *Unit
+	bestDist := 999.0
+	for _, u := range units {
+		if !u.Alive || u.Faction == 2 {
+			continue
+		}
+		dx := float64(u.X - cai.Unit.X)
+		dy := float64(u.Y - cai.Unit.Y)
+		dist := math.Sqrt(dx*dx + dy*dy)
+		if dist < bestDist {
+			bestDist = dist
+			nearestThreat = u
+		}
+	}
+
+	if nearestThreat != nil && bestDist < 10 {
+		cai.Scared = true
+	}
+
+	if !cai.Scared {
+		return nil
+	}
+
+	if nearestThreat == nil {
+		cai.Scared = false
+		return nil
+	}
+
+	dx := float64(cai.Unit.X - nearestThreat.X)
+	dy := float64(cai.Unit.Y - nearestThreat.Y)
+	dist := math.Sqrt(dx*dx + dy*dy)
+	if dist < 1 {
+		dist = 1
+	}
+	fx := cai.Unit.X + int(dx/dist*2)
+	fy := cai.Unit.Y + int(dy/dist*2)
+
+	if fx < 0 {
+		fx = 0
+	}
+	if fy < 0 {
+		fy = 0
+	}
+	if fx >= m.Width {
+		fx = m.Width - 1
+	}
+	if fy >= m.Height {
+		fy = m.Height - 1
+	}
+
+	if !m.Passable(fx, fy) {
+		return nil
+	}
+
+	return []AlienAction{{
+		Type: "move", Unit: cai.Unit,
+		FromX: cai.Unit.X, FromY: cai.Unit.Y,
+		ToX: fx, ToY: fy,
+	}}
+}
