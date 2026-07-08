@@ -850,6 +850,45 @@ func (bs *Battlescape) UseMedikit() {
 	bs.AddMessage(fmt.Sprintf(language.String("MSG_HEALED"), name, healAmount, target.HP, target.MaxHP))
 }
 
+func (bs *Battlescape) PsiAttack() {
+	if bs.Selected == nil || bs.Phase != PhasePlayerTurn {
+		return
+	}
+	if bs.Selected.Soldier.Weapon != "psi_amp" {
+		bs.AddMessage("Need Psi-Amplifier to use Psi.")
+		return
+	}
+
+	if bs.Selected.TU < 20 {
+		bs.AddMessage(language.String("MSG_NOT_ENOUGH_TU_PSI"))
+		return
+	}
+
+	target := bs.Units.At(bs.CursorX, bs.CursorY)
+	if target == nil || target.Faction != 1 {
+		bs.AddMessage("Select an alien target.")
+		return
+	}
+
+	bs.Selected.TU -= 20
+
+	targetPsi := 0
+	if target.AlienType != nil {
+		targetPsi = target.AlienType.Psi
+	} else if target.Soldier != nil {
+		targetPsi = target.Soldier.PsiStr
+	}
+
+	success := rand.Intn(100) < (bs.Selected.Soldier.PsiSkill - targetPsi/2)
+
+	if success {
+		target.TU = 0
+		bs.AddMessage(fmt.Sprintf(language.String("MSG_PSI_SUCCESS"), target.Name()))
+	} else {
+		bs.AddMessage(language.String("MSG_PSI_FAIL"))
+	}
+}
+
 func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 	w, h := ctx.Size()
 	viewW := w - sidebarW - 2
@@ -1152,6 +1191,8 @@ func (bs *Battlescape) HandleKey(e *tcell.EventKey) {
 		bs.Grenade()
 	case "m", "M":
 		bs.UseMedikit()
+	case "p", "P":
+		bs.PsiAttack()
 	case "n", "N":
 		bs.EndTurn()
 	case ".":

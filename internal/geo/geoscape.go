@@ -17,36 +17,32 @@ import (
 )
 
 type AlienMission struct {
-	Type      string
-	CityName  string
+	Type     string
+	NodeID   int    // target node ID
 	TurnsLeft int
-	X, Y      int
 }
 
 type CrashSite struct {
-	UFOName string
-	X, Y    float64
-	Looted  bool
+	UFOName  string
+	NodeID   int
+	Looted   bool
 }
 
 type Transport struct {
-	X, Y      float64
-	TargetX   float64
-	TargetY   float64
-	Speed     float64
+	FromNode int
+	ToNode   int
+	Progress float64
 	Returning bool
 }
 
 type Geoscape struct {
 	Game          *engine.Game
+	Network       *GeoNetwork
 	UFOs          UFOList
 	Interceptors  InterceptorList
 	CrashSites    []*CrashSite
 	Transport     *Transport
-	BaseX, BaseY  int
-	ScrollX       int
-	ScrollY       int
-	BaseName      string
+	BaseNode      int     // home base node ID
 	Message       string
 	MessageTimer  time.Time
 	TickCounter   int
@@ -56,6 +52,8 @@ type Geoscape struct {
 	AlienActivity int
 	MissionsWon   int
 	Victory       bool
+	// Cursor for node selection
+	CursorNode    int
 }
 
 func NewGeoscape(g *engine.Game) *Geoscape {
@@ -66,13 +64,15 @@ func NewGeoscape(g *engine.Game) *Geoscape {
 	b.Facilities = append(b.Facilities, &base.Facility{Type: base.FacStorage, Row: 0, Col: 3})
 	b.Facilities = append(b.Facilities, &base.Facility{Type: base.FacRadar, Row: 0, Col: 4})
 
+	gn := NewRegionalNetwork()
+	gn.Nodes[0].HasRadar = true
+	gn.Nodes[0].InterceptorCount = 2
+
 	gs := &Geoscape{
 		Game:         g,
-		BaseX:        28,
-		BaseY:        32,
-		ScrollX:      28,
-		ScrollY:      32,
-		BaseName:     language.String("MSG_BASE_NAME"),
+		Network:      gn,
+		BaseNode:     0,
+		CursorNode:   0,
 		Message:      language.String("MSG_WELCOME"),
 		MessageTimer: time.Now(),
 		Base:         b,
@@ -84,13 +84,15 @@ func NewGeoscape(g *engine.Game) *Geoscape {
 func NewGeoscapeFromSave(g *engine.Game, sd *save.SaveData) *Geoscape {
 	b := save.ToBase(sd.Base)
 
+	gn := NewRegionalNetwork()
+	gn.Nodes[0].HasRadar = true
+	gn.Nodes[0].InterceptorCount = 2
+
 	gs := &Geoscape{
 		Game:          g,
-		BaseX:         28,
-		BaseY:         32,
-		ScrollX:       28,
-		ScrollY:       32,
-		BaseName:      b.Name,
+		Network:       gn,
+		BaseNode:      0,
+		CursorNode:    0,
 		Message:       language.String("MSG_GAME_LOADED"),
 		MessageTimer:  time.Now(),
 		Base:          b,
@@ -117,10 +119,8 @@ func NewGeoscapeFromSave(g *engine.Game, sd *save.SaveData) *Geoscape {
 	for _, m := range sd.Missions {
 		gs.Missions = append(gs.Missions, &AlienMission{
 			Type:      m.Type,
-			CityName:  m.CityName,
+			NodeID:    int(m.X),
 			TurnsLeft: m.TurnsLeft,
-			X:         m.X,
-			Y:         m.Y,
 		})
 	}
 
@@ -166,9 +166,14 @@ func (gs *Geoscape) Update() {
 	if !gs.Game.Paused && gs.Game.TimeSpeed > 0 {
 		// Spawn UFOs periodically
 		if gs.TickCounter%600 == 0 && gs.UFOs.Count() < 5 {
-			ufo := SpawnUFO()
+			ufo := SpawnUFOOnNetwork(gs.Network)
 			gs.UFOs = append(gs.UFOs, ufo)
-			gs.Message = fmt.Sprintf(language.String("MSG_UFO_DETECTED"), ufo.Type.Name, ufo.TileX(), ufo.TileY())
+			node := gs.Network.NodeByID(ufo.CurrentNode())
+		 nodeName := "?"
+			if node != nil {
+				nodeName = node.Name
+			}
+			gs.Message = fmt.Sprintf(language.String("MSG_UFO_DETECTED"), ufo.Type.Name, nodeName)
 			gs.MessageTimer = time.Now()
 			audio.PlayAlert()
 		}
@@ -178,13 +183,17 @@ func (gs *Geoscape) Update() {
 			gs.spawnMission()
 		}
 
-		// Check mission timers — iterate over a copy of the slice
-		// to avoid mutating the slice during iteration
+		// Check mission timers
 		remaining := make([]*AlienMission, 0, len(gs.Missions))
 		for _, m := range gs.Missions {
 			m.TurnsLeft--
 			if m.TurnsLeft <= 0 {
-				gs.Message = fmt.Sprintf(language.String("MSG_ATTACK_CITY"), m.Type, m.CityName)
+				node := gs.Network.NodeByID(m.NodeID)
+				nodeName := "?"
+				if node != nil {
+					nodeName = node.Name
+				}
+				gs.Message = fmt.Sprintf(language.String("MSG_ATTACK_CITY"), m.Type, nodeName)
 				gs.MessageTimer = time.Now()
 				gs.AlienActivity += 10
 			} else {
@@ -193,13 +202,14 @@ func (gs *Geoscape) Update() {
 		}
 		gs.Missions = remaining
 
+		// Update UFOs along network edges
 		for _, u := range gs.UFOs {
-			u.Update()
+			u.Update(gs.Network)
 		}
 
 		for _, i := range gs.Interceptors {
 			if i.Launching {
-				reached := i.Update()
+				reached := i.Update(gs.Network)
 				if reached {
 					gs.dogfight(i)
 				}
@@ -208,32 +218,52 @@ func (gs *Geoscape) Update() {
 
 		if gs.Transport != nil {
 			t := gs.Transport
-			dx := t.TargetX - t.X
-			dy := t.TargetY - t.Y
-			dist := dx*dx + dy*dy
-			if dist < 1.0 {
-				if !t.Returning {
-					for _, cs := range gs.CrashSites {
-						if !cs.Looted && int(cs.X) == int(t.TargetX) && int(cs.Y) == int(t.TargetY) {
-							cs.Looted = true
-							loot := generateUFOLoot(cs.UFOName)
-							gs.Base.AddLoot(loot)
-							gs.Message = fmt.Sprintf(language.String("MSG_TRANSPORT_RETRIEVED"), cs.UFOName, len(loot))
-							gs.MessageTimer = time.Now()
-							break
+			// Move transport along path
+			if !t.Returning {
+				// Move toward crash site
+				path := gs.ShortestPath(t.FromNode, t.ToNode)
+				if len(path) > 1 {
+					nextNode := gs.Network.NodeByID(path[1])
+					if nextNode != nil {
+						t.Progress += 0.05
+						if t.Progress >= 1.0 {
+							t.Progress = 0
+							t.FromNode = path[1]
+							// Check if we arrived
+							if t.FromNode == t.ToNode {
+								for _, cs := range gs.CrashSites {
+									if !cs.Looted && cs.NodeID == t.ToNode {
+										cs.Looted = true
+										loot := generateUFOLoot(cs.UFOName)
+										gs.Base.AddLoot(loot)
+										gs.Message = fmt.Sprintf(language.String("MSG_TRANSPORT_RETRIEVED"), cs.UFOName, len(loot))
+										gs.MessageTimer = time.Now()
+										break
+									}
+								}
+								t.Returning = true
+								t.ToNode = gs.BaseNode
+							}
 						}
 					}
-					t.Returning = true
-					t.TargetX = float64(gs.BaseX)
-					t.TargetY = float64(gs.BaseY)
-				} else {
-					gs.Transport = nil
-					gs.Message = language.String("MSG_TRANSPORT_RETURNED")
-					gs.MessageTimer = time.Now()
 				}
 			} else {
-				t.X += dx * t.Speed
-				t.Y += dy * t.Speed
+				// Return to base
+				path := gs.ShortestPath(t.FromNode, t.ToNode)
+				if len(path) > 1 {
+					t.Progress += 0.05
+					if t.Progress >= 1.0 {
+						t.Progress = 0
+						t.FromNode = path[1]
+						if t.FromNode == t.ToNode {
+							gs.Transport = nil
+							gs.Message = language.String("MSG_TRANSPORT_RETURNED")
+							gs.MessageTimer = time.Now()
+						}
+					}
+				} else {
+					gs.Transport = nil
+				}
 			}
 		}
 
@@ -273,18 +303,30 @@ func (gs *Geoscape) Update() {
 	}
 }
 
+func (gs *Geoscape) ShortestPath(from, to int) []int {
+	return gs.Network.ShortestPath(from, to)
+}
+
 func (gs *Geoscape) dogfight(inter *Interceptor) {
-	if inter.Target == nil {
-		return
+	ufo := inter.TargetUFO
+	if ufo == nil {
+		// Interceptor reached patrol node, look for UFOs here
+		for _, u := range gs.UFOs {
+			if u.Active && u.CurrentNode() == inter.TargetNode {
+				ufo = u
+				break
+			}
+		}
+		if ufo == nil {
+			return
+		}
 	}
-	ufo := inter.Target
 	damage := inter.FireAt(ufo)
 	if damage == -1 {
 		gs.Game.Funds += int64(ufo.Type.Points * 1000)
 		gs.CrashSites = append(gs.CrashSites, &CrashSite{
 			UFOName: ufo.Type.Name,
-			X:       ufo.X,
-			Y:       ufo.Y,
+			NodeID:  ufo.CurrentNode(),
 		})
 		gs.Message = fmt.Sprintf(language.String("MSG_UFO_CRASHED"), ufo.Type.Name)
 		gs.MessageTimer = time.Now()
@@ -333,25 +375,31 @@ func (gs *Geoscape) startBattle(ufo *UFO) {
 
 func (gs *Geoscape) spawnMission() {
 	types := []string{language.String("MISSION_TERROR"), language.String("MISSION_SUPPLY"), language.String("MISSION_ALIEN_BASE")}
-	cityNames := []string{"London", "Tokyo", "New York", "Moscow", "Sydney", "Paris", "Berlin"}
-	cityX := []int{85, 145, 50, 95, 150, 82, 88}
-	cityY := []int{28, 32, 32, 26, 55, 28, 27}
+	// Pick a random non-base node
+	var candidates []*GeoNode
+	for _, n := range gs.Network.Nodes {
+		if n.ID != gs.BaseNode {
+			candidates = append(candidates, n)
+		}
+	}
+	if len(candidates) == 0 {
+		return
+	}
+	target := candidates[rand.Intn(len(candidates))]
 
 	idx := rand.Intn(len(types))
-	cityIdx := rand.Intn(len(cityNames))
 	turnsLeft := 5
 	if types[idx] == "Alien Base Assault" {
 		turnsLeft = 3
 	}
 	mission := &AlienMission{
 		Type:      types[idx],
-		CityName:  cityNames[cityIdx],
+		NodeID:    target.ID,
 		TurnsLeft: turnsLeft,
-		X:         cityX[cityIdx],
-		Y:         cityY[cityIdx],
 	}
 	gs.Missions = append(gs.Missions, mission)
-	gs.Message = fmt.Sprintf(language.String("MSG_ALERT_MISSION"), types[idx], cityNames[cityIdx])
+	target.MissionHere = true
+	gs.Message = fmt.Sprintf(language.String("MSG_ALERT_MISSION"), types[idx], target.Name)
 	gs.MessageTimer = time.Now()
 	gs.Game.Bell()
 	audio.PlayAlert()
@@ -363,7 +411,6 @@ func (gs *Geoscape) RespondToMission(idx int) {
 		gs.MessageTimer = time.Now()
 		return
 	}
-	// Check for alive soldiers
 	aliveCount := 0
 	for _, s := range gs.Base.Soldiers {
 		if s.HP > 0 {
@@ -377,7 +424,13 @@ func (gs *Geoscape) RespondToMission(idx int) {
 	}
 	mission := gs.Missions[idx]
 	gs.Missions = append(gs.Missions[:idx], gs.Missions[idx+1:]...)
-	gs.Message = fmt.Sprintf(language.String("MSG_SQUAD_DEPLOYED"), mission.Type, mission.CityName)
+	node := gs.Network.NodeByID(mission.NodeID)
+	nodeName := "?"
+	if node != nil {
+		nodeName = node.Name
+		node.MissionHere = false
+	}
+	gs.Message = fmt.Sprintf(language.String("MSG_SQUAD_DEPLOYED"), mission.Type, nodeName)
 	gs.MessageTimer = time.Now()
 	gs.Game.Paused = true
 
@@ -398,12 +451,17 @@ func (gs *Geoscape) RespondToMission(idx int) {
 func (gs *Geoscape) Autoresolve() {
 	var nearest *UFO
 	bestDist := 9999.0
-	for _, u := range gs.UFOs {
-		if !u.Active {
+	for _, u := range gs.UFOs.Active() {
+		node := gs.Network.NodeByID(u.CurrentNode())
+		if node == nil {
 			continue
 		}
-		dx := u.X - float64(gs.BaseX)
-		dy := u.Y - float64(gs.BaseY)
+		baseNode := gs.Network.NodeByID(gs.BaseNode)
+		if baseNode == nil {
+			continue
+		}
+		dx := float64(node.X - baseNode.X)
+		dy := float64(node.Y - baseNode.Y)
 		dist := dx*dx + dy*dy
 		if dist < bestDist {
 			bestDist = dist
@@ -458,8 +516,8 @@ func (gs *Geoscape) SaveGameToFile() {
 	for _, u := range gs.UFOs {
 		ufoSaves = append(ufoSaves, &save.UFOSave{
 			TypeName: u.Type.Name,
-			X:        u.X,
-			Y:        u.Y,
+			X:        float64(u.NodeFrom),
+			Y:        float64(u.NodeTo),
 			Active:   u.Active,
 		})
 	}
@@ -467,10 +525,10 @@ func (gs *Geoscape) SaveGameToFile() {
 	for _, m := range gs.Missions {
 		missionSaves = append(missionSaves, &save.MissionSave{
 			Type:      m.Type,
-			CityName:  m.CityName,
+			CityName:  "",
 			TurnsLeft: m.TurnsLeft,
-			X:         m.X,
-			Y:         m.Y,
+			X:         m.NodeID,
+			Y:         0,
 		})
 	}
 	sd := &save.SaveData{
@@ -517,10 +575,11 @@ func (gs *Geoscape) LoadGameFromFile() {
 		ufoType := GetUFOTypeByName(u.TypeName)
 		if ufoType != nil {
 			gs.UFOs = append(gs.UFOs, &UFO{
-				Type:   *ufoType,
-				X:      u.X,
-				Y:      u.Y,
-				Active: u.Active,
+				Type:     *ufoType,
+				NodeFrom: int(u.X),
+				NodeTo:   int(u.Y),
+				Progress: 0.5,
+				Active:   u.Active,
 			})
 		}
 	}
@@ -528,13 +587,10 @@ func (gs *Geoscape) LoadGameFromFile() {
 	for _, m := range sd.Missions {
 		gs.Missions = append(gs.Missions, &AlienMission{
 			Type:      m.Type,
-			CityName:  m.CityName,
+			NodeID:    int(m.X),
 			TurnsLeft: m.TurnsLeft,
-			X:         m.X,
-			Y:         m.Y,
 		})
 	}
-	gs.BaseName = gs.Base.Name
 	gs.Message = language.String("MSG_GAME_LOADED")
 	gs.MessageTimer = time.Now()
 }
@@ -557,30 +613,51 @@ func (gs *Geoscape) SetSpeed(s int) {
 }
 
 func (gs *Geoscape) LaunchInterceptor() {
+	// Target the node with the cursor, or nearest UFO if available
 	var nearest *UFO
 	bestDist := 9999.0
-	for _, u := range gs.UFOs {
-		if !u.Active {
+	for _, u := range gs.UFOs.Active() {
+		node := gs.Network.NodeByID(u.CurrentNode())
+		if node == nil {
 			continue
 		}
-		dx := u.X - float64(gs.BaseX)
-		dy := u.Y - float64(gs.BaseY)
+		baseNode := gs.Network.NodeByID(gs.BaseNode)
+		if baseNode == nil {
+			continue
+		}
+		dx := float64(node.X - baseNode.X)
+		dy := float64(node.Y - baseNode.Y)
 		dist := dx*dx + dy*dy
 		if dist < bestDist {
 			bestDist = dist
 			nearest = u
 		}
 	}
-	if nearest == nil {
-		gs.Message = language.String("GEOSCAPE_NO_UFO")
-		gs.MessageTimer = time.Now()
+
+	baseNode := gs.Network.NodeByID(gs.BaseNode)
+	if baseNode == nil {
 		return
 	}
+	inter := NewInterceptor(baseNode.X, baseNode.Y)
 
-	inter := NewInterceptor(gs.BaseX, gs.BaseY)
-	inter.Launch(nearest)
-	gs.Interceptors = append(gs.Interceptors, inter)
-	gs.Message = fmt.Sprintf(language.String("MSG_INTERCEPTOR_LAUNCHED"), nearest.Type.Name)
+	if nearest != nil {
+		// Launch at specific UFO
+		inter.LaunchAtUFO(nearest)
+		gs.Interceptors = append(gs.Interceptors, inter)
+		gs.Message = fmt.Sprintf(language.String("MSG_INTERCEPTOR_LAUNCHED"), nearest.Type.Name)
+	} else {
+		// Launch at cursor node for patrol
+		targetNode := gs.Network.NodeByID(gs.CursorNode)
+		if targetNode != nil && targetNode.ID != gs.BaseNode {
+			inter.LaunchAtNode(gs.CursorNode, gs.Network)
+			gs.Interceptors = append(gs.Interceptors, inter)
+			gs.Message = fmt.Sprintf(language.String("MSG_INTERCEPTOR_PATROL"), targetNode.Name)
+		} else {
+			gs.Message = language.String("GEOSCAPE_NO_UFO")
+			gs.MessageTimer = time.Now()
+			return
+		}
+	}
 	gs.MessageTimer = time.Now()
 	gs.Game.Bell()
 	audio.PlayClick()
@@ -588,124 +665,82 @@ func (gs *Geoscape) LaunchInterceptor() {
 
 func (gs *Geoscape) Render(ctx *engine.ScreenCtx) {
 	w, h := ctx.Size()
-	mw, mh := MapSize()
 
-	viewW := w - 2
-	viewH := h - 6
-
-	halfVW := viewW / 2
-	halfVH := viewH / 2
-
-	offsetX := gs.ScrollX - halfVW
-	offsetY := gs.ScrollY - halfVH
-
-	if offsetX < 0 {
-		offsetX = 0
-	}
-	if offsetY < 0 {
-		offsetY = 0
-	}
-	if offsetX+viewW > mw {
-		offsetX = mw - viewW
-	}
-	if offsetX < 0 {
-		offsetX = 0
-	}
-	if offsetY+viewH > mh {
-		offsetY = mh - viewH
-	}
-	if offsetY < 0 {
-		offsetY = 0
-	}
-
-	for y := 0; y < viewH && y < mh; y++ {
-		for x := 0; x < viewW && x < mw; x++ {
-			mx := x + offsetX
-			my := y + offsetY
-			if mx >= mw || my >= mh {
-				continue
-			}
-			tile := GetTile(mx, my)
-			ch := '·'
-			style := engine.StyleBlue
-			switch tile {
-			case 1:
-				ch = '█'
-				style = engine.StyleGreen
-			case 2:
-				ch = '○'
-				style = engine.StyleYellow
-			case 3:
-				ch = '▲'
-				style = engine.StyleCyan
-			case 4:
-				ch = '?'
-				style = engine.StyleRed
-			case 5:
-				ch = '▸'
-				style = engine.StyleCyan
-			}
-			ctx.SetCell(x+1, y+1, ch, style)
+	// Clear screen
+	for y := 1; y < h-5; y++ {
+		for x := 1; x < w-1; x++ {
+			ctx.SetCell(x, y, ' ', engine.StyleDefault)
 		}
 	}
 
-	for _, c := range cities {
-		sx := c.X - offsetX + 1
-		sy := c.Y - offsetY + 1
-		if sx > 0 && sx < w-1 && sy > 0 && sy < h-6 {
-			ctx.SetCell(sx, sy, '●', engine.StyleYellow)
-			name := c.Name
-			if len(name) > 8 {
-				name = name[:8]
-			}
-			ctx.DrawString(sx+1, sy, name, engine.StyleGray)
-		}
-	}
+	// Draw the network graph
+	gs.Network.Render(ctx, w, h)
 
-	bsx := gs.BaseX - offsetX + 1
-	bsy := gs.BaseY - offsetY + 1
-	if bsx > 0 && bsx < w-1 && bsy > 0 && bsy < h-6 {
-		ctx.SetCell(bsx, bsy, '▲', engine.StyleCyanBold)
-	}
-
+	// Draw UFOs on edges
 	for _, u := range gs.UFOs {
 		if !u.Active {
 			continue
 		}
-		ux := int(u.X) - offsetX + 1
-		uy := int(u.Y) - offsetY + 1
+		ux := int(u.X) + 1
+		uy := int(u.Y) + 1
 		if ux > 0 && ux < w-1 && uy > 0 && uy < h-6 {
 			ctx.SetCell(ux, uy, '?', engine.StyleRedBold)
 		}
 	}
 
+	// Draw interceptors
 	for _, i := range gs.Interceptors {
 		if i.HP <= 0 {
 			continue
 		}
-		ix := int(i.X) - offsetX + 1
-		iy := int(i.Y) - offsetY + 1
+		ix := int(i.X) + 1
+		iy := int(i.Y) + 1
 		if ix > 0 && ix < w-1 && iy > 0 && iy < h-6 {
-			ctx.SetCell(ix, iy, '▸', engine.StyleCyanBold)
+			ctx.SetCell(ix, iy, '\u25B8', engine.StyleCyanBold) // ▸
 		}
 	}
 
+	// Draw crash sites
 	for _, cs := range gs.CrashSites {
 		if cs.Looted {
 			continue
 		}
-		csx := int(cs.X) - offsetX + 1
-		csy := int(cs.Y) - offsetY + 1
+		node := gs.Network.NodeByID(cs.NodeID)
+		if node == nil {
+			continue
+		}
+		csx := node.X + 1
+		csy := node.Y + 1
 		if csx > 0 && csx < w-1 && csy > 0 && csy < h-6 {
-			ctx.SetCell(csx, csy, '⊗', engine.StyleYellow.Bold(true))
+			ctx.SetCell(csx, csy, '\u2297', engine.StyleYellow.Bold(true)) // ⊗
 		}
 	}
 
+	// Draw transport
 	if gs.Transport != nil {
-		tx := int(gs.Transport.X) - offsetX + 1
-		ty := int(gs.Transport.Y) - offsetY + 1
-		if tx > 0 && tx < w-1 && ty > 0 && ty < h-6 {
-			ctx.SetCell(tx, ty, '♦', engine.StyleGreenBold)
+		fromNode := gs.Network.NodeByID(gs.Transport.FromNode)
+		toNode := gs.Network.NodeByID(gs.Transport.ToNode)
+		if fromNode != nil && toNode != nil {
+			tx := float64(fromNode.X) + float64(toNode.X-fromNode.X)*gs.Transport.Progress
+			ty := float64(fromNode.Y) + float64(toNode.Y-fromNode.Y)*gs.Transport.Progress
+			sx := int(tx) + 1
+			sy := int(ty) + 1
+			if sx > 0 && sx < w-1 && sy > 0 && sy < h-6 {
+				ctx.SetCell(sx, sy, '\u2666', engine.StyleGreenBold) // ♦
+			}
+		}
+	}
+
+	// Draw mission markers
+	for _, m := range gs.Missions {
+		node := gs.Network.NodeByID(m.NodeID)
+		if node == nil {
+			continue
+		}
+		mx := node.X + 1
+		my := node.Y - 1
+		if mx > 0 && mx < w-1 && my > 0 && my < h-6 {
+			ctx.SetCell(mx, my, '\u2605', engine.StyleMagenta) // ★
 		}
 	}
 
@@ -713,35 +748,27 @@ func (gs *Geoscape) Render(ctx *engine.ScreenCtx) {
 	lx := w - 22
 	ly := 2
 	ctx.DrawPanel(lx, ly, 21, 10, language.String("LEGEND"), engine.StyleDefault)
-	// Clear the legend background
-	for y := ly + 1; y < ly + 9; y++ {
-		for x := lx + 1; x < lx + 20; x++ {
+	for y := ly + 1; y < ly+9; y++ {
+		for x := lx + 1; x < lx+20; x++ {
 			ctx.SetCell(x, y, ' ', engine.StyleDefault)
 		}
 	}
-	ctx.SetCell(lx+1, ly+1, '·', engine.StyleBlue)
-	ctx.DrawString(lx+3, ly+1, language.String("LEGEND_WATER"), engine.StyleBlue)
-	ctx.SetCell(lx+1, ly+2, '.', engine.StyleGreen)
-	ctx.DrawString(lx+3, ly+2, language.String("LEGEND_LAND"), engine.StyleGreen)
-	ctx.SetCell(lx+1, ly+3, '○', engine.StyleYellow)
-	ctx.DrawString(lx+3, ly+3, language.String("LEGEND_CITY"), engine.StyleYellow)
-	ctx.SetCell(lx+1, ly+4, '▲', engine.StyleCyan)
+	ctx.SetCell(lx+1, ly+1, '\u25CB', engine.StyleGreen)
+	ctx.DrawString(lx+3, ly+1, language.String("LEGEND_NODE_SAFE"), engine.StyleGreen)
+	ctx.SetCell(lx+1, ly+2, '\u25CB', engine.StyleYellow)
+	ctx.DrawString(lx+3, ly+2, language.String("LEGEND_NODE_THREAT"), engine.StyleYellow)
+	ctx.SetCell(lx+1, ly+3, '\u25CF', engine.StyleRed)
+	ctx.DrawString(lx+3, ly+3, language.String("LEGEND_NODE_DANGER"), engine.StyleRed)
+	ctx.SetCell(lx+1, ly+4, '\u25C6', engine.StyleCyan)
 	ctx.DrawString(lx+3, ly+4, language.String("LEGEND_BASE"), engine.StyleCyan)
-	ctx.SetCell(lx+1, ly+5, '?', engine.StyleRed)
-	ctx.DrawString(lx+3, ly+5, language.String("LEGEND_UFO"), engine.StyleRed)
-	ctx.SetCell(lx+1, ly+6, '▸', engine.StyleCyanBold)
+	ctx.SetCell(lx+1, ly+5, '?', engine.StyleRedBold)
+	ctx.DrawString(lx+3, ly+5, language.String("LEGEND_UFO"), engine.StyleRedBold)
+	ctx.SetCell(lx+1, ly+6, '\u25B8', engine.StyleCyanBold)
 	ctx.DrawString(lx+3, ly+6, language.String("LEGEND_INTERCEPTOR"), engine.StyleCyanBold)
-	ctx.SetCell(lx+1, ly+7, '★', engine.StyleMagenta)
-	ctx.DrawString(lx+3, ly+7, language.String("LEGEND_MISSION"), engine.StyleMagenta)
+	ctx.SetCell(lx+1, ly+7, '\u2666', engine.StyleGreenBold)
+	ctx.DrawString(lx+3, ly+7, language.String("LEGEND_TRANSPORT"), engine.StyleGreenBold)
 
-	for _, m := range gs.Missions {
-		mx := m.X - offsetX + 1
-		my := m.Y - offsetY + 1
-		if mx > 0 && mx < w-1 && my > 0 && my < h-6 {
-			ctx.SetCell(mx, my, '★', engine.StyleMagenta)
-		}
-	}
-
+	// Bottom status bar
 	ctx.DrawPanel(0, h-6, w, 5, language.String("GEOSCAPE"), engine.StyleDefault)
 	fundsStr := fmt.Sprintf(language.String("GEOSCAPE_FUNDS"), gs.Game.Funds/1000)
 	timeStr := fmt.Sprintf(language.String("GEOSCAPE_TIME"), gs.Game.GameTime.Format("02/01/2006 15:04"))
@@ -773,34 +800,16 @@ func (gs *Geoscape) Render(ctx *engine.ScreenCtx) {
 	ctx.DrawString(1, h-1, help, engine.StyleGray)
 }
 
-func (gs *Geoscape) scrollMap(dx, dy int) {
-	mw, mh := MapSize()
-	gs.ScrollX += dx
-	gs.ScrollY += dy
-	if gs.ScrollX < 0 {
-		gs.ScrollX = 0
-	}
-	if gs.ScrollY < 0 {
-		gs.ScrollY = 0
-	}
-	if gs.ScrollX >= mw {
-		gs.ScrollX = mw - 1
-	}
-	if gs.ScrollY >= mh {
-		gs.ScrollY = mh - 1
-	}
-}
-
 func (gs *Geoscape) HandleKey(e *tcell.EventKey) {
 	switch e.Key() {
 	case tcell.KeyUp:
-		gs.scrollMap(0, -1)
+		gs.moveCursor(0, -1)
 	case tcell.KeyDown:
-		gs.scrollMap(0, 1)
+		gs.moveCursor(0, 1)
 	case tcell.KeyLeft:
-		gs.scrollMap(-1, 0)
+		gs.moveCursor(-1, 0)
 	case tcell.KeyRight:
-		gs.scrollMap(1, 0)
+		gs.moveCursor(1, 0)
 	case tcell.KeyF5:
 		gs.SaveGameToFile()
 	case tcell.KeyF9:
@@ -834,16 +843,44 @@ func (gs *Geoscape) HandleKey(e *tcell.EventKey) {
 	}
 }
 
+func (gs *Geoscape) moveCursor(dx, dy int) {
+	// Move to nearest node in that direction
+	curNode := gs.Network.NodeByID(gs.CursorNode)
+	if curNode == nil {
+		return
+	}
+	var best *GeoNode
+	bestScore := -999999
+	for _, n := range gs.Network.Nodes {
+		if n.ID == gs.CursorNode {
+			continue
+		}
+		ndx := n.X - curNode.X
+		ndy := n.Y - curNode.Y
+		// Score: prefer nodes in the requested direction
+		score := ndx*dx + ndy*dy
+		if dx == 0 && dy == 0 {
+			continue
+		}
+		if score > bestScore {
+			bestScore = score
+			best = n
+		}
+	}
+	if best != nil && bestScore > 0 {
+		gs.CursorNode = best.ID
+	}
+}
+
 func (gs *Geoscape) sendTransportToNearest() {
 	var nearest *CrashSite
-	bestDist := 999999.0
+	bestDist := 999999
 	for _, cs := range gs.CrashSites {
 		if cs.Looted {
 			continue
 		}
-		dx := cs.X - float64(gs.BaseX)
-		dy := cs.Y - float64(gs.BaseY)
-		dist := dx*dx + dy*dy
+		path := gs.ShortestPath(gs.BaseNode, cs.NodeID)
+		dist := len(path)
 		if dist < bestDist {
 			bestDist = dist
 			nearest = cs
@@ -868,67 +905,32 @@ func (gs *Geoscape) HandleMouse(e *tcell.EventMouse) {
 	// Handle help bar clicks (bottom bar)
 	if y == h-1 {
 		switch {
-		case x >= 1 && x <= 3: // [B]ase
+		case x >= 1 && x <= 3:
 			gs.Game.PushState(engine.StateBase)
-		case x >= 5 && x <= 12: // [L]aunch
+		case x >= 5 && x <= 12:
 			gs.LaunchInterceptor()
-		case x >= 14 && x <= 25: // [A]utoresolve
+		case x >= 14 && x <= 25:
 			gs.Autoresolve()
-		case x >= 27 && x <= 36: // [M]ission
+		case x >= 27 && x <= 36:
 			gs.RespondToMission(0)
-		case x >= 38 && x <= 47: // [R]etrieve
+		case x >= 38 && x <= 47:
 			gs.sendTransportToNearest()
-		case x >= 49 && x <= 57: // Space=Pause
+		case x >= 49 && x <= 57:
 			gs.TogglePause()
-		case x >= 59 && x <= 64: // 1-4=Speed
+		case x >= 59 && x <= 64:
 			gs.SetSpeed(1)
-		case x >= 66 && x <= 70: // Q=Quit
+		case x >= 66 && x <= 70:
 			gs.Game.Quit()
 		}
 		return
 	}
 
-	// Handle status bar clicks (second to last row)
-	if y >= h-4 && y <= h-2 {
-		switch {
-		case x >= 1 && x <= 8:
-			gs.TogglePause()
-		case x >= 10 && x <= 20:
-			gs.LaunchInterceptor()
-		}
-		return
-	}
-
-	if y > 0 && y < h-4 && x > 0 && x < w-1 {
-		mw, mh := MapSize()
-		viewW := w - 2
-		viewH := h - 6
-		halfVW := viewW / 2
-		halfVH := viewH / 2
-		offsetX := gs.ScrollX - halfVW
-		offsetY := gs.ScrollY - halfVH
-		if offsetX < 0 {
-			offsetX = 0
-		}
-		if offsetY < 0 {
-			offsetY = 0
-		}
-		if offsetX+viewW > mw {
-			offsetX = mw - viewW
-		}
-		if offsetX < 0 {
-			offsetX = 0
-		}
-		if offsetY+viewH > mh {
-			offsetY = mh - viewH
-		}
-		if offsetY < 0 {
-			offsetY = 0
-		}
-		mx := x - 1 + offsetX
-		my := y - 1 + offsetY
-		if mx >= 0 && mx < mw && my >= 0 && my < mh {
-			gs.Message = fmt.Sprintf(language.String("GEOSCAPE_CURSOR"), mx, my)
+	// Click on a node
+	if y > 0 && y < h-5 && x > 0 && x < w-1 {
+		node := gs.Network.NearestNode(x-1, y-1)
+		if node != nil {
+			gs.CursorNode = node.ID
+			gs.Message = fmt.Sprintf(language.String("GEOSCAPE_NODE_SELECTED"), node.Name, node.Region)
 			gs.MessageTimer = time.Now()
 		}
 	}
@@ -964,11 +966,9 @@ func (gs *Geoscape) DispatchTransport(cs *CrashSite) {
 		return
 	}
 	gs.Transport = &Transport{
-		X:       float64(gs.BaseX),
-		Y:       float64(gs.BaseY),
-		TargetX: cs.X,
-		TargetY: cs.Y,
-		Speed:   0.05,
+		FromNode: gs.BaseNode,
+		ToNode:   cs.NodeID,
+		Progress: 0,
 	}
 	gs.Message = fmt.Sprintf(language.String("MSG_TRANSPORT_DISPATCHED"), cs.UFOName)
 	gs.MessageTimer = time.Now()

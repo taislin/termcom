@@ -30,9 +30,9 @@ func init() {
 
 		// Legend
 		"LEGEND":              "LEGEND",
-		"LEGEND_WATER":        "Water",
-		"LEGEND_LAND":         "Land",
-		"LEGEND_CITY":         "City",
+		"LEGEND_NODE_SAFE":    "Node (Safe)",
+		"LEGEND_NODE_THREAT":  "Node (Threat)",
+		"LEGEND_NODE_DANGER":  "Node (Danger)",
 		"LEGEND_BASE":         "Base",
 		"LEGEND_UFO":          "UFO",
 		"LEGEND_INTERCEPTOR":  "Interceptor",
@@ -59,6 +59,9 @@ func init() {
 		"MSG_NO_CRASH_SITES":       "No crash sites to retrieve.",
 		"LEGEND_CRASH":            "Crash Site",
 		"LEGEND_TRANSPORT":        "Transport",
+		"GEOSCAPE_NODE_SELECTED":  "%s [%s]",
+		"MSG_INTERCEPTOR_PATROL":  "Interceptor patrolling %s",
+		"MSG_UFO_DETECTED":        "%s detected near %s!",
 		"ENCYCLOPEDIA":            "ENCYCLOPEDIA",
 		"HELP_ENCYCLOPEDIA":       "h/l=Tab  j/k=Navigate  Esc=Back",
 		"MSG_SAVE_FAILED":         "Save failed: ",
@@ -76,7 +79,6 @@ func init() {
 		"MISSION_TYPE_BASE":       "Alien Base Assault",
 
 		// Combat messages
-		"MSG_UFO_DETECTED":        "UFO detected! %s at [%d,%d]",
 		"MSG_ALIEN_ATTACK":        "%s attack on %s! Panic spreads!",
 		"MSG_RESEARCH_COMPLETE":   "Research complete: %s",
 		"MSG_MANUFACTURE_COMPLETE": "Manufacturing complete: %s",
@@ -103,7 +105,7 @@ func init() {
 		"SIDE_POS":             "[%d,%d]",
 		"SIDE_CROUCH":          "Crouching",
 		"SIDE_NONE":            "(none)",
-		"BATTLE_HELP":          " hjkl/WSAD=Move Space/Enter=Act q=Cycle f=Fire r=Reload g=Grenade m=Medikit e=End c=Crouch",
+		"BATTLE_HELP":          " hjkl/WSAD=Move Space/Enter=Act q=Cycle f=Fire r=Reload g=Grenade m=Medikit p=Psi e=End c=Crouch",
 
 		// Phases
 		"PHASE_YOUR_TURN":      "YOUR TURN",
@@ -154,9 +156,13 @@ func init() {
 		"MSG_GRENADE_OUT_OF_RANGE": "Target out of grenade range!",
 		"MSG_GRENADE_DETONATED":    "Grenade detonated at [%d,%d]!",
 		"MSG_NOT_ENOUGH_TU_MEDIKIT": "Not enough TU to use medikit.",
+		"MSG_NOT_ENOUGH_TU_PSI":    "Not enough TU for psi attack.",
 		"MSG_SELECT_FRIENDLY":      "Select a friendly unit to heal.",
 		"MSG_ALREADY_FULL_HP":      "Soldier is already at full health.",
 		"MSG_HEALED":               "Healed %s for %d HP. (HP:%d/%d)",
+		"MSG_PSI_ATTACK":           "Attempting psi attack on %s...",
+		"MSG_PSI_SUCCESS":          "PSI ATTACK SUCCESSFUL! %s is panicked!",
+		"MSG_PSI_FAIL":             "Psi attack failed.",
 		"MSG_ALIEN_HIT":            "Alien hits %s for %d damage!",
 		"MSG_ALIEN_KILL":            "%s eliminated!",
 		"MSG_ALIEN_MISS":            "Alien shot misses!",
@@ -430,6 +436,7 @@ func init() {
 		"HELP_BAT_CYCLE":       ">s                   Cycle soldiers",
 		"HELP_BAT_FIRE":        ">f                   Fire at target",
 		"HELP_BAT_RELOAD":      ">r                   Reload weapon",
+		"HELP_BAT_PSI":         ">p                   Psi attack",
 		"HELP_BAT_END":         ">e / n               End turn",
 		"HELP_BAT_CROUCH":      ">c                   Crouch (cover bonus)",
 		"HELP_BAT_GRENADE":     ">g                   Throw grenade",

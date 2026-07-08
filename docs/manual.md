@@ -65,8 +65,29 @@ After shooting down a UFO or engaging an alien mission, you deploy your soldiers
 
 ## Geoscape
 
-The Geoscape is the main strategic view. You see a world map with your base and
-detected UFOs.
+The Geoscape uses a **network graph** of regional hubs connected by flight paths.
+Each node represents a strategic location with its own threat level and facilities.
+
+### Network View
+
+| Symbol | Meaning |
+|--------|---------|
+| ◆ | Your base (home node) |
+| ○ | Regional hub (green=safe, yellow=threat, red=danger) |
+| ? | UFO in transit along an edge |
+| ▸ | Interceptor in flight |
+| ♦ | Transport dispatch |
+| ★ | Active alien mission |
+| R | Radar coverage at node |
+| ! / !! | Threat level indicators |
+
+### Node Info
+
+Each node displays:
+- **Name** below the node
+- **R** if you have radar coverage
+- **Interceptor count** above the node
+- **Threat level** (! or !!) based on alien activity
 
 ### Time Controls
 
@@ -80,26 +101,28 @@ detected UFOs.
 
 ### UFO Interception
 
-1. Wait for radar to detect a UFO (appears on map)
-2. Press `L` to launch your interceptor at the nearest UFO
-3. The interceptor pursues and fires Avalanche missiles
-4. If the UFO is destroyed, you earn salvage value
-5. UFOs fire back — your interceptor can be destroyed
+UFOs travel along edges between nodes. You can:
+
+1. **Target a specific UFO** — press `L`, interceptor pursues the nearest UFO
+2. **Patrol a node** — move cursor to a node, press `L`, interceptor flies there and engages any UFOs
 
 **Interceptor stats:** 60 HP, 8 missiles, speed 36, damage 15–34 per shot.
 **UFO retaliation:** 30% chance per tick, 5–14 damage.
 
 ### Alien Missions
 
-Every ~30 minutes (game time), alien missions spawn targeting major cities:
-London, Tokyo, New York, Moscow, Sydney, Paris, Berlin.
-
+Every ~30 minutes (game time), alien missions spawn targeting random nodes:
 - **Terror missions** and **Supply missions**: 5 minutes to respond
 - **Alien Base missions**: 3 minutes to respond
 
 If the timer expires without response, Alien Activity increases by 10%.
 
 Press `M` to respond and deploy your squad.
+
+### UFO Retrieval
+
+After shooting down a UFO, a crash site marker appears at the destination node.
+Press `R` to dispatch a transport to the nearest crash site and recover salvage.
 
 ### Monthly Budget
 

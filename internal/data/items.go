@@ -264,6 +264,16 @@ var RuleItems = map[string]RuleItem{
 		AmmoMax:    10,
 		Strength:   5,
 	},
+	"psi_amp": {
+		Type:       "STR_PSI_AMP",
+		Name:       "Psi-Amplifier",
+		ShortName:  "PSI",
+		Weight:     2,
+		CostBuy:    30000,
+		CostSell:   22500,
+		BattleType: BT_PSIAMP,
+		TU:         20,
+	},
 }
 
 type Armor struct {

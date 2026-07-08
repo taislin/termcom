@@ -1,7 +1,6 @@
 package geo
 
 import (
-	"math"
 	"math/rand"
 )
 
@@ -26,10 +25,14 @@ var UFOTypes = []UFOType{
 type UFO struct {
 	ID       int
 	Type     UFOType
-	X, Y     float64
-	DX, DY   float64
-	TurnsLeft int
-	Active   bool
+	// Network-based movement
+	NodeFrom   int     // source node ID
+	NodeTo     int     // destination node ID
+	Progress   float64 // 0.0 to 1.0 along edge
+	// Interpolated screen position (computed from nodes)
+	X, Y       float64
+	TurnsLeft  int
+	Active     bool
 }
 
 func GetUFOTypeByName(name string) *UFOType {
@@ -43,50 +46,95 @@ func GetUFOTypeByName(name string) *UFOType {
 
 var ufoIDCounter int
 
-func NewUFO(x, y float64) *UFO {
+// SpawnUFOOnNetwork creates a UFO at a random edge on the network.
+func SpawnUFOOnNetwork(gn *GeoNetwork) *UFO {
 	t := UFOTypes[rand.Intn(len(UFOTypes))]
 	ufoIDCounter++
-	// Random heading toward a city
-	target := cities[rand.Intn(len(cities))]
-	angle := math.Atan2(float64(target.Y)-y, float64(target.X)-x)
-	speed := float64(t.Speed) * 0.02
-	return &UFO{
-		ID:    ufoIDCounter,
-		Type:  t,
-		X:     x,
-		Y:     y,
-		DX:    math.Cos(angle) * speed,
-		DY:    math.Sin(angle) * speed,
-		TurnsLeft: 500 + rand.Intn(500),
-		Active: true,
+
+	// Pick a random edge to start on
+	edge := gn.Edges[rand.Intn(len(gn.Edges))]
+	startNode := edge.From
+	endNode := edge.To
+	// Randomly reverse direction
+	if rand.Intn(2) == 0 {
+		startNode, endNode = endNode, startNode
 	}
+
+	ufo := &UFO{
+		ID:         ufoIDCounter,
+		Type:       t,
+		NodeFrom:   startNode,
+		NodeTo:     endNode,
+		Progress:   0.0,
+		TurnsLeft:  500 + rand.Intn(500),
+		Active:     true,
+	}
+	ufo.updatePosition(gn)
+	return ufo
 }
 
-func (u *UFO) Update() {
+// SpawnUFOAtNode creates a UFO arriving at a specific node from a random neighbor.
+func SpawnUFOAtNode(gn *GeoNode, network *GeoNetwork) *UFO {
+	t := UFOTypes[rand.Intn(len(UFOTypes))]
+	ufoIDCounter++
+
+	// Pick a random neighbor to come from
+	neighbors := network.Neighbors(gn.ID)
+	if len(neighbors) == 0 {
+		return nil
+	}
+	from := neighbors[rand.Intn(len(neighbors))]
+
+	ufo := &UFO{
+		ID:         ufoIDCounter,
+		Type:       t,
+		NodeFrom:   from.ID,
+		NodeTo:     gn.ID,
+		Progress:   0.3, // partially along
+		TurnsLeft:  500 + rand.Intn(500),
+		Active:     true,
+	}
+	ufo.updatePosition(network)
+	return ufo
+}
+
+func (u *UFO) Update(gn *GeoNetwork) {
 	if !u.Active {
 		return
 	}
-	u.X += u.DX
-	u.Y += u.DY
-	// Wrap around map
-	if u.X < 0 {
-		u.X += mapW
+	// Speed as progress per tick (higher = faster traversal)
+	speed := float64(u.Type.Speed) * 0.002
+	u.Progress += speed
+
+	if u.Progress >= 1.0 {
+		// Arrived at destination node
+		u.Progress = 1.0
+		u.NodeFrom = u.NodeTo
+		// Pick next destination: random neighbor
+		neighbors := gn.Neighbors(u.NodeTo)
+		if len(neighbors) > 0 {
+			next := neighbors[rand.Intn(len(neighbors))]
+			u.NodeFrom = u.NodeTo
+			u.NodeTo = next.ID
+			u.Progress = 0.0
+		}
 	}
-	if u.X >= float64(mapW) {
-		u.X -= mapW
-	}
-	if u.Y < 0 {
-		u.Y = 0
-		u.DY = -u.DY
-	}
-	if u.Y >= float64(mapH) {
-		u.Y = float64(mapH) - 1
-		u.DY = -u.DY
-	}
+
+	u.updatePosition(gn)
 	u.TurnsLeft--
 	if u.TurnsLeft <= 0 {
 		u.Active = false
 	}
+}
+
+func (u *UFO) updatePosition(gn *GeoNetwork) {
+	from := gn.NodeByID(u.NodeFrom)
+	to := gn.NodeByID(u.NodeTo)
+	if from == nil || to == nil {
+		return
+	}
+	u.X = float64(from.X) + float64(to.X-from.X)*u.Progress
+	u.Y = float64(from.Y) + float64(to.Y-from.Y)*u.Progress
 }
 
 func (u *UFO) TileX() int {
@@ -95,6 +143,13 @@ func (u *UFO) TileX() int {
 
 func (u *UFO) TileY() int {
 	return int(u.Y)
+}
+
+func (u *UFO) CurrentNode() int {
+	if u.Progress < 0.5 {
+		return u.NodeFrom
+	}
+	return u.NodeTo
 }
 
 func (u *UFO) FireAtInterceptor(inter *Interceptor) int {
@@ -111,27 +166,6 @@ func (u *UFO) FireAtInterceptor(inter *Interceptor) int {
 		return damage
 	}
 	return 0
-}
-
-func SpawnUFO() *UFO {
-	// Spawn on edge of map at a random land tile
-	side := rand.Intn(4)
-	var x, y float64
-	switch side {
-	case 0: // top
-		x = float64(rand.Intn(mapW))
-		y = 0
-	case 1: // bottom
-		x = float64(rand.Intn(mapW))
-		y = float64(mapH - 1)
-	case 2: // left
-		x = 0
-		y = float64(rand.Intn(mapH))
-	case 3: // right
-		x = float64(mapW - 1)
-		y = float64(rand.Intn(mapH))
-	}
-	return NewUFO(x, y)
 }
 
 type UFOList []*UFO

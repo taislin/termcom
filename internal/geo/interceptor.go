@@ -14,40 +14,85 @@ type Interceptor struct {
 	Weapon    string
 	Ammo      int
 	Range     int
-	Target    *UFO
-	Launching bool
-	RangeLeft int
+	TargetNode int    // node ID to patrol/intercept at (-1 = none)
+	TargetUFO  *UFO   // specific UFO to pursue
+	Launching  bool
+	RangeLeft  int
 }
 
 func NewInterceptor(baseX, baseY int) *Interceptor {
 	return &Interceptor{
-		Name:   "Interceptor",
-		X:      float64(baseX),
-		Y:      float64(baseY),
-		Speed:  36,
-		HP:     60,
-		MaxHP:  60,
-		Weapon: "avalanche",
-		Ammo:   8,
-		Range:  60,
+		Name:       "Interceptor",
+		X:          float64(baseX),
+		Y:          float64(baseY),
+		Speed:      36,
+		HP:         60,
+		MaxHP:      60,
+		Weapon:     "avalanche",
+		Ammo:       8,
+		Range:      60,
+		TargetNode: -1,
 	}
 }
 
-func (i *Interceptor) Launch(target *UFO) {
-	i.Target = target
+// LaunchAtNode sends interceptor to a node to patrol/intercept.
+func (i *Interceptor) LaunchAtNode(nodeID int, gn *GeoNetwork) {
+	node := gn.NodeByID(nodeID)
+	if node == nil {
+		return
+	}
+	i.TargetNode = nodeID
+	i.TargetUFO = nil
 	i.Launching = true
 	i.RangeLeft = i.Range * 3
 }
 
-func (i *Interceptor) Update() bool {
-	if i.Target == nil || !i.Target.Active {
-		i.Target = nil
-		i.Launching = false
+// LaunchAtUFO sends interceptor to pursue a specific UFO.
+func (i *Interceptor) LaunchAtUFO(ufo *UFO) {
+	i.TargetUFO = ufo
+	i.TargetNode = -1
+	i.Launching = true
+	i.RangeLeft = i.Range * 3
+}
+
+// Update moves interceptor toward its target. Returns true if reached.
+func (i *Interceptor) Update(gn *GeoNetwork) bool {
+	if i.TargetUFO != nil {
+		if !i.TargetUFO.Active {
+			i.TargetUFO = nil
+			i.Launching = false
+			return false
+		}
+		// Chase the UFO's current position
+		return i.moveTo(i.TargetUFO.X, i.TargetUFO.Y)
+	}
+
+	if i.TargetNode >= 0 {
+		node := gn.NodeByID(i.TargetNode)
+		if node == nil {
+			i.Launching = false
+			return false
+		}
+		tx := float64(node.X)
+		ty := float64(node.Y)
+		reached := i.moveTo(tx, ty)
+		if reached {
+			// Check if any UFOs are at this node
+			for _, ufo := range (&UFOList{}).Active() {
+				if ufo.CurrentNode() == i.TargetNode {
+					return true
+				}
+			}
+		}
 		return false
 	}
 
-	dx := i.Target.X - i.X
-	dy := i.Target.Y - i.Y
+	return false
+}
+
+func (i *Interceptor) moveTo(tx, ty float64) bool {
+	dx := tx - i.X
+	dy := ty - i.Y
 	dist := math.Sqrt(dx*dx + dy*dy)
 
 	if dist < 1.5 {
@@ -65,7 +110,8 @@ func (i *Interceptor) Update() bool {
 
 	i.RangeLeft--
 	if i.RangeLeft <= 0 {
-		i.Target = nil
+		i.TargetNode = -1
+		i.TargetUFO = nil
 		i.Launching = false
 		return false
 	}
@@ -74,7 +120,8 @@ func (i *Interceptor) Update() bool {
 }
 
 func (i *Interceptor) Disengage() {
-	i.Target = nil
+	i.TargetNode = -1
+	i.TargetUFO = nil
 	i.Launching = false
 }
 
