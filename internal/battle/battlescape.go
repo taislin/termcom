@@ -104,7 +104,7 @@ func NewBattlescape(g *engine.Game, squad []*soldier.Soldier, ufoName string) *B
 		UFOName: ufoName,
 	}
 
-	bs.AddMessage(fmt.Sprintf(language.String("BATTLE_MISSION_START"), ufoName))
+	bs.AddMessage(fmt.Sprintf(language.String("MSG_MISSION_START"), ufoName))
 
 	for i, s := range squad {
 		if s.HP <= 0 {
