@@ -6,65 +6,35 @@ import (
 	"github.com/civ13/ycom/internal/engine"
 )
 
-func TestNetworkCreation(t *testing.T) {
-	gn := NewRegionalNetwork()
-	if len(gn.Nodes) < 15 {
-		t.Errorf("expected at least 15 nodes, got %d", len(gn.Nodes))
-	}
-	if len(gn.Edges) < 10 {
-		t.Errorf("expected at least 10 edges, got %d", len(gn.Edges))
+func TestCityCount(t *testing.T) {
+	cities := GetCities()
+	if len(cities) < 15 {
+		t.Errorf("expected at least 15 cities, got %d", len(cities))
 	}
 }
 
-func TestNodeByID(t *testing.T) {
-	gn := NewRegionalNetwork()
-	node := gn.NodeByID(0)
-	if node == nil {
-		t.Fatal("NodeByID(0) returned nil")
+func TestCityByID(t *testing.T) {
+	cities := GetCities()
+	var c *City
+	for _, city := range cities {
+		if city.ID == 0 {
+			c = city
+			break
+		}
 	}
-	if node.Name != "New York" {
-		t.Errorf("expected New York, got %s", node.Name)
+	if c == nil {
+		t.Fatal("CityByID(0) returned nil")
 	}
-	if gn.NodeByID(999) != nil {
-		t.Error("NodeByID(999) should return nil")
-	}
-}
-
-func TestNearestNode(t *testing.T) {
-	gn := NewRegionalNetwork()
-	node := gn.NearestNode(18, 12) // New York coords
-	if node == nil {
-		t.Fatal("NearestNode returned nil for New York coords")
-	}
-	if node.Name != "New York" {
-		t.Errorf("expected New York, got %s", node.Name)
+	if c.Name != "New York" {
+		t.Errorf("expected New York, got %s", c.Name)
 	}
 }
 
-func TestNeighbors(t *testing.T) {
-	gn := NewRegionalNetwork()
-	neighbors := gn.Neighbors(0) // New York
-	if len(neighbors) == 0 {
-		t.Error("New York should have neighbors")
-	}
-}
-
-func TestShortestPath(t *testing.T) {
-	gn := NewRegionalNetwork()
-	path := gn.ShortestPath(0, 16) // New York to Tokyo
-	if path == nil {
-		t.Fatal("ShortestPath returned nil")
-	}
-	if path[0] != 0 || path[len(path)-1] != 16 {
-		t.Errorf("path should start at 0 and end at 16, got %v", path)
-	}
-}
-
-func TestUFOSpawnOnNetwork(t *testing.T) {
-	gn := NewRegionalNetwork()
-	ufo := SpawnUFOOnNetwork(gn)
+func TestUFOSpawnOnCities(t *testing.T) {
+	cities := GetCities()
+	ufo := SpawnUFOOnCities(cities)
 	if ufo == nil {
-		t.Fatal("SpawnUFOOnNetwork returned nil")
+		t.Fatal("SpawnUFOOnCities returned nil")
 	}
 	if !ufo.Active {
 		t.Error("new UFO should be active")
@@ -74,11 +44,11 @@ func TestUFOSpawnOnNetwork(t *testing.T) {
 	}
 }
 
-func TestUFOMovementOnNetwork(t *testing.T) {
-	gn := NewRegionalNetwork()
-	ufo := SpawnUFOOnNetwork(gn)
+func TestUFOMovementOnCities(t *testing.T) {
+	cities := GetCities()
+	ufo := SpawnUFOOnCities(cities)
 	startProgress := ufo.Progress
-	ufo.Update(gn)
+	ufo.Update(cities)
 	if ufo.Progress <= startProgress {
 		// Could be same if speed is very low, that's ok
 	}
@@ -93,8 +63,8 @@ func TestUFOList(t *testing.T) {
 		t.Error("empty list should have 0 active")
 	}
 
-	gn := NewRegionalNetwork()
-	ufo := SpawnUFOOnNetwork(gn)
+	cities := GetCities()
+	ufo := SpawnUFOOnCities(cities)
 	list = append(list, ufo)
 	if list.Count() != 1 {
 		t.Errorf("expected 1, got %d", list.Count())
@@ -107,8 +77,8 @@ func TestUFOList(t *testing.T) {
 }
 
 func TestInterceptorLaunchAtNode(t *testing.T) {
-	gn := NewRegionalNetwork()
-	inter := NewInterceptor(18, 12)
+	cities := GetCities()
+	inter := NewInterceptor(48, 31) // New York coords
 	if inter.HP != 60 {
 		t.Errorf("expected 60 HP, got %d", inter.HP)
 	}
@@ -116,7 +86,7 @@ func TestInterceptorLaunchAtNode(t *testing.T) {
 		t.Errorf("expected 8 ammo, got %d", inter.Ammo)
 	}
 
-	inter.LaunchAtNode(16, gn) // Tokyo
+	inter.LaunchAtNode(16, cities) // Tokyo
 	if !inter.Launching {
 		t.Error("should be launching after LaunchAtNode()")
 	}
@@ -126,9 +96,9 @@ func TestInterceptorLaunchAtNode(t *testing.T) {
 }
 
 func TestInterceptorFire(t *testing.T) {
-	inter := NewInterceptor(18, 12)
-	gn := NewRegionalNetwork()
-	ufo := SpawnUFOOnNetwork(gn)
+	inter := NewInterceptor(48, 31)
+	cities := GetCities()
+	ufo := SpawnUFOOnCities(cities)
 	ufo.Type.Toughness = 100
 
 	damage := inter.FireAt(ufo)
@@ -141,10 +111,10 @@ func TestInterceptorFire(t *testing.T) {
 }
 
 func TestInterceptorFireEmpty(t *testing.T) {
-	inter := NewInterceptor(18, 12)
+	inter := NewInterceptor(48, 31)
 	inter.Ammo = 0
-	gn := NewRegionalNetwork()
-	ufo := SpawnUFOOnNetwork(gn)
+	cities := GetCities()
+	ufo := SpawnUFOOnCities(cities)
 	damage := inter.FireAt(ufo)
 	if damage != 0 {
 		t.Errorf("expected 0 damage with no ammo, got %d", damage)
@@ -152,9 +122,9 @@ func TestInterceptorFireEmpty(t *testing.T) {
 }
 
 func TestInterceptorDisengage(t *testing.T) {
-	inter := NewInterceptor(18, 12)
-	gn := NewRegionalNetwork()
-	ufo := SpawnUFOOnNetwork(gn)
+	inter := NewInterceptor(48, 31)
+	cities := GetCities()
+	ufo := SpawnUFOOnCities(cities)
 	inter.LaunchAtUFO(ufo)
 	inter.Disengage()
 	if inter.Launching {
@@ -203,17 +173,30 @@ func TestInterceptorListActive(t *testing.T) {
 }
 
 func TestUFOExpiry(t *testing.T) {
-	gn := NewRegionalNetwork()
+	cities := GetCities()
 	ufo := &UFO{
-		NodeFrom:   0,
-		NodeTo:     1,
+		NodeFrom:   cities[0].ID,
+		NodeTo:     cities[1].ID,
 		Progress:   0.5,
 		TurnsLeft:  1,
 		Active:     true,
 		Type:       UFOTypes[0],
 	}
-	ufo.Update(gn)
+	ufo.Update(cities)
 	if ufo.Active {
 		t.Error("UFO should have expired")
+	}
+}
+
+func TestShortestPath(t *testing.T) {
+	gs := &Geoscape{
+		Cities: GetCities(),
+	}
+	path := gs.ShortestPath(0, 16) // New York to Tokyo
+	if path == nil {
+		t.Fatal("ShortestPath returned nil")
+	}
+	if path[0] != 0 || path[len(path)-1] != 16 {
+		t.Errorf("path should start at 0 and end at 16, got %v", path)
 	}
 }

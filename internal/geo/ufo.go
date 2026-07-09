@@ -46,59 +46,66 @@ func GetUFOTypeByName(name string) *UFOType {
 
 var ufoIDCounter int
 
-// SpawnUFOOnNetwork creates a UFO at a random edge on the network.
-func SpawnUFOOnNetwork(gn *GeoNetwork) *UFO {
+// SpawnUFOOnCities creates a UFO at a random position moving between two cities.
+func SpawnUFOOnCities(cities []*City) *UFO {
 	t := UFOTypes[rand.Intn(len(UFOTypes))]
 	ufoIDCounter++
 
-	// Pick a random edge to start on
-	edge := gn.Edges[rand.Intn(len(gn.Edges))]
-	startNode := edge.From
-	endNode := edge.To
-	// Randomly reverse direction
-	if rand.Intn(2) == 0 {
-		startNode, endNode = endNode, startNode
+	if len(cities) < 2 {
+		return nil
+	}
+
+	// Pick two random different cities
+	idx1 := rand.Intn(len(cities))
+	idx2 := rand.Intn(len(cities)-1)
+	if idx2 >= idx1 {
+		idx2++
 	}
 
 	ufo := &UFO{
 		ID:         ufoIDCounter,
 		Type:       t,
-		NodeFrom:   startNode,
-		NodeTo:     endNode,
+		NodeFrom:   cities[idx1].ID,
+		NodeTo:     cities[idx2].ID,
 		Progress:   0.0,
 		TurnsLeft:  500 + rand.Intn(500),
 		Active:     true,
 	}
-	ufo.updatePosition(gn)
+	ufo.updatePosition(cities)
 	return ufo
 }
 
-// SpawnUFOAtNode creates a UFO arriving at a specific node from a random neighbor.
-func SpawnUFOAtNode(gn *GeoNode, network *GeoNetwork) *UFO {
+// SpawnUFOAtCity creates a UFO arriving at a specific city from a random other city.
+func SpawnUFOAtCity(target *City, cities []*City) *UFO {
 	t := UFOTypes[rand.Intn(len(UFOTypes))]
 	ufoIDCounter++
 
-	// Pick a random neighbor to come from
-	neighbors := network.Neighbors(gn.ID)
-	if len(neighbors) == 0 {
+	// Pick a random different city to come from
+	var candidates []*City
+	for _, c := range cities {
+		if c.ID != target.ID {
+			candidates = append(candidates, c)
+		}
+	}
+	if len(candidates) == 0 {
 		return nil
 	}
-	from := neighbors[rand.Intn(len(neighbors))]
+	from := candidates[rand.Intn(len(candidates))]
 
 	ufo := &UFO{
 		ID:         ufoIDCounter,
 		Type:       t,
 		NodeFrom:   from.ID,
-		NodeTo:     gn.ID,
-		Progress:   0.3, // partially along
+		NodeTo:     target.ID,
+		Progress:   0.3,
 		TurnsLeft:  500 + rand.Intn(500),
 		Active:     true,
 	}
-	ufo.updatePosition(network)
+	ufo.updatePosition(cities)
 	return ufo
 }
 
-func (u *UFO) Update(gn *GeoNetwork) {
+func (u *UFO) Update(cities []*City) {
 	if !u.Active {
 		return
 	}
@@ -107,29 +114,41 @@ func (u *UFO) Update(gn *GeoNetwork) {
 	u.Progress += speed
 
 	if u.Progress >= 1.0 {
-		// Arrived at destination node
+		// Arrived at destination city
 		u.Progress = 1.0
 		u.NodeFrom = u.NodeTo
-		// Pick next destination: random neighbor
-		neighbors := gn.Neighbors(u.NodeTo)
-		if len(neighbors) > 0 {
-			next := neighbors[rand.Intn(len(neighbors))]
+		// Pick next destination: random city (not current)
+		var candidates []*City
+		for _, c := range cities {
+			if c.ID != u.NodeTo {
+				candidates = append(candidates, c)
+			}
+		}
+		if len(candidates) > 0 {
+			next := candidates[rand.Intn(len(candidates))]
 			u.NodeFrom = u.NodeTo
 			u.NodeTo = next.ID
 			u.Progress = 0.0
 		}
 	}
 
-	u.updatePosition(gn)
+	u.updatePosition(cities)
 	u.TurnsLeft--
 	if u.TurnsLeft <= 0 {
 		u.Active = false
 	}
 }
 
-func (u *UFO) updatePosition(gn *GeoNetwork) {
-	from := gn.NodeByID(u.NodeFrom)
-	to := gn.NodeByID(u.NodeTo)
+func (u *UFO) updatePosition(cities []*City) {
+	var from, to *City
+	for _, c := range cities {
+		if c.ID == u.NodeFrom {
+			from = c
+		}
+		if c.ID == u.NodeTo {
+			to = c
+		}
+	}
 	if from == nil || to == nil {
 		return
 	}

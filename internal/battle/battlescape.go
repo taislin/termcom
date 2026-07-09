@@ -174,12 +174,12 @@ func NewBattlescape(g *engine.Game, squad []*soldier.Soldier, ufoName string) *B
 		Map:     m,
 		Phase:   PhasePlayerTurn,
 		Turn:    1,
-		CursorX: m.Width / 2,
-		CursorY: m.Height / 2,
+		CursorX: 3,
+		CursorY: m.Height - 3,
 		Squad:   squad,
 		UFOName: ufoName,
 		IsNight: g.GameTime.Hour() < 6 || g.GameTime.Hour() > 18,
-		Camera:   engine.NewCamera(m.Width/2, m.Height/2),
+		Camera:   engine.NewCamera(3, m.Height-3),
 		Particles: engine.NewParticleSystem(512),
 	}
 
@@ -565,44 +565,7 @@ func (bs *Battlescape) MoveCursor(dx, dy int) {
 		bs.CursorY = bs.Map.Height - 1
 	}
 
-	scrW, scrH := bs.Game.ScreenSize()
-	viewW := scrW - sidebarW - 2
-	viewH := scrH - 5
-	if viewW < 10 {
-		viewW = 10
-	}
-	if bs.CursorX < bs.ScrollX+2 {
-		bs.ScrollX = bs.CursorX - 2
-	}
-	if bs.CursorX > bs.ScrollX+viewW-3 {
-		bs.ScrollX = bs.CursorX - viewW + 3
-	}
-	if bs.CursorY < bs.ScrollY+2 {
-		bs.ScrollY = bs.CursorY - 2
-	}
-	if bs.CursorY > bs.ScrollY+viewH-3 {
-		bs.ScrollY = bs.CursorY - viewH + 3
-	}
-	if bs.ScrollX < 0 {
-		bs.ScrollX = 0
-	}
-	if bs.ScrollY < 0 {
-		bs.ScrollY = 0
-	}
-	maxScrollX := bs.Map.Width - viewW
-	if maxScrollX < 0 {
-		maxScrollX = 0
-	}
-	maxScrollY := bs.Map.Height - viewH
-	if maxScrollY < 0 {
-		maxScrollY = 0
-	}
-	if bs.ScrollX > maxScrollX {
-		bs.ScrollX = maxScrollX
-	}
-	if bs.ScrollY > maxScrollY {
-		bs.ScrollY = maxScrollY
-	}
+	bs.Camera.SetTarget(bs.CursorX, bs.CursorY)
 }
 
 func (bs *Battlescape) SelectUnit() {
@@ -926,21 +889,21 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 	viewH := h - 5
 
 	camX, camY := bs.Camera.Pos()
-	scrollX := camX - viewW/2
-	scrollY := camY - viewH/2
-	if scrollX < 0 {
-		scrollX = 0
-	}
-	if scrollY < 0 {
-		scrollY = 0
-	}
-	bs.ScrollX = scrollX
-	bs.ScrollY = scrollY
+	bs.ScrollX = camX - viewW/2
+	bs.ScrollY = camY - viewH/2
+
+	blackStyle := tcell.StyleDefault.Background(tcell.ColorBlack).Foreground(tcell.ColorBlack)
 
 	for y := 0; y < viewH; y++ {
 		for x := 0; x < viewW; x++ {
 			mx := x + bs.ScrollX
 			my := y + bs.ScrollY
+
+			if mx < 0 || mx >= bs.Map.Width || my < 0 || my >= bs.Map.Height {
+				ctx.SetCell(x+1, y+1, ' ', blackStyle)
+				continue
+			}
+
 			tile := bs.Map.At(mx, my)
 
 			if !tile.Seen {
@@ -951,18 +914,45 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 			ch := TileChar(tile.Type)
 			style := engine.StyleGreen
 
+			v := tileVar(mx, my, 6)
+			switch tile.Type {
+			case TileGrass:
+				grassChars := []rune{'·', '·', '\'', ',', '·', '"'}
+				ch = grassChars[v]
+			case TileTree:
+				treeChars := []rune{'♣', '♠', '\u03C8', '\u03A8', '♣', '♠'}
+				ch = treeChars[v]
+			case TileBush:
+				bushChars := []rune{'†', '\u03C8', '‡', '†', '\u03C8', '†'}
+				ch = bushChars[v%len(bushChars)]
+			}
+
 			if tile.Visible {
 				switch tile.Type {
 				case TileGrass:
-					style = engine.StyleGreen
+					grassColors := [][3]int32{{42, 130, 42}, {55, 148, 35}, {36, 118, 58}, {62, 142, 30}, {32, 112, 65}, {48, 138, 28}}
+					gc := grassColors[v]
+					style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(gc[0], gc[1], gc[2]))
 				case TileWall:
-					style = engine.StyleGray
+					wv := tileVar(mx, my, 4)
+					wallColors := [][3]int32{{108, 108, 108}, {92, 92, 95}, {118, 112, 108}, {100, 98, 100}}
+					wc := wallColors[wv]
+					style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(wc[0], wc[1], wc[2]))
 				case TileDoor:
 					style = engine.StyleYellow
 				case TileTree:
-					style = engine.StyleGreen
+					treeColors := [][3]int32{{22, 112, 22}, {32, 92, 14}, {16, 122, 42}, {42, 98, 10}, {26, 108, 50}, {38, 88, 18}}
+					tc := treeColors[v]
+					style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(tc[0], tc[1], tc[2]))
+				case TileBush:
+					bushColors := [][3]int32{{52, 132, 28}, {42, 118, 42}, {62, 122, 18}, {36, 128, 52}, {58, 115, 30}, {44, 125, 40}}
+					bc := bushColors[v]
+					style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(bc[0], bc[1], bc[2]))
 				case TileRock:
-					style = engine.StyleGray
+					rv := tileVar(mx, my, 4)
+					rockColors := [][3]int32{{128, 118, 105}, {105, 98, 92}, {138, 128, 112}, {115, 108, 100}}
+					rc := rockColors[rv]
+					style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(rc[0], rc[1], rc[2]))
 				case TileWater:
 					if bs.IsNight {
 						style = tcell.StyleDefault.Foreground(
@@ -993,21 +983,38 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 			} else {
 				switch tile.Type {
 				case TileGrass:
-					style = engine.StyleGray
-				case TileWall:
-					style = engine.StyleGray
-				case TileDoor:
-					style = engine.StyleGray
+					sgv := tileVar(mx, my, 3)
+					seenGrass := [][3]int32{{20, 52, 20}, {24, 58, 16}, {17, 48, 26}}
+					sgc := seenGrass[sgv]
+					style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(sgc[0], sgc[1], sgc[2]))
 				case TileTree:
-					style = engine.StyleGray
+					stv := tileVar(mx, my, 3)
+					seenTree := [][3]int32{{12, 48, 12}, {18, 42, 8}, {9, 52, 18}}
+					stc := seenTree[stv]
+					style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(stc[0], stc[1], stc[2]))
+				case TileBush:
+					sbv := tileVar(mx, my, 3)
+					seenBush := [][3]int32{{22, 54, 14}, {18, 48, 22}, {26, 50, 12}}
+					sbc := seenBush[sbv]
+					style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(sbc[0], sbc[1], sbc[2]))
+				case TileWall:
+					swv := tileVar(mx, my, 3)
+					seenWall := [][3]int32{{52, 52, 52}, {44, 44, 46}, {58, 56, 52}}
+					swc := seenWall[swv]
+					style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(swc[0], swc[1], swc[2]))
 				case TileRock:
-					style = engine.StyleGray
+					srv := tileVar(mx, my, 3)
+					seenRock := [][3]int32{{55, 50, 46}, {46, 42, 40}, {60, 56, 50}}
+					src := seenRock[srv]
+					style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(src[0], src[1], src[2]))
 				case TileWater:
-					style = engine.StyleGray
+					style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(20, 35, 65))
 				case TileUFOFloor:
-					style = engine.StyleGray
+					style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(25, 50, 55))
 				case TileUFOWall:
-					style = engine.StyleGray
+					style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(30, 58, 64))
+				case TileDoor:
+					style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(55, 48, 18))
 				case TileConsole, TileMachinery, TilePod, TilePowerSource, TileStorage, TileAlienTech:
 					style = engine.StyleGray
 				}
@@ -1057,10 +1064,8 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 		}
 		sx := u.X - bs.ScrollX + 1
 		sy := u.Y - bs.ScrollY + 1
-		if sx < 1 || sx >= viewW+1 || sy < 1 || sy < viewH+1 {
-			if u.Faction == 1 && !bs.Map.IsVisible(u.X, u.Y) {
-				continue
-			}
+		if sx < 1 || sx >= viewW+1 || sy < 1 || sy >= viewH+1 {
+			continue
 		}
 		if u.Faction == 1 && !bs.Map.IsVisible(u.X, u.Y) {
 			continue
@@ -1356,37 +1361,7 @@ func (bs *Battlescape) cycleUnit(dir int) {
 	bs.CursorX = bs.Selected.X
 	bs.CursorY = bs.Selected.Y
 
-	// Center screen on the soldier
-	scrW, scrH := bs.Game.ScreenSize()
-	viewW := scrW - sidebarW - 2
-	viewH := scrH - 5
-	if viewW < 10 {
-		viewW = 10
-	}
-	bs.ScrollX = bs.Selected.X - viewW/2
-	bs.ScrollY = bs.Selected.Y - viewH/2
-
-	// Clamp scroll to map bounds
-	if bs.ScrollX < 0 {
-		bs.ScrollX = 0
-	}
-	if bs.ScrollY < 0 {
-		bs.ScrollY = 0
-	}
-	maxScrollX := bs.Map.Width - viewW
-	if maxScrollX < 0 {
-		maxScrollX = 0
-	}
-	maxScrollY := bs.Map.Height - viewH
-	if maxScrollY < 0 {
-		maxScrollY = 0
-	}
-	if bs.ScrollX > maxScrollX {
-		bs.ScrollX = maxScrollX
-	}
-	if bs.ScrollY > maxScrollY {
-		bs.ScrollY = maxScrollY
-	}
+	bs.Camera.SetTarget(bs.Selected.X, bs.Selected.Y)
 
 	bs.AddMessage(fmt.Sprintf(language.String("MSG_UNIT_SELECTED"), bs.Selected.Soldier.Name, bs.Selected.HP, bs.Selected.TU))
 }
@@ -1435,4 +1410,12 @@ func (ul UnitList) Faction(f int) UnitList {
 		}
 	}
 	return result
+}
+
+func tileVar(mx, my, n int) int {
+	h := mx*2654435761 ^ my*2246822519
+	if h < 0 {
+		h = -h
+	}
+	return h % n
 }

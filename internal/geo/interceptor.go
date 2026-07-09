@@ -35,16 +35,17 @@ func NewInterceptor(baseX, baseY int) *Interceptor {
 	}
 }
 
-// LaunchAtNode sends interceptor to a node to patrol/intercept.
-func (i *Interceptor) LaunchAtNode(nodeID int, gn *GeoNetwork) {
-	node := gn.NodeByID(nodeID)
-	if node == nil {
-		return
+// LaunchAtNode sends interceptor to a city to patrol/intercept.
+func (i *Interceptor) LaunchAtNode(nodeID int, cities []*City) {
+	for _, c := range cities {
+		if c.ID == nodeID {
+			i.TargetNode = nodeID
+			i.TargetUFO = nil
+			i.Launching = true
+			i.RangeLeft = i.Range * 3
+			return
+		}
 	}
-	i.TargetNode = nodeID
-	i.TargetUFO = nil
-	i.Launching = true
-	i.RangeLeft = i.Range * 3
 }
 
 // LaunchAtUFO sends interceptor to pursue a specific UFO.
@@ -56,7 +57,7 @@ func (i *Interceptor) LaunchAtUFO(ufo *UFO) {
 }
 
 // Update moves interceptor toward its target. Returns true if reached.
-func (i *Interceptor) Update(gn *GeoNetwork) bool {
+func (i *Interceptor) Update(cities []*City) bool {
 	if i.TargetUFO != nil {
 		if !i.TargetUFO.Active {
 			i.TargetUFO = nil
@@ -68,16 +69,22 @@ func (i *Interceptor) Update(gn *GeoNetwork) bool {
 	}
 
 	if i.TargetNode >= 0 {
-		node := gn.NodeByID(i.TargetNode)
-		if node == nil {
+		var target *City
+		for _, c := range cities {
+			if c.ID == i.TargetNode {
+				target = c
+				break
+			}
+		}
+		if target == nil {
 			i.Launching = false
 			return false
 		}
-		tx := float64(node.X)
-		ty := float64(node.Y)
+		tx := float64(target.X)
+		ty := float64(target.Y)
 		reached := i.moveTo(tx, ty)
 		if reached {
-			// Check if any UFOs are at this node
+			// Check if any UFOs are at this city
 			for _, ufo := range (&UFOList{}).Active() {
 				if ufo.CurrentNode() == i.TargetNode {
 					return true

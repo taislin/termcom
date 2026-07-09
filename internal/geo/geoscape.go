@@ -37,7 +37,7 @@ type Transport struct {
 
 type Geoscape struct {
 	Game          *engine.Game
-	Network       *GeoNetwork
+	Cities        []*City // Renamed from Network
 	UFOs          UFOList
 	Interceptors  InterceptorList
 	CrashSites    []*CrashSite
@@ -64,13 +64,13 @@ func NewGeoscape(g *engine.Game) *Geoscape {
 	b.Facilities = append(b.Facilities, &base.Facility{Type: base.FacStorage, Row: 0, Col: 3})
 	b.Facilities = append(b.Facilities, &base.Facility{Type: base.FacRadar, Row: 0, Col: 4})
 
-	gn := NewRegionalNetwork()
-	gn.Nodes[0].HasRadar = true
-	gn.Nodes[0].InterceptorCount = 2
+	cities := GetCities()
+	cities[0].HasRadar = true
+	cities[0].InterceptorCount = 2
 
 	gs := &Geoscape{
 		Game:         g,
-		Network:      gn,
+		Cities:       cities,
 		BaseNode:     0,
 		CursorNode:   0,
 		Message:      language.String("MSG_WELCOME"),
@@ -84,13 +84,13 @@ func NewGeoscape(g *engine.Game) *Geoscape {
 func NewGeoscapeFromSave(g *engine.Game, sd *save.SaveData) *Geoscape {
 	b := save.ToBase(sd.Base)
 
-	gn := NewRegionalNetwork()
-	gn.Nodes[0].HasRadar = true
-	gn.Nodes[0].InterceptorCount = 2
+	cities := GetCities()
+	cities[0].HasRadar = true
+	cities[0].InterceptorCount = 2
 
 	gs := &Geoscape{
 		Game:          g,
-		Network:       gn,
+		Cities:        cities,
 		BaseNode:      0,
 		CursorNode:    0,
 		Message:       language.String("MSG_GAME_LOADED"),
@@ -169,14 +169,14 @@ func (gs *Geoscape) Update() {
 
 		// Spawn UFOs periodically
 		if gs.TickCounter%600 == 0 && gs.UFOs.Count() < 5 {
-			ufo := SpawnUFOOnNetwork(gs.Network)
+			ufo := SpawnUFOOnCities(gs.Cities)
 			gs.UFOs = append(gs.UFOs, ufo)
-			node := gs.Network.NodeByID(ufo.CurrentNode())
-		 nodeName := "?"
-			if node != nil {
-				nodeName = node.Name
+			city := gs.CityByID(ufo.CurrentNode())
+		 cityName := "?"
+			if city != nil {
+				cityName = city.Name
 			}
-			gs.Message = fmt.Sprintf(language.String("MSG_UFO_DETECTED"), ufo.Type.Name, nodeName)
+			gs.Message = fmt.Sprintf(language.String("MSG_UFO_DETECTED"), ufo.Type.Name, cityName)
 			gs.MessageTimer = time.Now()
 			audio.PlayAlert()
 		}
@@ -191,12 +191,12 @@ func (gs *Geoscape) Update() {
 		for _, m := range gs.Missions {
 			m.HoursLeft -= float64(minutes) / 60.0
 			if m.HoursLeft <= 0 {
-				node := gs.Network.NodeByID(m.NodeID)
-				nodeName := "?"
-				if node != nil {
-					nodeName = node.Name
+				city := gs.CityByID(m.NodeID)
+				cityName := "?"
+				if city != nil {
+					cityName = city.Name
 				}
-				gs.Message = fmt.Sprintf(language.String("MSG_ATTACK_CITY"), m.Type, nodeName)
+				gs.Message = fmt.Sprintf(language.String("MSG_ATTACK_CITY"), m.Type, cityName)
 				gs.MessageTimer = time.Now()
 				gs.AlienActivity += 10
 			} else {
@@ -207,12 +207,12 @@ func (gs *Geoscape) Update() {
 
 		// Update UFOs along network edges
 		for _, u := range gs.UFOs {
-			u.Update(gs.Network)
+			u.Update(gs.Cities)
 		}
 
 		for _, i := range gs.Interceptors {
 			if i.Launching {
-				reached := i.Update(gs.Network)
+				reached := i.Update(gs.Cities)
 				if reached {
 					gs.dogfight(i)
 				}
@@ -226,8 +226,8 @@ func (gs *Geoscape) Update() {
 				// Move toward crash site
 				path := gs.ShortestPath(t.FromNode, t.ToNode)
 				if len(path) > 1 {
-					nextNode := gs.Network.NodeByID(path[1])
-					if nextNode != nil {
+					nextCity := gs.CityByID(path[1])
+					if nextCity != nil {
 						t.Progress += 0.05
 						if t.Progress >= 1.0 {
 							t.Progress = 0
@@ -304,8 +304,46 @@ func (gs *Geoscape) Update() {
 	}
 }
 
+func (gs *Geoscape) CityByID(id int) *City {
+	for _, c := range gs.Cities {
+		if c.ID == id {
+			return c
+		}
+	}
+	return nil
+}
+
 func (gs *Geoscape) ShortestPath(from, to int) []int {
-	return gs.Network.ShortestPath(from, to)
+	if from == to {
+		return []int{from}
+	}
+	type item struct {
+		id   int
+		path []int
+	}
+	queue := []item{{id: from, path: []int{from}}}
+	visited := map[int]bool{from: true}
+
+	for len(queue) > 0 {
+		cur := queue[0]
+		queue = queue[1:]
+
+		for _, n := range gs.Cities {
+			if visited[n.ID] {
+				continue
+			}
+			newPath := make([]int, len(cur.path)+1)
+			copy(newPath, cur.path)
+			newPath[len(cur.path)] = n.ID
+
+			if n.ID == to {
+				return newPath
+			}
+			visited[n.ID] = true
+			queue = append(queue, item{id: n.ID, path: newPath})
+		}
+	}
+	return nil
 }
 
 func (gs *Geoscape) dogfight(inter *Interceptor) {
@@ -376,11 +414,11 @@ func (gs *Geoscape) startBattle(ufo *UFO) {
 
 func (gs *Geoscape) spawnMission() {
 	types := []string{language.String("MISSION_TERROR"), language.String("MISSION_SUPPLY"), language.String("MISSION_ALIEN_BASE")}
-	// Pick a random non-base node
-	var candidates []*GeoNode
-	for _, n := range gs.Network.Nodes {
-		if n.ID != gs.BaseNode {
-			candidates = append(candidates, n)
+	// Pick a random non-base city
+	var candidates []*City
+	for _, c := range gs.Cities {
+		if c.ID != gs.BaseNode {
+			candidates = append(candidates, c)
 		}
 	}
 	if len(candidates) == 0 {
@@ -425,13 +463,13 @@ func (gs *Geoscape) RespondToMission(idx int) {
 	}
 	mission := gs.Missions[idx]
 	gs.Missions = append(gs.Missions[:idx], gs.Missions[idx+1:]...)
-	node := gs.Network.NodeByID(mission.NodeID)
-	nodeName := "?"
-	if node != nil {
-		nodeName = node.Name
-		node.MissionHere = false
+	city := gs.CityByID(mission.NodeID)
+	cityName := "?"
+	if city != nil {
+		cityName = city.Name
+		city.MissionHere = false
 	}
-	gs.Message = fmt.Sprintf(language.String("MSG_SQUAD_DEPLOYED"), mission.Type, nodeName)
+	gs.Message = fmt.Sprintf(language.String("MSG_SQUAD_DEPLOYED"), mission.Type, cityName)
 	gs.MessageTimer = time.Now()
 	gs.Game.Paused = true
 
@@ -453,16 +491,16 @@ func (gs *Geoscape) Autoresolve() {
 	var nearest *UFO
 	bestDist := 9999.0
 	for _, u := range gs.UFOs.Active() {
-		node := gs.Network.NodeByID(u.CurrentNode())
-		if node == nil {
+		city := gs.CityByID(u.CurrentNode())
+		if city == nil {
 			continue
 		}
-		baseNode := gs.Network.NodeByID(gs.BaseNode)
-		if baseNode == nil {
+		baseCity := gs.CityByID(gs.BaseNode)
+		if baseCity == nil {
 			continue
 		}
-		dx := float64(node.X - baseNode.X)
-		dy := float64(node.Y - baseNode.Y)
+		dx := float64(city.X - baseCity.X)
+		dy := float64(city.Y - baseCity.Y)
 		dist := dx*dx + dy*dy
 		if dist < bestDist {
 			bestDist = dist
@@ -614,20 +652,20 @@ func (gs *Geoscape) SetSpeed(s int) {
 }
 
 func (gs *Geoscape) LaunchInterceptor() {
-	// Target the node with the cursor, or nearest UFO if available
+	// Target the city with the cursor, or nearest UFO if available
 	var nearest *UFO
 	bestDist := 9999.0
 	for _, u := range gs.UFOs.Active() {
-		node := gs.Network.NodeByID(u.CurrentNode())
-		if node == nil {
+		city := gs.CityByID(u.CurrentNode())
+		if city == nil {
 			continue
 		}
-		baseNode := gs.Network.NodeByID(gs.BaseNode)
-		if baseNode == nil {
+		baseCity := gs.CityByID(gs.BaseNode)
+		if baseCity == nil {
 			continue
 		}
-		dx := float64(node.X - baseNode.X)
-		dy := float64(node.Y - baseNode.Y)
+		dx := float64(city.X - baseCity.X)
+		dy := float64(city.Y - baseCity.Y)
 		dist := dx*dx + dy*dy
 		if dist < bestDist {
 			bestDist = dist
@@ -635,11 +673,11 @@ func (gs *Geoscape) LaunchInterceptor() {
 		}
 	}
 
-	baseNode := gs.Network.NodeByID(gs.BaseNode)
-	if baseNode == nil {
+	baseCity := gs.CityByID(gs.BaseNode)
+	if baseCity == nil {
 		return
 	}
-	inter := NewInterceptor(baseNode.X, baseNode.Y)
+	inter := NewInterceptor(baseCity.X, baseCity.Y)
 
 	if nearest != nil {
 		// Launch at specific UFO
@@ -647,12 +685,12 @@ func (gs *Geoscape) LaunchInterceptor() {
 		gs.Interceptors = append(gs.Interceptors, inter)
 		gs.Message = fmt.Sprintf(language.String("MSG_INTERCEPTOR_LAUNCHED"), nearest.Type.Name)
 	} else {
-		// Launch at cursor node for patrol
-		targetNode := gs.Network.NodeByID(gs.CursorNode)
-		if targetNode != nil && targetNode.ID != gs.BaseNode {
-			inter.LaunchAtNode(gs.CursorNode, gs.Network)
+		// Launch at cursor city for patrol
+		targetCity := gs.CityByID(gs.CursorNode)
+		if targetCity != nil && targetCity.ID != gs.BaseNode {
+			inter.LaunchAtNode(gs.CursorNode, gs.Cities)
 			gs.Interceptors = append(gs.Interceptors, inter)
-			gs.Message = fmt.Sprintf(language.String("MSG_INTERCEPTOR_PATROL"), targetNode.Name)
+			gs.Message = fmt.Sprintf(language.String("MSG_INTERCEPTOR_PATROL"), targetCity.Name)
 		} else {
 			gs.Message = language.String("GEOSCAPE_NO_UFO")
 			gs.MessageTimer = time.Now()
@@ -730,21 +768,21 @@ func (gs *Geoscape) renderRegionTable(ctx *engine.ScreenCtx, x, y, w, h int) {
 	ctx.DrawString(x, y+1, sep, engine.StyleGray)
 
 	row := 0
-	for _, n := range gs.Network.Nodes {
+	for _, c := range gs.Cities {
 		if row >= h-2 {
 			break
 		}
 		ry := y + 2 + row
 
 		// Highlight selected
-		sel := n.ID == gs.CursorNode
+		sel := c.ID == gs.CursorNode
 		baseStyle := engine.StyleDefault
 		if sel {
 			baseStyle = engine.StyleHighlight
 		}
 
-		// Region name (truncated)
-		name := n.Name
+		// City name (truncated)
+		name := c.Name
 		if len(name) > 14 {
 			name = name[:14]
 		}
@@ -756,13 +794,13 @@ func (gs *Geoscape) renderRegionTable(ctx *engine.ScreenCtx, x, y, w, h int) {
 
 		// Threat bar
 		tx := x + 17
-		if n.Threat > 0 {
-			barLen := n.Threat * 6 / 100
+		if c.Threat > 0 {
+			barLen := c.Threat * 6 / 100
 			if barLen < 1 {
 				barLen = 1
 			}
 			threatStyle := engine.StyleYellow
-			if n.Threat > 50 {
+			if c.Threat > 50 {
 				threatStyle = engine.StyleRedBold
 			}
 			bar := ""
@@ -780,7 +818,7 @@ func (gs *Geoscape) renderRegionTable(ctx *engine.ScreenCtx, x, y, w, h int) {
 
 		// Radar
 		rx := x + 24
-		if n.HasRadar {
+		if c.HasRadar {
 			ctx.DrawString(rx, ry, " R ", engine.StyleCyan)
 		} else {
 			ctx.DrawString(rx, ry, " - ", engine.StyleGray)
@@ -788,21 +826,21 @@ func (gs *Geoscape) renderRegionTable(ctx *engine.ScreenCtx, x, y, w, h int) {
 
 		// Interceptor count
 		ix := x + 28
-		if n.InterceptorCount > 0 {
-			ctx.DrawString(ix, ry, fmt.Sprintf(" %d ", n.InterceptorCount), engine.StyleGreen)
+		if c.InterceptorCount > 0 {
+			ctx.DrawString(ix, ry, fmt.Sprintf(" %d ", c.InterceptorCount), engine.StyleGreen)
 		} else {
 			ctx.DrawString(ix, ry, " - ", engine.StyleGray)
 		}
 
 		// Status
 		sx := x + 32
-		if n.MissionHere {
+		if c.MissionHere {
 			ctx.DrawString(sx, ry, "MISSION", engine.StyleMagenta)
-		} else if n.ID == 0 {
+		} else if c.ID == 0 {
 			ctx.DrawString(sx, ry, "BASE", engine.StyleCyanBold)
-		} else if n.Threat > 50 {
+		} else if c.Threat > 50 {
 			ctx.DrawString(sx, ry, "DANGER", engine.StyleRedBold)
-		} else if n.Threat > 0 {
+		} else if c.Threat > 0 {
 			ctx.DrawString(sx, ry, "ALERT", engine.StyleYellow)
 		} else {
 			ctx.DrawString(sx, ry, "clear", engine.StyleGray)
@@ -828,112 +866,63 @@ func (gs *Geoscape) renderMinimap(ctx *engine.ScreenCtx, x, y, w, h int) {
 		return
 	}
 
-	// Find bounds of all nodes
-	minX, minY := 9999, 9999
-	maxX, maxY := -9999, -9999
-	for _, n := range gs.Network.Nodes {
-		if n.X < minX {
-			minX = n.X
-		}
-		if n.Y < minY {
-			minY = n.Y
-		}
-		if n.X > maxX {
-			maxX = n.X
-		}
-		if n.Y > maxY {
-			maxY = n.Y
+	// World map is 180x90
+	worldW := 180
+	worldH := 90
+
+	// Draw World Map Background
+	for dy := 0; dy < innerH; dy++ {
+		for dx := 0; dx < innerW; dx++ {
+			worldX := (dx * worldW) / innerW
+			worldY := (dy * worldH) / innerH
+
+			tile := GetTile(worldX, worldY)
+			var ch rune
+			var style tcell.Style
+
+			if tile == 1 {
+				ch = '░'
+				style = engine.StyleGray
+			} else {
+				ch = ' '
+				style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(0, 20, 60))
+			}
+			ctx.SetCell(x+1+dx, y+1+dy, ch, style)
 		}
 	}
 
-	// Pad bounds
-	minX -= 2
-	minY -= 2
-	maxX += 2
-	maxY += 2
-	rangeX := maxX - minX
-	rangeY := maxY - minY
-	if rangeX < 1 {
-		rangeX = 1
-	}
-	if rangeY < 1 {
-		rangeY = 1
-	}
+	// Draw cities
+	for _, c := range gs.Cities {
+		sx := x + 1 + (c.X * innerW / worldW)
+		sy := y + 1 + (c.Y * innerH / worldH)
 
-	// Draw edges
-	for _, e := range gs.Network.Edges {
-		from := gs.Network.NodeByID(e.From)
-		to := gs.Network.NodeByID(e.To)
-		if from == nil || to == nil {
-			continue
-		}
-		sx1 := x + 1 + (from.X-minX)*innerW/rangeX
-		sy1 := y + 1 + (from.Y-minY)*innerH/rangeY
-		sx2 := x + 1 + (to.X-minX)*innerW/rangeX
-		sy2 := y + 1 + (to.Y-minY)*innerH/rangeY
-		gn := gs.Network
-		gn.drawMiniEdge(ctx, sx1, sy1, sx2, sy2, from.Threat, to.Threat)
-	}
-
-	// Draw nodes
-	for _, n := range gs.Network.Nodes {
-		sx := x + 1 + (n.X-minX)*innerW/rangeX
-		sy := y + 1 + (n.Y-minY)*innerH/rangeY
 		if sx <= x || sx >= x+w-1 || sy <= y || sy >= y+h-1 {
 			continue
 		}
 
-		ch, style := gs.Network.nodeStyle(n)
-		if n.ID == gs.CursorNode {
-			ch = '\u25C9'
+		ch, style := gs.cityStyle(c)
+		if c.ID == gs.CursorNode {
+			ch = '◉'
 			style = engine.StyleDefault.Bold(true)
 		}
 		ctx.SetCell(sx, sy, ch, style)
 	}
 }
 
-func (gs *GeoNetwork) drawMiniEdge(ctx *engine.ScreenCtx, x1, y1, x2, y2, t1, t2 int) {
-	edgeStyle := tcell.StyleDefault.Foreground(tcell.NewRGBColor(50, 70, 50))
-	if t1 > 50 || t2 > 50 {
-		edgeStyle = tcell.StyleDefault.Foreground(tcell.NewRGBColor(100, 30, 20))
-	} else if t1 > 0 || t2 > 0 {
-		edgeStyle = tcell.StyleDefault.Foreground(tcell.NewRGBColor(100, 80, 20))
+func (gs *Geoscape) cityStyle(c *City) (rune, tcell.Style) {
+	if c.ID == 0 {
+		return '\u25C6', engine.StyleCyanBold.Bold(true)
 	}
-
-	dx := x2 - x1
-	if dx < 0 {
-		dx = -dx
+	if c.Threat > 50 {
+		return '\u25CF', engine.StyleRedBold // ●
 	}
-	dy := y2 - y1
-	if dy < 0 {
-		dy = -dy
+	if c.Threat > 0 {
+		return '\u25CB', engine.StyleYellow // ○
 	}
-	sx := 1
-	if x1 > x2 {
-		sx = -1
-	}
-	sy := 1
-	if y1 > y2 {
-		sy = -1
-	}
-	err := dx - dy
-
-	for {
-		ctx.SetCell(x1, y1, '\u00B7', edgeStyle) // ·
-		if x1 == x2 && y1 == y2 {
-			break
-		}
-		e2 := 2 * err
-		if e2 > -dy {
-			err -= dy
-			x1 += sx
-		}
-		if e2 < dx {
-			err += dx
-			y1 += sy
-		}
-	}
+	return '\u25CB', engine.StyleGreen // ○
 }
+
+
 
 func (gs *Geoscape) HandleKey(e *tcell.EventKey) {
 	switch e.Key() {
@@ -979,32 +968,29 @@ func (gs *Geoscape) HandleKey(e *tcell.EventKey) {
 }
 
 func (gs *Geoscape) moveCursor(dx, dy int) {
-	// Move to nearest node in that direction
-	curNode := gs.Network.NodeByID(gs.CursorNode)
-	if curNode == nil {
+	// Move based on list index instead of spatial position
+	// dx is ignored as we move linearly through the Cities list
+	
+	curIdx := -1
+	for i, c := range gs.Cities {
+		if c.ID == gs.CursorNode {
+			curIdx = i
+			break
+		}
+	}
+	
+	if curIdx == -1 {
 		return
 	}
-	var best *GeoNode
-	bestScore := -999999
-	for _, n := range gs.Network.Nodes {
-		if n.ID == gs.CursorNode {
-			continue
-		}
-		ndx := n.X - curNode.X
-		ndy := n.Y - curNode.Y
-		// Score: prefer nodes in the requested direction
-		score := ndx*dx + ndy*dy
-		if dx == 0 && dy == 0 {
-			continue
-		}
-		if score > bestScore {
-			bestScore = score
-			best = n
-		}
+	
+	newIdx := curIdx + dy
+	if newIdx < 0 {
+		newIdx = len(gs.Cities) - 1
+	} else if newIdx >= len(gs.Cities) {
+		newIdx = 0
 	}
-	if best != nil && bestScore > 0 {
-		gs.CursorNode = best.ID
-	}
+	
+	gs.CursorNode = gs.Cities[newIdx].ID
 }
 
 func (gs *Geoscape) sendTransportToNearest() {
@@ -1063,9 +1049,9 @@ func (gs *Geoscape) HandleMouse(e *tcell.EventMouse) {
 	tableW := w * 60 / 100
 	if x > 1 && x < tableW && y > 2 && y < h-7 {
 		row := y - 3
-		if row >= 0 && row < len(gs.Network.Nodes) {
-			gs.CursorNode = gs.Network.Nodes[row].ID
-			gs.Message = fmt.Sprintf(language.String("GEOSCAPE_NODE_SELECTED"), gs.Network.Nodes[row].Name, gs.Network.Nodes[row].Region)
+		if row >= 0 && row < len(gs.Cities) {
+			gs.CursorNode = gs.Cities[row].ID
+			gs.Message = fmt.Sprintf(language.String("GEOSCAPE_NODE_SELECTED"), gs.Cities[row].Name, gs.Cities[row].Region)
 			gs.MessageTimer = time.Now()
 		}
 	}

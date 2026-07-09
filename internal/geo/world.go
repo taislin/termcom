@@ -10,14 +10,17 @@ const mapH = 90
 var worldMap [mapH][mapW]int
 
 type City struct {
-	Name string
-	X    int
-	Y    int
+	ID               int
+	Name             string
+	X, Y             int // screen coordinates (0-179, 0-89)
+	Region           string
+	Threat           int // 0-100, alien activity level
+	HasRadar         bool
+	InterceptorCount int
+	MissionHere      bool
 }
 
-var cities []City
-
-
+var cities []*City
 
 func init() {
 	for y := 0; y < mapH; y++ {
@@ -37,69 +40,32 @@ func init() {
 		}
 	}
 
-	cities = []City{
+	cities = []*City{
 		// North America
-		{"New York", 48, 31},
-		{"Los Angeles", 26, 34},
-		{"Chicago", 41, 30},
-		{"Montreal", 47, 28},
-		{"Vancouver", 25, 26},
-		{"Dallas", 37, 35},
-		{"Mexico City", 35, 41},
-		{"Havana", 46, 40},
-		{"Washington", 46, 32},
-
+		{ID: 0, Name: "New York", X: 48, Y: 31, Region: "NA East"},
+		{ID: 1, Name: "Los Angeles", X: 26, Y: 34, Region: "NA West"},
+		{ID: 2, Name: "Chicago", X: 41, Y: 30, Region: "NA Central"},
+		{ID: 3, Name: "Mexico City", X: 35, Y: 41, Region: "Central Am"},
 		// South America
-		{"Bogota", 48, 48},
-		{"Lima", 47, 54},
-		{"Brasilia", 61, 54},
-		{"Rio de Janeiro", 63, 58},
-		{"Buenos Aires", 56, 68},
-		{"Santiago", 50, 68},
-		{"Caracas", 52, 46},
-
+		{ID: 4, Name: "Bogota", X: 48, Y: 48, Region: "SA North"},
+		{ID: 5, Name: "Brasilia", X: 61, Y: 54, Region: "SA East"},
+		{ID: 6, Name: "Buenos Aires", X: 56, Y: 68, Region: "SA South"},
 		// Europe
-		{"London", 85, 25},
-		{"Paris", 86, 27},
-		{"Berlin", 92, 25},
-		{"Rome", 91, 30},
-		{"Madrid", 84, 31},
-		{"Moscow", 104, 23},
-		{"Budapest", 95, 27},
-
+		{ID: 7, Name: "London", X: 85, Y: 25, Region: "Europe W"},
+		{ID: 8, Name: "Paris", X: 86, Y: 27, Region: "Europe W"},
+		{ID: 9, Name: "Berlin", X: 92, Y: 25, Region: "Europe C"},
+		{ID: 10, Name: "Moscow", X: 104, Y: 23, Region: "Europe E"},
 		// Africa
-		{"Cairo", 101, 36},
-		{"Lagos", 87, 48},
-		{"Cape Town", 94, 69},
-		{"Nairobi", 103, 50},
-		{"Casablanca", 81, 34},
-		{"Pretoria", 99, 63},
-		{"Kinshasa", 93, 53},
-
+		{ID: 11, Name: "Cairo", X: 101, Y: 36, Region: "Africa N"},
+		{ID: 12, Name: "Lagos", X: 87, Y: 48, Region: "Africa W"},
+		{ID: 13, Name: "Nairobi", X: 103, Y: 50, Region: "Africa E"},
 		// Asia
-		{"Baghdad", 107, 34},
-		{"Tehran", 111, 33},
-		{"Karachi", 119, 39},
-		{"Delhi", 124, 37},
-		{"Bombay", 122, 42},
-		{"Calcutta", 129, 40},
-		{"Beijing", 143, 31},
-		{"Shanghai", 146, 36},
-		{"Hong Kong", 142, 40},
-		{"Tokyo", 155, 33},
-		{"Seoul", 149, 32},
-		{"Bangkok", 135, 44},
-		{"Singapore", 137, 50},
-		{"Jakarta", 138, 53},
-		{"Manila", 146, 43},
-		{"Novosibirsk", 26, 24},
-
+		{ID: 14, Name: "Delhi", X: 124, Y: 37, Region: "South Asia"},
+		{ID: 15, Name: "Beijing", X: 143, Y: 31, Region: "East Asia"},
+		{ID: 16, Name: "Tokyo", X: 155, Y: 33, Region: "East Asia"},
+		{ID: 17, Name: "Singapore", X: 137, Y: 50, Region: "SE Asia"},
 		// Australasia
-		{"Sydney", 159, 69},
-		{"Canberra", 160, 69},
-		{"Melbourne", 158, 70},
-		{"Perth", 143, 67},
-		{"Wellington", 173, 72},
+		{ID: 18, Name: "Sydney", X: 159, Y: 69, Region: "Oceania"},
 	}
 }
 
@@ -118,10 +84,10 @@ func SetTile(x, y, v int) {
 
 func IsLand(x, y int) bool {
 	t := GetTile(x, y)
-	return t == 1 || t == 2 || t == 3
+	return t == 1
 }
 
-func GetCities() []City {
+func GetCities() []*City {
 	return cities
 }
 
