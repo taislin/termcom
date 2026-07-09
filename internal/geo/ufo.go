@@ -8,18 +8,19 @@ type UFOType struct {
 	Name       string
 	Short      string
 	Speed      int
-	Toughness  int // HP
+	Toughness  int // current HP
+	MaxHP      int // original HP
 	Weapon     string
 	Points     int
 }
 
 var UFOTypes = []UFOType{
-	{"Small Scout",   "SSC", 28, 10, "plasma_pistol", 5},
-	{"Medium Scout",  "MSC", 24, 20, "plasma_rifle", 10},
-	{"Large Scout",   "LSC", 20, 35, "plasma_rifle", 15},
-	{"Harvester",     "HAR", 16, 50, "plasma_rifle", 20},
-	{"Bomber",        "BMB", 12, 80, "plasma_rifle", 30},
-	{"Transport",     "TRN", 10, 60, "plasma_rifle", 15},
+	{"Small Scout",   "SSC", 28, 10, 10, "plasma_pistol", 5},
+	{"Medium Scout",  "MSC", 24, 20, 20, "plasma_rifle", 10},
+	{"Large Scout",   "LSC", 20, 35, 35, "plasma_rifle", 15},
+	{"Harvester",     "HAR", 16, 50, 50, "plasma_rifle", 20},
+	{"Bomber",        "BMB", 12, 80, 80, "plasma_rifle", 30},
+	{"Transport",     "TRN", 10, 60, 60, "plasma_rifle", 15},
 }
 
 type UFO struct {
