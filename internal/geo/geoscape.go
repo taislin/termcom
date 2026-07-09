@@ -54,7 +54,6 @@ type Geoscape struct {
 	Victory       bool
 	// Cursor for node selection
 	CursorNode    int
-	HoveredUFO    *UFO
 }
 
 func NewGeoscape(g *engine.Game) *Geoscape {
@@ -748,14 +747,6 @@ func (gs *Geoscape) Render(ctx *engine.ScreenCtx) {
 		ctx.DrawString(2, h-3, gs.Message, engine.StyleDefault)
 	}
 
-	// UFO tooltip
-	if gs.HoveredUFO != nil {
-		u := gs.HoveredUFO
-		tooltip := fmt.Sprintf("%s | HP: %d/%d | Speed: %d | Weapon: %s",
-			u.Type.Name, u.Type.Toughness, u.Type.MaxHP, u.Type.Speed, u.Type.Weapon)
-		ctx.DrawPanel(2, h-3, len(tooltip)+2, 1, tooltip, engine.StyleRed)
-	}
-
 	ctx.DrawPanel(0, h-1, w, 1, "", engine.StyleGray)
 	// Example hotkey highlighting
 	help := "[j]/[k]=Select [L]=Launch [A]=Autoresolve [M]=Mission [B]=Base [R]=Transport [Space]=Pause [Q]=Quit"
@@ -916,24 +907,6 @@ func (gs *Geoscape) renderMinimap(ctx *engine.ScreenCtx, x, y, w, h int) {
 		}
 		ctx.SetCell(sx, sy, ch, style)
 	}
-
-	// Draw UFOs
-	for _, u := range gs.UFOs.Active() {
-		sx := x + 1 + (int(u.X) * innerW / worldW)
-		sy := y + 1 + (int(u.Y) * innerH / worldH)
-
-		if sx <= x || sx >= x+w-1 || sy <= y || sy >= y+h-1 {
-			continue
-		}
-
-		ch := 'X'
-		style := engine.StyleRedBold
-		if u == gs.HoveredUFO {
-			ch = '*'
-			style = engine.StyleRedBold.Bold(true)
-		}
-		ctx.SetCell(sx, sy, ch, style)
-	}
 }
 
 func (gs *Geoscape) cityStyle(c *City) (rune, tcell.Style) {
@@ -1044,37 +1017,11 @@ func (gs *Geoscape) sendTransportToNearest() {
 
 func (gs *Geoscape) HandleMouse(e *tcell.EventMouse) {
 	buttons := e.Buttons()
-	x, y := e.Position()
-	w, h := gs.Game.ScreenSize()
-
-	// Hover detection (works even with no button pressed)
-	gs.HoveredUFO = nil
 	if buttons == 0 {
-		// Check if hovering over a UFO on the minimap
-		tableW := w * 60 / 100
-		if tableW < 30 {
-			tableW = 30
-		}
-		mapX := tableW + 2
-		mWidth := w - tableW - 2
-		innerW := mWidth - 3
-		innerH := h - 9
-		if innerW > 0 && innerH > 0 && x >= mapX+1 && x < mapX+1+innerW && y >= 2 && y < 2+innerH {
-			worldW := 180
-			worldH := 90
-			worldX := (x - mapX - 1) * worldW / innerW
-			worldY := (y - 2) * worldH / innerH
-			for _, u := range gs.UFOs.Active() {
-				ux := int(u.X)
-				uy := int(u.Y)
-				if worldX >= ux-1 && worldX <= ux+1 && worldY >= uy-1 && worldY <= uy+1 {
-					gs.HoveredUFO = u
-					break
-				}
-			}
-		}
 		return
 	}
+	x, y := e.Position()
+	w, h := gs.Game.ScreenSize()
 
 	if y == h-1 {
 		switch {

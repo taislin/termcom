@@ -82,6 +82,7 @@ type Battlescape struct {
 
 	Camera   *engine.Camera
 	Particles *engine.ParticleSystem
+	HoveredUnit *Unit
 }
 
 func (bs *Battlescape) AddMessage(msg string) {
@@ -1023,12 +1024,20 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 			if bs.Selected != nil && bs.Phase == PhasePlayerTurn {
 				movementRange := bs.GetMovementRange()
 				if movementRange[[2]int{mx, my}] {
-					style = style.Background(tcell.NewRGBColor(20, 40, 80))
+					if bs.IsNight {
+						style = style.Background(tcell.NewRGBColor(10, 25, 50))
+					} else {
+						style = style.Background(tcell.NewRGBColor(20, 40, 80))
+					}
 				}
 			}
 
 			if mx == bs.CursorX && my == bs.CursorY {
-				style = style.Reverse(true)
+				if bs.IsNight {
+					style = style.Background(tcell.NewRGBColor(60, 60, 80))
+				} else {
+					style = style.Reverse(true)
+				}
 			}
 
 			ctx.SetCell(x+1, y+1, ch, style)
@@ -1053,7 +1062,9 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 			sx := u.X - bs.ScrollX + 1
 			sy := u.Y - bs.ScrollY + 1
 			if sx >= 1 && sx < viewW+1 && sy >= 1 && sy < viewH+1 {
-				engine.ApplyLightSource(ctx.ScreenRaw, ctx.FrameBuffer(), sx, sy, 2, tcell.NewRGBColor(100, 140, 255))
+				if bs.Map.IsSeen(u.X, u.Y) {
+					engine.ApplyLightSource(ctx.ScreenRaw, ctx.FrameBuffer(), sx, sy, 2, tcell.NewRGBColor(100, 140, 255))
+				}
 			}
 		}
 	}
@@ -1164,6 +1175,35 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 	logTitle := language.String("BATTLE_LOG")
 	ctx.DrawString(sidebarX, sy, logTitle, engine.StyleCyanBold)
 	sy++
+
+	// Draw hovered unit info
+	if bs.HoveredUnit != nil && bs.HoveredUnit != bs.Selected {
+		sy++
+		ctx.DrawString(sidebarX, sy, language.String("SIDE_TARGET_INFO"), engine.StyleRedBold)
+		sy++
+		u := bs.HoveredUnit
+		name := ""
+		if u.Faction == 1 && u.AlienType != nil {
+			name = u.AlienType.Name
+		} else if u.Faction == 0 && u.Soldier != nil {
+			name = u.Soldier.Name
+		} else if u.Faction == 2 {
+			name = u.CivName
+		}
+		if len(name) > sidebarW-1 {
+			name = name[:sidebarW-1]
+		}
+		ctx.DrawString(sidebarX, sy, name, engine.StyleDefault.Bold(true))
+		sy++
+		ctx.DrawString(sidebarX, sy, fmt.Sprintf("HP: %d/%d", u.HP, u.MaxHP), engine.StyleDefault)
+		sy++
+		ctx.DrawString(sidebarX, sy, fmt.Sprintf("ACC: %d", u.Accuracy), engine.StyleDefault)
+		sy++
+		weaponName := data.RuleItems[u.Weapon].ShortName
+		ctx.DrawString(sidebarX, sy, fmt.Sprintf("WPN: %s", weaponName), engine.StyleDefault)
+		sy++
+		sy++
+	}
 
 	availableLines := viewH - sy
 	logEntries := len(bs.Log)
@@ -1282,9 +1322,6 @@ func (bs *Battlescape) HandleKey(e *tcell.EventKey) {
 
 func (bs *Battlescape) HandleMouse(e *tcell.EventMouse) {
 	buttons := e.Buttons()
-	if buttons == 0 {
-		return
-	}
 	x, y := e.Position()
 	_, scrH := bs.Game.ScreenSize()
 
@@ -1314,11 +1351,31 @@ func (bs *Battlescape) HandleMouse(e *tcell.EventMouse) {
 	scrW, _ := bs.Game.ScreenSize()
 	viewW := scrW - sidebarW - 2
 	if x >= viewW+2 {
+		bs.HoveredUnit = nil
 		return
 	}
 
+	// Hover detection (works even with no button pressed)
+	bs.HoveredUnit = nil
 	mx := x - 1 + bs.ScrollX
 	my := y - 1 + bs.ScrollY
+	if mx >= 0 && mx < bs.Map.Width && my >= 0 && my < bs.Map.Height {
+		for _, u := range bs.Units {
+			if u.Alive && u.X == mx && u.Y == my {
+				if u.Faction == 1 && bs.Map.IsVisible(u.X, u.Y) {
+					bs.HoveredUnit = u
+				} else if u.Faction == 0 || u.Faction == 2 {
+					bs.HoveredUnit = u
+				}
+				break
+			}
+		}
+	}
+
+	if buttons == 0 {
+		return
+	}
+
 	if mx >= 0 && mx < bs.Map.Width && my >= 0 && my < bs.Map.Height {
 		bs.CursorX = mx
 		bs.CursorY = my

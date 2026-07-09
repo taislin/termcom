@@ -97,6 +97,7 @@ func init() {
 		"BATTLESCAPE":          "BATTLESCAPE",
 		"BATTLE_LOG":           "-- LOG --",
 		"SIDE_UNIT_INFO":       "-- UNIT --",
+		"SIDE_TARGET_INFO":     "-- TARGET --",
 		"SIDE_HP":              "HP: %d/%d",
 		"SIDE_TU":              "TU: %d/%d",
 		"SIDE_ACC":             "ACC: %d",
