@@ -342,6 +342,69 @@ var Items = map[string]Item{
 	"ufo_armor":   {Name: "UFO Hull Plating", ShortName: "UHL", Weight: 7, Value: 16000, Alien: true},
 }
 
+// InterceptorWeapon defines interceptor weapon stats.
+type InterceptorWeapon struct {
+	Name       string
+	Damage     int
+	Accuracy   int // base accuracy %
+	Range      int // max range in geoscape units
+	FireRate   int // shots per engagement (TU equivalent)
+	Cost       int
+	RearmCost  int
+}
+
+var InterceptorWeapons = map[string]InterceptorWeapon{
+	"avalanche": {
+		Name:       "Avalanche Launchers",
+		Damage:     40,
+		Accuracy:   55,
+		Range:      60,
+		FireRate:   1,
+		Cost:       12000,
+		RearmCost:  1500,
+	},
+	"stingray": {
+		Name:       "Stingray Missiles",
+		Damage:     25,
+		Accuracy:   70,
+		Range:      45,
+		FireRate:   2,
+		Cost:       8000,
+		RearmCost:  1000,
+	},
+	"cannon": {
+		Name:       "Cannon (DEF-7)",
+		Damage:     15,
+		Accuracy:   85,
+		Range:      25,
+		FireRate:   3,
+		Cost:       5000,
+		RearmCost:  500,
+	},
+}
+
+// CombatMode defines interceptor engagement behavior.
+type CombatMode int
+
+const (
+	CombatAttack    CombatMode = iota // Aggressive: close range, max damage
+	CombatCautious                    // Balanced: maintain distance
+	CombatBreakoff                    // Defensive: disengage if damaged
+)
+
+func (cm CombatMode) String() string {
+	switch cm {
+	case CombatAttack:
+		return "ATTACK"
+	case CombatCautious:
+		return "CAUTIOUS"
+	case CombatBreakoff:
+		return "BREAK OFF"
+	default:
+		return "UNKNOWN"
+	}
+}
+
 func init() {
 	for k, v := range RuleItems {
 		v.AmmoCur = v.AmmoMax

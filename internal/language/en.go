@@ -84,6 +84,8 @@ func init() {
 		"MSG_MANUFACTURE_COMPLETE": "Manufacturing complete: %s",
 		"MSG_HIT_UFO":             "Hit UFO for %d damage!",
 		"MSG_UFO_HIT_INTERCEPTOR": "UFO hit interceptor for %d damage! (HP:%d/%d)",
+		"MSG_INTERCEPTOR_CLOSING": "%s [%s] closing to target...",
+		"MSG_INTERCEPTOR_MISS":    "%s missed!",
 		"MSG_ALERT_MISSION":       "ALERT: %s mission near %s detected!",
 		"MSG_SQUAD_DEPLOYED":      "Squad deployed to %s mission at %s!",
 		"MSG_AUTO_VICTORY":        "Autoresolve: Victory! %s destroyed. +$%dK",

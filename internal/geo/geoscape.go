@@ -2,6 +2,7 @@ package geo
 
 import (
 	"fmt"
+	"math"
 	"math/rand"
 	"strings"
 	"time"
@@ -361,8 +362,20 @@ func (gs *Geoscape) dogfight(inter *Interceptor) {
 			return
 		}
 	}
+	
+	// Check if interceptor is in range
+	dist := math.Sqrt(math.Pow(ufo.X-inter.X, 2)+math.Pow(ufo.Y-inter.Y, 2))
+	if dist > float64(inter.Range) {
+		gs.Message = fmt.Sprintf(language.String("MSG_INTERCEPTOR_CLOSING"), inter.Weapon.Name, inter.Mode.String())
+		gs.MessageTimer = time.Now()
+		return
+	}
+	
 	damage := inter.FireAt(ufo)
-	if damage == -1 {
+	if damage == 0 {
+		gs.Message = fmt.Sprintf(language.String("MSG_INTERCEPTOR_MISS"), inter.Weapon.Name)
+		gs.MessageTimer = time.Now()
+	} else if damage == -1 {
 		gs.Game.Funds += int64(ufo.Type.Points * 1000)
 		gs.CrashSites = append(gs.CrashSites, &CrashSite{
 			UFOName: ufo.Type.Name,
