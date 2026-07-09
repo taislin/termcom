@@ -10,27 +10,28 @@ import (
 )
 
 type Unit struct {
-	Type      int
-	Soldier   *soldier.Soldier
-	AlienType *data.AlienType
-	CivName   string
-	X, Y      int
-	Level     int
-	HP        int
-	MaxHP     int
-	TU        int
-	MaxTU     int
-	Accuracy  int
-	Bravery   int
-	Reactions int
-	Strength  int
-	Armour    int
-	Weapon    string
+	Type       int
+	Soldier    *soldier.Soldier
+	AlienType  *data.AlienType
+	CivName    string
+	X, Y       int
+	Level      int
+	HP         int
+	MaxHP      int
+	TU         int
+	MaxTU      int
+	Accuracy   int
+	Bravery    int
+	Reactions  int
+	Strength   int
+	Armour     int
+	Weapon     string
 	WeaponAmmo int
-	Alive     bool
-	Crouching bool
-	Faction   int
-	IsNight   bool
+	Alive      bool
+	Crouching  bool
+	Faction    int
+	IsNight    bool
+	ReservedTU int // TU reserved for reaction fire
 }
 
 func NewSoldierUnit(s *soldier.Soldier) *Unit {

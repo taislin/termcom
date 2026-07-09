@@ -293,7 +293,7 @@ func TestAlienAIAttack(t *testing.T) {
 	}
 }
 
-func TestAlienAIFlee(t *testing.T) {
+func TestAlienAIRetreat(t *testing.T) {
 	alien := &Unit{
 		X: 10, Y: 10, TU: 40, MaxTU: 40,
 		HP: 3, MaxHP: 20, Bravery: 30,
@@ -303,8 +303,8 @@ func TestAlienAIFlee(t *testing.T) {
 	ai := NewAlienAI(alien)
 	m := GenerateCrashSite(30, 24)
 	ai.Update(UnitList{}, m, UnitList{})
-	if ai.State != AIFlee {
-		t.Error("should flee when HP low and low bravery")
+	if ai.State != AIRetreat {
+		t.Error("should retreat when HP low and low bravery")
 	}
 }
 

@@ -13,6 +13,8 @@ const (
 	AISearch
 	AIAttack
 	AIFlee
+	AIFlank
+	AIRetreat
 )
 
 type AlienAI struct {
@@ -111,12 +113,32 @@ func (ai *AlienAI) GenerateActions(units UnitList, m *BattleMap, humanUnits Unit
 			}
 		}
 
-	case AIFlee:
+	case AIFlank:
 		if nearest != nil {
+			// Move laterally
+			dx := nearest.X - ai.Unit.X
+			dy := nearest.Y - ai.Unit.Y
+			// Lateral move: swap dx/dy and negate one
+			nx := ai.Unit.X + signum(-dy)
+			ny := ai.Unit.Y + signum(dx)
+			actions = append(actions, AlienAction{
+				Type: "move", Unit: ai.Unit,
+				FromX: ai.Unit.X, FromY: ai.Unit.Y,
+				ToX: nx, ToY: ny,
+			})
+		}
+		ai.TurnsSince++
+		if ai.TurnsSince > 2 {
+			ai.State = AIAttack
+		}
+
+	case AIRetreat:
+		if nearest != nil {
+			// Move away from nearest human
 			dx := ai.Unit.X - nearest.X
 			dy := ai.Unit.Y - nearest.Y
-			fx := ai.Unit.X + signum(dx)*2
-			fy := ai.Unit.Y + signum(dy)*2
+			fx := ai.Unit.X + signum(dx)*3
+			fy := ai.Unit.Y + signum(dy)*3
 			actions = append(actions, AlienAction{
 				Type: "move", Unit: ai.Unit,
 				FromX: ai.Unit.X, FromY: ai.Unit.Y,
@@ -131,7 +153,15 @@ func (ai *AlienAI) GenerateActions(units UnitList, m *BattleMap, humanUnits Unit
 
 	if ai.Unit.HP < ai.Unit.MaxHP/4 && ai.Unit.Alive {
 		if ai.Unit.AlienType != nil && ai.Unit.AlienType.Bravery < 50 {
-			ai.State = AIFlee
+			ai.State = AIRetreat
+			ai.TurnsSince = 0
+		}
+	}
+
+	// Check for flank opportunities (e.g. target is crouched)
+	if ai.State == AIAttack && nearest != nil && nearest.Crouching {
+		if ai.Unit.AlienType != nil && ai.Unit.AlienType.Aggression > 7 {
+			ai.State = AIFlank
 			ai.TurnsSince = 0
 		}
 	}
@@ -145,6 +175,14 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList) {
 	}
 
 	nearest, dist := ai.findNearest(humanUnits, m)
+
+	// Check for flank opportunities (e.g. target is crouched)
+	if ai.State == AIAttack && nearest != nil && nearest.Crouching {
+		if ai.Unit.AlienType != nil && ai.Unit.AlienType.Aggression > 7 {
+			ai.State = AIFlank
+			ai.TurnsSince = 0
+		}
+	}
 
 	switch ai.State {
 	case AIPatrol:
@@ -194,12 +232,25 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList) {
 			}
 		}
 
-	case AIFlee:
+	case AIFlank:
+		if nearest != nil {
+			dx := nearest.X - ai.Unit.X
+			dy := nearest.Y - ai.Unit.Y
+			nx := ai.Unit.X + signum(-dy)
+			ny := ai.Unit.Y + signum(dx)
+			ai.Unit.MoveTo(nx, ny, m)
+		}
+		ai.TurnsSince++
+		if ai.TurnsSince > 2 {
+			ai.State = AIAttack
+		}
+
+	case AIRetreat:
 		if nearest != nil {
 			dx := ai.Unit.X - nearest.X
 			dy := ai.Unit.Y - nearest.Y
-			fx := ai.Unit.X + signum(dx)*2
-			fy := ai.Unit.Y + signum(dy)*2
+			fx := ai.Unit.X + signum(dx)*3
+			fy := ai.Unit.Y + signum(dy)*3
 			ai.Unit.MoveTo(fx, fy, m)
 		}
 		ai.TurnsSince++
@@ -210,7 +261,7 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList) {
 
 	if ai.Unit.HP < ai.Unit.MaxHP/4 && ai.Unit.Alive {
 		if ai.Unit.AlienType != nil && ai.Unit.AlienType.Bravery < 50 {
-			ai.State = AIFlee
+			ai.State = AIRetreat
 			ai.TurnsSince = 0
 		}
 	}
