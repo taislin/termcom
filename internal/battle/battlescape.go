@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
+	"strings"
 
 	"github.com/civ13/ycom/internal/data"
 	"github.com/civ13/ycom/internal/engine"
@@ -35,8 +36,6 @@ const (
 	PhaseVictory
 	PhaseDefeat
 )
-
-const sidebarW = 24
 
 type Projectile struct {
 	FromX, FromY int
@@ -80,9 +79,14 @@ type Battlescape struct {
 	AlienTurnDelay  int
 	Projectile      *Projectile
 
-	Camera   *engine.Camera
+	Camera    *engine.Camera
 	Particles *engine.ParticleSystem
 	HoveredUnit *Unit
+	SidebarW    int
+
+	Gas         *GasGrid
+	VisionMode  engine.VisionMode
+	FrameCount  int
 }
 
 func (bs *Battlescape) AddMessage(msg string) {
@@ -182,7 +186,9 @@ func NewBattlescape(g *engine.Game, squad []*soldier.Soldier, ufoName string) *B
 		IsNight: g.GameTime.Hour() < 6 || g.GameTime.Hour() > 18,
 		Camera:   engine.NewCamera(3, m.Height-3),
 		Particles: engine.NewParticleSystem(512),
+		Gas:       NewGasGrid(m.Width, m.Height),
 	}
+	m.Gas = bs.Gas
 
 	bs.AddMessage(fmt.Sprintf(language.String("MSG_MISSION_START"), ufoName))
 
@@ -258,10 +264,14 @@ func (bs *Battlescape) ComputeFOVForTeam() {
 			bs.Game.LearnAlien(u.AlienType.Name, 1)
 		}
 	}
+	bs.Gas.Visible = func(x, y int) bool {
+		return bs.Map.IsVisible(x, y)
+	}
 }
 
 func (bs *Battlescape) Update() {
 	dt := 0.016
+	bs.FrameCount++
 	bs.Camera.UpdateShake(dt)
 	bs.Particles.Update(dt)
 
@@ -334,6 +344,7 @@ func (bs *Battlescape) executeAlienAction(action AlienAction) {
 		if hit {
 			engine.SpawnExplosion(bs.Particles, action.Target.X-bs.ScrollX+1, action.Target.Y-bs.ScrollY+1, tcell.NewRGBColor(255, 80, 30), 8)
 			bs.Camera.TriggerShake(0.5)
+			bs.SpawnBloodSplatter(action.Target)
 			name := action.Target.Soldier.Name
 			if action.Target.AlienType != nil {
 				name = action.Target.AlienType.Name
@@ -358,6 +369,7 @@ func (bs *Battlescape) executeAlienAction(action AlienAction) {
 		if action.Target.HP <= 0 {
 			action.Target.Alive = false
 		}
+		bs.SpawnBloodSplatter(action.Target)
 		bs.Projectile = &Projectile{
 			FromX: action.Unit.X, FromY: action.Unit.Y,
 			ToX: action.Target.X, ToY: action.Target.Y,
@@ -499,6 +511,8 @@ func (bs *Battlescape) finishAlienTurn() {
 	bs.ComputeFOVForTeam()
 	bs.Turn++
 	bs.learnFromKills()
+	bs.Gas.Diffuse()
+	bs.Map.SpreadFire()
 	bs.checkVictory()
 }
 
@@ -678,6 +692,11 @@ func (bs *Battlescape) FireWeapon() {
 		audio.PlayHit()
 		engine.SpawnExplosion(bs.Particles, target.X-bs.ScrollX+1, target.Y-bs.ScrollY+1, tcell.NewRGBColor(255, 80, 30), 8)
 		bs.Camera.TriggerShake(0.5)
+		bs.SpawnBloodSplatter(target)
+		w := data.RuleItems[bs.Selected.Weapon]
+		if w.Type == "plasma" || w.Type == "explosive" {
+			bs.SpawnFire(target.X, target.Y, 3)
+		}
 		name := "alien"
 		if target.AlienType != nil {
 			name = target.AlienType.Name
@@ -795,7 +814,34 @@ func (bs *Battlescape) Grenade() {
 				u.HP = 0
 				u.Alive = false
 			}
+			bs.SpawnBloodSplatter(u)
 		}
+	}
+
+	splashRadius := 2
+	for dy := -splashRadius; dy <= splashRadius; dy++ {
+		for dx := -splashRadius; dx <= splashRadius; dx++ {
+			if dx*dx+dy*dy > splashRadius*splashRadius {
+				continue
+			}
+			tx, ty := ax+dx, ay+dy
+			if bs.Map.IsDestructible(tx, ty) {
+				if bs.Map.DestroyWall(tx, ty) {
+					SpawnRubble(bs.Particles, tx-bs.ScrollX+1, ty-bs.ScrollY+1)
+				}
+			}
+			if tx >= 0 && tx < bs.Map.Width && ty >= 0 && ty < bs.Map.Height {
+				tile := bs.Map.At(tx, ty)
+				if tile.IsFlammable() && tile.Fire <= 0 && rand.Intn(3) == 0 {
+					bs.SpawnFire(tx, ty, 3)
+				}
+			}
+		}
+	}
+
+	bs.Gas.Set(ax, ay, 3, GasSmoke)
+	for _, d := range [][2]int{{0, -1}, {0, 1}, {-1, 0}, {1, 0}} {
+		bs.Gas.Set(ax+d[0], ay+d[1], 2, GasSmoke)
 	}
 
 	audio.PlayGrenade()
@@ -842,6 +888,29 @@ func (bs *Battlescape) UseMedikit() {
 	bs.AddMessage(fmt.Sprintf(language.String("MSG_HEALED"), name, healAmount, target.HP, target.MaxHP))
 }
 
+func SpawnRubble(ps *engine.ParticleSystem, x, y int) {
+	rubbleChars := []rune{'.', '*', ',', '\''}
+	styles := []tcell.Style{
+		tcell.StyleDefault.Foreground(tcell.NewRGBColor(120, 100, 80)),
+		tcell.StyleDefault.Foreground(tcell.NewRGBColor(90, 80, 70)),
+		tcell.StyleDefault.Foreground(tcell.NewRGBColor(150, 130, 100)),
+		tcell.StyleDefault.Foreground(tcell.NewRGBColor(100, 90, 75)),
+	}
+	for i := 0; i < 4; i++ {
+		vx := (rand.Float64() - 0.5) * 3
+		vy := -2 - rand.Float64()*3
+		ps.Spawn(
+			float64(x)+rand.Float64()*0.4-0.2,
+			float64(y)+rand.Float64()*0.4-0.2,
+			vx, vy,
+			rubbleChars[i],
+			styles[i],
+			0.8+rand.Float64()*0.4,
+			0.6,
+		)
+	}
+}
+
 func (bs *Battlescape) PsiAttack() {
 	if bs.Selected == nil || bs.Phase != PhasePlayerTurn {
 		return
@@ -883,7 +952,11 @@ func (bs *Battlescape) PsiAttack() {
 
 func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 	w, h := ctx.Size()
-	viewW := w - sidebarW - 2
+	bs.SidebarW = w / 3
+	if bs.SidebarW < 20 {
+		bs.SidebarW = 20
+	}
+	viewW := w - bs.SidebarW - 2
 	if viewW < 10 {
 		viewW = 10
 	}
@@ -1040,9 +1113,37 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 				}
 			}
 
+			tile = bs.Map.At(mx, my)
+			if tile.Fire > 0 {
+				fireFrame := (bs.FrameCount / 4) % 3
+				switch fireFrame {
+				case 0:
+					ch = '^'
+					style = tcell.StyleDefault.Foreground(tcell.ColorYellow).Background(tcell.NewRGBColor(40, 20, 0))
+				case 1:
+					ch = 'w'
+					style = tcell.StyleDefault.Foreground(tcell.ColorOrange).Background(tcell.NewRGBColor(50, 15, 0))
+				case 2:
+					ch = '*'
+					style = tcell.StyleDefault.Foreground(tcell.ColorRed).Background(tcell.NewRGBColor(30, 10, 0))
+				}
+			} else if tile.Blood > 0 {
+				ch = bloodRunes[tile.Blood]
+				switch tile.Blood {
+				case 1:
+					style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(140, 10, 10))
+				case 2:
+					style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(20, 180, 20))
+				case 3:
+					style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(160, 30, 200))
+				}
+			}
+
 			ctx.SetCell(x+1, y+1, ch, style)
 		}
 	}
+
+	bs.Gas.Draw(ctx, bs.ScrollX, bs.ScrollY, viewW, viewH)
 
 	if bs.IsNight {
 		for _, u := range bs.Units {
@@ -1117,6 +1218,22 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 
 	bs.Particles.Draw(ctx.ScreenRaw)
 
+	if bs.VisionMode != engine.VisionNormal {
+		var entities []engine.ThermalEntity
+		if bs.VisionMode == engine.VisionThermal {
+			for _, u := range bs.Units {
+				if u.Alive {
+					sx := u.X - bs.ScrollX + 1
+					sy := u.Y - bs.ScrollY + 1
+					if sx >= 1 && sx < viewW+1 && sy >= 1 && sy < viewH+1 {
+						entities = append(entities, engine.ThermalEntity{X: sx, Y: sy})
+					}
+				}
+			}
+		}
+		engine.ApplyVisionFilter(ctx.ScreenRaw, bs.VisionMode, entities)
+	}
+
 	// Draw sidebar border
 	sidebarX := viewW + 2
 	for y := 0; y < viewH; y++ {
@@ -1130,8 +1247,8 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 		sy++
 
 		name := bs.Selected.Soldier.Name
-		if len(name) > sidebarW-1 {
-			name = name[:sidebarW-1]
+		if len(name) > bs.SidebarW-1 {
+			name = name[:bs.SidebarW-1]
 		}
 		ctx.DrawString(sidebarX, sy, name, engine.StyleDefault.Bold(true))
 		sy++
@@ -1190,8 +1307,8 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 		} else if u.Faction == 2 {
 			name = u.CivName
 		}
-		if len(name) > sidebarW-1 {
-			name = name[:sidebarW-1]
+		if len(name) > bs.SidebarW-1 {
+			name = name[:bs.SidebarW-1]
 		}
 		ctx.DrawString(sidebarX, sy, name, engine.StyleDefault.Bold(true))
 		sy++
@@ -1213,8 +1330,8 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 	}
 	for i := 0; i < availableLines && startIdx+i < logEntries; i++ {
 		msg := bs.Log[startIdx+i]
-		if len(msg) > sidebarW-1 {
-			msg = msg[:sidebarW-1]
+		if len(msg) > bs.SidebarW-1 {
+			msg = msg[:bs.SidebarW-1]
 		}
 		ctx.DrawString(sidebarX, sy+i, msg, engine.StyleDefault)
 	}
@@ -1236,7 +1353,20 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 
 	tile := bs.Map.At(bs.CursorX, bs.CursorY)
 	cursorStr := fmt.Sprintf(language.String("STATUS_CURSOR"), bs.CursorX, bs.CursorY, tileTypeName(tile.Type))
-	ctx.DrawString(w-30, h-3, cursorStr, engine.StyleGray)
+	cursorX := w - len(cursorStr) - 2
+	if bs.Selected != nil {
+		selX := w / 2
+		selEnd := selX + len(fmt.Sprintf(language.String("STATUS_SELECTED"),
+			bs.Selected.Soldier.Name, bs.Selected.HP, bs.Selected.MaxHP,
+			bs.Selected.TU, bs.Selected.MaxTU, data.RuleItems[bs.Selected.Weapon].ShortName))
+		if cursorX < selEnd+2 {
+			cursorX = selEnd + 2
+		}
+	}
+	if cursorX < 2 {
+		cursorX = 2
+	}
+	ctx.DrawString(cursorX, h-3, cursorStr, engine.StyleGray)
 
 	if bs.Message != "" {
 		ctx.DrawString(2, h-2, bs.Message, engine.StyleYellow)
@@ -1315,8 +1445,53 @@ func (bs *Battlescape) HandleKey(e *tcell.EventKey) {
 		bs.PsiAttack()
 	case "n", "N":
 		bs.EndTurn()
+	case "v", "V":
+		bs.ToggleVision()
 	case ".":
 		bs.MoveSelected()
+	}
+}
+
+func (bs *Battlescape) SpawnBloodSplatter(target *Unit) {
+	bloodType := 1
+	if target.Faction == 1 {
+		if target.AlienType != nil {
+			switch target.AlienType.Name {
+			case "Muton", "Muton Navigator", "Muton Commander",
+				"Chryssalid", "Chryssalid Queen", "Hyperworm":
+				bloodType = 2
+			default:
+				bloodType = 3
+			}
+		} else {
+			bloodType = 3
+		}
+	}
+	bs.Map.SpawnBlood(target.X, target.Y, bloodType)
+}
+
+func (bs *Battlescape) SpawnFire(x, y, turns int) {
+	if x < 0 || x >= bs.Map.Width || y < 0 || y >= bs.Map.Height {
+		return
+	}
+	tile := &bs.Map.Tiles[y][x]
+	if tile.Fire > 0 {
+		return
+	}
+	tile.Fire = turns
+}
+
+func (bs *Battlescape) ToggleVision() {
+	switch bs.VisionMode {
+	case engine.VisionNormal:
+		bs.VisionMode = engine.VisionNight
+		bs.AddMessage("NIGHT VISION ON")
+	case engine.VisionNight:
+		bs.VisionMode = engine.VisionThermal
+		bs.AddMessage("THERMAL VISION ON")
+	case engine.VisionThermal:
+		bs.VisionMode = engine.VisionNormal
+		bs.AddMessage("NORMAL VISION")
 	}
 }
 
@@ -1327,29 +1502,37 @@ func (bs *Battlescape) HandleMouse(e *tcell.EventMouse) {
 
 	// Handle help bar clicks (bottom bar)
 	if y == scrH-1 {
-		// Help bar: " hjkl/WSAD=Move Space/Enter=Act q=Cycle f=Fire r=Reload g=Grenade m=Medikit e=End c=Crouch"
-		switch {
-		case x >= 22 && x <= 25: // q=Cycle
-			bs.cycleUnit(1)
-		case x >= 27 && x <= 31: // f=Fire
-			bs.FireWeapon()
-		case x >= 33 && x <= 39: // r=Reload
-			bs.Reload()
-		case x >= 41 && x <= 51: // g=Grenade
-			bs.Grenade()
-		case x >= 53 && x <= 63: // m=Medikit
-			bs.UseMedikit()
-		case x >= 65 && x <= 69: // e=End
-			bs.EndTurn()
-		case x >= 71 && x <= 77: // c=Crouch
-			bs.Crouch()
+	help := "[hjkl]/[WSAD]=Move [Space]/[Enter]=Act [q]=Cycle [f]=Fire [r]=Reload [g]=Grenade [m]=Medikit [e]=End [c]=Crouch [v]=Vision"
+		helpActions := []string{"=Move", "=Act", "=Cycle", "=Fire", "=Reload", "=Grenade", "=Medikit", "=End", "=Crouch"}
+		helpFuncs := []func(){
+			nil, nil,
+			func() { bs.cycleUnit(1) },
+			func() { bs.FireWeapon() },
+			func() { bs.Reload() },
+			func() { bs.Grenade() },
+			func() { bs.UseMedikit() },
+			func() { bs.EndTurn() },
+			func() { bs.Crouch() },
+		}
+		off := 1 // help text starts at x=1
+		for i, action := range helpActions {
+			pos := strings.Index(help, action)
+			if pos < 0 {
+				continue
+			}
+			start := off + pos
+			end := off + pos + len(action)
+			if x >= start && x <= end && helpFuncs[i] != nil {
+				helpFuncs[i]()
+				return
+			}
 		}
 		return
 	}
 
 	// Don't process clicks on the sidebar
 	scrW, _ := bs.Game.ScreenSize()
-	viewW := scrW - sidebarW - 2
+	viewW := scrW - bs.SidebarW - 2
 	if x >= viewW+2 {
 		bs.HoveredUnit = nil
 		return

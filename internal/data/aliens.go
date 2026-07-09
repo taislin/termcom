@@ -39,6 +39,18 @@ type AlienType struct {
 	ResistPsionic int
 
 	Lore string // autopsy flavor text
+	Portrait string // ASCII portrait
+}
+
+// GetPortrait returns the alien's portrait, generating one if not set.
+func (at *AlienType) GetPortrait() string {
+	if at.Portrait != "" {
+		return at.Portrait
+	}
+	// Fallback procedural generation (1w x 2h)
+	heads := []rune{'o', 'O', '0', '@', 'X', 'Y', 'A'}
+	bodies := []rune{'|', 'I', 'V', 'A', ']', '['}
+	return string(heads[int(at.Icon)%len(heads)]) + "\n" + string(bodies[int(at.Icon)%len(bodies)])
 }
 
 var AlienTypes = []AlienType{

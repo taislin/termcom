@@ -3,6 +3,7 @@ package geo
 import (
 	"fmt"
 	"math/rand"
+	"strings"
 	"time"
 
 	"github.com/civ13/ycom/internal/audio"
@@ -907,6 +908,60 @@ func (gs *Geoscape) renderMinimap(ctx *engine.ScreenCtx, x, y, w, h int) {
 		}
 		ctx.SetCell(sx, sy, ch, style)
 	}
+
+	// Draw crash sites
+	for _, cs := range gs.CrashSites {
+		c := gs.CityByID(cs.NodeID)
+		if c == nil {
+			continue
+		}
+		sx := x + 1 + (c.X * innerW / worldW)
+		sy := y + 1 + (c.Y * innerH / worldH)
+		if sx <= x || sx >= x+w-1 || sy <= y || sy >= y+h-1 {
+			continue
+		}
+		if cs.Looted {
+			ctx.SetCell(sx, sy, '*', engine.StyleGray)
+		} else {
+			ctx.SetCell(sx, sy, '*', engine.StyleYellow.Bold(true))
+		}
+	}
+
+	// Draw UFOs
+	for _, u := range gs.UFOs.Active() {
+		sx := x + 1 + int(u.X*float64(innerW)/float64(worldW))
+		sy := y + 1 + int(u.Y*float64(innerH)/float64(worldH))
+		if sx <= x || sx >= x+w-1 || sy <= y || sy >= y+h-1 {
+			continue
+		}
+		ctx.SetCell(sx, sy, '!', engine.StyleRedBold)
+	}
+
+	// Draw interceptors
+	for _, i := range gs.Interceptors.Active() {
+		sx := x + 1 + int(i.X*float64(innerW)/float64(worldW))
+		sy := y + 1 + int(i.Y*float64(innerH)/float64(worldH))
+		if sx <= x || sx >= x+w-1 || sy <= y || sy >= y+h-1 {
+			continue
+		}
+		ctx.SetCell(sx, sy, '>', engine.StyleCyanBold)
+	}
+
+	// Draw transport
+	if gs.Transport != nil {
+		t := gs.Transport
+		fromCity := gs.CityByID(t.FromNode)
+		toCity := gs.CityByID(t.ToNode)
+		if fromCity != nil && toCity != nil {
+			tx := float64(fromCity.X) + float64(toCity.X-fromCity.X)*t.Progress
+			ty := float64(fromCity.Y) + float64(toCity.Y-fromCity.Y)*t.Progress
+			sx := x + 1 + int(tx*float64(innerW)/float64(worldW))
+			sy := y + 1 + int(ty*float64(innerH)/float64(worldH))
+			if sx > x && sx < x+w-1 && sy > y && sy < y+h-1 {
+				ctx.SetCell(sx, sy, '≈', engine.StyleGreen)
+			}
+		}
+	}
 }
 
 func (gs *Geoscape) cityStyle(c *City) (rune, tcell.Style) {
@@ -1024,23 +1079,30 @@ func (gs *Geoscape) HandleMouse(e *tcell.EventMouse) {
 	w, h := gs.Game.ScreenSize()
 
 	if y == h-1 {
-		switch {
-		case x >= 1 && x <= 3:
-			gs.Game.PushState(engine.StateBase)
-		case x >= 5 && x <= 12:
-			gs.LaunchInterceptor()
-		case x >= 14 && x <= 25:
-			gs.Autoresolve()
-		case x >= 27 && x <= 36:
-			gs.RespondToMission(0)
-		case x >= 38 && x <= 47:
-			gs.sendTransportToNearest()
-		case x >= 49 && x <= 57:
-			gs.TogglePause()
-		case x >= 59 && x <= 64:
-			gs.SetSpeed(1)
-		case x >= 66 && x <= 70:
-			gs.Game.Quit()
+		help := "[j]/[k]=Select [L]=Launch [A]=Autoresolve [M]=Mission [B]=Base [R]=Transport [Space]=Pause [Q]=Quit"
+		helpActions := []string{"=Select", "=Launch", "=Autoresolve", "=Mission", "=Base", "=Transport", "=Pause", "=Quit"}
+		helpFuncs := []func(){
+			func() { gs.moveCursor(0, 1) },
+			func() { gs.LaunchInterceptor() },
+			func() { gs.Autoresolve() },
+			func() { gs.RespondToMission(0) },
+			func() { gs.Game.PushState(engine.StateBase) },
+			func() { gs.sendTransportToNearest() },
+			func() { gs.TogglePause() },
+			func() { gs.Game.Quit() },
+		}
+		off := 1
+		for i, action := range helpActions {
+			pos := strings.Index(help, action)
+			if pos < 0 {
+				continue
+			}
+			start := off + pos
+			end := off + pos + len(action)
+			if x >= start && x <= end {
+				helpFuncs[i]()
+				return
+			}
 		}
 		return
 	}

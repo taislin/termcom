@@ -338,7 +338,9 @@ is applied as damage reduction.
 | Tree | 60% | ♣ |
 | UFO Furniture | 50% | ░ ⚙ ◈ ⌁ ▤ ⊕ |
 | Bush | 40% | † |
+| Heavy Smoke | 40% | ▓ |
 | Fence | 30% | ║ |
+| Medium Smoke | 20% | ▒ |
 | Rubble | 20% | ▒ |
 
 **Strategy:** Position soldiers behind walls (80% reduction) for maximum protection.
@@ -374,6 +376,10 @@ Passable (transparent) tiles:
 - Base damage: `40 + Strength × 2`
 - Splash: enemies within distance² ≤ 4 of impact
 - Splash damage: `base - (distance² × 5)`, minimum 5
+- **Destruction:** Destroys walls, trees, rocks, fences within blast radius (radius 2),
+  converting them to rubble with reduced cover
+- **Smoke:** Creates a smoke cloud (density 3 center, density 2 adjacent) that
+  expands and thins each turn, blocking LOS at heavy density
 
 ### Medikit
 
@@ -420,8 +426,20 @@ Success: Target loses all TU for the turn. Psi resistance varies by alien specie
 The Battlescape includes dynamic visual effects:
 - **Explosions:** Grenade detonations and weapon impacts spawn particle bursts
 - **Screen shake:** Camera shakes on explosions (intensity scales with damage)
-- **Smoke:** Grenade impacts produce lingering smoke particles
+- **Smoke particles:** Grenade impacts produce lingering smoke particles
 - **Night lighting:** Units emit subtle radial glow in dark missions
+- **Volumetric gas:** Grenades create expanding smoke clouds (density 3→2→1→dissipate)
+  that block LOS at heavy density and provide cover penalties. Diffuses each turn.
+- **Destructible terrain:** Grenades destroy walls/trees/rocks in their blast radius,
+  converting them to rubble. Rubble particles fly in parabolic arcs on destruction.
+- **Vision modes:** Press `V` to cycle Normal → Night Vision → Thermal → Normal.
+  - Night Vision: green phosphor overlay with static noise
+  - Thermal: living entities glow hot (red/orange/yellow), terrain is cold (dark blue)
+- **Blood splatter:** Damage leaves persistent blood decals on floor tiles.
+  Humans bleed dark red; Mutons/Chryssalids bleed neon green; others bleed purple.
+- **Animated fire:** Plasma and explosive weapons ignite flammable tiles.
+  Fire cycles between `^`/`w`/`*` in yellow/orange/red, spreads 20% chance per turn
+  to adjacent grass/trees/bushes, and consumes the tile to ash after 3 turns.
 
 ### Map Types
 
@@ -640,6 +658,7 @@ The species seed ensures the same alien species are regenerated when loading a s
 | c | Crouch |
 | g | Throw grenade |
 | m | Use medikit |
+| v | Toggle vision mode (Normal / Night / Thermal) |
 | ? | Help |
 
 ---

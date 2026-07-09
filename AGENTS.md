@@ -45,16 +45,17 @@ internal/
   engine/screen.go         Low-level screen/cell rendering helpers + FrameBuffer
   engine/vfx.go            True-color lighting, alpha blending, half-block rendering
   engine/particles.go      Particle system with sync.Pool (explosions, smoke, rain)
+  engine/filters.go        Vision filters (night vision, thermal overlay)
   engine/water.go          Animated water with sine-wave color cycling
   engine/camera.go         Screen shake with decay and thread-safe offsets
   engine/menu.go           Title screen with per-character glow effect
-  geo/geoscape.go          Geoscape: regional dashboard, time, interceptions
-  geo/network.go           Regional hub network, minimap rendering
+  geo/geoscape.go          Geoscape: regional dashboard, time, interceptions, minimap
   geo/world.go             World map data (equirectangular ASCII)
   geo/ufo.go               UFO spawning, movement
   geo/interceptor.go       Interceptor launch, dogfight
   battle/battlescape.go    Battlescape: turn logic, TU, line-of-sight, VFX integration
   battle/map.go            Tactical map generation (crash sites, terror)
+  battle/gas.go            Volumetric smoke/poison gas grid with diffusion
   battle/unit.go           Soldiers and aliens on the tactical map
   battle/ai.go             Alien AI (patrol, seek, attack, flee)
   base/base.go             Base management screen
@@ -104,7 +105,9 @@ internal/
 | F | Fire weapon |
 | R | Reload |
 | E | End turn |
-| Enter | Open door |
-| T | Take item |
+| G | Grenade |
+| M | Medikit |
+| C | Crouch |
+| V | Toggle vision mode |
 | Esc | Cancel |
 | ? | Help |

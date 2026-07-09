@@ -162,7 +162,10 @@ func (es *EncyclopediaScreen) Render(ctx *ScreenCtx) {
 
 	listX := 1
 	listY := 5
-	listW := 30
+	listW := w / 3
+	if listW < 20 {
+		listW = 20
+	}
 	listH := h - 8
 
 	infoX := listW + 3

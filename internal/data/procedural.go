@@ -194,8 +194,15 @@ func generateVariant(rng *rand.Rand, sp *AlienSpecies, rank int) *AlienType {
 		ResistKinetic:   resistKinetic,
 		ResistPsionic:   resistPsionic,
 
-		Lore: variantLore,
+		Lore:     variantLore,
+		Portrait: generatePortrait(rng, icon),
 	}
+}
+
+func generatePortrait(rng *rand.Rand, icon rune) string {
+	heads := []rune{'o', 'O', '0', '@', 'X', 'Y', 'A', '∩', 'Ω', 'Ψ'}
+	bodies := []rune{'|', 'I', 'V', 'A', ']', '[', '⊥', 'Y'}
+	return string(heads[int(icon)%len(heads)]) + "\n" + string(bodies[int(icon)%len(bodies)])
 }
 
 // genResist generates a resistance value for a specific damage type.

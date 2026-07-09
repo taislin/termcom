@@ -55,6 +55,8 @@ type Tile struct {
 	Destroyed bool
 	Visible   bool
 	Seen      bool
+	Blood     int // 0=none, 1=human(red), 2=alien_green, 3=alien_purple
+	Fire      int // 0=none, >0=turns of fire remaining
 }
 
 // TileCover returns the base cover value for a tile type.
@@ -78,6 +80,90 @@ func TileCover(t TileType) int {
 		return 0
 	default:
 		return 0
+	}
+}
+
+func (t Tile) IsFlammable() bool {
+	switch t.Type {
+	case TileGrass, TileTree, TileBush, TileFence, TileDoor:
+		return true
+	}
+	return false
+}
+
+var bloodRunes = [4]rune{0, ',', '%', ':'}
+
+func (m *BattleMap) SpawnBlood(x, y, bloodType int) {
+	if x < 0 || x >= m.Width || y < 0 || y >= m.Height {
+		return
+	}
+	tile := &m.Tiles[y][x]
+	if tile.Type != TileFloor && tile.Type != TileGrass && tile.Type != TilePavement &&
+		tile.Type != TileSand && tile.Type != TileUFOFloor && tile.Type != TileSnow {
+		return
+	}
+	if tile.Blood == 0 {
+		tile.Blood = bloodType
+	}
+	dirs := [][2]int{{0, -1}, {0, 1}, {-1, 0}, {1, 0}}
+	for _, d := range dirs {
+		nx, ny := x+d[0], y+d[1]
+		if nx < 0 || nx >= m.Width || ny < 0 || ny >= m.Height {
+			continue
+		}
+		nt := &m.Tiles[ny][nx]
+		if nt.Type == TileFloor || nt.Type == TileGrass || nt.Type == TilePavement ||
+			nt.Type == TileSand || nt.Type == TileUFOFloor || nt.Type == TileSnow {
+			if nt.Blood == 0 && rand.Intn(3) == 0 {
+				nt.Blood = bloodType
+			}
+		}
+	}
+}
+
+func (m *BattleMap) SpreadFire() {
+	type fireSpread struct {
+		x, y int
+	}
+	var newFires []fireSpread
+
+	for y := 0; y < m.Height; y++ {
+		for x := 0; x < m.Width; x++ {
+			tile := &m.Tiles[y][x]
+			if tile.Fire <= 0 {
+				continue
+			}
+			tile.Fire--
+			if tile.Fire <= 0 {
+				tile.Type = TileFloor
+				tile.Cover = TileCover(TileFloor)
+				tile.Fire = 0
+				continue
+			}
+			if rand.Intn(100) < 20 {
+				dirs := [][2]int{{0, -1}, {0, 1}, {-1, 0}, {1, 0}}
+				for _, d := range dirs {
+					nx, ny := x+d[0], y+d[1]
+					if nx < 0 || nx >= m.Width || ny < 0 || ny >= m.Height {
+						continue
+					}
+					nt := &m.Tiles[ny][nx]
+					if nt.Fire <= 0 && nt.IsFlammable() {
+						newFires = append(newFires, fireSpread{nx, ny})
+						break
+					}
+				}
+			}
+		}
+	}
+
+	for _, f := range newFires {
+		tile := &m.Tiles[f.y][f.x]
+		if tile.Fire <= 0 && tile.IsFlammable() {
+			tile.Type = TileFloor
+			tile.Cover = TileCover(TileFloor)
+			tile.Fire = 3
+		}
 	}
 }
 
@@ -122,6 +208,7 @@ type BattleMap struct {
 	Width  int
 	Height int
 	Tiles  [][]Tile
+	Gas    *GasGrid
 }
 
 func NewBattleMap(w, h int) *BattleMap {
@@ -169,7 +256,33 @@ func (m *BattleMap) Opaque(x, y int) bool {
 	case TileWall, TileTree, TileRock, TileUFOWall, TileFence:
 		return true
 	}
+	if m.Gas != nil && m.Gas.BlocksLOS(x, y) {
+		return true
+	}
 	return false
+}
+
+func (m *BattleMap) IsDestructible(x, y int) bool {
+	t := m.At(x, y)
+	switch t.Type {
+	case TileWall, TileUFOWall, TileTree, TileRock, TileFence, TileDoor:
+		return true
+	}
+	return false
+}
+
+func (m *BattleMap) DestroyWall(x, y int) bool {
+	if x < 0 || x >= m.Width || y < 0 || y >= m.Height {
+		return false
+	}
+	tile := &m.Tiles[y][x]
+	if !m.IsDestructible(x, y) {
+		return false
+	}
+	tile.Type = TileRubble
+	tile.Cover = TileCover(TileRubble)
+	tile.Destroyed = true
+	return true
 }
 
 // CoverAlongLine returns the maximum cover value (%) of tiles between (x1,y1)

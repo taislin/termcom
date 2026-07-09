@@ -13,6 +13,11 @@ in coloured ASCII on a terminal. Written in Go with [tcell](https://github.com/g
 - **Soldier Progression** — Stats improve with combat experience, ranks from Rookie to Colonel
 - **Alien AI** — Patrol, seek, attack, and flee behaviours
 - **Multiple Alien Species** — Sectoids, Floaters, Mutons, Ethereals, Chryssalids, Cyberdiscs, and more
+- **Destructible Terrain** — Grenades destroy walls, trees, and rocks, leaving rubble
+- **Volumetric Gas** — Smoke clouds expand and thin over turns, blocking LOS and providing cover
+- **Vision Modes** — Night vision (green phosphor) and thermal overlay (heat signatures)
+- **Dynamic VFX** — Particle explosions, screen shake, rubble physics, night lighting
+- **Blood & Fire** — Persistent blood decals (faction-colored), animated fire with spread
 - **Browser Version** — Play in your web browser (experimental)
 
 ## Requirements
@@ -69,16 +74,27 @@ The browser version supports:
 | 1-4 | Time compression |
 | B | Open base |
 | L | Launch interceptor |
-| Esc | Quit |
+| A | Autoresolve nearest UFO |
+| M | Respond to mission |
+| R | Dispatch transport |
+| E | Open encyclopedia |
+| F5 / F9 | Save / Load |
+| Q | Quit |
 
 ### Battlescape
 | Key | Action |
 |-----|--------|
-| Arrow keys / hjkl | Move cursor |
-| Space | Select unit / confirm |
+| Arrow keys / hjkl / WASD | Move cursor |
+| Space / Enter | Select unit / confirm |
+| Q | Cycle soldiers |
 | F | Fire weapon |
 | R | Reload |
-| E | End turn |
+| E / N | End turn |
+| G | Grenade |
+| M | Medikit |
+| C | Crouch |
+| V | Toggle vision mode (Normal / Night / Thermal) |
+| P | Psi attack |
 | Esc | Cancel / deselect |
 | ? | Help |
 

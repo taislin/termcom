@@ -3,6 +3,7 @@ package base
 import (
 	"fmt"
 	"sort"
+	"strings"
 
 	"github.com/civ13/ycom/internal/engine"
 	"github.com/civ13/ycom/internal/language"
@@ -97,12 +98,22 @@ func (bs *BaseScreen) Render(ctx *engine.ScreenCtx) {
 	ctx.DrawPanel(0, 0, w, h-2, language.String("BASE_MANAGEMENT"), engine.StyleDefault)
 
 	tabs := []string{language.String("TAB_FACILITIES"), language.String("TAB_SOLDIERS"), language.String("TAB_RESEARCH"), language.String("TAB_MANUFACTURE"), language.String("TAB_TRANSFER")}
+	tabW := 0
+	for _, t := range tabs {
+		tw := len(t) + 4 // brackets + space
+		if tw > tabW {
+			tabW = tw
+		}
+	}
+	if tabW < 12 {
+		tabW = 12
+	}
 	for i, t := range tabs {
 		style := engine.StyleDefault
 		if i == bs.Tab {
 			style = engine.StyleHighlight
 		}
-		ctx.DrawString(2+i*14, 1, fmt.Sprintf("[%s]", t), style)
+		ctx.DrawString(2+i*tabW, 1, fmt.Sprintf("[%s]", t), style)
 	}
 
 	contentY := 3
@@ -355,28 +366,72 @@ func (bs *BaseScreen) HandleMouse(e *tcell.EventMouse) {
 
 	// Handle help bar clicks (bottom bar)
 	if y == h-1 {
-		// Help bar: "[B]uild  [H]ire  1-5=Tab  j/k=Navigate  Esc=Back"
-		switch {
-		case x >= 1 && x <= 3: // [B]uild
-			bs.Tab = 0
-			bs.BuildFacility()
-		case x >= 5 && x <= 9: // [H]ire
-			bs.Tab = 1
-			bs.HireSoldier()
-		case x >= 11 && x <= 15: // 1-5=Tab
-			// Cycle tabs
-			bs.Tab = (bs.Tab + 1) % 5
-			bs.Selection = 0
-		case x >= 24 && x <= 30: // Esc=Back
-			bs.Game.PopState()
+		help := language.String("HELP_BASE")
+		if bs.Tab == 0 {
+			help = language.String("HELP_FACILITIES")
+		} else if bs.Tab == 1 {
+			help = language.String("HELP_SOLDIERS")
+		} else if bs.Tab == 2 {
+			help = language.String("HELP_TAB_RESEARCH")
+		} else if bs.Tab == 3 {
+			help = language.String("HELP_TAB_MANUFACTURE")
+		}
+		helpActions := []string{"=Build", "=Sell", "=Hire", "=Equip", "=Dismiss", "=Research", "=Manufacture", "=Tab", "=Navigate", "=Back"}
+		helpFuncs := []func(){
+			func() { bs.Tab = 0; bs.BuildFacility() },
+			func() { bs.SellFacility() },
+			func() { bs.HireSoldier() },
+			func() {
+				if bs.Tab == 1 && len(bs.Base.Soldiers) > 0 {
+					bs.Game.PushState(engine.StateEquip)
+				}
+			},
+			func() { bs.DismissSoldier() },
+			func() {
+				if bs.Tab == 2 {
+					bs.Game.PushState(engine.StateResearch)
+				}
+			},
+			func() {
+				if bs.Tab == 3 {
+					bs.Game.PushState(engine.StateManufacture)
+				}
+			},
+			func() { bs.Tab = (bs.Tab + 1) % 5; bs.Selection = 0 },
+			nil,
+			func() { bs.Game.PopState() },
+		}
+		off := 2
+		for i, action := range helpActions {
+			pos := strings.Index(help, action)
+			if pos < 0 {
+				continue
+			}
+			start := off + pos
+			end := off + pos + len(action)
+			if x >= start && x <= end && helpFuncs[i] != nil {
+				helpFuncs[i]()
+				return
+			}
 		}
 		return
 	}
 
 	if y == 1 {
+		tabs := []string{language.String("TAB_FACILITIES"), language.String("TAB_SOLDIERS"), language.String("TAB_RESEARCH"), language.String("TAB_MANUFACTURE"), language.String("TAB_TRANSFER")}
+		tabW := 0
+		for _, t := range tabs {
+			tw := len(t) + 4
+			if tw > tabW {
+				tabW = tw
+			}
+		}
+		if tabW < 12 {
+			tabW = 12
+		}
 		for i := 0; i < 5; i++ {
-			tx := 2 + i*14
-			if x >= tx && x <= tx+12 {
+			tx := 2 + i*tabW
+			if x >= tx && x <= tx+len(tabs[i])+2 {
 				bs.Tab = i
 				bs.Selection = 0
 				return
