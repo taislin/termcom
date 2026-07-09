@@ -104,7 +104,7 @@ func (bs *BaseScreen) Update() {}
 func (bs *BaseScreen) Render(ctx *engine.ScreenCtx) {
 	w, h := ctx.Size()
 
-	ctx.DrawPanel(0, 0, w, h-2, language.String("BASE_MANAGEMENT"), engine.StyleDefault)
+	ctx.DrawPanel(0, 0, w, h-3, language.String("BASE_MANAGEMENT"), engine.StyleDefault)
 
 	tabs := []string{language.String("TAB_FACILITIES"), language.String("TAB_SOLDIERS"), language.String("TAB_RESEARCH"), language.String("TAB_MANUFACTURE"), language.String("TAB_TRANSFER"), "Hangars"}
 	tabW := 0
@@ -141,26 +141,27 @@ func (bs *BaseScreen) Render(ctx *engine.ScreenCtx) {
 		bs.renderHangars(ctx, 2, contentY, w-4, h-6)
 	}
 
-	ctx.DrawPanel(0, h-2, w, 2, "", engine.StyleDefault)
 	cap := bs.Base.LivingCapacity()
 	soldStr := fmt.Sprintf(language.String("BASE_SOLDIERS"), len(bs.Base.Soldiers), cap)
-	ctx.DrawString(2, h-2, fmt.Sprintf(language.String("BASE_PERSONNEL"), bs.Base.Scientists, bs.Base.Engineers, soldStr), engine.StyleDefault)
+	ctx.DrawString(2, h-3, fmt.Sprintf(language.String("BASE_PERSONNEL"), bs.Base.Scientists, bs.Base.Engineers, soldStr), engine.StyleDefault)
+	fundsStr := fmt.Sprintf("Funds: $%dK", bs.Game.Funds/1000)
+	ctx.DrawString(w/2, h-3, fundsStr, engine.StyleGreen)
 	if bs.Message != "" {
-		ctx.DrawString(w/2, h-2, bs.Message, engine.StyleYellow)
+		ctx.DrawString(w*3/4, h-3, bs.Message, engine.StyleYellow)
 	}
 	help := language.String("HELP_BASE")
 	if bs.Tab == 0 {
 		help = language.String("HELP_FACILITIES")
 	} else if bs.Tab == 1 {
-		help = language.String("HELP_SOLDIERS")
+		help = fmt.Sprintf("[H]ire ($%dK)  [E]quip  [D]ismiss  [j]/[k]=Navigate  [Esc]=Back", HireCost/1000)
 	} else if bs.Tab == 2 {
 		help = language.String("HELP_TAB_RESEARCH")
 	} else if bs.Tab == 3 {
 		help = language.String("HELP_TAB_MANUFACTURE")
 	} else if bs.Tab == 5 {
-		help = "[B]uy [R]earm j/k=Navigate Esc=Back"
+		help = "[B]uy  [W]=Weapon  [\u2191]/[\u2193]=Navigate  [Esc]=Back"
 	}
-	ctx.DrawString(2, h-1, help, engine.StyleGray)
+	ctx.DrawMarkupString(2, h-1, help, engine.StyleGray, engine.StyleHotkey)
 }
 
 func (bs *BaseScreen) renderFacilities(ctx *engine.ScreenCtx, x, y, w, h int) {
@@ -224,9 +225,6 @@ func (bs *BaseScreen) renderSoldiers(ctx *engine.ScreenCtx, x, y, w, h int) {
 			ctx.DrawString(x, y+3+i, line, style)
 		}
 	}
-
-	info := fmt.Sprintf(language.String("INFO_HIRE_COST"), HireCost/1000)
-	ctx.DrawString(x, y+h-1, info, engine.StyleGray)
 }
 
 func (bs *BaseScreen) renderResearch(ctx *engine.ScreenCtx, x, y, w, h int) {
@@ -283,21 +281,22 @@ func (bs *BaseScreen) renderTransfer(ctx *engine.ScreenCtx, x, y, w, h int) {
 func (bs *BaseScreen) renderHangars(ctx *engine.ScreenCtx, x, y, w, h int) {
 	ctx.DrawString(x, y, "HANGARS:", engine.StyleCyanBold)
 	y += 2
-	for i, hg := range bs.Base.Hangars {
+	idx := 0
+	for _, hg := range bs.Base.Hangars {
+		if hg.Status == "Destroyed" {
+			continue
+		}
 		style := engine.StyleDefault
-		if i == bs.Selection {
+		if idx == bs.Selection {
 			style = engine.StyleHighlight
 		}
 		wpn := data.InterceptorWeapons[hg.WeaponKey]
-		line := fmt.Sprintf("Hangar %d: [%s] HP:%d/%d %s (A:%d)", i+1, hg.Status, hg.HP, hg.MaxHP, wpn.Name, hg.Ammo)
-		ctx.DrawString(x, y+i, line, style)
+		line := fmt.Sprintf("Hangar %d: [%s] HP:%d/%d %s (A:%d)", idx+1, hg.Status, hg.HP, hg.MaxHP, wpn.Name, hg.Ammo)
+		ctx.DrawString(x, y+idx, line, style)
+		idx++
 	}
-	if len(bs.Base.Hangars) == 0 {
+	if idx == 0 {
 		ctx.DrawString(x, y, "No interceptors in hangars. Press [B] to buy.", engine.StyleGray)
-	}
-	ly := y + len(bs.Base.Hangars) + 2
-	if ly < y+h {
-		ctx.DrawString(x, ly, "j/k=Select w=Change Weapon b=Buy", engine.StyleGray)
 	}
 }
 
@@ -355,32 +354,6 @@ func (bs *BaseScreen) HandleKey(e *tcell.EventKey) {
 		bs.Tab = 4
 	case "6":
 		bs.Tab = 5
-	case "j":
-		bs.Selection++
-		if bs.Tab == 1 {
-			if bs.Selection >= len(bs.Base.Soldiers) {
-				bs.Selection = 0
-			}
-		} else if bs.Tab == 5 {
-			if bs.Selection >= len(bs.Base.Hangars) {
-				bs.Selection = 0
-			}
-		} else {
-			if bs.Selection > 6 {
-				bs.Selection = 0
-			}
-		}
-	case "k":
-		bs.Selection--
-		if bs.Selection < 0 {
-			if bs.Tab == 1 {
-				bs.Selection = len(bs.Base.Soldiers) - 1
-			} else if bs.Tab == 5 {
-				bs.Selection = len(bs.Base.Hangars) - 1
-			} else {
-				bs.Selection = 6
-			}
-		}
 	case "b", "B":
 		if bs.Tab == 5 {
 			bs.BuyInterceptor()

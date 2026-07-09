@@ -134,16 +134,6 @@ func (ms *MenuScreen) HandleKey(e *tcell.EventKey) {
 		ms.confirm()
 	}
 	switch e.Str() {
-	case "j":
-		ms.Selection++
-		if ms.Selection > maxSel {
-			ms.Selection = 0
-		}
-	case "k":
-		ms.Selection--
-		if ms.Selection < 0 {
-			ms.Selection = maxSel
-		}
 	case "q", "Q":
 		ms.Game.Quit()
 	case "1":

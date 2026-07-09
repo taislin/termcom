@@ -156,8 +156,8 @@ func TestFromBaseToBase(t *testing.T) {
 	if b2.CountItem("elerium") != 5 {
 		t.Errorf("expected 5 elerium, got %d", b2.CountItem("elerium"))
 	}
-	if len(b2.Facilities) != 1 {
-		t.Errorf("expected 1 facility, got %d", len(b2.Facilities))
+	if len(b2.Facilities) != 2 {
+		t.Errorf("expected 2 facilities (hangar + storage), got %d", len(b2.Facilities))
 	}
 }
 

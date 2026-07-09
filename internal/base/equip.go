@@ -207,18 +207,6 @@ func (es *EquipScreen) HandleKey(e *tcell.EventKey) {
 		}
 	}
 	switch e.Str() {
-	case "j":
-		es.SelectedSol++
-		if es.SelectedSol >= len(es.Base.Soldiers) {
-			es.SelectedSol = 0
-		}
-		es.CycleIdx = 0
-	case "k":
-		es.SelectedSol--
-		if es.SelectedSol < 0 {
-			es.SelectedSol = len(es.Base.Soldiers) - 1
-		}
-		es.CycleIdx = 0
 	case "1":
 		es.SelectedSlot = 0
 		es.CycleIdx = 0
@@ -240,7 +228,7 @@ func (es *EquipScreen) HandleMouse(e *tcell.EventMouse) {
 
 	// Handle help bar clicks (bottom bar)
 	if y == h-1 {
-		// Help bar: "j/k=Select  1=Weapon  2=Armor  Space=Equip  Esc=Back"
+		// Help bar: "j/k=Select  1=Weapon  2=Armor  Space=Equip  [Esc]=Back"
 		switch {
 		case x >= 1 && x <= 3: // j/k=Select
 			// Scroll down
@@ -253,7 +241,7 @@ func (es *EquipScreen) HandleMouse(e *tcell.EventMouse) {
 			es.SelectedSlot = 1
 		case x >= 21 && x <= 29: // Space=Equip
 			es.equipSelected()
-		case x >= 31 && x <= 37: // Esc=Back
+		case x >= 31 && x <= 37: // [Esc]=Back
 			es.Game.PopState()
 		}
 		return

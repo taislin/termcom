@@ -1283,7 +1283,11 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 			tile := bs.Map.At(mx, my)
 
 			if !tile.Seen {
-				ctx.SetCell(x+1, y+1, ' ', engine.StyleDefault)
+				if bs.IsNight {
+					ctx.SetCell(x+1, y+1, ' ', blackStyle)
+				} else {
+					ctx.SetCell(x+1, y+1, ' ', engine.StyleDefault)
+				}
 				continue
 			}
 
@@ -1743,14 +1747,6 @@ func (bs *Battlescape) HandleKey(e *tcell.EventKey) {
 		bs.Reload()
 	case "e", "E":
 		bs.EndTurn()
-	case "h", "H":
-		bs.MoveCursor(-1, 0)
-	case "j", "J":
-		bs.MoveCursor(0, 1)
-	case "k", "K":
-		bs.MoveCursor(0, -1)
-	case "l", "L":
-		bs.MoveCursor(1, 0)
 	case "q", "Q":
 		bs.cycleUnit(1)
 	case "w", "W":

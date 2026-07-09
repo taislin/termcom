@@ -9,7 +9,7 @@ func init() {
 		"MENU_CONTINUE":       "Continue",
 		"MENU_LOAD_GAME":      "Load Game",
 		"MENU_QUIT":           "Quit",
-		"MENU_HELP":           "j/k=Select  Enter=Confirm  Q=Quit  F5=Save  F9=Load",
+		"MENU_HELP":           "\u2191/\u2193=Select  Enter=Confirm  Q=Quit  F5=Save  F9=Load",
 
 		// ── Geoscape ──────────────────────────────────────
 		"GEOSCAPE":            "GEOSCAPE",
@@ -63,7 +63,7 @@ func init() {
 		"MSG_INTERCEPTOR_PATROL":  "Interceptor patrolling %s",
 		"MSG_UFO_DETECTED":        "%s detected near %s!",
 		"ENCYCLOPEDIA":            "ENCYCLOPEDIA",
-		"HELP_ENCYCLOPEDIA":       "h/l=Tab  j/k=Navigate  Esc=Back",
+		"HELP_ENCYCLOPEDIA":       "[\u2190]/[\u2192]=Tab  [\u2191]/[\u2193]=Navigate  [Esc]=Back",
 		"MSG_SAVE_FAILED":         "Save failed: ",
 		"MSG_GAME_SAVED":          "Game saved to xcom_save.json",
 		"MSG_LOAD_FAILED":         "Load failed: ",
@@ -112,7 +112,7 @@ func init() {
 		"SIDE_POS":             "[%d,%d]",
 		"SIDE_CROUCH":          "Crouching",
 		"SIDE_NONE":            "(none)",
-		"BATTLE_HELP":          " hjkl/WSAD=Move Space/Enter=Act q=Cycle f=Fire r=Reload g=Grenade m=Medikit p=Psi e=End c=Crouch",
+		"BATTLE_HELP":          " Arrow/WSAD=Move Space/Enter=Act q=Cycle f=Fire r=Reload g=Grenade m=Medikit p=Psi e=End c=Crouch",
 
 		// Phases
 		"PHASE_YOUR_TURN":      "YOUR TURN",
@@ -204,11 +204,11 @@ func init() {
 		"BASE_PERSONNEL":       "Scientists: %d  Engineers: %d  %s",
 
 		// Help bars
-		"HELP_BASE":            "[B]uild  [H]ire  1-5=Tab  j/k=Navigate  Esc=Back",
-		"HELP_FACILITIES":      "[B]uild  [S]ell  j/k=Navigate  Esc=Back",
-		"HELP_SOLDIERS":        "[H]ire  [E]quip  [D]ismiss  j/k=Navigate  Esc=Back",
-		"HELP_TAB_RESEARCH":    "[R]esearch  j/k=Navigate  Esc=Back",
-		"HELP_TAB_MANUFACTURE": "[M]anufacture  j/k=Navigate  Esc=Back",
+		"HELP_BASE":            "[B]uild  [H]ire  1-5=Tab  [\u2191]/[\u2193]=Navigate  [Esc]=Back",
+		"HELP_FACILITIES":      "[B]uild  [S]ell  [\u2191]/[\u2193]=Navigate  [Esc]=Back",
+		"HELP_SOLDIERS":        "[H]ire  [E]quip  [D]ismiss  [\u2191]/[\u2193]=Navigate  [Esc]=Back",
+		"HELP_TAB_RESEARCH":    "[R]esearch  [\u2191]/[\u2193]=Navigate  [Esc]=Back",
+		"HELP_TAB_MANUFACTURE": "[M]anufacture  [\u2191]/[\u2193]=Navigate  [Esc]=Back",
 
 		// Section labels
 		"SECTION_FACILITIES":   "FACILITIES:",
@@ -260,8 +260,8 @@ func init() {
 		"LABEL_WEAPON":         "Weapon:",
 		"LABEL_ARMOR":          "Armor:",
 		"SECTION_AVAILABLE":    "AVAILABLE IN STORES:",
-		"HELP_EQUIP":           "j/k=Select  1=Weapon  2=Armor  Space=Equip  Esc=Back",
-		"HELP_EQUIP_TAB":       "j/k=Soldier  Tab=Cycle  1=Wpn  2=Arm  Space=Equip  Esc=Back",
+		"HELP_EQUIP":           "\u2191/\u2193=Select  1=Weapon  2=Armor  Space=Equip  [Esc]=Back",
+		"HELP_EQUIP_TAB":       "\u2191/\u2193=Soldier  Tab=Cycle  1=Wpn  2=Arm  Space=Equip  [Esc]=Back",
 		"MSG_NO_ITEMS":         "No items available!",
 		"MSG_EQUIPPED":         "Equipped %s.",
 		"MSG_EQUIPPED_DONE":    "Equipped.",
@@ -275,7 +275,7 @@ func init() {
 		"NO_ACTIVE_RESEARCH":   "No active research. Select a topic below.",
 		"AVAILABLE_TOPICS":     "AVAILABLE TOPICS:",
 		"NO_TOPICS":            "No topics available. Collect more artifacts.",
-		"HELP_RESEARCH":        "j/k=Select  Enter=Start  Esc=Back",
+		"HELP_RESEARCH":        "\u2191/\u2193=Select  Enter=Start  [Esc]=Back",
 		"RESEARCH_REQUIRES":    " [Requires: %s]",
 		"RESEARCH_COST":        "%-25s Cost: %d man-days%s",
 		"MSG_RESEARCH_STARTED": "Research started: %s",
@@ -289,7 +289,7 @@ func init() {
 		"MFG_DONE":             " [DONE]",
 		"MFG_BUILDABLE":        "BUILDABLE ITEMS:",
 		"MFG_NO_ITEMS":         "No items available. Collect more alloys/elerium.",
-		"HELP_MANUFACTURE":     "j/k=Select  Enter=Build  Esc=Back",
+		"HELP_MANUFACTURE":     "\u2191/\u2193=Select  Enter=Build  [Esc]=Back",
 		"MSG_MFG_STARTED":      "Manufacturing started: %s",
 		"MSG_CANNOT_MFG":       "Cannot manufacture!",
 
@@ -400,7 +400,7 @@ func init() {
 
 		// ── Help pages ────────────────────────────────────
 		"HELP_TITLE":           "HELP",
-		"HELP_NAV":             "Left/Right or Tab=Page  Esc=Back",
+		"HELP_NAV":             "Left/Right or Tab=Page  [Esc]=Back",
 
 		// Geoscape help
 		"HELP_GEO_TITLE":       "GEOSCAPE",
@@ -427,7 +427,7 @@ func init() {
 		"HELP_BASE_TITLE":      "BASE MANAGEMENT",
 		"HELP_BASE_CONTROLS":   "#Controls:",
 		"HELP_BASE_TABS":       ">1-5 or Left/Right   Switch tabs",
-		"HELP_BASE_NAV":        ">j/k or Up/Down      Navigate",
+		"HELP_BASE_NAV":        ">\u2191/\u2193 or Up/Down      Navigate",
 		"HELP_BASE_BACK":       ">Esc                 Back to geoscape",
 		"HELP_BASE_NAMES":      "#Tabs:",
 		"HELP_BASE_FAC":        ">Facilities  Build/sell base facilities",
@@ -447,7 +447,7 @@ func init() {
 		// Battlescape help
 		"HELP_BAT_TITLE":       "BATTLESCAPE",
 		"HELP_BAT_CONTROLS":    "#Controls:",
-		"HELP_BAT_MOVE":        ">hjkl / Arrow keys   Move cursor",
+		"HELP_BAT_MOVE":        ">Arrow keys / WASD   Move cursor",
 		"HELP_BAT_SELECT":      ">Space / Enter       Select unit / Confirm move",
 		"HELP_BAT_CYCLE":       ">s                   Cycle soldiers",
 		"HELP_BAT_FIRE":        ">f                   Fire at target",

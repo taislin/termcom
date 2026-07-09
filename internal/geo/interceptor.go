@@ -23,6 +23,7 @@ type Interceptor struct {
 	RangeLeft  int
 	Mode       data.CombatMode
 	PilotSkill int // 0-100, affects accuracy
+	State      *data.InterceptorState
 }
 
 func NewInterceptor(baseX, baseY int) *Interceptor {
@@ -61,6 +62,7 @@ func NewInterceptorFromState(s *data.InterceptorState, baseX, baseY int) *Interc
 		TargetNode: -1,
 		Mode:       data.CombatCautious,
 		PilotSkill: 50,
+		State:      s,
 	}
 }
 
@@ -237,6 +239,14 @@ func (i *Interceptor) Disengage() {
 	i.TargetNode = -1
 	i.TargetUFO = nil
 	i.Launching = false
+	if i.State != nil {
+		i.State.HP = i.HP
+		if i.HP <= 0 {
+			i.State.Status = "Destroyed"
+		} else {
+			i.State.Status = "Available"
+		}
+	}
 }
 
 func (i *Interceptor) FireAt(ufo *UFO) int {

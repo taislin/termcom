@@ -16,6 +16,7 @@ import (
 	"github.com/civ13/ycom/internal/save"
 	"github.com/civ13/ycom/internal/soldier"
 	"github.com/gdamore/tcell/v3"
+	"github.com/gdamore/tcell/v3/color"
 )
 
 type AlienMission struct {
@@ -420,10 +421,17 @@ func (gs *Geoscape) dogfight(inter *Interceptor) {
 		if ufoDmg > 0 {
 			gs.Message = fmt.Sprintf(language.String("MSG_UFO_HIT_INTERCEPTOR"), ufoDmg, inter.HP, inter.MaxHP)
 			gs.MessageTimer = time.Now()
+			if inter.State != nil {
+				inter.State.HP = inter.HP
+			}
 		}
 		if inter.HP <= 0 {
 			gs.Message = language.String("MSG_INTERCEPTOR_DESTROYED")
 			gs.MessageTimer = time.Now()
+			if inter.State != nil {
+				inter.State.HP = 0
+				inter.State.Status = "Destroyed"
+			}
 			inter.Disengage()
 		}
 	}
@@ -811,8 +819,6 @@ func (gs *Geoscape) Render(ctx *engine.ScreenCtx) {
 		ctx.DrawString(2, h-3, gs.Message, engine.StyleDefault)
 	}
 
-	ctx.DrawPanel(0, h-1, w, 1, "", engine.StyleGray)
-	// Example hotkey highlighting
 	help := "[j]/[k]=Select [L]=Launch [A]=Autoresolve [M]=Mission [B]=Base [R]=Transport [Space]=Pause [Q]=Quit"
 	ctx.DrawMarkupString(1, h-1, help, engine.StyleGray, engine.StyleHotkey)
 }
@@ -912,13 +918,6 @@ func (gs *Geoscape) renderRegionTable(ctx *engine.ScreenCtx, x, y, w, h int) {
 
 		row++
 	}
-
-	// Legend at bottom of table
-	ly := y + h - 2
-	if ly > y+3 {
-		ctx.DrawPanel(x, ly, w, 2, "", engine.StyleGray)
-		ctx.DrawString(x+1, ly+1, "j/k=Select L=Launch A=Auto M=Mission B=Base", engine.StyleGray)
-	}
 }
 
 func (gs *Geoscape) renderMinimap(ctx *engine.ScreenCtx, x, y, w, h int) {
@@ -965,6 +964,11 @@ func (gs *Geoscape) renderMinimap(ctx *engine.ScreenCtx, x, y, w, h int) {
 		}
 
 		ch, style := gs.cityStyle(c)
+		worldX := int(c.X)
+		worldY := int(c.Y)
+		if worldX >= 0 && worldX < worldW && worldY >= 0 && worldY < worldH && GetTile(worldX, worldY) == 1 {
+			style = style.Background(color.XTerm0)
+		}
 		if c.ID == gs.CursorNode {
 			ch = '◉'
 			style = engine.StyleDefault.Bold(true)
@@ -1029,15 +1033,15 @@ func (gs *Geoscape) renderMinimap(ctx *engine.ScreenCtx, x, y, w, h int) {
 
 func (gs *Geoscape) cityStyle(c *City) (rune, tcell.Style) {
 	if c.ID == 0 {
-		return '\u25C6', engine.StyleCyanBold.Bold(true)
+		return '\u25C6', tcell.StyleDefault.Background(color.XTerm8).Foreground(color.XTerm6).Bold(true)
 	}
 	if c.Threat > 50 {
-		return '\u25CF', engine.StyleRedBold // ●
+		return '\u25CF', tcell.StyleDefault.Background(color.XTerm8).Foreground(color.XTerm9)
 	}
 	if c.Threat > 0 {
-		return '\u25CB', engine.StyleYellow // ○
+		return '\u25CB', tcell.StyleDefault.Background(color.XTerm8).Foreground(color.XTerm11)
 	}
-	return '\u25CB', engine.StyleGreen // ○
+	return '\u25CB', tcell.StyleDefault.Background(color.XTerm8).Foreground(color.XTerm2)
 }
 
 

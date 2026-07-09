@@ -167,17 +167,6 @@ func (ms *ManufactureScreen) HandleKey(e *tcell.EventKey) {
 		}
 	}
 	switch e.Str() {
-	case "j":
-		plans := ms.getBuildablePlans()
-		ms.Selection++
-		if ms.Selection >= len(plans) {
-			ms.Selection = len(plans) - 1
-		}
-	case "k":
-		ms.Selection--
-		if ms.Selection < 0 {
-			ms.Selection = 0
-		}
 	case "\r":
 		ms.startManufacture()
 	}
@@ -193,7 +182,7 @@ func (ms *ManufactureScreen) HandleMouse(e *tcell.EventMouse) {
 
 	// Handle help bar clicks (bottom bar)
 	if y == h-1 {
-		// Help bar: "j/k=Select  Enter=Build  Esc=Back"
+		// Help bar: "j/k=Select  Enter=Build  [Esc]=Back"
 		switch {
 		case x >= 1 && x <= 3: // j/k=Select
 			// Scroll down
@@ -203,7 +192,7 @@ func (ms *ManufactureScreen) HandleMouse(e *tcell.EventMouse) {
 			}
 		case x >= 5 && x <= 12: // Enter=Build
 			ms.startManufacture()
-		case x >= 14 && x <= 20: // Esc=Back
+		case x >= 14 && x <= 20: // [Esc]=Back
 			ms.Game.PopState()
 		}
 		return

@@ -95,6 +95,18 @@ func NewBase(name string) *Base {
 		s := soldier.NewSoldier(soldier.RandomName())
 		b.Soldiers = append(b.Soldiers, s)
 	}
+	// Start with 1 hangar and 1 interceptor
+	b.Facilities = append(b.Facilities, &Facility{Type: FacHangar, Row: 0, Col: 0})
+	w := data.InterceptorWeapons["avalanche"]
+	b.Hangars = append(b.Hangars, &data.InterceptorState{
+		ID:        0,
+		Name:      "Interceptor",
+		WeaponKey: "avalanche",
+		HP:        60,
+		MaxHP:     60,
+		Ammo:      w.FireRate * 4,
+		Status:    "Available",
+	})
 	return b
 }
 
@@ -109,16 +121,32 @@ func (b *Base) CountFacility(ft FacilityType) int {
 }
 
 func (b *Base) BuyInterceptor(weaponKey string, funds *int64) bool {
+	cost := int64(100000)
+	if *funds < cost {
+		return false
+	}
+	w := data.InterceptorWeapons[weaponKey]
+	// Replace a destroyed interceptor first
+	for i, h := range b.Hangars {
+		if h.Status == "Destroyed" {
+			b.Hangars[i] = &data.InterceptorState{
+				ID:        h.ID,
+				Name:      "Interceptor",
+				WeaponKey: weaponKey,
+				HP:        60,
+				MaxHP:     60,
+				Ammo:      w.FireRate * 4,
+				Status:    "Available",
+			}
+			*funds -= cost
+			return true
+		}
+	}
 	hangarCount := b.CountFacility(FacHangar)
 	if len(b.Hangars) >= hangarCount {
 		return false
 	}
-	cost := int64(100000) // Example cost
-	if *funds < cost {
-		return false
-	}
 	*funds -= cost
-	w := data.InterceptorWeapons[weaponKey]
 	b.Hangars = append(b.Hangars, &data.InterceptorState{
 		ID:        len(b.Hangars),
 		Name:      "Interceptor",

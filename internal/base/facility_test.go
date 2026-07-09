@@ -40,10 +40,10 @@ func TestBuildFacility(t *testing.T) {
 	if !ok {
 		t.Error("BuildFacility should return true")
 	}
-	if len(b.Facilities) != 1 {
-		t.Errorf("expected 1, got %d", len(b.Facilities))
+	if len(b.Facilities) != 2 {
+		t.Errorf("expected 2, got %d", len(b.Facilities))
 	}
-	if !b.Facilities[0].Building {
+	if !b.Facilities[1].Building {
 		t.Error("should be building")
 	}
 }
@@ -51,7 +51,7 @@ func TestBuildFacility(t *testing.T) {
 func TestAdvanceDay(t *testing.T) {
 	b := NewBase("Test")
 	b.BuildFacility(FacLab)
-	f := b.Facilities[0]
+	f := b.Facilities[1]
 	f.DaysLeft = 2
 	b.AdvanceDay()
 	if f.DaysLeft != 1 || !f.Building {
@@ -443,13 +443,16 @@ func TestAdvanceDayFullHeal(t *testing.T) {
 
 func TestSellFacility(t *testing.T) {
 	b := NewBase("Test")
+	if len(b.Facilities) != 1 {
+		t.Fatal("expected 1 starting hangar facility")
+	}
 	b.Facilities = append(b.Facilities, &Facility{Type: FacLab, Building: false})
 	b.Facilities = append(b.Facilities, &Facility{Type: FacWorkshop, Building: false})
-	if len(b.Facilities) != 2 {
-		t.Fatal("expected 2 facilities")
+	if len(b.Facilities) != 3 {
+		t.Fatal("expected 3 facilities")
 	}
-	b.Facilities = append(b.Facilities[:0], b.Facilities[1:]...)
-	if len(b.Facilities) != 1 {
-		t.Errorf("expected 1 facility, got %d", len(b.Facilities))
+	b.Facilities = append(b.Facilities[:1], b.Facilities[2:]...)
+	if len(b.Facilities) != 2 {
+		t.Errorf("expected 2 facilities, got %d", len(b.Facilities))
 	}
 }

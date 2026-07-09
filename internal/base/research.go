@@ -142,17 +142,6 @@ func (rs *ResearchScreen) HandleKey(e *tcell.EventKey) {
 		}
 	}
 	switch e.Str() {
-	case "j":
-		topics := rs.getAvailableTopics()
-		rs.Selection++
-		if rs.Selection >= len(topics) {
-			rs.Selection = len(topics) - 1
-		}
-	case "k":
-		rs.Selection--
-		if rs.Selection < 0 {
-			rs.Selection = 0
-		}
 	case "\r":
 		rs.startResearch()
 	}
@@ -168,7 +157,7 @@ func (rs *ResearchScreen) HandleMouse(e *tcell.EventMouse) {
 
 	// Handle help bar clicks (bottom bar)
 	if y == h-1 {
-		// Help bar: "j/k=Select  Enter=Start  Esc=Back"
+		// Help bar: "j/k=Select  Enter=Start  [Esc]=Back"
 		switch {
 		case x >= 1 && x <= 3: // j/k=Select
 			// Scroll down
@@ -178,7 +167,7 @@ func (rs *ResearchScreen) HandleMouse(e *tcell.EventMouse) {
 			}
 		case x >= 5 && x <= 12: // Enter=Start
 			rs.startResearch()
-		case x >= 14 && x <= 20: // Esc=Back
+		case x >= 14 && x <= 20: // [Esc]=Back
 			rs.Game.PopState()
 		}
 		return

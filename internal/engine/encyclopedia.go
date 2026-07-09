@@ -241,28 +241,6 @@ func (es *EncyclopediaScreen) HandleKey(e *tcell.EventKey) {
 			es.Page = 0
 		}
 	}
-	switch e.Str() {
-	case "j":
-		if es.Selection < len(entries)-1 {
-			es.Selection++
-		}
-	case "k":
-		if es.Selection > 0 {
-			es.Selection--
-		}
-	case "h":
-		if es.Tab > 0 {
-			es.Tab--
-			es.Selection = 0
-			es.Page = 0
-		}
-	case "l":
-		if es.Tab < len(encTabs)-1 {
-			es.Tab++
-			es.Selection = 0
-			es.Page = 0
-		}
-	}
 }
 
 func (es *EncyclopediaScreen) HandleMouse(e *tcell.EventMouse) {
@@ -275,7 +253,7 @@ func (es *EncyclopediaScreen) HandleMouse(e *tcell.EventMouse) {
 
 	// Handle help bar clicks (bottom bar)
 	if y == h-1 {
-		// Help bar: "h/l=Tab  j/k=Navigate  Esc=Back"
+		// Help bar: "h/l=Tab  [j]/[k]=Navigate  [Esc]=Back"
 		switch {
 		case x >= 1 && x <= 3: // h/l=Tab
 			// Previous tab
@@ -283,12 +261,12 @@ func (es *EncyclopediaScreen) HandleMouse(e *tcell.EventMouse) {
 				es.Tab--
 				es.Selection = 0
 			}
-		case x >= 5 && x <= 10: // j/k=Navigate
+		case x >= 5 && x <= 10: // [j]/[k]=Navigate
 			// Scroll down
 			if es.Selection < len(es.Entries)-1 {
 				es.Selection++
 			}
-		case x >= 12 && x <= 18: // Esc=Back
+		case x >= 12 && x <= 18: // [Esc]=Back
 			es.Game.PopState()
 		}
 		return

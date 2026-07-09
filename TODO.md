@@ -24,3 +24,16 @@
 - [x] Rookie stat progression display — show stat gains after battle
 - [x] Fire terrain spread — burning tiles ignite adjacent grass (already existed)
 - [x] Fix night rendering — cursor white background + alien glow in fog of war
+
+## Phase 7: Research & Manufacturing Systems
+- [ ] Implement Research Lab project assignment and scientist assignment logic
+- [ ] Implement Workshop project queuing and engineer assignment logic
+- [ ] Integrate research unlocks (items/weapons/armor) into store availability
+- [ ] Integrate manufactured items into store inventory
+
+## Phase 8: Campaign & Endgame
+- [ ] Implement Alien Activity progression (global panic and mission frequency)
+- [ ] Implement monthly funding reports based on Alien Activity
+- [ ] Implement "Cydonia" (Final Mission) trigger and map generation
+- [ ] Add Game Over/Victory screens with campaign stats
+
