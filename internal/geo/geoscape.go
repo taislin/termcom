@@ -691,7 +691,19 @@ func (gs *Geoscape) LaunchInterceptor() {
 	if baseCity == nil {
 		return
 	}
-	inter := NewInterceptor(baseCity.X, baseCity.Y)
+
+	// Get available interceptors from Base
+	available := gs.Base.GetAvailableInterceptors()
+	if len(available) == 0 {
+		gs.Message = "No interceptors available!"
+		gs.MessageTimer = time.Now()
+		return
+	}
+	
+	// Select the first available interceptor
+	interState := available[0]
+	interState.Status = "Active"
+	inter := NewInterceptorFromState(interState, baseCity.X, baseCity.Y)
 
 	if nearest != nil {
 		// Launch at specific UFO
@@ -708,6 +720,8 @@ func (gs *Geoscape) LaunchInterceptor() {
 		} else {
 			gs.Message = language.String("GEOSCAPE_NO_UFO")
 			gs.MessageTimer = time.Now()
+			// Reset status if launch failed
+			interState.Status = "Available"
 			return
 		}
 	}

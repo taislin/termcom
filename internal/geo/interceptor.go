@@ -44,6 +44,26 @@ func NewInterceptor(baseX, baseY int) *Interceptor {
 	}
 }
 
+// NewInterceptorFromState creates an interceptor from a persisted state.
+func NewInterceptorFromState(s *data.InterceptorState, baseX, baseY int) *Interceptor {
+	w := data.InterceptorWeapons[s.WeaponKey]
+	return &Interceptor{
+		Name:       s.Name,
+		X:          float64(baseX),
+		Y:          float64(baseY),
+		Speed:      36,
+		HP:         s.HP,
+		MaxHP:      s.MaxHP,
+		WeaponKey:  s.WeaponKey,
+		Weapon:     w,
+		Ammo:       s.Ammo,
+		Range:      w.Range,
+		TargetNode: -1,
+		Mode:       data.CombatCautious,
+		PilotSkill: 50,
+	}
+}
+
 // SetWeapon changes the interceptor's loadout and rearms it.
 func (i *Interceptor) SetWeapon(key string) {
 	w, ok := data.InterceptorWeapons[key]

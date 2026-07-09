@@ -52,14 +52,14 @@ internal/
   geo/geoscape.go          Geoscape: regional dashboard, time, interceptions, minimap
   geo/world.go             World map data (equirectangular ASCII)
   geo/ufo.go               UFO spawning, movement
-  geo/interceptor.go       Interceptor launch, dogfight
+  geo/interceptor.go       Interceptor launch, dogfight, weapon systems
   battle/battlescape.go    Battlescape: turn logic, TU, line-of-sight, VFX integration
   battle/map.go            Tactical map generation (crash sites, terror)
   battle/gas.go            Volumetric smoke/poison gas grid with diffusion
   battle/unit.go           Soldiers and aliens on the tactical map
-  battle/ai.go             Alien AI (patrol, seek, attack, flee)
-  base/base.go             Base management screen
-  base/facility.go         Facility types and construction
+  battle/ai.go             Alien AI (patrol, seek, attack, flee, flank, retreat)
+  base/base.go             Base management screen, hangar management
+  base/facility.go         Facility types and construction, base state
   soldier/soldier.go       Soldier stats, ranking, inventory
   data/items.go            Weapons, armor, items
   data/aliens.go           Alien species, stat blocks

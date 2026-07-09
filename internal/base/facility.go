@@ -79,6 +79,7 @@ type Base struct {
 	ManufactureQueue  []*ManufactureJob
 	UnlockedWeapons   []string
 	UnlockedArmor     []string
+	Hangars           []*data.InterceptorState // Manage interceptors here
 }
 
 func NewBase(name string) *Base {
@@ -88,6 +89,7 @@ func NewBase(name string) *Base {
 		Engineers:  10,
 		MaxStorage: 50,
 		Stores:     make(map[string]int),
+		Hangars:    make([]*data.InterceptorState, 0),
 	}
 	for i := 0; i < 4; i++ {
 		s := soldier.NewSoldier(soldier.RandomName())
@@ -104,6 +106,39 @@ func (b *Base) CountFacility(ft FacilityType) int {
 		}
 	}
 	return count
+}
+
+func (b *Base) BuyInterceptor(weaponKey string, funds *int64) bool {
+	hangarCount := b.CountFacility(FacHangar)
+	if len(b.Hangars) >= hangarCount {
+		return false
+	}
+	cost := int64(100000) // Example cost
+	if *funds < cost {
+		return false
+	}
+	*funds -= cost
+	w := data.InterceptorWeapons[weaponKey]
+	b.Hangars = append(b.Hangars, &data.InterceptorState{
+		ID:        len(b.Hangars),
+		Name:      "Interceptor",
+		WeaponKey: weaponKey,
+		HP:        60,
+		MaxHP:     60,
+		Ammo:      w.FireRate * 4,
+		Status:    "Available",
+	})
+	return true
+}
+
+func (b *Base) GetAvailableInterceptors() []*data.InterceptorState {
+	var available []*data.InterceptorState
+	for _, h := range b.Hangars {
+		if h.Status == "Available" {
+			available = append(available, h)
+		}
+	}
+	return available
 }
 
 func (b *Base) LivingCapacity() int {

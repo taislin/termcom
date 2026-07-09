@@ -11,7 +11,9 @@ in coloured ASCII on a terminal. Written in Go with [tcell](https://github.com/g
 - **Base Management** — Build facilities, hire soldiers, equip squad
 - **Research & Manufacturing** — Unlock alien tech, build plasma rifles and power suits
 - **Soldier Progression** — Stats improve with combat experience, ranks from Rookie to Colonel
-- **Alien AI** — Patrol, seek, attack, and flee behaviours
+- **Alien AI** — Patrol, seek, attack, flee, flank, and retreat behaviors
+- **Hangar Management** — Purchase and manage multiple interceptors at base hangars
+- **Enhanced Dogfights** — Diverse weapon loadouts (Cannon, Stingray, Avalanche) and pilot combat modes (Attack, Cautious, Break-off)
 - **Multiple Alien Species** — Sectoids, Floaters, Mutons, Ethereals, Chryssalids, Cyberdiscs, and more
 - **Destructible Terrain** — Grenades destroy walls, trees, and rocks, leaving rubble
 - **Volumetric Gas** — Smoke clouds expand and thin over turns, blocking LOS and providing cover
