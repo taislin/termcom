@@ -22,6 +22,7 @@ const (
 	StateHelp
 	StateEncyclopedia
 	StateOptions
+	StateGameOver
 	StateQuit
 )
 
@@ -63,9 +64,16 @@ type Game struct {
 	AlienSpecies []*data.AlienSpecies
 	AlienTypes   []*data.AlienType
 	AlienKnowledge map[string]int // alien name -> knowledge level (0=unknown, 1=sighted, 2=killed, 3=autopsied)
+	
+	FrameCount int
 
 	OnNewGame  func()
 	OnContinue func()
+}
+
+func (g *Game) GameOver(won bool, stats string) {
+	g.SetScreen(StateGameOver, NewGameOverScreen(g, won, stats))
+	g.PushState(StateGameOver)
 }
 
 func NewGame() (*Game, error) {
@@ -164,7 +172,12 @@ func (g *Game) Run() {
 			sc.Render(ctx)
 		}
 
+		if Config.DistortionEnabled {
+			ApplyDistortion(g.screen, g.screen.FrameBuffer(), float64(g.FrameCount))
+		}
+
 		g.screen.Flush()
+		g.FrameCount++
 		time.Sleep(16 * time.Millisecond)
 	}
 }

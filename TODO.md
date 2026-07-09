@@ -32,14 +32,14 @@
 - [x] Integrate manufactured items into store inventory
 
 ## Phase 8: Campaign & Endgame
-- [ ] Implement Alien Activity progression (global panic and mission frequency)
-- [ ] Implement monthly funding reports based on Alien Activity
-- [ ] Implement "Cydonia" (Final Mission) trigger and map generation
-- [ ] Add Game Over/Victory screens with campaign stats
+- [x] Implement Alien Activity progression (global panic and mission frequency)
+- [x] Implement monthly funding reports based on Alien Activity
+- [x] Implement "Cydonia" (Final Mission) trigger and map generation
+- [x] Add Game Over/Victory screens with campaign stats
 
 ## Phase 9: Modern VFX & Options
-- [ ] Add OPTIONS menu (Main Menu + In-game, 'O' hotkey) to toggle VFX
-- [ ] Implement Character-Level Bloom (Glow for projectiles/targets)
-- [ ] Implement Screen Distortion & Chromatic Aberration
-- [ ] Implement Directional Lighting (Shadows in Fog of War)
+- [x] Add OPTIONS menu (Main Menu + In-game, 'O' hotkey) to toggle VFX
+- [x] Implement Character-Level Bloom (Glow for projectiles/targets)
+- [x] Implement Screen Distortion & Chromatic Aberration
+- [x] Implement Directional Lighting (Shadows in Fog of War)
 

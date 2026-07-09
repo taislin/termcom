@@ -82,6 +82,7 @@ type Base struct {
 	UnlockedWeapons      []string
 	UnlockedArmor        []string
 	Hangars              []*data.InterceptorState // Manage interceptors here
+	AlienActivity        int
 }
 
 func NewBase(name string) *Base {
@@ -385,6 +386,14 @@ func (b *Base) GovernmentFunding() int {
 func (b *Base) AdvanceMonth() (salary, funding int) {
 	salary = b.MonthlySalary()
 	funding = b.GovernmentFunding()
+
+	// Adjust funding based on AlienActivity
+	// High activity (near 100) reduces funding significantly.
+	// Activity 0: 100% funding
+	// Activity 100: ~50% funding
+	activityPenalty := float64(b.AlienActivity) * 0.5 / 100.0
+	funding = int(float64(funding) * (1.0 - activityPenalty))
+
 	return salary, funding
 }
 

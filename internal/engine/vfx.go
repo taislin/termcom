@@ -190,6 +190,36 @@ func ApplyBloom(s *ScreenRaw, fb *FrameBuffer, centerX, centerY int, bloomColor 
 	}
 }
 
+func ApplyDistortion(s *ScreenRaw, fb *FrameBuffer, timeVal float64) {
+	scrW, scrH := s.Size()
+	
+	// Create a temporary buffer to hold the distorted image
+	tmp := NewFrameBuffer(scrW, scrH)
+	
+	for y := 0; y < scrH; y++ {
+		// Calculate distortion offset for this row
+		offsetX := int(math.Sin(timeVal*0.05+float64(y)*0.1) * 2.0)
+		
+		for x := 0; x < scrW; x++ {
+			srcX := x + offsetX
+			if srcX < 0 {
+				srcX = 0
+			} else if srcX >= scrW {
+				srcX = scrW - 1
+			}
+			tmp.cells[y*scrW+x] = fb.Get(srcX, y)
+		}
+	}
+	
+	// Copy back to screen
+	for y := 0; y < scrH; y++ {
+		for x := 0; x < scrW; x++ {
+			cell := tmp.cells[y*scrW+x]
+			s.SetCell(x, y, cell.ch, tcell.StyleDefault.Foreground(cell.fg).Background(cell.bg))
+		}
+	}
+}
+
 func ApplyDirectionalLight(s *ScreenRaw, fb *FrameBuffer, sourceX, sourceY int, dirX, dirY float64, radius float64, lightColor tcell.Color, isVisible func(x, y int) bool) {
 	lR, lG, lB := colorRGB(lightColor)
 	radiusInt := int(math.Ceil(radius))

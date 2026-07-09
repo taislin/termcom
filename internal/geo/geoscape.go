@@ -57,6 +57,7 @@ type Geoscape struct {
 	Victory       bool
 	// Cursor for node selection
 	CursorNode    int
+	TargetSelectionMode bool
 	PreBattleStats map[string][6]int // name -> {hp, accuracy, reactions, strength, bravery, tu}
 }
 
@@ -176,18 +177,22 @@ func (gs *Geoscape) Update() {
 
 	// Defeat check — alien activity too high
 	if gs.AlienActivity >= 100 && !gs.Victory {
-		gs.Message = language.String("MSG_GAME_OVER_ACTIVITY")
-		gs.MessageTimer = time.Now()
+		stats := fmt.Sprintf("Missions Won: %d", gs.MissionsWon)
+		gs.Game.GameOver(false, stats)
 		gs.Victory = true
 		gs.Game.Paused = true
 	}
 
 	// Victory check — enough missions completed
 	if gs.MissionsWon >= 10 && !gs.Victory {
-		gs.Message = language.String("MSG_GAME_WON")
-		gs.MessageTimer = time.Now()
-		gs.Victory = true
-		gs.Game.Paused = true
+		// Instead of immediate victory, trigger Cydonia
+		gs.triggerCydonia()
+	}
+	
+	// Final mission check
+	if gs.Victory && gs.Game.ActiveBattle == nil {
+		stats := fmt.Sprintf("Campaign Complete. Missions Won: %d", gs.MissionsWon)
+		gs.Game.GameOver(true, stats)
 	}
 
 	if !gs.Game.Paused && gs.Game.TimeSpeed > 0 {
@@ -209,8 +214,20 @@ func (gs *Geoscape) Update() {
 		}
 
 		// Spawn alien missions periodically
-		if gs.TickCounter%1800 == 0 {
+		// Increase frequency based on AlienActivity: 
+		// Base: 1800 ticks (~30 mins at speed 1). 
+		// Scale: activity 0-100, reduce spawn rate linearly.
+		spawnRate := 1800 - (gs.AlienActivity * 15)
+		if spawnRate < 300 {
+			spawnRate = 300
+		}
+		if gs.TickCounter%spawnRate == 0 {
 			gs.spawnMission()
+		}
+
+		// Gradually increase activity over time
+		if gs.TickCounter%7200 == 0 { // ~2 hours at speed 1
+			gs.AlienActivity++
 		}
 
 		// Check mission timers
@@ -321,6 +338,7 @@ func (gs *Geoscape) Update() {
 	curMonth := int(gs.Game.GameTime.Month())
 	if curMonth != gs.LastMonth {
 		gs.LastMonth = curMonth
+		gs.Base.AlienActivity = gs.AlienActivity
 		salary, funding := gs.Base.AdvanceMonth()
 		gs.Game.Funds += int64(funding - salary)
 		gs.Base.AdvanceDay()
@@ -402,15 +420,23 @@ func (gs *Geoscape) dogfight(inter *Interceptor) {
 		gs.MessageTimer = time.Now()
 	} else if damage == -1 {
 		gs.Game.Funds += int64(ufo.Type.Points * 1000)
-		gs.CrashSites = append(gs.CrashSites, &CrashSite{
-			UFOName: ufo.Type.Name,
-			NodeID:  ufo.CurrentNode(),
-		})
-		gs.Message = fmt.Sprintf(language.String("MSG_UFO_CRASHED"), ufo.Type.Name)
+		
+		// Check if over water
+		city := gs.CityByID(ufo.CurrentNode())
+		if city != nil && GetTile(city.X, city.Y) == 0 { // 0 is water
+			gs.Message = fmt.Sprintf(language.String("MSG_UFO_LOST_AT_SEA"), ufo.Type.Name)
+		} else {
+			gs.CrashSites = append(gs.CrashSites, &CrashSite{
+				UFOName: ufo.Type.Name,
+				NodeID:  ufo.CurrentNode(),
+			})
+			gs.Message = fmt.Sprintf(language.String("MSG_UFO_CRASHED"), ufo.Type.Name)
+		}
+
 		gs.MessageTimer = time.Now()
 		inter.Disengage()
-		gs.startBattle(ufo)
 	} else {
+
 		gs.Message = fmt.Sprintf(language.String("MSG_HIT_UFO"), damage)
 		gs.MessageTimer = time.Now()
 	}
@@ -495,6 +521,20 @@ func (gs *Geoscape) spawnMission() {
 	audio.PlayAlert()
 }
 
+func (gs *Geoscape) triggerCydonia() {
+	gs.Message = "Cydonia location detected! Final mission ready."
+	gs.MessageTimer = time.Now()
+	
+	// Add Cydonia as a special mission
+	mission := &AlienMission{
+		Type:      "Alien Base Assault", // Reuse for Cydonia
+		NodeID:    0, // Special node for Cydonia
+		HoursLeft: 9999.0, // Indefinite
+	}
+	gs.Missions = append(gs.Missions, mission)
+	gs.Game.Bell()
+}
+
 func (gs *Geoscape) RespondToMission(idx int) {
 	if idx < 0 || idx >= len(gs.Missions) {
 		gs.Message = language.String("MSG_INVALID_MISSION")
@@ -539,6 +579,9 @@ func (gs *Geoscape) RespondToMission(idx int) {
 		ufoName = language.String("MISSION_TYPE_BASE")
 	case language.String("MISSION_ABDUCTION"):
 		ufoName = language.String("MISSION_TYPE_ABDUCTION")
+	}
+	if mission.NodeID == 0 {
+		ufoName = "Cydonia"
 	}
 	bs := battle.NewBattlescape(gs.Game, gs.Base, gs.Base.Soldiers, ufoName)
 	gs.Game.SetScreen(engine.StateBattlescape, bs)
@@ -710,32 +753,18 @@ func (gs *Geoscape) SetSpeed(s int) {
 }
 
 func (gs *Geoscape) LaunchInterceptor() {
-	// Target the city with the cursor, or nearest UFO if available
-	var nearest *UFO
-	bestDist := 9999.0
-	for _, u := range gs.UFOs.Active() {
-		city := gs.CityByID(u.CurrentNode())
-		if city == nil {
-			continue
-		}
-		baseCity := gs.CityByID(gs.BaseNode)
-		if baseCity == nil {
-			continue
-		}
-		dx := float64(city.X - baseCity.X)
-		dy := float64(city.Y - baseCity.Y)
-		dist := dx*dx + dy*dy
-		if dist < bestDist {
-			bestDist = dist
-			nearest = u
-		}
+	gs.TargetSelectionMode = !gs.TargetSelectionMode
+	if gs.TargetSelectionMode {
+		gs.Message = "Select target (UFO or Crash Site)."
+	} else {
+		gs.Message = "Launch cancelled."
 	}
+	gs.MessageTimer = time.Now()
+}
 
-	baseCity := gs.CityByID(gs.BaseNode)
-	if baseCity == nil {
-		return
-	}
-
+func (gs *Geoscape) confirmLaunch(target interface{}) {
+	gs.TargetSelectionMode = false
+	
 	// Get available interceptors from Base
 	available := gs.Base.GetAvailableInterceptors()
 	if len(available) == 0 {
@@ -743,35 +772,23 @@ func (gs *Geoscape) LaunchInterceptor() {
 		gs.MessageTimer = time.Now()
 		return
 	}
-	
-	// Select the first available interceptor
+	baseCity := gs.CityByID(gs.BaseNode)
 	interState := available[0]
 	interState.Status = "Active"
 	inter := NewInterceptorFromState(interState, baseCity.X, baseCity.Y)
 
-	if nearest != nil {
-		// Launch at specific UFO
-		inter.LaunchAtUFO(nearest)
+	switch t := target.(type) {
+	case *UFO:
+		inter.LaunchAtUFO(t)
 		gs.Interceptors = append(gs.Interceptors, inter)
-		gs.Message = fmt.Sprintf(language.String("MSG_INTERCEPTOR_LAUNCHED"), nearest.Type.Name)
-	} else {
-		// Launch at cursor city for patrol
-		targetCity := gs.CityByID(gs.CursorNode)
-		if targetCity != nil && targetCity.ID != gs.BaseNode {
-			inter.LaunchAtNode(gs.CursorNode, gs.Cities)
-			gs.Interceptors = append(gs.Interceptors, inter)
-			gs.Message = fmt.Sprintf(language.String("MSG_INTERCEPTOR_PATROL"), targetCity.Name)
-		} else {
-			gs.Message = language.String("GEOSCAPE_NO_UFO")
-			gs.MessageTimer = time.Now()
-			// Reset status if launch failed
-			interState.Status = "Available"
-			return
-		}
+		gs.Message = fmt.Sprintf(language.String("MSG_INTERCEPTOR_LAUNCHED"), t.Type.Name)
+	case *CrashSite:
+		// Send to crash site
+		inter.LaunchAtNode(t.NodeID, gs.Cities)
+		gs.Interceptors = append(gs.Interceptors, inter)
+		gs.Message = fmt.Sprintf("Interceptor dispatched to crash site at %s", gs.CityByID(t.NodeID).Name)
 	}
 	gs.MessageTimer = time.Now()
-	gs.Game.Bell()
-	audio.PlayClick()
 }
 
 func (gs *Geoscape) Render(ctx *engine.ScreenCtx) {
@@ -823,9 +840,27 @@ func (gs *Geoscape) Render(ctx *engine.ScreenCtx) {
 	ctx.DrawMarkupString(1, h-1, help, engine.StyleGray, engine.StyleHotkey)
 }
 
+func (gs *Geoscape) getTargets() []interface{} {
+	var targets []interface{}
+	for _, u := range gs.UFOs.Active() {
+		targets = append(targets, u)
+	}
+	for _, cs := range gs.CrashSites {
+		if !cs.Looted {
+			targets = append(targets, cs)
+		}
+	}
+	return targets
+}
+
 func (gs *Geoscape) renderRegionTable(ctx *engine.ScreenCtx, x, y, w, h int) {
 	// Header
-	hdr := language.String("GEO_HEADER_REGION")
+	var hdr string
+	if gs.TargetSelectionMode {
+		hdr = " SELECT TARGET"
+	} else {
+		hdr = language.String("GEO_HEADER_REGION")
+	}
 	if len(hdr) > w {
 		hdr = hdr[:w]
 	}
@@ -838,85 +873,117 @@ func (gs *Geoscape) renderRegionTable(ctx *engine.ScreenCtx, x, y, w, h int) {
 	ctx.DrawString(x, y+1, sep, engine.StyleGray)
 
 	row := 0
-	for _, c := range gs.Cities {
-		if row >= h-2 {
-			break
-		}
-		ry := y + 2 + row
-
-		// Highlight selected
-		sel := c.ID == gs.CursorNode
-		baseStyle := engine.StyleDefault
-		if sel {
-			baseStyle = engine.StyleHighlight
-		}
-
-		// City name (truncated)
-		name := c.Name
-		if len(name) > 14 {
-			name = name[:14]
-		}
-		prefix := "  "
-		if sel {
-			prefix = "> "
-		}
-		ctx.DrawString(x, ry, prefix+name, baseStyle)
-
-		// Threat bar
-		tx := x + int(float64(w)*0.4)
-		if c.Threat > 0 {
-			barLen := c.Threat * 6 / 100
-			if barLen < 1 {
-				barLen = 1
+	if gs.TargetSelectionMode {
+		targets := gs.getTargets()
+		for _, t := range targets {
+			if row >= h-2 {
+				break
 			}
-			threatStyle := engine.StyleYellow
-			if c.Threat > 50 {
-				threatStyle = engine.StyleRedBold
+			ry := y + 2 + row
+			
+			// Highlight selected (reuse cursor for selection index)
+			sel := row == gs.CursorNode % len(targets)
+			baseStyle := engine.StyleDefault
+			if sel {
+				baseStyle = engine.StyleHighlight
 			}
-			bar := ""
-			for i := 0; i < 6; i++ {
-				if i < barLen {
-					bar += "\u2588"
-				} else {
-					bar += "\u2591"
+
+			var name string
+			switch target := t.(type) {
+			case *UFO:
+				name = "UFO: " + target.Type.Name
+			case *CrashSite:
+				name = "Crash: " + target.UFOName
+			}
+			
+			prefix := "  "
+			if sel {
+				prefix = "> "
+			}
+			ctx.DrawString(x, ry, prefix+name, baseStyle)
+			row++
+		}
+	} else {
+		for _, c := range gs.Cities {
+			if row >= h-2 {
+				break
+			}
+			ry := y + 2 + row
+
+			// Highlight selected
+			sel := c.ID == gs.CursorNode
+			baseStyle := engine.StyleDefault
+			if sel {
+				baseStyle = engine.StyleHighlight
+			}
+
+			// City name (truncated)
+			name := c.Name
+			if len(name) > 14 {
+				name = name[:14]
+			}
+			prefix := "  "
+			if sel {
+				prefix = "> "
+			}
+			ctx.DrawString(x, ry, prefix+name, baseStyle)
+
+			// Threat bar
+			tx := x + int(float64(w)*0.4)
+			if c.Threat > 0 {
+				barLen := c.Threat * 6 / 100
+				if barLen < 1 {
+					barLen = 1
 				}
+				threatStyle := engine.StyleYellow
+				if c.Threat > 50 {
+					threatStyle = engine.StyleRedBold
+				}
+				bar := ""
+				for i := 0; i < 6; i++ {
+					if i < barLen {
+						bar += "\u2588"
+					} else {
+						bar += "\u2591"
+					}
+				}
+				ctx.DrawString(tx, ry, bar, threatStyle)
+			} else {
+				ctx.DrawString(tx, ry, "\u2591\u2591\u2591\u2591\u2591\u2591", engine.StyleGray)
 			}
-			ctx.DrawString(tx, ry, bar, threatStyle)
-		} else {
-			ctx.DrawString(tx, ry, "\u2591\u2591\u2591\u2591\u2591\u2591", engine.StyleGray)
-		}
 
-		// Radar
-		rx := x + int(float64(w)*0.6)
-		if c.HasRadar {
-			ctx.DrawString(rx, ry, language.String("GEO_RADAR_ON"), engine.StyleCyan)
-		} else {
-			ctx.DrawString(rx, ry, language.String("GEO_RADAR_OFF"), engine.StyleGray)
-		}
+			// Radar
+			rx := x + int(float64(w)*0.6)
+			if c.HasRadar {
+				ctx.DrawString(rx, ry, language.String("GEO_RADAR_ON"), engine.StyleCyan)
+			} else {
+				ctx.DrawString(rx, ry, language.String("GEO_RADAR_OFF"), engine.StyleGray)
+			}
 
-		// Interceptor count
-		ix := x + int(float64(w)*0.75)
-		if c.InterceptorCount > 0 {
-			ctx.DrawString(ix, ry, fmt.Sprintf(" %d ", c.InterceptorCount), engine.StyleGreen)
-		} else {
-			ctx.DrawString(ix, ry, language.String("GEO_RADAR_OFF"), engine.StyleGray)
-		}
+			// Interceptor count
+			ix := x + int(float64(w)*0.75)
+			if c.InterceptorCount > 0 {
+				ctx.DrawString(ix, ry, fmt.Sprintf(" %d ", c.InterceptorCount), engine.StyleGreen)
+			} else {
+				ctx.DrawString(ix, ry, language.String("GEO_RADAR_OFF"), engine.StyleGray)
+			}
 
-		// Status
-		sx := x + int(float64(w)*0.85)
-		if c.MissionHere {
-			ctx.DrawString(sx, ry, language.String("GEO_STATUS_MISSION"), engine.StyleMagenta)
-		} else if c.ID == 0 {
-			ctx.DrawString(sx, ry, language.String("GEO_STATUS_BASE"), engine.StyleCyanBold)
-		} else if c.Threat > 50 {
-			ctx.DrawString(sx, ry, language.String("GEO_STATUS_DANGER"), engine.StyleRedBold)
-		} else if c.Threat > 0 {
-			ctx.DrawString(sx, ry, language.String("GEO_STATUS_ALERT"), engine.StyleYellow)
-		} else {
-			ctx.DrawString(sx, ry, language.String("GEO_STATUS_CLEAR"), engine.StyleGray)
-		}
+			// Status
+			sx := x + int(float64(w)*0.85)
+			if c.MissionHere {
+				ctx.DrawString(sx, ry, language.String("GEO_STATUS_MISSION"), engine.StyleMagenta)
+			} else if c.ID == 0 {
+				ctx.DrawString(sx, ry, language.String("GEO_STATUS_BASE"), engine.StyleCyanBold)
+			} else if c.Threat > 50 {
+				ctx.DrawString(sx, ry, language.String("GEO_STATUS_DANGER"), engine.StyleRedBold)
+			} else if c.Threat > 0 {
+				ctx.DrawString(sx, ry, language.String("GEO_STATUS_ALERT"), engine.StyleYellow)
+			} else {
+				ctx.DrawString(sx, ry, language.String("GEO_STATUS_CLEAR"), engine.StyleGray)
+			}
 
-		row++
+			row++
+		}
 	}
 }
 
@@ -1056,6 +1123,14 @@ func (gs *Geoscape) HandleKey(e *tcell.EventKey) {
 		gs.moveCursor(-1, 0)
 	case tcell.KeyRight:
 		gs.moveCursor(1, 0)
+	case tcell.KeyEnter:
+		if gs.TargetSelectionMode {
+			targets := gs.getTargets()
+			if len(targets) > 0 {
+				idx := gs.CursorNode % len(targets)
+				gs.confirmLaunch(targets[idx])
+			}
+		}
 	case tcell.KeyF5:
 		gs.SaveGameToFile()
 	case tcell.KeyF9:

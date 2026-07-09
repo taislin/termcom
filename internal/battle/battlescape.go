@@ -93,6 +93,9 @@ type Battlescape struct {
 	Gas         *GasGrid
 	VisionMode  engine.VisionMode
 	FrameCount  int
+	
+	// Input State
+	State       BattleState
 }
 
 func (bs *Battlescape) AddMessage(msg string) {
@@ -169,6 +172,8 @@ func NewBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, ufoN
 	case "Supply":
 		m = GenerateUFOInterior(50, 50)
 	case "Alien Base Assault":
+		m = GenerateCydonia(50, 50)
+	case "Cydonia":
 		m = GenerateCydonia(50, 50)
 	case "Abduction":
 		m = GenerateAbductionSite(50, 50)
@@ -1461,13 +1466,7 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 				}
 			}
 
-			if mx == bs.CursorX && my == bs.CursorY {
-				if bs.IsNight {
-					style = style.Background(tcell.NewRGBColor(60, 60, 80))
-				} else {
-					style = style.Reverse(true)
-				}
-			}
+			style = bs.ApplyCursorStyles(mx, my, style)
 
 			tile = bs.Map.At(mx, my)
 			if tile.Fire > 0 {
@@ -2065,4 +2064,28 @@ func tileVar(mx, my, n int) int {
 		h = -h
 	}
 	return h % n
+}
+
+func (bs *Battlescape) ApplyCursorStyles(x, y int, style tcell.Style) tcell.Style {
+	bs.State.mu.RLock()
+	defer bs.State.mu.RUnlock()
+
+	if x == bs.CursorX && y == bs.CursorY {
+		switch bs.State.CursorState {
+		case StateInspect:
+			return style.Background(tcell.ColorWhite).Foreground(tcell.ColorBlack)
+		case StateTargeting:
+			return style.Background(tcell.ColorRed).Blink(true)
+		}
+	}
+
+	if bs.State.CursorState == StateMovePlan {
+		for _, p := range bs.State.MovePath {
+			if p[0] == x && p[1] == y {
+				return style.Background(tcell.ColorDarkBlue)
+			}
+		}
+	}
+	
+	return style
 }

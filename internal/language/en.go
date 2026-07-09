@@ -64,6 +64,7 @@ func init() {
 		"MSG_NO_UFO_AUTO":         "No UFOs to autoresolve.",
 		"MSG_AUTO_NO_SOLDIERS":    "Autoresolve: No soldiers available!",
 		"MSG_UFO_CRASHED":         "%s crashed! Press [R] to send retrieval transport.",
+		"MSG_UFO_LOST_AT_SEA":     "%s crashed into the ocean.",
 		"MSG_TRANSPORT_DISPATCHED": "Transport dispatched to %s crash site.",
 		"MSG_TRANSPORT_RETRIEVED":  "Transport recovered %s components (%d items).",
 		"MSG_TRANSPORT_RETURNED":   "Transport returned to base.",
