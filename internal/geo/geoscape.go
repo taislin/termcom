@@ -458,7 +458,7 @@ func (gs *Geoscape) startBattle(ufo *UFO) {
 		gs.PreBattleStats[s.Name] = [6]int{s.HP, s.Accuracy, s.Reactions, s.Strength, s.Bravery, s.TU}
 	}
 
-	bs := battle.NewBattlescape(gs.Game, gs.Base.Soldiers, ufo.Type.Name)
+	bs := battle.NewBattlescape(gs.Game, gs.Base, gs.Base.Soldiers, ufo.Type.Name)
 	gs.Game.SetScreen(engine.StateBattlescape, bs)
 	gs.Game.PushState(engine.StateBattlescape)
 }
@@ -540,7 +540,7 @@ func (gs *Geoscape) RespondToMission(idx int) {
 	case language.String("MISSION_ABDUCTION"):
 		ufoName = language.String("MISSION_TYPE_ABDUCTION")
 	}
-	bs := battle.NewBattlescape(gs.Game, gs.Base.Soldiers, ufoName)
+	bs := battle.NewBattlescape(gs.Game, gs.Base, gs.Base.Soldiers, ufoName)
 	gs.Game.SetScreen(engine.StateBattlescape, bs)
 	gs.Game.PushState(engine.StateBattlescape)
 }
@@ -739,7 +739,7 @@ func (gs *Geoscape) LaunchInterceptor() {
 	// Get available interceptors from Base
 	available := gs.Base.GetAvailableInterceptors()
 	if len(available) == 0 {
-		gs.Message = "No interceptors available!"
+		gs.Message = language.String("MSG_NO_INTERCEPTORS_AVAILABLE")
 		gs.MessageTimer = time.Now()
 		return
 	}
@@ -819,13 +819,13 @@ func (gs *Geoscape) Render(ctx *engine.ScreenCtx) {
 		ctx.DrawString(2, h-3, gs.Message, engine.StyleDefault)
 	}
 
-	help := "[j]/[k]=Select [L]=Launch [A]=Autoresolve [M]=Mission [B]=Base [R]=Transport [Space]=Pause [Q]=Quit"
+	help := language.String("HELP_GEOSCAPE")
 	ctx.DrawMarkupString(1, h-1, help, engine.StyleGray, engine.StyleHotkey)
 }
 
 func (gs *Geoscape) renderRegionTable(ctx *engine.ScreenCtx, x, y, w, h int) {
 	// Header
-	hdr := " REGION          THREAT  RADAR  SQD  STATUS"
+	hdr := language.String("GEO_HEADER_REGION")
 	if len(hdr) > w {
 		hdr = hdr[:w]
 	}
@@ -889,9 +889,9 @@ func (gs *Geoscape) renderRegionTable(ctx *engine.ScreenCtx, x, y, w, h int) {
 		// Radar
 		rx := x + int(float64(w)*0.6)
 		if c.HasRadar {
-			ctx.DrawString(rx, ry, " R ", engine.StyleCyan)
+			ctx.DrawString(rx, ry, language.String("GEO_RADAR_ON"), engine.StyleCyan)
 		} else {
-			ctx.DrawString(rx, ry, " - ", engine.StyleGray)
+			ctx.DrawString(rx, ry, language.String("GEO_RADAR_OFF"), engine.StyleGray)
 		}
 
 		// Interceptor count
@@ -899,21 +899,21 @@ func (gs *Geoscape) renderRegionTable(ctx *engine.ScreenCtx, x, y, w, h int) {
 		if c.InterceptorCount > 0 {
 			ctx.DrawString(ix, ry, fmt.Sprintf(" %d ", c.InterceptorCount), engine.StyleGreen)
 		} else {
-			ctx.DrawString(ix, ry, " - ", engine.StyleGray)
+			ctx.DrawString(ix, ry, language.String("GEO_RADAR_OFF"), engine.StyleGray)
 		}
 
 		// Status
 		sx := x + int(float64(w)*0.85)
 		if c.MissionHere {
-			ctx.DrawString(sx, ry, "MISSION", engine.StyleMagenta)
+			ctx.DrawString(sx, ry, language.String("GEO_STATUS_MISSION"), engine.StyleMagenta)
 		} else if c.ID == 0 {
-			ctx.DrawString(sx, ry, "BASE", engine.StyleCyanBold)
+			ctx.DrawString(sx, ry, language.String("GEO_STATUS_BASE"), engine.StyleCyanBold)
 		} else if c.Threat > 50 {
-			ctx.DrawString(sx, ry, "DANGER", engine.StyleRedBold)
+			ctx.DrawString(sx, ry, language.String("GEO_STATUS_DANGER"), engine.StyleRedBold)
 		} else if c.Threat > 0 {
-			ctx.DrawString(sx, ry, "ALERT", engine.StyleYellow)
+			ctx.DrawString(sx, ry, language.String("GEO_STATUS_ALERT"), engine.StyleYellow)
 		} else {
-			ctx.DrawString(sx, ry, "clear", engine.StyleGray)
+			ctx.DrawString(sx, ry, language.String("GEO_STATUS_CLEAR"), engine.StyleGray)
 		}
 
 		row++
@@ -921,7 +921,7 @@ func (gs *Geoscape) renderRegionTable(ctx *engine.ScreenCtx, x, y, w, h int) {
 }
 
 func (gs *Geoscape) renderMinimap(ctx *engine.ScreenCtx, x, y, w, h int) {
-	ctx.DrawPanel(x, y, w, h, "MAP", engine.StyleGray)
+	ctx.DrawPanel(x, y, w, h, language.String("GEO_MAP_PANEL"), engine.StyleGray)
 
 	innerW := w - 2
 	innerH := h - 2
@@ -1146,7 +1146,7 @@ func (gs *Geoscape) HandleMouse(e *tcell.EventMouse) {
 	w, h := gs.Game.ScreenSize()
 
 	if y == h-1 {
-		help := "[j]/[k]=Select [L]=Launch [A]=Autoresolve [M]=Mission [B]=Base [R]=Transport [Space]=Pause [Q]=Quit"
+		help := language.String("HELP_GEOSCAPE")
 		helpActions := []string{"=Select", "=Launch", "=Autoresolve", "=Mission", "=Base", "=Transport", "=Pause", "=Quit"}
 		helpFuncs := []func(){
 			func() { gs.moveCursor(0, 1) },

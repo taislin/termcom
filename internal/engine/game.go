@@ -21,6 +21,7 @@ const (
 	StateEquip
 	StateHelp
 	StateEncyclopedia
+	StateOptions
 	StateQuit
 )
 
@@ -185,6 +186,11 @@ func (g *Game) drainEvents() {
 					}
 				} else if e.Str() == "?" {
 					g.PushState(StateHelp)
+				} else if e.Str() == "o" || e.Str() == "O" {
+					if _, ok := g.screens[StateOptions]; !ok {
+						g.SetScreen(StateOptions, NewOptionsScreen(g))
+					}
+					g.PushState(StateOptions)
 				} else if sc, ok := g.screens[g.state]; ok {
 					sc.HandleKey(e)
 				}

@@ -40,8 +40,9 @@ type AlienType struct {
 	ResistKinetic int
 	ResistPsionic int
 
-	Lore string // autopsy flavor text
-	Portrait string // ASCII portrait
+	AutopsyID string // research ID that unlocks this alien's stats in battlescape sidebar
+	Lore      string // autopsy flavor text
+	Portrait  string // ASCII portrait
 }
 
 // GetPortrait returns the alien's portrait string, generating one if not set.
@@ -62,6 +63,7 @@ var AlienTypes = []AlienType{
 		Strength: 8, Psi: 40, Armour: 5, Weapon: "plasma_pistol",
 		Points: 5, Rank: 0, Aggression: 3, DamageType: DMG_PLASMA,
 		ResistPlasma: 20, ResistKinetic: -10,
+		AutopsyID: "sectoid_autopsy",
 		Lore: "Small grey humanoid with an oversized cranium. Relies on psionic potential rather than physical prowess.",
 	},
 	{
@@ -70,6 +72,7 @@ var AlienTypes = []AlienType{
 		Strength: 8, Psi: 50, Armour: 6, Weapon: "plasma_pistol",
 		Points: 8, Rank: 1, Aggression: 3, DamageType: DMG_PLASMA,
 		ResistPlasma: 20, ResistPsionic: 15,
+		AutopsyID: "sectoid_autopsy",
 		Lore: "A sectoid with enhanced psionic sensitivity, coordinating squad movements.",
 	},
 	{
@@ -78,6 +81,7 @@ var AlienTypes = []AlienType{
 		Strength: 9, Psi: 70, Armour: 8, Weapon: "plasma_rifle",
 		Points: 15, Rank: 2, Aggression: 4, DamageType: DMG_PLASMA,
 		ResistPlasma: 25, ResistPsionic: 30, ResistKinetic: -15,
+		AutopsyID: "sectoid_autopsy",
 		Lore: "The dominant mind in a sectoid brood. Can project psionic waves to control lesser species.",
 	},
 	// Rank 1 - Mid tier
@@ -87,6 +91,7 @@ var AlienTypes = []AlienType{
 		Strength: 12, Psi: 10, Armour: 10, Weapon: "plasma_rifle",
 		Points: 8, Rank: 1, Aggression: 6, DamageType: DMG_PLASMA,
 		ResistPlasma: 15, ResistExplosive: -20,
+		AutopsyID: "floater_autopsy",
 		Lore: "A mutilated humanoid kept alive by cybernetic implants. Hovers above the ground on anti-grav units.",
 	},
 	{
@@ -95,6 +100,7 @@ var AlienTypes = []AlienType{
 		Strength: 13, Psi: 18, Armour: 11, Weapon: "plasma_rifle",
 		Points: 12, Rank: 2, Aggression: 6, DamageType: DMG_PLASMA,
 		ResistPlasma: 15, ResistExplosive: -15, ResistPsionic: 10,
+		AutopsyID: "floater_autopsy",
 		Lore: "A floater with enhanced neural links, coordinating air-to-ground operations.",
 	},
 	{
@@ -103,6 +109,7 @@ var AlienTypes = []AlienType{
 		Strength: 15, Psi: 30, Armour: 14, Weapon: "plasma_rifle",
 		Points: 20, Rank: 3, Aggression: 7, DamageType: DMG_PLASMA,
 		ResistPlasma: 20, ResistExplosive: -25, ResistPsionic: 20,
+		AutopsyID: "floater_autopsy",
 		Lore: "The most augmented of the floaters. Commands from above, raining plasma fire.",
 	},
 	{
@@ -144,6 +151,7 @@ var AlienTypes = []AlienType{
 		Strength: 20, Psi: 0, Armour: 18, Weapon: "plasma_rifle",
 		Points: 12, Rank: 2, Aggression: 8, DamageType: DMG_PLASMA,
 		ResistPlasma: 30, ResistMelee: 20, ResistLaser: -10,
+		AutopsyID: "muton_autopsy",
 		Lore: "Brutish green-skinned warriors bred for combat. Strong but not bright.",
 	},
 	{
@@ -152,6 +160,7 @@ var AlienTypes = []AlienType{
 		Strength: 21, Psi: 0, Armour: 19, Weapon: "plasma_rifle",
 		Points: 16, Rank: 3, Aggression: 8, DamageType: DMG_PLASMA,
 		ResistPlasma: 30, ResistMelee: 25, ResistPsionic: -15,
+		AutopsyID: "muton_autopsy",
 		Lore: "A muton with tactical awareness. Guides the squad with crude but effective strategies.",
 	},
 	{
@@ -160,6 +169,7 @@ var AlienTypes = []AlienType{
 		Strength: 23, Psi: 0, Armour: 22, Weapon: "heavy_plasma",
 		Points: 25, Rank: 4, Aggression: 9, DamageType: DMG_PLASMA,
 		ResistPlasma: 35, ResistMelee: 30, ResistExplosive: -20,
+		AutopsyID: "muton_autopsy",
 		Lore: "The alpha of the muton pack. Its battle rage is legendary among alien forces.",
 	},
 	{
@@ -185,6 +195,7 @@ var AlienTypes = []AlienType{
 		Strength: 10, Psi: 80, Armour: 12, Weapon: "plasma_rifle",
 		Points: 25, Rank: 4, Aggression: 5, DamageType: DMG_PSIONIC,
 		ResistPsionic: 50, ResistPlasma: 15, ResistMelee: -20,
+		AutopsyID: "ethereal_autopsy",
 		Lore: "The puppet masters. Telepathic beings that control all other alien species.",
 	},
 	{
@@ -193,6 +204,7 @@ var AlienTypes = []AlienType{
 		Strength: 11, Psi: 90, Armour: 13, Weapon: "plasma_rifle",
 		Points: 30, Rank: 5, Aggression: 4, DamageType: DMG_PSIONIC,
 		ResistPsionic: 60, ResistPlasma: 15, ResistMelee: -25,
+		AutopsyID: "ethereal_autopsy",
 		Lore: "An ethereal attuned to the psionic frequencies of the command chain.",
 	},
 	{
@@ -201,6 +213,7 @@ var AlienTypes = []AlienType{
 		Strength: 13, Psi: 100, Armour: 16, Weapon: "heavy_plasma",
 		Points: 50, Rank: 6, Aggression: 4, DamageType: DMG_PSIONIC,
 		ResistPsionic: 70, ResistPlasma: 20, ResistMelee: -30, ResistExplosive: -15,
+		AutopsyID: "ethereal_autopsy",
 		Lore: "The supreme psychic intelligence. Its death causes a psionic shockwave across the battlefield.",
 	},
 	// Rank 4 - Boss

@@ -54,7 +54,7 @@ func (es *EncyclopediaScreen) buildEntries(g *Game, completed []string, weapons 
 		level := knowledgeMap[at.Name]
 		discovered := level >= 2
 		es.Entries = append(es.Entries, EncycloEntry{
-			Category:   "Aliens",
+			Category:   language.String("ENCYCLO_CAT_ALIENS"),
 			ID:         at.ShortName,
 			Name:       at.Name,
 			Desc:       at.Lore,
@@ -66,10 +66,10 @@ func (es *EncyclopediaScreen) buildEntries(g *Game, completed []string, weapons 
 	for key, item := range data.RuleItems {
 		if item.IsAlien {
 			es.Entries = append(es.Entries, EncycloEntry{
-				Category:   "Weapons",
+				Category:   language.String("ENCYCLO_CAT_WEAPONS"),
 				ID:         key,
 				Name:       item.Name,
-				Desc:       fmt.Sprintf("DMG:%d ACC:%d%% TU:%d RNG:%d", item.Damage, item.Accuracy, item.TU, item.Range),
+				Desc:       fmt.Sprintf(language.String("ENCYCLO_WEAPON_STATS"), item.Damage, item.Accuracy, item.TU, item.Range),
 				Discovered: weaponMap[key],
 			})
 		}
@@ -80,36 +80,44 @@ func (es *EncyclopediaScreen) buildEntries(g *Game, completed []string, weapons 
 			continue
 		}
 		es.Entries = append(es.Entries, EncycloEntry{
-			Category:   "Armor",
+			Category:   language.String("ENCYCLO_CAT_ARMOR"),
 			ID:         key,
 			Name:       arm.Name,
-			Desc:       fmt.Sprintf("Protection: %d", arm.Undersuit),
+			Desc:       fmt.Sprintf(language.String("ENCYCLO_ARMOR_PROTECTION"), arm.Undersuit),
 			Discovered: armorMap[key],
 		})
 	}
 
 	for _, item := range data.Items {
 		es.Entries = append(es.Entries, EncycloEntry{
-			Category:   "Items",
+			Category:   language.String("ENCYCLO_CAT_ITEMS"),
 			ID:         item.ShortName,
 			Name:       item.Name,
-			Desc:       fmt.Sprintf("Weight:%d Value:$%d", item.Weight, item.Value),
+			Desc:       fmt.Sprintf(language.String("ENCYCLO_ITEM_STATS"), item.Weight, item.Value),
 			Discovered: item.Alien,
 		})
 	}
 
 	for _, topic := range data.ResearchTree {
 		es.Entries = append(es.Entries, EncycloEntry{
-			Category:   "Research",
+			Category:   language.String("ENCYCLO_CAT_RESEARCH"),
 			ID:         topic.ID,
 			Name:       topic.Name,
-			Desc:       fmt.Sprintf("Cost: %d man-days", topic.Cost),
+			Desc:       fmt.Sprintf(language.String("ENCYCLO_RESEARCH_COST"), topic.Cost),
 			Discovered: completedMap[topic.ID],
 		})
 	}
 }
 
-var encTabs = []string{"Aliens", "Weapons", "Armor", "Items", "Research"}
+func encTabs() []string {
+	return []string{
+		language.String("ENCYCLO_CAT_ALIENS"),
+		language.String("ENCYCLO_CAT_WEAPONS"),
+		language.String("ENCYCLO_CAT_ARMOR"),
+		language.String("ENCYCLO_CAT_ITEMS"),
+		language.String("ENCYCLO_CAT_RESEARCH"),
+	}
+}
 
 func (es *EncyclopediaScreen) Update() {}
 
@@ -120,7 +128,8 @@ func (es *EncyclopediaScreen) Render(ctx *ScreenCtx) {
 
 	tabY := 3
 	tx := 2
-	for i, tab := range encTabs {
+	tabs := encTabs()
+	for i, tab := range tabs {
 		style := StyleDefault
 		if i == es.Tab {
 			style = StyleHighlight
@@ -151,7 +160,7 @@ func (es *EncyclopediaScreen) Render(ctx *ScreenCtx) {
 		style := StyleDefault
 		if !e.Discovered {
 			style = StyleGray
-			e.Name = "???"
+			e.Name = language.String("ENCYCLO_UNDISCOVERED")
 		}
 		if idx == es.Selection {
 			style = StyleHighlight
@@ -193,12 +202,12 @@ func (es *EncyclopediaScreen) Render(ctx *ScreenCtx) {
 				}
 
 				statY := pY + len(pLines) + 1
-				ctx.DrawString(infoX+1, statY, fmt.Sprintf("HP:%d TU:%d ACC:%d", at.HP, at.TU, at.Accuracy), StyleGray)
-				ctx.DrawString(infoX+1, statY+1, fmt.Sprintf("STR:%d PSI:%d BRA:%d", at.Strength, at.Psi, at.Bravery), StyleGray)
-				ctx.DrawString(infoX+1, statY+2, fmt.Sprintf("DMG:%s WPN:%s", data.DamageTypeStr(at.DamageType), data.RuleItems[at.Weapon].Name), StyleGray)
+				ctx.DrawString(infoX+1, statY, fmt.Sprintf(language.String("ENCYCLO_ALIEN_STATS_1"), at.HP, at.TU, at.Accuracy), StyleGray)
+				ctx.DrawString(infoX+1, statY+1, fmt.Sprintf(language.String("ENCYCLO_ALIEN_STATS_2"), at.Strength, at.Psi, at.Bravery), StyleGray)
+				ctx.DrawString(infoX+1, statY+2, fmt.Sprintf(language.String("ENCYCLO_ALIEN_STATS_3"), data.DamageTypeStr(at.DamageType), data.RuleItems[at.Weapon].Name), StyleGray)
 			}
 		} else {
-			ctx.DrawString(infoX+1, listY+2, "Not yet discovered.", StyleGray)
+			ctx.DrawString(infoX+1, listY+2, language.String("ENCYCLO_NOT_DISCOVERED"), StyleGray)
 		}
 	}
 
@@ -207,7 +216,7 @@ func (es *EncyclopediaScreen) Render(ctx *ScreenCtx) {
 }
 
 func (es *EncyclopediaScreen) filteredEntries() []EncycloEntry {
-	tab := encTabs[es.Tab]
+	tab := encTabs()[es.Tab]
 	var result []EncycloEntry
 	for _, e := range es.Entries {
 		if e.Category == tab {
@@ -235,7 +244,7 @@ func (es *EncyclopediaScreen) HandleKey(e *tcell.EventKey) {
 			es.Page = 0
 		}
 	case tcell.KeyRight:
-		if es.Tab < len(encTabs)-1 {
+		if es.Tab < len(encTabs())-1 {
 			es.Tab++
 			es.Selection = 0
 			es.Page = 0

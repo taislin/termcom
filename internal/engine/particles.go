@@ -176,3 +176,21 @@ func SpawnSmoke(ps *ParticleSystem, x, y int, count int) {
 		ps.Spawn(float64(x)+rand.Float64()*2-1, float64(y), vx, vy, ch, style, 0.8+rand.Float64()*1.2, 0.5)
 	}
 }
+
+func SpawnMenuDrift(ps *ParticleSystem, x, y, side int) {
+	driftRunes := []rune{'°', '.', '+'}
+	driftColors := [][3]int32{
+		{192, 64, 255},
+		{96, 96, 255},
+		{255, 64, 192},
+	}
+	pick := rand.Intn(3)
+	col := driftColors[pick]
+	ch := driftRunes[rand.Intn(len(driftRunes))]
+	fg := tcell.NewRGBColor(col[0], col[1], col[2])
+	style := tcell.StyleDefault.Foreground(fg)
+	vx := float64(side) * (0.5 + rand.Float64()*1.0)
+	vy := -(6.0 + rand.Float64()*4.0)
+	life := 1.0 + rand.Float64()*1.0
+	ps.Spawn(float64(x), float64(y), vx, vy, ch, style, life, 0.6)
+}

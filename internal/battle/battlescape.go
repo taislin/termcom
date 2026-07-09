@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"strings"
 
+	"github.com/civ13/ycom/internal/base"
 	"github.com/civ13/ycom/internal/data"
 	"github.com/civ13/ycom/internal/engine"
 	"github.com/civ13/ycom/internal/language"
@@ -57,6 +58,7 @@ type AlienAction struct {
 
 type Battlescape struct {
 	Game       *engine.Game
+	Base       *base.Base
 	Map        *BattleMap
 	Units      UnitList
 	AlienAIs   []*AlienAI
@@ -159,7 +161,7 @@ func (bs *Battlescape) GetMovementRange() map[[2]int]bool {
 	return result
 }
 
-func NewBattlescape(g *engine.Game, squad []*soldier.Soldier, ufoName string) *Battlescape {
+func NewBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, ufoName string) *Battlescape {
 	var m *BattleMap
 	switch ufoName {
 	case "Terror":
@@ -182,6 +184,7 @@ func NewBattlescape(g *engine.Game, squad []*soldier.Soldier, ufoName string) *B
 
 	bs := &Battlescape{
 		Game:    g,
+		Base:    b,
 		Map:     m,
 		Phase:   PhasePlayerTurn,
 		Turn:    1,
@@ -662,6 +665,13 @@ func (bs *Battlescape) finishAlienTurn() {
 	}
 	bs.checkReinforcements()
 	bs.checkVictory()
+	bs.Selected = nil
+	for _, u := range bs.Units {
+		if u.Faction == 0 && u.Alive && u.HP > 0 && u.Level == bs.Map.CurrentLevel {
+			bs.Selected = u
+			break
+		}
+	}
 }
 
 func (bs *Battlescape) processAbduction() {
@@ -1361,42 +1371,82 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 					style = engine.StyleMagenta
 				}
 			} else {
-				switch tile.Type {
-				case TileGrass:
-					sgv := tileVar(mx, my, 3)
-					seenGrass := [][3]int32{{20, 52, 20}, {24, 58, 16}, {17, 48, 26}}
-					sgc := seenGrass[sgv]
-					style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(sgc[0], sgc[1], sgc[2]))
-				case TileTree:
-					stv := tileVar(mx, my, 3)
-					seenTree := [][3]int32{{12, 48, 12}, {18, 42, 8}, {9, 52, 18}}
-					stc := seenTree[stv]
-					style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(stc[0], stc[1], stc[2]))
-				case TileBush:
-					sbv := tileVar(mx, my, 3)
-					seenBush := [][3]int32{{22, 54, 14}, {18, 48, 22}, {26, 50, 12}}
-					sbc := seenBush[sbv]
-					style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(sbc[0], sbc[1], sbc[2]))
-				case TileWall:
-					swv := tileVar(mx, my, 3)
-					seenWall := [][3]int32{{52, 52, 52}, {44, 44, 46}, {58, 56, 52}}
-					swc := seenWall[swv]
-					style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(swc[0], swc[1], swc[2]))
-				case TileRock:
-					srv := tileVar(mx, my, 3)
-					seenRock := [][3]int32{{55, 50, 46}, {46, 42, 40}, {60, 56, 50}}
-					src := seenRock[srv]
-					style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(src[0], src[1], src[2]))
-				case TileWater:
-					style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(20, 35, 65))
-				case TileUFOFloor:
-					style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(25, 50, 55))
-				case TileUFOWall:
-					style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(30, 58, 64))
-				case TileDoor:
-					style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(55, 48, 18))
-				case TileConsole, TileMachinery, TilePod, TilePowerSource, TileStorage, TileAlienTech:
-					style = engine.StyleGray
+				if bs.IsNight {
+					switch tile.Type {
+					case TileGrass:
+						sgv := tileVar(mx, my, 3)
+						seenGrass := [][3]int32{{8, 20, 8}, {10, 22, 6}, {7, 18, 10}}
+						sgc := seenGrass[sgv]
+						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(sgc[0], sgc[1], sgc[2]))
+					case TileTree:
+						stv := tileVar(mx, my, 3)
+						seenTree := [][3]int32{{5, 18, 5}, {7, 16, 3}, {4, 20, 7}}
+						stc := seenTree[stv]
+						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(stc[0], stc[1], stc[2]))
+					case TileBush:
+						sbv := tileVar(mx, my, 3)
+						seenBush := [][3]int32{{9, 22, 6}, {7, 18, 9}, {10, 20, 5}}
+						sbc := seenBush[sbv]
+						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(sbc[0], sbc[1], sbc[2]))
+					case TileWall:
+						swv := tileVar(mx, my, 3)
+						seenWall := [][3]int32{{20, 20, 20}, {17, 17, 18}, {22, 21, 20}}
+						swc := seenWall[swv]
+						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(swc[0], swc[1], swc[2]))
+					case TileRock:
+						srv := tileVar(mx, my, 3)
+						seenRock := [][3]int32{{22, 20, 18}, {18, 16, 15}, {24, 22, 20}}
+						src := seenRock[srv]
+						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(src[0], src[1], src[2]))
+					case TileWater:
+						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(8, 14, 26))
+					case TileUFOFloor:
+						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(10, 20, 22))
+					case TileUFOWall:
+						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(12, 23, 26))
+					case TileDoor:
+						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(22, 19, 7))
+					case TileConsole, TileMachinery, TilePod, TilePowerSource, TileStorage, TileAlienTech:
+						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(30, 30, 30))
+					}
+				} else {
+					switch tile.Type {
+					case TileGrass:
+						sgv := tileVar(mx, my, 3)
+						seenGrass := [][3]int32{{20, 52, 20}, {24, 58, 16}, {17, 48, 26}}
+						sgc := seenGrass[sgv]
+						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(sgc[0], sgc[1], sgc[2]))
+					case TileTree:
+						stv := tileVar(mx, my, 3)
+						seenTree := [][3]int32{{12, 48, 12}, {18, 42, 8}, {9, 52, 18}}
+						stc := seenTree[stv]
+						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(stc[0], stc[1], stc[2]))
+					case TileBush:
+						sbv := tileVar(mx, my, 3)
+						seenBush := [][3]int32{{22, 54, 14}, {18, 48, 22}, {26, 50, 12}}
+						sbc := seenBush[sbv]
+						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(sbc[0], sbc[1], sbc[2]))
+					case TileWall:
+						swv := tileVar(mx, my, 3)
+						seenWall := [][3]int32{{52, 52, 52}, {44, 44, 46}, {58, 56, 52}}
+						swc := seenWall[swv]
+						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(swc[0], swc[1], swc[2]))
+					case TileRock:
+						srv := tileVar(mx, my, 3)
+						seenRock := [][3]int32{{55, 50, 46}, {46, 42, 40}, {60, 56, 50}}
+						src := seenRock[srv]
+						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(src[0], src[1], src[2]))
+					case TileWater:
+						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(20, 35, 65))
+					case TileUFOFloor:
+						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(25, 50, 55))
+					case TileUFOWall:
+						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(30, 58, 64))
+					case TileDoor:
+						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(55, 48, 18))
+					case TileConsole, TileMachinery, TilePod, TilePowerSource, TileStorage, TileAlienTech:
+						style = engine.StyleGray
+					}
 				}
 			}
 
@@ -1457,23 +1507,31 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 				continue
 			}
 			sx := u.X - bs.ScrollX + 1
-			sy := u.Y - bs.ScrollY + 1
-			if sx >= 1 && sx < viewW+1 && sy >= 1 && sy < viewH+1 {
-				engine.ApplyLightSource(ctx.ScreenRaw, ctx.FrameBuffer(), sx, sy, 4, tcell.NewRGBColor(180, 160, 100))
-			}
-		}
-		for _, u := range bs.Units {
-			if !u.Alive || u.Faction != 1 || u.Level != bs.Map.CurrentLevel {
-				continue
-			}
-			sx := u.X - bs.ScrollX + 1
-			sy := u.Y - bs.ScrollY + 1
-			if sx >= 1 && sx < viewW+1 && sy >= 1 && sy < viewH+1 {
-				if bs.Map.IsSeen(u.X, u.Y) {
-					engine.ApplyLightSource(ctx.ScreenRaw, ctx.FrameBuffer(), sx, sy, 2, tcell.NewRGBColor(100, 140, 255))
+				sy := u.Y - bs.ScrollY + 1
+				if sx >= 1 && sx < viewW+1 && sy >= 1 && sy < viewH+1 {
+					if bs.IsNight {
+						engine.ApplyLightSource(ctx.ScreenRaw, ctx.FrameBuffer(), sx, sy, 3, tcell.NewRGBColor(120, 110, 70))
+					} else {
+						engine.ApplyLightSource(ctx.ScreenRaw, ctx.FrameBuffer(), sx, sy, 4, tcell.NewRGBColor(180, 160, 100))
+					}
 				}
 			}
-		}
+			for _, u := range bs.Units {
+				if !u.Alive || u.Faction != 1 || u.Level != bs.Map.CurrentLevel {
+					continue
+				}
+				sx := u.X - bs.ScrollX + 1
+				sy := u.Y - bs.ScrollY + 1
+				if sx >= 1 && sx < viewW+1 && sy >= 1 && sy < viewH+1 {
+					if bs.Map.IsSeen(u.X, u.Y) {
+						if bs.IsNight {
+							engine.ApplyLightSource(ctx.ScreenRaw, ctx.FrameBuffer(), sx, sy, 1, tcell.NewRGBColor(60, 80, 150))
+						} else {
+							engine.ApplyLightSource(ctx.ScreenRaw, ctx.FrameBuffer(), sx, sy, 2, tcell.NewRGBColor(100, 140, 255))
+						}
+					}
+				}
+			}
 	}
 
 	for _, u := range bs.Units {
@@ -1499,12 +1557,18 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 				ch = u.AlienType.Icon
 			}
 			style = engine.StyleRedBold
+			if engine.Config.BloomEnabled {
+				engine.ApplyBloom(ctx.ScreenRaw, ctx.FrameBuffer(), sx, sy, tcell.NewRGBColor(255, 50, 50))
+			}
 		} else if u.Faction == 2 {
 			ch = 'c'
 			style = engine.StyleGreen
 		}
 		if u == bs.Selected {
 			style = style.Reverse(true)
+			if engine.Config.LightingEnabled {
+				engine.ApplyDirectionalLight(ctx.ScreenRaw, ctx.FrameBuffer(), sx, sy, 0, -1, 5, tcell.NewRGBColor(200, 200, 150), func(x, y int) bool { return !bs.Map.Opaque(x+bs.ScrollX-1, y+bs.ScrollY-1) })
+			}
 		}
 		if u.X == bs.CursorX && u.Y == bs.CursorY {
 			style = style.Reverse(true)
@@ -1522,6 +1586,9 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 		sy := int(py) - bs.ScrollY + 1
 		if sx >= 1 && sx < viewW+1 && sy >= 1 && sy < viewH+1 {
 			ctx.SetCell(sx, sy, p.Symbol, p.Style)
+			if engine.Config.BloomEnabled {
+				engine.ApplyBloom(ctx.ScreenRaw, ctx.FrameBuffer(), sx, sy, p.Style.GetForeground())
+			}
 		}
 	}
 
@@ -1604,7 +1671,6 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 
 	// Draw hovered unit info
 	if bs.HoveredUnit != nil && bs.HoveredUnit != bs.Selected {
-		sy++
 		ctx.DrawString(sidebarX, sy, language.String("SIDE_TARGET_INFO"), engine.StyleRedBold)
 		sy++
 		u := bs.HoveredUnit
@@ -1621,15 +1687,28 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 		}
 		ctx.DrawString(sidebarX, sy, name, engine.StyleDefault.Bold(true))
 		sy++
-		ctx.DrawString(sidebarX, sy, fmt.Sprintf("HP: %d/%d", u.HP, u.MaxHP), engine.StyleDefault)
-		sy++
-		ctx.DrawString(sidebarX, sy, fmt.Sprintf("ACC: %d", u.Accuracy), engine.StyleDefault)
-		sy++
-		ctx.DrawString(sidebarX, sy, fmt.Sprintf("STR: %d  TU: %d", u.Strength, u.TU), engine.StyleDefault)
-		sy++
 		weaponName := data.RuleItems[u.Weapon].ShortName
-		ctx.DrawString(sidebarX, sy, fmt.Sprintf("WPN: %s", weaponName), engine.StyleDefault)
+		ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_WPN_TARGET"), weaponName), engine.StyleDefault)
 		sy++
+
+		hasAutopsy := u.Faction != 1 || u.AlienType == nil
+		if !hasAutopsy && u.AlienType != nil {
+			for _, id := range bs.Base.CompletedResearch {
+				if id == u.AlienType.AutopsyID {
+					hasAutopsy = true
+					break
+				}
+			}
+		}
+
+		if hasAutopsy {
+			ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_HP"), u.HP, u.MaxHP), engine.StyleDefault)
+			sy++
+			ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_ACC"), u.Accuracy), engine.StyleDefault)
+			sy++
+			ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_STR_TU"), u.Strength, u.TU), engine.StyleDefault)
+			sy++
+		}
 
 		if u.Faction == 1 && u.AlienType != nil {
 			portrait := u.AlienType.GetPortrait()
@@ -1701,9 +1780,9 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 
 	// Draw help bar
 	ctx.DrawPanel(0, h-1, w, 1, "", engine.StyleGray)
-	help := "[hjkl]/[WSAD]=Move [Space]/[Enter]=Act [q]=Cycle [f]=Fire [r]=Reload [g]=Grenade [m]=Medikit [e]=End [c]=Crouch"
+	help := language.String("HELP_BATTLESCAPE")
 	if bs.Map.NumLevels > 1 {
-		help += " [<>]=Stairs"
+		help += language.String("HELP_STAIRS_SUFFIX")
 	}
 	ctx.DrawMarkupString(1, h-1, help, engine.StyleGray, engine.StyleHotkey)
 }
@@ -1826,7 +1905,7 @@ func (bs *Battlescape) HandleMouse(e *tcell.EventMouse) {
 
 	// Handle help bar clicks (bottom bar)
 	if y == scrH-1 {
-	help := "[hjkl]/[WSAD]=Move [Space]/[Enter]=Act [q]=Cycle [f]=Fire [r]=Reload [g]=Grenade [m]=Medikit [e]=End [c]=Crouch [v]=Vision"
+	help := language.String("HELP_BATTLESCAPE_MOUSE")
 		helpActions := []string{"=Move", "=Act", "=Cycle", "=Fire", "=Reload", "=Grenade", "=Medikit", "=End", "=Crouch"}
 		helpFuncs := []func(){
 			nil, nil,

@@ -69,7 +69,7 @@ func (ms *ManufactureScreen) Render(ctx *engine.ScreenCtx) {
 			if job.CostDays > 0 {
 				pct = job.Progress * 100 / job.CostDays
 			}
-			status := fmt.Sprintf("%s x%d (%d%%) Eng: %d [+/-] Assign", job.ItemKey, job.Count, pct, job.Engineers)
+			status := fmt.Sprintf(language.String("MFG_QUEUE_LINE"), job.ItemKey, job.Count, pct, job.Engineers)
 			if job.Completed {
 				status += language.String("MFG_DONE")
 			}
@@ -81,7 +81,7 @@ func (ms *ManufactureScreen) Render(ctx *engine.ScreenCtx) {
 			y++
 		}
 	}
-	ctx.DrawString(2, 3, fmt.Sprintf("Unassigned Engineers: %d.", ms.Base.UnassignedEngineers), engine.StyleYellow)
+	ctx.DrawString(2, 3, fmt.Sprintf(language.String("MFG_UNASSIGNED"), ms.Base.UnassignedEngineers), engine.StyleYellow)
 
 	ctx.DrawString(2, h/2, language.String("MFG_BUILDABLE"), engine.StyleCyanBold)
 
@@ -106,9 +106,9 @@ func (ms *ManufactureScreen) Render(ctx *engine.ScreenCtx) {
 		matStr := ""
 		for mat, qty := range plan.Materials {
 			have := ms.Base.CountItem(mat)
-			matStr += fmt.Sprintf(" %s:%d/%d", mat, have, qty)
+			matStr += fmt.Sprintf(language.String("MFG_MATERIAL_COUNT"), mat, have, qty)
 		}
-		line := fmt.Sprintf("%-18s Days:%d%s", plan.Name, plan.Days, matStr)
+		line := fmt.Sprintf(language.String("MFG_BUILDABLE_LINE"), plan.Name, plan.Days, matStr)
 		ctx.DrawString(2, startY+i, line, style)
 	}
 

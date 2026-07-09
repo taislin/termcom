@@ -93,9 +93,9 @@ func (bs *BaseScreen) DismissSoldier() {
 
 func (bs *BaseScreen) BuyInterceptor() {
 	if bs.Base.BuyInterceptor("avalanche", &bs.Game.Funds) {
-		bs.Message = "Interceptor purchased."
+		bs.Message = language.String("MSG_INTERCEPTOR_PURCHASED")
 	} else {
-		bs.Message = "Cannot buy interceptor!"
+		bs.Message = language.String("MSG_CANNOT_BUY_INTERCEPTOR")
 	}
 }
 
@@ -106,7 +106,7 @@ func (bs *BaseScreen) Render(ctx *engine.ScreenCtx) {
 
 	ctx.DrawPanel(0, 0, w, h-3, language.String("BASE_MANAGEMENT"), engine.StyleDefault)
 
-	tabs := []string{language.String("TAB_FACILITIES"), language.String("TAB_SOLDIERS"), language.String("TAB_RESEARCH"), language.String("TAB_MANUFACTURE"), language.String("TAB_TRANSFER"), "Hangars"}
+	tabs := []string{language.String("TAB_FACILITIES"), language.String("TAB_SOLDIERS"), language.String("TAB_RESEARCH"), language.String("TAB_MANUFACTURE"), language.String("TAB_TRANSFER"), language.String("TAB_HANGARS")}
 	tabW := 0
 	for _, t := range tabs {
 		tw := len(t) + 4 // brackets + space
@@ -144,7 +144,7 @@ func (bs *BaseScreen) Render(ctx *engine.ScreenCtx) {
 	cap := bs.Base.LivingCapacity()
 	soldStr := fmt.Sprintf(language.String("BASE_SOLDIERS"), len(bs.Base.Soldiers), cap)
 	ctx.DrawString(2, h-3, fmt.Sprintf(language.String("BASE_PERSONNEL"), bs.Base.Scientists, bs.Base.Engineers, soldStr), engine.StyleDefault)
-	fundsStr := fmt.Sprintf("Funds: $%dK", bs.Game.Funds/1000)
+	fundsStr := fmt.Sprintf(language.String("GEOSCAPE_FUNDS"), bs.Game.Funds/1000)
 	ctx.DrawString(w/2, h-3, fundsStr, engine.StyleGreen)
 	if bs.Message != "" {
 		ctx.DrawString(w*3/4, h-3, bs.Message, engine.StyleYellow)
@@ -153,13 +153,13 @@ func (bs *BaseScreen) Render(ctx *engine.ScreenCtx) {
 	if bs.Tab == 0 {
 		help = language.String("HELP_FACILITIES")
 	} else if bs.Tab == 1 {
-		help = fmt.Sprintf("[H]ire ($%dK)  [E]quip  [D]ismiss  [j]/[k]=Navigate  [Esc]=Back", HireCost/1000)
+		help = fmt.Sprintf(language.String("HELP_SOLDIERS"), HireCost/1000)
 	} else if bs.Tab == 2 {
 		help = language.String("HELP_TAB_RESEARCH")
 	} else if bs.Tab == 3 {
 		help = language.String("HELP_TAB_MANUFACTURE")
 	} else if bs.Tab == 5 {
-		help = "[B]uy  [W]=Weapon  [\u2191]/[\u2193]=Navigate  [Esc]=Back"
+		help = language.String("HELP_HANGARS")
 	}
 	ctx.DrawMarkupString(2, h-1, help, engine.StyleGray, engine.StyleHotkey)
 }
@@ -279,7 +279,7 @@ func (bs *BaseScreen) renderTransfer(ctx *engine.ScreenCtx, x, y, w, h int) {
 }
 
 func (bs *BaseScreen) renderHangars(ctx *engine.ScreenCtx, x, y, w, h int) {
-	ctx.DrawString(x, y, "HANGARS:", engine.StyleCyanBold)
+	ctx.DrawString(x, y, language.String("SECTION_HANGARS"), engine.StyleCyanBold)
 	y += 2
 	idx := 0
 	for _, hg := range bs.Base.Hangars {
@@ -291,12 +291,12 @@ func (bs *BaseScreen) renderHangars(ctx *engine.ScreenCtx, x, y, w, h int) {
 			style = engine.StyleHighlight
 		}
 		wpn := data.InterceptorWeapons[hg.WeaponKey]
-		line := fmt.Sprintf("Hangar %d: [%s] HP:%d/%d %s (A:%d)", idx+1, hg.Status, hg.HP, hg.MaxHP, wpn.Name, hg.Ammo)
+		line := fmt.Sprintf(language.String("LINE_HANGAR_INFO"), idx+1, hg.Status, hg.HP, hg.MaxHP, wpn.Name, hg.Ammo)
 		ctx.DrawString(x, y+idx, line, style)
 		idx++
 	}
 	if idx == 0 {
-		ctx.DrawString(x, y, "No interceptors in hangars. Press [B] to buy.", engine.StyleGray)
+		ctx.DrawString(x, y, language.String("MSG_NO_INTERCEPTORS"), engine.StyleGray)
 	}
 }
 
@@ -364,7 +364,7 @@ func (bs *BaseScreen) HandleKey(e *tcell.EventKey) {
 		if bs.Tab == 5 && len(bs.Base.Hangars) > 0 {
 			name := bs.Base.ChangeInterceptorWeapon(bs.Selection)
 			if name != "" {
-				bs.Message = fmt.Sprintf("Weapon changed to %s", name)
+				bs.Message = fmt.Sprintf(language.String("MSG_WEAPON_CHANGED"), name)
 			}
 		}
 	case "s", "S":

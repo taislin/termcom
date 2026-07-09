@@ -9,6 +9,7 @@ func init() {
 		"MENU_CONTINUE":       "Continue",
 		"MENU_LOAD_GAME":      "Load Game",
 		"MENU_QUIT":           "Quit",
+		"MENU_OPTIONS":        "Options",
 		"MENU_HELP":           "\u2191/\u2193=Select  Enter=Confirm  Q=Quit  F5=Save  F9=Load",
 
 		// ── Geoscape ──────────────────────────────────────
@@ -27,6 +28,17 @@ func init() {
 		"GEOSCAPE_TIME_SPEED":     "Time speed: %dx",
 		"GEOSCAPE_NO_UFO":     "No UFOs detected on radar.",
 		"GEOSCAPE_CURSOR":     "Cursor at [%d,%d]",
+		"HELP_GEOSCAPE":       "[j]/[k]=Select [L]=Launch [A]=Autoresolve [M]=Mission [B]=Base [R]=Transport [Space]=Pause [Q]=Quit",
+		"GEO_HEADER_REGION":   " REGION          THREAT  RADAR  SQD  STATUS",
+		"GEO_RADAR_ON":        " R ",
+		"GEO_RADAR_OFF":       " - ",
+		"GEO_STATUS_MISSION":  "MISSION",
+		"GEO_STATUS_BASE":     "BASE",
+		"GEO_STATUS_DANGER":   "DANGER",
+		"GEO_STATUS_ALERT":    "ALERT",
+		"GEO_STATUS_CLEAR":    "clear",
+		"GEO_MAP_PANEL":       "MAP",
+		"MSG_NO_INTERCEPTORS_AVAILABLE": "No interceptors available!",
 
 		// Legend
 		"LEGEND":              "LEGEND",
@@ -64,6 +76,20 @@ func init() {
 		"MSG_UFO_DETECTED":        "%s detected near %s!",
 		"ENCYCLOPEDIA":            "ENCYCLOPEDIA",
 		"HELP_ENCYCLOPEDIA":       "[\u2190]/[\u2192]=Tab  [\u2191]/[\u2193]=Navigate  [Esc]=Back",
+		"ENCYCLO_CAT_ALIENS":      "Aliens",
+		"ENCYCLO_CAT_WEAPONS":     "Weapons",
+		"ENCYCLO_CAT_ARMOR":       "Armor",
+		"ENCYCLO_CAT_ITEMS":       "Items",
+		"ENCYCLO_CAT_RESEARCH":    "Research",
+		"ENCYCLO_WEAPON_STATS":    "DMG:%d ACC:%d%% TU:%d RNG:%d",
+		"ENCYCLO_ARMOR_PROTECTION": "Protection: %d",
+		"ENCYCLO_ITEM_STATS":      "Weight:%d Value:$%d",
+		"ENCYCLO_RESEARCH_COST":   "Cost: %d man-days",
+		"ENCYCLO_UNDISCOVERED":    "???",
+		"ENCYCLO_ALIEN_STATS_1":   "HP:%d TU:%d ACC:%d",
+		"ENCYCLO_ALIEN_STATS_2":   "STR:%d PSI:%d BRA:%d",
+		"ENCYCLO_ALIEN_STATS_3":   "DMG:%s WPN:%s",
+		"ENCYCLO_NOT_DISCOVERED":  "Not yet discovered.",
 		"MSG_SAVE_FAILED":         "Save failed: ",
 		"MSG_GAME_SAVED":          "Game saved to xcom_save.json",
 		"MSG_LOAD_FAILED":         "Load failed: ",
@@ -189,6 +215,32 @@ func init() {
 		"STATUS_SELECTED":      "Sel: %s HP:%d/%d TU:%d/%d W:%s",
 		"STATUS_CURSOR":        "[%d,%d] %s",
 
+		// Sidebar stat labels
+		"SIDE_WPN_TARGET":      "WPN: %s",
+		"SIDE_STR_TU":          "STR: %d  TU: %d",
+
+		// Stairs
+		"MSG_NO_STAIRS_MAP":        "No stairs on this map.",
+		"MSG_MOVE_TO_STAIRS":       "Move to stairs first.",
+		"MSG_NO_STAIRS_HERE":       "No stairs here.",
+		"MSG_DESCENDED_LEVEL":      "Descended to level %d.",
+		"MSG_NOT_ENOUGH_TU_STAIRS": "Not enough TU to use stairs.",
+		"MSG_SELECT_SOLDIER_FIRST": "Select a soldier first.",
+
+		// Psi
+		"MSG_NEED_PSI_AMP":         "Need Psi-Amplifier to use Psi.",
+		"MSG_SELECT_ALIEN_TARGET":  "Select an alien target.",
+
+		// Vision modes
+		"MSG_VISION_NIGHT":         "NIGHT VISION ON",
+		"MSG_VISION_THERMAL":       "THERMAL VISION ON",
+		"MSG_VISION_NORMAL":        "NORMAL VISION",
+
+		// Battlescape help bars
+		"HELP_BATTLESCAPE":         "[hjkl]/[WSAD]=Move [Space]/[Enter]=Act [q]=Cycle [f]=Fire [r]=Reload [g]=Grenade [m]=Medikit [e]=End [c]=Crouch",
+		"HELP_STAIRS_SUFFIX":       " [<>]=Stairs",
+		"HELP_BATTLESCAPE_MOUSE":   "[hjkl]/[WSAD]=Move [Space]/[Enter]=Act [q]=Cycle [f]=Fire [r]=Reload [g]=Grenade [m]=Medikit [e]=End [c]=Crouch [v]=Vision",
+
 		// ── Base Management ───────────────────────────────
 		"BASE_MANAGEMENT":      "BASE MANAGEMENT",
 
@@ -198,6 +250,7 @@ func init() {
 		"TAB_RESEARCH":         "Research",
 		"TAB_MANUFACTURE":      "Manufacture",
 		"TAB_TRANSFER":         "Transfer",
+		"TAB_HANGARS":          "Hangars",
 
 		// Status
 		"BASE_SOLDIERS":        "Soldiers: %d/%d",
@@ -206,9 +259,10 @@ func init() {
 		// Help bars
 		"HELP_BASE":            "[B]uild  [H]ire  1-5=Tab  [\u2191]/[\u2193]=Navigate  [Esc]=Back",
 		"HELP_FACILITIES":      "[B]uild  [S]ell  [\u2191]/[\u2193]=Navigate  [Esc]=Back",
-		"HELP_SOLDIERS":        "[H]ire  [E]quip  [D]ismiss  [\u2191]/[\u2193]=Navigate  [Esc]=Back",
+		"HELP_SOLDIERS":        "[H]ire ($%dK)  [E]quip  [D]ismiss  [\u2191]/[\u2193]=Navigate  [Esc]=Back",
 		"HELP_TAB_RESEARCH":    "[R]esearch  [\u2191]/[\u2193]=Navigate  [Esc]=Back",
 		"HELP_TAB_MANUFACTURE": "[M]anufacture  [\u2191]/[\u2193]=Navigate  [Esc]=Back",
+		"HELP_HANGARS":         "[B]uy  [W]=Weapon  [\u2191]/[\u2193]=Navigate  [Esc]=Back",
 
 		// Section labels
 		"SECTION_FACILITIES":   "FACILITIES:",
@@ -250,6 +304,12 @@ func init() {
 		"MSG_DISMISSED":        " dismissed.",
 		"MSG_NO_ROOM":          "No room! Build more Living Quarters.",
 		"MSG_HIRED":            " hired.",
+		"MSG_INTERCEPTOR_PURCHASED": "Interceptor purchased.",
+		"MSG_CANNOT_BUY_INTERCEPTOR": "Cannot buy interceptor!",
+		"MSG_NO_INTERCEPTORS":  "No interceptors in hangars. Press [B] to buy.",
+		"MSG_WEAPON_CHANGED":   "Weapon changed to %s",
+		"SECTION_HANGARS":      "HANGARS:",
+		"LINE_HANGAR_INFO":     "Hangar %d: [%s] HP:%d/%d %s (A:%d)",
 
 		// ── Equipment ──────────────────────────────────────
 		"EQUIP_TITLE":          "EQUIP SOLDIERS",
@@ -266,6 +326,12 @@ func init() {
 		"MSG_EQUIPPED":         "Equipped %s.",
 		"MSG_EQUIPPED_DONE":    "Equipped.",
 		"MSG_CANNOT_EQUIP":     "Cannot equip!",
+		"EQUIP_SOLDIER_LINE":   "%-12s %s  HP:%d/%d",
+		"EQUIP_WEAPON_INFO":    "%s (DMG:%d ACC:%d TU:%d)",
+		"EQUIP_ARMOR_INFO":     "%s (DEF:%d)",
+		"EQUIP_ITEM_WEAPON":    "%-14s x%d  DMG:%d ACC:%d",
+		"EQUIP_ITEM_ARMOR":     "%-14s x%d  DEF:%d",
+		"EQUIP_ITEM_GENERIC":   "%-14s x%d",
 
 		// ── Research ───────────────────────────────────────
 		"RESEARCH_TITLE":       "RESEARCH",
@@ -280,6 +346,7 @@ func init() {
 		"RESEARCH_COST":        "%-25s Cost: %d man-days%s",
 		"MSG_RESEARCH_STARTED": "Research started: %s",
 		"MSG_CANNOT_RESEARCH":  "Cannot start research!",
+		"RESEARCH_UNASSIGNED":  "Unassigned Scientists: %d. [+/-] Assign/Unassign.",
 
 		// ── Manufacturing ─────────────────────────────────
 		"MANUFACTURE_TITLE":    "MANUFACTURING",
@@ -292,6 +359,10 @@ func init() {
 		"HELP_MANUFACTURE":     "\u2191/\u2193=Select  Enter=Build  [Esc]=Back",
 		"MSG_MFG_STARTED":      "Manufacturing started: %s",
 		"MSG_CANNOT_MFG":       "Cannot manufacture!",
+		"MFG_QUEUE_LINE":       "%s x%d (%d%%) Eng: %d [+/-] Assign",
+		"MFG_UNASSIGNED":       "Unassigned Engineers: %d.",
+		"MFG_MATERIAL_COUNT":   " %s:%d/%d",
+		"MFG_BUILDABLE_LINE":   "%-18s Days:%d%s",
 
 		// ── Soldiers ───────────────────────────────────────
 		"RANK_ROOKIE":          "Rookie",
@@ -500,6 +571,15 @@ func init() {
 		"HELP_STRAT_V1":        ">Victory: Win 10 battles to save Earth",
 		"HELP_STRAT_V2":        ">Defeat: Alien Activity reaches 100%",
 		"HELP_STRAT_V3":        ">Unresolved missions raise activity +10%",
+
+		// ── Options ──────────────────────────────────────
+		"OPTIONS_TITLE":        "OPTIONS",
+		"OPTIONS_BLOOM":        "Character Bloom",
+		"OPTIONS_DISTORTION":   "Distortion/Aberration",
+		"OPTIONS_LIGHTING":     "Directional Lighting",
+		"OPTIONS_LANGUAGE":     "Language",
+		"OPTIONS_ON":           "ON ",
+		"OPTIONS_OFF":          "OFF",
 
 		// ── Common ─────────────────────────────────────────
 		"NONE":                 "None",

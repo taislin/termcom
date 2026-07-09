@@ -2,6 +2,7 @@ package engine
 
 import (
 	"math"
+	"math/rand"
 	"os"
 	"time"
 
@@ -11,13 +12,43 @@ import (
 
 const SaveFile = "xcom_save.json"
 
+type menuStar struct {
+	angle   float64
+	dist    float64
+	speed   float64
+	baseBri float64
+	size    int // 0='.', 1='+', 2='*'
+}
+
 type MenuScreen struct {
-	Game      *Game
-	Selection int
+	Game          *Game
+	Selection     int
+	lastSelection int
+
+	// Starfield
+	stars        []menuStar
+	starsSeeded  bool
+	starW, starH int
+
+	// Bracket animation
+	bracketPhase float64
+
+	// Drift particles
+	menuParticles *ParticleSystem
+	driftTick     int
+
+	// Timing
+	lastUpdate time.Time
 }
 
 func NewMenuScreen(g *Game) *MenuScreen {
-	return &MenuScreen{Game: g, Selection: 0}
+	return &MenuScreen{
+		Game:          g,
+		Selection:     0,
+		lastSelection: -1,
+		menuParticles: NewParticleSystem(80),
+		lastUpdate:    time.Now(),
+	}
 }
 
 func HasSave() bool {
@@ -25,11 +56,103 @@ func HasSave() bool {
 	return err == nil
 }
 
-func (ms *MenuScreen) Update() {}
+func (ms *MenuScreen) seedStars(w, h int) {
+	const numStars = 150
+	ms.stars = make([]menuStar, numStars)
+	for i := range ms.stars {
+		ms.stars[i] = menuStar{
+			angle:   rand.Float64() * 2 * math.Pi,
+			dist:    rand.Float64(),
+			speed:   0.04 + rand.Float64()*0.12,
+			baseBri: 0.4 + rand.Float64()*0.6,
+			size:    rand.Intn(3),
+		}
+	}
+	ms.starW = w
+	ms.starH = h
+	ms.starsSeeded = true
+}
+
+func (ms *MenuScreen) Update() {
+	now := time.Now()
+	dt := now.Sub(ms.lastUpdate).Seconds()
+	if dt > 0.1 {
+		dt = 0.1
+	}
+	ms.lastUpdate = now
+
+	// Reset bracket phase and clear particles when selection changes
+	if ms.Selection != ms.lastSelection {
+		ms.bracketPhase = 0
+		ms.menuParticles.Clear()
+		ms.lastSelection = ms.Selection
+	}
+
+	ms.bracketPhase += dt
+
+	for i := range ms.stars {
+		ms.stars[i].dist += ms.stars[i].speed * dt
+		if ms.stars[i].dist > 1.0 {
+			ms.stars[i].dist = 0.0
+			ms.stars[i].angle = rand.Float64() * 2 * math.Pi
+		}
+	}
+
+	ms.menuParticles.Update(dt)
+
+	// Spawn drift particles from both edges of selected option every 8 ticks (~130 ms)
+	ms.driftTick++
+	if ms.driftTick%8 == 0 {
+		w, _ := ms.Game.ScreenSize()
+		opts := ms.options()
+		if ms.Selection >= 0 && ms.Selection < len(opts) {
+			// menuY = startY(2) + titleLines(6) + gap(1) + subOffset(8) = 17
+			const menuY = 17
+			optY := menuY + ms.Selection*2
+			textX := w/2 - 8
+			textLen := len([]rune(opts[ms.Selection]))
+			SpawnMenuDrift(ms.menuParticles, textX, optY, -1)
+			SpawnMenuDrift(ms.menuParticles, textX+textLen-1, optY, 1)
+		}
+	}
+}
 
 func (ms *MenuScreen) Render(ctx *ScreenCtx) {
 	w, h := ctx.Size()
 
+	if !ms.starsSeeded || ms.starW != w || ms.starH != h {
+		ms.seedStars(w, h)
+	}
+
+	// ── 1. Starfield — polar coords, origin behind title, rushing outward ──────
+	// Y origin sits at the vertical midpoint of the title block (rows 2..7 → mid = 5)
+	const starOriginY = 5
+	halfW := float64(w) / 2.0
+	halfH := float64(h) / 2.0
+	starRunes := [3]rune{'.', '+', '*'}
+
+	for _, st := range ms.stars {
+		bri := st.dist * st.baseBri
+		sx := w/2 + int(math.Cos(st.angle)*st.dist*halfW)
+		// 0.55 compresses vertical spread to account for taller terminal cells
+		sy := starOriginY + int(math.Sin(st.angle)*st.dist*halfH*0.55)
+		if sx < 0 || sx >= w || sy < 0 || sy >= h {
+			continue
+		}
+		rv := int32(bri * 180.0)
+		gv := int32(bri * 180.0)
+		bv := int32(80.0 + bri*175.0)
+		ch := starRunes[st.size]
+		if st.dist < 0.15 {
+			ch = '.'
+		}
+		ctx.SetCell(sx, sy, ch, StyleDefault.Foreground(tcell.NewRGBColor(rv, gv, bv)))
+	}
+
+	// ── 2. Drift particles (render behind title) ──────────────────────────────
+	ms.menuParticles.Draw(ctx.ScreenRaw)
+
+	// ── 3. Title (existing per-character glow wave, unchanged) ────────────────
 	title := []string{
 		"████████╗███████╗██████╗ ███╗   ███╗       ██████╗ ██████╗ ███╗   ███╗",
 		"╚══██╔══╝██╔════╝██╔══██╗████╗ ████║      ██╔════╝██╔═══██╗████╗ ████║",
@@ -39,35 +162,30 @@ func (ms *MenuScreen) Render(ctx *ScreenCtx) {
 		"   ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝       ╚═════╝ ╚═════╝ ╚═╝     ╚═╝",
 	}
 
-	now := float64(time.Now().UnixNano()) / 1e9
-
+	nowSec := float64(time.Now().UnixNano()) / 1e9
 	startY := 2
 	for i, line := range title {
 		x := (w - len([]rune(line))) / 2
 		if x < 0 {
 			x = 0
 		}
-
 		col := 0
 		for _, ch := range line {
 			if ch == ' ' {
 				col++
 				continue
 			}
-			phase := float64(col)*0.3 + float64(i)*0.2 + now*2.0
-			glow := (math.Sin(phase) + 1) / 2 // 0..1
-
-			r := int32(128 + glow*127) // 128..255
-			g := int32(40 + glow*60)   // 40..100
-			b := int32(180 + glow*75)  // 180..255
-			fg := tcell.NewRGBColor(r, g, b)
-
-			style := StyleDefault.Foreground(fg).Bold(true)
-			ctx.SetCell(x+col, startY+i, ch, style)
+			phase := float64(col)*0.3 + float64(i)*0.2 + nowSec*2.0
+			glow := (math.Sin(phase) + 1) / 2
+			r := int32(128.0 + glow*127.0)
+			g := int32(40.0 + glow*60.0)
+			b := int32(180.0 + glow*75.0)
+			ctx.SetCell(x+col, startY+i, ch, StyleDefault.Foreground(tcell.NewRGBColor(r, g, b)).Bold(true))
 			col++
 		}
 	}
 
+	// ── 4. Subtitle + decorations ─────────────────────────────────────────────
 	subY := startY + len(title) + 1
 	subtitle := language.String("MENU_TITLE")
 	subX := (w - len(subtitle)) / 2
@@ -90,21 +208,51 @@ func (ms *MenuScreen) Render(ctx *ScreenCtx) {
 	}
 	ctx.DrawString(verX, subY+3, language.String("MENU_SUBTITLE"), StyleGray)
 
+	// ── 5. Menu items ─────────────────────────────────────────────────────────
 	menuY := subY + 8
 	options := ms.options()
 
+	// Bracket width: 0..2 extra spaces per side, driven by a 3 Hz sine
+	expansion := int(math.Round((math.Sin(ms.bracketPhase*3.0)+1.0)/2.0*2.0))
+
+	// Bracket color: neon cyan→white at 2.7 Hz (out-of-phase with width)
+	bSin := math.Sin(ms.bracketPhase * 2.7)
+	bracketStyle := StyleDefault.
+		Foreground(tcell.NewRGBColor(
+			int32(160.0+bSin*95.0),
+			int32(220.0+bSin*35.0),
+			255,
+		)).Bold(true)
+
+	// Selected text color: violet (#c040ff) → neon magenta (#ff40c0) at 2 Hz
+	tPhase := (math.Sin(ms.bracketPhase*2.0) + 1.0) / 2.0
+	selStyle := StyleDefault.
+		Foreground(tcell.NewRGBColor(
+			int32(192.0+tPhase*63.0),
+			64,
+			int32(255.0-tPhase*63.0),
+		)).Bold(true)
+
+	// Unselected: dim gray-purple so selected item pops
+	dimStyle := StyleDefault.Foreground(tcell.NewRGBColor(0x38, 0x38, 0x48))
+
 	for i, opt := range options {
-		style := StyleDefault
+		y := menuY + i*2
+		textX := w/2 - 8
+		textLen := len([]rune(opt))
+
 		if i == ms.Selection {
-			style = StyleHighlight
-			prefix := "> "
-			ctx.DrawString(w/2-10, menuY+i*2, prefix, StyleMagenta)
+			// Brackets expand/contract symmetrically around the text
+			ctx.SetCell(textX-1-expansion, y, '[', bracketStyle)
+			ctx.SetCell(textX+textLen+expansion, y, ']', bracketStyle)
+			ctx.DrawString(textX, y, opt, selStyle)
+		} else {
+			ctx.DrawString(textX, y, opt, dimStyle)
 		}
-		ctx.DrawString(w/2-8, menuY+i*2, opt, style)
 	}
 
+	// ── 6. Status bar ─────────────────────────────────────────────────────────
 	ctx.DrawPanel(0, h-3, w, 3, "", StyleGray)
-	// Example: j/k=Select -> [j]/[k]=Select
 	ctx.DrawMarkupString(1, h-2, "[j]/[k]=Select [Enter]=Confirm [Q]=Quit", StyleGray, StyleHotkey)
 }
 
@@ -136,6 +284,16 @@ func (ms *MenuScreen) HandleKey(e *tcell.EventKey) {
 	switch e.Str() {
 	case "q", "Q":
 		ms.Game.Quit()
+	case "j", "J":
+		ms.Selection++
+		if ms.Selection > maxSel {
+			ms.Selection = 0
+		}
+	case "k", "K":
+		ms.Selection--
+		if ms.Selection < 0 {
+			ms.Selection = maxSel
+		}
 	case "1":
 		ms.Selection = 0
 		ms.confirm()

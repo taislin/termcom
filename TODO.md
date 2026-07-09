@@ -25,15 +25,21 @@
 - [x] Fire terrain spread — burning tiles ignite adjacent grass (already existed)
 - [x] Fix night rendering — cursor white background + alien glow in fog of war
 
-## Phase 7: Research & Manufacturing Systems
-- [ ] Implement Research Lab project assignment and scientist assignment logic
-- [ ] Implement Workshop project queuing and engineer assignment logic
-- [ ] Integrate research unlocks (items/weapons/armor) into store availability
-- [ ] Integrate manufactured items into store inventory
+## Phase 7: Research & Manufacturing Systems (DONE)
+- [x] Implement Research Lab project assignment and scientist assignment logic
+- [x] Implement Workshop project queuing and engineer assignment logic
+- [x] Integrate research unlocks (items/weapons/armor) into store availability
+- [x] Integrate manufactured items into store inventory
 
 ## Phase 8: Campaign & Endgame
 - [ ] Implement Alien Activity progression (global panic and mission frequency)
 - [ ] Implement monthly funding reports based on Alien Activity
 - [ ] Implement "Cydonia" (Final Mission) trigger and map generation
 - [ ] Add Game Over/Victory screens with campaign stats
+
+## Phase 9: Modern VFX & Options
+- [ ] Add OPTIONS menu (Main Menu + In-game, 'O' hotkey) to toggle VFX
+- [ ] Implement Character-Level Bloom (Glow for projectiles/targets)
+- [ ] Implement Screen Distortion & Chromatic Aberration
+- [ ] Implement Directional Lighting (Shadows in Fog of War)
 

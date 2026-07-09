@@ -156,6 +156,147 @@ func ApplyLightSource(s *ScreenRaw, fb *FrameBuffer, sourceX, sourceY int, radiu
 	}
 }
 
+func ApplyBloom(s *ScreenRaw, fb *FrameBuffer, centerX, centerY int, bloomColor tcell.Color) {
+	radius := 1.5
+	lR, lG, lB := colorRGB(bloomColor)
+	radiusInt := 2
+	scrW, scrH := s.Size()
+
+	for dy := -radiusInt; dy <= radiusInt; dy++ {
+		for dx := -radiusInt; dx <= radiusInt; dx++ {
+			x, y := centerX+dx, centerY+dy
+			if x < 0 || x >= scrW || y < 0 || y >= scrH {
+				continue
+			}
+			dist := math.Sqrt(float64(dx*dx + dy*dy))
+			if dist > radius {
+				continue
+			}
+			// Gentle falloff for bloom
+			falloff := 0.3 * (1 - dist/radius)
+			cell := fb.Get(x, y)
+			bgR, bgG, bgB := colorRGB(cell.bg)
+			blended := [3]float64{
+				bgR + (lR-bgR)*falloff,
+				bgG + (lG-bgG)*falloff,
+				bgB + (lB-bgB)*falloff,
+			}
+			newBg := tcell.NewRGBColor(int32(blended[0]), int32(blended[1]), int32(blended[2]))
+			
+			// Maintain existing foreground, just blend background
+			style := tcell.StyleDefault.Foreground(cell.fg).Background(newBg)
+			s.SetCell(x, y, cell.ch, style)
+		}
+	}
+}
+
+func ApplyDirectionalLight(s *ScreenRaw, fb *FrameBuffer, sourceX, sourceY int, dirX, dirY float64, radius float64, lightColor tcell.Color, isVisible func(x, y int) bool) {
+	lR, lG, lB := colorRGB(lightColor)
+	radiusInt := int(math.Ceil(radius))
+	scrW, scrH := s.Size()
+
+	mag := math.Sqrt(dirX*dirX + dirY*dirY)
+	if mag > 0 {
+		dirX /= mag
+		dirY /= mag
+	}
+
+	for dy := -radiusInt; dy <= radiusInt; dy++ {
+		for dx := -radiusInt; dx <= radiusInt; dx++ {
+			dist := math.Sqrt(float64(dx*dx + dy*dy))
+			if dist > radius {
+				continue
+			}
+			if dist == 0 {
+				continue
+			}
+
+			// Cone filter: dot product against direction vector
+			if mag > 0 {
+				dot := (float64(dx)*dirX + float64(dy)*dirY) / dist
+				if dot < 0.7 {
+					continue
+				}
+			}
+
+			x, y := sourceX+dx, sourceY+dy
+			if x < 0 || x >= scrW || y < 0 || y >= scrH {
+				continue
+			}
+
+			// Bresenham shadow raycast — skip if any intermediate cell blocks LOS
+			if isVisible != nil && !raycastClear(sourceX, sourceY, x, y, isVisible) {
+				continue
+			}
+
+			falloff := smoothstep(1 - dist/radius)
+			cell := fb.Get(x, y)
+			bgR, bgG, bgB := colorRGB(cell.bg)
+			blended := lerpColor([3]float64{bgR, bgG, bgB}, [3]float64{lR, lG, lB}, falloff*0.4)
+			newBg := tcell.NewRGBColor(int32(blended[0]), int32(blended[1]), int32(blended[2]))
+			style := tcell.StyleDefault.Foreground(cell.fg).Background(newBg)
+			s.SetCell(x, y, cell.ch, style)
+		}
+	}
+}
+
+// raycastClear walks a Bresenham line from (x1,y1) to (x2,y2) and returns true
+// only if every intermediate cell (excluding source and destination) passes isVisible.
+func raycastClear(x1, y1, x2, y2 int, isVisible func(x, y int) bool) bool {
+	dx := x2 - x1
+	dy := y2 - y1
+	ax, ay := dx, dy
+	if ax < 0 {
+		ax = -ax
+	}
+	if ay < 0 {
+		ay = -ay
+	}
+	sx, sy := 1, 1
+	if dx < 0 {
+		sx = -1
+	}
+	if dy < 0 {
+		sy = -1
+	}
+	x, y := x1, y1
+	var err int
+	if ax >= ay {
+		err = ax / 2
+		for x != x2 {
+			x += sx
+			err -= ay
+			if err < 0 {
+				y += sy
+				err += ax
+			}
+			if x == x2 && y == y2 {
+				break
+			}
+			if !isVisible(x, y) {
+				return false
+			}
+		}
+	} else {
+		err = ay / 2
+		for y != y2 {
+			y += sy
+			err -= ax
+			if err < 0 {
+				x += sx
+				err += ay
+			}
+			if x == x2 && y == y2 {
+				break
+			}
+			if !isVisible(x, y) {
+				return false
+			}
+		}
+	}
+	return true
+}
+
 func DrawPixel(s *ScreenRaw, x, y int, upperColor, lowerColor tcell.Color) {
 	style := tcell.StyleDefault.Foreground(upperColor).Background(lowerColor)
 	s.SetCell(x, y, '▀', style)
