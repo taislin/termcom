@@ -44,13 +44,14 @@ type AlienType struct {
 	Portrait string // ASCII portrait
 }
 
-// GetPortrait returns the alien's portrait, generating one if not set.
+// GetPortrait returns the alien's portrait string, generating one if not set.
 func (at *AlienType) GetPortrait() string {
 	if at.Portrait != "" {
 		return at.Portrait
 	}
 	rng := rand.New(rand.NewSource(int64(at.Icon)))
-	return generatePortrait(rng, at.Icon, at.DamageType, at.Rank)
+	at.Portrait = generatePortrait(rng, at.Icon, at.DamageType, at.Rank)
+	return at.Portrait
 }
 
 var AlienTypes = []AlienType{
