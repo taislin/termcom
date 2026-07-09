@@ -61,7 +61,7 @@ func (ms *ManufactureScreen) Render(ctx *engine.ScreenCtx) {
 	if len(ms.Base.ManufactureQueue) > 0 {
 		ctx.DrawString(2, 3, language.String("MFG_ACTIVE_QUEUE"), engine.StyleGreen)
 		y := 4
-		for _, job := range ms.Base.ManufactureQueue {
+		for i, job := range ms.Base.ManufactureQueue {
 			if y >= h-4 {
 				break
 			}
@@ -69,14 +69,19 @@ func (ms *ManufactureScreen) Render(ctx *engine.ScreenCtx) {
 			if job.CostDays > 0 {
 				pct = job.Progress * 100 / job.CostDays
 			}
-			status := fmt.Sprintf("%s x%d (%d%%)", job.ItemKey, job.Count, pct)
+			status := fmt.Sprintf("%s x%d (%d%%) Eng: %d [+/-] Assign", job.ItemKey, job.Count, pct, job.Engineers)
 			if job.Completed {
 				status += language.String("MFG_DONE")
 			}
-			ctx.DrawString(2, y, status, engine.StyleDefault)
+			style := engine.StyleDefault
+			if i == ms.Selection-len(ms.getBuildablePlans()) {
+				style = engine.StyleHighlight
+			}
+			ctx.DrawString(2, y, status, style)
 			y++
 		}
 	}
+	ctx.DrawString(2, 3, fmt.Sprintf("Unassigned Engineers: %d.", ms.Base.UnassignedEngineers), engine.StyleYellow)
 
 	ctx.DrawString(2, h/2, language.String("MFG_BUILDABLE"), engine.StyleCyanBold)
 
@@ -169,6 +174,14 @@ func (ms *ManufactureScreen) HandleKey(e *tcell.EventKey) {
 	switch e.Str() {
 	case "\r":
 		ms.startManufacture()
+	case "+":
+		if ms.Selection >= len(ms.getBuildablePlans()) {
+			ms.Base.AssignEngineers(ms.Selection-len(ms.getBuildablePlans()), 1)
+		}
+	case "-":
+		if ms.Selection >= len(ms.getBuildablePlans()) {
+			ms.Base.AssignEngineers(ms.Selection-len(ms.getBuildablePlans()), -1)
+		}
 	}
 }
 

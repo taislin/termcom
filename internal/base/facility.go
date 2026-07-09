@@ -66,30 +66,34 @@ type ManufactureJob struct {
 }
 
 type Base struct {
-	Name              string
-	Facilities        []*Facility
-	Soldiers          []*soldier.Soldier
-	Scientists        int
-	Engineers         int
-	MaxStorage        int
-	UsedStorage       int
-	Stores            map[string]int
-	CompletedResearch []string
-	ActiveResearch    *ResearchProject
-	ManufactureQueue  []*ManufactureJob
-	UnlockedWeapons   []string
-	UnlockedArmor     []string
-	Hangars           []*data.InterceptorState // Manage interceptors here
+	Name                 string
+	Facilities           []*Facility
+	Soldiers             []*soldier.Soldier
+	Scientists           int
+	Engineers            int
+	UnassignedScientists int
+	UnassignedEngineers  int
+	MaxStorage           int
+	UsedStorage          int
+	Stores               map[string]int
+	CompletedResearch    []string
+	ActiveResearch       *ResearchProject
+	ManufactureQueue     []*ManufactureJob
+	UnlockedWeapons      []string
+	UnlockedArmor        []string
+	Hangars              []*data.InterceptorState // Manage interceptors here
 }
 
 func NewBase(name string) *Base {
 	b := &Base{
-		Name:       name,
-		Scientists: 10,
-		Engineers:  10,
-		MaxStorage: 50,
-		Stores:     make(map[string]int),
-		Hangars:    make([]*data.InterceptorState, 0),
+		Name:                 name,
+		Scientists:           10,
+		UnassignedScientists: 10,
+		Engineers:            10,
+		UnassignedEngineers:  10,
+		MaxStorage:           50,
+		Stores:               make(map[string]int),
+		Hangars:              make([]*data.InterceptorState, 0),
 	}
 	for i := 0; i < 4; i++ {
 		s := soldier.NewSoldier(soldier.RandomName())
@@ -434,20 +438,40 @@ func (b *Base) StartResearch(topicID string) bool {
 	if b.ActiveResearch != nil && !b.ActiveResearch.Completed {
 		return false
 	}
-	sci := b.Scientists
-	if sci <= 0 {
-		return false
-	}
 	b.ActiveResearch = &ResearchProject{
 		TopicID:    topicID,
 		Cost:       topic.Cost,
-		Scientists: sci,
+		Scientists: 0,
+	}
+	return true
+}
+
+func (b *Base) AssignScientists(scientists int) bool {
+	if b.ActiveResearch == nil || b.ActiveResearch.Completed {
+		return false
+	}
+	if scientists < 0 {
+		// Unassign
+		amount := -scientists
+		if amount > b.ActiveResearch.Scientists {
+			amount = b.ActiveResearch.Scientists
+		}
+		b.ActiveResearch.Scientists -= amount
+		b.UnassignedScientists += amount
+	} else {
+		// Assign
+		amount := scientists
+		if amount > b.UnassignedScientists {
+			amount = b.UnassignedScientists
+		}
+		b.ActiveResearch.Scientists += amount
+		b.UnassignedScientists -= amount
 	}
 	return true
 }
 
 func (b *Base) AdvanceResearch() []string {
-	if b.ActiveResearch == nil || b.ActiveResearch.Completed {
+	if b.ActiveResearch == nil || b.ActiveResearch.Completed || b.ActiveResearch.Scientists == 0 {
 		return nil
 	}
 	b.ActiveResearch.Progress += b.ActiveResearch.Scientists
@@ -459,6 +483,17 @@ func (b *Base) AdvanceResearch() []string {
 		b.UnlockedArmor = append(b.UnlockedArmor, topic.UnlockArmor...)
 		for _, item := range topic.UnlockItems {
 			b.AddItem(item, 1)
+		}
+		// Make unlocked items available in the base stores
+		for _, wpn := range topic.UnlockWeap {
+			if _, ok := data.RuleItems[wpn]; ok {
+				b.Stores[wpn] = 1 // Make available for equip
+			}
+		}
+		for _, arm := range topic.UnlockArmor {
+			if _, ok := data.Armors[arm]; ok {
+				b.Stores[arm] = 1 // Make available for equip
+			}
 		}
 		name := topic.Name
 		b.ActiveResearch = nil
@@ -495,9 +530,34 @@ func (b *Base) StartManufacture(item string, count int, materials map[string]int
 		Count:     count,
 		CostDays:  5 + count*2,
 		Materials: materials,
-		Engineers: b.Engineers,
+		Engineers: 0,
 	}
 	b.ManufactureQueue = append(b.ManufactureQueue, job)
+	return true
+}
+
+func (b *Base) AssignEngineers(jobIdx, engineers int) bool {
+	if jobIdx < 0 || jobIdx >= len(b.ManufactureQueue) {
+		return false
+	}
+	job := b.ManufactureQueue[jobIdx]
+	if engineers < 0 {
+		// Unassign
+		amount := -engineers
+		if amount > job.Engineers {
+			amount = job.Engineers
+		}
+		job.Engineers -= amount
+		b.UnassignedEngineers += amount
+	} else {
+		// Assign
+		amount := engineers
+		if amount > b.UnassignedEngineers {
+			amount = b.UnassignedEngineers
+		}
+		job.Engineers += amount
+		b.UnassignedEngineers -= amount
+	}
 	return true
 }
 
@@ -508,10 +568,24 @@ func (b *Base) AdvanceManufacture() []string {
 		if job.Completed {
 			continue
 		}
-		job.Progress += job.Engineers
+		if job.Engineers > 0 {
+			job.Progress += job.Engineers
+		}
 		if job.Progress >= job.CostDays {
 			b.AddItem(job.ItemKey, job.Count)
+			// Add to unlocked list if not already there
+			found := false
+			for _, w := range b.UnlockedWeapons {
+				if w == job.ItemKey {
+					found = true
+					break
+				}
+			}
+			if !found {
+				b.UnlockedWeapons = append(b.UnlockedWeapons, job.ItemKey)
+			}
 			completed = append(completed, job.ItemKey)
+			job.Completed = true
 		} else {
 			remaining = append(remaining, job)
 		}

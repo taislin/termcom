@@ -44,6 +44,7 @@ func (rs *ResearchScreen) Render(ctx *engine.ScreenCtx) {
 			pct := rs.Base.ActiveResearch.Progress * 100 / rs.Base.ActiveResearch.Cost
 			ctx.DrawString(2, 3, fmt.Sprintf(language.String("RESEARCH_IN_PROGRESS"),
 				topic.Name, pct, rs.Base.ActiveResearch.Scientists), engine.StyleGreen)
+			ctx.DrawString(2, 4, fmt.Sprintf("Unassigned Scientists: %d. [+/-] Assign/Unassign.", rs.Base.UnassignedScientists), engine.StyleYellow)
 		}
 	} else {
 		ctx.DrawString(2, 3, language.String("NO_ACTIVE_RESEARCH"), engine.StyleGray)
@@ -144,6 +145,10 @@ func (rs *ResearchScreen) HandleKey(e *tcell.EventKey) {
 	switch e.Str() {
 	case "\r":
 		rs.startResearch()
+	case "+":
+		rs.Base.AssignScientists(1)
+	case "-":
+		rs.Base.AssignScientists(-1)
 	}
 }
 
