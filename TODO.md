@@ -5,10 +5,22 @@
 - [x] Refactor geoscape region table column offsets to be dynamic
 - [x] Profile render loop performance
 
-## Phase 2: Enhanced Dogfights
-- [ ] Add interceptor weapon variety (Cannon, Stingray, Avalanche)
-- [ ] Implement combat maneuvers (Attack, Cautious, Break-off)
+## Phase 2: Enhanced Dogfights (DONE)
+- [x] Add interceptor weapon variety (Cannon, Stingray, Avalanche)
+- [x] Implement combat maneuvers (Attack, Cautious, Break-off)
 
-## Phase 3: Alien Tactics
-- [ ] Implement reaction fire (human and alien)
-- [ ] Enhance Alien AI (flanking, reinforcements, retreat behaviors)
+## Phase 3: Alien Tactics (DONE)
+- [x] Implement reaction fire (human and alien)
+- [x] Enhance Alien AI (flanking, reinforcements, retreat behaviors)
+
+## Phase 4: Hangar Management (DONE)
+- [x] Interceptor loadout screen — change weapons from base hangars
+
+## Phase 5: Mission Variety (DONE)
+- [x] Alien abduction missions — timed rescue scenario
+- [x] Alien reinforcements on Terror and Alien Base missions
+
+## Phase 6: Polish & QoL (DONE)
+- [x] Rookie stat progression display — show stat gains after battle
+- [x] Fire terrain spread — burning tiles ignite adjacent grass (already existed)
+- [x] Fix night rendering — cursor white background + alien glow in fog of war

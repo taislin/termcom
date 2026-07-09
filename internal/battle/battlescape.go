@@ -80,10 +80,13 @@ type Battlescape struct {
 	AlienTurnDelay  int
 	Projectile      *Projectile
 
-	Camera    *engine.Camera
-	Particles *engine.ParticleSystem
-	HoveredUnit *Unit
-	SidebarW    int
+	Camera        *engine.Camera
+	Particles     *engine.ParticleSystem
+	HoveredUnit   *Unit
+	SidebarW      int
+	ReinforceTimer int
+	AbductionCivs  int
+	AbductionTotal int
 
 	Gas         *GasGrid
 	VisionMode  engine.VisionMode
@@ -163,8 +166,10 @@ func NewBattlescape(g *engine.Game, squad []*soldier.Soldier, ufoName string) *B
 		m = GenerateTerrorSite(50, 50)
 	case "Supply":
 		m = GenerateUFOInterior(50, 50)
-	case "Alien Base":
+	case "Alien Base Assault":
 		m = GenerateCydonia(50, 50)
+	case "Abduction":
+		m = GenerateAbductionSite(50, 50)
 	case "Forest":
 		m = GenerateForest(50, 50)
 	case "Desert":
@@ -188,6 +193,10 @@ func NewBattlescape(g *engine.Game, squad []*soldier.Soldier, ufoName string) *B
 		Camera:   engine.NewCamera(3, m.Height-3),
 		Particles: engine.NewParticleSystem(512),
 		Gas:       NewGasGrid(m.Width, m.Height),
+	}
+
+	if ufoName == "Abduction" {
+		bs.AbductionTotal = 8 + rand.Intn(5)
 	}
 	m.Gas = bs.Gas
 
@@ -236,6 +245,20 @@ func NewBattlescape(g *engine.Game, squad []*soldier.Soldier, ufoName string) *B
 			u := NewCivilianUnit(name)
 			u.X = 5 + rand.Intn(m.Width-10)
 			u.Y = m.Height/2 + rand.Intn(m.Height/2-5)
+			if m.Passable(u.X, u.Y) {
+				u.IsNight = bs.IsNight
+				bs.Units = append(bs.Units, u)
+				bs.CivilianAIs = append(bs.CivilianAIs, NewCivilianAI(u))
+			}
+		}
+	}
+
+	if ufoName == "Abduction" {
+		for i := 0; i < bs.AbductionTotal; i++ {
+			name := civNames[rand.Intn(len(civNames))]
+			u := NewCivilianUnit(name)
+			u.X = 10 + rand.Intn(m.Width-20)
+			u.Y = 5 + rand.Intn(m.Height-10)
 			if m.Passable(u.X, u.Y) {
 				u.IsNight = bs.IsNight
 				bs.Units = append(bs.Units, u)
@@ -388,8 +411,128 @@ func (bs *Battlescape) executeAlienAction(action AlienAction) {
 		}
 	case "move":
 		action.Unit.MoveTo(action.ToX, action.ToY, bs.Map)
+		bs.ComputeFOVForTeam()
+		bs.checkHumanReactionFire(action.Unit)
 	case "patrol":
 		action.Unit.MoveTo(action.ToX, action.ToY, bs.Map)
+		bs.ComputeFOVForTeam()
+		bs.checkHumanReactionFire(action.Unit)
+	}
+}
+
+func (bs *Battlescape) checkHumanReactionFire(movedAlien *Unit) {
+	if !movedAlien.Alive {
+		return
+	}
+	for _, u := range bs.Units {
+		if u.Faction != 0 || !u.Alive {
+			continue
+		}
+		if u.TU < 15 || u.Weapon == "" {
+			continue
+		}
+		if !u.CanSee(movedAlien.X, movedAlien.Y, bs.Map) {
+			continue
+		}
+		dx := movedAlien.X - u.X
+		dy := movedAlien.Y - u.Y
+		dist := int(math.Sqrt(float64(dx*dx + dy*dy)))
+		if dist == 0 {
+			dist = 1
+		}
+		chance := u.Reactions*2 + u.Accuracy/3 - dist*5
+		if chance < 5 {
+			chance = 5
+		}
+		if rand.Intn(100) >= chance {
+			continue
+		}
+		w, ok := data.RuleItems[u.Weapon]
+		if !ok || w.AmmoMax < 99 && u.WeaponAmmo <= 0 {
+			continue
+		}
+		bs.AddMessage(fmt.Sprintf(language.String("MSG_REACTION_FIRE"), u.Name(), movedAlien.Name()))
+		damage, hit, _ := u.FireAt(movedAlien, bs.Map)
+		bs.Projectile = &Projectile{
+			FromX: u.X, FromY: u.Y,
+			ToX: movedAlien.X, ToY: movedAlien.Y,
+			Progress: 0, Length: dist,
+			Symbol: '*', Style: engine.StyleCyanBold,
+		}
+		if hit {
+			engine.SpawnExplosion(bs.Particles, movedAlien.X-bs.ScrollX+1, movedAlien.Y-bs.ScrollY+1, tcell.NewRGBColor(255, 80, 30), 8)
+			bs.Camera.TriggerShake(0.3)
+			bs.SpawnBloodSplatter(movedAlien)
+			bs.AddMessage(fmt.Sprintf(language.String("MSG_REACTION_HIT"), damage, movedAlien.Name(), movedAlien.HP))
+			if !movedAlien.Alive {
+				bs.AddMessage(fmt.Sprintf(language.String("MSG_REACTION_KILL"), movedAlien.Name()))
+			}
+		} else {
+			bs.AddMessage(language.String("MSG_REACTION_MISS"))
+		}
+		return
+	}
+}
+
+func (bs *Battlescape) checkAlienReactionFire(movedHuman *Unit) {
+	if !movedHuman.Alive {
+		return
+	}
+	for _, ai := range bs.AlienAIs {
+		u := ai.Unit
+		if !u.Alive {
+			continue
+		}
+		if u.TU < 15 || u.Weapon == "" {
+			continue
+		}
+		if !bs.Map.IsVisible(u.X, u.Y) {
+			continue
+		}
+		if !u.CanSee(movedHuman.X, movedHuman.Y, bs.Map) {
+			continue
+		}
+		dx := movedHuman.X - u.X
+		dy := movedHuman.Y - u.Y
+		dist := int(math.Sqrt(float64(dx*dx + dy*dy)))
+		if dist == 0 {
+			dist = 1
+		}
+		chance := u.Reactions*2 + u.Accuracy/3 - dist*5
+		if chance < 5 {
+			chance = 5
+		}
+		if rand.Intn(100) >= chance {
+			continue
+		}
+		w, ok := data.RuleItems[u.Weapon]
+		if !ok || w.AmmoMax < 99 && u.WeaponAmmo <= 0 {
+			continue
+		}
+		bs.AddMessage(fmt.Sprintf(language.String("MSG_REACTION_FIRE"), u.Name(), movedHuman.Name()))
+		damage, hit, _ := u.FireAt(movedHuman, bs.Map)
+		dist2 := int(math.Sqrt(float64((movedHuman.X-u.X)*(movedHuman.X-u.X) + (movedHuman.Y-u.Y)*(movedHuman.Y-u.Y))))
+		if dist2 < 1 {
+			dist2 = 1
+		}
+		bs.Projectile = &Projectile{
+			FromX: u.X, FromY: u.Y,
+			ToX: movedHuman.X, ToY: movedHuman.Y,
+			Progress: 0, Length: dist2,
+			Symbol: '*', Style: engine.StyleRedBold,
+		}
+		if hit {
+			engine.SpawnExplosion(bs.Particles, movedHuman.X-bs.ScrollX+1, movedHuman.Y-bs.ScrollY+1, tcell.NewRGBColor(255, 80, 30), 8)
+			bs.Camera.TriggerShake(0.3)
+			bs.SpawnBloodSplatter(movedHuman)
+			bs.AddMessage(fmt.Sprintf(language.String("MSG_REACTION_HIT"), damage, movedHuman.Name(), movedHuman.HP))
+			if !movedHuman.Alive {
+				bs.AddMessage(fmt.Sprintf(language.String("MSG_REACTION_KILL"), movedHuman.Name()))
+			}
+		} else {
+			bs.AddMessage(language.String("MSG_REACTION_MISS"))
+		}
+		return
 	}
 }
 
@@ -514,7 +657,112 @@ func (bs *Battlescape) finishAlienTurn() {
 	bs.learnFromKills()
 	bs.Gas.Diffuse()
 	bs.Map.SpreadFire()
+	if bs.UFOName == "Abduction" {
+		bs.processAbduction()
+	}
+	bs.checkReinforcements()
 	bs.checkVictory()
+}
+
+func (bs *Battlescape) processAbduction() {
+	aliveAliens := 0
+	for _, u := range bs.Units {
+		if u.Faction == 1 && u.Alive {
+			aliveAliens++
+		}
+	}
+	if aliveAliens == 0 {
+		return
+	}
+	// Each turn, aliens abduct 1 civilian if any are alive
+	for _, u := range bs.Units {
+		if u.Faction == 2 && u.Alive {
+			if rand.Intn(100) < 30+aliveAliens*10 {
+				u.Alive = false
+				bs.AbductionCivs++
+				bs.AddMessage(fmt.Sprintf(language.String("MSG_ABDUCTION_TIMER"), bs.AbductionCivs, bs.AbductionTotal, bs.Turn))
+				break
+			}
+		}
+	}
+}
+
+func (bs *Battlescape) checkReinforcements() {
+	// Reinforcements only on terror and alien base missions
+	if bs.UFOName != "Terror" && bs.UFOName != "Alien Base Assault" {
+		return
+	}
+	aliveAliens := 0
+	for _, u := range bs.Units {
+		if u.Faction == 1 && u.Alive {
+			aliveAliens++
+		}
+	}
+	if aliveAliens >= 3 {
+		bs.ReinforceTimer = 0
+		return
+	}
+	bs.ReinforceTimer++
+	if bs.ReinforceTimer < 4 {
+		return
+	}
+	bs.ReinforceTimer = 0
+
+	g := bs.Game
+	alienTypes := g.GetAlienTypes()
+	alienRank := 0
+	if bs.Turn > 6 {
+		alienRank = 1
+	}
+	if bs.Turn > 12 {
+		alienRank = 2
+	}
+	count := 1 + rand.Intn(2)
+	for i := 0; i < count; i++ {
+		at := getAlienByRank(alienTypes, alienRank)
+		if at == nil {
+			continue
+		}
+		u := NewAlienUnit(at)
+		side := rand.Intn(4)
+		switch side {
+		case 0:
+			u.X = 0
+			u.Y = rand.Intn(bs.Map.Height)
+		case 1:
+			u.X = bs.Map.Width - 1
+			u.Y = rand.Intn(bs.Map.Height)
+		case 2:
+			u.X = rand.Intn(bs.Map.Width)
+			u.Y = 0
+		case 3:
+			u.X = rand.Intn(bs.Map.Width)
+			u.Y = bs.Map.Height - 1
+		}
+		if !bs.Map.Passable(u.X, u.Y) {
+			for dy := -2; dy <= 2; dy++ {
+				for dx := -2; dx <= 2; dx++ {
+					nx, ny := u.X+dx, u.Y+dy
+					if nx >= 0 && nx < bs.Map.Width && ny >= 0 && ny < bs.Map.Height && bs.Map.Passable(nx, ny) {
+						u.X, u.Y = nx, ny
+						dy = 3
+						dx = 3
+					}
+				}
+			}
+		}
+		u.IsNight = bs.IsNight
+		bs.Units = append(bs.Units, u)
+		ai := NewAlienAI(u)
+		ai.State = AIAttack
+		nearest, _ := ai.findNearest(bs.Units.Faction(0), bs.Map)
+		if nearest != nil {
+			ai.LastSeenX = nearest.X
+			ai.LastSeenY = nearest.Y
+		}
+		bs.AlienAIs = append(bs.AlienAIs, ai)
+	}
+	bs.AddMessage(fmt.Sprintf(language.String("MSG_REINFORCEMENTS"), count))
 }
 
 // learnFromKills scans dead aliens and increases knowledge level for each.
@@ -551,6 +799,9 @@ func (bs *Battlescape) checkVictory() {
 			}
 			saved := len(civilians)
 			bs.AddMessage(fmt.Sprintf(language.String("MSG_MISSION_COMPLETE_CIV"), saved, totalCiv))
+		} else if bs.UFOName == "Abduction" {
+			saved := len(civilians)
+			bs.AddMessage(fmt.Sprintf(language.String("MSG_ABDUCTION_COMPLETE"), saved))
 		} else {
 			bs.AddMessage(language.String("MSG_MISSION_COMPLETE"))
 		}
@@ -559,6 +810,10 @@ func (bs *Battlescape) checkVictory() {
 		audio.PlayDefeat()
 		bs.AddMessage(language.String("MSG_MISSION_FAILED"))
 	} else if bs.UFOName == "Terror" && len(civilians) == 0 && len(aliens) > 0 {
+		bs.Phase = PhaseDefeat
+		audio.PlayDefeat()
+		bs.AddMessage(language.String("MSG_MISSION_FAILED_CIV"))
+	} else if bs.UFOName == "Abduction" && bs.AbductionCivs >= bs.AbductionTotal {
 		bs.Phase = PhaseDefeat
 		audio.PlayDefeat()
 		bs.AddMessage(language.String("MSG_MISSION_FAILED_CIV"))
@@ -665,6 +920,7 @@ func (bs *Battlescape) MoveSelected() {
 		audio.PlayMove()
 		bs.AddMessage(fmt.Sprintf(language.String("MSG_MOVED"), bs.Selected.Soldier.Name, bs.CursorX, bs.CursorY))
 		bs.ComputeFOVForTeam()
+		bs.checkAlienReactionFire(bs.Selected)
 	} else {
 		bs.AddMessage(language.String("MSG_CANNOT_MOVE"))
 	}

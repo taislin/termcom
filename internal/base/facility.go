@@ -141,6 +141,31 @@ func (b *Base) GetAvailableInterceptors() []*data.InterceptorState {
 	return available
 }
 
+var interceptorWeaponOrder = []string{"avalanche", "stingray", "cannon"}
+
+func (b *Base) ChangeInterceptorWeapon(idx int) string {
+	if idx < 0 || idx >= len(b.Hangars) {
+		return ""
+	}
+	hg := b.Hangars[idx]
+	if hg.Status != "Available" {
+		return ""
+	}
+	curIdx := -1
+	for i, k := range interceptorWeaponOrder {
+		if k == hg.WeaponKey {
+			curIdx = i
+			break
+		}
+	}
+	nextIdx := (curIdx + 1) % len(interceptorWeaponOrder)
+	newKey := interceptorWeaponOrder[nextIdx]
+	w := data.InterceptorWeapons[newKey]
+	hg.WeaponKey = newKey
+	hg.Ammo = w.FireRate * 4
+	return w.Name
+}
+
 func (b *Base) LivingCapacity() int {
 	return b.CountFacility(FacLivingQuarters) * 8
 }

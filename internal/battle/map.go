@@ -828,6 +828,53 @@ func GenerateTerrorSite(w, h int) *BattleMap {
 	return m
 }
 
+func GenerateAbductionSite(w, h int) *BattleMap {
+	m := NewBattleMap(w, h)
+
+	// Fill with grass
+	m.fillRect(0, 0, w, h, TileGrass)
+
+	// Scatter rocks
+	ApplyCommands(m, []MapCommand{
+		{Type: CmdScatter, X: 1, Y: 1, W: w - 2, H: h - 2, Tile: TileRock, Prob: 5, Count: 30},
+	})
+
+	// Scatter trees
+	ApplyCommands(m, []MapCommand{
+		{Type: CmdScatter, X: 1, Y: 1, W: w - 2, H: h - 2, Tile: TileTree, Prob: 8, Count: 40},
+	})
+
+	// A few small structures (rural buildings)
+	buildings := 3 + rand.Intn(3)
+	attempts := 0
+	for i := 0; i < buildings && attempts < 100; i++ {
+		attempts++
+		bw := 4 + rand.Intn(4)
+		bh := 3 + rand.Intn(3)
+		bx := rand.Intn(w-bw-2) + 1
+		by := rand.Intn(h-bh-2) + 1
+		overlap := false
+		for dy := -1; dy <= bh; dy++ {
+			for dx := -1; dx <= bw; dx++ {
+				if m.At(bx+dx, by+dy).Type != TileGrass {
+					overlap = true
+				}
+			}
+		}
+		if overlap {
+			continue
+		}
+		m.ApplyCommand(MapCommand{Type: CmdPlaceBuilding, X: bx, Y: by, W: bw, H: bh, DoorSide: rand.Intn(4)})
+	}
+
+	// Scatter objects inside buildings
+	ApplyCommands(m, []MapCommand{
+		{Type: CmdScatter, X: 1, Y: 1, W: w - 2, H: h - 2, Tile: TileObject, Prob: 3, Count: 15},
+	})
+
+	return m
+}
+
 // GenerateUFOInterior creates a UFO interior map (OpenXcom: 50x50)
 func GenerateUFOInterior(w, h int) *BattleMap {
 	levelH := h / 2

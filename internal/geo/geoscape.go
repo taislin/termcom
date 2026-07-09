@@ -56,6 +56,7 @@ type Geoscape struct {
 	Victory       bool
 	// Cursor for node selection
 	CursorNode    int
+	PreBattleStats map[string][6]int // name -> {hp, accuracy, reactions, strength, bravery, tu}
 }
 
 func NewGeoscape(g *engine.Game) *Geoscape {
@@ -146,6 +147,29 @@ func (gs *Geoscape) Update() {
 			gs.Message = fmt.Sprintf(language.String("MSG_DEFEAT_LOST"), dead)
 		}
 		gs.MessageTimer = time.Now()
+
+		if gs.PreBattleStats != nil {
+			statNames := []string{"HP", "ACC", "REA", "STR", "BRA", "TU"}
+			for _, s := range gs.Base.Soldiers {
+				old, ok := gs.PreBattleStats[s.Name]
+				if !ok {
+					continue
+				}
+				newStats := [6]int{s.HP, s.Accuracy, s.Reactions, s.Strength, s.Bravery, s.TU}
+				gains := []string{}
+				for i := 0; i < 6; i++ {
+					if newStats[i] > old[i] {
+						gains = append(gains, fmt.Sprintf("%s+%d", statNames[i], newStats[i]-old[i]))
+					}
+				}
+				if len(gains) > 0 {
+					gs.Message = fmt.Sprintf("%s improved: %s", s.Name, strings.Join(gains, " "))
+					gs.MessageTimer = time.Now()
+				}
+			}
+			gs.PreBattleStats = nil
+		}
+
 		gs.Game.ActiveBattle = nil
 	}
 
@@ -421,13 +445,18 @@ func (gs *Geoscape) startBattle(ufo *UFO) {
 	gs.Message = fmt.Sprintf(language.String("MSG_SHOT_DOWN"), ufo.Type.Name)
 	gs.MessageTimer = time.Now()
 
+	gs.PreBattleStats = make(map[string][6]int)
+	for _, s := range gs.Base.Soldiers {
+		gs.PreBattleStats[s.Name] = [6]int{s.HP, s.Accuracy, s.Reactions, s.Strength, s.Bravery, s.TU}
+	}
+
 	bs := battle.NewBattlescape(gs.Game, gs.Base.Soldiers, ufo.Type.Name)
 	gs.Game.SetScreen(engine.StateBattlescape, bs)
 	gs.Game.PushState(engine.StateBattlescape)
 }
 
 func (gs *Geoscape) spawnMission() {
-	types := []string{language.String("MISSION_TERROR"), language.String("MISSION_SUPPLY"), language.String("MISSION_ALIEN_BASE")}
+	types := []string{language.String("MISSION_TERROR"), language.String("MISSION_SUPPLY"), language.String("MISSION_ALIEN_BASE"), language.String("MISSION_ABDUCTION")}
 	// Pick a random non-base city
 	var candidates []*City
 	for _, c := range gs.Cities {
@@ -487,6 +516,11 @@ func (gs *Geoscape) RespondToMission(idx int) {
 	gs.MessageTimer = time.Now()
 	gs.Game.Paused = true
 
+	gs.PreBattleStats = make(map[string][6]int)
+	for _, s := range gs.Base.Soldiers {
+		gs.PreBattleStats[s.Name] = [6]int{s.HP, s.Accuracy, s.Reactions, s.Strength, s.Bravery, s.TU}
+	}
+
 	ufoName := language.String("MISSION_CRASH_SITE")
 	switch mission.Type {
 	case language.String("MISSION_TERROR"):
@@ -495,6 +529,8 @@ func (gs *Geoscape) RespondToMission(idx int) {
 		ufoName = language.String("MISSION_TYPE_SUPPLY")
 	case language.String("MISSION_ALIEN_BASE"):
 		ufoName = language.String("MISSION_TYPE_BASE")
+	case language.String("MISSION_ABDUCTION"):
+		ufoName = language.String("MISSION_TYPE_ABDUCTION")
 	}
 	bs := battle.NewBattlescape(gs.Game, gs.Base.Soldiers, ufoName)
 	gs.Game.SetScreen(engine.StateBattlescape, bs)

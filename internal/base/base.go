@@ -5,6 +5,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/civ13/ycom/internal/data"
 	"github.com/civ13/ycom/internal/engine"
 	"github.com/civ13/ycom/internal/language"
 	"github.com/gdamore/tcell/v3"
@@ -287,12 +288,16 @@ func (bs *BaseScreen) renderHangars(ctx *engine.ScreenCtx, x, y, w, h int) {
 		if i == bs.Selection {
 			style = engine.StyleHighlight
 		}
-		// Show ID and Status
-		line := fmt.Sprintf("Hangar %d: %-15s [%s] HP:%d/%d Ammo:%d", i+1, hg.Name, hg.Status, hg.HP, hg.MaxHP, hg.Ammo)
+		wpn := data.InterceptorWeapons[hg.WeaponKey]
+		line := fmt.Sprintf("Hangar %d: [%s] HP:%d/%d %s (A:%d)", i+1, hg.Status, hg.HP, hg.MaxHP, wpn.Name, hg.Ammo)
 		ctx.DrawString(x, y+i, line, style)
 	}
 	if len(bs.Base.Hangars) == 0 {
 		ctx.DrawString(x, y, "No interceptors in hangars. Press [B] to buy.", engine.StyleGray)
+	}
+	ly := y + len(bs.Base.Hangars) + 2
+	if ly < y+h {
+		ctx.DrawString(x, ly, "j/k=Select w=Change Weapon b=Buy", engine.StyleGray)
 	}
 }
 
@@ -381,6 +386,13 @@ func (bs *BaseScreen) HandleKey(e *tcell.EventKey) {
 			bs.BuyInterceptor()
 		} else {
 			bs.BuildFacility()
+		}
+	case "w", "W":
+		if bs.Tab == 5 && len(bs.Base.Hangars) > 0 {
+			name := bs.Base.ChangeInterceptorWeapon(bs.Selection)
+			if name != "" {
+				bs.Message = fmt.Sprintf("Weapon changed to %s", name)
+			}
 		}
 	case "s", "S":
 		bs.SellFacility()

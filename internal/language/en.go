@@ -74,9 +74,13 @@ func init() {
 		"MISSION_TERROR":          "Terror",
 		"MISSION_SUPPLY":          "Supply",
 		"MISSION_ALIEN_BASE":      "Alien Base",
+		"MISSION_ABDUCTION":       "Abduction",
 		"MISSION_TYPE_TERROR":     "Terror",
 		"MISSION_TYPE_SUPPLY":     "Supply",
 		"MISSION_TYPE_BASE":       "Alien Base Assault",
+		"MISSION_TYPE_ABDUCTION":  "Abduction",
+		"MSG_ABDUCTION_TIMER":     "Civilians abducted: %d/%d (Turn %d)",
+		"MSG_ABDUCTION_COMPLETE":  "Abduction repelled! %d civilians saved.",
 
 		// Combat messages
 		"MSG_ALIEN_ATTACK":        "%s attack on %s! Panic spreads!",
@@ -174,6 +178,11 @@ func init() {
 		"MSG_ALIEN_KILL":            "%s eliminated!",
 		"MSG_ALIEN_MISS":            "Alien shot misses!",
 		"MSG_ALIEN_MELEE":           "%s attacks %s for %d damage!",
+		"MSG_REACTION_FIRE":         "%s reacts! Fires at %s!",
+		"MSG_REACTION_HIT":          "Reaction hit! %d damage to %s (HP:%d)",
+		"MSG_REACTION_MISS":         "Reaction shot misses!",
+		"MSG_REACTION_KILL":         "%s killed by reaction fire!",
+		"MSG_REINFORCEMENTS":        "%d alien reinforcements incoming!",
 
 		// Status bar
 		"STATUS_TURN":          "Turn: %d | %s",
