@@ -160,7 +160,7 @@ func GenerateTechTree(seed int64, aliens []*AlienSpecies) []ResearchTopic {
 
 func isWeaponTech(id string) bool {
 	switch id {
-	case "plasma_weapons", "heavy_plasma", "mind_control":
+	case "laser_weapons", "plasma_weapons", "heavy_plasma", "mind_control":
 		return true
 	}
 	return false
@@ -185,11 +185,12 @@ func validateDAG(topics []ResearchTopic) {
 		}
 		inStack[id] = true
 		t := byID[id]
-		if t != nil {
-			for _, req := range t.Requires {
-				if visit(req) {
-					return true
-				}
+		if t == nil {
+			panic(fmt.Sprintf("dangling prerequisite %q in tech tree", id))
+		}
+		for _, req := range t.Requires {
+			if visit(req) {
+				return true
 			}
 		}
 		inStack[id] = false

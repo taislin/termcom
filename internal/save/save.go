@@ -27,17 +27,19 @@ type SaveData struct {
 }
 
 type BaseSave struct {
-	Name              string
-	Scientists        int
-	Engineers         int
-	CompletedResearch []string
-	UnlockedWeapons   []string
-	UnlockedArmor     []string
-	Stores            map[string]int
-	Soldiers          []*SoldierSave
-	Facilities        []*FacilitySave
-	ManufactureQueue  []*ManufJobSave
-	ActiveResearch    *ResearchSave
+	Name                 string
+	Scientists           int
+	Engineers            int
+	UnassignedScientists int
+	UnassignedEngineers  int
+	CompletedResearch    []string
+	UnlockedWeapons      []string
+	UnlockedArmor        []string
+	Stores               map[string]int
+	Soldiers             []*SoldierSave
+	Facilities           []*FacilitySave
+	ManufactureQueue     []*ManufJobSave
+	ActiveResearch       *ResearchSave
 }
 
 type SoldierSave struct {
@@ -166,13 +168,15 @@ func migrateV2toV3(data *SaveData) {
 
 func FromBase(b *base.Base) *BaseSave {
 	bs := &BaseSave{
-		Name:              b.Name,
-		Scientists:        b.Scientists,
-		Engineers:         b.Engineers,
-		CompletedResearch: b.CompletedResearch,
-		UnlockedWeapons:   b.UnlockedWeapons,
-		UnlockedArmor:     b.UnlockedArmor,
-		Stores:            b.Stores,
+		Name:                 b.Name,
+		Scientists:           b.Scientists,
+		Engineers:            b.Engineers,
+		UnassignedScientists: b.UnassignedScientists,
+		UnassignedEngineers:  b.UnassignedEngineers,
+		CompletedResearch:    b.CompletedResearch,
+		UnlockedWeapons:      b.UnlockedWeapons,
+		UnlockedArmor:        b.UnlockedArmor,
+		Stores:               b.Stores,
 	}
 	for _, s := range b.Soldiers {
 		bs.Soldiers = append(bs.Soldiers, &SoldierSave{
@@ -235,6 +239,8 @@ func ToBase(bs *BaseSave) *base.Base {
 	b.Hangars = nil
 	b.Scientists = bs.Scientists
 	b.Engineers = bs.Engineers
+	b.UnassignedScientists = bs.UnassignedScientists
+	b.UnassignedEngineers = bs.UnassignedEngineers
 	b.CompletedResearch = bs.CompletedResearch
 	b.UnlockedWeapons = bs.UnlockedWeapons
 	b.UnlockedArmor = bs.UnlockedArmor

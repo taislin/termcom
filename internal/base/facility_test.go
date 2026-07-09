@@ -463,3 +463,108 @@ func TestSellFacility(t *testing.T) {
 		t.Errorf("expected 2 facilities, got %d", len(b.Facilities))
 	}
 }
+
+func TestAssignScientists(t *testing.T) {
+	b := NewBase("Test")
+	b.UnassignedScientists = 5
+	b.Facilities = append(b.Facilities, &Facility{Type: FacLab})
+	b.StartResearch("alien_alloys")
+
+	ok := b.AssignScientists(3)
+	if !ok {
+		t.Fatal("should assign scientists")
+	}
+	if b.ActiveResearch.Scientists != 3 {
+		t.Errorf("expected 3 assigned, got %d", b.ActiveResearch.Scientists)
+	}
+	if b.UnassignedScientists != 2 {
+		t.Errorf("expected 2 unassigned, got %d", b.UnassignedScientists)
+	}
+
+	b.AssignScientists(10)
+	if b.ActiveResearch.Scientists != 5 {
+		t.Errorf("expected 5 assigned (capped), got %d", b.ActiveResearch.Scientists)
+	}
+	if b.UnassignedScientists != 0 {
+		t.Errorf("expected 0 unassigned, got %d", b.UnassignedScientists)
+	}
+
+	b.AssignScientists(-2)
+	if b.ActiveResearch.Scientists != 3 {
+		t.Errorf("expected 3 after unassign, got %d", b.ActiveResearch.Scientists)
+	}
+	if b.UnassignedScientists != 2 {
+		t.Errorf("expected 2 unassigned after unassign, got %d", b.UnassignedScientists)
+	}
+
+	b.AssignScientists(-100)
+	if b.ActiveResearch.Scientists != 0 {
+		t.Errorf("expected 0 after unassign-all, got %d", b.ActiveResearch.Scientists)
+	}
+	if b.UnassignedScientists != 5 {
+		t.Errorf("expected 5 unassigned after unassign-all, got %d", b.UnassignedScientists)
+	}
+}
+
+func TestAssignScientistsNoProject(t *testing.T) {
+	b := NewBase("Test")
+	ok := b.AssignScientists(3)
+	if ok {
+		t.Error("should not assign without active project")
+	}
+}
+
+func TestAssignEngineers(t *testing.T) {
+	b := NewBase("Test")
+	b.UnassignedEngineers = 5
+	mats := map[string]int{"alloys": 2}
+	b.AddItem("alloys", 10)
+	b.Facilities = append(b.Facilities, &Facility{Type: FacWorkshop})
+	b.StartManufacture("pistol", 1, mats)
+
+	if len(b.ManufactureQueue) == 0 {
+		t.Fatal("should have 1 manufacture job")
+	}
+	job := b.ManufactureQueue[0]
+
+	ok := b.AssignEngineers(0, 3)
+	if !ok {
+		t.Fatal("should assign engineers")
+	}
+	if job.Engineers != 3 {
+		t.Errorf("expected 3 assigned, got %d", job.Engineers)
+	}
+	if b.UnassignedEngineers != 2 {
+		t.Errorf("expected 2 unassigned, got %d", b.UnassignedEngineers)
+	}
+
+	b.AssignEngineers(0, -100)
+	if job.Engineers != 0 {
+		t.Errorf("expected 0 after unassign-all, got %d", job.Engineers)
+	}
+	if b.UnassignedEngineers != 5 {
+		t.Errorf("expected 5 unassigned after unassign-all, got %d", b.UnassignedEngineers)
+	}
+}
+
+func TestAssignEngineersOutOfBounds(t *testing.T) {
+	b := NewBase("Test")
+	ok := b.AssignEngineers(99, 3)
+	if ok {
+		t.Error("should not assign to invalid index")
+	}
+}
+
+func TestStartResearchAlreadyActive(t *testing.T) {
+	b := NewBase("Test")
+	b.Facilities = append(b.Facilities, &Facility{Type: FacLab})
+	b.StartResearch("alien_alloys")
+	if b.ActiveResearch == nil {
+		t.Fatal("first research should start")
+	}
+
+	ok := b.StartResearch("elerium")
+	if ok {
+		t.Error("should not start second research while first is active")
+	}
+}

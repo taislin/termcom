@@ -58,7 +58,11 @@ func (rs *ResearchScreen) Render(ctx *engine.ScreenCtx) {
 		return
 	}
 	if rs.Selection >= len(topics) {
-		rs.Selection = len(topics) - 1
+		if len(topics) > 0 {
+			rs.Selection = len(topics) - 1
+		} else {
+			rs.Selection = 0
+		}
 	}
 
 	for i, topic := range topics {

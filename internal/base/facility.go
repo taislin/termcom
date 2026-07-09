@@ -488,23 +488,25 @@ func (b *Base) AdvanceResearch() []string {
 		b.ActiveResearch.Completed = true
 		topic := data.ResearchByID(b.ActiveResearch.TopicID)
 		b.CompletedResearch = append(b.CompletedResearch, b.ActiveResearch.TopicID)
-		b.UnlockedWeapons = append(b.UnlockedWeapons, topic.UnlockWeap...)
-		b.UnlockedArmor = append(b.UnlockedArmor, topic.UnlockArmor...)
-		for _, item := range topic.UnlockItems {
-			b.AddItem(item, 1)
-		}
-		// Make unlocked items available in the base stores
-		for _, wpn := range topic.UnlockWeap {
-			if _, ok := data.RuleItems[wpn]; ok {
-				b.Stores[wpn] = 1 // Make available for equip
+		name := b.ActiveResearch.TopicID
+		if topic != nil {
+			b.UnlockedWeapons = append(b.UnlockedWeapons, topic.UnlockWeap...)
+			b.UnlockedArmor = append(b.UnlockedArmor, topic.UnlockArmor...)
+			for _, item := range topic.UnlockItems {
+				b.AddItem(item, 1)
 			}
-		}
-		for _, arm := range topic.UnlockArmor {
-			if _, ok := data.Armors[arm]; ok {
-				b.Stores[arm] = 1 // Make available for equip
+			for _, wpn := range topic.UnlockWeap {
+				if _, ok := data.RuleItems[wpn]; ok {
+					b.Stores[wpn] = 1
+				}
 			}
+			for _, arm := range topic.UnlockArmor {
+				if _, ok := data.Armors[arm]; ok {
+					b.Stores[arm] = 1
+				}
+			}
+			name = topic.Name
 		}
-		name := topic.Name
 		b.ActiveResearch = nil
 		return []string{name}
 	}

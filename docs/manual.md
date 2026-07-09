@@ -210,8 +210,8 @@ Key mechanics:
 - **Cost Variance:** Non-tier-1 tech costs are multiplied by a random factor
   (0.85x - 1.15x) each run. Laser Weapons might cost 102 one run and 138 the
   next.
-- **Fixed Chains:** Some dependencies are always enforced (e.g., Heavy Plasma
-  always requires Plasma Weapons; Power Suit always requires Heavy Suit).
+- **Reachability:** Every Tier 2+ tech always has at least one prerequisite from
+  the tier directly below, guaranteeing the tree is fully reachable from Tier 1.
 
 ### Core Technologies (always present)
 
