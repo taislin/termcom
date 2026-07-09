@@ -195,31 +195,51 @@ Hire soldiers at $50,000 each. Capacity limited by Living Quarters.
 From the Research tab, assign scientists to research topics. Research progresses
 automatically as time runs.
 
-### Research Tree
+### Procedural Tech Tree
 
-| Topic | Man-Days | Prerequisites | Unlocks |
-|-------|----------|---------------|---------|
-| Alien Alloys | 60 | — | Aluminium Alloys item |
-| Elerium-115 | 80 | — | Elerium item |
-| Sectoid Autopsy | 40 | — | Alien lore |
-| Floater Autopsy | 50 | — | Alien lore |
-| Muton Autopsy | 60 | — | Alien lore |
-| Ethereal Autopsy | 80 | Sectoid + Floater autopsy | Alien lore |
-| Laser Weapons | 120 | Alien Alloys | Laser Pistol, Laser Rifle |
-| Plasma Weapons | 200 | Elerium + Sectoid Autopsy | Plasma Pistol, Plasma Rifle |
-| Heavy Plasma | 250 | Plasma Weapons + Muton Autopsy | Plasma Rifle |
-| Personal Armour | 80 | Alien Alloys | Personal Armour |
-| Light Suit | 150 | Personal Armour + Alien Alloys | Light Suit |
-| Medium Suit | 200 | Light Suit | Medium Suit |
-| Heavy Suit | 280 | Medium Suit | Heavy Suit |
-| Power Suit | 400 | Heavy Suit + Elerium | Power Suit |
-| Flying Suit | 500 | Power Suit | Flying Suit |
-| Mind Control | 150 | Ethereal Autopsy | Alien lore |
-| UFO Navigation | 100 | — | Alien lore |
-| UFO Power Source | 120 | — | Alien lore |
-| Alien Communications | 90 | — | Alien lore |
+Each playthrough generates a unique tech tree from a seeded random algorithm.
+The tree always contains core technologies (Alien Alloys, Elerium-115, weapons,
+armour), but prerequisites and costs vary between runs. Alien autopsies are
+dynamically generated based on the procedural species spawned in your game.
 
-**Recommended early research:** Alien Alloys → Laser Weapons → Personal Armour → Sectoid Autopsy → Elerium → Plasma Weapons.
+Key mechanics:
+- **Tiered DAG:** Technologies are organized in Tiers 1-5. Higher-tier techs
+  always require lower-tier prerequisites, guaranteeing no circular dependencies.
+- **Dynamic Autopsies:** Each procedural alien species gets a unique autopsy
+  topic. Some weapon techs require a specific autopsy as a biological catalyst.
+- **Cost Variance:** Non-tier-1 tech costs are multiplied by a random factor
+  (0.85x - 1.15x) each run. Laser Weapons might cost 102 one run and 138 the
+  next.
+- **Fixed Chains:** Some dependencies are always enforced (e.g., Heavy Plasma
+  always requires Plasma Weapons; Power Suit always requires Heavy Suit).
+
+### Core Technologies (always present)
+
+| Tier | Topic | Base Cost | Unlocks |
+|------|-------|-----------|---------|
+| 1 | Alien Alloys | 60 | Alloys item |
+| 1 | Elerium-115 | 80 | Elerium item |
+| 1 | UFO Navigation | 100 | Alien lore |
+| 1 | UFO Power Source | 120 | Alien lore |
+| 1 | Alien Communications | 90 | Alien lore |
+| 1 | [Species] Autopsy | 40-70 | Alien lore |
+| 2 | Laser Weapons | 120 | Laser Pistol, Laser Rifle |
+| 2 | Personal Armour | 80 | Personal Armour |
+| 3 | Plasma Weapons | 200 | Plasma Pistol, Plasma Rifle |
+| 3 | Light Suit | 150 | Light Suit |
+| 3 | UFO Propulsion | 110 | Alien lore |
+| 4 | Heavy Plasma | 250 | Heavy Plasma |
+| 4 | Medium Suit | 200 | Medium Suit |
+| 4 | Mind Control | 150 | Alien lore |
+| 5 | Heavy Suit | 280 | Heavy Suit |
+| 5 | Power Suit | 400 | Power Suit |
+| 5 | Flying Suit | 500 | Flying Suit |
+
+### Recommended Early Research
+
+Alien Alloys and Elerium-115 are always available at Tier 1 and should be
+researched first. After that, check which autopsies your scientists can
+perform — some weapon techs require a specific alien autopsy as a catalyst.
 
 ---
 
@@ -692,11 +712,11 @@ The species seed ensures the same alien species are regenerated when loading a s
 
 ### Research Priorities
 
-1. Alien Alloys → Laser Weapons
-2. Personal Armour → Light Suit
-3. Sectoid/Floater Autopsy (for lore and prerequisites)
-4. Elerium → Plasma Weapons
-5. Mid-game: Medium/Heavy Suit, Heavy Plasma
+1. Alien Alloys → Laser Weapons (always Tier 1 → Tier 2)
+2. Personal Armour (always Tier 2)
+3. Autopsies of encountered species (Tier 1 — unlocks alien lore and may gate weapon techs)
+4. Elerium-115 → Plasma Weapons (check autopsy requirement)
+5. Mid-game: Medium Suit, Heavy Plasma, UFO Propulsion
 6. Late-game: Power Suit, Flying Suit, Mind Control
 
 ### Economy

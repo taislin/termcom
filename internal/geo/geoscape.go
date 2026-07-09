@@ -709,6 +709,7 @@ func (gs *Geoscape) LoadGameFromFile() {
 		gs.Game.AlienKnowledge = sd.AlienKnowledge
 	}
 	gs.Game.AlienSpecies, gs.Game.AlienTypes = data.GenerateSpecies(sd.SpeciesSeed)
+	data.InitResearchTree(sd.SpeciesSeed, gs.Game.AlienSpecies)
 	gs.Base = save.ToBase(sd.Base)
 	gs.UFOs = nil
 	for _, u := range sd.UFOs {

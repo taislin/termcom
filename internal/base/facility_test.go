@@ -1,10 +1,17 @@
 package base
 
 import (
+	"os"
 	"testing"
 
 	"github.com/civ13/ycom/internal/data"
 )
+
+func TestMain(m *testing.M) {
+	species, _ := data.GenerateSpecies(42)
+	data.InitResearchTree(42, species)
+	os.Exit(m.Run())
+}
 
 func TestNewBase(t *testing.T) {
 	b := NewBase("Test")
@@ -304,35 +311,35 @@ func TestHasResearch(t *testing.T) {
 func TestCanResearch(t *testing.T) {
 	b := NewBase("Test")
 	b.Facilities = append(b.Facilities, &Facility{Type: FacLab})
-	topic := data.ResearchByID("sectoid_autopsy")
+	topic := data.ResearchByID("alien_alloys")
 	if !b.CanResearch(topic) {
-		t.Error("should be able to research sectoid_autopsy")
+		t.Error("should be able to research alien_alloys")
 	}
-	topic2 := data.ResearchByID("ethereal_autopsy")
+	topic2 := data.ResearchByID("light_suit")
 	if b.CanResearch(topic2) {
-		t.Error("should not be able to research ethereal_autopsy (missing prereqs)")
+		t.Error("should not be able to research light_suit (missing prereqs)")
 	}
 }
 
 func TestStartResearch(t *testing.T) {
 	b := NewBase("Test")
 	b.Facilities = append(b.Facilities, &Facility{Type: FacLab})
-	ok := b.StartResearch("sectoid_autopsy")
+	ok := b.StartResearch("alien_alloys")
 	if !ok {
 		t.Error("should start research")
 	}
 	if b.ActiveResearch == nil {
 		t.Fatal("ActiveResearch should be set")
 	}
-	if b.ActiveResearch.TopicID != "sectoid_autopsy" {
-		t.Errorf("expected sectoid_autopsy, got %s", b.ActiveResearch.TopicID)
+	if b.ActiveResearch.TopicID != "alien_alloys" {
+		t.Errorf("expected alien_alloys, got %s", b.ActiveResearch.TopicID)
 	}
 }
 
 func TestAdvanceResearch(t *testing.T) {
 	b := NewBase("Test")
 	b.Facilities = append(b.Facilities, &Facility{Type: FacLab})
-	b.StartResearch("sectoid_autopsy")
+	b.StartResearch("alien_alloys")
 	b.ActiveResearch.Cost = 10
 	b.ActiveResearch.Scientists = 5
 	done := b.AdvanceResearch()
@@ -346,7 +353,7 @@ func TestAdvanceResearch(t *testing.T) {
 	if len(done) == 0 {
 		t.Error("should be done now")
 	}
-	if !b.HasResearch("sectoid_autopsy") {
+	if !b.HasResearch("alien_alloys") {
 		t.Error("should have completed research")
 	}
 }

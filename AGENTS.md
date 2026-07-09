@@ -63,7 +63,9 @@ internal/
   soldier/soldier.go       Soldier stats, ranking, inventory
   data/items.go            Weapons, armor, items
   data/aliens.go           Alien species, stat blocks
-  data/research.go         Research tree
+  data/research.go         Research topic struct and dynamic lookup
+  data/techgen.go          Procedural tech tree generator (DAG, tiers, cost variance)
+  data/procedural.go       Procedural alien species generation
 ```
 
 ### Code Conventions

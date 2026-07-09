@@ -104,6 +104,7 @@ func (g *Game) initSpecies() {
 	g.SpeciesSeed = time.Now().UnixNano()
 	g.AlienSpecies, g.AlienTypes = data.GenerateSpecies(g.SpeciesSeed)
 	g.AlienKnowledge = make(map[string]int)
+	data.InitResearchTree(g.SpeciesSeed, g.AlienSpecies)
 }
 
 // LearnAlien increases knowledge level for an alien type.
