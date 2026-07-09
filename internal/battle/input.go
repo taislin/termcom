@@ -35,28 +35,47 @@ func (bs *Battlescape) HandleEvent(ev tcell.Event) {
 
 func (bs *Battlescape) handleKey(e *tcell.EventKey) {
 	switch e.Key() {
-	case tcell.KeyUp: bs.MoveCursor(0, -1)
-	case tcell.KeyDown: bs.MoveCursor(0, 1)
-	case tcell.KeyLeft: bs.MoveCursor(-1, 0)
-	case tcell.KeyRight: bs.MoveCursor(1, 0)
-	case tcell.KeyEnter: bs.Confirm()
+	case tcell.KeyUp: 
+		bs.MoveCursor(0, -1)
+		bs.updateMovePath()
+	case tcell.KeyDown: 
+		bs.MoveCursor(0, 1)
+		bs.updateMovePath()
+	case tcell.KeyLeft: 
+		bs.MoveCursor(-1, 0)
+		bs.updateMovePath()
+	case tcell.KeyRight: 
+		bs.MoveCursor(1, 0)
+		bs.updateMovePath()
+	case tcell.KeyEnter: 
+		bs.Confirm()
 	}
 	
 	switch e.Str() {
 	case "q", "Q": bs.cycleUnit(1)
-	case "m", "M": bs.State.CursorState = StateMovePlan; bs.CursorX, bs.CursorY = bs.Selected.X, bs.Selected.Y
-	case "f", "F": bs.State.CursorState = StateTargeting
-	case "e", "E": bs.EndTurn()
-	case "c", "C": bs.Crouch()
-	case "r", "R": bs.Reload()
-	case "g", "G": bs.Grenade()
-	case "o", "O": bs.Game.PushState(engine.StateOptions)
+	case "m", "M": 
+		bs.State.CursorState = StateMovePlan
+		if bs.Selected != nil {
+			bs.CursorX, bs.CursorY = bs.Selected.X, bs.Selected.Y
+		}
+		bs.updateMovePath()
+	case "f", "F": 
+		bs.State.CursorState = StateTargeting
+	case "e", "E": 
+		bs.EndTurn()
+	case "c", "C": 
+		bs.Crouch()
+	case "r", "R": 
+		bs.Reload()
+	case "g", "G": 
+		bs.Grenade()
+	case "o", "O": 
+		bs.Game.PushState(engine.StateOptions)
 	}
 }
 
 func (bs *Battlescape) handleMouse(e *tcell.EventMouse) {
 	x, y := e.Position()
-	// Adjust for scroll and sidebar
 	mx, my := x + bs.ScrollX - 1, y + bs.ScrollY - 1
 	
 	buttons := e.Buttons()
@@ -72,6 +91,7 @@ func (bs *Battlescape) handleMouse(e *tcell.EventMouse) {
 		if unit != nil && unit.Faction == 0 {
 			bs.Selected = unit
 		}
+		bs.updateMovePath()
 	} else if buttons&tcell.Button3 != 0 {
 		unit := bs.Units.At(mx, my)
 		if unit != nil && unit.Faction == 1 {
@@ -80,9 +100,18 @@ func (bs *Battlescape) handleMouse(e *tcell.EventMouse) {
 		} else if bs.State.CursorState == StateInspect {
 			bs.State.CursorState = StateMovePlan
 			bs.CursorX, bs.CursorY = mx, my
+			bs.updateMovePath()
 		} else if bs.State.CursorState == StateMovePlan {
 			bs.MoveSelected()
 			bs.State.CursorState = StateInspect
 		}
 	}
+}
+
+func (bs *Battlescape) updateMovePath() {
+	if bs.State.CursorState != StateMovePlan || bs.Selected == nil {
+		bs.State.MovePath = nil
+		return
+	}
+	bs.State.MovePath = bs.CalculatePath(bs.Selected.X, bs.Selected.Y, bs.CursorX, bs.CursorY)
 }

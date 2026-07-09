@@ -164,6 +164,49 @@ func (bs *Battlescape) GetMovementRange() map[[2]int]bool {
 	return result
 }
 
+func (bs *Battlescape) CalculatePath(startX, startY, endX, endY int) [][2]int {
+	if startX == endX && startY == endY {
+		return [][2]int{{startX, startY}}
+	}
+
+	type node struct {
+		x, y int
+		path [][2]int
+	}
+
+	queue := []node{{startX, startY, [][2]int{{startX, startY}}}}
+	visited := make(map[[2]int]bool)
+	visited[[2]int{startX, startY}] = true
+
+	for len(queue) > 0 {
+		curr := queue[0]
+		queue = queue[1:]
+
+		if curr.x == endX && curr.y == endY {
+			return curr.path
+		}
+
+		dirs := [][2]int{{0, 1}, {0, -1}, {1, 0}, {-1, 0}}
+		for _, d := range dirs {
+			nx, ny := curr.x+d[0], curr.y+d[1]
+			if nx < 0 || nx >= bs.Map.Width || ny < 0 || ny >= bs.Map.Height {
+				continue
+			}
+			if visited[[2]int{nx, ny}] || !bs.Map.Passable(nx, ny) {
+				continue
+			}
+
+			visited[[2]int{nx, ny}] = true
+			newPath := make([][2]int, len(curr.path)+1)
+			copy(newPath, curr.path)
+			newPath[len(curr.path)] = [2]int{nx, ny}
+			queue = append(queue, node{nx, ny, newPath})
+		}
+	}
+
+	return nil
+}
+
 func NewBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, ufoName string) *Battlescape {
 	var m *BattleMap
 	switch ufoName {
@@ -1801,57 +1844,7 @@ func (bs *Battlescape) phaseStr() string {
 }
 
 func (bs *Battlescape) HandleKey(e *tcell.EventKey) {
-	if bs.Phase == PhaseVictory || bs.Phase == PhaseDefeat {
-		return
-	}
-	switch e.Key() {
-	case tcell.KeyUp:
-		bs.MoveCursor(0, -1)
-	case tcell.KeyDown:
-		bs.MoveCursor(0, 1)
-	case tcell.KeyLeft:
-		bs.MoveCursor(-1, 0)
-	case tcell.KeyRight:
-		bs.MoveCursor(1, 0)
-	case tcell.KeyEnter:
-		bs.Confirm()
-	}
-	switch e.Str() {
-	case " ":
-		bs.Confirm()
-	case "f", "F":
-		bs.FireWeapon()
-	case "r", "R":
-		bs.Reload()
-	case "e", "E":
-		bs.EndTurn()
-	case "q", "Q":
-		bs.cycleUnit(1)
-	case "w", "W":
-		bs.MoveCursor(0, -1)
-	case "a", "A":
-		bs.MoveCursor(-1, 0)
-	case "s", "S":
-		bs.MoveCursor(0, 1)
-	case "d", "D":
-		bs.MoveCursor(1, 0)
-	case "c", "C":
-		bs.Crouch()
-	case "g", "G":
-		bs.Grenade()
-	case "m", "M":
-		bs.UseMedikit()
-	case "p", "P":
-		bs.PsiAttack()
-	case "n", "N":
-		bs.EndTurn()
-	case "v", "V":
-		bs.ToggleVision()
-	case ".":
-		bs.MoveSelected()
-	case ">", "<":
-		bs.UseStairs()
-	}
+	bs.HandleEvent(e)
 }
 
 func (bs *Battlescape) SpawnBloodSplatter(target *Unit) {
@@ -1898,86 +1891,7 @@ func (bs *Battlescape) ToggleVision() {
 }
 
 func (bs *Battlescape) HandleMouse(e *tcell.EventMouse) {
-	buttons := e.Buttons()
-	x, y := e.Position()
-	_, scrH := bs.Game.ScreenSize()
-
-	// Handle help bar clicks (bottom bar)
-	if y == scrH-1 {
-	help := language.String("HELP_BATTLESCAPE_MOUSE")
-		helpActions := []string{"=Move", "=Act", "=Cycle", "=Fire", "=Reload", "=Grenade", "=Medikit", "=End", "=Crouch"}
-		helpFuncs := []func(){
-			nil, nil,
-			func() { bs.cycleUnit(1) },
-			func() { bs.FireWeapon() },
-			func() { bs.Reload() },
-			func() { bs.Grenade() },
-			func() { bs.UseMedikit() },
-			func() { bs.EndTurn() },
-			func() { bs.Crouch() },
-		}
-		off := 1 // help text starts at x=1
-		for i, action := range helpActions {
-			pos := strings.Index(help, action)
-			if pos < 0 {
-				continue
-			}
-			start := off + pos
-			end := off + pos + len(action)
-			if x >= start && x <= end && helpFuncs[i] != nil {
-				helpFuncs[i]()
-				return
-			}
-		}
-		return
-	}
-
-	// Don't process clicks on the sidebar
-	scrW, _ := bs.Game.ScreenSize()
-	viewW := scrW - bs.SidebarW - 2
-	if x >= viewW+2 {
-		bs.HoveredUnit = nil
-		return
-	}
-
-	// Hover detection (works even with no button pressed)
-	bs.HoveredUnit = nil
-	mx := x - 1 + bs.ScrollX
-	my := y - 1 + bs.ScrollY
-	if mx >= 0 && mx < bs.Map.Width && my >= 0 && my < bs.Map.Height {
-		for _, u := range bs.Units {
-			if u.Alive && u.X == mx && u.Y == my {
-				if u.Faction == 1 && bs.Map.IsVisible(u.X, u.Y) {
-					bs.HoveredUnit = u
-				} else if u.Faction == 0 || u.Faction == 2 {
-					bs.HoveredUnit = u
-				}
-				break
-			}
-		}
-	}
-
-	if buttons == 0 {
-		return
-	}
-
-	if mx >= 0 && mx < bs.Map.Width && my >= 0 && my < bs.Map.Height {
-		bs.CursorX = mx
-		bs.CursorY = my
-		if buttons&tcell.Button1 != 0 {
-			bs.Confirm()
-		}
-		if buttons&tcell.Button3 != 0 {
-			bs.FireWeapon()
-		}
-	}
-
-	if buttons&tcell.WheelUp != 0 {
-		bs.cycleUnit(1)
-	}
-	if buttons&tcell.WheelDown != 0 {
-		bs.cycleUnit(-1)
-	}
+	bs.HandleEvent(e)
 }
 
 func (bs *Battlescape) cycleUnit(dir int) {
