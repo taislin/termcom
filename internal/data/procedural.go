@@ -195,14 +195,346 @@ func generateVariant(rng *rand.Rand, sp *AlienSpecies, rank int) *AlienType {
 		ResistPsionic:   resistPsionic,
 
 		Lore:     variantLore,
-		Portrait: generatePortrait(rng, icon),
+		Portrait: generatePortrait(rng, icon, sp.PrimaryDMG, rank),
 	}
 }
 
-func generatePortrait(rng *rand.Rand, icon rune) string {
-	heads := []rune{'o', 'O', '0', '@', 'X', 'Y', 'A', '∩', 'Ω', 'Ψ'}
-	bodies := []rune{'|', 'I', 'V', 'A', ']', '[', '⊥', 'Y'}
-	return string(heads[int(icon)%len(heads)]) + "\n" + string(bodies[int(icon)%len(bodies)])
+// portraitPart holds optional decorative characters that vary per species.
+type portraitPart struct {
+	crown  rune // head ornament
+	chest  rune // chest marking
+	weapon rune // held weapon
+}
+
+func generatePortrait(rng *rand.Rand, icon rune, dmgType int, rank int) string {
+	parts := portraitPart{
+		crown:  pickRune(rng, []rune{' ', '°', '*', '+', '÷', '¤', '~', '^'}),
+		chest:  pickRune(rng, []rune{' ', '·', ':', 'o', '×', '†', '◊', '≈'}),
+		weapon: pickRune(rng, []rune{'/', '\\', '|', '†', '¶', '©', '£', '¥'}),
+	}
+	return assemblePortrait(parts, dmgType, rank)
+}
+
+func pickRune(rng *rand.Rand, pool []rune) rune {
+	return pool[rng.Intn(len(pool))]
+}
+
+// assemblePortrait builds a 1:2 aspect ratio alien portrait (7w x 14h).
+// The damage type determines the species silhouette (head shape, body type).
+// The rank adds decorative elements (crown, cape, armor layers).
+func assemblePortrait(p portraitPart, dmgType int, rank int) string {
+	var lines []string
+
+	// ── Head (4 lines) ───────────────────────────────
+	lines = append(lines, headTop(p, dmgType, rank)...)
+	lines = append(lines, headMid(p, dmgType, rank)...)
+	lines = append(lines, headBot(p, dmgType, rank)...)
+	lines = append(lines, neck(p, dmgType)...)
+
+	// ── Torso (4 lines) ──────────────────────────────
+	lines = append(lines, torsoTop(p, dmgType, rank)...)
+	lines = append(lines, torsoMid(p, dmgType, rank)...)
+	lines = append(lines, torsoBot(p, dmgType, rank)...)
+	lines = append(lines, waist(p, dmgType)...)
+
+	// ── Legs (4 lines) ───────────────────────────────
+	lines = append(lines, legTop(p, dmgType, rank)...)
+	lines = append(lines, legMid(p, dmgType, rank)...)
+	lines = append(lines, legBot(p, dmgType)...)
+	lines = append(lines, feet(p, dmgType)...)
+
+	return strings.Join(lines, "\n")
+}
+
+func headTop(p portraitPart, dmg, rank int) []string {
+	switch dmg {
+	case DMG_PLASMA:
+		if rank >= 2 {
+			return []string{
+				"  .---.  ",
+				" /" + string(p.crown) + "·" + string(p.crown) + "\\ ",
+			}
+		}
+		return []string{
+			"         ",
+			"  .---.  ",
+		}
+	case DMG_LASER:
+		if rank >= 2 {
+			return []string{
+				"   " + string(p.crown) + " " + string(p.crown) + "   ",
+				"  /---\\  ",
+			}
+		}
+		return []string{
+			"         ",
+			"  /---\\  ",
+		}
+	case DMG_MELEE:
+		if rank >= 2 {
+			return []string{
+				" /=======\\",
+				" |##" + string(p.crown) + "##| ",
+			}
+		}
+		return []string{
+			"         ",
+			" /=====\\ ",
+		}
+	case DMG_EXPLOSIVE:
+		if rank >= 2 {
+			return []string{
+				"   " + string(p.crown) + "|" + string(p.crown) + "   ",
+				"  /---\\  ",
+			}
+		}
+		return []string{
+			"         ",
+			"  /---\\  ",
+		}
+	case DMG_PSIONIC:
+		if rank >= 2 {
+			return []string{
+				"    " + string(p.crown) + "    ",
+				"  (---)  ",
+			}
+		}
+		return []string{
+			"         ",
+			"  (---)  ",
+		}
+	default: // DMG_KINETIC and others
+		if rank >= 2 {
+			return []string{
+				"  ===" + string(p.crown) + "===  ",
+				"  /---\\  ",
+			}
+		}
+		return []string{
+			"         ",
+			"  /---\\  ",
+		}
+	}
+}
+
+func headMid(p portraitPart, dmg, rank int) []string {
+	switch dmg {
+	case DMG_PLASMA:
+		return []string{
+			" |" + string(p.chest) + " @ " + string(p.chest) + "| ",
+			"  \\___/  ",
+		}
+	case DMG_LASER:
+		return []string{
+			" |" + string(p.chest) + "/ " + string(p.chest) + "\\| ",
+			"  \\___/  ",
+		}
+	case DMG_MELEE:
+		return []string{
+			" |" + string(p.chest) + " O " + string(p.chest) + "| ",
+			"  |___|  ",
+		}
+	case DMG_EXPLOSIVE:
+		return []string{
+			" |" + string(p.chest) + " X " + string(p.chest) + "| ",
+			"  /___\\  ",
+		}
+	case DMG_PSIONIC:
+		return []string{
+			" |" + string(p.chest) + " Ω " + string(p.chest) + "| ",
+			"  \\~~~/  ",
+		}
+	default:
+		return []string{
+			" |" + string(p.chest) + " o " + string(p.chest) + "| ",
+			"  \\___/  ",
+		}
+	}
+}
+
+func headBot(p portraitPart, dmg, rank int) []string {
+	return []string{"         "}
+}
+
+func neck(p portraitPart, dmg int) []string {
+	return []string{"    |    "}
+}
+
+func torsoTop(p portraitPart, dmg, rank int) []string {
+	c := p.chest
+	switch dmg {
+	case DMG_PLASMA:
+		return []string{
+			" /---+---\\ ",
+			" | " + string(c) + " | " + string(c) + " | ",
+		}
+	case DMG_LASER:
+		return []string{
+			" /---+---\\ ",
+			" |/" + string(c) + "|\\| ",
+		}
+	case DMG_MELEE:
+		if rank >= 2 {
+			return []string{
+				" |=-+-+-=-=| ",
+				" |##" + string(c) + "##| ",
+			}
+		}
+		return []string{
+			" /=======\\ ",
+			" | " + string(c) + " | " + string(c) + " | ",
+		}
+	case DMG_EXPLOSIVE:
+		return []string{
+			" /---+---\\ ",
+			" | " + string(p.weapon) + " | " + string(c) + " | ",
+		}
+	case DMG_PSIONIC:
+		return []string{
+			" ~---+---~ ",
+			" |≈ " + string(c) + " ≈| ",
+		}
+	default:
+		return []string{
+			" /---+---\\ ",
+			" | " + string(c) + " | " + string(c) + " | ",
+		}
+	}
+}
+
+func torsoMid(p portraitPart, dmg, rank int) []string {
+	c := p.chest
+	switch dmg {
+	case DMG_PLASMA:
+		return []string{
+			" | " + string(p.weapon) + " | " + string(c) + " | ",
+			" |  " + string(c) + "  | ",
+		}
+	case DMG_LASER:
+		return []string{
+			" |" + string(p.weapon) + "| |" + string(c) + "| ",
+			" |  " + string(c) + "  | ",
+		}
+	case DMG_MELEE:
+		return []string{
+			" | " + string(p.weapon) + "| |" + string(p.weapon) + "| ",
+			" | ## " + string(c) + " ## | ",
+		}
+	case DMG_EXPLOSIVE:
+		return []string{
+			" | " + string(p.weapon) + "|" + string(p.weapon) + " | ",
+			" |  " + string(c) + "  | ",
+		}
+	case DMG_PSIONIC:
+		return []string{
+			" |≈" + string(p.weapon) + "≈|≈" + string(p.weapon) + "≈| ",
+			" | ~ " + string(c) + " ~ | ",
+		}
+	default:
+		return []string{
+			" | " + string(p.weapon) + " | " + string(c) + " | ",
+			" |  " + string(c) + "  | ",
+		}
+	}
+}
+
+func torsoBot(p portraitPart, dmg, rank int) []string {
+	c := p.chest
+	switch dmg {
+	case DMG_MELEE:
+		return []string{
+			" |##" + string(c) + "##| ",
+			"  \\=====//  ",
+		}
+	case DMG_PSIONIC:
+		return []string{
+			" |≈≈" + string(c) + "≈≈| ",
+			"  \\~~~/  ",
+		}
+	default:
+		return []string{
+			" | " + string(c) + " | " + string(c) + " | ",
+			"  \\---/  ",
+		}
+	}
+}
+
+func waist(p portraitPart, dmg int) []string {
+	return []string{"    |    "}
+}
+
+func legTop(p portraitPart, dmg, rank int) []string {
+	switch dmg {
+	case DMG_MELEE:
+		return []string{
+			" /|   |\\ ",
+			"/ |   | \\",
+		}
+	case DMG_PSIONIC:
+		return []string{
+			" ~     ~ ",
+			"  ~   ~  ",
+		}
+	default:
+		return []string{
+			" /|   |\\ ",
+			" | | | | ",
+		}
+	}
+}
+
+func legMid(p portraitPart, dmg, rank int) []string {
+	switch dmg {
+	case DMG_MELEE:
+		return []string{
+			"| |   | |",
+			"| |   | |",
+		}
+	case DMG_PSIONIC:
+		return []string{
+			"  ~   ~  ",
+			" ~     ~ ",
+		}
+	default:
+		return []string{
+			" | | | | ",
+			" | | | | ",
+		}
+	}
+}
+
+func legBot(p portraitPart, dmg int) []string {
+	switch dmg {
+	case DMG_MELEE:
+		return []string{
+			" | |   | |",
+		}
+	case DMG_PSIONIC:
+		return []string{
+			"  ~~~~~  ",
+		}
+	default:
+		return []string{
+			" | | | | ",
+		}
+	}
+}
+
+func feet(p portraitPart, dmg int) []string {
+	switch dmg {
+	case DMG_MELEE:
+		return []string{
+			" |_|   |_|",
+		}
+	case DMG_PSIONIC:
+		return []string{
+			"         ",
+		}
+	default:
+		return []string{
+			" |_| |_|  ",
+		}
+	}
 }
 
 // genResist generates a resistance value for a specific damage type.

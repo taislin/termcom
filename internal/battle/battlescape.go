@@ -12,6 +12,7 @@ import (
 	"github.com/civ13/ycom/internal/soldier"
 	"github.com/civ13/ycom/internal/audio"
 	"github.com/gdamore/tcell/v3"
+	"github.com/gdamore/tcell/v3/color"
 )
 
 // getAlienByRank returns the closest alien type at or above the given rank
@@ -255,12 +256,12 @@ func (bs *Battlescape) ComputeFOVForTeam() {
 		sightRange = 10
 	}
 	for _, u := range bs.Units {
-		if u.Faction == 0 && u.Alive {
+		if u.Faction == 0 && u.Alive && u.Level == bs.Map.CurrentLevel {
 			bs.Map.ComputeFOV(u.X, u.Y, sightRange)
 		}
 	}
 	for _, u := range bs.Units {
-		if u.Faction == 1 && u.Alive && u.AlienType != nil && bs.Map.IsVisible(u.X, u.Y) {
+		if u.Faction == 1 && u.Alive && u.AlienType != nil && u.Level == bs.Map.CurrentLevel && bs.Map.IsVisible(u.X, u.Y) {
 			bs.Game.LearnAlien(u.AlienType.Name, 1)
 		}
 	}
@@ -774,6 +775,51 @@ func (bs *Battlescape) Crouch() {
 	}
 }
 
+func (bs *Battlescape) UseStairs() {
+	if bs.Phase != PhasePlayerTurn {
+		return
+	}
+	if bs.Map.NumLevels <= 1 {
+		bs.AddMessage("No stairs on this map.")
+		return
+	}
+	tile := bs.Map.At(bs.CursorX, bs.CursorY)
+	if tile.Type != TileStairs && tile.Type != TileStairsDown {
+		// Check if selected unit is on stairs
+		if bs.Selected != nil {
+			tile = bs.Map.At(bs.Selected.X, bs.Selected.Y)
+		}
+		if tile.Type != TileStairs && tile.Type != TileStairsDown {
+			bs.AddMessage("Move to stairs first.")
+			return
+		}
+	}
+
+	oldLevel := bs.Map.CurrentLevel
+	if oldLevel == 0 && bs.Map.NumLevels > 1 {
+		bs.Map.CurrentLevel = 1
+	} else if oldLevel > 0 {
+		bs.Map.CurrentLevel = 0
+	} else {
+		bs.AddMessage("No stairs here.")
+		return
+	}
+
+	// Teleport selected unit to stairs on new level
+	if bs.Selected != nil && bs.Selected.TU >= 8 {
+		bs.Selected.TU -= 8
+		bs.Selected.Level = bs.Map.CurrentLevel
+		bs.ComputeFOVForTeam()
+		bs.AddMessage(fmt.Sprintf("Descended to level %d.", bs.Map.CurrentLevel+1))
+	} else if bs.Selected != nil {
+		bs.Map.CurrentLevel = oldLevel
+		bs.AddMessage("Not enough TU to use stairs.")
+	} else {
+		bs.Map.CurrentLevel = oldLevel
+		bs.AddMessage("Select a soldier first.")
+	}
+}
+
 func (bs *Battlescape) Grenade() {
 	if bs.Selected == nil || bs.Phase != PhasePlayerTurn {
 		return
@@ -966,7 +1012,7 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 	bs.ScrollX = camX - viewW/2
 	bs.ScrollY = camY - viewH/2
 
-	blackStyle := tcell.StyleDefault.Background(tcell.ColorBlack).Foreground(tcell.ColorBlack)
+	blackStyle := tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm0)
 
 	for y := 0; y < viewH; y++ {
 		for x := 0; x < viewW; x++ {
@@ -1119,13 +1165,13 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 				switch fireFrame {
 				case 0:
 					ch = '^'
-					style = tcell.StyleDefault.Foreground(tcell.ColorYellow).Background(tcell.NewRGBColor(40, 20, 0))
+					style = tcell.StyleDefault.Foreground(color.XTerm11).Background(tcell.NewRGBColor(40, 20, 0))
 				case 1:
 					ch = 'w'
-					style = tcell.StyleDefault.Foreground(tcell.ColorOrange).Background(tcell.NewRGBColor(50, 15, 0))
+					style = tcell.StyleDefault.Foreground(color.Orange).Background(tcell.NewRGBColor(50, 15, 0))
 				case 2:
 					ch = '*'
-					style = tcell.StyleDefault.Foreground(tcell.ColorRed).Background(tcell.NewRGBColor(30, 10, 0))
+					style = tcell.StyleDefault.Foreground(color.XTerm9).Background(tcell.NewRGBColor(30, 10, 0))
 				}
 			} else if tile.Blood > 0 {
 				ch = bloodRunes[tile.Blood]
@@ -1147,7 +1193,7 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 
 	if bs.IsNight {
 		for _, u := range bs.Units {
-			if !u.Alive || u.Faction != 0 {
+			if !u.Alive || u.Faction != 0 || u.Level != bs.Map.CurrentLevel {
 				continue
 			}
 			sx := u.X - bs.ScrollX + 1
@@ -1157,7 +1203,7 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 			}
 		}
 		for _, u := range bs.Units {
-			if !u.Alive || u.Faction != 1 {
+			if !u.Alive || u.Faction != 1 || u.Level != bs.Map.CurrentLevel {
 				continue
 			}
 			sx := u.X - bs.ScrollX + 1
@@ -1172,6 +1218,9 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 
 	for _, u := range bs.Units {
 		if !u.Alive {
+			continue
+		}
+		if u.Level != bs.Map.CurrentLevel {
 			continue
 		}
 		sx := u.X - bs.ScrollX + 1
@@ -1222,7 +1271,7 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 		var entities []engine.ThermalEntity
 		if bs.VisionMode == engine.VisionThermal {
 			for _, u := range bs.Units {
-				if u.Alive {
+				if u.Alive && u.Level == bs.Map.CurrentLevel {
 					sx := u.X - bs.ScrollX + 1
 					sy := u.Y - bs.ScrollY + 1
 					if sx >= 1 && sx < viewW+1 && sy >= 1 && sy < viewH+1 {
@@ -1316,9 +1365,24 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 		sy++
 		ctx.DrawString(sidebarX, sy, fmt.Sprintf("ACC: %d", u.Accuracy), engine.StyleDefault)
 		sy++
+		ctx.DrawString(sidebarX, sy, fmt.Sprintf("STR: %d  TU: %d", u.Strength, u.TU), engine.StyleDefault)
+		sy++
 		weaponName := data.RuleItems[u.Weapon].ShortName
 		ctx.DrawString(sidebarX, sy, fmt.Sprintf("WPN: %s", weaponName), engine.StyleDefault)
 		sy++
+
+		if u.Faction == 1 && u.AlienType != nil {
+			portrait := u.AlienType.GetPortrait()
+			pLines := strings.Split(portrait, "\n")
+			sy++
+			for _, pl := range pLines {
+				if len(pl) > bs.SidebarW-1 {
+					pl = pl[:bs.SidebarW-1]
+				}
+				ctx.DrawString(sidebarX, sy, pl, engine.StyleRedBold)
+				sy++
+			}
+		}
 		sy++
 	}
 
@@ -1342,6 +1406,9 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 		lightStr = language.String("LIGHT_NIGHT")
 	}
 	turnStr := fmt.Sprintf(language.String("STATUS_TURN"), bs.Turn, bs.phaseStr()+" ("+lightStr+")")
+	if bs.Map.NumLevels > 1 {
+		turnStr += fmt.Sprintf(" [L%d]", bs.Map.CurrentLevel+1)
+	}
 	ctx.DrawString(2, h-3, turnStr, engine.StyleDefault)
 
 	if bs.Selected != nil {
@@ -1375,6 +1442,9 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 	// Draw help bar
 	ctx.DrawPanel(0, h-1, w, 1, "", engine.StyleGray)
 	help := "[hjkl]/[WSAD]=Move [Space]/[Enter]=Act [q]=Cycle [f]=Fire [r]=Reload [g]=Grenade [m]=Medikit [e]=End [c]=Crouch"
+	if bs.Map.NumLevels > 1 {
+		help += " [<>]=Stairs"
+	}
 	ctx.DrawMarkupString(1, h-1, help, engine.StyleGray, engine.StyleHotkey)
 }
 
@@ -1449,6 +1519,8 @@ func (bs *Battlescape) HandleKey(e *tcell.EventKey) {
 		bs.ToggleVision()
 	case ".":
 		bs.MoveSelected()
+	case ">", "<":
+		bs.UseStairs()
 	}
 }
 
@@ -1579,7 +1651,7 @@ func (bs *Battlescape) HandleMouse(e *tcell.EventMouse) {
 }
 
 func (bs *Battlescape) cycleUnit(dir int) {
-	humans := bs.Units.Faction(0).Alive()
+	humans := bs.Units.Faction(0).Alive().OnLevel(bs.Map.CurrentLevel)
 	if len(humans) == 0 {
 		return
 	}
@@ -1638,6 +1710,10 @@ func tileTypeName(t TileType) string {
 		return language.String("TILE_STORAGE")
 	case TileAlienTech:
 		return language.String("TILE_ALIEN_TECH")
+	case TileStairs:
+		return language.String("TILE_STAIRS")
+	case TileStairsDown:
+		return language.String("TILE_STAIRS_DOWN")
 	}
 	return language.String("TILE_UNKNOWN")
 }

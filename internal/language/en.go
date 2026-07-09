@@ -132,6 +132,8 @@ func init() {
 		"TILE_POWER_SOURCE":    "Power Source",
 		"TILE_STORAGE":         "Storage",
 		"TILE_ALIEN_TECH":      "Alien Tech",
+		"TILE_STAIRS":          "Stairs",
+		"TILE_STAIRS_DOWN":     "Stairs Down",
 		"TILE_UNKNOWN":         "Unknown",
 
 		// Battle messages

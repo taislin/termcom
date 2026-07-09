@@ -2,6 +2,7 @@ package engine
 
 import (
 	"github.com/gdamore/tcell/v3"
+	"github.com/gdamore/tcell/v3/color"
 )
 
 type ScreenRaw struct {
@@ -20,7 +21,7 @@ func NewScreenRaw() (*ScreenRaw, error) {
 		return nil, err
 	}
 	s.EnableMouse()
-	s.SetStyle(tcell.StyleDefault.Background(tcell.ColorBlack).Foreground(tcell.ColorWhite))
+	s.SetStyle(tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm15))
 	w, h := s.Size()
 	return &ScreenRaw{screen: s, width: w, height: h, fb: NewFrameBuffer(w, h)}, nil
 }
@@ -122,17 +123,17 @@ func (s *ScreenRaw) DrawPanel(x, y, w, h int, title string, style tcell.Style) {
 	}
 }
 
-var StyleDefault = tcell.StyleDefault.Background(tcell.ColorBlack).Foreground(tcell.ColorWhite)
-var StyleHighlight = tcell.StyleDefault.Background(tcell.ColorDarkBlue).Foreground(tcell.ColorWhite)
-var StyleRed = tcell.StyleDefault.Background(tcell.ColorBlack).Foreground(tcell.ColorRed)
-var StyleGreen = tcell.StyleDefault.Background(tcell.ColorBlack).Foreground(tcell.ColorGreen)
-var StyleBlue = tcell.StyleDefault.Background(tcell.ColorBlack).Foreground(tcell.ColorBlue)
-var StyleYellow = tcell.StyleDefault.Background(tcell.ColorBlack).Foreground(tcell.ColorYellow)
-var StyleCyan = tcell.StyleDefault.Background(tcell.ColorBlack).Foreground(tcell.ColorTeal)
-var StyleMagenta = tcell.StyleDefault.Background(tcell.ColorBlack).Foreground(tcell.ColorFuchsia)
-var StyleGray = tcell.StyleDefault.Background(tcell.ColorBlack).Foreground(tcell.ColorGray)
+var StyleDefault = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm15)
+var StyleHighlight = tcell.StyleDefault.Background(color.DarkBlue).Foreground(color.XTerm15)
+var StyleRed = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm9)
+var StyleGreen = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm2)
+var StyleBlue = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm12)
+var StyleYellow = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm11)
+var StyleCyan = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm6)
+var StyleMagenta = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm13)
+var StyleGray = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm8)
 
 var StyleCyanBold = StyleCyan.Bold(true)
 var StyleRedBold = StyleRed.Bold(true)
 var StyleGreenBold = StyleGreen.Bold(true)
-var StyleHotkey = tcell.StyleDefault.Background(tcell.ColorBlack).Foreground(tcell.ColorOrange)
+var StyleHotkey = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.Orange)

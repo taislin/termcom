@@ -794,7 +794,7 @@ func (gs *Geoscape) renderRegionTable(ctx *engine.ScreenCtx, x, y, w, h int) {
 		ctx.DrawString(x, ry, prefix+name, baseStyle)
 
 		// Threat bar
-		tx := x + 17
+		tx := x + int(float64(w)*0.4)
 		if c.Threat > 0 {
 			barLen := c.Threat * 6 / 100
 			if barLen < 1 {
@@ -818,7 +818,7 @@ func (gs *Geoscape) renderRegionTable(ctx *engine.ScreenCtx, x, y, w, h int) {
 		}
 
 		// Radar
-		rx := x + 24
+		rx := x + int(float64(w)*0.6)
 		if c.HasRadar {
 			ctx.DrawString(rx, ry, " R ", engine.StyleCyan)
 		} else {
@@ -826,7 +826,7 @@ func (gs *Geoscape) renderRegionTable(ctx *engine.ScreenCtx, x, y, w, h int) {
 		}
 
 		// Interceptor count
-		ix := x + 28
+		ix := x + int(float64(w)*0.75)
 		if c.InterceptorCount > 0 {
 			ctx.DrawString(ix, ry, fmt.Sprintf(" %d ", c.InterceptorCount), engine.StyleGreen)
 		} else {
@@ -834,7 +834,7 @@ func (gs *Geoscape) renderRegionTable(ctx *engine.ScreenCtx, x, y, w, h int) {
 		}
 
 		// Status
-		sx := x + 32
+		sx := x + int(float64(w)*0.85)
 		if c.MissionHere {
 			ctx.DrawString(sx, ry, "MISSION", engine.StyleMagenta)
 		} else if c.ID == 0 {

@@ -15,6 +15,7 @@ type Unit struct {
 	AlienType *data.AlienType
 	CivName   string
 	X, Y      int
+	Level     int
 	HP        int
 	MaxHP     int
 	TU        int
@@ -257,8 +258,8 @@ func (u *Unit) CanSee(tx, ty int, m *BattleMap) bool {
 
 type UnitList []*Unit
 
-func (ul UnitList) Alive() []*Unit {
-	var alive []*Unit
+func (ul UnitList) Alive() UnitList {
+	var alive UnitList
 	for _, u := range ul {
 		if u.Alive {
 			alive = append(alive, u)
@@ -274,4 +275,14 @@ func (ul UnitList) At(x, y int) *Unit {
 		}
 	}
 	return nil
+}
+
+func (ul UnitList) OnLevel(level int) []*Unit {
+	var result []*Unit
+	for _, u := range ul {
+		if u.Alive && u.Level == level {
+			result = append(result, u)
+		}
+	}
+	return result
 }

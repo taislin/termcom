@@ -4,6 +4,7 @@ import (
 	"math/rand"
 
 	"github.com/gdamore/tcell/v3"
+	"github.com/gdamore/tcell/v3/color"
 )
 
 type VisionMode int
@@ -50,7 +51,7 @@ func ApplyNightVision(s *ScreenRaw) {
 				}
 			}
 
-			style := tcell.StyleDefault.Foreground(newFg).Background(tcell.ColorBlack)
+			style := tcell.StyleDefault.Foreground(newFg).Background(color.XTerm0)
 			s.SetCell(x, y, cell.ch, style)
 		}
 	}
@@ -83,13 +84,13 @@ func ApplyThermalVision(s *ScreenRaw, entities []ThermalEntity) {
 				fgR, fgG, fgB := colorRGB(cell.fg)
 				lum := luminance(fgR, fgG, fgB)
 				if lum > 128 {
-					newFg = tcell.ColorYellow
+					newFg = color.XTerm11
 					newBg = tcell.NewRGBColor(60, 40, 0)
 				} else if lum > 40 {
-					newFg = tcell.ColorOrange
+					newFg = color.Orange
 					newBg = tcell.NewRGBColor(40, 20, 0)
 				} else {
-					newFg = tcell.ColorRed
+					newFg = color.XTerm9
 					newBg = tcell.NewRGBColor(30, 5, 0)
 				}
 			} else {

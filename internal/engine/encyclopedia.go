@@ -2,6 +2,7 @@ package engine
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/civ13/ycom/internal/data"
 	"github.com/civ13/ycom/internal/language"
@@ -9,11 +10,12 @@ import (
 )
 
 type EncycloEntry struct {
-	Category string
-	ID       string
-	Name     string
-	Desc     string
+	Category   string
+	ID         string
+	Name       string
+	Desc       string
 	Discovered bool
+	AlienType  *data.AlienType
 }
 
 type EncyclopediaScreen struct {
@@ -28,11 +30,11 @@ func NewEncyclopediaScreen(g *Game, completedResearch []string, unlockedWeapons 
 	es := &EncyclopediaScreen{
 		Game: g,
 	}
-	es.buildEntries(completedResearch, unlockedWeapons, unlockedArmor)
+	es.buildEntries(g, completedResearch, unlockedWeapons, unlockedArmor)
 	return es
 }
 
-func (es *EncyclopediaScreen) buildEntries(completed []string, weapons []string, armor []string) {
+func (es *EncyclopediaScreen) buildEntries(g *Game, completed []string, weapons []string, armor []string) {
 	completedMap := make(map[string]bool)
 	for _, r := range completed {
 		completedMap[r] = true
@@ -46,29 +48,18 @@ func (es *EncyclopediaScreen) buildEntries(completed []string, weapons []string,
 		armorMap[a] = true
 	}
 
-	for _, at := range data.AlienTypes {
-		discovered := false
-		autopsyID := ""
-		switch at.ShortName {
-		case "SEC", "SEL":
-			autopsyID = "sectoid_autopsy"
-		case "FLT", "FLL":
-			autopsyID = "floater_autopsy"
-		case "MUT", "MUL":
-			autopsyID = "muton_autopsy"
-		case "ETH", "EHL":
-			autopsyID = "ethereal_autopsy"
-		}
-		if autopsyID != "" {
-			discovered = completedMap[autopsyID]
-		}
-		desc := alienLore(at.ShortName)
+	knowledgeMap := g.AlienKnowledge
+
+	for _, at := range g.GetAlienTypes() {
+		level := knowledgeMap[at.Name]
+		discovered := level >= 2
 		es.Entries = append(es.Entries, EncycloEntry{
 			Category:   "Aliens",
 			ID:         at.ShortName,
 			Name:       at.Name,
-			Desc:       desc,
+			Desc:       at.Lore,
 			Discovered: discovered,
+			AlienType:  at,
 		})
 	}
 
@@ -116,28 +107,6 @@ func (es *EncyclopediaScreen) buildEntries(completed []string, weapons []string,
 			Discovered: completedMap[topic.ID],
 		})
 	}
-}
-
-func alienLore(short string) string {
-	switch short {
-	case "SEC":
-		return "Small grey humanoid. Weak but psionically gifted. Common foot soldier."
-	case "SEL":
-		return "Sectoid commander. Stronger psi abilities, leads squads."
-	case "FLT":
-		return "Floating abomination with enhanced reactions. Tougher than sectoids."
-	case "FLL":
-		return "Floater leader. Greater psi potential and aggression."
-	case "MUT":
-		return "Hulking green brute. Exceptionally strong, resistant to psi."
-	case "MUL":
-	 return "Muton elite. Nearly unbreakable will, devastating in melee."
-	case "ETH":
-		return "Ethereal being. Supreme psi master, commands alien forces."
-	case "EHL":
-		return "Ethereal leader. The most dangerous alien known to X-COM."
-	}
-	return "Unknown alien species."
 }
 
 var encTabs = []string{"Aliens", "Weapons", "Armor", "Items", "Research"}
@@ -208,6 +177,25 @@ func (es *EncyclopediaScreen) Render(ctx *ScreenCtx) {
 				ctx.DrawString(infoX+1, line, desc[:end], StyleDefault)
 				desc = desc[end:]
 				line++
+			}
+
+			if e.Category == "Aliens" && e.AlienType != nil {
+				at := e.AlienType
+				portrait := at.GetPortrait()
+				pLines := strings.Split(portrait, "\n")
+				pX := infoX + infoW - len(pLines[0]) - 2
+				pY := listY + 5
+
+				ctx.DrawString(pX, pY-1, at.Name, StyleRedBold)
+				pStyle := StyleYellow
+				for i, pl := range pLines {
+					ctx.DrawString(pX, pY+i, pl, pStyle)
+				}
+
+				statY := pY + len(pLines) + 1
+				ctx.DrawString(infoX+1, statY, fmt.Sprintf("HP:%d TU:%d ACC:%d", at.HP, at.TU, at.Accuracy), StyleGray)
+				ctx.DrawString(infoX+1, statY+1, fmt.Sprintf("STR:%d PSI:%d BRA:%d", at.Strength, at.Psi, at.Bravery), StyleGray)
+				ctx.DrawString(infoX+1, statY+2, fmt.Sprintf("DMG:%s WPN:%s", data.DamageTypeStr(at.DamageType), data.RuleItems[at.Weapon].Name), StyleGray)
 			}
 		} else {
 			ctx.DrawString(infoX+1, listY+2, "Not yet discovered.", StyleGray)

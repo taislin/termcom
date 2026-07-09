@@ -229,8 +229,12 @@ func (ai *AlienAI) patrolTarget(m *BattleMap) (int, int) {
 		if ai.PatrolX >= m.Width-1 {
 			ai.PatrolX = m.Width - 2
 		}
-		if ai.PatrolY >= m.Height-1 {
-			ai.PatrolY = m.Height - 2
+		boundY := m.Height - 1
+		if m.NumLevels > 1 {
+			boundY = m.LevelHeight - 1
+		}
+		if ai.PatrolY >= boundY {
+			ai.PatrolY = boundY - 1
 		}
 	}
 	return ai.PatrolX, ai.PatrolY
@@ -249,8 +253,12 @@ func (ai *AlienAI) patrol(m *BattleMap) {
 		if ai.PatrolX >= m.Width-1 {
 			ai.PatrolX = m.Width - 2
 		}
-		if ai.PatrolY >= m.Height-1 {
-			ai.PatrolY = m.Height - 2
+		boundY := m.Height - 1
+		if m.NumLevels > 1 {
+			boundY = m.LevelHeight - 1
+		}
+		if ai.PatrolY >= boundY {
+			ai.PatrolY = boundY - 1
 		}
 	}
 
@@ -323,7 +331,7 @@ func (ai *AlienAI) findNearest(humanUnits UnitList, m *BattleMap) (*Unit, float6
 	var nearest *Unit
 	bestDist := 999.0
 	for _, h := range humanUnits {
-		if !h.Alive {
+		if !h.Alive || h.Level != ai.Unit.Level {
 			continue
 		}
 		if !ai.Unit.CanSee(h.X, h.Y, m) {
@@ -367,7 +375,7 @@ func (cai *CivilianAI) GenerateActions(units UnitList, m *BattleMap) []AlienActi
 	var nearestThreat *Unit
 	bestDist := 999.0
 	for _, u := range units {
-		if !u.Alive || u.Faction == 2 {
+		if !u.Alive || u.Faction == 2 || u.Level != cai.Unit.Level {
 			continue
 		}
 		dx := float64(u.X - cai.Unit.X)
@@ -410,8 +418,8 @@ func (cai *CivilianAI) GenerateActions(units UnitList, m *BattleMap) []AlienActi
 	if fx >= m.Width {
 		fx = m.Width - 1
 	}
-	if fy >= m.Height {
-		fy = m.Height - 1
+	if fy >= m.LevelHeight {
+		fy = m.LevelHeight - 1
 	}
 
 	if !m.Passable(fx, fy) {

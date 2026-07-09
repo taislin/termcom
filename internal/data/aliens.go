@@ -1,5 +1,7 @@
 package data
 
+import "math/rand"
+
 // Damage types used by weapons and resisted/weak to by aliens.
 const (
 	DMG_PLASMA = iota
@@ -47,10 +49,8 @@ func (at *AlienType) GetPortrait() string {
 	if at.Portrait != "" {
 		return at.Portrait
 	}
-	// Fallback procedural generation (1w x 2h)
-	heads := []rune{'o', 'O', '0', '@', 'X', 'Y', 'A'}
-	bodies := []rune{'|', 'I', 'V', 'A', ']', '['}
-	return string(heads[int(at.Icon)%len(heads)]) + "\n" + string(bodies[int(at.Icon)%len(bodies)])
+	rng := rand.New(rand.NewSource(int64(at.Icon)))
+	return generatePortrait(rng, at.Icon, at.DamageType, at.Rank)
 }
 
 var AlienTypes = []AlienType{

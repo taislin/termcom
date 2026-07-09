@@ -47,10 +47,12 @@ const (
 	TilePowerSource // Power source, fuel cells
 	TileStorage     // Storage containers, crates
 	TileAlienTech   // Alien technology, artifacts
+	TileStairsDown  // stairs leading to lower level
 )
 
 type Tile struct {
 	Type      TileType
+	Level     int  // which level this tile is on (0=ground, 1=upper)
 	Cover     int  // 0-100, damage reduction % from shots passing through
 	Destroyed bool
 	Visible   bool
@@ -178,7 +180,8 @@ var tileChars = map[TileType]rune{
 	TileWater:      '≈',
 	TileUFOFloor:   '≡',
 	TileUFOWall:    '█',
-	TileStairs:     '▓',
+	TileStairsDown: '▓',
+	TileStairs:     '▒',
 	TilePavement:   '░',
 	TileSand:       '·',
 	TileSnow:       '∗',
@@ -205,45 +208,123 @@ func TileChar(t TileType) rune {
 }
 
 type BattleMap struct {
-	Width  int
-	Height int
-	Tiles  [][]Tile
-	Gas    *GasGrid
+	Width         int
+	Height        int
+	NumLevels     int // 1 for most maps, 2 for UFO interiors
+	LevelHeight   int // height per level
+	CurrentLevel  int // 0=ground, 1=upper
+	Tiles         [][]Tile
+	Gas           *GasGrid
 }
 
 func NewBattleMap(w, h int) *BattleMap {
 	m := &BattleMap{
-		Width:  w,
-		Height: h,
-		Tiles:  make([][]Tile, h),
+		Width:        w,
+		Height:       h,
+		NumLevels:    1,
+		LevelHeight:  h,
+		CurrentLevel: 0,
+		Tiles:        make([][]Tile, h),
 	}
 	for y := 0; y < h; y++ {
 		m.Tiles[y] = make([]Tile, w)
 		for x := 0; x < w; x++ {
-			m.Tiles[y][x] = Tile{Type: TileGrass, Cover: TileCover(TileGrass)}
+			m.Tiles[y][x] = Tile{Type: TileGrass, Cover: TileCover(TileGrass), Level: 0}
 		}
 	}
 	return m
 }
 
-func (m *BattleMap) At(x, y int) Tile {
+func NewMultiLevelBattleMap(w, levelH, numLevels int) *BattleMap {
+	totalH := levelH * numLevels
+	m := &BattleMap{
+		Width:        w,
+		Height:       totalH,
+		NumLevels:    numLevels,
+		LevelHeight:  levelH,
+		CurrentLevel: 0,
+		Tiles:        make([][]Tile, totalH),
+	}
+	for y := 0; y < totalH; y++ {
+		level := y / levelH
+		m.Tiles[y] = make([]Tile, w)
+		for x := 0; x < w; x++ {
+			m.Tiles[y][x] = Tile{Type: TileGrass, Cover: TileCover(TileGrass), Level: level}
+		}
+	}
+	return m
+}
+
+// tileAt returns the raw tile without level filtering.
+func (m *BattleMap) tileAt(x, y int) Tile {
 	if x < 0 || x >= m.Width || y < 0 || y >= m.Height {
-		return Tile{Type: TileWall, Cover: TileCover(TileWall)}
+		return Tile{Type: TileWall, Cover: TileCover(TileWall), Level: m.CurrentLevel}
 	}
 	return m.Tiles[y][x]
 }
 
-func (m *BattleMap) Set(x, y int, t TileType) {
-	if x >= 0 && x < m.Width && y >= 0 && y < m.Height {
-		m.Tiles[y][x].Type = t
-		m.Tiles[y][x].Cover = TileCover(t)
+// At returns the tile at (x,y) on the current level.
+func (m *BattleMap) At(x, y int) Tile {
+	if m.NumLevels <= 1 {
+		return m.tileAt(x, y)
 	}
+	if x < 0 || x >= m.Width || y < 0 || y >= m.Height {
+		return Tile{Type: TileWall, Cover: TileCover(TileWall), Level: m.CurrentLevel}
+	}
+	// Convert current-level y to array y
+	arrayY := y + m.CurrentLevel*m.LevelHeight
+	if arrayY < 0 || arrayY >= m.Height {
+		return Tile{Type: TileWall, Cover: TileCover(TileWall), Level: m.CurrentLevel}
+	}
+	tile := m.Tiles[arrayY][x]
+	if tile.Level != m.CurrentLevel {
+		return Tile{Type: TileWall, Cover: TileCover(TileWall), Level: m.CurrentLevel}
+	}
+	return tile
+}
+
+// Set sets the tile type at (x,y) on the current level.
+func (m *BattleMap) Set(x, y int, t TileType) {
+	if m.NumLevels <= 1 {
+		if x >= 0 && x < m.Width && y >= 0 && y < m.Height {
+			m.Tiles[y][x].Type = t
+			m.Tiles[y][x].Cover = TileCover(t)
+		}
+		return
+	}
+	arrayY := y + m.CurrentLevel*m.LevelHeight
+	if x >= 0 && x < m.Width && arrayY >= 0 && arrayY < m.Height {
+		m.Tiles[arrayY][x].Type = t
+		m.Tiles[arrayY][x].Cover = TileCover(t)
+	}
+}
+
+// SetLevel sets a tile at (x,y) on a specific level.
+func (m *BattleMap) SetLevel(x, y, level int, t TileType) {
+	arrayY := y + level*m.LevelHeight
+	if x >= 0 && x < m.Width && arrayY >= 0 && arrayY < m.Height {
+		m.Tiles[arrayY][x].Type = t
+		m.Tiles[arrayY][x].Cover = TileCover(t)
+		m.Tiles[arrayY][x].Level = level
+	}
+}
+
+// AtLevel returns the tile at (x,y) on a specific level.
+func (m *BattleMap) AtLevel(x, y, level int) Tile {
+	if m.NumLevels <= 1 {
+		return m.tileAt(x, y)
+	}
+	arrayY := y + level*m.LevelHeight
+	if x < 0 || x >= m.Width || arrayY < 0 || arrayY >= m.Height {
+		return Tile{Type: TileWall, Cover: TileCover(TileWall), Level: level}
+	}
+	return m.Tiles[arrayY][x]
 }
 
 func (m *BattleMap) Passable(x, y int) bool {
 	t := m.At(x, y)
 	switch t.Type {
-	case TileFloor, TileDoor, TileGrass, TileUFOFloor, TileStairs, TilePavement, TileSand,
+	case TileFloor, TileDoor, TileGrass, TileUFOFloor, TileStairs, TileStairsDown, TilePavement, TileSand,
 		TileConsole, TileMachinery, TilePod, TilePowerSource, TileStorage, TileAlienTech:
 		return true
 	}
@@ -272,16 +353,25 @@ func (m *BattleMap) IsDestructible(x, y int) bool {
 }
 
 func (m *BattleMap) DestroyWall(x, y int) bool {
-	if x < 0 || x >= m.Width || y < 0 || y >= m.Height {
-		return false
-	}
-	tile := &m.Tiles[y][x]
 	if !m.IsDestructible(x, y) {
 		return false
 	}
-	tile.Type = TileRubble
-	tile.Cover = TileCover(TileRubble)
-	tile.Destroyed = true
+	if m.NumLevels <= 1 {
+		if x < 0 || x >= m.Width || y < 0 || y >= m.Height {
+			return false
+		}
+		tile := &m.Tiles[y][x]
+		tile.Type = TileRubble
+		tile.Cover = TileCover(TileRubble)
+	} else {
+		arrayY := y + m.CurrentLevel*m.LevelHeight
+		if x < 0 || x >= m.Width || arrayY < 0 || arrayY >= m.Height {
+			return false
+		}
+		tile := &m.Tiles[arrayY][x]
+		tile.Type = TileRubble
+		tile.Cover = TileCover(TileRubble)
+	}
 	return true
 }
 
@@ -324,11 +414,10 @@ func (m *BattleMap) CoverAlongLine(x1, y1, x2, y2 int) int {
 		if x == x2 && y == y2 {
 			break
 		}
-		if x >= 0 && x < m.Width && y >= 0 && y < m.Height {
-			c := m.Tiles[y][x].Cover
-			if c > maxCover {
-				maxCover = c
-			}
+		t := m.At(x, y)
+		c := t.Cover
+		if c > maxCover {
+			maxCover = c
 		}
 	}
 	return maxCover
@@ -337,7 +426,13 @@ func (m *BattleMap) CoverAlongLine(x1, y1, x2, y2 int) int {
 const SightRange = 20
 
 func (m *BattleMap) ClearVisibility() {
-	for y := 0; y < m.Height; y++ {
+	startY := m.CurrentLevel * m.LevelHeight
+	endY := startY + m.LevelHeight
+	if m.NumLevels <= 1 {
+		startY = 0
+		endY = m.Height
+	}
+	for y := startY; y < endY; y++ {
 		for x := 0; x < m.Width; x++ {
 			m.Tiles[y][x].Visible = false
 		}
@@ -349,15 +444,23 @@ func (m *BattleMap) ComputeFOV(ux, uy int, sightRange int) {
 		for dx := -sightRange; dx <= sightRange; dx++ {
 			tx := ux + dx
 			ty := uy + dy
-			if tx < 0 || tx >= m.Width || ty < 0 || ty >= m.Height {
+			if tx < 0 || tx >= m.Width || ty < 0 || ty >= m.LevelHeight {
 				continue
 			}
 			if dx*dx+dy*dy > sightRange*sightRange {
 				continue
 			}
 			if m.hasLOS(ux, uy, tx, ty) {
-				m.Tiles[ty][tx].Visible = true
-				m.Tiles[ty][tx].Seen = true
+				if m.NumLevels <= 1 {
+					m.Tiles[ty][tx].Visible = true
+					m.Tiles[ty][tx].Seen = true
+				} else {
+					arrayY := ty + m.CurrentLevel*m.LevelHeight
+					if arrayY >= 0 && arrayY < m.Height {
+						m.Tiles[arrayY][tx].Visible = true
+						m.Tiles[arrayY][tx].Seen = true
+					}
+				}
 			}
 		}
 	}
@@ -405,17 +508,13 @@ func (m *BattleMap) hasLOS(x1, y1, x2, y2 int) bool {
 }
 
 func (m *BattleMap) IsVisible(x, y int) bool {
-	if x < 0 || x >= m.Width || y < 0 || y >= m.Height {
-		return false
-	}
-	return m.Tiles[y][x].Visible
+	t := m.At(x, y)
+	return t.Visible
 }
 
 func (m *BattleMap) IsSeen(x, y int) bool {
-	if x < 0 || x >= m.Width || y < 0 || y >= m.Height {
-		return false
-	}
-	return m.Tiles[y][x].Seen
+	t := m.At(x, y)
+	return t.Seen
 }
 
 // fillRect fills a rectangle with a tile type
@@ -436,6 +535,67 @@ func (m *BattleMap) drawRect(x, y, w, h int, t TileType) {
 	for dy := 0; dy < h; dy++ {
 		m.Set(x, y+dy, t)
 		m.Set(x+w-1, y+dy, t)
+	}
+}
+
+func (m *BattleMap) fillRectLevel(x, y, w, h, level int, t TileType) {
+	for dy := 0; dy < h; dy++ {
+		for dx := 0; dx < w; dx++ {
+			m.SetLevel(x+dx, y+dy, level, t)
+		}
+	}
+}
+
+func (m *BattleMap) drawRectLevel(x, y, w, h, level int, t TileType) {
+	for dx := 0; dx < w; dx++ {
+		m.SetLevel(x+dx, y, level, t)
+		m.SetLevel(x+dx, y+h-1, level, t)
+	}
+	for dy := 0; dy < h; dy++ {
+		m.SetLevel(x, y+dy, level, t)
+		m.SetLevel(x+w-1, y+dy, level, t)
+	}
+}
+
+func (m *BattleMap) corridorLevel(x1, y1, x2, y2, w, level int) {
+	if rand.Intn(2) == 0 {
+		start := min(x1, x2)
+		end := max(x1, x2)
+		for x := start; x <= end; x++ {
+			for dy := 0; dy < w; dy++ {
+				if m.AtLevel(x, y1+dy, level).Type != TileUFOWall {
+					m.SetLevel(x, y1+dy, level, TileUFOFloor)
+				}
+			}
+		}
+		start = min(y1, y2)
+		end = max(y1, y2)
+		for y := start; y <= end; y++ {
+			for dx := 0; dx < w; dx++ {
+				if m.AtLevel(x2+dx, y, level).Type != TileUFOWall {
+					m.SetLevel(x2+dx, y, level, TileUFOFloor)
+				}
+			}
+		}
+	} else {
+		start := min(y1, y2)
+		end := max(y1, y2)
+		for y := start; y <= end; y++ {
+			for dx := 0; dx < w; dx++ {
+				if m.AtLevel(x1+dx, y, level).Type != TileUFOWall {
+					m.SetLevel(x1+dx, y, level, TileUFOFloor)
+				}
+			}
+		}
+		start = min(x1, x2)
+		end = max(x1, x2)
+		for x := start; x <= end; x++ {
+			for dy := 0; dy < w; dy++ {
+				if m.AtLevel(x, y2+dy, level).Type != TileUFOWall {
+					m.SetLevel(x, y2+dy, level, TileUFOFloor)
+				}
+			}
+		}
 	}
 }
 
@@ -670,119 +830,144 @@ func GenerateTerrorSite(w, h int) *BattleMap {
 
 // GenerateUFOInterior creates a UFO interior map (OpenXcom: 50x50)
 func GenerateUFOInterior(w, h int) *BattleMap {
-	m := NewBattleMap(w, h)
+	levelH := h / 2
+	if levelH < 12 {
+		levelH = 12
+	}
+	m := NewMultiLevelBattleMap(w, levelH, 2)
 
-	// Fill with UFO floor
-	m.fillRect(0, 0, w, h, TileUFOFloor)
+	type room struct {
+		x, y, w, h int
+	}
 
-	// Outer hull walls
-	m.drawRect(0, 0, w, h, TileUFOWall)
+	generateLevel := func(level int) []room {
+		m.fillRectLevel(0, 0, w, levelH, level, TileUFOFloor)
+		m.drawRectLevel(0, 0, w, levelH, level, TileUFOWall)
 
-	// Generate rooms
-	rooms := 6 + rand.Intn(4)
-	roomCenters := make([][2]int, 0, rooms)
+		var rooms []room
+		attempts := 0
+		numRooms := 5 + rand.Intn(3)
+		for i := 0; i < numRooms && attempts < 100; i++ {
+			attempts++
+			rw := 5 + rand.Intn(5)
+			rh := 4 + rand.Intn(4)
+			rx := 2 + rand.Intn(max(1, w-rw-4))
+			ry := 2 + rand.Intn(max(1, levelH-rh-4))
 
-	attempts := 0
-	for i := 0; i < rooms && attempts < 100; i++ {
-		attempts++
-		rw := 5 + rand.Intn(6)
-		rh := 4 + rand.Intn(5)
-		rx := 2 + rand.Intn(max(1, w-rw-4))
-		ry := 2 + rand.Intn(max(1, h-rh-4))
-
-		// Check for overlap
-		overlap := false
-		for dy := -1; dy <= rh; dy++ {
-			for dx := -1; dx <= rw; dx++ {
-				if m.At(rx+dx, ry+dy).Type == TileUFOWall {
+			overlap := false
+			for _, existing := range rooms {
+				if rx < existing.x+existing.w+1 && rx+rw+1 > existing.x &&
+					ry < existing.y+existing.h+1 && ry+rh+1 > existing.y {
 					overlap = true
 					break
 				}
 			}
 			if overlap {
-				break
+				continue
 			}
-		}
-		if overlap {
-			continue
+
+			m.fillRectLevel(rx+1, ry+1, rw-1, rh-1, level, TileUFOFloor)
+			m.drawRectLevel(rx, ry, rw, rh, level, TileUFOWall)
+
+			doorSide := rand.Intn(4)
+			switch doorSide {
+			case 0:
+				m.SetLevel(rx+rw/2, ry, level, TileDoor)
+			case 1:
+				m.SetLevel(rx+rw-1, ry+rh/2, level, TileDoor)
+			case 2:
+				m.SetLevel(rx+rw/2, ry+rh-1, level, TileDoor)
+			case 3:
+				m.SetLevel(rx, ry+rh/2, level, TileDoor)
+			}
+
+			rooms = append(rooms, room{rx, ry, rw, rh})
 		}
 
-		m.ApplyCommand(MapCommand{Type: CmdPlaceBuilding, X: rx, Y: ry, W: rw, H: rh, DoorSide: 0})
-		roomCenters = append(roomCenters, [2]int{rx + rw/2, ry + rh/2})
+		for i := 0; i < len(rooms)-1; i++ {
+			cx1 := rooms[i].x + rooms[i].w/2
+			cy1 := rooms[i].y + rooms[i].h/2
+			cx2 := rooms[i+1].x + rooms[i+1].w/2
+			cy2 := rooms[i+1].y + rooms[i+1].h/2
+			m.corridorLevel(cx1, cy1, cx2, cy2, 1, level)
+		}
+
+		return rooms
 	}
 
-	// Connect rooms with corridors
-	for i := 0; i < len(roomCenters)-1; i++ {
-		m.ApplyCommand(MapCommand{
-			Type: CmdCorridor,
-			X:    roomCenters[i][0], Y: roomCenters[i][1],
-			X2:   roomCenters[i+1][0], Y2: roomCenters[i+1][1],
-			W: 1,
-		})
-	}
+	level0Rooms := generateLevel(0)
+	level1Rooms := generateLevel(1)
 
-	// Command center in the middle
-	cx := w/2 - 4
-	cy := h/2 - 3
-	m.ApplyCommand(MapCommand{Type: CmdPlaceBuilding, X: cx, Y: cy, W: 8, H: 6, DoorSide: 0})
+	stairsX := w / 2
+	stairsY := levelH / 2
 
-	// Add furniture and machinery to rooms
-	for _, room := range roomCenters {
-		rx, ry := room[0], room[1]
-		roomType := rand.Intn(4)
-		switch roomType {
-		case 0: // Control room - consoles along walls
-			for dx := -2; dx <= 2; dx++ {
-				if m.At(rx+dx, ry-1).Type == TileUFOFloor {
-					m.Set(rx+dx, ry-1, TileConsole)
-				}
-				if m.At(rx+dx, ry+1).Type == TileUFOFloor {
-					m.Set(rx+dx, ry+1, TileConsole)
-				}
-			}
-		case 1: // Engine room - machinery in center
-			for dx := -1; dx <= 1; dx++ {
-				for dy := -1; dy <= 1; dy++ {
-					if m.At(rx+dx, ry+dy).Type == TileUFOFloor {
-						m.Set(rx+dx, ry+dy, TileMachinery)
+	m.SetLevel(stairsX, stairsY, 0, TileStairsDown)
+	m.SetLevel(stairsX+1, stairsY, 0, TileUFOFloor)
+	m.SetLevel(stairsX, stairsY+1, 0, TileUFOFloor)
+	m.SetLevel(stairsX+1, stairsY+1, 0, TileUFOFloor)
+
+	m.SetLevel(stairsX, stairsY, 1, TileStairs)
+	m.SetLevel(stairsX+1, stairsY, 1, TileUFOFloor)
+	m.SetLevel(stairsX, stairsY+1, 1, TileUFOFloor)
+	m.SetLevel(stairsX+1, stairsY+1, 1, TileUFOFloor)
+
+ furnishRoom := func(rooms []room, level int) {
+		for _, rm := range rooms {
+			rx := rm.x + rm.w/2
+			ry := rm.y + rm.h/2
+			roomType := rand.Intn(5)
+			switch roomType {
+			case 0:
+				for dx := -2; dx <= 2; dx++ {
+					if m.AtLevel(rx+dx, ry-1, level).Type == TileUFOFloor {
+						m.SetLevel(rx+dx, ry-1, level, TileConsole)
+					}
+					if m.AtLevel(rx+dx, ry+1, level).Type == TileUFOFloor {
+						m.SetLevel(rx+dx, ry+1, level, TileConsole)
 					}
 				}
-			}
-		case 2: // Pod room - alien pods
-			for dx := -2; dx <= 2; dx += 2 {
-				if m.At(rx+dx, ry).Type == TileUFOFloor {
-					m.Set(rx+dx, ry, TilePod)
-				}
-			}
-		case 3: // Storage room - crates
-			for dx := -1; dx <= 1; dx++ {
-				for dy := -1; dy <= 0; dy++ {
-					if m.At(rx+dx, ry+dy).Type == TileUFOFloor {
-						m.Set(rx+dx, ry+dy, TileStorage)
+			case 1:
+				for dx := -1; dx <= 1; dx++ {
+					for dy := -1; dy <= 1; dy++ {
+						if m.AtLevel(rx+dx, ry+dy, level).Type == TileUFOFloor {
+							m.SetLevel(rx+dx, ry+dy, level, TileMachinery)
+						}
 					}
+				}
+			case 2:
+				for dx := -2; dx <= 2; dx += 2 {
+					if m.AtLevel(rx+dx, ry, level).Type == TileUFOFloor {
+						m.SetLevel(rx+dx, ry, level, TilePod)
+					}
+				}
+			case 3:
+				for dx := -1; dx <= 1; dx++ {
+					for dy := -1; dy <= 0; dy++ {
+						if m.AtLevel(rx+dx, ry+dy, level).Type == TileUFOFloor {
+							m.SetLevel(rx+dx, ry+dy, level, TileStorage)
+						}
+					}
+				}
+			case 4:
+				if m.AtLevel(rx, ry, level).Type == TileUFOFloor {
+					m.SetLevel(rx, ry, level, TileAlienTech)
 				}
 			}
 		}
 	}
 
-	// Add power source in command center
-	if m.At(cx+4, cy+3).Type == TileUFOFloor {
-		m.Set(cx+4, cy+3, TilePowerSource)
-	}
+	furnishRoom(level0Rooms, 0)
+	furnishRoom(level1Rooms, 1)
 
-	// Add alien tech scattered around
-	for i := 0; i < 8; i++ {
+	m.SetLevel(stairsX+2, stairsY+2, 0, TilePowerSource)
+
+	for i := 0; i < 6; i++ {
 		x := rand.Intn(w-4) + 2
-		y := rand.Intn(h-4) + 2
-		if m.At(x, y).Type == TileUFOFloor {
-			m.Set(x, y, TileAlienTech)
+		y := rand.Intn(levelH-4) + 2
+		if m.AtLevel(x, y, 0).Type == TileUFOFloor {
+			m.SetLevel(x, y, 0, TileAlienTech)
 		}
 	}
-
-	// Add some regular objects
-	ApplyCommands(m, []MapCommand{
-		{Type: CmdScatter, X: 2, Y: 2, W: w - 4, H: h - 4, Tile: TileObject, Prob: 10, Count: 10},
-	})
 
 	return m
 }
