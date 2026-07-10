@@ -16,7 +16,7 @@ type GlobalConfig struct {
 
 var Config = GlobalConfig{
 	BloomEnabled:      true,
-	DistortionEnabled: true,
+	DistortionEnabled: false,
 	LightingEnabled:   true,
 	Language:          "en",
 }

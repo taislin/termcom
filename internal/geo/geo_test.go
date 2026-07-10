@@ -176,6 +176,7 @@ func TestInterceptorListActive(t *testing.T) {
 	i1 := NewInterceptor(10, 10)
 	i2 := NewInterceptor(20, 20)
 	i1.HP = 0
+	i2.Launching = true
 	list := InterceptorList{i1, i2}
 	active := list.Active()
 	if len(active) != 1 {

@@ -32,10 +32,11 @@ type CrashSite struct {
 }
 
 type Transport struct {
-	FromNode int
-	ToNode   int
-	Progress float64
-	Returning bool
+	FromNode   int
+	ToNode     int
+	Progress   float64
+	Returning  bool
+	CrashSite  *CrashSite
 }
 
 type Geoscape struct {
@@ -59,6 +60,7 @@ type Geoscape struct {
 	CursorNode    int
 	TargetSelectionMode bool
 	PreBattleStats map[string][6]int // name -> {hp, accuracy, reactions, strength, bravery, tu}
+	ActiveCrashSite *CrashSite       // crash site being battled
 }
 
 func NewGeoscape(g *engine.Game) *Geoscape {
@@ -144,11 +146,21 @@ func (gs *Geoscape) Update() {
 		if r.Won {
 			gs.Base.AddLoot(r.LootItems)
 			gs.MissionsWon++
-			gs.Message = fmt.Sprintf(language.String("MSG_VICTORY_LOOT"), r.Kills, r.LootItems)
+			// Collect UFO loot if this was a crash site battle
+			if gs.ActiveCrashSite != nil {
+				cs := gs.ActiveCrashSite
+				cs.Looted = true
+				loot := generateUFOLoot(cs.UFOName)
+				gs.Base.AddLoot(loot)
+				gs.Message = fmt.Sprintf(language.String("MSG_VICTORY_LOOT"), r.Kills, append(r.LootItems, loot...))
+			} else {
+				gs.Message = fmt.Sprintf(language.String("MSG_VICTORY_LOOT"), r.Kills, r.LootItems)
+			}
 		} else {
 			gs.Message = fmt.Sprintf(language.String("MSG_DEFEAT_LOST"), dead)
 		}
 		gs.MessageTimer = time.Now()
+		gs.ActiveCrashSite = nil
 
 		if gs.PreBattleStats != nil {
 			statNames := []string{"HP", "ACC", "REA", "STR", "BRA", "TU"}
@@ -276,17 +288,34 @@ func (gs *Geoscape) Update() {
 						if t.Progress >= 1.0 {
 							t.Progress = 0
 							t.FromNode = path[1]
-							// Check if we arrived
+							// Check if we arrived at crash site
 							if t.FromNode == t.ToNode {
-								for _, cs := range gs.CrashSites {
-									if !cs.Looted && cs.NodeID == t.ToNode {
-										cs.Looted = true
-										loot := generateUFOLoot(cs.UFOName)
-										gs.Base.AddLoot(loot)
-										gs.Message = fmt.Sprintf(language.String("MSG_TRANSPORT_RETRIEVED"), cs.UFOName, len(loot))
-										gs.MessageTimer = time.Now()
-										break
+								cs := t.CrashSite
+								if cs != nil && !cs.Looted {
+									// Start tactical battle
+									gs.Transport = nil
+									aliveCount := 0
+									for _, s := range gs.Base.Soldiers {
+										if s.HP > 0 {
+											aliveCount++
+										}
 									}
+									if aliveCount > 0 {
+										gs.Game.Paused = true
+										gs.ActiveCrashSite = cs
+										gs.Message = fmt.Sprintf(language.String("MSG_TRANSPORT_RETRIEVED"), cs.UFOName, 0)
+										gs.MessageTimer = time.Now()
+										gs.PreBattleStats = make(map[string][6]int)
+										for _, s := range gs.Base.Soldiers {
+											gs.PreBattleStats[s.Name] = [6]int{s.HP, s.Accuracy, s.Reactions, s.Strength, s.Bravery, s.TU}
+										}
+										bs := battle.NewBattlescape(gs.Game, gs.Base, gs.Base.Soldiers, cs.UFOName)
+										gs.Game.SetScreen(engine.StateBattlescape, bs)
+										gs.Game.PushState(engine.StateBattlescape)
+										return
+									}
+									gs.Message = language.String("MSG_NO_SOLDIERS")
+									gs.MessageTimer = time.Now()
 								}
 								t.Returning = true
 								t.ToNode = gs.BaseNode
@@ -1321,9 +1350,10 @@ func (gs *Geoscape) DispatchTransport(cs *CrashSite) {
 		return
 	}
 	gs.Transport = &Transport{
-		FromNode: gs.BaseNode,
-		ToNode:   cs.NodeID,
-		Progress: 0,
+		FromNode:  gs.BaseNode,
+		ToNode:    cs.NodeID,
+		Progress:  0,
+		CrashSite: cs,
 	}
 	gs.Message = fmt.Sprintf(language.String("MSG_TRANSPORT_DISPATCHED"), cs.UFOName)
 	gs.MessageTimer = time.Now()

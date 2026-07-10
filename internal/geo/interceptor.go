@@ -312,7 +312,7 @@ type InterceptorList []*Interceptor
 func (il InterceptorList) Active() []*Interceptor {
 	var active []*Interceptor
 	for _, i := range il {
-		if i.HP > 0 {
+		if i.HP > 0 && i.Launching {
 			active = append(active, i)
 		}
 	}
