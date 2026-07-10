@@ -37,7 +37,7 @@ var Biomes = map[string]TerrainDef{
 			TileSand: 3,
 			TileBush: 2,
 		},
-		DefaultTile:    TilePavement, // Use as base for sand/dust
+		DefaultTile:    TileSand, // Use as base for sand/dust
 		ObjectDensity:  0.1,
 	},
 }

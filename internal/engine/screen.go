@@ -178,6 +178,8 @@ func (s *ScreenRaw) DrawPanel(x, y, w, h int, title string, style tcell.Style) {
 var StyleDefault = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm15)
 var StyleHighlight = tcell.StyleDefault.Background(color.DarkBlue).Foreground(color.XTerm15)
 var StyleRed = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm9)
+var StyleSnow = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm15)
+var StyleSnowDim = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm8)
 var StyleGreen = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm2)
 var StyleBlue = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm12)
 var StyleYellow = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm11)

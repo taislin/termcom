@@ -232,24 +232,73 @@ func pickRune(rng *rand.Rand, pool []rune) rune {
 // The rank adds decorative elements (crown, cape, armor layers).
 func assemblePortrait(p portraitPart, dmgType int, rank int, palette [3]int32) StyledPortrait {
 	var lines []string
+	var sections []int // 0=head, 1=torso, 2=legs
 
 	// ── Head (4 lines) ───────────────────────────────
-	lines = append(lines, headTop(p, dmgType, rank)...)
-	lines = append(lines, headMid(p, dmgType, rank)...)
-	lines = append(lines, headBot(p, dmgType, rank)...)
-	lines = append(lines, neck(p, dmgType)...)
+	headLines := headTop(p, dmgType, rank)
+	lines = append(lines, headLines...)
+	for range headLines {
+		sections = append(sections, 0)
+	}
+	headLines2 := headMid(p, dmgType, rank)
+	lines = append(lines, headLines2...)
+	for range headLines2 {
+		sections = append(sections, 0)
+	}
+	headLines3 := headBot(p, dmgType, rank)
+	lines = append(lines, headLines3...)
+	for range headLines3 {
+		sections = append(sections, 0)
+	}
+	neckLines := neck(p, dmgType)
+	lines = append(lines, neckLines...)
+	for range neckLines {
+		sections = append(sections, 0)
+	}
 
 	// ── Torso (4 lines) ──────────────────────────────
-	lines = append(lines, torsoTop(p, dmgType, rank)...)
-	lines = append(lines, torsoMid(p, dmgType, rank)...)
-	lines = append(lines, torsoBot(p, dmgType, rank)...)
-	lines = append(lines, waist(p, dmgType)...)
+	torsoLines := torsoTop(p, dmgType, rank)
+	lines = append(lines, torsoLines...)
+	for range torsoLines {
+		sections = append(sections, 1)
+	}
+	torsoLines2 := torsoMid(p, dmgType, rank)
+	lines = append(lines, torsoLines2...)
+	for range torsoLines2 {
+		sections = append(sections, 1)
+	}
+	torsoLines3 := torsoBot(p, dmgType, rank)
+	lines = append(lines, torsoLines3...)
+	for range torsoLines3 {
+		sections = append(sections, 1)
+	}
+	waistLines := waist(p, dmgType)
+	lines = append(lines, waistLines...)
+	for range waistLines {
+		sections = append(sections, 1)
+	}
 
 	// ── Legs (4 lines) ───────────────────────────────
-	lines = append(lines, legTop(p, dmgType, rank)...)
-	lines = append(lines, legMid(p, dmgType, rank)...)
-	lines = append(lines, legBot(p, dmgType)...)
-	lines = append(lines, feet(p, dmgType)...)
+	legLines := legTop(p, dmgType, rank)
+	lines = append(lines, legLines...)
+	for range legLines {
+		sections = append(sections, 2)
+	}
+	legLines2 := legMid(p, dmgType, rank)
+	lines = append(lines, legLines2...)
+	for range legLines2 {
+		sections = append(sections, 2)
+	}
+	legLines3 := legBot(p, dmgType)
+	lines = append(lines, legLines3...)
+	for range legLines3 {
+		sections = append(sections, 2)
+	}
+	feetLines := feet(p, dmgType)
+	lines = append(lines, feetLines...)
+	for range feetLines {
+		sections = append(sections, 2)
+	}
 
 	maxW := 0
 	for _, l := range lines {
@@ -259,15 +308,36 @@ func assemblePortrait(p portraitPart, dmgType int, rank int, palette [3]int32) S
 		}
 	}
 
+	headColor := [3]int32{
+		int32(clamp(int(palette[0])+40, 0, 255)),
+		int32(clamp(int(palette[1])+40, 0, 255)),
+		int32(clamp(int(palette[2])+40, 0, 255)),
+	}
+	torsoColor := palette
+	legColor := [3]int32{
+		int32(clamp(int(palette[0])-30, 0, 255)),
+		int32(clamp(int(palette[1])-30, 0, 255)),
+		int32(clamp(int(palette[2])-30, 0, 255)),
+	}
+
 	styledLines := make([]StyledLine, len(lines))
 	for i, l := range lines {
 		l = strings.TrimRight(l, " ")
 		for len(l) < maxW {
 			l += " "
 		}
+		var color [3]int32
+		switch sections[i] {
+		case 0:
+			color = headColor
+		case 1:
+			color = torsoColor
+		case 2:
+			color = legColor
+		}
 		styledLines[i] = StyledLine{
 			Content: l,
-			Color:   palette,
+			Color:   color,
 		}
 	}
 

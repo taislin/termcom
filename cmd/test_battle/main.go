@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/civ13/ycom/internal/base"
 	"github.com/civ13/ycom/internal/battle"
@@ -111,6 +112,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Failed to initialize: %v\n", err)
 		os.Exit(1)
 	}
+	g.GameTime = time.Date(1999, time.March, 1, 12, 0, 0, 0, time.UTC)
 	g.Paused = true
 
 	b := base.NewBase("Test Base", 0)

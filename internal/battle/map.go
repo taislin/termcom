@@ -324,7 +324,7 @@ func (m *BattleMap) AtLevel(x, y, level int) Tile {
 func (m *BattleMap) Passable(x, y int) bool {
 	t := m.At(x, y)
 	switch t.Type {
-	case TileFloor, TileDoor, TileGrass, TileUFOFloor, TileStairs, TileStairsDown, TilePavement, TileSand,
+	case TileFloor, TileDoor, TileGrass, TileUFOFloor, TileStairs, TileStairsDown, TilePavement, TileSand, TileSnow,
 		TileConsole, TileMachinery, TilePod, TilePowerSource, TileStorage, TileAlienTech:
 		return true
 	}

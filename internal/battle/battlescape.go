@@ -450,16 +450,18 @@ func (bs *Battlescape) Update() {
 		audio.PlayWind()
 	}
 
+	/*
 	if bs.FrameCount%12 == 0 && bs.Phase != PhaseVictory && bs.Phase != PhaseDefeat {
 		switch bs.UFOName {
 		case "Polar":
-			engine.SpawnSnow(bs.Particles, 0, 0, bs.Map.Width, 1)
+			engine.SpawnSnow(bs.Particles, bs.ScrollX, bs.ScrollY, viewW, 1)
 		case "Desert":
-			engine.SpawnDust(bs.Particles, 0, 0, bs.Map.Width, bs.Map.Height)
+			engine.SpawnDust(bs.Particles, bs.ScrollX, bs.ScrollY, viewW, viewH)
 		case "Cydonia", "Alien Base Assault":
-			engine.SpawnEmbers(bs.Particles, 0, bs.Map.Height/2, bs.Map.Width, bs.Map.Height/2)
+			engine.SpawnEmbers(bs.Particles, bs.ScrollX, bs.ScrollY, viewW, viewH)
 		}
 	}
+	*/
 
 	if bs.Phase == PhaseAlienTurn {
 		if bs.Projectile != nil {
@@ -1754,6 +1756,17 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 	bs.ScrollX = camX - viewW/2
 	bs.ScrollY = camY - viewH/2
 
+	if bs.FrameCount%12 == 0 && bs.Phase != PhaseVictory && bs.Phase != PhaseDefeat {
+		switch bs.UFOName {
+		case "Polar":
+			engine.SpawnSnow(bs.Particles, bs.ScrollX, bs.ScrollY, viewW, viewH)
+		case "Desert":
+			engine.SpawnDust(bs.Particles, bs.ScrollX, bs.ScrollY, viewW, viewH)
+		case "Cydonia", "Alien Base Assault":
+			engine.SpawnEmbers(bs.Particles, bs.ScrollX, bs.ScrollY, viewW, viewH)
+		}
+	}
+
 	blackStyle := tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm0)
 
 	for y := 0; y < viewH; y++ {
@@ -1814,6 +1827,12 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 					bushColors := [][3]int32{{52, 132, 28}, {42, 118, 42}, {62, 122, 18}, {36, 128, 52}, {58, 115, 30}, {44, 125, 40}}
 					bc := bushColors[v]
 					style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(bc[0], bc[1], bc[2]))
+				case TilePavement:
+					style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(80, 80, 80))
+				case TileSand:
+					style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(210, 180, 140))
+				case TileSnow:
+					style = engine.StyleSnow
 				case TileRock:
 					rv := tileVar(mx, my, 4)
 					rockColors := [][3]int32{{128, 118, 105}, {105, 98, 92}, {138, 128, 112}, {115, 108, 100}}
@@ -1882,6 +1901,12 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(12, 23, 26))
 					case TileDoor:
 						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(22, 19, 7))
+					case TilePavement:
+						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(15, 15, 15))
+					case TileSand:
+						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(20, 15, 10))
+					case TileSnow:
+						style = engine.StyleSnowDim
 					case TileConsole, TileMachinery, TilePod, TilePowerSource, TileStorage, TileAlienTech:
 						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(30, 30, 30))
 					}
@@ -1920,6 +1945,12 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(30, 58, 64))
 					case TileDoor:
 						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(55, 48, 18))
+					case TilePavement:
+						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(40, 40, 40))
+					case TileSand:
+						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(60, 50, 40))
+					case TileSnow:
+						style = engine.StyleSnow
 					case TileConsole, TileMachinery, TilePod, TilePowerSource, TileStorage, TileAlienTech:
 						style = engine.StyleGray
 					}
@@ -2036,9 +2067,9 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 		}
 		if u == bs.Selected {
 			style = style.Reverse(true)
-			if engine.Config.LightingEnabled {
-				engine.ApplyDirectionalLight(ctx.ScreenRaw, ctx.FrameBuffer(), sx, sy, 0, -1, 5, tcell.NewRGBColor(200, 200, 150), func(x, y int) bool { return !bs.Map.Opaque(x+bs.ScrollX-1, y+bs.ScrollY-1) })
-			}
+			// if engine.Config.LightingEnabled {
+			// 	engine.ApplyDirectionalLight(ctx.ScreenRaw, ctx.FrameBuffer(), sx, sy, 0, -1, 5, tcell.NewRGBColor(200, 200, 150), func(x, y int) bool { return !bs.Map.Opaque(x+bs.ScrollX-1, y+bs.ScrollY-1) })
+			// }
 		}
 		if u.X == bs.CursorX && u.Y == bs.CursorY {
 			style = style.Reverse(true)
@@ -2086,10 +2117,12 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 		ctx.SetCell(sidebarX-1, y+1, '|', engine.StyleGray)
 	}
 
-	// If hovering an enemy, show ONLY target info in sidebar
+	// If hovering an enemy, show target info in sidebar
 	if bs.HoveredUnit != nil && bs.HoveredUnit != bs.Selected {
 		sy := 1
 		u := bs.HoveredUnit
+		halfSide := bs.SidebarW / 2
+
 		ctx.DrawString(sidebarX, sy, language.String("SIDE_TARGET_INFO"), engine.StyleRedBold)
 		sy++
 		name := ""
@@ -2100,8 +2133,8 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 		} else if u.Faction == 2 {
 			name = u.CivName
 		}
-		if len(name) > bs.SidebarW-1 {
-			name = name[:bs.SidebarW-1]
+		if len(name) > halfSide-1 {
+			name = name[:halfSide-1]
 		}
 		ctx.DrawString(sidebarX, sy, name, engine.StyleDefault.Bold(true))
 		sy++
@@ -2128,19 +2161,45 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 			sy++
 		}
 
+		// Draw half portrait on the right side
 		if u.Faction == 1 && u.AlienType != nil {
-			portrait := u.AlienType.GetPortrait()
-			sy++
-			for _, sl := range portrait.Lines {
+			portrait := u.AlienType.GetPortrait().HalfPortrait()
+			portX := sidebarX + halfSide
+			for i, sl := range portrait.Lines {
 				pl := sl.Content
-				if len(pl) > bs.SidebarW-1 {
-					pl = pl[:bs.SidebarW-1]
+				if len(pl) > halfSide-1 {
+					pl = pl[:halfSide-1]
 				}
-				// Use the color from the StyledLine
 				style := tcell.StyleDefault.Foreground(tcell.NewRGBColor(sl.Color[0], sl.Color[1], sl.Color[2]))
-				ctx.DrawString(sidebarX, sy, pl, style)
-				sy++
+				ctx.DrawString(portX, 2+i, pl, style)
 			}
+		}
+
+		// Draw log below both columns
+		portH := 0
+		if u.Faction == 1 && u.AlienType != nil {
+			portH = len(u.AlienType.GetPortrait().HalfPortrait().Lines)
+		}
+		if sy < 2+portH {
+			sy = 2 + portH
+		}
+		sy++
+		logTitle := language.String("BATTLE_LOG")
+		ctx.DrawString(sidebarX, sy, logTitle, engine.StyleCyanBold)
+		sy++
+
+		availableLines := viewH - sy
+		logEntries := len(bs.Log)
+		startIdx := 0
+		if logEntries > availableLines {
+			startIdx = logEntries - availableLines
+		}
+		for i := 0; i < availableLines && startIdx+i < logEntries; i++ {
+			msg := bs.Log[startIdx+i]
+			if len(msg) > bs.SidebarW-1 {
+				msg = msg[:bs.SidebarW-1]
+			}
+			ctx.DrawString(sidebarX, sy+i, msg, engine.StyleDefault)
 		}
 	}
 

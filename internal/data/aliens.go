@@ -87,6 +87,27 @@ type StyledPortrait struct {
 	Lines []StyledLine
 }
 
+// HalfPortrait returns a downsampled portrait (half height and width).
+func (sp StyledPortrait) HalfPortrait() StyledPortrait {
+	if len(sp.Lines) == 0 {
+		return sp
+	}
+	var half []StyledLine
+	for i := 0; i < len(sp.Lines); i += 2 {
+		sl := sp.Lines[i]
+		var chars []rune
+		runes := []rune(sl.Content)
+		for j := 0; j < len(runes); j += 2 {
+			chars = append(chars, runes[j])
+		}
+		half = append(half, StyledLine{
+			Content: string(chars),
+			Color:   sl.Color,
+		})
+	}
+	return StyledPortrait{Lines: half}
+}
+
 // AlienType defines a species/variant encountered in tactical combat.
 type AlienType struct {
 	Name       string
