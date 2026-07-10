@@ -106,3 +106,14 @@
 - [ ] E1 Tests: victory reachable & Cydonia fires once; interceptor save round-trip;
       interception node path engages UFO; storage cap blocks overflow; capture ->
       containment -> interrogation flow
+
+## Phase 26: Psi Abilities (DONE)
+- [x] Wire 'P' key in battlescape input to call PsiAttack()
+- [x] Add PsiSkill/PsiStr/Panicked fields to battle Unit struct
+- [x] Copy psi stats from Soldier/AlienType to battle units
+- [x] Psi-Lab training: daily +1 PsiSkill (max 80) for soldiers in base with Psi-Lab
+- [x] Alien psi attacks: high-Psi aliens (Psi>40) use psi with 1/3 chance per turn
+- [x] Panic effect: successful psi attack zeros TU and panics target (skips next turn)
+- [x] Mind Control research: +20 PsiSkill bonus to all soldiers at that base
+- [x] Psi formula: success = attackerSkill - defenderPsiStr/3, min 5% chance
+- [ ] Verify the codebase for errors/mistakes

@@ -136,6 +136,12 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList, pla
 				ai.State = AISuppress
 			} else if role == RoleFlanker && dist > 3 && ai.Unit.TU >= 20 {
 				ai.State = AIFlank
+			} else if ai.Unit.AlienType != nil && ai.Unit.AlienType.Psi > 40 && ai.Unit.TU >= 20 && rand.Intn(3) == 0 {
+				actions = append(actions, AlienAction{
+					Type: "psi", Unit: ai.Unit, Target: target,
+					FromX: ai.Unit.X, FromY: ai.Unit.Y,
+					ToX: target.X, ToY: target.Y,
+				})
 			} else if (dist <= 2 || (longRange && dist <= 3) || ai.Unit.AlienType.Aggression > 7) {
 				if dist <= 1 {
 					actions = append(actions, AlienAction{

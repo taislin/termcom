@@ -85,6 +85,8 @@ func (bs *Battlescape) handleKey(e *tcell.EventKey) {
 		bs.Reload()
 	case "g", "G": 
 		bs.Grenade()
+	case "p", "P": 
+		bs.PsiAttack()
 	case "o", "O": 
 		bs.Game.PushState(engine.StateOptions)
 	}

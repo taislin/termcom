@@ -280,6 +280,7 @@ func (b *Base) AdvanceDay() {
 			}
 		}
 	}
+	hasPsiLab := b.CountFacility(FacPsiLab) > 0
 	for _, s := range b.Soldiers {
 		if s.Wounds > 0 {
 			s.Wounds--
@@ -293,6 +294,9 @@ func (b *Base) AdvanceDay() {
 					s.HP = s.MaxHP
 				}
 			}
+		}
+		if hasPsiLab && s.Wounds <= 0 && s.PsiSkill < 80 {
+			s.PsiSkill++
 		}
 	}
 }
@@ -615,6 +619,14 @@ func (b *Base) AdvanceResearch() []string {
 			for _, arm := range topic.UnlockArmor {
 				if _, ok := data.Armors[arm]; ok {
 					b.Stores[arm] = 1
+				}
+			}
+			if b.ActiveResearch.TopicID == "mind_control" {
+				for _, s := range b.Soldiers {
+					s.PsiSkill += 20
+					if s.PsiSkill > 100 {
+						s.PsiSkill = 100
+					}
 				}
 			}
 			name = topic.Name

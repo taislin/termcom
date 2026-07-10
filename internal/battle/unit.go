@@ -24,55 +24,62 @@ type Unit struct {
 	Bravery    int
 	Reactions  int
 	Strength   int
+	PsiSkill   int
+	PsiStr     int
 	Armour     int
 	Weapon     string
 	WeaponAmmo int
 	Alive      bool
-	Stunned    bool // Added
-	StunPoints int  // Added
+	Stunned    bool
+	StunPoints int
 	Crouching  bool
+	Panicked   bool
 	Faction    int
 	IsNight    bool
-	ReservedTU int // TU reserved for reaction fire
+	ReservedTU int
 }
 
 func NewSoldierUnit(s *soldier.Soldier) *Unit {
 	return &Unit{
-		Type:      0,
-		Soldier:   s,
-		HP:        s.HP,
-		MaxHP:     s.MaxHP,
-		TU:        s.TU,
-		MaxTU:     s.MaxTU,
-		Accuracy:  s.Accuracy,
-		Bravery:   s.Bravery,
-		Reactions: s.Reactions,
-		Strength:  s.Strength,
-		Armour:    data.Armors[s.Armor].Undersuit,
-		Weapon:    s.Weapon,
+		Type:       0,
+		Soldier:    s,
+		HP:         s.HP,
+		MaxHP:      s.MaxHP,
+		TU:         s.TU,
+		MaxTU:      s.MaxTU,
+		Accuracy:   s.Accuracy,
+		Bravery:    s.Bravery,
+		Reactions:  s.Reactions,
+		Strength:   s.Strength,
+		PsiSkill:   s.PsiSkill,
+		PsiStr:     s.PsiStr,
+		Armour:     data.Armors[s.Armor].Undersuit,
+		Weapon:     s.Weapon,
 		WeaponAmmo: s.WeaponAmmo,
-		Alive:     true,
-		Faction:   0,
+		Alive:      true,
+		Faction:    0,
 	}
 }
 
 func NewAlienUnit(at *data.AlienType) *Unit {
 	return &Unit{
-		Type:      1,
-		AlienType: at,
-		HP:        at.HP,
-		MaxHP:     at.HP,
-		TU:        at.TU,
-		MaxTU:     at.TU,
-		Accuracy:  at.Accuracy,
-		Bravery:   at.Bravery,
-		Reactions: at.Reactions,
-		Strength:  at.Strength,
-		Armour:    at.Armour,
-		Weapon:    at.Weapon,
+		Type:       1,
+		AlienType:  at,
+		HP:         at.HP,
+		MaxHP:      at.HP,
+		TU:         at.TU,
+		MaxTU:      at.TU,
+		Accuracy:   at.Accuracy,
+		Bravery:    at.Bravery,
+		Reactions:  at.Reactions,
+		Strength:   at.Strength,
+		PsiSkill:   at.Psi,
+		PsiStr:     at.ResistPsionic,
+		Armour:     at.Armour,
+		Weapon:     at.Weapon,
 		WeaponAmmo: data.RuleItems[at.Weapon].AmmoMax,
-		Alive:     true,
-		Faction:   1,
+		Alive:      true,
+		Faction:    1,
 	}
 }
 

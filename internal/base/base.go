@@ -30,7 +30,7 @@ func NewBaseScreen(g *engine.Game, b *Base) *BaseScreen {
 }
 
 func (bs *BaseScreen) BuildFacility() {
-	types := []FacilityType{FacLivingQuarters, FacLab, FacWorkshop, FacStorage, FacRadar, FacContainment, FacHangar}
+	types := []FacilityType{FacLivingQuarters, FacLab, FacWorkshop, FacStorage, FacRadar, FacContainment, FacPsiLab, FacHangar}
 	if bs.Selection >= 0 && bs.Selection < len(types) {
 		ft := types[bs.Selection]
 		def := FacilityDefs[ft]

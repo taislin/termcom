@@ -566,6 +566,35 @@ func (bs *Battlescape) executeAlienAction(action AlienAction) {
 		bs.checkHumanReactionFire(action.Unit)
 	case "patrol":
 		action.Unit.MoveTo(action.ToX, action.ToY, bs.Map)
+	case "psi":
+		if action.Target == nil || !action.Target.Alive {
+			return
+		}
+		audio.PlayLaserFire()
+		engine.SpawnExplosion(bs.Particles, action.Target.X-bs.ScrollX+1, action.Target.Y-bs.ScrollY+1, tcell.NewRGBColor(120, 0, 200), 12)
+		bs.Camera.TriggerShake(0.3)
+		attackerPsi := 0
+		if action.Unit.AlienType != nil {
+			attackerPsi = action.Unit.AlienType.Psi
+		}
+		defenderPsiStr := 0
+		if action.Target.Soldier != nil {
+			defenderPsiStr = action.Target.Soldier.PsiStr
+		} else {
+			defenderPsiStr = action.Target.PsiStr
+		}
+		successChance := attackerPsi - defenderPsiStr/3
+		if successChance < 5 {
+			successChance = 5
+		}
+		success := rand.Intn(100) < successChance
+		if success {
+			action.Target.TU = 0
+			action.Target.Panicked = true
+			bs.AddMessage(fmt.Sprintf("%s psi attacks %s — PANICKED!", action.Unit.AlienType.Name, action.Target.Name()))
+		} else {
+			bs.AddMessage(fmt.Sprintf("%s psi attacks %s — resisted!", action.Unit.AlienType.Name, action.Target.Name()))
+		}
 		bs.ComputeFOVForTeam()
 		bs.checkHumanReactionFire(action.Unit)
 	}
@@ -1242,6 +1271,10 @@ func (bs *Battlescape) EndTurn() {
 		if !ai.Unit.Alive {
 			continue
 		}
+		if ai.Unit.Panicked {
+			ai.Unit.Panicked = false
+			continue
+		}
 		ai.Unit.TU = ai.Unit.MaxTU
 		humanUnits := bs.Units.Faction(0)
 		actions := ai.Update(bs.Units, bs.Map, humanUnits, bs.AlienSquadPlan, &bs.Game.Tactics)
@@ -1612,7 +1645,7 @@ func (bs *Battlescape) PsiAttack() {
 	}
 
 	target := bs.Units.At(bs.CursorX, bs.CursorY)
-	if target == nil || target.Faction != 1 {
+	if target == nil || target.Faction != 1 || !target.Alive {
 		bs.AddMessage("Select an alien target.")
 		return
 	}
@@ -1626,10 +1659,23 @@ func (bs *Battlescape) PsiAttack() {
 		targetPsi = target.Soldier.PsiStr
 	}
 
-	success := rand.Intn(100) < (bs.Selected.Soldier.PsiSkill - targetPsi/2)
+	attackerSkill := bs.Selected.Soldier.PsiSkill
+	if attackerSkill < 1 {
+		bs.AddMessage("Soldier has no psi training.")
+		return
+	}
+
+	successChance := attackerSkill - targetPsi/3
+	if successChance < 5 {
+		successChance = 5
+	}
+	success := rand.Intn(100) < successChance
 
 	if success {
+		bs.Camera.TriggerShake(0.3)
+		engine.SpawnExplosion(bs.Particles, target.X-bs.ScrollX+1, target.Y-bs.ScrollY+1, tcell.NewRGBColor(120, 0, 200), 12)
 		target.TU = 0
+		target.Panicked = true
 		bs.AddMessage(fmt.Sprintf(language.String("MSG_PSI_SUCCESS"), target.Name()))
 	} else {
 		bs.AddMessage(language.String("MSG_PSI_FAIL"))

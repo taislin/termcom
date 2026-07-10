@@ -211,7 +211,7 @@ Navigate with `j`/`k` or arrow keys. Use `Enter` to select.
 | Storage | $40K | 3 days | +50 item storage |
 | Radar | $80K | 5 days | +$50K monthly funding |
 | Alien Containment | $100K | 10 days | Live alien capture (capacity: 10 per facility) |
-| Psi-Lab | $150K | 14 days | Cosmetic only (no psi training implemented) |
+| Psi-Lab | $150K | 14 days | Trains psi skill (+1/day, max 80) |
 | Hangar | $120K | 8 days | Houses interceptors |
 
 **Controls:**
@@ -474,10 +474,15 @@ Requires a **Psi-Amplifier** weapon and the **Psi-Lab** facility.
 |--------|---------|
 | Psi attack | 20 |
 
-**Formula:** `success chance = attacker.PsiSkill - (target.Psi / 2)`
+**Formula:** `success chance = attacker.PsiSkill - (target.PsiStr / 3)` (min 5%)
 
-Success: Target loses all TU for the turn. Psi resistance varies by alien species
-(Ethereals are highly resistant, Chryssalids have none).
+Success: Target is **panicked** — loses all TU and skips their next turn. Psi resistance
+varies by alien species (Ethereals are highly resistant, Chryssalids have none).
+
+**Training:** Soldiers in a base with a Psi-Lab gain +1 PsiSkill per day (max 80).
+
+**Mind Control research:** Completing this topic grants +20 PsiSkill to all soldiers
+at that base.
 
 ### Visual Effects
 
@@ -753,8 +758,8 @@ The species seed ensures the same alien species are regenerated when loading a s
 - **Alien Containment** is needed for live captures (research bonuses).
   Each facility holds 10 captured aliens. Build multiple for larger rosters.
 - Build **Hangars** to field multiple interceptors.
-- **Psi-Lab** is cosmetic only — it has no gameplay effect. Build it for base
-  completeness, but prioritize Containment first.
+- **Psi-Lab** trains psi skill (+1/day, max 80). Build it early if you want psi
+  capabilities. Mind Control research grants +20 PsiSkill to all soldiers.
 
 ### Alien Capture & Interrogation
 

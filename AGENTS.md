@@ -115,5 +115,6 @@ internal/
 | M | Medikit |
 | C | Crouch |
 | V | Toggle vision mode |
+| P | Psi attack |
 | Esc | Cancel |
 | ? | Help |
