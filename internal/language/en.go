@@ -4,7 +4,7 @@ func init() {
 	register("en", map[string]string{
 		// ── Menu ──────────────────────────────────────────
 		"MENU_TITLE":          "T U R N   B A S E D   T A C T I C S",
-		"MENU_SUBTITLE":       "v0.1",
+		"MENU_SUBTITLE":       "v0.5",
 		"MENU_NEW_GAME":       "New Game",
 		"MENU_CONTINUE":       "Continue",
 		"MENU_LOAD_GAME":      "Load Game",

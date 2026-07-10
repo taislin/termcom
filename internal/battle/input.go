@@ -1,9 +1,12 @@
 package battle
 
 import (
+	"fmt"
 	"sync"
-	"github.com/gdamore/tcell/v3"
+
 	"github.com/civ13/ycom/internal/engine"
+	"github.com/civ13/ycom/internal/language"
+	"github.com/gdamore/tcell/v3"
 )
 
 type CursorState int
@@ -76,20 +79,43 @@ func (bs *Battlescape) handleKey(e *tcell.EventKey) {
 
 func (bs *Battlescape) handleMouse(e *tcell.EventMouse) {
 	x, y := e.Position()
-	mx, my := x + bs.ScrollX - 1, y + bs.ScrollY - 1
-	
+	mx, my := x+bs.ScrollX-1, y+bs.ScrollY-1
+
 	buttons := e.Buttons()
-	if buttons == tcell.WheelUp || buttons == tcell.WheelDown {
-		bs.cycleUnit(1)
+
+	if buttons&tcell.WheelUp != 0 {
+		bs.ScrollX -= 3
+		bs.ScrollY -= 2
+		if bs.ScrollX < 0 {
+			bs.ScrollX = 0
+		}
+		if bs.ScrollY < 0 {
+			bs.ScrollY = 0
+		}
+		return
+	}
+	if buttons&tcell.WheelDown != 0 {
+		bs.ScrollX += 3
+		bs.ScrollY += 2
 		return
 	}
 
 	if buttons&tcell.Button1 != 0 {
-		bs.State.CursorState = StateInspect
-		bs.CursorX, bs.CursorY = mx, my
 		unit := bs.Units.At(mx, my)
 		if unit != nil && unit.Faction == 0 {
 			bs.Selected = unit
+			bs.CursorX, bs.CursorY = mx, my
+			bs.State.CursorState = StateInspect
+			bs.AddMessage(fmt.Sprintf(language.String("MSG_UNIT_SELECTED"), bs.Selected.Soldier.Name, bs.Selected.HP, bs.Selected.TU))
+		} else if bs.Selected != nil && bs.Phase == PhasePlayerTurn {
+			bs.CursorX, bs.CursorY = mx, my
+			bs.State.CursorState = StateMovePlan
+			bs.updateMovePath()
+			bs.MoveSelected()
+			bs.State.CursorState = StateInspect
+		} else {
+			bs.CursorX, bs.CursorY = mx, my
+			bs.State.CursorState = StateInspect
 		}
 		bs.updateMovePath()
 	} else if buttons&tcell.Button3 != 0 {
@@ -97,13 +123,11 @@ func (bs *Battlescape) handleMouse(e *tcell.EventMouse) {
 		if unit != nil && unit.Faction == 1 {
 			bs.State.CursorState = StateTargeting
 			bs.State.TargetUnit = unit
-		} else if bs.State.CursorState == StateInspect {
-			bs.State.CursorState = StateMovePlan
 			bs.CursorX, bs.CursorY = mx, my
+		} else {
+			bs.CursorX, bs.CursorY = mx, my
+			bs.State.CursorState = StateMovePlan
 			bs.updateMovePath()
-		} else if bs.State.CursorState == StateMovePlan {
-			bs.MoveSelected()
-			bs.State.CursorState = StateInspect
 		}
 	}
 }

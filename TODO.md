@@ -1,45 +1,66 @@
 # YCOM Development Roadmap
 
-## Phase 1: Technical Debt & Polish (DONE)
-- [x] Fix tcell deprecation warnings (`staticcheck`)
-- [x] Refactor geoscape region table column offsets to be dynamic
-- [x] Profile render loop performance
+## Phase 1-9: Core Systems (DONE)
+- [x] Technical debt, dogfights, alien tactics, hangar management
+- [x] Mission variety, polish & QoL
+- [x] Research & manufacturing systems
+- [x] Campaign & endgame (Alien Activity, monthly funding, Cydonia, game over)
+- [x] Modern VFX & options menu (bloom, distortion, directional lighting)
 
-## Phase 2: Enhanced Dogfights (DONE)
-- [x] Add interceptor weapon variety (Cannon, Stingray, Avalanche)
-- [x] Implement combat maneuvers (Attack, Cautious, Break-off)
+## Phase 10: Procedural Tech Tree (DONE)
+- [x] Tiered DAG tech tree generator with cost variance
+- [x] Dynamic autopsy injection from procedural alien species
+- [x] Save/load species seed for deterministic tree regeneration
+- [x] Code review: bug fixes (nil checks, serialization, DAG validation)
+- [x] Dead code removal and test coverage improvements
 
-## Phase 3: Alien Tactics (DONE)
-- [x] Implement reaction fire (human and alien)
-- [x] Enhance Alien AI (flanking, reinforcements, retreat behaviors)
+## Phase 11: Save System Enhancements
+- [ ] Distinguish Continue vs Load Game in menu (Continue = load last save silently)
+- [ ] Multiple save slots with file picker UI
+- [ ] Auto-save on Geoscape monthly report
 
-## Phase 4: Hangar Management (DONE)
-- [x] Interceptor loadout screen — change weapons from base hangars
+## Phase 12: Battle Loot & Economy Balance
+- [ ] Balance generateUFOLoot() per species and UFO type
+- [ ] Tune manufacturing costs and material requirements for varied tech tree
+- [ ] Adjust monthly funding to account for randomized research costs
 
-## Phase 5: Mission Variety (DONE)
-- [x] Alien abduction missions — timed rescue scenario
-- [x] Alien reinforcements on Terror and Alien Base missions
+## Phase 13: Research Screen Improvements
+- [ ] Show checkmarks on researched topics
+- [ ] Grey out completed topics in the list
+- [ ] Display tier info so players can plan their research path
+- [ ] Show prerequisite tree graph in research UI
 
-## Phase 6: Polish & QoL (DONE)
-- [x] Rookie stat progression display — show stat gains after battle
-- [x] Fire terrain spread — burning tiles ignite adjacent grass (already existed)
-- [x] Fix night rendering — cursor white background + alien glow in fog of war
+## Phase 14: Alien Progression Scaling
+- [ ] Scale alien stats with game time (harder aliens as months pass)
+- [ ] Increase UFO frequency and strength over the campaign
+- [ ] Gate elite alien species behind certain mission thresholds
 
-## Phase 7: Research & Manufacturing Systems (DONE)
-- [x] Implement Research Lab project assignment and scientist assignment logic
-- [x] Implement Workshop project queuing and engineer assignment logic
-- [x] Integrate research unlocks (items/weapons/armor) into store availability
-- [x] Integrate manufactured items into store inventory
+## Phase 15: Expanded Battle VFX
+- [ ] Muzzle flash particles on weapon fire
+- [ ] Explosion debris particles for grenades and heavy weapons
+- [ ] Ambient particles per mission type (rain, snow, dust, embers)
+- [ ] Blood splatter on hit
 
-## Phase 8: Campaign & Endgame
-- [x] Implement Alien Activity progression (global panic and mission frequency)
-- [x] Implement monthly funding reports based on Alien Activity
-- [x] Implement "Cydonia" (Final Mission) trigger and map generation
-- [x] Add Game Over/Victory screens with campaign stats
+## Phase 16: Sound Effects
+- [ ] Weapon fire sounds (laser, plasma, ballistic, melee)
+- [ ] UI navigation sounds (menu select, research complete, manufacturing done)
+- [ ] Ambient battle sounds (wind, distant explosions)
+- [ ] Geoscape alert sounds (UFO detected, mission warning)
 
-## Phase 9: Modern VFX & Options
-- [x] Add OPTIONS menu (Main Menu + In-game, 'O' hotkey) to toggle VFX
-- [x] Implement Character-Level Bloom (Glow for projectiles/targets)
-- [x] Implement Screen Distortion & Chromatic Aberration
-- [x] Implement Directional Lighting (Shadows in Fog of War)
+## Phase 17: Multi-Base Support
+- [ ] Build and manage multiple bases on the Geoscape
+- [ ] Transfer soldiers and items between bases
+- [ ] Regional radar coverage per base
+- [ ] Base defense missions when aliens attack a base
 
+## Phase 18: Battlescape AI Polish
+- [ ] Enhance alien AI in internal/battle/ai.go for more challenging tactical combat
+- [ ] Smarter flanking and cover usage
+- [ ] Coordinated squad behavior (suppression, focused fire, retreat)
+- [ ] AI adapts to player tactics across missions
+
+## Phase 19: Geoscape Mission Variety
+- [ ] Expand mission types beyond crash sites and terror missions
+- [ ] Alien base assault missions with unique maps
+- [ ] Supply raid missions (intercept alien transports)
+- [ ] Council missions with special objectives and bonus rewards

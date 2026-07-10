@@ -194,8 +194,8 @@ func (ms *MenuScreen) Render(ctx *ScreenCtx) {
 	}
 	ctx.DrawString(subX, subY, subtitle, StyleCyanBold)
 
-	deco := "==================================================="
-	decX := (w - len(deco)) / 2
+	deco := "\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550"
+	decX := (w - len([]rune(deco))) / 2
 	if decX < 0 {
 		decX = 0
 	}
@@ -238,8 +238,8 @@ func (ms *MenuScreen) Render(ctx *ScreenCtx) {
 
 	for i, opt := range options {
 		y := menuY + i*2
-		textX := w/2 - 8
 		textLen := len([]rune(opt))
+		textX := w/2 - textLen/2
 
 		if i == ms.Selection {
 			// Brackets expand/contract symmetrically around the text
@@ -352,7 +352,7 @@ func (ms *MenuScreen) HandleMouse(e *tcell.EventMouse) {
 	x, y := e.Position()
 	w, _ := ms.Game.ScreenSize()
 
-	subY := 10
+	subY := 9
 	menuY := subY + 8
 	opts := ms.options()
 
