@@ -1089,6 +1089,67 @@ func GenerateCydonia(w, h int) *BattleMap {
 	return m
 }
 
+// GenerateAlienBase creates an alien base assault map: rocky terrain with a
+// central alien structure (distinct from the final Cydonia mission).
+func GenerateAlienBase(w, h int) *BattleMap {
+	m := NewBattleMap(w, h)
+
+	// Rocky outdoor terrain
+	m.fillRect(0, 0, w, h, TileRock)
+	ApplyCommands(m, []MapCommand{
+		{Type: CmdScatter, X: 0, Y: 0, W: w, H: h, Tile: TileSand, Prob: 6, Count: w * h},
+		{Type: CmdScatter, X: 0, Y: 0, W: w, H: h, Tile: TileBush, Prob: 2, Count: w * h},
+	})
+
+	// Central alien structure (the base)
+	bx := w/2 - 11
+	by := h/2 - 11
+	m.drawRect(bx, by, 22, 22, TileUFOWall)
+	m.fillRect(bx+1, by+1, 20, 20, TileUFOFloor)
+
+	// Command core
+	cx := w/2 - 3
+	cy := h/2 - 3
+	m.drawRect(cx, cy, 6, 6, TileUFOWall)
+	m.fillRect(cx+1, cy+1, 4, 4, TileUFOFloor)
+	m.Set(cx+2, cy+5, TileDoor)
+	m.fillRect(cx+2, cy+2, 2, 2, TileAlienTech)
+
+	// Side pods with alien tech
+	pods := [][2]int{
+		{bx + 3, by + 3},
+		{bx + 14, by + 3},
+		{bx + 3, by + 14},
+		{bx + 14, by + 14},
+	}
+	for _, p := range pods {
+		m.drawRect(p[0], p[1], 5, 5, TileUFOWall)
+		m.fillRect(p[0]+1, p[1]+1, 3, 3, TileUFOFloor)
+		m.Set(p[0]+2, p[1]+4, TileDoor)
+		m.Set(p[0]+2, p[1]+2, TilePod)
+	}
+
+	// Connect core to pods
+	for _, p := range pods {
+		m.generateCorridor(cx+3, cy+3, p[0]+2, p[1]+2, 2)
+	}
+
+	// Entrance
+	m.fillRect(bx-2, by+9, 3, 4, TileUFOFloor)
+	m.Set(bx-1, by+10, TileDoor)
+
+	// Scatter alien tech loot inside the structure
+	for i := 0; i < 16; i++ {
+		x := bx + 2 + rand.Intn(18)
+		y := by + 2 + rand.Intn(18)
+		if m.At(x, y).Type == TileUFOFloor {
+			m.Set(x, y, TileAlienTech)
+		}
+	}
+
+	return m
+}
+
 // GenerateForest creates a forest map (OpenXcom: 50x50)
 func GenerateForest(w, h int) *BattleMap {
 	m := NewBattleMap(w, h)

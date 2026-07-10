@@ -149,9 +149,22 @@ UFOs travel along edges between nodes. You can:
 
 ### Alien Missions
 
-Every ~30 minutes (game time), alien missions spawn targeting random nodes:
-- **Terror missions** and **Supply missions**: 24 game hours to respond
-- **Alien Base missions**: 12 game hours to respond
+Every ~30 minutes (game time), alien missions spawn targeting random nodes.
+Mission types are weighted so common raids appear more often than rare,
+high-value assaults:
+
+| Mission | Response | Map | Reward on victory |
+|---------|----------|-----|-------------------|
+| Terror | 24h | Urban (Terror) | Standard loot |
+| Supply Raid | 24h | UFO Interior | Bonus alloys/elerium/nav data |
+| Abduction | 24h | Rural (Abduction) | Rescue civilians |
+| Alien Research | 24h | UFO Interior | Bonus alien tech (power/weapon) |
+| Council | 36h | Urban (Council) | **Bonus funding +$100K** and loot |
+| Alien Base Assault | 12h | Rocky Alien Base | Major alien tech haul |
+
+When multiple missions are active, move the cursor onto a region and press `M`
+to respond to the mission at that node; otherwise `M` responds to the first
+available mission.
 
 If the timer expires without response, Alien Activity increases by 10%.
 
@@ -589,6 +602,11 @@ As you encounter aliens, your knowledge increases:
 - **Attack:** Fire at target. High-aggression aliens (>5) charge if distance > 3 tiles.
 - **Search:** Move toward last-seen position for 5 turns, then resume Patrol.
 - **Flee:** Triggered when HP < 25% AND Bravery < 50. Runs for 3 turns.
+- **Adaptive:** Across missions the aliens study your habits (stored in `Game.Tactics`).
+  If you snipe from long range they rush to close distance; if you lean on grenades
+  they spread out to avoid clusters; if you flank often they post more suppressors
+  to pin you; if they are losing badly they retreat sooner, and if they dominate
+  they fight on aggressively.
 
 Aliens spawn in groups: 3 lowest-rank + 2 rank-1 aliens (if available).
 

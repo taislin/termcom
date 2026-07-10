@@ -88,6 +88,10 @@ type Battlescape struct {
 	OverwatchFlash int
 	PlayerLock int
 
+	PlayerShotDistSum float64
+	PlayerShotCount   int
+	PlayerFlankShots  int
+
 	AlienTurnQueue  []AlienAction
 	AlienTurnIdx    int
 	ActionDelay     int
@@ -228,10 +232,14 @@ func NewBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, ufoN
 	switch ufoName {
 	case "Terror":
 		m = GenerateTerrorSite(50, 50)
-	case "Supply":
+	case "Supply Raid":
 		m = GenerateUFOInterior(50, 50)
 	case "Alien Base Assault":
-		m = GenerateCydonia(50, 50)
+		m = GenerateAlienBase(50, 50)
+	case "Alien Research":
+		m = GenerateUFOInterior(50, 50)
+	case "Council":
+		m = GenerateTerrorSite(50, 50)
 	case "Cydonia":
 		m = GenerateCydonia(50, 50)
 	case "Abduction":
@@ -264,7 +272,7 @@ func NewBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, ufoN
 		Gas:       NewGasGrid(m.Width, m.Height),
 	}
 
-	if ufoName == "Abduction" {
+	if ufoName == "Abduction" || ufoName == "Council" {
 		bs.AbductionTotal = 8 + rand.Intn(5)
 	}
 	m.Gas = bs.Gas
@@ -595,6 +603,7 @@ func (bs *Battlescape) checkHumanReactionFire(movedAlien *Unit) {
 		bs.OverwatchFlash = 30
 		bs.Camera.SetTarget(u.X, u.Y)
 		damage, hit, _ := u.FireAt(movedAlien, bs.Map)
+		bs.recordPlayerShot(u, movedAlien)
 		bs.Projectile = &Projectile{
 			FromX: u.X, FromY: u.Y,
 			ToX: movedAlien.X, ToY: movedAlien.Y,
@@ -801,17 +810,35 @@ func (bs *Battlescape) finishBattle() {
 		bs.Game.Funds += 50000
 	}
 
-	// Update tactical tracking
-	bs.Game.Tactics.BattleCount++
-	bs.Game.Tactics.TotalAlienKills += alienKills
+	// Update tactical tracking (running averages weighted by prior battles)
+	t := &bs.Game.Tactics
+	prev := t.BattleCount
+	if bs.PlayerShotCount > 0 {
+		thisRange := bs.PlayerShotDistSum / float64(bs.PlayerShotCount)
+		if prev > 0 {
+			t.AverageRange = (t.AverageRange*float64(prev) + thisRange) / float64(prev+1)
+		} else {
+			t.AverageRange = thisRange
+		}
+	}
+	if bs.PlayerFlankShots > 0 {
+		thisFlank := float64(bs.PlayerFlankShots)
+		if prev > 0 {
+			t.FlankingObserved = int((float64(t.FlankingObserved)*float64(prev) + thisFlank) / float64(prev+1))
+		} else {
+			t.FlankingObserved = bs.PlayerFlankShots
+		}
+	}
+	t.BattleCount++
+	t.TotalAlienKills += alienKills
 	soldierLosses := 0
 	for _, s := range surviving {
 		if s.HP <= 0 {
 			soldierLosses++
 		}
 	}
-	bs.Game.Tactics.TotalSoldierLosses += soldierLosses
-	bs.Game.Tactics.GrenadeUsage += bs.PlayerGrenadeCount
+	t.TotalSoldierLosses += soldierLosses
+	t.GrenadeUsage += bs.PlayerGrenadeCount
 
 	bs.Game.ActiveBattle = &engine.BattleResult{
 		Won:       won,
@@ -1118,6 +1145,7 @@ func (bs *Battlescape) FireWeapon() {
 		bs.AddMessage(err.Error())
 		return
 	}
+	bs.recordPlayerShot(bs.Selected, target)
 	audio.PlayWeaponFire(bs.Selected.Weapon)
 	engine.SpawnMuzzleFlash(bs.Particles, bs.Selected.X-bs.ScrollX+1, bs.Selected.Y-bs.ScrollY+1)
 	if hit {
@@ -1139,6 +1167,21 @@ func (bs *Battlescape) FireWeapon() {
 		bs.AddMessage(language.String("MSG_MISSED"))
 	}
 	bs.PlayerLock = bs.Game.ActionDelay / 2
+}
+
+func (bs *Battlescape) recordPlayerShot(shooter, target *Unit) {
+	if target == nil || target.Faction != 1 || shooter == nil {
+		return
+	}
+	dx := shooter.X - target.X
+	dy := shooter.Y - target.Y
+	dist := math.Sqrt(float64(dx*dx + dy*dy))
+	bs.PlayerShotDistSum += dist
+	bs.PlayerShotCount++
+	// Flank/ambush: shooter fires from outside the target alien's line of sight
+	if !target.CanSee(shooter.X, shooter.Y, bs.Map) {
+		bs.PlayerFlankShots++
+	}
 }
 
 func (bs *Battlescape) Reload() {
@@ -1258,6 +1301,31 @@ func (bs *Battlescape) planSquadActions() *SquadPlan {
 		suppressorCount = 0
 	}
 	flankerCount := len(aliveAliens) / 3
+
+	// Adapt squad composition to observed player tactics
+	t := bs.Game.Tactics
+	bc := t.BattleCount
+	if bc < 1 {
+		bc = 1
+	}
+	avgGrenades := float64(t.GrenadeUsage) / float64(bc)
+	avgRange := t.AverageRange
+	avgFlank := float64(t.FlankingObserved) / float64(bc)
+	flankHeavy := avgFlank >= 1.0
+	longRange := avgRange >= 8.0
+	grenadeHeavy := avgGrenades >= 1.5
+	if flankHeavy {
+		// Player flanks often: post more suppressors to pin them down
+		suppressorCount = len(aliveAliens) / 2
+	}
+	if longRange {
+		// Player snipes from afar: send more flankers to close distance
+		flankerCount = len(aliveAliens) / 2
+	}
+	if grenadeHeavy {
+		// Player grenades clustered aliens: keep units dispersed, fewer strict roles
+		suppressorCount = len(aliveAliens) / 4
+	}
 
 	suppressors := 0
 	flankers := 0

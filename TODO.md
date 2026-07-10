@@ -57,7 +57,7 @@
 - [x] Enhance alien AI in internal/battle/ai.go for more challenging tactical combat
 - [x] Smarter flanking and cover usage
 - [x] Coordinated squad behavior (suppression, focused fire, retreat)
-- [ ] AI adapts to player tactics across missions
+- [x] AI adapts to player tactics across missions
 
 ## Phase 19: Geoscape Mission Variety
 - [ ] Expand mission types beyond crash sites and terror missions

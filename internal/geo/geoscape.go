@@ -59,9 +59,10 @@ type Geoscape struct {
 	LastSpeed           int
 	CursorNode          int
 	TargetSelectionMode bool
-	PreBattleStats      map[string][6]int
-	ActiveCrashSite     *CrashSite
-	ActiveBaseDefense   *base.Base // non-nil if the current battle is defending this base
+	PreBattleStats map[string][6]int
+	ActiveCrashSite *CrashSite
+	ActiveBaseDefense *base.Base // non-nil if the current battle is defending this base
+	ActiveMissionType string // mission Type string of the battle in progress (for rewards)
 }
 
 func (gs *Geoscape) SelectedBase() *base.Base {
@@ -184,6 +185,10 @@ func (gs *Geoscape) Update() {
 			} else {
 				gs.Message = fmt.Sprintf(language.String("MSG_VICTORY_LOOT"), r.Kills, r.LootItems)
 			}
+			// Mission-specific bonus rewards (non-crash, non-base-defense)
+			if gs.ActiveMissionType != "" {
+				gs.applyMissionRewards(defendingBase)
+			}
 		} else {
 			if gs.ActiveBaseDefense != nil {
 				gs.destroyBase(defendingBase)
@@ -194,6 +199,7 @@ func (gs *Geoscape) Update() {
 		gs.MessageTimer = time.Now()
 		gs.ActiveCrashSite = nil
 		gs.ActiveBaseDefense = nil
+		gs.ActiveMissionType = ""
 
 		if gs.PreBattleStats != nil {
 			statNames := []string{"HP", "ACC", "REA", "STR", "BRA", "TU"}
@@ -462,6 +468,24 @@ func (gs *Geoscape) destroyBase(b *base.Base) {
 	gs.MessageTimer = time.Now()
 }
 
+// applyMissionRewards grants mission-specific bonus loot and funding when a
+// geoscape mission battle is won.
+func (gs *Geoscape) applyMissionRewards(b *base.Base) {
+	switch gs.ActiveMissionType {
+	case language.String("MISSION_COUNCIL"):
+		bonus := 100000
+		gs.Game.Funds += int64(bonus)
+		b.AddLoot([]string{"alloys", "alloys", "elerium"})
+		gs.Message = fmt.Sprintf(language.String("MSG_COUNCIL_REWARD"), bonus/1000)
+	case language.String("MISSION_SUPPLY"):
+		b.AddLoot([]string{"alloys", "alloys", "alloys", "elerium", "ufo_nav"})
+		gs.Message = language.String("MSG_SUPPLY_RAID_LOOT")
+	case language.String("MISSION_RESEARCH"):
+		b.AddLoot([]string{"alloys", "elerium", "ufo_power", "ufo_weapon"})
+		gs.Message = language.String("MSG_RESEARCH_LOOT")
+	}
+}
+
 func (gs *Geoscape) HasBaseAt(cityID int) *base.Base {
 	for _, b := range gs.Bases {
 		if b.CityID == cityID {
@@ -627,7 +651,34 @@ func (gs *Geoscape) dogfight(inter *Interceptor) {
 }
 
 func (gs *Geoscape) spawnMission() {
-	types := []string{language.String("MISSION_TERROR"), language.String("MISSION_SUPPLY"), language.String("MISSION_ALIEN_BASE"), language.String("MISSION_ABDUCTION")}
+	// Weighted mission pool. Common missions appear more often; alien base
+	// assaults, research raids, and council requests are rarer and more
+	// significant.
+	type weighted struct {
+		typ    string
+		weight int
+	}
+	pool := []weighted{
+		{language.String("MISSION_TERROR"), 30},
+		{language.String("MISSION_SUPPLY"), 22},
+		{language.String("MISSION_ABDUCTION"), 22},
+		{language.String("MISSION_RESEARCH"), 14},
+		{language.String("MISSION_COUNCIL"), 8},
+		{language.String("MISSION_ALIEN_BASE"), 4},
+	}
+	total := 0
+	for _, w := range pool {
+		total += w.weight
+	}
+	pick := rand.Intn(total)
+	chosen := pool[0].typ
+	for _, w := range pool {
+		if pick < w.weight {
+			chosen = w.typ
+			break
+		}
+		pick -= w.weight
+	}
 
 	// Build candidate list. If the player has multiple bases, aliens may
 	// directly assault a base (base defense scenario).
@@ -648,19 +699,20 @@ func (gs *Geoscape) spawnMission() {
 	}
 	target := candidates[rand.Intn(len(candidates))]
 
-	idx := rand.Intn(len(types))
 	turnsLeft := 24.0 // 24 game hours to respond
-	if types[idx] == language.String("MISSION_ALIEN_BASE") {
+	if chosen == language.String("MISSION_ALIEN_BASE") {
 		turnsLeft = 12.0 // 12 game hours for base assaults
+	} else if chosen == language.String("MISSION_COUNCIL") {
+		turnsLeft = 36.0 // council gives more time but offers a bonus
 	}
 	mission := &AlienMission{
-		Type:      types[idx],
+		Type:      chosen,
 		NodeID:    target.ID,
 		HoursLeft: turnsLeft,
 	}
 	gs.Missions = append(gs.Missions, mission)
 	target.MissionHere = true
-	gs.Message = fmt.Sprintf(language.String("MSG_ALERT_MISSION"), types[idx], target.Name)
+	gs.Message = fmt.Sprintf(language.String("MSG_ALERT_MISSION"), chosen, target.Name)
 	gs.MessageTimer = time.Now()
 	gs.Game.Bell()
 	audio.PlayAlert()
@@ -734,6 +786,10 @@ func (gs *Geoscape) RespondToMission(idx int) {
 		ufoName = language.String("MISSION_TYPE_BASE")
 	case language.String("MISSION_ABDUCTION"):
 		ufoName = language.String("MISSION_TYPE_ABDUCTION")
+	case language.String("MISSION_RESEARCH"):
+		ufoName = language.String("MISSION_TYPE_RESEARCH")
+	case language.String("MISSION_COUNCIL"):
+		ufoName = language.String("MISSION_TYPE_COUNCIL")
 	}
 	if mission.NodeID == 0 {
 		ufoName = "Cydonia"
@@ -741,9 +797,29 @@ func (gs *Geoscape) RespondToMission(idx int) {
 	if gs.ActiveBaseDefense != nil {
 		ufoName = language.String("MISSION_TYPE_BASE")
 	}
+	gs.ActiveMissionType = mission.Type
 	bs := battle.NewBattlescape(gs.Game, defBase, defBase.Soldiers, ufoName)
 	gs.Game.SetScreen(engine.StateBattlescape, bs)
 	gs.Game.PushState(engine.StateBattlescape)
+}
+
+// RespondToSelectedMission responds to the mission at the cursor's node if one
+// exists, otherwise the first available mission.
+func (gs *Geoscape) RespondToSelectedMission() {
+	idx := gs.missionIndexAtCursor()
+	if idx < 0 {
+		idx = 0
+	}
+	gs.RespondToMission(idx)
+}
+
+func (gs *Geoscape) missionIndexAtCursor() int {
+	for i, m := range gs.Missions {
+		if m.NodeID == gs.CursorNode {
+			return i
+		}
+	}
+	return -1
 }
 
 func (gs *Geoscape) Autoresolve() {
@@ -1427,7 +1503,7 @@ func (gs *Geoscape) HandleKey(e *tcell.EventKey) {
 	case "a", "A":
 		gs.Autoresolve()
 	case "m", "M":
-		gs.RespondToMission(0)
+		gs.RespondToSelectedMission()
 	case " ":
 		gs.TogglePause()
 	case "1":
@@ -1526,7 +1602,7 @@ func (gs *Geoscape) HandleMouse(e *tcell.EventMouse) {
 			func() { gs.moveCursor(0, 1) },
 			func() { gs.LaunchInterceptor() },
 			func() { gs.Autoresolve() },
-			func() { gs.RespondToMission(0) },
+			func() { gs.RespondToSelectedMission() },
 			func() {
 				gs.Game.SetScreen(engine.StateBase, base.NewBaseScreen(gs.Game, gs.SelectedBase()))
 				gs.Game.SetScreen(engine.StateEquip, base.NewEquipScreen(gs.Game, gs.SelectedBase()))

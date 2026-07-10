@@ -74,6 +74,25 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList, pla
 
 	ai.InCover = ai.evaluateCover(ai.Unit.X, ai.Unit.Y, m) > 0
 
+	// Adapt behavior to player tactics observed across missions
+	var tac engine.PlayerTactics
+	if tactics != nil {
+		tac = *tactics
+	}
+	tbc := tac.BattleCount
+	if tbc < 1 {
+		tbc = 1
+	}
+	avgGrenades := float64(tac.GrenadeUsage) / float64(tbc)
+	avgRange := tac.AverageRange
+	avgKills := float64(tac.TotalAlienKills) / float64(tbc)
+	avgLosses := float64(tac.TotalSoldierLosses) / float64(tbc)
+
+	grenadeHeavy := avgGrenades >= 1.5
+	longRange := avgRange >= 8.0
+	playerLosing := avgLosses >= 1.0                      // aliens dominating -> more aggressive
+	alienLosing := avgKills >= 2.0 && avgLosses < 0.5    // aliens dying fast -> more cautious
+
 	switch ai.State {
 	case AIPatrol:
 		if nearest != nil && dist < 12 {
@@ -117,7 +136,7 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList, pla
 				ai.State = AISuppress
 			} else if role == RoleFlanker && dist > 3 && ai.Unit.TU >= 20 {
 				ai.State = AIFlank
-			} else if dist <= 2 || ai.Unit.AlienType.Aggression > 7 {
+			} else if (dist <= 2 || (longRange && dist <= 3) || ai.Unit.AlienType.Aggression > 7) {
 				if dist <= 1 {
 					actions = append(actions, AlienAction{
 						Type: "melee", Unit: ai.Unit, Target: target,
@@ -143,14 +162,38 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList, pla
 					ToX: fx, ToY: fy,
 				})
 			}
-		} else if !ai.InCover && dist > 3 && ai.Unit.TU >= 16 {
-			cx, cy := ai.findCoverTowardTarget(nearest.X, nearest.Y, m, humanUnits)
-			if (cx != ai.Unit.X || cy != ai.Unit.Y) && m.Passable(cx, cy) {
-				actions = append(actions, AlienAction{
-					Type: "move", Unit: ai.Unit,
-					FromX: ai.Unit.X, FromY: ai.Unit.Y,
-					ToX: cx, ToY: cy,
-				})
+		} else if !ai.InCover && dist > 3 && ai.Unit.TU >= 16 || (longRange && dist > 4 && ai.Unit.TU >= 18) {
+			if longRange && dist > 4 {
+				// Player snipes from afar: close the distance aggressively
+				ax, ay := ai.advanceToward(nearest.X, nearest.Y, m, units)
+				if (ax != ai.Unit.X || ay != ai.Unit.Y) && m.Passable(ax, ay) {
+					actions = append(actions, AlienAction{
+						Type: "move", Unit: ai.Unit,
+						FromX: ai.Unit.X, FromY: ai.Unit.Y,
+						ToX: ax, ToY: ay,
+					})
+				}
+			} else {
+				cx, cy := ai.findCoverTowardTarget(nearest.X, nearest.Y, m, humanUnits)
+				if (cx != ai.Unit.X || cy != ai.Unit.Y) && m.Passable(cx, cy) {
+					actions = append(actions, AlienAction{
+						Type: "move", Unit: ai.Unit,
+						FromX: ai.Unit.X, FromY: ai.Unit.Y,
+						ToX: cx, ToY: cy,
+					})
+				}
+			}
+		} else if grenadeHeavy && ai.Unit.TU >= 14 {
+			// Player lobs grenades at clusters: spread out to minimize casualties
+			if buddy := ai.nearestAlly(units); buddy != nil {
+				fx, fy := ai.disperseFrom(buddy, m, humanUnits)
+				if (fx != ai.Unit.X || fy != ai.Unit.Y) && m.Passable(fx, fy) {
+					actions = append(actions, AlienAction{
+						Type: "move", Unit: ai.Unit,
+						FromX: ai.Unit.X, FromY: ai.Unit.Y,
+						ToX: fx, ToY: fy,
+					})
+				}
 			}
 		} else if ai.Unit.TU >= 20 && ai.Unit.TU < ai.Unit.MaxTU && target != nil && ai.canFireAt(target) {
 			actions = append(actions, AlienAction{
@@ -236,8 +279,20 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList, pla
 		}
 	}
 
-	if ai.Unit.HP < ai.Unit.MaxHP/4 && ai.Unit.Alive && ai.Unit.AlienType != nil {
-		if ai.Unit.AlienType.Bravery < 50 {
+	retreatHP := ai.Unit.MaxHP / 4
+	braveryThreshold := 50
+	if alienLosing {
+		// Aliens dying fast: retreat sooner and more readily
+		retreatHP = ai.Unit.MaxHP / 3
+		braveryThreshold = 70
+	}
+	if playerLosing {
+		// Aliens dominating: fight on, retreat only the timid
+		braveryThreshold = 30
+	}
+
+	if ai.Unit.HP < retreatHP && ai.Unit.Alive && ai.Unit.AlienType != nil {
+		if ai.Unit.AlienType.Bravery < braveryThreshold {
 			ai.State = AIRetreat
 			ai.TurnsSince = 0
 			return actions
@@ -497,6 +552,121 @@ func (ai *AlienAI) retreatTarget(threat *Unit, m *BattleMap) (int, int) {
 		}
 	}
 
+	return bestX, bestY
+}
+
+func (ai *AlienAI) advanceToward(tx, ty int, m *BattleMap, units UnitList) (int, int) {
+	dx := tx - ai.Unit.X
+	dy := ty - ai.Unit.Y
+
+	var cands [][2]int
+	if dx > 0 {
+		cands = append(cands, [2]int{ai.Unit.X + 1, ai.Unit.Y})
+	}
+	if dx < 0 {
+		cands = append(cands, [2]int{ai.Unit.X - 1, ai.Unit.Y})
+	}
+	if dy > 0 {
+		cands = append(cands, [2]int{ai.Unit.X, ai.Unit.Y + 1})
+	}
+	if dy < 0 {
+		cands = append(cands, [2]int{ai.Unit.X, ai.Unit.Y - 1})
+	}
+
+	bestX, bestY := ai.Unit.X, ai.Unit.Y
+	bestDist := math.Sqrt(float64(dx*dx + dy*dy))
+	for _, c := range cands {
+		nx, ny := c[0], c[1]
+		if nx < 0 || nx >= m.Width || ny < 0 || ny >= m.LevelHeight {
+			continue
+		}
+		if !m.Passable(nx, ny) {
+			continue
+		}
+		if u := units.At(nx, ny); u != nil && u != ai.Unit {
+			continue
+		}
+		ndx := tx - nx
+		ndy := ty - ny
+		nd := math.Sqrt(float64(ndx*ndx + ndy*ndy))
+		if nd < bestDist {
+			bestDist = nd
+			bestX, bestY = nx, ny
+		}
+	}
+	return bestX, bestY
+}
+
+func (ai *AlienAI) nearestAlly(units UnitList) *Unit {
+	var best *Unit
+	bestDist := 999.0
+	for _, u := range units {
+		if u == ai.Unit || !u.Alive || u.Faction != 1 {
+			continue
+		}
+		dx := float64(u.X - ai.Unit.X)
+		dy := float64(u.Y - ai.Unit.Y)
+		d := math.Sqrt(dx*dx + dy*dy)
+		if d < bestDist {
+			bestDist = d
+			best = u
+		}
+	}
+	return best
+}
+
+func (ai *AlienAI) disperseFrom(buddy *Unit, m *BattleMap, units UnitList) (int, int) {
+	dx := ai.Unit.X - buddy.X
+	dy := ai.Unit.Y - buddy.Y
+
+	var cands [][2]int
+	if dx > 0 {
+		cands = append(cands, [2]int{ai.Unit.X + 1, ai.Unit.Y})
+	}
+	if dx < 0 {
+		cands = append(cands, [2]int{ai.Unit.X - 1, ai.Unit.Y})
+	}
+	if dy > 0 {
+		cands = append(cands, [2]int{ai.Unit.X, ai.Unit.Y + 1})
+	}
+	if dy < 0 {
+		cands = append(cands, [2]int{ai.Unit.X, ai.Unit.Y - 1})
+	}
+	if dx > 0 && dy > 0 {
+		cands = append(cands, [2]int{ai.Unit.X + 1, ai.Unit.Y + 1})
+	}
+	if dx > 0 && dy < 0 {
+		cands = append(cands, [2]int{ai.Unit.X + 1, ai.Unit.Y - 1})
+	}
+	if dx < 0 && dy > 0 {
+		cands = append(cands, [2]int{ai.Unit.X - 1, ai.Unit.Y + 1})
+	}
+	if dx < 0 && dy < 0 {
+		cands = append(cands, [2]int{ai.Unit.X - 1, ai.Unit.Y - 1})
+	}
+
+	bestX, bestY := ai.Unit.X, ai.Unit.Y
+	bestScore := -999.0
+	for _, c := range cands {
+		nx, ny := c[0], c[1]
+		if nx < 0 || nx >= m.Width || ny < 0 || ny >= m.LevelHeight {
+			continue
+		}
+		if !m.Passable(nx, ny) {
+			continue
+		}
+		if u := units.At(nx, ny); u != nil && u != ai.Unit {
+			continue
+		}
+		bdx := nx - buddy.X
+		bdy := ny - buddy.Y
+		bDist := math.Sqrt(float64(bdx*bdx + bdy*bdy))
+		score := bDist + float64(ai.evaluateCover(nx, ny, m))*4
+		if score > bestScore {
+			bestScore = score
+			bestX, bestY = nx, ny
+		}
+	}
 	return bestX, bestY
 }
 

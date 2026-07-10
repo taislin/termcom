@@ -313,3 +313,99 @@ func TestMultiBaseSaveLoad(t *testing.T) {
 		t.Error("saved base city IDs do not match")
 	}
 }
+
+func TestSpawnMissionVariety(t *testing.T) {
+	g := &engine.Game{Funds: 1000000, GameTime: time.Date(1999, time.March, 1, 0, 0, 0, 0, time.UTC)}
+	gs := NewGeoscape(g)
+	seen := make(map[string]bool)
+	for i := 0; i < 2000; i++ {
+		gs.spawnMission()
+		if len(gs.Missions) > 0 {
+			seen[gs.Missions[len(gs.Missions)-1].Type] = true
+		}
+		// Keep the list bounded so the test stays fast
+		if len(gs.Missions) > 50 {
+			gs.Missions = gs.Missions[:1]
+		}
+	}
+	for _, want := range []string{
+		language.String("MISSION_TERROR"),
+		language.String("MISSION_SUPPLY"),
+		language.String("MISSION_ABDUCTION"),
+		language.String("MISSION_RESEARCH"),
+		language.String("MISSION_COUNCIL"),
+		language.String("MISSION_ALIEN_BASE"),
+	} {
+		if !seen[want] {
+			t.Errorf("mission type %q never spawned in 2000 attempts", want)
+		}
+	}
+}
+
+func TestRespondToSelectedMission(t *testing.T) {
+	g := &engine.Game{Funds: 1000000, GameTime: time.Date(1999, time.March, 1, 0, 0, 0, 0, time.UTC)}
+	gs := NewGeoscape(g)
+	// Place a mission at node 5
+	gs.Missions = append(gs.Missions, &AlienMission{Type: language.String("MISSION_TERROR"), NodeID: 5, HoursLeft: 24})
+	gs.CursorNode = 5
+	gs.RespondToSelectedMission()
+	if gs.Game.ActiveBattle == nil {
+		t.Error("expected a battle to start when responding to the cursor mission")
+	}
+	if gs.ActiveMissionType != language.String("MISSION_TERROR") {
+		t.Errorf("expected ActiveMissionType TERROR, got %q", gs.ActiveMissionType)
+	}
+}
+
+func TestApplyMissionRewards(t *testing.T) {
+	g := &engine.Game{Funds: 1000000, GameTime: time.Date(1999, time.March, 1, 0, 0, 0, 0, time.UTC)}
+	gs := NewGeoscape(g)
+	b := gs.SelectedBase()
+	before := g.Funds
+
+	gs.ActiveMissionType = language.String("MISSION_COUNCIL")
+	gs.applyMissionRewards(b)
+	if g.Funds <= before {
+		t.Errorf("council reward should increase funds, before=%d after=%d", before, g.Funds)
+	}
+	if b.CountItem("elerium") <= 0 {
+		t.Error("council reward should grant elerium loot")
+	}
+
+	gs.ActiveMissionType = language.String("MISSION_SUPPLY")
+	gs.applyMissionRewards(b)
+	if b.CountItem("alloys") <= 0 {
+		t.Error("supply raid reward should grant alloys")
+	}
+
+	gs.ActiveMissionType = language.String("MISSION_RESEARCH")
+	gs.applyMissionRewards(b)
+	if b.CountItem("ufo_power") <= 0 {
+		t.Error("research reward should grant ufo_power loot")
+	}
+}
+
+func TestGenerateAlienBaseMap(t *testing.T) {
+	m := battle.GenerateAlienBase(50, 50)
+	if m == nil {
+		t.Fatal("GenerateAlienBase returned nil")
+	}
+	// Should contain UFO walls (the alien structure) and rocky terrain
+	wallCount, rockCount := 0, 0
+	for y := 0; y < m.Height; y++ {
+		for x := 0; x < m.Width; x++ {
+			switch m.At(x, y).Type {
+			case battle.TileUFOWall:
+				wallCount++
+			case battle.TileRock:
+				rockCount++
+			}
+		}
+	}
+	if wallCount == 0 {
+		t.Error("alien base map should contain UFO walls")
+	}
+	if rockCount == 0 {
+		t.Error("alien base map should contain rocky terrain")
+	}
+}
