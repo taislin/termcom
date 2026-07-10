@@ -203,11 +203,10 @@ var AlienTypes = []AlienType{
 		ResistMelee: 40, ResistExplosive: -30, ResistLaser: -20,
 		Lore: "The brood mother. Larger and faster than her spawn, with a thick chitinous carapace.",
 	},
-	{
-		Name: "Hyperworm", ShortName: "HYP", Icon: 'ᚨ',
+	{Name: "Hyperworm", ShortName: "HYP", Icon: 'ᚨ',
 		HP: 8, TU: 70, Accuracy: 50, Bravery: 30, Reactions: 65,
 		Strength: 6, Psi: 0, Armour: 3, Weapon: "plasma_pistol",
-		Points: 4, Rank: 0, Aggression: 5, DamageType: DMG_MELEE,
+		Points: 4, Rank: 0, Aggression: 5, DamageType: DMG_PLASMA,
 		ResistMelee: 20, ResistKinetic: -15,
 		Lore: "Small parasitic worm-like creature. Swarms are the real threat.",
 	},

@@ -241,6 +241,7 @@ func (i *Interceptor) Disengage() {
 	i.Launching = false
 	if i.State != nil {
 		i.State.HP = i.HP
+		i.State.Ammo = i.Ammo
 		if i.HP <= 0 {
 			i.State.Status = "Destroyed"
 		} else {

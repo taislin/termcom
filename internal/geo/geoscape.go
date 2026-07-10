@@ -52,6 +52,7 @@ type Geoscape struct {
 	Bases               []*base.Base
 	ActiveBase          int
 	LastMonth           int
+	LastDay             int
 	Missions            []*AlienMission
 	AlienActivity       int
 	MissionsWon         int
@@ -96,6 +97,7 @@ func NewGeoscape(g *engine.Game) *Geoscape {
 		Message:      language.String("MSG_WELCOME"),
 		MessageTimer: time.Now(),
 		LastMonth:    int(g.GameTime.Month()),
+		LastDay:      g.GameTime.YearDay(),
 	}
 	return gs
 }
@@ -131,6 +133,7 @@ func NewGeoscapeFromSave(g *engine.Game, sd *save.SaveData) *Geoscape {
 		Message:       language.String("MSG_GAME_LOADED"),
 		MessageTimer:  time.Now(),
 		LastMonth:     int(sd.GameTime.Month()),
+		LastDay:       sd.GameTime.YearDay(),
 		AlienActivity: sd.AlienActivity,
 	}
 
@@ -144,10 +147,13 @@ func NewGeoscapeFromSave(g *engine.Game, sd *save.SaveData) *Geoscape {
 		ufoType := GetUFOTypeByName(u.TypeName)
 		if ufoType != nil {
 			gs.UFOs = append(gs.UFOs, &UFO{
-				Type:   *ufoType,
-				X:      u.X,
-				Y:      u.Y,
-				Active: u.Active,
+				Type:     *ufoType,
+				X:        u.X,
+				Y:        u.Y,
+				Progress: u.Progress,
+				NodeFrom: u.NodeFrom,
+				NodeTo:   u.NodeTo,
+				Active:   u.Active,
 			})
 		}
 	}
@@ -364,6 +370,15 @@ func (gs *Geoscape) Update() {
 			u.Update(gs.Cities)
 		}
 
+		// Prune inactive UFOs
+		activeUFOs := make(UFOList, 0, len(gs.UFOs))
+		for _, u := range gs.UFOs {
+			if u.Active {
+				activeUFOs = append(activeUFOs, u)
+			}
+		}
+		gs.UFOs = activeUFOs
+
 		for _, i := range gs.Interceptors {
 			if i.Launching {
 				reached := i.Update(gs.Cities, gs.UFOs)
@@ -372,6 +387,15 @@ func (gs *Geoscape) Update() {
 				}
 			}
 		}
+
+		// Prune destroyed interceptors
+		activeInterceptors := make(InterceptorList, 0, len(gs.Interceptors))
+		for _, i := range gs.Interceptors {
+			if i.HP > 0 {
+				activeInterceptors = append(activeInterceptors, i)
+			}
+		}
+		gs.Interceptors = activeInterceptors
 
 		if gs.Transport != nil {
 			t := gs.Transport
@@ -444,6 +468,15 @@ func (gs *Geoscape) Update() {
 
 		gs.Game.GameTime = gs.Game.GameTime.Add(time.Duration(minutes) * time.Minute)
 
+		// Daily AdvanceDay for all bases
+		curDay := gs.Game.GameTime.YearDay()
+		if curDay != gs.LastDay {
+			gs.LastDay = curDay
+			for _, b := range gs.Bases {
+				b.AdvanceDay()
+			}
+		}
+
 		// Advance research and manufacturing
 		if gs.TickCounter%30 == 0 {
 			if sb := gs.SelectedBase(); sb != nil {
@@ -469,15 +502,16 @@ func (gs *Geoscape) Update() {
 	curMonth := int(gs.Game.GameTime.Month())
 	if curMonth != gs.LastMonth {
 		gs.LastMonth = curMonth
-		if sb := gs.SelectedBase(); sb != nil {
-			sb.AlienActivity = gs.AlienActivity
-			salary, funding := sb.AdvanceMonth()
-			gs.Game.Funds += int64(funding - salary)
-			sb.AdvanceDay()
-			sb.AdvanceDay()
-			sb.AdvanceDay()
-			gs.Message = fmt.Sprintf(language.String("MSG_MONTHLY_REPORT"), funding/1000, salary/1000)
+		totalFunding := 0
+		totalSalary := 0
+		for _, b := range gs.Bases {
+			b.AlienActivity = gs.AlienActivity
+			salary, funding := b.AdvanceMonth()
+			totalFunding += funding
+			totalSalary += salary
 		}
+		gs.Game.Funds += int64(totalFunding - totalSalary)
+		gs.Message = fmt.Sprintf(language.String("MSG_MONTHLY_REPORT"), totalFunding/1000, totalSalary/1000)
 		gs.MessageTimer = time.Now()
 		gs.SaveGameAuto()
 	}
@@ -599,13 +633,24 @@ func (gs *Geoscape) ShortestPath(from, to int) []int {
 	}
 	queue := []item{{id: from, path: []int{from}}}
 	visited := map[int]bool{from: true}
+	maxEdgeDist := 50.0
 
 	for len(queue) > 0 {
 		cur := queue[0]
 		queue = queue[1:]
 
+		curCity := gs.CityByID(cur.id)
+		if curCity == nil {
+			continue
+		}
+
 		for _, n := range gs.Cities {
 			if visited[n.ID] {
+				continue
+			}
+			dx := float64(n.X - curCity.X)
+			dy := float64(n.Y - curCity.Y)
+			if dx*dx+dy*dy > maxEdgeDist*maxEdgeDist {
 				continue
 			}
 			newPath := make([]int, len(cur.path)+1)
@@ -957,8 +1002,11 @@ func (gs *Geoscape) buildSaveData() *save.SaveData {
 	for _, u := range gs.UFOs {
 		ufoSaves = append(ufoSaves, &save.UFOSave{
 			TypeName: u.Type.Name,
-			X:        float64(u.NodeFrom),
-			Y:        float64(u.NodeTo),
+			X:        u.X,
+			Y:        u.Y,
+			Progress: u.Progress,
+			NodeFrom: u.NodeFrom,
+			NodeTo:   u.NodeTo,
 			Active:   u.Active,
 		})
 	}
@@ -998,7 +1046,7 @@ func (gs *Geoscape) SaveGameToFile() {
 	if err != nil {
 		gs.Message = language.String("MSG_SAVE_FAILED") + err.Error()
 	} else {
-		gs.Message = language.String("MSG_GAME_SAVED")
+		gs.Message = language.String("MSG_GAME_SAVED_AUTO")
 	}
 	gs.MessageTimer = time.Now()
 }

@@ -115,4 +115,4 @@
 - [x] Panic effect: successful psi attack zeros TU and panics target (skips next turn)
 - [x] Mind Control research: +20 PsiSkill bonus to all soldiers at that base
 - [x] Psi formula: success = attackerSkill - defenderPsiStr/3, min 5% chance
-- [ ] Verify the codebase for errors/mistakes
+- [x] Verify the codebase for errors/mistakes

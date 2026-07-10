@@ -2,7 +2,6 @@ package engine
 
 import (
 	"math"
-	"sync"
 
 	"github.com/gdamore/tcell/v3"
 )
@@ -61,30 +60,6 @@ func (fb *FrameBuffer) Clear() {
 	}
 }
 
-var vfxPool = sync.Pool{
-	New: func() interface{} {
-		return &vfxBuffer{}
-	},
-}
-
-type vfxBuffer struct {
-	rgbs [][3]float64
-}
-
-func getVfxBuffer(size int) *vfxBuffer {
-	buf := vfxPool.Get().(*vfxBuffer)
-	if cap(buf.rgbs) < size {
-		buf.rgbs = make([][3]float64, size)
-	} else {
-		buf.rgbs = buf.rgbs[:size]
-	}
-	return buf
-}
-
-func putVfxBuffer(buf *vfxBuffer) {
-	vfxPool.Put(buf)
-}
-
 func colorRGB(c tcell.Color) (float64, float64, float64) {
 	r, g, b := c.RGB()
 	return float64(r), float64(g), float64(b)
@@ -127,10 +102,6 @@ func ApplyLightSource(s *ScreenRaw, fb *FrameBuffer, sourceX, sourceY int, radiu
 		return
 	}
 
-	buf := getVfxBuffer(count)
-	defer putVfxBuffer(buf)
-
-	idx := 0
 	for dy := -radiusInt; dy <= radiusInt; dy++ {
 		for dx := -radiusInt; dx <= radiusInt; dx++ {
 			x, y := sourceX+dx, sourceY+dy
@@ -151,7 +122,6 @@ func ApplyLightSource(s *ScreenRaw, fb *FrameBuffer, sourceX, sourceY int, radiu
 			newFg := tcell.NewRGBColor(int32(fgBlend[0]), int32(fgBlend[1]), int32(fgBlend[2]))
 			style := tcell.StyleDefault.Foreground(newFg).Background(newBg)
 			s.SetCell(x, y, cell.ch, style)
-			idx++
 		}
 	}
 }

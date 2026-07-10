@@ -100,6 +100,9 @@ type ResearchSave struct {
 type UFOSave struct {
 	TypeName string
 	X, Y     float64
+	Progress float64
+	NodeFrom int
+	NodeTo   int
 	Active   bool
 }
 
@@ -149,27 +152,13 @@ func migrateSave(data *SaveData) error {
 	if data.Version > CurrentVersion {
 		return fmt.Errorf("save version %d is newer than current version %d", data.Version, CurrentVersion)
 	}
-	if data.Version < 1 {
-		return fmt.Errorf("save version %d is too old or invalid", data.Version)
-	}
-	if data.Version == 1 {
-		migrateV1toV2(data)
+	if data.Version < 2 {
+		return fmt.Errorf("save version %d is too old (minimum v2)", data.Version)
 	}
 	if data.Version == 2 {
 		migrateV2toV3(data)
 	}
 	return nil
-}
-
-func migrateV1toV2(data *SaveData) {
-	if len(data.Bases) > 0 && data.Bases[0] != nil {
-		for _, s := range data.Bases[0].Soldiers {
-			if s.WeaponAmmo == 0 {
-				s.WeaponAmmo = 50
-			}
-		}
-	}
-	data.Version = 2
 }
 
 func migrateV2toV3(data *SaveData) {

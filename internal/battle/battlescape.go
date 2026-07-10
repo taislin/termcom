@@ -114,6 +114,9 @@ type Battlescape struct {
 	PlayerGrenadeCount int
 	PlayerFlankCount   int
 
+	MovementCache    map[[2]int]bool
+	MovementCacheKey int
+
 	// Input State
 	State BattleState
 }
@@ -128,10 +131,18 @@ func (bs *Battlescape) AddMessage(msg string) {
 
 // GetMovementRange returns a map of tiles the selected unit can reach
 func (bs *Battlescape) GetMovementRange() map[[2]int]bool {
-	result := make(map[[2]int]bool)
 	if bs.Selected == nil || bs.Selected.TU <= 0 {
-		return result
+		return nil
 	}
+
+	cacheKey := bs.Selected.X*10000 + bs.Selected.Y*100 + bs.Selected.TU
+	if bs.MovementCache != nil && bs.MovementCacheKey == cacheKey {
+		return bs.MovementCache
+	}
+
+	result := make(map[[2]int]bool)
+	bs.MovementCache = result
+	bs.MovementCacheKey = cacheKey
 
 	startX, startY := bs.Selected.X, bs.Selected.Y
 	maxTU := bs.Selected.TU
@@ -181,6 +192,8 @@ func (bs *Battlescape) GetMovementRange() map[[2]int]bool {
 		}
 	}
 
+	bs.MovementCache = result
+	bs.MovementCacheKey = cacheKey
 	return result
 }
 
@@ -898,6 +911,17 @@ func (bs *Battlescape) finishAlienTurn() {
 	bs.checkReinforcements()
 	bs.checkVictory()
 	bs.Selected = nil
+
+	// Decay stun: lose 2 stun points per turn (recovery)
+	for _, u := range bs.Units {
+		if u.Alive && u.StunPoints > 0 {
+			u.StunPoints -= 2
+			if u.StunPoints < 0 {
+				u.StunPoints = 0
+			}
+		}
+	}
+
 	for _, u := range bs.Units {
 		if u.Faction == 0 && u.Alive && u.HP > 0 && u.Level == bs.Map.CurrentLevel {
 			bs.Selected = u

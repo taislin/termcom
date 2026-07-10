@@ -90,7 +90,6 @@ var RuleItems = map[string]RuleItem{
 		Range:      15,
 		AmmoMax:    6,
 		Strength:   18,
-		IsAmmo:     true,
 	},
 	"auto": {
 		Type:       "STR_AUTO_CANNON",
@@ -123,7 +122,6 @@ var RuleItems = map[string]RuleItem{
 		Range:      30,
 		AmmoMax:    1,
 		Strength:   20,
-		IsAmmo:     true,
 	},
 	"laser_pistol": {
 		Type:       "STR_LASER_PISTOL",

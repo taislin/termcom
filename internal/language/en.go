@@ -4,7 +4,7 @@ func init() {
 	register("en", map[string]string{
 		// ── Menu ──────────────────────────────────────────
 		"MENU_TITLE":     "T U R N   B A S E D   T A C T I C S",
-		"MENU_SUBTITLE":  "v0.5",
+		"MENU_SUBTITLE":  "v0.27",
 		"MENU_NEW_GAME":  "New Game",
 		"MENU_CONTINUE":  "Continue",
 		"MENU_LOAD_GAME": "Load Game",
@@ -290,7 +290,6 @@ func init() {
 		// Battlescape help bars
 		"HELP_BATTLESCAPE":       "[hjkl]/[WSAD]=Move [Enter]=Select [Space]=Plan/Move [q]=Cycle [f]=Fire [r]=Reload [g]=Grenade [m]=Medikit [e]=End [c]=Crouch",
 		"HELP_STAIRS_SUFFIX":     " [<>]=Stairs",
-		"HELP_BATTLESCAPE_MOUSE": "Click=Select/Plan/Move ClickEnemy=Target/Attack Wheel=Scroll",
 
 		// ── Base Management ───────────────────────────────
 		"BASE_MANAGEMENT": "BASE MANAGEMENT",
@@ -583,7 +582,6 @@ func init() {
 		"HELP_BAT_CYCLE":     ">s                   Cycle soldiers",
 		"HELP_BAT_FIRE":      ">f                   Fire at target",
 		"HELP_BAT_RELOAD":    ">r                   Reload weapon",
-		"HELP_BAT_PSI":       ">p                   Psi attack",
 		"HELP_BAT_END":       ">e / n               End turn",
 		"HELP_BAT_CROUCH":    ">c                   Crouch (cover bonus)",
 		"HELP_BAT_GRENADE":   ">g                   Throw grenade",
