@@ -3,14 +3,12 @@
 ## Project: termcom — ASCII X-COM Demake in Go
 
 ### Overview
-A faithful demake of X-COM: UFO Defense (1994) rendered entirely in ASCII on a
-terminal. Built with Go + tcell. All gameplay screens — Geoscape, Base, Battlescape
-— are rendered as colored ASCII art.
+A faithful demake of X-COM: UFO Defense (1994, MicroProse) rendered entirely in
+coloured ASCII on a terminal. Built with Go + tcell. All gameplay screens — Geoscape,
+Base, Battlescape — are rendered as colored ASCII art.
 
 ### Build & Run
 ```bash
-export PATH=/home/civ13/go/bin:$PATH
-cd /home/civ13/gamedev/termcom
 go run ./cmd/termcom
 # or
 make run
@@ -37,39 +35,57 @@ make clean          # Remove binary and coverage
 
 ### Dependencies
 - `github.com/gdamore/tcell/v3` — Terminal rendering, input, colors
+- `github.com/ebitengine/oto/v3` — Cross-platform audio (Windows MIDI synthesis)
+- `github.com/gorilla/websocket` — WebSocket for browser version
 
 ### Architecture
 ```
-cmd/termcom/main.go          Entry point
+cmd/
+  termcom/              Main game entry point (with icon.ico + .syso)
+  termcom_battle/       Test script: direct battle launch (with icon.ico + .syso)
+  webserver/            Web server for browser version (xterm.js)
 internal/
-  audio/audio_common.go    Platform-independent audio dispatch (PlayWeaponFire)
-  audio/audio_windows.go   Windows MIDI-based sound synthesis (28 Play* functions)
-  audio/audio_other.go     Linux/macOS stub (terminal BEL fallback)
   engine/game.go           Game state machine, main loop, input dispatch
-  engine/screen.go         Low-level screen/cell rendering helpers + FrameBuffer
-  engine/vfx.go            True-color lighting, alpha blending, half-block rendering
-  engine/particles.go      Particle system with sync.Pool (explosions, smoke, rain)
+  engine/screen.go         Low-level screen/cell rendering, FrameBuffer, styles
+  engine/vfx.go            True-color lighting, alpha blending
+  engine/particles.go      Particle system with sync.Pool (explosions, smoke)
   engine/filters.go        Vision filters (night vision, thermal overlay)
   engine/water.go          Animated water with sine-wave color cycling
   engine/camera.go         Screen shake with decay and thread-safe offsets
   engine/menu.go           Title screen with per-character glow effect
+  engine/help.go           Help screen system (Geoscape, Base, Battlescape, Research)
+  engine/options.go        Options screen
+  engine/difficulty.go     Difficulty selection screen
+  engine/encyclopedia.go   Encyclopedia/unlocked tech viewer
+  engine/slotpicker.go     Save/Load slot picker
+  engine/config.go         Config and language integration
   geo/geoscape.go          Geoscape: regional dashboard, time, interceptions, minimap
   geo/world.go             World map data (equirectangular ASCII)
   geo/ufo.go               UFO spawning, movement
   geo/interceptor.go       Interceptor launch, dogfight, weapon systems
+  geo/transfer.go          Transport movement between bases
   battle/battlescape.go    Battlescape: turn logic, TU, line-of-sight, VFX integration
-  battle/map.go            Tactical map generation (crash sites, terror)
+  battle/map.go            Tactical map generation (crash sites, terror, forest, etc.)
   battle/gas.go            Volumetric smoke/poison gas grid with diffusion
   battle/unit.go           Soldiers and aliens on the tactical map
   battle/ai.go             Alien AI (patrol, seek, attack, flee, flank, retreat)
-  base/base.go             Base management screen, hangar management
-  base/facility.go         Facility types and construction, base state
+  battle/input.go          Battlescape input handling (mouse + keyboard)
+  base/base.go             Base management screen
+  base/facility.go         Facility types, construction, base state, hangars
+  base/equip.go            Soldier equipment screen
+  base/research.go         Research screen
+  base/manufacture.go      Manufacturing screen
   soldier/soldier.go       Soldier stats, ranking, inventory
-  data/items.go            Weapons, armor, items
-  data/aliens.go           Alien species, stat blocks
+  data/items.go            Weapons, armor, items (RuleItems map)
+  data/aliens.go           Alien species, stat blocks, portraits
   data/research.go         Research topic struct and dynamic lookup
   data/techgen.go          Procedural tech tree generator (DAG, tiers, cost variance)
-  data/procedural.go       Procedural alien species generation
+  data/procedural.go       Procedural alien species + portrait generation
+  save/save.go             Save/load system (JSON, version migration v1-v3)
+  language/en.go           English localization strings
+  audio/audio_common.go    Platform-independent audio dispatch
+  audio/audio_windows.go   Windows MIDI-based sound synthesis
+  audio/audio_other.go     Linux/macOS stub (oto PCM synthesis)
 ```
 
 ### Code Conventions
@@ -91,30 +107,44 @@ internal/
 - Manufacturing requires engineers + time + materials
 - Soldiers gain stats from combat experience
 - Line-of-sight uses Bresenham raycasting
+- Cover system: tiles have 0-100% damage reduction (walls 80%, rocks 70%, trees 60%, bushes 40%)
+- Procedural alien species + portraits per run
 
 ### Key Bindings (Geoscape)
 | Key | Action |
 |-----|--------|
-| Space | Pause/unpause time |
+| Space | Pause / unpause time |
 | 1-4 | Time compression |
 | B | Open base |
 | L | Launch interceptor |
-| M | Open manufacture |
-| R | Open research |
-| Esc | Quit |
+| A | Autoresolve nearest UFO |
+| M | Respond to mission |
+| R | Dispatch transport |
+| E | Open encyclopedia |
+| F5 / F9 | Save / Load |
+| Q | Quit |
 
 ### Key Bindings (Battlescape)
 | Key | Action |
 |-----|--------|
-| Arrow keys / hjkl | Move cursor / move unit |
-| Space | Select/confirm |
+| Arrow keys / hjkl / WASD | Move cursor |
+| Space / Enter | Select unit / confirm |
+| Q | Cycle soldiers |
 | F | Fire weapon |
 | R | Reload |
-| E | End turn |
+| E / N | End turn |
 | G | Grenade |
-| H | Medikit |
+| M | Medikit |
 | C | Crouch |
-| V | Toggle vision mode |
+| V | Toggle vision mode (Normal / Night / Thermal) |
 | P | Psi attack |
-| Esc | Cancel |
+| Esc | Cancel / deselect |
 | ? | Help |
+
+### Key Bindings (Battlescape Mouse)
+| Action | Input |
+|--------|-------|
+| Select/Move | Left click |
+| Target/Attack | Left click on enemy |
+| Cancel | Right click |
+| Scroll | Mouse wheel |
