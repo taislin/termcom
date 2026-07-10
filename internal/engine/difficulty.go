@@ -80,7 +80,6 @@ func (ds *DifficultyScreen) HandleKey(e *tcell.EventKey) {
 		if ds.OnConfirm != nil {
 			ds.OnConfirm(ds.Selection)
 		}
-		ds.Game.PopState()
 	}
 	switch e.Str() {
 	case "\r":
@@ -89,7 +88,6 @@ func (ds *DifficultyScreen) HandleKey(e *tcell.EventKey) {
 		if ds.OnConfirm != nil {
 			ds.OnConfirm(ds.Selection)
 		}
-		ds.Game.PopState()
 	}
 }
 
@@ -108,6 +106,5 @@ func (ds *DifficultyScreen) HandleMouse(e *tcell.EventMouse) {
 		if ds.OnConfirm != nil {
 			ds.OnConfirm(ds.Selection)
 		}
-		ds.Game.PopState()
 	}
 }
