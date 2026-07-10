@@ -2161,16 +2161,16 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 			sy++
 		}
 
-		// Draw half portrait on the right side
+		// Draw sprite on the right side
 		if u.Faction == 1 && u.AlienType != nil {
-			portrait := u.AlienType.GetPortrait().HalfPortrait()
+			portrait := u.AlienType.GetPortrait()
 			portX := sidebarX + halfSide
 			for i, sl := range portrait.Lines {
 				pl := sl.Content
 				if len(pl) > halfSide-1 {
 					pl = pl[:halfSide-1]
 				}
-				style := tcell.StyleDefault.Foreground(tcell.NewRGBColor(sl.Color[0], sl.Color[1], sl.Color[2]))
+				style := tcell.StyleDefault.Foreground(tcell.NewRGBColor(sl.Color[0], sl.Color[1], sl.Color[2])).Background(tcell.ColorBlack)
 				ctx.DrawString(portX, 2+i, pl, style)
 			}
 		}
@@ -2178,7 +2178,7 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 		// Draw log below both columns
 		portH := 0
 		if u.Faction == 1 && u.AlienType != nil {
-			portH = len(u.AlienType.GetPortrait().HalfPortrait().Lines)
+			portH = len(u.AlienType.GetPortrait().Lines)
 		}
 		if sy < 2+portH {
 			sy = 2 + portH
