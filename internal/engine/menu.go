@@ -258,9 +258,9 @@ func (ms *MenuScreen) Render(ctx *ScreenCtx) {
 
 func (ms *MenuScreen) options() []string {
 	if HasSave() {
-		return []string{language.String("MENU_NEW_GAME"), language.String("MENU_CONTINUE"), language.String("MENU_LOAD_GAME"), language.String("MENU_QUIT")}
+		return []string{language.String("MENU_NEW_GAME"), language.String("MENU_CONTINUE"), language.String("MENU_LOAD_GAME"), language.String("MENU_OPTIONS"), language.String("MENU_QUIT")}
 	}
-	return []string{language.String("MENU_NEW_GAME"), language.String("MENU_QUIT")}
+	return []string{language.String("MENU_NEW_GAME"), language.String("MENU_OPTIONS"), language.String("MENU_QUIT")}
 }
 
 func (ms *MenuScreen) HandleKey(e *tcell.EventKey) {
@@ -298,13 +298,23 @@ func (ms *MenuScreen) HandleKey(e *tcell.EventKey) {
 		ms.Selection = 0
 		ms.confirm()
 	case "2":
-		if HasSave() {
-			ms.Selection = 1
+		ms.Selection = 1
+		if ms.Selection < len(opts) {
 			ms.confirm()
 		}
 	case "3":
-		if HasSave() {
-			ms.Selection = 2
+		ms.Selection = 2
+		if ms.Selection < len(opts) {
+			ms.confirm()
+		}
+	case "4":
+		ms.Selection = 3
+		if ms.Selection < len(opts) {
+			ms.confirm()
+		}
+	case "5":
+		ms.Selection = 4
+		if ms.Selection < len(opts) {
 			ms.confirm()
 		}
 	}
@@ -324,6 +334,11 @@ func (ms *MenuScreen) confirm() {
 		if ms.Game.OnContinue != nil {
 			ms.Game.OnContinue()
 		}
+	case language.String("MENU_OPTIONS"):
+		if _, ok := ms.Game.screens[StateOptions]; !ok {
+			ms.Game.SetScreen(StateOptions, NewOptionsScreen(ms.Game))
+		}
+		ms.Game.PushState(StateOptions)
 	case language.String("MENU_QUIT"):
 		ms.Game.Quit()
 	}
