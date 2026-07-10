@@ -56,13 +56,15 @@ type Soldier struct {
 }
 
 func NewSoldier(name string) *Soldier {
+	hp := 20 + rand.Intn(6)
+	tu := 45 + rand.Intn(11)
 	return &Soldier{
 		Name:      name,
 		Rank:      Rookie,
-		HP:        20 + rand.Intn(6),
-		MaxHP:     20 + rand.Intn(6),
-		TU:        45 + rand.Intn(11),
-		MaxTU:     45 + rand.Intn(11),
+		HP:        hp,
+		MaxHP:     hp,
+		TU:        tu,
+		MaxTU:     tu,
 		Accuracy:  40 + rand.Intn(21),
 		Bravery:   30 + rand.Intn(41),
 		Reactions: 30 + rand.Intn(21),

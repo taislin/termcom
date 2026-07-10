@@ -115,8 +115,10 @@ func (s *ScreenRaw) FrameBuffer() *FrameBuffer {
 }
 
 func (s *ScreenRaw) DrawString(x, y int, str string, style tcell.Style) {
-	for i, ch := range str {
-		s.SetCell(x+i, y, ch, style)
+	currX := x
+	for _, ch := range str {
+		s.SetCell(currX, y, ch, style)
+		currX++
 	}
 }
 

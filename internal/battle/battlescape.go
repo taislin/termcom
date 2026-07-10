@@ -519,10 +519,7 @@ func (bs *Battlescape) executeAlienAction(action AlienAction) {
 			engine.SpawnExplosion(bs.Particles, action.Target.X-bs.ScrollX+1, action.Target.Y-bs.ScrollY+1, tcell.NewRGBColor(255, 80, 30), 8)
 			bs.Camera.TriggerShake(0.5)
 			bs.SpawnBloodSplatter(action.Target)
-			name := action.Target.Soldier.Name
-			if action.Target.AlienType != nil {
-				name = action.Target.AlienType.Name
-			}
+			name := action.Target.Name()
 			bs.AddMessage(fmt.Sprintf(language.String("MSG_ALIEN_HIT"), name, damage))
 			if !action.Target.Alive {
 				bs.AddMessage(fmt.Sprintf(language.String("MSG_ALIEN_KILL"), name))
@@ -552,10 +549,7 @@ func (bs *Battlescape) executeAlienAction(action AlienAction) {
 			Symbol: 'X',
 			Style:  engine.StyleRedBold,
 		}
-		name := action.Target.Soldier.Name
-		if action.Target.AlienType != nil {
-			name = action.Target.AlienType.Name
-		}
+		name := action.Target.Name()
 		bs.AddMessage(fmt.Sprintf(language.String("MSG_ALIEN_MELEE"), action.Unit.AlienType.Name, name, damage))
 		if !action.Target.Alive {
 			bs.AddMessage(fmt.Sprintf(language.String("MSG_ALIEN_KILL"), name))
@@ -1046,6 +1040,10 @@ func (bs *Battlescape) learnFromKills() {
 func (bs *Battlescape) restorePlayerTU() {
 	for _, u := range bs.Units {
 		if u.Faction == 0 && u.Alive {
+			if u.Panicked {
+				u.Panicked = false
+				continue
+			}
 			u.TU = u.MaxTU
 		}
 	}
@@ -1237,20 +1235,19 @@ func (bs *Battlescape) Reload() {
 		bs.AddMessage(language.String("MSG_NOT_ENOUGH_TU_RELOAD"))
 		return
 	}
-	w := data.Weapons[bs.Selected.Weapon]
+	w := data.RuleItems[bs.Selected.Weapon]
 	if w.AmmoMax >= 99 {
 		bs.AddMessage(language.String("MSG_ENERGY_WEAPON"))
 		return
 	}
-	if w.AmmoCur >= w.AmmoMax {
+	if bs.Selected.WeaponAmmo >= w.AmmoMax {
 		bs.AddMessage(language.String("MSG_WEAPON_LOADED"))
 		return
 	}
 	bs.Selected.TU -= 8
-	w.AmmoCur = w.AmmoMax
-	data.Weapons[bs.Selected.Weapon] = w
+	bs.Selected.WeaponAmmo = w.AmmoMax
 	audio.PlayReload()
-	bs.AddMessage(fmt.Sprintf(language.String("MSG_RELOADED"), w.Name, w.AmmoCur, w.AmmoMax))
+	bs.AddMessage(fmt.Sprintf(language.String("MSG_RELOADED"), w.Name, bs.Selected.WeaponAmmo, w.AmmoMax))
 }
 
 func (bs *Battlescape) EndTurn() {
@@ -1496,7 +1493,6 @@ func (bs *Battlescape) Grenade() {
 	if bs.Selected == nil || bs.Phase != PhasePlayerTurn {
 		return
 	}
-	bs.PlayerGrenadeCount++
 	if bs.Selected.TU < 20 {
 		bs.AddMessage(language.String("MSG_NOT_ENOUGH_TU_GRENADE"))
 		return
@@ -1514,6 +1510,7 @@ func (bs *Battlescape) Grenade() {
 		return
 	}
 
+	bs.PlayerGrenadeCount++
 	bs.Selected.TU -= 20
 
 	for _, u := range bs.Units {

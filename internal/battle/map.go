@@ -1058,7 +1058,7 @@ func GenerateCydonia(w, h int) *BattleMap {
 	for _, pos := range podPositions {
 		if pos[0] > 1 && pos[0] < w-7 && pos[1] > 1 && pos[1] < h-7 {
 			m.drawRect(pos[0], pos[1], 6, 6, TileUFOWall)
-			m.fillRect(pos[1]+1, pos[1]+1, 4, 4, TileUFOFloor)
+			m.fillRect(pos[0]+1, pos[1]+1, 4, 4, TileUFOFloor)
 			m.Set(pos[0]+3, pos[1]+5, TileDoor)
 		}
 	}

@@ -41,6 +41,8 @@ type BaseSave struct {
 	UnlockedWeapons      []string
 	UnlockedArmor        []string
 	Stores               map[string]int
+	UsedStorage          int
+	LiveAliens           []string
 	Soldiers             []*SoldierSave
 	Facilities           []*FacilitySave
 	ManufactureQueue     []*ManufJobSave
@@ -218,6 +220,8 @@ func FromBase(b *base.Base) *BaseSave {
 		UnlockedWeapons:      b.UnlockedWeapons,
 		UnlockedArmor:        b.UnlockedArmor,
 		Stores:               b.Stores,
+		UsedStorage:          b.UsedStorage,
+		LiveAliens:           b.LiveAliens,
 		Hangars:              b.Hangars,
 	}
 	for _, s := range b.Soldiers {
@@ -289,6 +293,11 @@ func ToBase(bs *BaseSave) *base.Base {
 	b.Stores = bs.Stores
 	if b.Stores == nil {
 		b.Stores = make(map[string]int)
+	}
+	b.UsedStorage = bs.UsedStorage
+	b.LiveAliens = bs.LiveAliens
+	if b.LiveAliens == nil {
+		b.LiveAliens = make([]string, 0)
 	}
 	b.Hangars = bs.Hangars
 	if b.Hangars == nil {

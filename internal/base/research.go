@@ -170,6 +170,7 @@ func (rs *ResearchScreen) renderTree(ctx *engine.ScreenCtx, x, y, maxW, maxH int
 	y++
 	ctx.DrawString(x, y, strings.Repeat("\u2500", maxW), engine.StyleGray)
 	y++
+	startY := y
 
 	if entry == nil || entry.topic == nil {
 		return
@@ -185,7 +186,7 @@ func (rs *ResearchScreen) renderTree(ctx *engine.ScreenCtx, x, y, maxW, maxH int
 		y++
 	} else {
 		for _, reqID := range t.Requires {
-			if y >= y+maxH {
+			if y-startY >= maxH {
 				break
 			}
 			rt := data.ResearchByID(reqID)
@@ -215,7 +216,7 @@ func (rs *ResearchScreen) renderTree(ctx *engine.ScreenCtx, x, y, maxW, maxH int
 		y++
 	} else {
 		for _, u := range unlocks {
-			if y >= y+maxH {
+			if y-startY >= maxH {
 				break
 			}
 			prefix := "\u251C\u2500\u2500 "

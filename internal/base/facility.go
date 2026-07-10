@@ -468,7 +468,7 @@ func (b *Base) InterrogateAlien(alienName string) (string, bool) {
 	if len(b.LiveAliens) == 0 || b.TotalLabs() == 0 {
 		return "", false
 	}
-	// Find and remove the alien from LiveAliens
+	// Find alien in LiveAliens
 	idx := -1
 	for i, a := range b.LiveAliens {
 		if a == alienName {
@@ -479,9 +479,8 @@ func (b *Base) InterrogateAlien(alienName string) (string, bool) {
 	if idx < 0 {
 		return "", false
 	}
-	b.LiveAliens = append(b.LiveAliens[:idx], b.LiveAliens[idx+1:]...)
 
-	// Look up the alien type to find its autopsy research ID
+	// Validate we can provide a benefit BEFORE consuming the alien
 	at := data.GetAlienByName(alienName)
 	if at == nil {
 		return "", false
@@ -495,40 +494,49 @@ func (b *Base) InterrogateAlien(alienName string) (string, bool) {
 		return "", false
 	}
 
-	// If this autopsy is already completed, grant bonus progress to active research
+	// Determine benefit before consuming
+	benefit := false
+	topicName := ""
 	if b.HasResearch(autopsyID) {
 		if b.ActiveResearch != nil && !b.ActiveResearch.Completed {
-			bonus := b.ActiveResearch.Cost / 4
-			b.ActiveResearch.Progress += bonus
-			return topic.Name, true
+			b.ActiveResearch.Progress += b.ActiveResearch.Cost / 4
+			benefit = true
+			topicName = topic.Name
 		}
+	} else if b.ActiveResearch != nil && b.ActiveResearch.TopicID == autopsyID && !b.ActiveResearch.Completed {
+		b.ActiveResearch.Progress = b.ActiveResearch.Cost
+		benefit = true
+		topicName = topic.Name
+	} else {
+		b.CompletedResearch = append(b.CompletedResearch, autopsyID)
+		b.UnlockedWeapons = append(b.UnlockedWeapons, topic.UnlockWeap...)
+		b.UnlockedArmor = append(b.UnlockedArmor, topic.UnlockArmor...)
+		for _, item := range topic.UnlockItems {
+			b.AddItem(item, 1)
+		}
+		for _, wpn := range topic.UnlockWeap {
+			if _, ok := data.RuleItems[wpn]; ok {
+				b.Stores[wpn] += 1
+				b.UsedStorage++
+			}
+		}
+		for _, arm := range topic.UnlockArmor {
+			if _, ok := data.Armors[arm]; ok {
+				b.Stores[arm] += 1
+				b.UsedStorage++
+			}
+		}
+		benefit = true
+		topicName = topic.Name
+	}
+
+	if !benefit {
 		return "", false
 	}
 
-	// If this autopsy is the current active research, complete it
-	if b.ActiveResearch != nil && b.ActiveResearch.TopicID == autopsyID && !b.ActiveResearch.Completed {
-		b.ActiveResearch.Progress = b.ActiveResearch.Cost
-		return topic.Name, true
-	}
-
-	// Otherwise, complete the autopsy directly
-	b.CompletedResearch = append(b.CompletedResearch, autopsyID)
-	b.UnlockedWeapons = append(b.UnlockedWeapons, topic.UnlockWeap...)
-	b.UnlockedArmor = append(b.UnlockedArmor, topic.UnlockArmor...)
-	for _, item := range topic.UnlockItems {
-		b.AddItem(item, 1)
-	}
-	for _, wpn := range topic.UnlockWeap {
-		if _, ok := data.RuleItems[wpn]; ok {
-			b.Stores[wpn] = 1
-		}
-	}
-	for _, arm := range topic.UnlockArmor {
-		if _, ok := data.Armors[arm]; ok {
-			b.Stores[arm] = 1
-		}
-	}
-	return topic.Name, true
+	// Now consume the alien
+	b.LiveAliens = append(b.LiveAliens[:idx], b.LiveAliens[idx+1:]...)
+	return topicName, true
 }
 
 func (b *Base) HasResearch(topicID string) bool {

@@ -158,9 +158,8 @@ func (u *Unit) FireAt(target *Unit, m *BattleMap) (int, bool, error) {
 	
 	if u.Weapon == "stun_rod" {
 		target.StunPoints += damage
-		if target.StunPoints >= target.HP {
+		if target.StunPoints >= target.MaxHP {
 			target.Stunned = true
-			target.Alive = false
 		}
 		return damage, true, nil
 	}

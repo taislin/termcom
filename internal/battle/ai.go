@@ -142,7 +142,7 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList, pla
 					FromX: ai.Unit.X, FromY: ai.Unit.Y,
 					ToX: target.X, ToY: target.Y,
 				})
-			} else if (dist <= 2 || (longRange && dist <= 3) || ai.Unit.AlienType.Aggression > 7) {
+			} else if (dist <= 2 || (longRange && dist <= 3) || (ai.Unit.AlienType != nil && ai.Unit.AlienType.Aggression > 7)) {
 				if dist <= 1 {
 					actions = append(actions, AlienAction{
 						Type: "melee", Unit: ai.Unit, Target: target,
