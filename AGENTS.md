@@ -41,6 +41,9 @@ make clean          # Remove binary and coverage
 ```
 cmd/ycom/main.go          Entry point
 internal/
+  audio/audio_common.go    Platform-independent audio dispatch (PlayWeaponFire)
+  audio/audio_windows.go   Windows MIDI-based sound synthesis (28 Play* functions)
+  audio/audio_other.go     Linux/macOS stub (terminal BEL fallback)
   engine/game.go           Game state machine, main loop, input dispatch
   engine/screen.go         Low-level screen/cell rendering helpers + FrameBuffer
   engine/vfx.go            True-color lighting, alpha blending, half-block rendering

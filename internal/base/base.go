@@ -5,6 +5,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/civ13/ycom/internal/audio"
 	"github.com/civ13/ycom/internal/data"
 	"github.com/civ13/ycom/internal/engine"
 	"github.com/civ13/ycom/internal/language"
@@ -303,6 +304,7 @@ func (bs *BaseScreen) renderHangars(ctx *engine.ScreenCtx, x, y, w, h int) {
 func (bs *BaseScreen) HandleKey(e *tcell.EventKey) {
 	switch e.Key() {
 	case tcell.KeyUp:
+		audio.PlayMenuNav()
 		bs.Selection--
 		if bs.Selection < 0 {
 			if bs.Tab == 1 {
@@ -314,6 +316,7 @@ func (bs *BaseScreen) HandleKey(e *tcell.EventKey) {
 			}
 		}
 	case tcell.KeyDown:
+		audio.PlayMenuNav()
 		bs.Selection++
 		if bs.Tab == 1 {
 			if bs.Selection >= len(bs.Base.Soldiers) {
@@ -329,12 +332,14 @@ func (bs *BaseScreen) HandleKey(e *tcell.EventKey) {
 			}
 		}
 	case tcell.KeyLeft:
+		audio.PlayMenuNav()
 		bs.Tab--
 		if bs.Tab < 0 {
 			bs.Tab = 4
 		}
 		bs.Selection = 0
 	case tcell.KeyRight:
+		audio.PlayMenuNav()
 		bs.Tab++
 		if bs.Tab > 5 {
 			bs.Tab = 0

@@ -124,3 +124,81 @@ func PlayMedikit() {
 		playNote(72, 100, 0, 100*time.Millisecond)
 	}()
 }
+
+func PlayLaserFire() {
+	playNote(80, 100, 0, 60*time.Millisecond)
+	go func() {
+		time.Sleep(20 * time.Millisecond)
+		playNote(84, 80, 0, 40*time.Millisecond)
+	}()
+}
+
+func PlayPlasmaFire() {
+	playNote(38, 120, 9, 80*time.Millisecond)
+	go func() {
+		time.Sleep(40 * time.Millisecond)
+		playNote(42, 100, 9, 60*time.Millisecond)
+	}()
+}
+
+func PlayMeleeFire() {
+	playNote(48, 110, 9, 40*time.Millisecond)
+	go func() {
+		time.Sleep(30 * time.Millisecond)
+		playNote(44, 120, 9, 50*time.Millisecond)
+	}()
+}
+
+func PlayBallisticFire() {
+	playNote(42, 120, 9, 50*time.Millisecond)
+}
+
+func PlayMenuNav() {
+	playNote(72, 60, 0, 20*time.Millisecond)
+}
+
+func PlayResearchComplete() {
+	notes := []byte{60, 64, 67, 72, 76}
+	for i, note := range notes {
+		go func(n byte, delay int) {
+			time.Sleep(time.Duration(delay) * 100 * time.Millisecond)
+			playNote(n, 90, 0, 150*time.Millisecond)
+		}(note, i)
+	}
+}
+
+func PlayManufactureComplete() {
+	playNote(69, 100, 0, 80*time.Millisecond)
+	go func() {
+		time.Sleep(100 * time.Millisecond)
+		playNote(76, 100, 0, 120*time.Millisecond)
+	}()
+}
+
+func PlayUFODetected() {
+	notes := []byte{72, 69, 72, 69}
+	for i, note := range notes {
+		go func(n byte, delay int) {
+			time.Sleep(time.Duration(delay) * 200 * time.Millisecond)
+			playNote(n, 110, 0, 200*time.Millisecond)
+		}(note, i)
+	}
+}
+
+func PlayMissionWarning() {
+	notes := []byte{74, 72, 74, 72}
+	for i, note := range notes {
+		go func(n byte, delay int) {
+			time.Sleep(time.Duration(delay) * 150 * time.Millisecond)
+			playNote(n, 110, 0, 150*time.Millisecond)
+		}(note, i)
+	}
+}
+
+func PlayDistantExplosion() {
+	playNote(28, 80, 9, 400*time.Millisecond)
+}
+
+func PlayWind() {
+	playNote(74, 30, 0, 500*time.Millisecond)
+}

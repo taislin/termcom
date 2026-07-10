@@ -4,20 +4,33 @@ package audio
 
 import "os"
 
-func Init() {}
-func Close() {}
-func PlayClick() { os.Stdout.WriteString("\a") }
-func PlayShoot() { os.Stdout.WriteString("\a") }
-func PlayExplosion() { os.Stdout.WriteString("\a") }
-func PlayChime() { os.Stdout.WriteString("\a") }
-func PlayAlert() { os.Stdout.WriteString("\a") }
-func PlayHit() { os.Stdout.WriteString("\a") }
-func PlayMiss() { os.Stdout.WriteString("\a") }
-func PlayAlienTurn() { os.Stdout.WriteString("\a") }
-func PlayVictory() { os.Stdout.WriteString("\a") }
-func PlayDefeat() { os.Stdout.WriteString("\a") }
-func PlayGrenade() { os.Stdout.WriteString("\a") }
-func PlaySelect() { os.Stdout.WriteString("\a") }
-func PlayMove() { os.Stdout.WriteString("\a") }
-func PlayReload() { os.Stdout.WriteString("\a") }
-func PlayMedikit() { os.Stdout.WriteString("\a") }
+func bell() { os.Stdout.WriteString("\a") }
+
+func Init()                  {}
+func Close()                 {}
+func PlayClick()             { bell() }
+func PlayShoot()             { bell() }
+func PlayExplosion()         { bell() }
+func PlayChime()             { bell() }
+func PlayAlert()             { bell() }
+func PlayHit()               { bell() }
+func PlayMiss()              { bell() }
+func PlayAlienTurn()         { bell() }
+func PlayVictory()           { bell() }
+func PlayDefeat()            { bell() }
+func PlayGrenade()           { bell() }
+func PlaySelect()            { bell() }
+func PlayMove()              { bell() }
+func PlayReload()            { bell() }
+func PlayMedikit()           { bell() }
+func PlayLaserFire()         { bell() }
+func PlayPlasmaFire()        { bell() }
+func PlayMeleeFire()         { bell() }
+func PlayBallisticFire()     { bell() }
+func PlayMenuNav()           { bell() }
+func PlayResearchComplete()  { bell() }
+func PlayManufactureComplete() { bell() }
+func PlayUFODetected()       { bell() }
+func PlayMissionWarning()    { bell() }
+func PlayDistantExplosion()  { bell() }
+func PlayWind()              { bell() }

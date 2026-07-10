@@ -2,7 +2,6 @@ package engine
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/civ13/ycom/internal/data"
 	"github.com/civ13/ycom/internal/language"
@@ -191,17 +190,16 @@ func (es *EncyclopediaScreen) Render(ctx *ScreenCtx) {
 			if e.Category == "Aliens" && e.AlienType != nil {
 				at := e.AlienType
 				portrait := at.GetPortrait()
-				pLines := strings.Split(portrait, "\n")
-				pX := infoX + infoW - len(pLines[0]) - 2
+				pX := infoX + infoW - len(portrait.Lines[0].Content) - 2
 				pY := listY + 5
 
 				ctx.DrawString(pX, pY-1, at.Name, StyleRedBold)
-				pStyle := StyleYellow
-				for i, pl := range pLines {
-					ctx.DrawString(pX, pY+i, pl, pStyle)
+				for i, sl := range portrait.Lines {
+					style := tcell.StyleDefault.Foreground(tcell.NewRGBColor(sl.Color[0], sl.Color[1], sl.Color[2]))
+					ctx.DrawString(pX, pY+i, sl.Content, style)
 				}
 
-				statY := pY + len(pLines) + 1
+				statY := pY + len(portrait.Lines) + 1
 				ctx.DrawString(infoX+1, statY, fmt.Sprintf(language.String("ENCYCLO_ALIEN_STATS_1"), at.HP, at.TU, at.Accuracy), StyleGray)
 				ctx.DrawString(infoX+1, statY+1, fmt.Sprintf(language.String("ENCYCLO_ALIEN_STATS_2"), at.Strength, at.Psi, at.Bravery), StyleGray)
 				ctx.DrawString(infoX+1, statY+2, fmt.Sprintf(language.String("ENCYCLO_ALIEN_STATS_3"), data.DamageTypeStr(at.DamageType), data.RuleItems[at.Weapon].Name), StyleGray)

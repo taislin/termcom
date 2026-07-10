@@ -351,10 +351,12 @@ func (gs *Geoscape) Update() {
 		var msgs []string
 		done := gs.Base.AdvanceResearch()
 		for _, name := range done {
+			audio.PlayResearchComplete()
 			msgs = append(msgs, fmt.Sprintf(language.String("MSG_RESEARCH_COMPLETE"), name))
 		}
 		crafted := gs.Base.AdvanceManufacture()
 		for _, item := range crafted {
+			audio.PlayManufactureComplete()
 			msgs = append(msgs, fmt.Sprintf(language.String("MSG_MANUFACTURE_COMPLETE"), item))
 		}
 			if len(msgs) > 0 {
@@ -445,6 +447,7 @@ func (gs *Geoscape) dogfight(inter *Interceptor) {
 	}
 	
 	damage := inter.FireAt(ufo)
+	audio.PlayShoot()
 	if damage == 0 {
 		gs.Message = fmt.Sprintf(language.String("MSG_INTERCEPTOR_MISS"), inter.Weapon.Name)
 		gs.MessageTimer = time.Now()
@@ -474,6 +477,7 @@ func (gs *Geoscape) dogfight(inter *Interceptor) {
 	// UFO fires back
 	if ufo.Active && inter.HP > 0 {
 		ufoDmg := ufo.FireAtInterceptor(inter)
+		audio.PlayPlasmaFire()
 		if ufoDmg > 0 {
 			gs.Message = fmt.Sprintf(language.String("MSG_UFO_HIT_INTERCEPTOR"), ufoDmg, inter.HP, inter.MaxHP)
 			gs.MessageTimer = time.Now()
@@ -491,32 +495,6 @@ func (gs *Geoscape) dogfight(inter *Interceptor) {
 			inter.Disengage()
 		}
 	}
-}
-
-func (gs *Geoscape) startBattle(ufo *UFO) {
-	aliveCount := 0
-	for _, s := range gs.Base.Soldiers {
-		if s.HP > 0 {
-			aliveCount++
-		}
-	}
-	if aliveCount == 0 {
-		gs.Message = language.String("MSG_NO_SOLDIERS")
-		gs.MessageTimer = time.Now()
-		return
-	}
-	gs.Game.Paused = true
-	gs.Message = fmt.Sprintf(language.String("MSG_SHOT_DOWN"), ufo.Type.Name)
-	gs.MessageTimer = time.Now()
-
-	gs.PreBattleStats = make(map[string][6]int)
-	for _, s := range gs.Base.Soldiers {
-		gs.PreBattleStats[s.Name] = [6]int{s.HP, s.Accuracy, s.Reactions, s.Strength, s.Bravery, s.TU}
-	}
-
-	bs := battle.NewBattlescape(gs.Game, gs.Base, gs.Base.Soldiers, ufo.Type.Name)
-	gs.Game.SetScreen(engine.StateBattlescape, bs)
-	gs.Game.PushState(engine.StateBattlescape)
 }
 
 func (gs *Geoscape) spawnMission() {

@@ -206,13 +206,19 @@ type portraitPart struct {
 	weapon rune // held weapon
 }
 
-func generatePortrait(rng *rand.Rand, icon rune, dmgType int, rank int) string {
+func generatePortrait(rng *rand.Rand, icon rune, dmgType int, rank int) StyledPortrait {
 	parts := portraitPart{
 		crown:  pickRune(rng, []rune{' ', '°', '*', '+', '÷', '¤', '~', '^'}),
 		chest:  pickRune(rng, []rune{' ', '·', ':', 'o', '×', '†', '◊', '≈'}),
 		weapon: pickRune(rng, []rune{'/', '\\', '|', '†', '¶', '©', '£', '¥'}),
 	}
-	return assemblePortrait(parts, dmgType, rank)
+	// Generate a unique palette for this species variant
+	palette := [3]int32{
+		int32(rng.Intn(150) + 100), // R
+		int32(rng.Intn(150) + 100), // G
+		int32(rng.Intn(150) + 100), // B
+	}
+	return assemblePortrait(parts, dmgType, rank, palette)
 }
 
 func pickRune(rng *rand.Rand, pool []rune) rune {
@@ -222,7 +228,7 @@ func pickRune(rng *rand.Rand, pool []rune) rune {
 // assemblePortrait builds a 1:2 aspect ratio alien portrait (7w x 14h).
 // The damage type determines the species silhouette (head shape, body type).
 // The rank adds decorative elements (crown, cape, armor layers).
-func assemblePortrait(p portraitPart, dmgType int, rank int) string {
+func assemblePortrait(p portraitPart, dmgType int, rank int, palette [3]int32) StyledPortrait {
 	var lines []string
 
 	// ── Head (4 lines) ───────────────────────────────
@@ -250,18 +256,20 @@ func assemblePortrait(p portraitPart, dmgType int, rank int) string {
 			maxW = len(l)
 		}
 	}
+	
+	styledLines := make([]StyledLine, len(lines))
 	for i, l := range lines {
 		l = strings.TrimRight(l, " ")
-		if len(l) > maxW {
-			l = l[:maxW]
-		}
 		for len(l) < maxW {
 			l += " "
 		}
-		lines[i] = l
+		styledLines[i] = StyledLine{
+			Content: l,
+			Color:   palette,
+		}
 	}
 
-	return strings.Join(lines, "\n")
+	return StyledPortrait{Lines: styledLines}
 }
 
 func headTop(p portraitPart, dmg, rank int) []string {

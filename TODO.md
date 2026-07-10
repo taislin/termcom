@@ -36,16 +36,16 @@
 - [ ] Gate elite alien species behind certain mission thresholds
 
 ## Phase 15: Expanded Battle VFX
-- [ ] Muzzle flash particles on weapon fire
+- [x] Muzzle flash particles on weapon fire
 - [x] Explosion debris particles for grenades and heavy weapons
-- [ ] Ambient particles per mission type (rain, snow, dust, embers)
+- [x] Ambient particles per mission type (rain, snow, dust, embers)
 - [x] Blood splatter on hit
 
 ## Phase 16: Sound Effects (if feasible with our tone system - some are done already so check first)
-- [ ] Weapon fire sounds (laser, plasma, ballistic, melee)
-- [ ] UI navigation sounds (menu select, research complete, manufacturing done)
-- [ ] Ambient battle sounds (wind, distant explosions)
-- [ ] Geoscape alert sounds (UFO detected, mission warning)
+- [x] Weapon fire sounds (laser, plasma, ballistic, melee)
+- [x] UI navigation sounds (menu select, research complete, manufacturing done)
+- [x] Ambient battle sounds (wind, distant explosions)
+- [x] Geoscape alert sounds (UFO detected, mission warning)
 
 ## Phase 17: Multi-Base Support
 - [ ] Build and manage multiple bases on the Geoscape

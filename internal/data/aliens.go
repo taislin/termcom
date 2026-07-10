@@ -12,6 +12,17 @@ const (
 	DMG_PSIONIC
 )
 
+// StyledLine represents a line of the portrait with color information.
+type StyledLine struct {
+	Content string
+	Color   [3]int32 // RGB values
+}
+
+// StyledPortrait holds the structured portrait data.
+type StyledPortrait struct {
+	Lines []StyledLine
+}
+
 // AlienType defines a species/variant encountered in tactical combat.
 type AlienType struct {
 	Name       string
@@ -42,12 +53,12 @@ type AlienType struct {
 
 	AutopsyID string // research ID that unlocks this alien's stats in battlescape sidebar
 	Lore      string // autopsy flavor text
-	Portrait  string // ASCII portrait
+	Portrait  StyledPortrait // ASCII portrait with color info
 }
 
-// GetPortrait returns the alien's portrait string, generating one if not set.
-func (at *AlienType) GetPortrait() string {
-	if at.Portrait != "" {
+// GetPortrait returns the alien's portrait, generating one if not set.
+func (at *AlienType) GetPortrait() StyledPortrait {
+	if len(at.Portrait.Lines) > 0 {
 		return at.Portrait
 	}
 	rng := rand.New(rand.NewSource(int64(at.Icon)))

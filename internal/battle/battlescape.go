@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
-	"strings"
 
 	"github.com/civ13/ycom/internal/base"
 	"github.com/civ13/ycom/internal/data"
@@ -350,6 +349,21 @@ func (bs *Battlescape) Update() {
 	bs.Camera.UpdateShake(dt)
 	bs.Particles.Update(dt)
 
+	if bs.FrameCount%1800 == 0 {
+		audio.PlayWind()
+	}
+
+	if bs.FrameCount%12 == 0 && bs.Phase != PhaseVictory && bs.Phase != PhaseDefeat {
+		switch bs.UFOName {
+		case "Polar":
+			engine.SpawnSnow(bs.Particles, 0, 0, bs.Map.Width, 1)
+		case "Desert":
+			engine.SpawnDust(bs.Particles, 0, 0, bs.Map.Width, bs.Map.Height)
+		case "Cydonia", "Alien Base Assault":
+			engine.SpawnEmbers(bs.Particles, 0, bs.Map.Height/2, bs.Map.Width, bs.Map.Height/2)
+		}
+	}
+
 	if bs.Phase == PhaseAlienTurn {
 		if bs.Projectile != nil {
 			bs.Projectile.Progress++
@@ -398,6 +412,7 @@ func (bs *Battlescape) executeAlienAction(action AlienAction) {
 		if err != nil {
 			return
 		}
+		audio.PlayWeaponFire(action.Unit.Weapon)
 		dx := action.Target.X - action.Unit.X
 		dy := action.Target.Y - action.Unit.Y
 		length := int(math.Sqrt(float64(dx*dx+dy*dy)))
@@ -415,7 +430,7 @@ func (bs *Battlescape) executeAlienAction(action AlienAction) {
 			Symbol: symbol,
 			Style:  engine.StyleYellow,
 		}
-		engine.SpawnExplosion(bs.Particles, action.Unit.X-bs.ScrollX+1, action.Unit.Y-bs.ScrollY+1, tcell.NewRGBColor(255, 200, 50), 4)
+		engine.SpawnMuzzleFlash(bs.Particles, action.Unit.X-bs.ScrollX+1, action.Unit.Y-bs.ScrollY+1)
 		if hit {
 			engine.SpawnExplosion(bs.Particles, action.Target.X-bs.ScrollX+1, action.Target.Y-bs.ScrollY+1, tcell.NewRGBColor(255, 80, 30), 8)
 			bs.Camera.TriggerShake(0.5)
@@ -435,6 +450,7 @@ func (bs *Battlescape) executeAlienAction(action AlienAction) {
 		if action.Target == nil || !action.Target.Alive {
 			return
 		}
+		audio.PlayMeleeFire()
 		damage := action.Unit.Strength + rand.Intn(10)
 		damage -= action.Target.Armour
 		if damage < 1 {
@@ -503,6 +519,7 @@ func (bs *Battlescape) checkHumanReactionFire(movedAlien *Unit) {
 			continue
 		}
 		bs.AddMessage(fmt.Sprintf(language.String("MSG_REACTION_FIRE"), u.Name(), movedAlien.Name()))
+		audio.PlayWeaponFire(u.Weapon)
 		damage, hit, _ := u.FireAt(movedAlien, bs.Map)
 		bs.Projectile = &Projectile{
 			FromX: u.X, FromY: u.Y,
@@ -561,6 +578,7 @@ func (bs *Battlescape) checkAlienReactionFire(movedHuman *Unit) {
 			continue
 		}
 		bs.AddMessage(fmt.Sprintf(language.String("MSG_REACTION_FIRE"), u.Name(), movedHuman.Name()))
+		audio.PlayWeaponFire(u.Weapon)
 		damage, hit, _ := u.FireAt(movedHuman, bs.Map)
 		dist2 := int(math.Sqrt(float64((movedHuman.X-u.X)*(movedHuman.X-u.X) + (movedHuman.Y-u.Y)*(movedHuman.Y-u.Y))))
 		if dist2 < 1 {
@@ -980,7 +998,8 @@ func (bs *Battlescape) FireWeapon() {
 		bs.AddMessage(err.Error())
 		return
 	}
-	engine.SpawnExplosion(bs.Particles, bs.Selected.X-bs.ScrollX+1, bs.Selected.Y-bs.ScrollY+1, tcell.NewRGBColor(255, 200, 50), 4)
+	audio.PlayWeaponFire(bs.Selected.Weapon)
+	engine.SpawnMuzzleFlash(bs.Particles, bs.Selected.X-bs.ScrollX+1, bs.Selected.Y-bs.ScrollY+1)
 	if hit {
 		audio.PlayHit()
 		engine.SpawnExplosion(bs.Particles, target.X-bs.ScrollX+1, target.Y-bs.ScrollY+1, tcell.NewRGBColor(255, 80, 30), 8)
@@ -1680,27 +1699,15 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 
 		if u.Faction == 1 && u.AlienType != nil {
 			portrait := u.AlienType.GetPortrait()
-			pLines := strings.Split(portrait, "\n")
 			sy++
-			maxW := 0
-			for _, pl := range pLines {
-				pl = strings.TrimRight(pl, " ")
-				if len(pl) > maxW {
-					maxW = len(pl)
+			for _, sl := range portrait.Lines {
+				pl := sl.Content
+				if len(pl) > bs.SidebarW-1 {
+					pl = pl[:bs.SidebarW-1]
 				}
-			}
-			if maxW > bs.SidebarW-1 {
-				maxW = bs.SidebarW - 1
-			}
-			for _, pl := range pLines {
-				pl = strings.TrimRight(pl, " ")
-				if len(pl) > maxW {
-					pl = pl[:maxW]
-				}
-				for len(pl) < maxW {
-					pl += " "
-				}
-				ctx.DrawString(sidebarX, sy, pl, engine.StyleRedBold)
+				// Use the color from the StyledLine
+				style := tcell.StyleDefault.Foreground(tcell.NewRGBColor(sl.Color[0], sl.Color[1], sl.Color[2]))
+				ctx.DrawString(sidebarX, sy, pl, style)
 				sy++
 			}
 		}
@@ -1980,16 +1987,16 @@ func (bs *Battlescape) ApplyCursorStyles(x, y int, style tcell.Style) tcell.Styl
 	if x == bs.CursorX && y == bs.CursorY {
 		switch bs.State.CursorState {
 		case StateInspect:
-			return style.Background(tcell.ColorWhite).Foreground(tcell.ColorBlack)
+			return style.Background(color.White).Foreground(color.Black)
 		case StateTargeting:
-			return style.Background(tcell.ColorRed).Blink(true)
+			return style.Background(color.Red).Blink(true)
 		}
 	}
 
 	if bs.State.CursorState == StateMovePlan {
 		for _, p := range bs.State.MovePath {
 			if p[0] == x && p[1] == y {
-				return style.Background(tcell.ColorDarkBlue)
+				return style.Background(color.DarkBlue)
 			}
 		}
 	}

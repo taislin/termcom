@@ -3,6 +3,7 @@ package engine
 import (
 	"fmt"
 
+	"github.com/civ13/ycom/internal/audio"
 	"github.com/civ13/ycom/internal/language"
 	"github.com/gdamore/tcell/v3"
 )
@@ -69,22 +70,27 @@ func (os *OptionsScreen) HandleKey(e *tcell.EventKey) {
 	totalOptions := 4 // 3 toggles + 1 language
 	switch e.Key() {
 	case tcell.KeyUp:
+		audio.PlayMenuNav()
 		os.Selection--
 		if os.Selection < 0 {
 			os.Selection = totalOptions - 1
 		}
 	case tcell.KeyDown:
+		audio.PlayMenuNav()
 		os.Selection++
 		if os.Selection >= totalOptions {
 			os.Selection = 0
 		}
 	case tcell.KeyEnter:
+		audio.PlaySelect()
 		os.toggle()
 	case tcell.KeyLeft:
+		audio.PlayMenuNav()
 		if os.Selection == 3 {
 			os.cycleLang(-1)
 		}
 	case tcell.KeyRight:
+		audio.PlayMenuNav()
 		if os.Selection == 3 {
 			os.cycleLang(1)
 		}
