@@ -4,24 +4,24 @@ package audio
 
 import (
 	"math"
-	"math/rand"
+	mrand "math/rand"
 	"sync"
 	"time"
 
 	"github.com/ebitengine/oto/v3"
 )
 
-var (
+const (
 	sampleRate = 44100
 	channels   = 1
-	format     = oto.FormatFloat32LE
+	format     = oto.FormatSignedInt16LE
 )
 
 var (
-	otoCtx    *oto.Context
-	otoOnce   sync.Once
-	otoReady  chan struct{}
-	mixer     *mixerStream
+	otoCtx   *oto.Context
+	otoOnce  sync.Once
+	otoReady chan struct{}
+	mixer    *mixerStream
 )
 
 type mixerStream struct {
@@ -33,7 +33,7 @@ func (m *mixerStream) Read(buf []byte) (int, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	samples := len(buf) / 4 // float32 = 4 bytes
+	samples := len(buf) / 2 // 16-bit mono
 	f32 := make([]float32, samples)
 
 	for i := range f32 {
@@ -57,11 +57,9 @@ func (m *mixerStream) Read(buf []byte) (int, error) {
 	}
 
 	for i, s := range f32 {
-		bits := math.Float32bits(s)
-		buf[i*4] = byte(bits)
-		buf[i*4+1] = byte(bits >> 8)
-		buf[i*4+2] = byte(bits >> 16)
-		buf[i*4+3] = byte(bits >> 24)
+		v := int16(s * 32767)
+		buf[i*2] = byte(v)
+		buf[i*2+1] = byte(v >> 8)
 	}
 	return len(buf), nil
 }
@@ -103,8 +101,12 @@ func midiToFreq(note byte) float64 {
 	return 440.0 * math.Pow(2.0, float64(note-69)/12.0)
 }
 
+func samplesFor(dur float64) int {
+	return int(float64(sampleRate) * dur)
+}
+
 func generateTone(freq float64, dur time.Duration, waveform func(float64) float64, vol float64) []float32 {
-	samples := int(float64(sampleRate) * dur.Seconds())
+	samples := samplesFor(dur.Seconds())
 	out := make([]float32, samples)
 	for i := range out {
 		t := float64(i) / float64(sampleRate)
@@ -116,7 +118,7 @@ func generateTone(freq float64, dur time.Duration, waveform func(float64) float6
 func sine(t float64) float64   { return math.Sin(t) }
 func square(t float64) float64 { if math.Sin(t) >= 0 { return 1.0 }; return -1.0 }
 func saw(t float64) float64   { return 2.0*(t/(2*math.Pi)-math.Floor(t/(2*math.Pi))) - 1.0 }
-func noise() float64           { return rand.Float64()*2 - 1 }
+func noise() float64          { return mrand.Float64()*2 - 1 }
 
 func envDecay(t, dur float64) float64 {
 	return 1.0 - t/dur
@@ -155,7 +157,7 @@ func PlayChime() {
 func PlayReload() {
 	s1 := generateTone(midiToFreq(55), 30*time.Millisecond, sine, 0.25)
 	s2 := generateTone(midiToFreq(60), 30*time.Millisecond, sine, 0.25)
-	pad := make([]float32, int(float64(sampleRate)*0.01))
+	pad := make([]float32, samplesFor(0.01))
 	s1 = append(s1, pad...)
 	s1 = append(s1, s2...)
 	playPCM(s1)
@@ -164,7 +166,7 @@ func PlayReload() {
 // ── Weapon fire ──────────────────────────────────────
 
 func PlayShoot() {
-	samples := int(float64(sampleRate) * 0.1)
+	samples := samplesFor(0.1)
 	out := make([]float32, samples)
 	for i := range out {
 		t := float64(i) / float64(sampleRate)
@@ -179,7 +181,7 @@ func PlayBallisticFire() {
 }
 
 func PlayLaserFire() {
-	samples := int(float64(sampleRate) * 0.1)
+	samples := samplesFor(0.1)
 	out := make([]float32, samples)
 	for i := range out {
 		t := float64(i) / float64(sampleRate)
@@ -191,7 +193,7 @@ func PlayLaserFire() {
 }
 
 func PlayPlasmaFire() {
-	samples := int(float64(sampleRate) * 0.14)
+	samples := samplesFor(0.14)
 	out := make([]float32, samples)
 	for i := range out {
 		t := float64(i) / float64(sampleRate)
@@ -203,7 +205,7 @@ func PlayPlasmaFire() {
 }
 
 func PlayMeleeFire() {
-	samples := int(float64(sampleRate) * 0.09)
+	samples := samplesFor(0.09)
 	out := make([]float32, samples)
 	for i := range out {
 		t := float64(i) / float64(sampleRate)
@@ -217,7 +219,7 @@ func PlayMeleeFire() {
 
 func PlayHit() {
 	s1 := generateTone(midiToFreq(50), 50*time.Millisecond, square, 0.3)
-	pad := make([]float32, int(float64(sampleRate)*0.01))
+	pad := make([]float32, samplesFor(0.01))
 	s1 = append(s1, pad...)
 	s2 := generateTone(midiToFreq(55), 50*time.Millisecond, square, 0.3)
 	s1 = append(s1, s2...)
@@ -225,7 +227,7 @@ func PlayHit() {
 }
 
 func PlayMiss() {
-	samples := int(float64(sampleRate) * 0.08)
+	samples := samplesFor(0.08)
 	out := make([]float32, samples)
 	for i := range out {
 		t := float64(i) / float64(sampleRate)
@@ -238,7 +240,7 @@ func PlayMiss() {
 // ── Explosions ───────────────────────────────────────
 
 func PlayExplosion() {
-	samples := int(float64(sampleRate) * 0.35)
+	samples := samplesFor(0.35)
 	out := make([]float32, samples)
 	for i := range out {
 		t := float64(i) / float64(sampleRate)
@@ -249,7 +251,7 @@ func PlayExplosion() {
 }
 
 func PlayGrenade() {
-	samples := int(float64(sampleRate) * 0.35)
+	samples := samplesFor(0.35)
 	out := make([]float32, samples)
 	for i := range out {
 		t := float64(i) / float64(sampleRate)
@@ -261,7 +263,7 @@ func PlayGrenade() {
 }
 
 func PlayDistantExplosion() {
-	samples := int(float64(sampleRate) * 0.5)
+	samples := samplesFor(0.5)
 	out := make([]float32, samples)
 	for i := range out {
 		t := float64(i) / float64(sampleRate)
@@ -285,7 +287,7 @@ func PlayAlert() {
 
 func PlayAlienTurn() {
 	s1 := generateTone(midiToFreq(45), 100*time.Millisecond, sine, 0.3)
-	pad := make([]float32, int(float64(sampleRate)*0.02))
+	pad := make([]float32, samplesFor(0.02))
 	s1 = append(s1, pad...)
 	s2 := generateTone(midiToFreq(40), 100*time.Millisecond, sine, 0.3)
 	s1 = append(s1, s2...)
@@ -295,7 +297,7 @@ func PlayAlienTurn() {
 func PlayVictory() {
 	notes := []byte{60, 64, 67, 72}
 	var combined []float32
-	pad := make([]float32, int(float64(sampleRate)*0.05))
+	pad := make([]float32, samplesFor(0.05))
 	for _, n := range notes {
 		tone := generateTone(midiToFreq(n), 200*time.Millisecond, sine, 0.3)
 		combined = append(combined, tone...)
@@ -307,7 +309,7 @@ func PlayVictory() {
 func PlayDefeat() {
 	notes := []byte{60, 55, 50, 45}
 	var combined []float32
-	pad := make([]float32, int(float64(sampleRate)*0.05))
+	pad := make([]float32, samplesFor(0.05))
 	for _, n := range notes {
 		tone := generateTone(midiToFreq(n), 250*time.Millisecond, sine, 0.3)
 		combined = append(combined, tone...)
@@ -318,7 +320,7 @@ func PlayDefeat() {
 
 func PlayMedikit() {
 	s1 := generateTone(midiToFreq(67), 100*time.Millisecond, sine, 0.3)
-	pad := make([]float32, int(float64(sampleRate)*0.02))
+	pad := make([]float32, samplesFor(0.02))
 	s1 = append(s1, pad...)
 	s2 := generateTone(midiToFreq(72), 100*time.Millisecond, sine, 0.3)
 	s1 = append(s1, s2...)
@@ -328,7 +330,7 @@ func PlayMedikit() {
 func PlayResearchComplete() {
 	notes := []byte{60, 64, 67, 72, 76}
 	var combined []float32
-	pad := make([]float32, int(float64(sampleRate)*0.02))
+	pad := make([]float32, samplesFor(0.02))
 	for _, n := range notes {
 		tone := generateTone(midiToFreq(n), 150*time.Millisecond, sine, 0.25)
 		combined = append(combined, tone...)
@@ -339,7 +341,7 @@ func PlayResearchComplete() {
 
 func PlayManufactureComplete() {
 	s1 := generateTone(midiToFreq(69), 80*time.Millisecond, sine, 0.3)
-	pad := make([]float32, int(float64(sampleRate)*0.02))
+	pad := make([]float32, samplesFor(0.02))
 	s1 = append(s1, pad...)
 	s2 := generateTone(midiToFreq(76), 120*time.Millisecond, sine, 0.3)
 	s1 = append(s1, s2...)
@@ -367,14 +369,12 @@ func PlayMissionWarning() {
 }
 
 func PlayWind() {
-	samples := int(float64(sampleRate) * 0.6)
+	samples := samplesFor(0.6)
 	out := make([]float32, samples)
 	for i := range out {
 		t := float64(i) / float64(sampleRate)
-		freq := 200 + 100*math.Sin(t*2)
 		vol := 0.08 * (1.0 - t/0.6)
 		out[i] = float32(noise() * vol)
-		_ = freq
 	}
 	playPCM(out)
 }
