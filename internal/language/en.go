@@ -240,7 +240,7 @@ func init() {
 		// Battlescape help bars
 		"HELP_BATTLESCAPE":         "[hjkl]/[WSAD]=Move [Enter]=Select [Space]=Plan/Move [q]=Cycle [f]=Fire [r]=Reload [g]=Grenade [m]=Medikit [e]=End [c]=Crouch",
 		"HELP_STAIRS_SUFFIX":       " [<>]=Stairs",
-		"HELP_BATTLESCAPE_MOUSE":   "LClick=Select RClick=Plan/Move Wheel=Scroll [f]=Fire [q]=Cycle [r]=Reload [g]=Grenade [e]=End [c]=Crouch [v]=Vision",
+		"HELP_BATTLESCAPE_MOUSE":   "Click=Select/Plan/Move ClickEnemy=Target/Attack Wheel=Scroll",
 
 		// ── Base Management ───────────────────────────────
 		"BASE_MANAGEMENT":      "BASE MANAGEMENT",

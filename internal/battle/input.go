@@ -103,38 +103,45 @@ func (bs *Battlescape) handleMouse(e *tcell.EventMouse) {
 	}
 
 	if buttons&tcell.Button1 != 0 {
-		if bs.State.CursorState == StateMovePlan {
-			bs.State.CursorState = StateInspect
-			bs.State.MovePath = nil
-			bs.CursorX, bs.CursorY = mx, my
-			return
-		}
 		unit := bs.Units.At(mx, my)
+
 		if unit != nil && unit.Faction == 0 && unit.Alive {
 			bs.Selected = unit
 			bs.CursorX, bs.CursorY = mx, my
 			bs.State.CursorState = StateInspect
+			bs.State.MovePath = nil
 			bs.AddMessage(fmt.Sprintf(language.String("MSG_UNIT_SELECTED"), bs.Selected.Soldier.Name, bs.Selected.HP, bs.Selected.TU))
-		} else {
-			bs.CursorX, bs.CursorY = mx, my
-			bs.State.CursorState = StateInspect
-		}
-		bs.updateMovePath()
-	} else if buttons&tcell.Button3 != 0 {
-		if bs.State.CursorState == StateTargeting {
-			bs.CursorX, bs.CursorY = mx, my
-			bs.FireWeapon()
 			return
 		}
-		if bs.State.CursorState == StateMovePlan {
+
+		if unit != nil && unit.Faction == 1 && unit.Alive {
+			if bs.State.CursorState == StateTargeting && bs.CursorX == mx && bs.CursorY == my {
+				bs.FireWeapon()
+				bs.State.CursorState = StateInspect
+			} else {
+				bs.CursorX, bs.CursorY = mx, my
+				bs.State.CursorState = StateTargeting
+				bs.State.TargetUnit = unit
+			}
+			return
+		}
+
+		if bs.State.CursorState == StateMovePlan && bs.CursorX == mx && bs.CursorY == my {
 			bs.MoveSelected()
 			bs.State.CursorState = StateInspect
 			bs.State.MovePath = nil
 			return
 		}
-		bs.CursorX, bs.CursorY = mx, my
-		bs.State.CursorState = StateMovePlan
-		bs.updateMovePath()
+
+		if bs.Selected != nil && bs.Phase == PhasePlayerTurn {
+			bs.CursorX, bs.CursorY = mx, my
+			bs.State.CursorState = StateMovePlan
+			bs.updateMovePath()
+		} else {
+			bs.CursorX, bs.CursorY = mx, my
+			bs.State.CursorState = StateInspect
+			bs.State.MovePath = nil
+		}
 	}
 }
 
