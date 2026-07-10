@@ -14,6 +14,7 @@ const CurrentVersion = 3
 
 type SaveData struct {
 	Version        int
+	Slot           int
 	GameTime       time.Time
 	Funds          int64
 	Paused         bool
@@ -115,6 +116,11 @@ func SaveGame(path string, data *SaveData) error {
 	return enc.Encode(data)
 }
 
+func SaveGameToSlot(slot int, data *SaveData) error {
+	data.Slot = slot
+	return SaveGame(SavePath(slot), data)
+}
+
 func LoadGame(path string) (*SaveData, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -164,6 +170,35 @@ func migrateV2toV3(data *SaveData) {
 		data.AlienKnowledge = make(map[string]int)
 	}
 	data.Version = 3
+}
+
+func SavePath(slot int) string {
+	if slot == 0 {
+		return "xcom_save.json"
+	}
+	return fmt.Sprintf("save_slot_%d.json", slot)
+}
+
+func AutoSavePath() string {
+	return "autosave.json"
+}
+
+func ListSlots() []int {
+	var slots []int
+	for slot := 1; slot <= 10; slot++ {
+		if _, err := os.Stat(SavePath(slot)); err == nil {
+			slots = append(slots, slot)
+		}
+	}
+	return slots
+}
+
+func LoadSaveInfo(slot int) (string, error) {
+	sd, err := LoadGame(SavePath(slot))
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("Slot %d: %s - $%dK", slot, sd.GameTime.Format("2006 Jan 02"), sd.Funds/1000), nil
 }
 
 func FromBase(b *base.Base) *BaseSave {

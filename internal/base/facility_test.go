@@ -281,8 +281,8 @@ func TestMonthlyBudget(t *testing.T) {
 		t.Errorf("expected 2000, got %d", salary)
 	}
 	funding := b.GovernmentFunding()
-	if funding != 200000 {
-		t.Errorf("expected 200000, got %d", funding)
+	if funding != 300000 {
+		t.Errorf("expected 300000, got %d", funding)
 	}
 }
 

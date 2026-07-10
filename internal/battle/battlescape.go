@@ -264,13 +264,47 @@ func NewBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, ufoN
 	}
 
 	alienTypes := g.GetAlienTypes()
-	alienRank := 0
-	spawnAliens := []*data.AlienType{
-		getAlienByRank(alienTypes, alienRank),
-		getAlienByRank(alienTypes, alienRank),
-		getAlienByRank(alienTypes, alienRank),
-		getAlienByRank(alienTypes, alienRank+1),
-		getAlienByRank(alienTypes, alienRank+1),
+	gameMonth := int(g.GameTime.Month()) - 3 + (g.GameTime.Year()-1999)*12
+	if gameMonth < 0 {
+		gameMonth = 0
+	}
+
+	// Scale base rank with game time: +1 rank per 3 months
+	alienRank := gameMonth / 3
+	if alienRank > 3 {
+		alienRank = 3
+	}
+
+	// Scale alien count with game time
+	baseCount := 5
+	extraCount := gameMonth / 2
+	if extraCount > 5 {
+		extraCount = 5
+	}
+	totalAliens := baseCount + extraCount
+
+	// Stat bonus: +2 HP and +3 Accuracy per month (capped)
+	hpBonus := gameMonth * 2
+	if hpBonus > 20 {
+		hpBonus = 20
+	}
+	accBonus := gameMonth * 3
+	if accBonus > 30 {
+		accBonus = 30
+	}
+
+	spawnAliens := make([]*data.AlienType, 0, totalAliens)
+	for i := 0; i < totalAliens; i++ {
+		rank := alienRank
+		// Upper half gets +1 rank
+		if i >= totalAliens/2 {
+			rank++
+		}
+		if rank > 5 {
+			rank = 5
+		}
+		at := getAlienByRank(alienTypes, rank)
+		spawnAliens = append(spawnAliens, at)
 	}
 
 	for _, at := range spawnAliens {
@@ -281,6 +315,9 @@ func NewBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, ufoN
 		u.X = 10 + rand.Intn(m.Width-14)
 		u.Y = 3 + rand.Intn(m.Height/2-4)
 		u.IsNight = bs.IsNight
+		u.HP += hpBonus
+		u.MaxHP += hpBonus
+		u.Accuracy += accBonus
 		bs.Units = append(bs.Units, u)
 		ai := NewAlienAI(u)
 		ai.PatrolX = u.X + rand.Intn(6) - 3
@@ -645,37 +682,52 @@ func (bs *Battlescape) finishBattle() {
 		}
 	}
 
-	// Collect loot — type-specific corpses
+	// Collect loot — type-specific corpses + weapon drops
 	var loot []string
 	if won {
 		corpseMap := map[string]string{
 			"SEC": "corpse_sect",
 			"SEL": "corpse_sect",
+			"SEN": "corpse_sect",
 			"FLT": "corpse_float",
 			"FLL": "corpse_float",
+			"FLN": "corpse_float",
 			"MUT": "corpse_muton",
 			"MUL": "corpse_muton",
+			"MUN": "corpse_muton",
 			"ETH": "corpse_ether",
 			"EHL": "corpse_ether",
+			"ETN": "corpse_ether",
 		}
 		corpses := make(map[string]bool)
+		weaponDrops := make(map[string]bool)
 		for _, u := range bs.Units {
 			if u.Faction == 1 && !u.Alive && u.AlienType != nil {
 				if key, ok := corpseMap[u.AlienType.ShortName]; ok {
 					corpses[key] = true
+				}
+				// Higher rank aliens drop weapons more often
+				dropChance := 15 + u.AlienType.Rank*10
+				if rand.Intn(100) < dropChance {
+					weaponDrops[u.AlienType.Weapon] = true
 				}
 			}
 		}
 		for key := range corpses {
 			loot = append(loot, key)
 		}
+		for wpn := range weaponDrops {
+			if item, ok := data.RuleItems[wpn]; ok && item.CostSell > 0 && !item.IsAlien {
+				loot = append(loot, wpn)
+			}
+		}
 		if len(loot) == 0 {
 			loot = append(loot, "alien_corpse")
 		}
-		if rand.Intn(100) < 40 {
+		if rand.Intn(100) < 35 {
 			loot = append(loot, "alloys")
 		}
-		if rand.Intn(100) < 25 {
+		if rand.Intn(100) < 20 {
 			loot = append(loot, "elerium")
 		}
 	}
@@ -786,13 +838,25 @@ func (bs *Battlescape) checkReinforcements() {
 
 	g := bs.Game
 	alienTypes := g.GetAlienTypes()
-	alienRank := 0
+	gameMonth := int(g.GameTime.Month()) - 3 + (g.GameTime.Year()-1999)*12
+	if gameMonth < 0 {
+		gameMonth = 0
+	}
+
+	alienRank := gameMonth / 3
+	if alienRank > 3 {
+		alienRank = 3
+	}
 	if bs.Turn > 6 {
-		alienRank = 1
+		alienRank++
 	}
 	if bs.Turn > 12 {
-		alienRank = 2
+		alienRank++
 	}
+	if alienRank > 5 {
+		alienRank = 5
+	}
+
 	count := 1 + rand.Intn(2)
 	for i := 0; i < count; i++ {
 		at := getAlienByRank(alienTypes, alienRank)
@@ -800,6 +864,9 @@ func (bs *Battlescape) checkReinforcements() {
 			continue
 		}
 		u := NewAlienUnit(at)
+		u.HP += gameMonth * 2
+		u.MaxHP += gameMonth * 2
+		u.Accuracy += gameMonth * 3
 		side := rand.Intn(4)
 		switch side {
 		case 0:

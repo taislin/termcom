@@ -22,6 +22,7 @@ const (
 	StateHelp
 	StateEncyclopedia
 	StateOptions
+	StateSlotPicker
 	StateGameOver
 	StateQuit
 )
@@ -69,6 +70,7 @@ type Game struct {
 
 	OnNewGame  func()
 	OnContinue func()
+	OnLoadGame func()
 }
 
 func (g *Game) GameOver(won bool, stats string) {
@@ -222,6 +224,11 @@ func (g *Game) drainEvents() {
 func (g *Game) PushState(s GameState) {
 	g.stateStack = append(g.stateStack, g.state)
 	g.state = s
+}
+
+func (g *Game) PushScreen(sc Screen) {
+	g.screens[StateSlotPicker] = sc
+	g.PushState(StateSlotPicker)
 }
 
 func (g *Game) SetState(s GameState) {

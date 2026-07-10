@@ -48,8 +48,25 @@ func GetUFOTypeByName(name string) *UFOType {
 var ufoIDCounter int
 
 // SpawnUFOOnCities creates a UFO at a random position moving between two cities.
-func SpawnUFOOnCities(cities []*City) *UFO {
-	t := UFOTypes[rand.Intn(len(UFOTypes))]
+// difficulty scales UFO type towards stronger craft.
+func SpawnUFOOnCities(cities []*City, difficulty int) *UFO {
+	// Weight selection towards stronger UFOs based on difficulty
+	idx := rand.Intn(len(UFOTypes))
+	if difficulty > 0 {
+		// Higher difficulty: shift selection towards later (stronger) types
+		bias := rand.Intn(difficulty + 2)
+		idx += bias
+		if idx >= len(UFOTypes) {
+			idx = len(UFOTypes) - 1
+		}
+	}
+	t := UFOTypes[idx]
+	hpBonus := difficulty * 5
+	if hpBonus > 40 {
+		hpBonus = 40
+	}
+	t.Toughness += hpBonus
+	t.MaxHP += hpBonus
 	ufoIDCounter++
 
 	if len(cities) < 2 {
@@ -77,8 +94,23 @@ func SpawnUFOOnCities(cities []*City) *UFO {
 }
 
 // SpawnUFOAtCity creates a UFO arriving at a specific city from a random other city.
-func SpawnUFOAtCity(target *City, cities []*City) *UFO {
-	t := UFOTypes[rand.Intn(len(UFOTypes))]
+// difficulty scales UFO type towards stronger craft.
+func SpawnUFOAtCity(target *City, cities []*City, difficulty int) *UFO {
+	idx := rand.Intn(len(UFOTypes))
+	if difficulty > 0 {
+		bias := rand.Intn(difficulty + 2)
+		idx += bias
+		if idx >= len(UFOTypes) {
+			idx = len(UFOTypes) - 1
+		}
+	}
+	t := UFOTypes[idx]
+	hpBonus := difficulty * 5
+	if hpBonus > 40 {
+		hpBonus = 40
+	}
+	t.Toughness += hpBonus
+	t.MaxHP += hpBonus
 	ufoIDCounter++
 
 	// Pick a random different city to come from

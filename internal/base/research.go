@@ -3,6 +3,7 @@ package base
 import (
 	"fmt"
 	"sort"
+	"strings"
 
 	"github.com/civ13/ycom/internal/data"
 	"github.com/civ13/ycom/internal/engine"
@@ -10,11 +11,25 @@ import (
 	"github.com/gdamore/tcell/v3"
 )
 
+type topicStatus int
+
+const (
+	topicDone     topicStatus = iota
+	topicAvailable
+	topicLocked
+)
+
+type topicEntry struct {
+	topic  *data.ResearchTopic
+	status topicStatus
+}
+
 type ResearchScreen struct {
 	Game       *engine.Game
 	Base       *Base
 	Selection  int
 	Message    string
+	ShowTree   bool
 }
 
 func NewResearchScreen(g *engine.Game, b *Base) *ResearchScreen {
@@ -50,33 +65,59 @@ func (rs *ResearchScreen) Render(ctx *engine.ScreenCtx) {
 		ctx.DrawString(2, 3, language.String("NO_ACTIVE_RESEARCH"), engine.StyleGray)
 	}
 
-	ctx.DrawString(2, 5, language.String("AVAILABLE_TOPICS"), engine.StyleCyanBold)
+	ctx.DrawString(2, 5, language.String("ALL_TOPICS"), engine.StyleCyanBold)
 
-	topics := rs.getAvailableTopics()
-	if len(topics) == 0 {
+	entries := rs.getAllTopics()
+	if len(entries) == 0 {
 		ctx.DrawString(2, 7, language.String("NO_TOPICS"), engine.StyleGray)
 		return
 	}
-	if rs.Selection >= len(topics) {
-		if len(topics) > 0 {
-			rs.Selection = len(topics) - 1
+	if rs.Selection >= len(entries) {
+		if len(entries) > 0 {
+			rs.Selection = len(entries) - 1
 		} else {
 			rs.Selection = 0
 		}
 	}
 
-	for i, topic := range topics {
+	listW := w - 2
+	if rs.ShowTree {
+		listW = w/2 - 2
+	}
+
+	for i, entry := range entries {
 		if 7+i >= h-3 {
 			break
 		}
 		style := engine.StyleDefault
-		if i == rs.Selection {
-			style = engine.StyleHighlight
+		marker := "  "
+
+		switch entry.status {
+		case topicDone:
+			style = engine.StyleGray
+			marker = language.String("RESEARCH_DONE") + " "
+		case topicLocked:
+			style = engine.StyleGray
+			marker = language.String("RESEARCH_LOCKED") + " "
+		case topicAvailable:
+			style = engine.StyleDefault
+			marker = "  "
 		}
+
+		if i == rs.Selection {
+			if entry.status == topicDone {
+				style = engine.StyleGray.Bold(true)
+			} else if entry.status == topicLocked {
+				style = engine.StyleGray.Bold(true)
+			} else {
+				style = engine.StyleHighlight
+			}
+		}
+
 		req := ""
-		if len(topic.Requires) > 0 {
+		if len(entry.topic.Requires) > 0 {
 			reqStr := ""
-			for j, r := range topic.Requires {
+			for j, r := range entry.topic.Requires {
 				if j > 0 {
 					reqStr += ", "
 				}
@@ -89,44 +130,196 @@ func (rs *ResearchScreen) Render(ctx *engine.ScreenCtx) {
 			}
 			req = fmt.Sprintf(language.String("RESEARCH_REQUIRES"), reqStr)
 		}
-		line := fmt.Sprintf(language.String("RESEARCH_COST"), topic.Name, topic.Cost, req)
-		ctx.DrawString(2, 7+i, line, style)
+
+		line := fmt.Sprintf(language.String("RESEARCH_COST"), entry.topic.Tier, entry.topic.Name, entry.topic.Cost, req)
+		displayLine := marker + line
+		if len(displayLine) > listW {
+			displayLine = displayLine[:listW]
+		}
+		ctx.DrawString(2, 7+i, displayLine, style)
+	}
+
+	if rs.ShowTree {
+		selEntry := &topicEntry{}
+		if rs.Selection >= 0 && rs.Selection < len(entries) {
+			selEntry = &entries[rs.Selection]
+		}
+		rs.renderTree(ctx, w/2+1, 7, w/2-2, h-10, selEntry)
 	}
 
 	ctx.DrawPanel(0, h-1, w, 1, "", engine.StyleGray)
 	help := language.String("HELP_RESEARCH")
-	ctx.DrawString(1, h-1, help, engine.StyleGray)
+	if rs.ShowTree {
+		help = "\u2191/\u2193=Select  Enter=Start  [Esc]=Back  [T]ree=Hide"
+	}
+	ctx.DrawMarkupString(1, h-1, help, engine.StyleGray, engine.StyleHotkey)
 
 	if rs.Message != "" {
 		ctx.DrawString(2, h-2, rs.Message, engine.StyleYellow)
 	}
 }
 
-func (rs *ResearchScreen) getAvailableTopics() []*data.ResearchTopic {
-	var topics []*data.ResearchTopic
-	for i := range data.ResearchTree {
-		topic := &data.ResearchTree[i]
-		if rs.Base.CanResearch(topic) {
-			topics = append(topics, topic)
+func (rs *ResearchScreen) renderTree(ctx *engine.ScreenCtx, x, y, maxW, maxH int, entry *topicEntry) {
+	ctx.DrawString(x, y, language.String("RESEARCH_TREE_TITLE"), engine.StyleCyanBold)
+	y++
+	ctx.DrawString(x, y, strings.Repeat("\u2500", maxW), engine.StyleGray)
+	y++
+
+	if entry == nil || entry.topic == nil {
+		return
+	}
+
+	t := entry.topic
+
+	// Show prerequisites
+	ctx.DrawString(x, y, language.String("RESEARCH_PREREQS"), engine.StyleYellow)
+	y++
+	if len(t.Requires) == 0 {
+		ctx.DrawString(x+2, y, "(none)", engine.StyleGray)
+		y++
+	} else {
+		for _, reqID := range t.Requires {
+			if y >= y+maxH {
+				break
+			}
+			rt := data.ResearchByID(reqID)
+			name := reqID
+			if rt != nil {
+				name = rt.Name
+			}
+			done := rs.Base.HasResearch(reqID)
+			prefix := "\u251C\u2500\u2500 "
+			if done {
+				prefix = "\u251C\u2500\u2500 "
+				ctx.DrawString(x+2, y, prefix+language.String("RESEARCH_DONE")+" "+name, engine.StyleGreen)
+			} else {
+				ctx.DrawString(x+2, y, prefix+language.String("RESEARCH_LOCKED")+" "+name, engine.StyleRed)
+			}
+			y++
 		}
 	}
-	sort.Slice(topics, func(i, j int) bool {
-		return topics[i].Cost < topics[j].Cost
+
+	y++
+	ctx.DrawString(x, y, language.String("RESEARCH_UNLOCKS"), engine.StyleYellow)
+	y++
+
+	unlocks := rs.getUnlocks(t)
+	if len(unlocks) == 0 {
+		ctx.DrawString(x+2, y, "(none)", engine.StyleGray)
+		y++
+	} else {
+		for _, u := range unlocks {
+			if y >= y+maxH {
+				break
+			}
+			prefix := "\u251C\u2500\u2500 "
+			ctx.DrawString(x+2, y, prefix+u, engine.StyleCyan)
+			y++
+		}
+	}
+
+	// Show children (topics that require this one)
+	y++
+	ctx.DrawString(x, y, "Unlocks topics:", engine.StyleYellow)
+	y++
+	children := rs.getChildren(t)
+	if len(children) == 0 {
+		ctx.DrawString(x+2, y, "(none)", engine.StyleGray)
+	} else {
+		for _, child := range children {
+			if y >= y+maxH {
+				break
+			}
+			done := rs.Base.HasResearch(child.ID)
+			prefix := "\u251C\u2500\u2500 "
+			childLine := fmt.Sprintf("[T%d] %s", child.Tier, child.Name)
+			if done {
+				ctx.DrawString(x+2, y, prefix+language.String("RESEARCH_DONE")+" "+childLine, engine.StyleGreen)
+			} else {
+				ctx.DrawString(x+2, y, prefix+language.String("RESEARCH_LOCKED")+" "+childLine, engine.StyleCyan)
+			}
+			y++
+		}
+	}
+}
+
+func (rs *ResearchScreen) getUnlocks(t *data.ResearchTopic) []string {
+	var unlocks []string
+	for _, item := range t.UnlockItems {
+		unlocks = append(unlocks, "Item: "+item)
+	}
+	for _, weap := range t.UnlockWeap {
+		unlocks = append(unlocks, "Weapon: "+weap)
+	}
+	for _, arm := range t.UnlockArmor {
+		unlocks = append(unlocks, "Armor: "+arm)
+	}
+	if t.AlienLore {
+		unlocks = append(unlocks, "Alien Lore")
+	}
+	return unlocks
+}
+
+func (rs *ResearchScreen) getChildren(t *data.ResearchTopic) []*data.ResearchTopic {
+	var children []*data.ResearchTopic
+	for i := range data.ResearchTree {
+		topic := &data.ResearchTree[i]
+		for _, req := range topic.Requires {
+			if req == t.ID {
+				children = append(children, topic)
+				break
+			}
+		}
+	}
+	sort.Slice(children, func(i, j int) bool {
+		return children[i].Tier < children[j].Tier
 	})
-	return topics
+	return children
+}
+
+func (rs *ResearchScreen) getAllTopics() []topicEntry {
+	var entries []topicEntry
+	for i := range data.ResearchTree {
+		topic := &data.ResearchTree[i]
+		status := topicLocked
+		if rs.Base.HasResearch(topic.ID) {
+			status = topicDone
+		} else if rs.Base.CanResearch(topic) {
+			status = topicAvailable
+		}
+		entries = append(entries, topicEntry{topic: topic, status: status})
+	}
+	sort.Slice(entries, func(i, j int) bool {
+		if entries[i].status != entries[j].status {
+			return entries[i].status < entries[j].status
+		}
+		if entries[i].topic.Tier != entries[j].topic.Tier {
+			return entries[i].topic.Tier < entries[j].topic.Tier
+		}
+		return entries[i].topic.Cost < entries[j].topic.Cost
+	})
+	return entries
 }
 
 func (rs *ResearchScreen) startResearch() {
-	topics := rs.getAvailableTopics()
-	if rs.Selection >= len(topics) {
+	entries := rs.getAllTopics()
+	if rs.Selection >= len(entries) {
 		rs.Selection = 0
 	}
-	if len(topics) == 0 {
+	if len(entries) == 0 {
 		return
 	}
-	topic := topics[rs.Selection]
-	if rs.Base.StartResearch(topic.ID) {
-		rs.Message = fmt.Sprintf(language.String("MSG_RESEARCH_STARTED"), topic.Name)
+	entry := entries[rs.Selection]
+	if entry.status != topicAvailable {
+		if entry.status == topicDone {
+			rs.Message = language.String("MSG_CANNOT_RESEARCH")
+		} else {
+			rs.Message = language.String("MSG_CANNOT_RESEARCH")
+		}
+		return
+	}
+	if rs.Base.StartResearch(entry.topic.ID) {
+		rs.Message = fmt.Sprintf(language.String("MSG_RESEARCH_STARTED"), entry.topic.Name)
 	} else {
 		rs.Message = language.String("MSG_CANNOT_RESEARCH")
 	}
@@ -140,10 +333,10 @@ func (rs *ResearchScreen) HandleKey(e *tcell.EventKey) {
 			rs.Selection = 0
 		}
 	case tcell.KeyDown:
-		topics := rs.getAvailableTopics()
+		entries := rs.getAllTopics()
 		rs.Selection++
-		if rs.Selection >= len(topics) {
-			rs.Selection = len(topics) - 1
+		if rs.Selection >= len(entries) {
+			rs.Selection = len(entries) - 1
 		}
 	}
 	switch e.Str() {
@@ -153,6 +346,8 @@ func (rs *ResearchScreen) HandleKey(e *tcell.EventKey) {
 		rs.Base.AssignScientists(1)
 	case "-":
 		rs.Base.AssignScientists(-1)
+	case "t", "T":
+		rs.ShowTree = !rs.ShowTree
 	}
 }
 
@@ -164,19 +359,16 @@ func (rs *ResearchScreen) HandleMouse(e *tcell.EventMouse) {
 	x, y := e.Position()
 	_, h := rs.Game.ScreenSize()
 
-	// Handle help bar clicks (bottom bar)
 	if y == h-1 {
-		// Help bar: "j/k=Select  Enter=Start  [Esc]=Back"
 		switch {
-		case x >= 1 && x <= 3: // j/k=Select
-			// Scroll down
-			topics := rs.getAvailableTopics()
-			if rs.Selection < len(topics)-1 {
+		case x >= 1 && x <= 3:
+			entries := rs.getAllTopics()
+			if rs.Selection < len(entries)-1 {
 				rs.Selection++
 			}
-		case x >= 5 && x <= 12: // Enter=Start
+		case x >= 5 && x <= 12:
 			rs.startResearch()
-		case x >= 14 && x <= 20: // [Esc]=Back
+		case x >= 14 && x <= 20:
 			rs.Game.PopState()
 		}
 		return

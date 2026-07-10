@@ -329,6 +329,22 @@ func (b *Base) CountItem(item string) int {
 	return b.Stores[item]
 }
 
+func (b *Base) SellItem(item string) int64 {
+	if b.Stores[item] <= 0 {
+		return 0
+	}
+	var value int64
+	if ri, ok := data.RuleItems[item]; ok && ri.CostSell > 0 {
+		value = int64(ri.CostSell)
+	} else if it, ok := data.Items[item]; ok && it.Value > 0 {
+		value = int64(it.Value)
+	} else {
+		value = 2000
+	}
+	b.RemoveItem(item, 1)
+	return value
+}
+
 func (b *Base) AddLoot(items []string) {
 	for _, item := range items {
 		b.AddItem(item, 1)
@@ -379,8 +395,8 @@ func (b *Base) MonthlySalary() int {
 
 func (b *Base) GovernmentFunding() int {
 	radarCount := b.CountFacility(FacRadar)
-	baseFunding := 200000
-	return baseFunding + radarCount*50000
+	baseFunding := 300000
+	return baseFunding + radarCount*75000
 }
 
 func (b *Base) AdvanceMonth() (salary, funding int) {
@@ -390,8 +406,8 @@ func (b *Base) AdvanceMonth() (salary, funding int) {
 	// Adjust funding based on AlienActivity
 	// High activity (near 100) reduces funding significantly.
 	// Activity 0: 100% funding
-	// Activity 100: ~50% funding
-	activityPenalty := float64(b.AlienActivity) * 0.5 / 100.0
+	// Activity 100: ~40% funding
+	activityPenalty := float64(b.AlienActivity) * 0.6 / 100.0
 	funding = int(float64(funding) * (1.0 - activityPenalty))
 
 	return salary, funding

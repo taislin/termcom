@@ -8,12 +8,12 @@ import (
 // AlienSpecies represents a procedurally generated alien species.
 // Each species has variants at different ranks.
 type AlienSpecies struct {
-	Name      string  // e.g. "Vrekt"
-	Prefix    string  // short prefix for rank variants, e.g. "VRK"
-	BaseIcon  rune    // shared icon across all variants
-	PrimaryDMG int    // species-wide damage affinity
-	Lore      string  // species-wide lore
-	Types     []*AlienType // Rank 0..4 variants (may be nil for higher ranks)
+	Name       string       // e.g. "Vrekt"
+	Prefix     string       // short prefix for rank variants, e.g. "VRK"
+	BaseIcon   rune         // shared icon across all variants
+	PrimaryDMG int          // species-wide damage affinity
+	Lore       string       // species-wide lore
+	Types      []*AlienType // Rank 0..4 variants (may be nil for higher ranks)
 }
 
 // Syllable pools for alien name generation.
@@ -57,9 +57,10 @@ func GenerateSpecies(seed int64) ([]*AlienSpecies, []*AlienType) {
 	allTypes := make([]*AlienType, 0, speciesCount*4)
 
 	usedNames := make(map[string]bool)
+	usedIcons := UsedHardcodedIcons()
 
 	for i := 0; i < speciesCount; i++ {
-		sp := generateOneSpecies(rng, i, usedNames)
+		sp := generateOneSpecies(rng, i, usedNames, usedIcons)
 		usedNames[sp.Name] = true
 		allSpecies = append(allSpecies, sp)
 		allTypes = append(allTypes, sp.Types...)
@@ -68,7 +69,7 @@ func GenerateSpecies(seed int64) ([]*AlienSpecies, []*AlienType) {
 	return allSpecies, allTypes
 }
 
-func generateOneSpecies(rng *rand.Rand, idx int, usedNames map[string]bool) *AlienSpecies {
+func generateOneSpecies(rng *rand.Rand, idx int, usedNames map[string]bool, usedIcons map[rune]bool) *AlienSpecies {
 	// Generate name
 	var name string
 	for {
@@ -82,9 +83,10 @@ func generateOneSpecies(rng *rand.Rand, idx int, usedNames map[string]bool) *Ali
 
 	primaryDMG := rng.Intn(6) // DMG_PLASMA..DMG_PSIONIC
 
-	// Choose icon: use a unique rune per species from available symbols.
-	// Species icons are distinct from hardcoded aliens (rank 0x100+ block).
-	icon := rune(0x100 + idx*7)
+	// Choose icon: draw a distinct glyph from the pool for this species' damage type.
+	// Themed by damage type (Greek/Runic/Cyrillic/Geometric/Technical/Starburst) and
+	// guaranteed unique within a game via usedIcons.
+	icon := nextIcon(primaryDMG, usedIcons)
 
 	sp := &AlienSpecies{
 		Name:       name,
@@ -98,7 +100,7 @@ func generateOneSpecies(rng *rand.Rand, idx int, usedNames map[string]bool) *Ali
 	sp.Types = make([]*AlienType, 0, maxRank)
 
 	for rank := 0; rank < maxRank; rank++ {
-		at := generateVariant(rng, sp, rank)
+		at := generateVariant(rng, sp, rank, usedIcons)
 		sp.Types = append(sp.Types, at)
 	}
 
@@ -119,7 +121,7 @@ func midSyllIdx(rng *rand.Rand, max int) int {
 	return rng.Intn(max)
 }
 
-func generateVariant(rng *rand.Rand, sp *AlienSpecies, rank int) *AlienType {
+func generateVariant(rng *rand.Rand, sp *AlienSpecies, rank int, usedIcons map[rune]bool) *AlienType {
 	// Base stats scale with rank
 	hpBase := 8 + rank*5 + rng.Intn(4)
 	tuBase := 45 + rank*5 + rng.Intn(6)
@@ -160,8 +162,8 @@ func generateVariant(rng *rand.Rand, sp *AlienSpecies, rank int) *AlienType {
 		shortName += string(rune('A' + rank - 1))
 	}
 
-	// Icon: base icon + rank offset
-	icon := sp.BaseIcon + rune(rank)
+	// Icon: a distinct glyph from this species' damage-type pool.
+	icon := nextIcon(sp.PrimaryDMG, usedIcons)
 
 	// Lore per variant
 	variantLore := sp.Lore
@@ -256,7 +258,7 @@ func assemblePortrait(p portraitPart, dmgType int, rank int, palette [3]int32) S
 			maxW = len(l)
 		}
 	}
-	
+
 	styledLines := make([]StyledLine, len(lines))
 	for i, l := range lines {
 		l = strings.TrimRight(l, " ")

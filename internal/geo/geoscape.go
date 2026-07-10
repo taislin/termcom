@@ -212,25 +212,37 @@ func (gs *Geoscape) Update() {
 		speedMult := []int{0, 1, 5, 20, 60}
 		minutes := speedMult[gs.Game.TimeSpeed]
 
-		// Spawn UFOs periodically
-		if gs.TickCounter%600 == 0 && gs.UFOs.Count() < 5 {
-			ufo := SpawnUFOOnCities(gs.Cities)
-			gs.UFOs = append(gs.UFOs, ufo)
-			city := gs.CityByID(ufo.CurrentNode())
-		 cityName := "?"
-			if city != nil {
-				cityName = city.Name
+		// Spawn UFOs periodically, scaled by game time
+		gameMonth := int(gs.Game.GameTime.Month()) - 3 + (gs.Game.GameTime.Year()-1999)*12
+		if gameMonth < 0 {
+			gameMonth = 0
+		}
+		ufoSpawnRate := 600 - gameMonth*20
+		if ufoSpawnRate < 200 {
+			ufoSpawnRate = 200
+		}
+		if gs.TickCounter%ufoSpawnRate == 0 {
+			maxUFOs := 5 + gameMonth/2
+			if maxUFOs > 12 {
+				maxUFOs = 12
 			}
-			gs.Message = fmt.Sprintf(language.String("MSG_UFO_DETECTED"), ufo.Type.Name, cityName)
-			gs.MessageTimer = time.Now()
-			audio.PlayAlert()
+			if gs.UFOs.Count() < maxUFOs {
+				ufo := SpawnUFOOnCities(gs.Cities, gameMonth)
+				gs.UFOs = append(gs.UFOs, ufo)
+				city := gs.CityByID(ufo.CurrentNode())
+				cityName := "?"
+				if city != nil {
+					cityName = city.Name
+				}
+				gs.Message = fmt.Sprintf(language.String("MSG_UFO_DETECTED"), ufo.Type.Name, cityName)
+				gs.MessageTimer = time.Now()
+				audio.PlayAlert()
+			}
 		}
 
 		// Spawn alien missions periodically
-		// Increase frequency based on AlienActivity: 
-		// Base: 1800 ticks (~30 mins at speed 1). 
-		// Scale: activity 0-100, reduce spawn rate linearly.
-		spawnRate := 1800 - (gs.AlienActivity * 15)
+		// Increase frequency based on AlienActivity and game time: 
+		spawnRate := 1800 - (gs.AlienActivity * 15) - gameMonth*30
 		if spawnRate < 300 {
 			spawnRate = 300
 		}
@@ -378,6 +390,7 @@ func (gs *Geoscape) Update() {
 		gs.Base.AdvanceDay()
 		gs.Message = fmt.Sprintf(language.String("MSG_MONTHLY_REPORT"), funding/1000, salary/1000)
 		gs.MessageTimer = time.Now()
+		gs.SaveGameAuto()
 	}
 }
 
@@ -659,7 +672,7 @@ func (gs *Geoscape) Autoresolve() {
 	gs.MessageTimer = time.Now()
 }
 
-func (gs *Geoscape) SaveGameToFile() {
+func (gs *Geoscape) buildSaveData() *save.SaveData {
 	ufoSaves := make([]*save.UFOSave, 0)
 	for _, u := range gs.UFOs {
 		ufoSaves = append(ufoSaves, &save.UFOSave{
@@ -679,7 +692,7 @@ func (gs *Geoscape) SaveGameToFile() {
 			Y:         0,
 		})
 	}
-	sd := &save.SaveData{
+	return &save.SaveData{
 		GameTime:       gs.Game.GameTime,
 		Funds:          gs.Game.Funds,
 		Paused:         gs.Game.Paused,
@@ -691,6 +704,10 @@ func (gs *Geoscape) SaveGameToFile() {
 		UFOs:           ufoSaves,
 		Missions:       missionSaves,
 	}
+}
+
+func (gs *Geoscape) SaveGameToFile() {
+	sd := gs.buildSaveData()
 	err := save.SaveGame("xcom_save.json", sd)
 	if err != nil {
 		gs.Message = language.String("MSG_SAVE_FAILED") + err.Error()
@@ -700,6 +717,22 @@ func (gs *Geoscape) SaveGameToFile() {
 	gs.MessageTimer = time.Now()
 }
 
+func (gs *Geoscape) SaveGameToSlot(slot int) {
+	sd := gs.buildSaveData()
+	err := save.SaveGameToSlot(slot, sd)
+	if err != nil {
+		gs.Message = language.String("MSG_SAVE_FAILED") + err.Error()
+	} else {
+		gs.Message = fmt.Sprintf(language.String("SLOT_PICKER_SAVED"), slot)
+	}
+	gs.MessageTimer = time.Now()
+}
+
+func (gs *Geoscape) SaveGameAuto() {
+	sd := gs.buildSaveData()
+	_ = save.SaveGame(save.AutoSavePath(), sd)
+}
+
 func (gs *Geoscape) LoadGameFromFile() {
 	sd, err := save.LoadGame("xcom_save.json")
 	if err != nil {
@@ -707,6 +740,20 @@ func (gs *Geoscape) LoadGameFromFile() {
 		gs.MessageTimer = time.Now()
 		return
 	}
+	gs.loadFromSaveData(sd)
+}
+
+func (gs *Geoscape) LoadGameFromSlot(slot int) {
+	sd, err := save.LoadGame(save.SavePath(slot))
+	if err != nil {
+		gs.Message = language.String("MSG_LOAD_FAILED") + err.Error()
+		gs.MessageTimer = time.Now()
+		return
+	}
+	gs.loadFromSaveData(sd)
+}
+
+func (gs *Geoscape) loadFromSaveData(sd *save.SaveData) {
 	gs.Game.GameTime = sd.GameTime
 	gs.Game.Funds = sd.Funds
 	gs.Game.Paused = sd.Paused
@@ -742,6 +789,35 @@ func (gs *Geoscape) LoadGameFromFile() {
 	}
 	gs.Message = language.String("MSG_GAME_LOADED")
 	gs.MessageTimer = time.Now()
+}
+
+func (gs *Geoscape) listSaveSlots() []engine.SlotInfo {
+	var slots []engine.SlotInfo
+	for slot := 1; slot <= 10; slot++ {
+		sd, err := save.LoadGame(save.SavePath(slot))
+		if err != nil {
+			continue
+		}
+		label := engine.FormatSlotLabel(slot, sd.GameTime.Format("2006 Jan 02"), sd.Funds)
+		slots = append(slots, engine.SlotInfo{Slot: slot, Label: label})
+	}
+	return slots
+}
+
+func (gs *Geoscape) openSaveSlotPicker() {
+	slots := gs.listSaveSlots()
+	picker := engine.NewSlotPickerScreen(gs.Game, engine.SlotPickerSave, slots, func(slot int) {
+		gs.SaveGameToSlot(slot)
+	})
+	gs.Game.PushScreen(picker)
+}
+
+func (gs *Geoscape) openLoadSlotPicker() {
+	slots := gs.listSaveSlots()
+	picker := engine.NewSlotPickerScreen(gs.Game, engine.SlotPickerLoad, slots, func(slot int) {
+		gs.LoadGameFromSlot(slot)
+	})
+	gs.Game.PushScreen(picker)
 }
 
 func (gs *Geoscape) TogglePause() {
@@ -1149,9 +1225,9 @@ func (gs *Geoscape) HandleKey(e *tcell.EventKey) {
 			}
 		}
 	case tcell.KeyF5:
-		gs.SaveGameToFile()
+		gs.openSaveSlotPicker()
 	case tcell.KeyF9:
-		gs.LoadGameFromFile()
+		gs.openLoadSlotPicker()
 	}
 	switch e.Str() {
 	case "b", "B":
@@ -1319,23 +1395,44 @@ func (gs *Geoscape) HandleMouse(e *tcell.EventMouse) {
 
 func generateUFOLoot(ufoName string) []string {
 	var loot []string
-	loot = append(loot, "alloys", "alloys")
-	if rand.Intn(100) < 60 {
-		loot = append(loot, "elerium")
-	}
 	switch ufoName {
 	case "Small Scout":
-		loot = append(loot, "ufo_nav")
+		loot = append(loot, "alloys")
+		if rand.Intn(100) < 30 {
+			loot = append(loot, "elerium")
+		}
 	case "Medium Scout":
-		loot = append(loot, "ufo_nav", "ufo_weapon")
+		loot = append(loot, "alloys", "alloys")
+		if rand.Intn(100) < 50 {
+			loot = append(loot, "elerium")
+		}
+		loot = append(loot, "ufo_nav")
 	case "Large Scout":
-		loot = append(loot, "ufo_nav", "ufo_weapon", "ufo_armor")
+		loot = append(loot, "alloys", "alloys", "alloys")
+		if rand.Intn(100) < 60 {
+			loot = append(loot, "elerium")
+		}
+		loot = append(loot, "ufo_nav", "ufo_weapon")
 	case "Harvester":
+		loot = append(loot, "alloys", "alloys", "alloys", "alloys")
+		if rand.Intn(100) < 70 {
+			loot = append(loot, "elerium", "elerium")
+		}
 		loot = append(loot, "ufo_nav", "ufo_power", "ufo_weapon")
 	case "Bomber":
+		loot = append(loot, "alloys", "alloys", "alloys", "alloys", "alloys")
+		if rand.Intn(100) < 80 {
+			loot = append(loot, "elerium", "elerium")
+		}
 		loot = append(loot, "ufo_nav", "ufo_power", "ufo_weapon", "ufo_armor")
 	case "Transport":
+		loot = append(loot, "alloys", "alloys", "alloys", "alloys")
+		if rand.Intn(100) < 75 {
+			loot = append(loot, "elerium")
+		}
 		loot = append(loot, "ufo_nav", "ufo_power", "ufo_armor")
+	default:
+		loot = append(loot, "alloys", "alloys")
 	}
 	return loot
 }

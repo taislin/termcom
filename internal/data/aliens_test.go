@@ -52,3 +52,51 @@ func TestGetAlienByRank(t *testing.T) {
 		t.Error("expected nil for impossible rank")
 	}
 }
+
+func TestAlienIconPoolsValid(t *testing.T) {
+	for dmg, pool := range AlienIconsByDamage {
+		if len(pool) == 0 {
+			t.Errorf("damage type %d has an empty icon pool", dmg)
+		}
+		for _, r := range pool {
+			if r < 0 || r > 0xFFFF {
+				t.Errorf("damage type %d has non-BMP icon %U", dmg, r)
+			}
+			if r >= 0x1F300 {
+				t.Errorf("damage type %d has emoji-range icon %U", dmg, r)
+			}
+		}
+	}
+}
+
+func TestAlienIconsUnique(t *testing.T) {
+	seen := map[rune]bool{}
+	for _, at := range AlienTypes {
+		if at.Icon == 0 {
+			t.Errorf("%s: empty icon", at.Name)
+		}
+		if seen[at.Icon] {
+			t.Errorf("duplicate icon %U across aliens", at.Icon)
+		}
+		seen[at.Icon] = true
+	}
+}
+
+func TestProceduralAlienIconsUnique(t *testing.T) {
+	for _, seed := range []int64{1, 42, 1337, 99999} {
+		_, types := GenerateSpecies(seed)
+		seen := map[rune]bool{}
+		for _, at := range types {
+			if seen[at.Icon] {
+				t.Errorf("seed %d: duplicate procedural icon %U", seed, at.Icon)
+			}
+			seen[at.Icon] = true
+			if at.Icon < 0 || at.Icon > 0xFFFF {
+				t.Errorf("seed %d: non-BMP icon %U", seed, at.Icon)
+			}
+		}
+		if len(types) == 0 {
+			t.Errorf("seed %d: no procedural alien types generated", seed)
+		}
+	}
+}

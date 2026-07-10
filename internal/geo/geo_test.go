@@ -32,7 +32,7 @@ func TestCityByID(t *testing.T) {
 
 func TestUFOSpawnOnCities(t *testing.T) {
 	cities := GetCities()
-	ufo := SpawnUFOOnCities(cities)
+	ufo := SpawnUFOOnCities(cities, 0)
 	if ufo == nil {
 		t.Fatal("SpawnUFOOnCities returned nil")
 	}
@@ -46,7 +46,7 @@ func TestUFOSpawnOnCities(t *testing.T) {
 
 func TestUFOMovementOnCities(t *testing.T) {
 	cities := GetCities()
-	ufo := SpawnUFOOnCities(cities)
+	ufo := SpawnUFOOnCities(cities, 0)
 	startProgress := ufo.Progress
 	ufo.Update(cities)
 	if ufo.Progress <= startProgress {
@@ -64,7 +64,7 @@ func TestUFOList(t *testing.T) {
 	}
 
 	cities := GetCities()
-	ufo := SpawnUFOOnCities(cities)
+	ufo := SpawnUFOOnCities(cities, 0)
 	list = append(list, ufo)
 	if list.Count() != 1 {
 		t.Errorf("expected 1, got %d", list.Count())
@@ -98,7 +98,7 @@ func TestInterceptorLaunchAtNode(t *testing.T) {
 func TestInterceptorFire(t *testing.T) {
 	inter := NewInterceptor(48, 31)
 	cities := GetCities()
-	ufo := SpawnUFOOnCities(cities)
+	ufo := SpawnUFOOnCities(cities, 0)
 	ufo.Type.Toughness = 1000 // high HP so it doesn't die
 	ufo.X = float64(inter.X) + 1 // place nearby
 	ufo.Y = float64(inter.Y)
@@ -125,7 +125,7 @@ func TestInterceptorFireEmpty(t *testing.T) {
 	inter := NewInterceptor(48, 31)
 	inter.Ammo = 0
 	cities := GetCities()
-	ufo := SpawnUFOOnCities(cities)
+	ufo := SpawnUFOOnCities(cities, 0)
 	damage := inter.FireAt(ufo)
 	if damage != 0 {
 		t.Errorf("expected 0 damage with no ammo, got %d", damage)
@@ -135,7 +135,7 @@ func TestInterceptorFireEmpty(t *testing.T) {
 func TestInterceptorDisengage(t *testing.T) {
 	inter := NewInterceptor(48, 31)
 	cities := GetCities()
-	ufo := SpawnUFOOnCities(cities)
+	ufo := SpawnUFOOnCities(cities, 0)
 	inter.LaunchAtUFO(ufo)
 	inter.Disengage()
 	if inter.Launching {

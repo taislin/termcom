@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"fmt"
 	"math"
 	"math/rand"
 	"os"
@@ -52,8 +53,15 @@ func NewMenuScreen(g *Game) *MenuScreen {
 }
 
 func HasSave() bool {
-	_, err := os.Stat(SaveFile)
-	return err == nil
+	if _, err := os.Stat(SaveFile); err == nil {
+		return true
+	}
+	for slot := 1; slot <= 10; slot++ {
+		if _, err := os.Stat(fmt.Sprintf("save_slot_%d.json", slot)); err == nil {
+			return true
+		}
+	}
+	return false
 }
 
 func (ms *MenuScreen) seedStars(w, h int) {
@@ -330,9 +338,13 @@ func (ms *MenuScreen) confirm() {
 		if ms.Game.OnNewGame != nil {
 			ms.Game.OnNewGame()
 		}
-	case language.String("MENU_CONTINUE"), language.String("MENU_LOAD_GAME"):
+	case language.String("MENU_CONTINUE"):
 		if ms.Game.OnContinue != nil {
 			ms.Game.OnContinue()
+		}
+	case language.String("MENU_LOAD_GAME"):
+		if ms.Game.OnLoadGame != nil {
+			ms.Game.OnLoadGame()
 		}
 	case language.String("MENU_OPTIONS"):
 		if _, ok := ms.Game.screens[StateOptions]; !ok {

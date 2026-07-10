@@ -13,11 +13,12 @@ import (
 )
 
 type BaseScreen struct {
-	Game      *engine.Game
-	Base      *Base
-	Tab       int
-	Selection int
-	Message   string
+	Game       *engine.Game
+	Base       *Base
+	Tab        int
+	Selection  int
+	Message    string
+	storesItems []string
 }
 
 func NewBaseScreen(g *engine.Game, b *Base) *BaseScreen {
@@ -92,6 +93,17 @@ func (bs *BaseScreen) DismissSoldier() {
 	}
 }
 
+func (bs *BaseScreen) SellSelectedItem() {
+	if bs.Tab == 4 && bs.Selection >= 0 && bs.Selection < len(bs.storesItems) {
+		item := bs.storesItems[bs.Selection]
+		value := bs.Base.SellItem(item)
+		if value > 0 {
+			bs.Game.Funds += value
+			bs.Message = fmt.Sprintf(language.String("MSG_SOLD"), item, value/1000)
+		}
+	}
+}
+
 func (bs *BaseScreen) BuyInterceptor() {
 	if bs.Base.BuyInterceptor("avalanche", &bs.Game.Funds) {
 		bs.Message = language.String("MSG_INTERCEPTOR_PURCHASED")
@@ -159,6 +171,8 @@ func (bs *BaseScreen) Render(ctx *engine.ScreenCtx) {
 		help = language.String("HELP_TAB_RESEARCH")
 	} else if bs.Tab == 3 {
 		help = language.String("HELP_TAB_MANUFACTURE")
+	} else if bs.Tab == 4 {
+		help = language.String("HELP_TAB_TRANSFER")
 	} else if bs.Tab == 5 {
 		help = language.String("HELP_HANGARS")
 	}
@@ -266,13 +280,18 @@ func (bs *BaseScreen) renderTransfer(ctx *engine.ScreenCtx, x, y, w, h int) {
 		}
 	}
 	sort.Strings(items)
+	bs.storesItems = items
 
-	for _, item := range items {
-		if y < h+2 {
-			qty := bs.Base.Stores[item]
-			ctx.DrawString(x, y, fmt.Sprintf("%-15s x%d", item, qty), engine.StyleDefault)
-			y++
+	for i, item := range items {
+		if y+i >= h+2 {
+			break
 		}
+		qty := bs.Base.Stores[item]
+		style := engine.StyleDefault
+		if i == bs.Selection {
+			style = engine.StyleHighlight
+		}
+		ctx.DrawString(x, y+i, fmt.Sprintf("%-15s x%d", item, qty), style)
 	}
 	if len(items) == 0 {
 		ctx.DrawString(x, y, language.String("SECTION_NO_ITEMS"), engine.StyleGray)
@@ -309,6 +328,8 @@ func (bs *BaseScreen) HandleKey(e *tcell.EventKey) {
 		if bs.Selection < 0 {
 			if bs.Tab == 1 {
 				bs.Selection = len(bs.Base.Soldiers) - 1
+			} else if bs.Tab == 4 {
+				bs.Selection = len(bs.storesItems) - 1
 			} else if bs.Tab == 5 {
 				bs.Selection = len(bs.Base.Hangars) - 1
 			} else {
@@ -320,6 +341,10 @@ func (bs *BaseScreen) HandleKey(e *tcell.EventKey) {
 		bs.Selection++
 		if bs.Tab == 1 {
 			if bs.Selection >= len(bs.Base.Soldiers) {
+				bs.Selection = 0
+			}
+		} else if bs.Tab == 4 {
+			if bs.Selection >= len(bs.storesItems) {
 				bs.Selection = 0
 			}
 		} else if bs.Tab == 5 {
@@ -373,7 +398,11 @@ func (bs *BaseScreen) HandleKey(e *tcell.EventKey) {
 			}
 		}
 	case "s", "S":
-		bs.SellFacility()
+		if bs.Tab == 4 {
+			bs.SellSelectedItem()
+		} else {
+			bs.SellFacility()
+		}
 	case "h", "H":
 		bs.HireSoldier()
 	case "d", "D":
@@ -412,11 +441,19 @@ func (bs *BaseScreen) HandleMouse(e *tcell.EventMouse) {
 			help = language.String("HELP_TAB_RESEARCH")
 		} else if bs.Tab == 3 {
 			help = language.String("HELP_TAB_MANUFACTURE")
+		} else if bs.Tab == 4 {
+			help = language.String("HELP_TAB_TRANSFER")
 		}
 		helpActions := []string{"=Build", "=Sell", "=Hire", "=Equip", "=Dismiss", "=Research", "=Manufacture", "=Tab", "=Navigate", "=Back"}
 		helpFuncs := []func(){
 			func() { bs.Tab = 0; bs.BuildFacility() },
-			func() { bs.SellFacility() },
+			func() {
+				if bs.Tab == 4 {
+					bs.SellSelectedItem()
+				} else {
+					bs.SellFacility()
+				}
+			},
 			func() { bs.HireSoldier() },
 			func() {
 				if bs.Tab == 1 && len(bs.Base.Soldiers) > 0 {

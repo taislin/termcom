@@ -92,9 +92,18 @@ func init() {
 		"ENCYCLO_ALIEN_STATS_3":   "DMG:%s WPN:%s",
 		"ENCYCLO_NOT_DISCOVERED":  "Not yet discovered.",
 		"MSG_SAVE_FAILED":         "Save failed: ",
-		"MSG_GAME_SAVED":          "Game saved to xcom_save.json",
+		"MSG_GAME_SAVED":          "Game saved to slot %d",
+		"MSG_GAME_SAVED_AUTO":     "Auto-saved!",
 		"MSG_LOAD_FAILED":         "Load failed: ",
 		"MSG_MONTHLY_REPORT":      "MONTHLY REPORT: Funding +$%dK  Salaries -$%dK",
+
+		// ── Slot Picker ──────────────────────────────────────
+		"SLOT_PICKER_SAVE":        "SAVE GAME",
+		"SLOT_PICKER_LOAD":        "LOAD GAME",
+		"SLOT_PICKER_NO_SAVES":    "No saved games found.",
+		"SLOT_PICKER_HELP":        "Select a slot and press Enter. [Esc]=Cancel",
+		"SLOT_PICKER_FULL":        "All 10 save slots are full!",
+		"SLOT_PICKER_SAVED":       "Game saved to Slot %d.",
 
 		// Mission types
 		"MISSION_CRASH_SITE":      "Crash Site",
@@ -263,6 +272,7 @@ func init() {
 		"HELP_SOLDIERS":        "[H]ire ($%dK)  [E]quip  [D]ismiss  [\u2191]/[\u2193]=Navigate  [Esc]=Back",
 		"HELP_TAB_RESEARCH":    "[R]esearch  [\u2191]/[\u2193]=Navigate  [Esc]=Back",
 		"HELP_TAB_MANUFACTURE": "[M]anufacture  [\u2191]/[\u2193]=Navigate  [Esc]=Back",
+		"HELP_TAB_TRANSFER":    "[S]ell  [\u2191]/[\u2193]=Navigate  [Esc]=Back",
 		"HELP_HANGARS":         "[B]uy  [W]=Weapon  [\u2191]/[\u2193]=Navigate  [Esc]=Back",
 
 		// Section labels
@@ -340,11 +350,17 @@ func init() {
 		"LABS_INFO":            "Labs: %d  Scientists: %d",
 		"RESEARCH_IN_PROGRESS": "IN PROGRESS: %s (%d%% complete, %d scientists)",
 		"NO_ACTIVE_RESEARCH":   "No active research. Select a topic below.",
-		"AVAILABLE_TOPICS":     "AVAILABLE TOPICS:",
+		"ALL_TOPICS":           "ALL TOPICS:",
 		"NO_TOPICS":            "No topics available. Collect more artifacts.",
-		"HELP_RESEARCH":        "\u2191/\u2193=Select  Enter=Start  [Esc]=Back",
+		"HELP_RESEARCH":        "\u2191/\u2193=Select  Enter=Start  [Esc]=Back  [T]ree",
 		"RESEARCH_REQUIRES":    " [Requires: %s]",
-		"RESEARCH_COST":        "%-25s Cost: %d man-days%s",
+		"RESEARCH_COST":        "[T%d] %-22s Cost: %4d%s",
+		"RESEARCH_DONE":        "\u2713",
+		"RESEARCH_LOCKED":      "\u2717",
+		"RESEARCH_TIER":        "T%d",
+		"RESEARCH_TREE_TITLE":  "PREREQUISITE TREE",
+		"RESEARCH_PREREQS":     "Prerequisites:",
+		"RESEARCH_UNLOCKS":     "Unlocks:",
 		"MSG_RESEARCH_STARTED": "Research started: %s",
 		"MSG_CANNOT_RESEARCH":  "Cannot start research!",
 		"RESEARCH_UNASSIGNED":  "Unassigned Scientists: %d. [+/-] Assign/Unassign.",

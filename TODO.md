@@ -15,25 +15,25 @@
 - [x] Dead code removal and test coverage improvements
 
 ## Phase 11: Save System Enhancements
-- [ ] Distinguish Continue vs Load Game in menu (Continue = load last save silently)
-- [ ] Multiple save slots with file picker UI
-- [ ] Auto-save on Geoscape monthly report
+- [x] Distinguish Continue vs Load Game in menu (Continue = load last save silently)
+- [x] Multiple save slots with file picker UI
+- [x] Auto-save on Geoscape monthly report
 
 ## Phase 12: Battle Loot & Economy Balance
-- [ ] Balance generateUFOLoot() per species and UFO type
-- [ ] Tune manufacturing costs and material requirements for varied tech tree
-- [ ] Adjust monthly funding to account for randomized research costs
+- [x] Balance generateUFOLoot() per species and UFO type
+- [x] Tune manufacturing costs and material requirements for varied tech tree
+- [x] Adjust monthly funding to account for randomized research costs
 
-## Phase 13: Research Screen Improvements
-- [ ] Show checkmarks on researched topics
-- [ ] Grey out completed topics in the list
-- [ ] Display tier info so players can plan their research path
-- [ ] Show prerequisite tree graph in research UI
+## Phase 13: Research Screen Improvements (DONE)
+- [x] Show checkmarks on researched topics
+- [x] Grey out completed topics in the list
+- [x] Display tier info so players can plan their research path
+- [x] Show prerequisite tree graph in research UI
 
-## Phase 14: Alien Progression Scaling
-- [ ] Scale alien stats with game time (harder aliens as months pass)
-- [ ] Increase UFO frequency and strength over the campaign
-- [ ] Gate elite alien species behind certain mission thresholds
+## Phase 14: Alien Progression Scaling (DONE)
+- [x] Scale alien stats with game time (harder aliens as months pass)
+- [x] Increase UFO frequency and strength over the campaign
+- [x] Gate elite alien species behind certain mission thresholds
 
 ## Phase 15: Expanded Battle VFX
 - [x] Muzzle flash particles on weapon fire
