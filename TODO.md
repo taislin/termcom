@@ -48,15 +48,15 @@
 - [x] Geoscape alert sounds (UFO detected, mission warning)
 
 ## Phase 17: Multi-Base Support
-- [ ] Build and manage multiple bases on the Geoscape
-- [ ] Transfer soldiers and items between bases
-- [ ] Regional radar coverage per base
-- [ ] Base defense missions when aliens attack a base
+- [x] Build and manage multiple bases on the Geoscape
+- [x] Transfer soldiers and items between bases
+- [x] Regional radar coverage per base
+- [x] Base defense missions when aliens attack a base
 
 ## Phase 18: Battlescape AI Polish
-- [ ] Enhance alien AI in internal/battle/ai.go for more challenging tactical combat
-- [ ] Smarter flanking and cover usage
-- [ ] Coordinated squad behavior (suppression, focused fire, retreat)
+- [x] Enhance alien AI in internal/battle/ai.go for more challenging tactical combat
+- [x] Smarter flanking and cover usage
+- [x] Coordinated squad behavior (suppression, focused fire, retreat)
 - [ ] AI adapts to player tactics across missions
 
 ## Phase 19: Geoscape Mission Variety
