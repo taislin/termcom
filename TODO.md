@@ -75,20 +75,20 @@
 - [x] A5 Enforce storage capacity (MaxStorage/UsedStorage) on AddLoot/Equip/
       Manufacture/Transfer so bases cannot hoard unlimited loot
 
-## Phase 21: Alien Capture (capture-only scope)
-- [ ] B1 Stun mechanic: Stun Rod stuns instead of kills at low HP (Stunned flag)
-- [ ] B2 Live-alien storage: stunned aliens added to base if Alien Containment
+## Phase 21: Alien Capture (capture-only scope) (DONE)
+- [x] B1 Stun mechanic: Stun Rod stuns instead of kills at low HP (Stunned flag)
+- [x] B2 Live-alien storage: stunned aliens added to base if Alien Containment
       exists (capacity-gated); otherwise lost
-- [ ] B3 Interrogation -> research bonus: consume a captured alien to auto-complete
+- [x] B3 Interrogation -> research bonus: consume a captured alien to auto-complete
       an autopsy or grant large progress to an active topic
-- [ ] B4 Leave Psi-Lab cosmetic (no psi training); document in manual
+- [x] B4 Leave Psi-Lab cosmetic (no psi training); document in manual
 
-## Phase 22: Economy / Balance / Polish (MINOR)
-- [ ] C1 Healing pacing: advance healingC1 Healing pacing: advance healing daily (or boost +2 HP/day) so wounds recover
+## Phase 22: Economy / Balance / Polish (MINOR) (DONE)
+- [x] C1 Healing pacing: advance healing daily (or boost +2 HP/day) so wounds recover
       in reasonable time; optionally gate wounded (HP<MaxHP) from deployment
-- [ ] C2 Difficulty selection at new game (Beginner..Superhuman) affecting UFO spawn
+- [x] C2 Difficulty selection at new game (Beginner..Superhuman) affecting UFO spawn
       rate and alien stat scaling
-- [ ] C3 Nil-safety hardening: guard SelectedBase() usages in geoscape Update
+- [x] C3 Nil-safety hardening: guard SelectedBase() usages in geoscape Update
 
 ## Phase 23: Multi-Platform Audio Engine
 - [ ] Implement procedural sound synthesis in `audio_other.go` (Linux/macOS) using
@@ -106,7 +106,3 @@
 - [ ] E1 Tests: victory reachable & Cydonia fires once; interceptor save round-trip;
       interception node path engages UFO; storage cap blocks overflow; capture ->
       containment -> interrogation flow
-
-### Execution order
-A1 -> A2 -> A3 -> A4 -> A5 -> B1 -> B2 -> B3 -> C1 -> C2 -> C3 -> Phase 23 -> Phase 24 -> D1 -> E1
-

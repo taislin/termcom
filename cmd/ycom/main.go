@@ -18,13 +18,16 @@ func main() {
 	}
 
 	g.OnNewGame = func() {
-		gs := geo.NewGeoscape(g)
-		g.RegisterScreen(engine.StateGeoscape, gs)
-		g.RegisterScreen(engine.StateBase, base.NewBaseScreen(g, gs.SelectedBase()))
-		g.RegisterScreen(engine.StateEquip, base.NewEquipScreen(g, gs.SelectedBase()))
-		g.RegisterScreen(engine.StateResearch, base.NewResearchScreen(g, gs.SelectedBase()))
-		g.RegisterScreen(engine.StateManufacture, base.NewManufactureScreen(g, gs.SelectedBase()))
-		g.SetState(engine.StateGeoscape)
+		picker := engine.NewDifficultyScreen(g, func(difficulty int) {
+			gs := geo.NewGeoscape(g)
+			g.RegisterScreen(engine.StateGeoscape, gs)
+			g.RegisterScreen(engine.StateBase, base.NewBaseScreen(g, gs.SelectedBase()))
+			g.RegisterScreen(engine.StateEquip, base.NewEquipScreen(g, gs.SelectedBase()))
+			g.RegisterScreen(engine.StateResearch, base.NewResearchScreen(g, gs.SelectedBase()))
+			g.RegisterScreen(engine.StateManufacture, base.NewManufactureScreen(g, gs.SelectedBase()))
+			g.SetState(engine.StateGeoscape)
+		})
+		g.PushScreen(picker)
 	}
 
 	g.OnContinue = func() {

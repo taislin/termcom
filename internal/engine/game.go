@@ -23,6 +23,7 @@ const (
 	StateEncyclopedia
 	StateOptions
 	StateSlotPicker
+	StateDifficulty
 	StateGameOver
 	StateQuit
 )
@@ -65,6 +66,7 @@ type Game struct {
 	TimeSpeed int
 	Paused    bool
 	Funds     int64
+	Difficulty int // 0=Beginner, 1=Experienced, 2=Veteran, 3=Genius, 4=Superhuman
 
 	screens      map[GameState]Screen
 	keyChan      chan tcell.Event

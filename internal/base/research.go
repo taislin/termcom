@@ -25,11 +25,12 @@ type topicEntry struct {
 }
 
 type ResearchScreen struct {
-	Game       *engine.Game
-	Base       *Base
-	Selection  int
-	Message    string
-	ShowTree   bool
+	Game            *engine.Game
+	Base            *Base
+	Selection       int
+	Message         string
+	ShowTree        bool
+	InterrogateMode bool
 }
 
 func NewResearchScreen(g *engine.Game, b *Base) *ResearchScreen {
@@ -65,7 +66,12 @@ func (rs *ResearchScreen) Render(ctx *engine.ScreenCtx) {
 		ctx.DrawString(2, 3, language.String("NO_ACTIVE_RESEARCH"), engine.StyleGray)
 	}
 
-	ctx.DrawString(2, 5, language.String("ALL_TOPICS"), engine.StyleCyanBold)
+	ctx.DrawString(2, 4, language.String("ALL_TOPICS"), engine.StyleCyanBold)
+
+	// Show captured aliens line
+	if len(rs.Base.LiveAliens) > 0 {
+		ctx.DrawString(2, 5, fmt.Sprintf(language.String("RESEARCH_CAPTURED"), len(rs.Base.LiveAliens)), engine.StyleYellow)
+	}
 
 	entries := rs.getAllTopics()
 	if len(entries) == 0 {
@@ -301,6 +307,26 @@ func (rs *ResearchScreen) getAllTopics() []topicEntry {
 	return entries
 }
 
+func (rs *ResearchScreen) doInterrogate() {
+	rs.InterrogateMode = false
+	if len(rs.Base.LiveAliens) == 0 {
+		rs.Message = language.String("MSG_INTERROGATE_NO_ALIEN")
+		return
+	}
+	if rs.Base.TotalLabs() == 0 {
+		rs.Message = language.String("MSG_INTERROGATE_NO_LABS")
+		return
+	}
+	// Interrogate the first available captured alien
+	alienName := rs.Base.LiveAliens[0]
+	topicName, ok := rs.Base.InterrogateAlien(alienName)
+	if ok {
+		rs.Message = fmt.Sprintf(language.String("MSG_INTERROGATE_SUCCESS"), topicName)
+	} else {
+		rs.Message = language.String("MSG_INTERROGATE_NO_ALIEN")
+	}
+}
+
 func (rs *ResearchScreen) startResearch() {
 	entries := rs.getAllTopics()
 	if rs.Selection >= len(entries) {
@@ -341,7 +367,20 @@ func (rs *ResearchScreen) HandleKey(e *tcell.EventKey) {
 	}
 	switch e.Str() {
 	case "\r":
-		rs.startResearch()
+		if rs.InterrogateMode {
+			rs.doInterrogate()
+		} else {
+			rs.startResearch()
+		}
+	case "i", "I":
+		if len(rs.Base.LiveAliens) > 0 && rs.Base.TotalLabs() > 0 {
+			rs.InterrogateMode = true
+			rs.Message = language.String("RESEARCH_INTERROGATE_PROMPT")
+		} else if len(rs.Base.LiveAliens) == 0 {
+			rs.Message = language.String("MSG_INTERROGATE_NO_ALIEN")
+		} else {
+			rs.Message = language.String("MSG_INTERROGATE_NO_LABS")
+		}
 	case "+":
 		rs.Base.AssignScientists(1)
 	case "-":

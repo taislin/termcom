@@ -280,7 +280,7 @@ func NewBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, ufoN
 	bs.AddMessage(fmt.Sprintf(language.String("MSG_MISSION_START"), ufoName))
 
 	for i, s := range squad {
-		if s.HP <= 0 {
+		if s.HP <= 0 || s.Wounds > 0 {
 			continue
 		}
 		u := NewSoldierUnit(s)
@@ -294,6 +294,11 @@ func NewBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, ufoN
 	gameMonth := int(g.GameTime.Month()) - 3 + (g.GameTime.Year()-1999)*12
 	if gameMonth < 0 {
 		gameMonth = 0
+	}
+
+	diffMult := 1.0
+	if g.Difficulty >= 0 && g.Difficulty < len(engine.Difficulties) {
+		diffMult = engine.Difficulties[g.Difficulty].AlienScale
 	}
 
 	// Scale base rank with game time: +1 rank per 3 months
@@ -310,12 +315,12 @@ func NewBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, ufoN
 	}
 	totalAliens := baseCount + extraCount
 
-	// Stat bonus: +2 HP and +3 Accuracy per month (capped)
-	hpBonus := gameMonth * 2
+	// Stat bonus: +2 HP and +3 Accuracy per month (capped), scaled by difficulty
+	hpBonus := int(float64(gameMonth*2) * diffMult)
 	if hpBonus > 20 {
 		hpBonus = 20
 	}
-	accBonus := gameMonth * 3
+	accBonus := int(float64(gameMonth*3) * diffMult)
 	if accBonus > 30 {
 		accBonus = 30
 	}
@@ -929,6 +934,11 @@ func (bs *Battlescape) checkReinforcements() {
 		gameMonth = 0
 	}
 
+	diffMult := 1.0
+	if g.Difficulty >= 0 && g.Difficulty < len(engine.Difficulties) {
+		diffMult = engine.Difficulties[g.Difficulty].AlienScale
+	}
+
 	alienRank := gameMonth / 3
 	if alienRank > 3 {
 		alienRank = 3
@@ -950,9 +960,9 @@ func (bs *Battlescape) checkReinforcements() {
 			continue
 		}
 		u := NewAlienUnit(at)
-		u.HP += gameMonth * 2
-		u.MaxHP += gameMonth * 2
-		u.Accuracy += gameMonth * 3
+		u.HP += int(float64(gameMonth*2) * diffMult)
+		u.MaxHP += int(float64(gameMonth*2) * diffMult)
+		u.Accuracy += int(float64(gameMonth*3) * diffMult)
 		side := rand.Intn(4)
 		switch side {
 		case 0:

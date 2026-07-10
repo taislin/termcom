@@ -210,8 +210,8 @@ Navigate with `j`/`k` or arrow keys. Use `Enter` to select.
 | Workshop | $60K | 7 days | Enables manufacturing |
 | Storage | $40K | 3 days | +50 item storage |
 | Radar | $80K | 5 days | +$50K monthly funding |
-| Alien Containment | $100K | 10 days | Live alien capture |
-| Psi-Lab | $150K | 14 days | Psychic training |
+| Alien Containment | $100K | 10 days | Live alien capture (capacity: 10 per facility) |
+| Psi-Lab | $150K | 14 days | Cosmetic only (no psi training implemented) |
 | Hangar | $120K | 8 days | Houses interceptors |
 
 **Controls:**
@@ -751,7 +751,26 @@ The species seed ensures the same alien species are regenerated when loading a s
 - **Radar** facilities are worth it: +$50K monthly funding each.
 - **Storage** is essential — you'll fill up fast with corpses and alloys.
 - **Alien Containment** is needed for live captures (research bonuses).
+  Each facility holds 10 captured aliens. Build multiple for larger rosters.
 - Build **Hangars** to field multiple interceptors.
+- **Psi-Lab** is cosmetic only — it has no gameplay effect. Build it for base
+  completeness, but prioritize Containment first.
+
+### Alien Capture & Interrogation
+
+Use the **Stun Rod** (melee weapon, $2K) to stun aliens instead of killing them.
+When an alien's stun points exceed their HP, they fall unconscious and can be
+collected after the mission — provided you have an Alien Containment facility
+with available capacity.
+
+Captured aliens are listed in the Research screen. Press **I** to interrogate
+a captured alien:
+- If the matching autopsy topic is active, interrogation completes it instantly.
+- If the autopsy is not yet started, interrogation auto-completes it and
+  grants all associated unlocks.
+- If the autopsy is already done, interrogation grants a 25% progress bonus
+  to your current active research topic.
+- Interrogation requires at least one Laboratory.
 
 ### Research Priorities
 

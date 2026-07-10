@@ -12,6 +12,11 @@ func init() {
 		"MENU_OPTIONS":   "Options",
 		"MENU_HELP":      "\u2191/\u2193=Select  Enter=Confirm  Q=Quit  F5=Save  F9=Load",
 
+		// ── Difficulty ─────────────────────────────────────
+		"DIFFICULTY_TITLE":    "SELECT DIFFICULTY",
+		"DIFFICULTY_PROMPT":   "Choose your challenge level:",
+		"HELP_DIFFICULTY":     "\u2191/\u2193=Select  Enter=Confirm",
+
 		// ── Geoscape ──────────────────────────────────────
 		"GEOSCAPE":              "GEOSCAPE",
 		"GEOSCAPE_FUNDS":        "Funds: $%dK",
@@ -161,6 +166,9 @@ func init() {
 		"MSG_VICTORY_LOOT":         "Victory! %d aliens killed. Loot: %v",
 		"MSG_ALIENS_CAPTURED":      " Captured %d aliens.",
 		"MSG_ALIEN_NO_SPACE":       " Alien Containment full!",
+		"MSG_INTERROGATE_SUCCESS":  "Interrogation complete! %s research advanced.",
+		"MSG_INTERROGATE_NO_ALIEN": "No captured aliens available for interrogation.",
+		"MSG_INTERROGATE_NO_LABS":  "Need a Laboratory to interrogate aliens.",
 		"MSG_DEFEAT_LOST":          "Defeat! Lost: %v",
 		"MSG_ATTACK_CITY":          "%s attack on %s! Panic spreads!",
 
@@ -385,7 +393,9 @@ func init() {
 		"NO_ACTIVE_RESEARCH":   "No active research. Select a topic below.",
 		"ALL_TOPICS":           "ALL TOPICS:",
 		"NO_TOPICS":            "No topics available. Collect more artifacts.",
-		"HELP_RESEARCH":        "\u2191/\u2193=Select  Enter=Start  [Esc]=Back  [T]ree",
+		"RESEARCH_CAPTURED":    "Captured aliens: %d  [I]nterrogate",
+		"RESEARCH_INTERROGATE_PROMPT": "Press Enter to interrogate first captured alien.",
+		"HELP_RESEARCH":        "\u2191/\u2193=Select  Enter=Start  [Esc]=Back  [T]ree  [I]nterrogate",
 		"RESEARCH_REQUIRES":    " [Requires: %s]",
 		"RESEARCH_COST":        "[T%d] %-22s Cost: %4d%s",
 		"RESEARCH_DONE":        "\u2713",

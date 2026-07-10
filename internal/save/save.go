@@ -20,6 +20,7 @@ type SaveData struct {
 	Funds          int64
 	Paused         bool
 	TimeSpeed      int
+	Difficulty     int
 	AlienActivity  int
 	SpeciesSeed    int64
 	AlienKnowledge map[string]int

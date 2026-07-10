@@ -1,0 +1,113 @@
+package engine
+
+import (
+	"fmt"
+
+	"github.com/civ13/ycom/internal/language"
+	"github.com/gdamore/tcell/v3"
+)
+
+type DifficultyEntry struct {
+	Name        string
+	Description string
+	AlienScale  float64 // multiplier for alien stats
+	UFOScale    float64 // multiplier for UFO spawn rate & count
+	FundsScale  float64 // starting funds multiplier
+}
+
+var Difficulties = []DifficultyEntry{
+	{Name: "Beginner", Description: "Weaker aliens, slower UFOs, more funds", AlienScale: 0.7, UFOScale: 0.7, FundsScale: 1.5},
+	{Name: "Experienced", Description: "Standard challenge", AlienScale: 1.0, UFOScale: 1.0, FundsScale: 1.0},
+	{Name: "Veteran", Description: "Stronger aliens, faster UFOs", AlienScale: 1.2, UFOScale: 1.3, FundsScale: 0.8},
+	{Name: "Genius", Description: "Much harder combat and economy", AlienScale: 1.5, UFOScale: 1.6, FundsScale: 0.6},
+	{Name: "Superhuman", Description: "Maximum alien threat", AlienScale: 2.0, UFOScale: 2.0, FundsScale: 0.5},
+}
+
+type DifficultyScreen struct {
+	Game       *Game
+	Selection  int
+	OnConfirm  func(difficulty int)
+}
+
+func NewDifficultyScreen(g *Game, onConfirm func(int)) *DifficultyScreen {
+	return &DifficultyScreen{
+		Game:      g,
+		Selection: 1, // default to Experienced
+		OnConfirm: onConfirm,
+	}
+}
+
+func (ds *DifficultyScreen) Update() {}
+
+func (ds *DifficultyScreen) Render(ctx *ScreenCtx) {
+	w, h := ctx.Size()
+	ctx.DrawPanel(0, 0, w, h, language.String("DIFFICULTY_TITLE"), StyleDefault)
+
+	title := language.String("DIFFICULTY_PROMPT")
+	ctx.DrawString(2, 2, title, StyleCyanBold)
+
+	for i, d := range Difficulties {
+		if 4+i >= h-3 {
+			break
+		}
+		style := StyleDefault
+		if i == ds.Selection {
+			style = StyleHighlight
+		}
+		line := fmt.Sprintf("%-14s %s", d.Name, d.Description)
+		ctx.DrawString(2, 4+i, line, style)
+	}
+
+	help := language.String("HELP_DIFFICULTY")
+	ctx.DrawMarkupString(2, h-1, help, StyleGray, StyleHotkey)
+}
+
+func (ds *DifficultyScreen) HandleKey(e *tcell.EventKey) {
+	switch e.Key() {
+	case tcell.KeyUp:
+		ds.Selection--
+		if ds.Selection < 0 {
+			ds.Selection = len(Difficulties) - 1
+		}
+	case tcell.KeyDown:
+		ds.Selection++
+		if ds.Selection >= len(Difficulties) {
+			ds.Selection = 0
+		}
+	case tcell.KeyEnter:
+		ds.Game.Difficulty = ds.Selection
+		ds.Game.Funds = int64(float64(500000) * Difficulties[ds.Selection].FundsScale)
+		if ds.OnConfirm != nil {
+			ds.OnConfirm(ds.Selection)
+		}
+		ds.Game.PopState()
+	}
+	switch e.Str() {
+	case "\r":
+		ds.Game.Difficulty = ds.Selection
+		ds.Game.Funds = int64(float64(500000) * Difficulties[ds.Selection].FundsScale)
+		if ds.OnConfirm != nil {
+			ds.OnConfirm(ds.Selection)
+		}
+		ds.Game.PopState()
+	}
+}
+
+func (ds *DifficultyScreen) HandleMouse(e *tcell.EventMouse) {
+	buttons := e.Buttons()
+	if buttons == 0 {
+		return
+	}
+	x, y := e.Position()
+	_, h := ds.Game.ScreenSize()
+
+	if y >= 4 && y < 4+len(Difficulties) && x < h {
+		ds.Selection = y - 4
+		ds.Game.Difficulty = ds.Selection
+		ds.Game.Funds = int64(float64(500000) * Difficulties[ds.Selection].FundsScale)
+		if ds.OnConfirm != nil {
+			ds.OnConfirm(ds.Selection)
+		}
+		ds.Game.PopState()
+	}
+}

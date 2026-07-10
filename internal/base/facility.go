@@ -220,6 +220,17 @@ func (b *Base) BuildFacility(ft FacilityType) bool {
 	return true
 }
 
+// HealthySoldiers returns soldiers with Wounds == 0 (fully fit for deployment).
+func (b *Base) HealthySoldiers() []*soldier.Soldier {
+	var healthy []*soldier.Soldier
+	for _, s := range b.Soldiers {
+		if s.HP > 0 && s.Wounds == 0 {
+			healthy = append(healthy, s)
+		}
+	}
+	return healthy
+}
+
 func (b *Base) HireSoldier() (bool, string) {
 	cap := b.LivingCapacity()
 	if len(b.Soldiers) >= cap {
@@ -443,6 +454,77 @@ func (b *Base) TotalWeight() int {
 		}
 	}
 	return total
+}
+
+// InterrogateAlien consumes a captured alien from LiveAliens and grants a
+// research bonus: auto-completes the matching autopsy topic or adds large
+// progress to the active research if it matches. Returns the topic name
+// completed/bonused and whether the interrogation succeeded.
+func (b *Base) InterrogateAlien(alienName string) (string, bool) {
+	if len(b.LiveAliens) == 0 || b.TotalLabs() == 0 {
+		return "", false
+	}
+	// Find and remove the alien from LiveAliens
+	idx := -1
+	for i, a := range b.LiveAliens {
+		if a == alienName {
+			idx = i
+			break
+		}
+	}
+	if idx < 0 {
+		return "", false
+	}
+	b.LiveAliens = append(b.LiveAliens[:idx], b.LiveAliens[idx+1:]...)
+
+	// Look up the alien type to find its autopsy research ID
+	at := data.GetAlienByName(alienName)
+	if at == nil {
+		return "", false
+	}
+	autopsyID := at.AutopsyID
+	if autopsyID == "" {
+		return "", false
+	}
+	topic := data.ResearchByID(autopsyID)
+	if topic == nil {
+		return "", false
+	}
+
+	// If this autopsy is already completed, grant bonus progress to active research
+	if b.HasResearch(autopsyID) {
+		if b.ActiveResearch != nil && !b.ActiveResearch.Completed {
+			bonus := b.ActiveResearch.Cost / 4
+			b.ActiveResearch.Progress += bonus
+			return topic.Name, true
+		}
+		return "", false
+	}
+
+	// If this autopsy is the current active research, complete it
+	if b.ActiveResearch != nil && b.ActiveResearch.TopicID == autopsyID && !b.ActiveResearch.Completed {
+		b.ActiveResearch.Progress = b.ActiveResearch.Cost
+		return topic.Name, true
+	}
+
+	// Otherwise, complete the autopsy directly
+	b.CompletedResearch = append(b.CompletedResearch, autopsyID)
+	b.UnlockedWeapons = append(b.UnlockedWeapons, topic.UnlockWeap...)
+	b.UnlockedArmor = append(b.UnlockedArmor, topic.UnlockArmor...)
+	for _, item := range topic.UnlockItems {
+		b.AddItem(item, 1)
+	}
+	for _, wpn := range topic.UnlockWeap {
+		if _, ok := data.RuleItems[wpn]; ok {
+			b.Stores[wpn] = 1
+		}
+	}
+	for _, arm := range topic.UnlockArmor {
+		if _, ok := data.Armors[arm]; ok {
+			b.Stores[arm] = 1
+		}
+	}
+	return topic.Name, true
 }
 
 func (b *Base) HasResearch(topicID string) bool {
