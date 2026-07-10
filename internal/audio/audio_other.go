@@ -67,7 +67,15 @@ func (m *mixerStream) Read(buf []byte) (int, error) {
 }
 
 func ensureOto() {
+	if audioDisabled {
+		return
+	}
 	otoOnce.Do(func() {
+		defer func() {
+			if r := recover(); r != nil {
+				audioDisabled = true
+			}
+		}()
 		otoReady = make(chan struct{})
 		mixer = &mixerStream{}
 		op := &oto.NewContextOptions{
@@ -79,6 +87,7 @@ func ensureOto() {
 		var err error
 		otoCtx, _, err = oto.NewContext(op)
 		if err != nil {
+			audioDisabled = true
 			close(otoReady)
 			return
 		}
@@ -86,10 +95,15 @@ func ensureOto() {
 		player.Play()
 		close(otoReady)
 	})
-	<-otoReady
+	if otoReady != nil {
+		<-otoReady
+	}
 }
 
 func playPCM(samples []float32) {
+	if audioDisabled {
+		return
+	}
 	ensureOto()
 	if mixer == nil {
 		return

@@ -1,6 +1,11 @@
 package audio
 
+var audioDisabled bool
+
 func PlayWeaponFire(weapon string) {
+	if audioDisabled {
+		return
+	}
 	switch weapon {
 	case "laser_pistol", "laser_rifle":
 		PlayLaserFire()

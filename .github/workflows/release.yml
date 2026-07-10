@@ -1,0 +1,92 @@
+name: Release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - os: windows
+            arch: amd64
+            goos: windows
+            goarch: amd64
+            ext: .exe
+          - os: linux
+            arch: amd64
+            goos: linux
+            goarch: amd64
+            ext: ""
+          - os: linux
+            arch: arm64
+            goos: linux
+            goarch: arm64
+            ext: ""
+          - os: linux
+            arch: arm
+            goos: linux
+            goarch: arm
+            ext: ""
+          - os: macos
+            arch: arm64
+            goos: darwin
+            goarch: arm64
+            ext: ""
+          - os: macos
+            arch: amd64
+            goos: darwin
+            goarch: amd64
+            ext: ""
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+
+      - name: Get Version
+        id: get_version
+        run: echo "VERSION=$(cat VERSION)" >> $GITHUB_ENV
+
+      - name: Build
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: |
+          go build -o termcom_${{ env.VERSION }}_${{ matrix.os }}_${{ matrix.arch }}${{ matrix.ext }} ./cmd/termcom
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: termcom_${{ env.VERSION }}_${{ matrix.os }}_${{ matrix.arch }}
+          path: termcom_${{ env.VERSION }}_${{ matrix.os }}_${{ matrix.arch }}${{ matrix.ext }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Get Version
+        id: get_version
+        run: echo "VERSION=$(cat VERSION)" >> $GITHUB_ENV
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.VERSION }}
+          name: Release v${{ env.VERSION }}
+          draft: true
+          files: artifacts/**/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
