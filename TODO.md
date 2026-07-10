@@ -41,7 +41,7 @@
 - [ ] Ambient particles per mission type (rain, snow, dust, embers)
 - [x] Blood splatter on hit
 
-## Phase 16: Sound Effects (if feasible with our tone system)
+## Phase 16: Sound Effects (if feasible with our tone system - some are done already so check first)
 - [ ] Weapon fire sounds (laser, plasma, ballistic, melee)
 - [ ] UI navigation sounds (menu select, research complete, manufacturing done)
 - [ ] Ambient battle sounds (wind, distant explosions)
