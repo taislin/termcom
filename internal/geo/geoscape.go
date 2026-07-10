@@ -63,6 +63,8 @@ type Geoscape struct {
 	ActiveCrashSite     *CrashSite
 	ActiveBaseDefense   *base.Base // non-nil if the current battle is defending this base
 	ActiveMissionType   string     // mission Type string of the battle in progress (for rewards)
+	ActiveFinalMission  bool       // non-nil if the current battle is the Cydonia final mission
+	CydoniaTriggered    bool       // ensures the final mission is added only once
 }
 
 func (gs *Geoscape) SelectedBase() *base.Base {
@@ -172,9 +174,32 @@ func (gs *Geoscape) Update() {
 		dead := defendingBase.RemoveDeadSoldiers()
 
 		if r.Won {
+			if len(r.StunnedAliens) > 0 {
+				capacity := defendingBase.CountFacility(base.FacContainment) * 10
+				captured := 0
+				for _, alien := range r.StunnedAliens {
+					if len(defendingBase.LiveAliens) < capacity {
+						defendingBase.LiveAliens = append(defendingBase.LiveAliens, alien)
+						captured++
+					} else {
+						break
+					}
+				}
+				if captured > 0 {
+					gs.Message += fmt.Sprintf(language.String("MSG_ALIENS_CAPTURED"), captured)
+				}
+				if len(r.StunnedAliens) > captured {
+					gs.Message += language.String("MSG_ALIEN_NO_SPACE")
+				}
+			}
+
 			defendingBase.AddLoot(r.LootItems)
 			gs.MissionsWon++
-			if gs.ActiveCrashSite != nil {
+			if gs.ActiveFinalMission {
+				// Winning the Cydonia assault ends the campaign in victory.
+				gs.Victory = true
+				gs.Message = language.String("MSG_CYDONIA_WON")
+			} else if gs.ActiveCrashSite != nil {
 				cs := gs.ActiveCrashSite
 				cs.Looted = true
 				loot := generateUFOLoot(cs.UFOName)
@@ -200,6 +225,7 @@ func (gs *Geoscape) Update() {
 		gs.ActiveCrashSite = nil
 		gs.ActiveBaseDefense = nil
 		gs.ActiveMissionType = ""
+		gs.ActiveFinalMission = false
 
 		if gs.PreBattleStats != nil {
 			statNames := []string{"HP", "ACC", "REA", "STR", "BRA", "TU"}
@@ -326,7 +352,7 @@ func (gs *Geoscape) Update() {
 
 		for _, i := range gs.Interceptors {
 			if i.Launching {
-				reached := i.Update(gs.Cities)
+				reached := i.Update(gs.Cities, gs.UFOs)
 				if reached {
 					gs.dogfight(i)
 				}
@@ -719,6 +745,10 @@ func (gs *Geoscape) spawnMission() {
 }
 
 func (gs *Geoscape) triggerCydonia() {
+	if gs.CydoniaTriggered {
+		return
+	}
+	gs.CydoniaTriggered = true
 	gs.Message = "Cydonia location detected! Final mission ready."
 	gs.MessageTimer = time.Now()
 
@@ -793,6 +823,7 @@ func (gs *Geoscape) RespondToMission(idx int) {
 	}
 	if mission.NodeID == 0 {
 		ufoName = "Cydonia"
+		gs.ActiveFinalMission = true
 	}
 	if gs.ActiveBaseDefense != nil {
 		ufoName = language.String("MISSION_TYPE_BASE")
@@ -1012,6 +1043,17 @@ func (gs *Geoscape) loadFromSaveData(sd *save.SaveData) {
 			NodeID:    int(m.X),
 			HoursLeft: m.HoursLeft,
 		})
+	}
+	gs.MissionsWon = sd.MissionsWon
+	// A Cydonia final mission already in progress (or effectively won) must not
+	// be re-triggered when the save is loaded.
+	if sd.MissionsWon >= 10 {
+		gs.CydoniaTriggered = true
+	}
+	for _, m := range gs.Missions {
+		if m.NodeID == 0 {
+			gs.CydoniaTriggered = true
+		}
 	}
 	gs.Message = language.String("MSG_GAME_LOADED")
 	gs.MessageTimer = time.Now()

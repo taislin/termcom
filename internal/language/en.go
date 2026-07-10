@@ -75,6 +75,7 @@ func init() {
 		"MSG_GAME_LOADED":           "Game loaded successfully!",
 		"MSG_GAME_OVER_ACTIVITY":    "Earth has fallen! Alien activity is overwhelming!",
 		"MSG_GAME_WON":              "Alien threat neutralized! You have saved Earth!",
+		"MSG_CYDONIA_WON":          "Cydonia destroyed! The alien threat is broken. Victory!",
 		"MSG_INTERCEPTOR_DESTROYED": "Interceptor destroyed!",
 		"MSG_NO_SOLDIERS":           "No soldiers available to deploy!",
 		"MSG_SHOT_DOWN":             "%s shot down! Sending squad...",
@@ -158,6 +159,8 @@ func init() {
 		"MSG_AUTO_DEFEAT":          "Autoresolve: Defeat! Lost a soldier. %s escaped.",
 		"MSG_INTERCEPTOR_LAUNCHED": "Interceptor launched! Pursuing %s.",
 		"MSG_VICTORY_LOOT":         "Victory! %d aliens killed. Loot: %v",
+		"MSG_ALIENS_CAPTURED":      " Captured %d aliens.",
+		"MSG_ALIEN_NO_SPACE":       " Alien Containment full!",
 		"MSG_DEFEAT_LOST":          "Defeat! Lost: %v",
 		"MSG_ATTACK_CITY":          "%s attack on %s! Panic spreads!",
 

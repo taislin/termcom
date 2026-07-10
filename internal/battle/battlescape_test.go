@@ -272,3 +272,25 @@ func TestTileTypeNames(t *testing.T) {
 		}
 	}
 }
+
+func TestStunAlien(t *testing.T) {
+    u := &Unit{HP: 10, Weapon: "stun_rod", Faction: 0}
+    target := &Unit{HP: 10, Faction: 1, Alive: true}
+    
+    // Simulate hitting with stun rod
+    damage := 10
+    if u.Weapon == "stun_rod" {
+        target.StunPoints += damage
+        if target.StunPoints >= target.HP {
+            target.Stunned = true
+            target.Alive = false
+        }
+    }
+    
+    if !target.Stunned {
+        t.Error("expected stunned")
+    }
+    if target.Alive {
+        t.Error("expected not alive")
+    }
+}

@@ -396,3 +396,38 @@ func TestGenerateAlienBaseMap(t *testing.T) {
 		t.Errorf("expected 50x50 map, got %dx%d", m.Width, m.Height)
 	}
 }
+
+func TestCydoniaTriggersOnce(t *testing.T) {
+	g := &engine.Game{GameTime: time.Date(1999, time.March, 1, 0, 0, 0, 0, time.UTC)}
+	gs := NewGeoscape(g)
+	gs.MissionsWon = 10
+	gs.triggerCydonia()
+	n1 := len(gs.Missions)
+	gs.triggerCydonia()
+	n2 := len(gs.Missions)
+	if n2 != n1 {
+		t.Errorf("triggerCydonia should only add the final mission once, got %d -> %d", n1, n2)
+	}
+	if !gs.CydoniaTriggered {
+		t.Error("CydoniaTriggered should be set after triggerCydonia")
+	}
+}
+
+func TestCydoniaVictory(t *testing.T) {
+	g := &engine.Game{GameTime: time.Date(1999, time.March, 1, 0, 0, 0, 0, time.UTC)}
+	gs := NewGeoscape(g)
+	gs.MissionsWon = 10
+	gs.CydoniaTriggered = true
+	gs.ActiveFinalMission = true
+	gs.Game.ActiveBattle = &engine.BattleResult{
+		Won:     true,
+		Soldiers: gs.SelectedBase().Soldiers,
+	}
+	gs.Update()
+	if !gs.Victory {
+		t.Error("expected Victory=true after winning the Cydonia mission")
+	}
+	if !gs.Game.InState(engine.StateGameOver) {
+		t.Error("expected GameOver state after victory")
+	}
+}

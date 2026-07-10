@@ -112,7 +112,7 @@ func (i *Interceptor) LaunchAtUFO(ufo *UFO) {
 }
 
 // Update moves interceptor toward its target. Returns true if reached.
-func (i *Interceptor) Update(cities []*City) bool {
+func (i *Interceptor) Update(cities []*City, ufos UFOList) bool {
 	if i.TargetUFO != nil {
 		if !i.TargetUFO.Active {
 			i.TargetUFO = nil
@@ -158,7 +158,7 @@ func (i *Interceptor) Update(cities []*City) bool {
 		reached := i.moveTo(tx, ty)
 		if reached {
 			// Check if any UFOs are at this city
-			for _, ufo := range (&UFOList{}).Active() {
+			for _, ufo := range ufos.Active() {
 				if ufo.CurrentNode() == i.TargetNode {
 					return true
 				}

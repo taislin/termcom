@@ -28,6 +28,8 @@ type Unit struct {
 	Weapon     string
 	WeaponAmmo int
 	Alive      bool
+	Stunned    bool // Added
+	StunPoints int  // Added
 	Crouching  bool
 	Faction    int
 	IsNight    bool
@@ -146,6 +148,16 @@ func (u *Unit) FireAt(target *Unit, m *BattleMap) (int, bool, error) {
 	}
 
 	damage := w.Damage + rand.Intn(w.Damage/3+1)
+	
+	if u.Weapon == "stun_rod" {
+		target.StunPoints += damage
+		if target.StunPoints >= target.HP {
+			target.Stunned = true
+			target.Alive = false
+		}
+		return damage, true, nil
+	}
+	
 	damage -= target.Armour
 	if target.Crouching {
 		damage = damage * 7 / 10

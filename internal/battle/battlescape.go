@@ -733,6 +733,7 @@ func (bs *Battlescape) finishBattle() {
 
 	// Collect loot — type-specific corpses + weapon drops
 	var loot []string
+	var stunnedAliens []string
 	if won {
 		corpseMap := map[string]string{
 			"SEC": "corpse_sect",
@@ -751,14 +752,18 @@ func (bs *Battlescape) finishBattle() {
 		corpses := make(map[string]bool)
 		weaponDrops := make(map[string]bool)
 		for _, u := range bs.Units {
-			if u.Faction == 1 && !u.Alive && u.AlienType != nil {
-				if key, ok := corpseMap[u.AlienType.ShortName]; ok {
-					corpses[key] = true
-				}
-				// Higher rank aliens drop weapons more often
-				dropChance := 15 + u.AlienType.Rank*10
-				if rand.Intn(100) < dropChance {
-					weaponDrops[u.AlienType.Weapon] = true
+			if u.Faction == 1 {
+				if u.Stunned {
+					stunnedAliens = append(stunnedAliens, u.AlienType.Name)
+				} else if !u.Alive && u.AlienType != nil {
+					if key, ok := corpseMap[u.AlienType.ShortName]; ok {
+						corpses[key] = true
+					}
+					// Higher rank aliens drop weapons more often
+					dropChance := 15 + u.AlienType.Rank*10
+					if rand.Intn(100) < dropChance {
+						weaponDrops[u.AlienType.Weapon] = true
+					}
 				}
 			}
 		}
@@ -770,7 +775,7 @@ func (bs *Battlescape) finishBattle() {
 				loot = append(loot, wpn)
 			}
 		}
-		if len(loot) == 0 {
+		if len(loot) == 0 && len(stunnedAliens) == 0 {
 			loot = append(loot, "alien_corpse")
 		}
 		if rand.Intn(100) < 35 {
@@ -841,10 +846,11 @@ func (bs *Battlescape) finishBattle() {
 	t.GrenadeUsage += bs.PlayerGrenadeCount
 
 	bs.Game.ActiveBattle = &engine.BattleResult{
-		Won:       won,
-		Kills:     alienKills,
-		Soldiers:  surviving,
-		LootItems: loot,
+		Won:           won,
+		Kills:         alienKills,
+		Soldiers:      surviving,
+		LootItems:     loot,
+		StunnedAliens: stunnedAliens,
 	}
 	bs.Game.PopState()
 }

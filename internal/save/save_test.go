@@ -14,6 +14,7 @@ func TestSaveLoadGame(t *testing.T) {
 	b.Scientists = 15
 	b.Engineers = 8
 	b.Facilities = append(b.Facilities, &base.Facility{Type: base.FacLab, Building: false})
+	b.Facilities = append(b.Facilities, &base.Facility{Type: base.FacStorage, Building: false})
 	s := soldier.NewSoldier("TestGuy")
 	s.Rank = soldier.Corporal
 	s.HP = 18

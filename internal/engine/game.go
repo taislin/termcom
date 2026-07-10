@@ -39,10 +39,11 @@ type ScreenCtx struct {
 }
 
 type BattleResult struct {
-	Won       bool
-	Kills     int
-	Soldiers  []*soldier.Soldier
-	LootItems []string
+	Won           bool
+	Kills         int
+	Soldiers      []*soldier.Soldier
+	LootItems     []string
+	StunnedAliens []string // Added
 }
 
 type PlayerTactics struct {

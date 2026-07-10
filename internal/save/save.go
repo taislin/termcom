@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/civ13/ycom/internal/base"
+	"github.com/civ13/ycom/internal/data"
 	"github.com/civ13/ycom/internal/soldier"
 )
 
@@ -43,6 +44,7 @@ type BaseSave struct {
 	Facilities           []*FacilitySave
 	ManufactureQueue     []*ManufJobSave
 	ActiveResearch       *ResearchSave
+	Hangars              []*data.InterceptorState
 }
 
 type SoldierSave struct {
@@ -215,6 +217,7 @@ func FromBase(b *base.Base) *BaseSave {
 		UnlockedWeapons:      b.UnlockedWeapons,
 		UnlockedArmor:        b.UnlockedArmor,
 		Stores:               b.Stores,
+		Hangars:              b.Hangars,
 	}
 	for _, s := range b.Soldiers {
 		bs.Soldiers = append(bs.Soldiers, &SoldierSave{
@@ -285,6 +288,10 @@ func ToBase(bs *BaseSave) *base.Base {
 	b.Stores = bs.Stores
 	if b.Stores == nil {
 		b.Stores = make(map[string]int)
+	}
+	b.Hangars = bs.Hangars
+	if b.Hangars == nil {
+		b.Hangars = make([]*data.InterceptorState, 0)
 	}
 	for _, ss := range bs.Soldiers {
 		s := soldier.NewSoldier(ss.Name)

@@ -83,6 +83,7 @@ type Base struct {
 	UnlockedWeapons      []string
 	UnlockedArmor        []string
 	Hangars              []*data.InterceptorState // Manage interceptors here
+	LiveAliens           []string                 // Captured aliens
 	AlienActivity        int
 }
 
@@ -97,6 +98,7 @@ func NewBase(name string, cityID int) *Base {
 		MaxStorage:           50,
 		Stores:               make(map[string]int),
 		Hangars:              make([]*data.InterceptorState, 0),
+		LiveAliens:           make([]string, 0),
 	}
 	for i := 0; i < 4; i++ {
 		s := soldier.NewSoldier(soldier.RandomName())
@@ -312,8 +314,13 @@ func GetBuildableArmor() []string {
 	return items
 }
 
-func (b *Base) AddItem(item string, qty int) {
+func (b *Base) AddItem(item string, qty int) bool {
+	if b.UsedStorage+qty > b.StorageCapacity() {
+		return false
+	}
 	b.Stores[item] += qty
+	b.UsedStorage += qty
+	return true
 }
 
 func (b *Base) RemoveItem(item string, qty int) bool {
@@ -321,6 +328,7 @@ func (b *Base) RemoveItem(item string, qty int) bool {
 		return false
 	}
 	b.Stores[item] -= qty
+	b.UsedStorage -= qty
 	if b.Stores[item] == 0 {
 		delete(b.Stores, item)
 	}
@@ -349,7 +357,7 @@ func (b *Base) SellItem(item string) int64 {
 
 func (b *Base) AddLoot(items []string) {
 	for _, item := range items {
-		b.AddItem(item, 1)
+		_ = b.AddItem(item, 1)
 	}
 }
 
@@ -361,11 +369,13 @@ func (b *Base) EquipWeapon(soldierIdx int, weaponKey string) bool {
 		return false
 	}
 	s := b.Soldiers[soldierIdx]
+	if s.Weapon != "" && s.Weapon != "pistol" {
+		if !b.AddItem(s.Weapon, 1) {
+			return false
+		}
+	}
 	if !b.RemoveItem(weaponKey, 1) {
 		return false
-	}
-	if s.Weapon != "" && s.Weapon != "pistol" {
-		b.AddItem(s.Weapon, 1)
 	}
 	s.Weapon = weaponKey
 	return true
@@ -385,7 +395,9 @@ func (b *Base) EquipArmor(soldierIdx int, armorKey string) bool {
 		}
 	}
 	if s.Armor != "none" {
-		b.AddItem(s.Armor, 1)
+		if !b.AddItem(s.Armor, 1) {
+			return false
+		}
 	}
 	s.Armor = armorKey
 	return true

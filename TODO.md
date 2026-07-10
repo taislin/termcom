@@ -64,3 +64,49 @@
 - [x] Alien base assault missions with unique maps
 - [x] Supply raid missions (intercept alien transports)
 - [x] Council missions with special objectives and bonus rewards
+
+## Phase 20: Campaign Completion & Save Integrity (BLOCKERS + MAJORS)
+- [x] A1 Victory flow: set gs.Victory on winning the Cydonia final mission; guard
+      triggerCydonia() so it fires only once (no infinite re-trigger)
+- [x] A2 Verify defeat paths (AlienActivity>=100, last base destroyed) reach GameOver
+- [x] A3 Fix interception node/crash-site bug: Interceptor.Update must use the real
+      UFO list (gs.UFOs), not a throwaway &UFOList{} (interceptor.go:161)
+- [x] A4 Save/load interceptor roster: round-trip Hangars in BaseSave/FromBase/ToBase
+- [x] A5 Enforce storage capacity (MaxStorage/UsedStorage) on AddLoot/Equip/
+      Manufacture/Transfer so bases cannot hoard unlimited loot
+
+## Phase 21: Alien Capture (capture-only scope)
+- [ ] B1 Stun mechanic: Stun Rod stuns instead of kills at low HP (Stunned flag)
+- [ ] B2 Live-alien storage: stunned aliens added to base if Alien Containment
+      exists (capacity-gated); otherwise lost
+- [ ] B3 Interrogation -> research bonus: consume a captured alien to auto-complete
+      an autopsy or grant large progress to an active topic
+- [ ] B4 Leave Psi-Lab cosmetic (no psi training); document in manual
+
+## Phase 22: Economy / Balance / Polish (MINOR)
+- [ ] C1 Healing pacing: advance healingC1 Healing pacing: advance healing daily (or boost +2 HP/day) so wounds recover
+      in reasonable time; optionally gate wounded (HP<MaxHP) from deployment
+- [ ] C2 Difficulty selection at new game (Beginner..Superhuman) affecting UFO spawn
+      rate and alien stat scaling
+- [ ] C3 Nil-safety hardening: guard SelectedBase() usages in geoscape Update
+
+## Phase 23: Multi-Platform Audio Engine
+- [ ] Implement procedural sound synthesis in `audio_other.go` (Linux/macOS) using
+      `beep` or `oto` to replace terminal BEL beeps
+- [ ] Implement weapon-specific fire sounds, explosions, and ambient battle winds
+- [ ] Ensure parity with `audio_windows.go` synthesis logic
+
+## Phase 24: Radar Visualization
+- [ ] Implement toggle for radar coverage overlay on minimap (e.g., key `V`)
+- [ ] Draw regional radar ranges to illustrate coverage expansion from bases
+
+## Phase 25: Docs & Tests
+- [ ] D1 Update manual.md: capture/containment real, Psi-Lab cosmetic, corrected
+      healing rate and final-mission steps; fix other mismatched claims
+- [ ] E1 Tests: victory reachable & Cydonia fires once; interceptor save round-trip;
+      interception node path engages UFO; storage cap blocks overflow; capture ->
+      containment -> interrogation flow
+
+### Execution order
+A1 -> A2 -> A3 -> A4 -> A5 -> B1 -> B2 -> B3 -> C1 -> C2 -> C3 -> Phase 23 -> Phase 24 -> D1 -> E1
+

@@ -149,11 +149,16 @@ func TestFacilityDefs(t *testing.T) {
 
 func TestAddItem(t *testing.T) {
 	b := NewBase("Test", 0)
-	b.AddItem("rifle", 3)
+	b.Facilities = append(b.Facilities, &Facility{Type: FacStorage})
+	if !b.AddItem("rifle", 3) {
+		t.Error("should add")
+	}
 	if b.CountItem("rifle") != 3 {
 		t.Errorf("expected 3 rifles, got %d", b.CountItem("rifle"))
 	}
-	b.AddItem("rifle", 2)
+	if !b.AddItem("rifle", 2) {
+		t.Error("should add")
+	}
 	if b.CountItem("rifle") != 5 {
 		t.Errorf("expected 5 rifles after add, got %d", b.CountItem("rifle"))
 	}
@@ -161,6 +166,7 @@ func TestAddItem(t *testing.T) {
 
 func TestRemoveItem(t *testing.T) {
 	b := NewBase("Test", 0)
+	b.Facilities = append(b.Facilities, &Facility{Type: FacStorage})
 	b.AddItem("rifle", 3)
 	if !b.RemoveItem("rifle", 2) {
 		t.Error("should succeed")
@@ -175,6 +181,7 @@ func TestRemoveItem(t *testing.T) {
 
 func TestAddLoot(t *testing.T) {
 	b := NewBase("Test", 0)
+	b.Facilities = append(b.Facilities, &Facility{Type: FacStorage})
 	b.AddLoot([]string{"alloys", "elerium", "corpse_sect"})
 	if b.CountItem("alloys") != 1 {
 		t.Error("expected 1 alloys")
@@ -190,6 +197,7 @@ func TestAddLoot(t *testing.T) {
 func TestEquipWeapon(t *testing.T) {
 	b := NewBase("Test", 0)
 	b.Facilities = append(b.Facilities, &Facility{Type: FacLivingQuarters})
+	b.Facilities = append(b.Facilities, &Facility{Type: FacStorage})
 	b.HireSoldier()
 	b.AddItem("laser_rifle", 1)
 	s := b.Soldiers[0]
@@ -217,6 +225,7 @@ func TestEquipWeaponNoStock(t *testing.T) {
 func TestEquipArmor(t *testing.T) {
 	b := NewBase("Test", 0)
 	b.Facilities = append(b.Facilities, &Facility{Type: FacLivingQuarters})
+	b.Facilities = append(b.Facilities, &Facility{Type: FacStorage})
 	b.HireSoldier()
 	b.AddItem("personal", 1)
 	s := b.Soldiers[0]
@@ -234,6 +243,7 @@ func TestEquipArmorSwap(t *testing.T) {
 	b.Scientists = 0
 	b.Engineers = 0
 	b.Facilities = append(b.Facilities, &Facility{Type: FacLivingQuarters})
+	b.Facilities = append(b.Facilities, &Facility{Type: FacStorage})
 	b.HireSoldier()
 	b.AddItem("medium", 1)
 	s := b.Soldiers[0]
@@ -254,6 +264,7 @@ func TestEquipArmorNone(t *testing.T) {
 	b.Scientists = 0
 	b.Engineers = 0
 	b.Facilities = append(b.Facilities, &Facility{Type: FacLivingQuarters})
+	b.Facilities = append(b.Facilities, &Facility{Type: FacStorage})
 	b.HireSoldier()
 	s := b.Soldiers[0]
 	s.Armor = "personal"
@@ -361,6 +372,7 @@ func TestAdvanceResearch(t *testing.T) {
 func TestStartManufacture(t *testing.T) {
 	b := NewBase("Test", 0)
 	b.Facilities = append(b.Facilities, &Facility{Type: FacWorkshop})
+	b.Facilities = append(b.Facilities, &Facility{Type: FacStorage})
 	b.AddItem("alloys", 5)
 	ok := b.StartManufacture("pistol", 1, map[string]int{"alloys": 1})
 	if !ok {
@@ -386,6 +398,7 @@ func TestStartManufactureNoMaterials(t *testing.T) {
 func TestAdvanceManufacture(t *testing.T) {
 	b := NewBase("Test", 0)
 	b.Facilities = append(b.Facilities, &Facility{Type: FacWorkshop})
+	b.Facilities = append(b.Facilities, &Facility{Type: FacStorage})
 	b.AddItem("alloys", 5)
 	b.StartManufacture("pistol", 1, map[string]int{"alloys": 1})
 	b.ManufactureQueue[0].CostDays = 10
@@ -518,6 +531,7 @@ func TestAssignEngineers(t *testing.T) {
 	b := NewBase("Test", 0)
 	b.UnassignedEngineers = 5
 	mats := map[string]int{"alloys": 2}
+	b.Facilities = append(b.Facilities, &Facility{Type: FacStorage})
 	b.AddItem("alloys", 10)
 	b.Facilities = append(b.Facilities, &Facility{Type: FacWorkshop})
 	b.StartManufacture("pistol", 1, mats)
