@@ -912,6 +912,8 @@ func (bs *Battlescape) finishAlienTurn() {
 	}
 	bs.checkReinforcements()
 	bs.checkVictory()
+
+	oldSelected := bs.Selected
 	bs.Selected = nil
 
 	// Decay stun: lose 2 stun points per turn (recovery)
@@ -924,10 +926,16 @@ func (bs *Battlescape) finishAlienTurn() {
 		}
 	}
 
-	for _, u := range bs.Units {
-		if u.Faction == 0 && u.Alive && u.HP > 0 && u.Level == bs.Map.CurrentLevel {
-			bs.Selected = u
-			break
+	// Preserve the previously selected human across turns when still valid.
+	if oldSelected != nil && oldSelected.Alive && oldSelected.HP > 0 &&
+		oldSelected.Faction == 0 && oldSelected.Level == bs.Map.CurrentLevel {
+		bs.Selected = oldSelected
+	} else {
+		for _, u := range bs.Units {
+			if u.Faction == 0 && u.Alive && u.HP > 0 && u.Level == bs.Map.CurrentLevel {
+				bs.Selected = u
+				break
+			}
 		}
 	}
 }

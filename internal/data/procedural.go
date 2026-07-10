@@ -244,43 +244,43 @@ func assemblePortrait(p portraitPart, dmgType int, rank int, palette [3]int32) S
 	switch dmgType {
 	case DMG_PLASMA, DMG_KINETIC:
 		lines = []string{
-			".---.",
+			"  .-.  ",
 			" |o@o| ",
 			"   |   ",
-			" /-+- \\ ",
+			" /-+-\\ ",
 			fmt.Sprintf(" | %c | ", chest),
 			"  \\-/  ",
-			" |_| |_|",
+			" |_|_| ",
 		}
 	case DMG_LASER:
 		lines = []string{
-			" /----\\ ",
+			"  .-.  ",
 			" |◆@◆| ",
 			"   |   ",
-			" /-+- \\ ",
+			" /-+-\\ ",
 			fmt.Sprintf(" | %c | ", chest),
-			"  \\_/  ",
-			" |_|_|  ",
+			"  \\-/  ",
+			" |_|_| ",
 		}
 	case DMG_MELEE:
 		lines = []string{
-			" /====\\ ",
+			" /===\\ ",
 			" |#@#| ",
 			"   |   ",
-			" /--+--\\",
+			" /-+-\\ ",
 			fmt.Sprintf(" | %c | ", chest),
-			"  \\===/ ",
-			" |_| |_|",
+			"  \\=/  ",
+			" |_|_| ",
 		}
 	case DMG_EXPLOSIVE:
 		lines = []string{
-			" /----\\ ",
+			" (---) ",
 			" |†@†| ",
 			"   |   ",
-			" /--+--\\",
+			" /-+-\\ ",
 			fmt.Sprintf(" | %c | ", chest),
-			"  \\---/ ",
-			" |_| |_|",
+			"  \\=/  ",
+			" |_|_| ",
 		}
 	case DMG_PSIONIC:
 		lines = []string{
@@ -289,18 +289,18 @@ func assemblePortrait(p portraitPart, dmgType int, rank int, palette [3]int32) S
 			"   |   ",
 			" ~-+-~ ",
 			fmt.Sprintf(" | %c | ", chest),
-			"  \\~~~// ",
-			"  ~~~~~ ",
+			"  ~~~  ",
+			"  ~~~  ",
 		}
 	default:
 		lines = []string{
-			".---.",
+			"  .-.  ",
 			" |o@o| ",
 			"   |   ",
-			" /-+- \\ ",
+			" /-+-\\ ",
 			fmt.Sprintf(" | %c | ", chest),
 			"  \\-/  ",
-			" |_| |_|",
+			" |_|_| ",
 		}
 	}
 
