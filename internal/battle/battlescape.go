@@ -5,12 +5,12 @@ import (
 	"math"
 	"math/rand"
 
+	"github.com/civ13/ycom/internal/audio"
 	"github.com/civ13/ycom/internal/base"
 	"github.com/civ13/ycom/internal/data"
 	"github.com/civ13/ycom/internal/engine"
 	"github.com/civ13/ycom/internal/language"
 	"github.com/civ13/ycom/internal/soldier"
-	"github.com/civ13/ycom/internal/audio"
 	"github.com/gdamore/tcell/v3"
 	"github.com/gdamore/tcell/v3/color"
 )
@@ -57,57 +57,57 @@ type Projectile struct {
 }
 
 type AlienAction struct {
-	Type   string // "move", "fire", "melee", "patrol"
-	Unit   *Unit
-	Target *Unit
+	Type         string // "move", "fire", "melee", "patrol"
+	Unit         *Unit
+	Target       *Unit
 	FromX, FromY int
 	ToX, ToY     int
 }
 
 type Battlescape struct {
-	Game       *engine.Game
-	Base       *base.Base
-	Map        *BattleMap
-	Units      UnitList
-	AlienAIs   []*AlienAI
-	CivilianAIs []*CivilianAI
-	Phase      BattlePhase
-	Turn       int
-	CursorX    int
-	CursorY    int
-	Selected   *Unit
-	Message    string
-	Log        []string
-	ScrollX    int
-	ScrollY    int
-	Squad      []*soldier.Soldier
-	UFOName    string
-	ExitTimer  int
-	IsNight    bool
-	Status     CombatStatus
+	Game           *engine.Game
+	Base           *base.Base
+	Map            *BattleMap
+	Units          UnitList
+	AlienAIs       []*AlienAI
+	CivilianAIs    []*CivilianAI
+	Phase          BattlePhase
+	Turn           int
+	CursorX        int
+	CursorY        int
+	Selected       *Unit
+	Message        string
+	Log            []string
+	ScrollX        int
+	ScrollY        int
+	Squad          []*soldier.Soldier
+	UFOName        string
+	ExitTimer      int
+	IsNight        bool
+	Status         CombatStatus
 	OverwatchFlash int
-	PlayerLock int
+	PlayerLock     int
 
 	PlayerShotDistSum float64
 	PlayerShotCount   int
 	PlayerFlankShots  int
 
-	AlienTurnQueue  []AlienAction
-	AlienTurnIdx    int
-	ActionDelay     int
-	Projectile      *Projectile
+	AlienTurnQueue []AlienAction
+	AlienTurnIdx   int
+	ActionDelay    int
+	Projectile     *Projectile
 
-	Camera        *engine.Camera
-	Particles     *engine.ParticleSystem
-	HoveredUnit   *Unit
-	SidebarW      int
+	Camera         *engine.Camera
+	Particles      *engine.ParticleSystem
+	HoveredUnit    *Unit
+	SidebarW       int
 	ReinforceTimer int
 	AbductionCivs  int
 	AbductionTotal int
 
-	Gas         *GasGrid
-	VisionMode  engine.VisionMode
-	FrameCount  int
+	Gas        *GasGrid
+	VisionMode engine.VisionMode
+	FrameCount int
 
 	AlienSquadPlan *SquadPlan
 
@@ -115,7 +115,7 @@ type Battlescape struct {
 	PlayerFlankCount   int
 
 	// Input State
-	State       BattleState
+	State BattleState
 }
 
 func (bs *Battlescape) AddMessage(msg string) {
@@ -255,21 +255,21 @@ func NewBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, ufoN
 	}
 
 	bs := &Battlescape{
-		Game:    g,
-		Base:    b,
-		Map:     m,
-		Phase:   PhasePlayerTurn,
-		Status:  StatusPlayerTurn,
-		Turn:    1,
-		CursorX: 3,
-		CursorY: m.Height - 3,
-		Squad:   squad,
-		UFOName: ufoName,
-		IsNight: g.GameTime.Hour() < 6 || g.GameTime.Hour() > 18,
-		Camera:   engine.NewCamera(3, m.Height-3),
-		Particles: engine.NewParticleSystem(512),
+		Game:        g,
+		Base:        b,
+		Map:         m,
+		Phase:       PhasePlayerTurn,
+		Status:      StatusPlayerTurn,
+		Turn:        1,
+		CursorX:     3,
+		CursorY:     m.Height - 3,
+		Squad:       squad,
+		UFOName:     ufoName,
+		IsNight:     g.GameTime.Hour() < 6 || g.GameTime.Hour() > 18,
+		Camera:      engine.NewCamera(3, m.Height-3),
+		Particles:   engine.NewParticleSystem(512),
 		ActionDelay: g.ActionDelay,
-		Gas:       NewGasGrid(m.Width, m.Height),
+		Gas:         NewGasGrid(m.Width, m.Height),
 	}
 
 	if ufoName == "Abduction" || ufoName == "Council" {
@@ -461,7 +461,7 @@ func (bs *Battlescape) Update() {
 			action := bs.AlienTurnQueue[bs.AlienTurnIdx]
 			bs.AlienTurnIdx++
 			bs.executeAlienAction(action)
-			bs.ActionDelay = bs.Game.ActionDelay  // Use configured action delay
+			bs.ActionDelay = bs.Game.ActionDelay // Use configured action delay
 		} else {
 			for _, cai := range bs.CivilianAIs {
 				actions := cai.GenerateActions(bs.Units, bs.Map)
@@ -494,7 +494,7 @@ func (bs *Battlescape) executeAlienAction(action AlienAction) {
 		audio.PlayWeaponFire(action.Unit.Weapon)
 		dx := action.Target.X - action.Unit.X
 		dy := action.Target.Y - action.Unit.Y
-		length := int(math.Sqrt(float64(dx*dx+dy*dy)))
+		length := int(math.Sqrt(float64(dx*dx + dy*dy)))
 		if length < 1 {
 			length = 1
 		}
@@ -1242,7 +1242,7 @@ func (bs *Battlescape) EndTurn() {
 func (bs *Battlescape) planSquadActions() *SquadPlan {
 	humanUnits := bs.Units.Faction(0)
 	aliens := bs.Units.Faction(1)
-	
+
 	var aliveAliens []*Unit
 	for _, u := range aliens {
 		if u.Alive {
@@ -1894,31 +1894,31 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 				continue
 			}
 			sx := u.X - bs.ScrollX + 1
-				sy := u.Y - bs.ScrollY + 1
-				if sx >= 1 && sx < viewW+1 && sy >= 1 && sy < viewH+1 {
+			sy := u.Y - bs.ScrollY + 1
+			if sx >= 1 && sx < viewW+1 && sy >= 1 && sy < viewH+1 {
+				if bs.IsNight {
+					engine.ApplyLightSource(ctx.ScreenRaw, ctx.FrameBuffer(), sx, sy, 3, tcell.NewRGBColor(120, 110, 70))
+				} else {
+					engine.ApplyLightSource(ctx.ScreenRaw, ctx.FrameBuffer(), sx, sy, 4, tcell.NewRGBColor(180, 160, 100))
+				}
+			}
+		}
+		for _, u := range bs.Units {
+			if !u.Alive || u.Faction != 1 || u.Level != bs.Map.CurrentLevel {
+				continue
+			}
+			sx := u.X - bs.ScrollX + 1
+			sy := u.Y - bs.ScrollY + 1
+			if sx >= 1 && sx < viewW+1 && sy >= 1 && sy < viewH+1 {
+				if bs.Map.IsSeen(u.X, u.Y) {
 					if bs.IsNight {
-						engine.ApplyLightSource(ctx.ScreenRaw, ctx.FrameBuffer(), sx, sy, 3, tcell.NewRGBColor(120, 110, 70))
+						engine.ApplyLightSource(ctx.ScreenRaw, ctx.FrameBuffer(), sx, sy, 1, tcell.NewRGBColor(60, 80, 150))
 					} else {
-						engine.ApplyLightSource(ctx.ScreenRaw, ctx.FrameBuffer(), sx, sy, 4, tcell.NewRGBColor(180, 160, 100))
+						engine.ApplyLightSource(ctx.ScreenRaw, ctx.FrameBuffer(), sx, sy, 2, tcell.NewRGBColor(100, 140, 255))
 					}
 				}
 			}
-			for _, u := range bs.Units {
-				if !u.Alive || u.Faction != 1 || u.Level != bs.Map.CurrentLevel {
-					continue
-				}
-				sx := u.X - bs.ScrollX + 1
-				sy := u.Y - bs.ScrollY + 1
-				if sx >= 1 && sx < viewW+1 && sy >= 1 && sy < viewH+1 {
-					if bs.Map.IsSeen(u.X, u.Y) {
-						if bs.IsNight {
-							engine.ApplyLightSource(ctx.ScreenRaw, ctx.FrameBuffer(), sx, sy, 1, tcell.NewRGBColor(60, 80, 150))
-						} else {
-							engine.ApplyLightSource(ctx.ScreenRaw, ctx.FrameBuffer(), sx, sy, 2, tcell.NewRGBColor(100, 140, 255))
-						}
-					}
-				}
-			}
+		}
 	}
 
 	for _, u := range bs.Units {
@@ -2348,6 +2348,6 @@ func (bs *Battlescape) ApplyCursorStyles(x, y int, style tcell.Style) tcell.Styl
 			}
 		}
 	}
-	
+
 	return style
 }

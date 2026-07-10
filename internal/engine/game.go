@@ -143,16 +143,25 @@ func (g *Game) GetAlienTypes() []*data.AlienType {
 }
 
 func (g *Game) RegisterScreen(s GameState, sc Screen) {
+	if g.screens == nil {
+		g.screens = make(map[GameState]Screen)
+	}
 	g.screens[s] = sc
 }
 
 func (g *Game) OpenEncyclopedia(completed []string, weapons []string, armor []string) {
 	enc := NewEncyclopediaScreen(g, completed, weapons, armor)
+	if g.screens == nil {
+		g.screens = make(map[GameState]Screen)
+	}
 	g.screens[StateEncyclopedia] = enc
 	g.PushState(StateEncyclopedia)
 }
 
 func (g *Game) SetScreen(s GameState, sc Screen) {
+	if g.screens == nil {
+		g.screens = make(map[GameState]Screen)
+	}
 	g.screens[s] = sc
 }
 
@@ -206,11 +215,11 @@ func (g *Game) drainEvents() {
 			case *tcell.EventResize:
 				g.screen.UpdateSize()
 			case *tcell.EventKey:
-			if e.Key() == tcell.KeyEscape || e.Str() == "\x1b" {
-				switch g.state {
-				case StateGeoscape, StateMenu:
-					g.running = false
-				default:
+				if e.Key() == tcell.KeyEscape || e.Str() == "\x1b" {
+					switch g.state {
+					case StateGeoscape, StateMenu:
+						g.running = false
+					default:
 						g.PopState()
 					}
 				} else if e.Str() == "?" {
@@ -239,6 +248,10 @@ func (g *Game) PushState(s GameState) {
 	g.state = s
 }
 
+func (g *Game) InState(s GameState) bool {
+	return g.state == s
+}
+
 func (g *Game) PushScreen(sc Screen) {
 	g.screens[StateSlotPicker] = sc
 	g.PushState(StateSlotPicker)
@@ -264,5 +277,7 @@ func (g *Game) Quit() {
 }
 
 func (g *Game) Bell() {
-	g.screen.screen.Beep()
+	if g.screen != nil && g.screen.screen != nil {
+		g.screen.screen.Beep()
+	}
 }

@@ -247,11 +247,11 @@ func init() {
 		"MSG_REINFORCEMENTS":        "%d alien reinforcements incoming!",
 
 		// Status bar
-		"STATUS_TURN":     "Turn: %d | %s",
-		"STATUS_SELECTED": "Sel: %s HP:%d/%d TU:%d/%d W:%s",
-		"STATUS_CURSOR":   "[%d,%d] %s",
-		"STATUS_PLAYER_TURN":     "PLAYER TURN",
-		"STATUS_ALIEN_TURN":      "ALIEN TURN",
+		"STATUS_TURN":             "Turn: %d | %s",
+		"STATUS_SELECTED":         "Sel: %s HP:%d/%d TU:%d/%d W:%s",
+		"STATUS_CURSOR":           "[%d,%d] %s",
+		"STATUS_PLAYER_TURN":      "PLAYER TURN",
+		"STATUS_ALIEN_TURN":       "ALIEN TURN",
 		"STATUS_PLAYER_OVERWATCH": "PLAYER OVERWATCH TRIGGERED",
 		"STATUS_ALIEN_OVERWATCH":  "ENEMY OVERWATCH TRIGGERED",
 
@@ -620,14 +620,14 @@ func init() {
 		"HELP_STRAT_V3":      ">Unresolved missions raise activity +10%",
 
 		// ── Options ──────────────────────────────────────
-		"OPTIONS_TITLE":      "OPTIONS",
-		"OPTIONS_BLOOM":      "Character Bloom",
-		"OPTIONS_DISTORTION": "Distortion/Aberration",
-		"OPTIONS_LIGHTING":   "Directional Lighting",
-		"OPTIONS_LANGUAGE":   "Language",
+		"OPTIONS_TITLE":            "OPTIONS",
+		"OPTIONS_BLOOM":            "Character Bloom",
+		"OPTIONS_DISTORTION":       "Distortion/Aberration",
+		"OPTIONS_LIGHTING":         "Directional Lighting",
+		"OPTIONS_LANGUAGE":         "Language",
 		"OPTIONS_RESOLUTION_SPEED": "Resolution Speed",
-		"OPTIONS_ON":         "ON ",
-		"OPTIONS_OFF":        "OFF",
+		"OPTIONS_ON":               "ON ",
+		"OPTIONS_OFF":              "OFF",
 
 		// ── Common ─────────────────────────────────────────
 		"NONE":    "None",

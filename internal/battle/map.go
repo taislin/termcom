@@ -52,8 +52,8 @@ const (
 
 type Tile struct {
 	Type      TileType
-	Level     int  // which level this tile is on (0=ground, 1=upper)
-	Cover     int  // 0-100, damage reduction % from shots passing through
+	Level     int // which level this tile is on (0=ground, 1=upper)
+	Cover     int // 0-100, damage reduction % from shots passing through
 	Destroyed bool
 	Visible   bool
 	Seen      bool
@@ -185,18 +185,18 @@ var tileChars = map[TileType]rune{
 	TilePavement:   '░',
 	TileSand:       '·',
 	TileSnow:       '∗',
-	TileMarsh:     '≋',
+	TileMarsh:      '≋',
 	TileBush:       '†',
 	TileFence:      '║',
 	TileRubble:     '▒',
 	TileObject:     '■',
 	// UFO furniture characters
-	TileConsole:     '░',  // Console panel
-	TileMachinery:   '⚙',  // Machinery (U+2699 GEAR - BMP symbol)
-	TilePod:         '◈',  // Alien pod
-	TilePowerSource: '⌁',  // Power source (U+2301 ELECTRICAL ARC)
-	TileStorage:     '▤',  // Storage container
-	TileAlienTech:   '⊕',  // Alien technology
+	TileConsole:     '░', // Console panel
+	TileMachinery:   '⚙', // Machinery (U+2699 GEAR - BMP symbol)
+	TilePod:         '◈', // Alien pod
+	TilePowerSource: '⌁', // Power source (U+2301 ELECTRICAL ARC)
+	TileStorage:     '▤', // Storage container
+	TileAlienTech:   '⊕', // Alien technology
 }
 
 func TileChar(t TileType) rune {
@@ -208,13 +208,13 @@ func TileChar(t TileType) rune {
 }
 
 type BattleMap struct {
-	Width         int
-	Height        int
-	NumLevels     int // 1 for most maps, 2 for UFO interiors
-	LevelHeight   int // height per level
-	CurrentLevel  int // 0=ground, 1=upper
-	Tiles         [][]Tile
-	Gas           *GasGrid
+	Width        int
+	Height       int
+	NumLevels    int // 1 for most maps, 2 for UFO interiors
+	LevelHeight  int // height per level
+	CurrentLevel int // 0=ground, 1=upper
+	Tiles        [][]Tile
+	Gas          *GasGrid
 }
 
 func NewBattleMap(w, h int) *BattleMap {
@@ -660,10 +660,10 @@ type MapCommand struct {
 	X, Y     int
 	W, H     int
 	Tile     TileType
-	Prob     int     // for Scatter: probability 0-100
-	Count    int     // for Scatter: number of attempts
-	X2, Y2   int     // for Corridor: endpoint
-	DoorSide int     // for PlaceBuilding: 0=south, 1=east, 2=north, 3=west
+	Prob     int // for Scatter: probability 0-100
+	Count    int // for Scatter: number of attempts
+	X2, Y2   int // for Corridor: endpoint
+	DoorSide int // for PlaceBuilding: 0=south, 1=east, 2=north, 3=west
 }
 
 func (m *BattleMap) ApplyCommand(cmd MapCommand) {
@@ -958,7 +958,7 @@ func GenerateUFOInterior(w, h int) *BattleMap {
 	m.SetLevel(stairsX, stairsY+1, 1, TileUFOFloor)
 	m.SetLevel(stairsX+1, stairsY+1, 1, TileUFOFloor)
 
- furnishRoom := func(rooms []room, level int) {
+	furnishRoom := func(rooms []room, level int) {
 		for _, rm := range rooms {
 			rx := rm.x + rm.w/2
 			ry := rm.y + rm.h/2

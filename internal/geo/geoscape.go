@@ -59,10 +59,10 @@ type Geoscape struct {
 	LastSpeed           int
 	CursorNode          int
 	TargetSelectionMode bool
-	PreBattleStats map[string][6]int
-	ActiveCrashSite *CrashSite
-	ActiveBaseDefense *base.Base // non-nil if the current battle is defending this base
-	ActiveMissionType string // mission Type string of the battle in progress (for rewards)
+	PreBattleStats      map[string][6]int
+	ActiveCrashSite     *CrashSite
+	ActiveBaseDefense   *base.Base // non-nil if the current battle is defending this base
+	ActiveMissionType   string     // mission Type string of the battle in progress (for rewards)
 }
 
 func (gs *Geoscape) SelectedBase() *base.Base {

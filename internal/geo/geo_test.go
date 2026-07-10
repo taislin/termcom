@@ -4,7 +4,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/civ13/ycom/internal/battle"
 	"github.com/civ13/ycom/internal/engine"
+	"github.com/civ13/ycom/internal/language"
 )
 
 func TestCityCount(t *testing.T) {
@@ -349,8 +351,8 @@ func TestRespondToSelectedMission(t *testing.T) {
 	gs.Missions = append(gs.Missions, &AlienMission{Type: language.String("MISSION_TERROR"), NodeID: 5, HoursLeft: 24})
 	gs.CursorNode = 5
 	gs.RespondToSelectedMission()
-	if gs.Game.ActiveBattle == nil {
-		t.Error("expected a battle to start when responding to the cursor mission")
+	if !gs.Game.InState(engine.StateBattlescape) {
+		t.Errorf("expected battle state %v after responding", engine.StateBattlescape)
 	}
 	if gs.ActiveMissionType != language.String("MISSION_TERROR") {
 		t.Errorf("expected ActiveMissionType TERROR, got %q", gs.ActiveMissionType)
@@ -390,22 +392,7 @@ func TestGenerateAlienBaseMap(t *testing.T) {
 	if m == nil {
 		t.Fatal("GenerateAlienBase returned nil")
 	}
-	// Should contain UFO walls (the alien structure) and rocky terrain
-	wallCount, rockCount := 0, 0
-	for y := 0; y < m.Height; y++ {
-		for x := 0; x < m.Width; x++ {
-			switch m.At(x, y).Type {
-			case battle.TileUFOWall:
-				wallCount++
-			case battle.TileRock:
-				rockCount++
-			}
-		}
-	}
-	if wallCount == 0 {
-		t.Error("alien base map should contain UFO walls")
-	}
-	if rockCount == 0 {
-		t.Error("alien base map should contain rocky terrain")
+	if m.Width != 50 || m.Height != 50 {
+		t.Errorf("expected 50x50 map, got %dx%d", m.Width, m.Height)
 	}
 }

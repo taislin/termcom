@@ -60,7 +60,7 @@
 - [x] AI adapts to player tactics across missions
 
 ## Phase 19: Geoscape Mission Variety
-- [ ] Expand mission types beyond crash sites and terror missions
-- [ ] Alien base assault missions with unique maps
-- [ ] Supply raid missions (intercept alien transports)
-- [ ] Council missions with special objectives and bonus rewards
+- [x] Expand mission types beyond crash sites and terror missions
+- [x] Alien base assault missions with unique maps
+- [x] Supply raid missions (intercept alien transports)
+- [x] Council missions with special objectives and bonus rewards
