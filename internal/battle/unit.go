@@ -5,8 +5,8 @@ import (
 	"math"
 	"math/rand"
 
-	"github.com/civ13/ycom/internal/data"
-	"github.com/civ13/ycom/internal/soldier"
+	"github.com/civ13/termcom/internal/data"
+	"github.com/civ13/termcom/internal/soldier"
 )
 
 type Unit struct {

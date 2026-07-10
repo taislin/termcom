@@ -1,4 +1,4 @@
-# YCOM Development Roadmap
+# termcom Development Roadmap
 
 ## Phase 1-9: Core Systems (DONE)
 - [x] Technical debt, dogfights, alien tactics, hangar management

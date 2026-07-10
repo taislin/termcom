@@ -3,8 +3,8 @@ package battle
 import (
 	"testing"
 
-	"github.com/civ13/ycom/internal/data"
-	"github.com/civ13/ycom/internal/soldier"
+	"github.com/civ13/termcom/internal/data"
+	"github.com/civ13/termcom/internal/soldier"
 )
 
 func BenchmarkAIUpdate(b *testing.B) {

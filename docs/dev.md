@@ -1,6 +1,6 @@
-# YCOM Development Manual
+# termcom Development Manual
 
-Build, test, and development reference for the YCOM codebase.
+Build, test, and development reference for the termcom codebase.
 
 ## Prerequisites
 
@@ -11,10 +11,10 @@ Build, test, and development reference for the YCOM codebase.
 
 ```bash
 # Run the game
-go run ./cmd/ycom
+go run ./cmd/termcom
 
 # Build binary
-go build -o ycom.exe ./cmd/ycom
+go build -o termcom.exe ./cmd/termcom
 
 # Or via Makefile
 make build
@@ -58,26 +58,26 @@ go vet ./...
 
 Quick-launch scripts for testing specific game states without going through the main menu.
 
-### Battle Test (`cmd/test_battle`)
+### Battle Test (`cmd/termcom_battle`)
 
 Launches directly into a battlescape with a 6-soldier squad.
 
 ```bash
 # Random battle type
-go run ./cmd/test_battle
+go run ./cmd/termcom_battle
 
 # Specific battle type
-go run ./cmd/test_battle crash_site
-go run ./cmd/test_battle terror
-go run ./cmd/test_battle cydonia
-go run ./cmd/test_battle forest
-go run ./cmd/test_battle desert
-go run ./cmd/test_battle polar
-go run ./cmd/test_battle supply_raid
-go run ./cmd/test_battle alien_base
-go run ./cmd/test_battle alien_research
-go run ./cmd/test_battle abduction
-go run ./cmd/test_battle council
+go run ./cmd/termcom_battle crash_site
+go run ./cmd/termcom_battle terror
+go run ./cmd/termcom_battle cydonia
+go run ./cmd/termcom_battle forest
+go run ./cmd/termcom_battle desert
+go run ./cmd/termcom_battle polar
+go run ./cmd/termcom_battle supply_raid
+go run ./cmd/termcom_battle alien_base
+go run ./cmd/termcom_battle alien_research
+go run ./cmd/termcom_battle abduction
+go run ./cmd/termcom_battle council
 ```
 
 **Available types:** `crash_site`, `terror`, `supply_raid`, `alien_base`, `alien_research`, `council`, `cydonia`, `abduction`, `forest`, `desert`, `polar`
@@ -109,8 +109,8 @@ go run ./cmd/test_battle council
 
 ```
 cmd/
-  ycom/              Main game entry point
-  test_battle/       Test script: direct battle launch
+  termcom/              Main game entry point
+  termcom_battle/       Test script: direct battle launch
   webserver/         Web server (for remote play)
 internal/
   engine/            Core engine: game loop, rendering, VFX, particles, camera

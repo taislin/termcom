@@ -3,7 +3,7 @@ package battle
 import (
 	"sync"
 
-	"github.com/civ13/ycom/internal/engine"
+	"github.com/civ13/termcom/internal/engine"
 	"github.com/gdamore/tcell/v3"
 )
 

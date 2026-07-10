@@ -1,6 +1,6 @@
 # AGENTS.md
 
-## Project: ycom — ASCII X-COM Demake in Go
+## Project: termcom — ASCII X-COM Demake in Go
 
 ### Overview
 A faithful demake of X-COM: UFO Defense (1994) rendered entirely in ASCII on a
@@ -10,8 +10,8 @@ terminal. Built with Go + tcell. All gameplay screens — Geoscape, Base, Battle
 ### Build & Run
 ```bash
 export PATH=/home/civ13/go/bin:$PATH
-cd /home/civ13/gamedev/ycom
-go run ./cmd/ycom
+cd /home/civ13/gamedev/termcom
+go run ./cmd/termcom
 # or
 make run
 ```
@@ -40,7 +40,7 @@ make clean          # Remove binary and coverage
 
 ### Architecture
 ```
-cmd/ycom/main.go          Entry point
+cmd/termcom/main.go          Entry point
 internal/
   audio/audio_common.go    Platform-independent audio dispatch (PlayWeaponFire)
   audio/audio_windows.go   Windows MIDI-based sound synthesis (28 Play* functions)

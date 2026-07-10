@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/civ13/ycom/internal/language"
+	"github.com/civ13/termcom/internal/language"
 	"github.com/gdamore/tcell/v3"
 )
 

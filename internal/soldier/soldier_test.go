@@ -3,7 +3,7 @@ package soldier
 import (
 	"testing"
 
-	"github.com/civ13/ycom/internal/data"
+	"github.com/civ13/termcom/internal/data"
 )
 
 func TestNewSoldier(t *testing.T) {

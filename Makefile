@@ -4,10 +4,10 @@ export PATH := /home/civ13/go/bin:$(PATH)
 export GOPATH := /home/civ13/gopath
 
 run:
-	go run ./cmd/ycom
+	go run ./cmd/termcom
 
 build:
-	go build -o ycom ./cmd/ycom
+	go build -o termcom ./cmd/termcom
 
 test:
 	go test ./... -v
@@ -24,4 +24,4 @@ lint:
 	staticcheck ./...
 
 clean:
-	rm -f ycom coverage.out
+	rm -f termcom coverage.out

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"os"
 
-	"github.com/civ13/ycom/internal/language"
+	"github.com/civ13/termcom/internal/language"
 )
 
 type GlobalConfig struct {

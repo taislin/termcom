@@ -1,4 +1,4 @@
-# ycom — ASCII X-COM Demake
+# termcom — ASCII X-COM Demake
 
 A faithful demake of **X-COM: UFO Defense** (1994, MicroProse) rendered entirely
 in coloured ASCII on a terminal. Written in Go with [tcell](https://github.com/gdamore/tcell).
@@ -33,19 +33,19 @@ in coloured ASCII on a terminal. Written in Go with [tcell](https://github.com/g
 ### Terminal Version
 
 ```bash
-go run ./cmd/ycom
+go run ./cmd/termcom
 ```
 
 Or build a binary:
 
 ```bash
-go build -o ycom ./cmd/ycom
-./ycom
+go build -o termcom ./cmd/termcom
+./termcom
 ```
 
 ### Browser Version (Experimental)
 
-The browser version allows you to play YCOM in a web browser using xterm.js.
+The browser version allows you to play termcom in a web browser using xterm.js.
 
 1. Start the web server:
 

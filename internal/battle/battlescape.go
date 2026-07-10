@@ -5,12 +5,12 @@ import (
 	"math"
 	"math/rand"
 
-	"github.com/civ13/ycom/internal/audio"
-	"github.com/civ13/ycom/internal/base"
-	"github.com/civ13/ycom/internal/data"
-	"github.com/civ13/ycom/internal/engine"
-	"github.com/civ13/ycom/internal/language"
-	"github.com/civ13/ycom/internal/soldier"
+	"github.com/civ13/termcom/internal/audio"
+	"github.com/civ13/termcom/internal/base"
+	"github.com/civ13/termcom/internal/data"
+	"github.com/civ13/termcom/internal/engine"
+	"github.com/civ13/termcom/internal/language"
+	"github.com/civ13/termcom/internal/soldier"
 	"github.com/gdamore/tcell/v3"
 	"github.com/gdamore/tcell/v3/color"
 )

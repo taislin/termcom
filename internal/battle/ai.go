@@ -4,8 +4,8 @@ import (
 	"math"
 	"math/rand"
 
-	"github.com/civ13/ycom/internal/data"
-	"github.com/civ13/ycom/internal/engine"
+	"github.com/civ13/termcom/internal/data"
+	"github.com/civ13/termcom/internal/engine"
 )
 
 type AIState int

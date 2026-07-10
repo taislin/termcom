@@ -1,4 +1,4 @@
-# ycom — ASCII X-COM Demake Manual
+# termcom — ASCII X-COM Demake Manual
 
 ## Table of Contents
 
@@ -22,7 +22,7 @@
 
 ## Overview
 
-**ycom** is a faithful ASCII demake of X-COM: UFO Defense (1994), rendered entirely
+**termcom** is a faithful ASCII demake of X-COM: UFO Defense (1994), rendered entirely
 in a terminal. You command the X-COM organization — an international effort to
 combat an alien invasion.
 
@@ -45,7 +45,7 @@ and lead squads into tactical combat to eliminate the alien threat.
 
 Run the game:
 ```bash
-go run ./cmd/ycom
+go run ./cmd/termcom
 # or
 make run
 ```

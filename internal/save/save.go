@@ -6,9 +6,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/civ13/ycom/internal/base"
-	"github.com/civ13/ycom/internal/data"
-	"github.com/civ13/ycom/internal/soldier"
+	"github.com/civ13/termcom/internal/base"
+	"github.com/civ13/termcom/internal/data"
+	"github.com/civ13/termcom/internal/soldier"
 )
 
 const CurrentVersion = 3

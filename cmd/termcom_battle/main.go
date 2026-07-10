@@ -7,10 +7,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/civ13/ycom/internal/base"
-	"github.com/civ13/ycom/internal/battle"
-	"github.com/civ13/ycom/internal/engine"
-	"github.com/civ13/ycom/internal/soldier"
+	"github.com/civ13/termcom/internal/base"
+	"github.com/civ13/termcom/internal/battle"
+	"github.com/civ13/termcom/internal/engine"
+	"github.com/civ13/termcom/internal/soldier"
 )
 
 var battleTypes = []string{

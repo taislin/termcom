@@ -4,9 +4,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/civ13/ycom/internal/battle"
-	"github.com/civ13/ycom/internal/engine"
-	"github.com/civ13/ycom/internal/language"
+	"github.com/civ13/termcom/internal/battle"
+	"github.com/civ13/termcom/internal/engine"
+	"github.com/civ13/termcom/internal/language"
 )
 
 func TestCityCount(t *testing.T) {

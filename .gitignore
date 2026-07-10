@@ -1,5 +1,5 @@
 # Binaries
-/ycom
+/termcom
 *.exe
 *.exe~
 *.dll
@@ -33,7 +33,7 @@ saves/
 
 # Logs
 *.log
-ycom.code-workspace
-ycom.exe
+termcom.code-workspace
+termcom.exe
 _assets/
-ycom
+termcom

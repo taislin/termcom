@@ -3,8 +3,8 @@ package engine
 import (
 	"fmt"
 
-	"github.com/civ13/ycom/internal/audio"
-	"github.com/civ13/ycom/internal/language"
+	"github.com/civ13/termcom/internal/audio"
+	"github.com/civ13/termcom/internal/language"
 	"github.com/gdamore/tcell/v3"
 )
 

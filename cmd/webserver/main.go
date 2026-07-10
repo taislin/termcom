@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/civ13/ycom/web"
+	"github.com/civ13/termcom/web"
 )
 
 func main() {
@@ -14,7 +14,7 @@ func main() {
 		addr = os.Args[1]
 	}
 
-	log.Printf("YCOM Web Server starting on %s", addr)
+	log.Printf("TERMCOM Web Server starting on %s", addr)
 	log.Printf("Open http://localhost%s in your browser", addr)
 
 	// Start web server

@@ -1,4 +1,4 @@
-module github.com/civ13/ycom
+module github.com/civ13/termcom
 
 go 1.25.0
 
