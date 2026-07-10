@@ -29,7 +29,7 @@ combat an alien invasion.
 **Your mission:** Research alien technology, manufacture advanced weapons and armour,
 and lead squads into tactical combat to eliminate the alien threat.
 
-**Victory condition:** Win 10 battles.
+**Victory condition:** Win 10 battles to trigger the Cydonia final mission, then win it.
 
 **Defeat condition:** Alien Activity reaches 100%.
 
@@ -177,7 +177,7 @@ Press `R` to dispatch a transport to the nearest crash site and recover salvage.
 
 ### Monthly Budget
 
-Each month (3 game days):
+Each month (calendar month, ~28-30 game days):
 - **Income:** $200,000 base + $50,000 per Radar facility
 - **Expenses:** $2,000 per soldier, scientist, and engineer
 
@@ -402,7 +402,7 @@ is applied as damage reduction.
 | Rubble | 20% | ▒ |
 
 **Strategy:** Position soldiers behind walls (80% reduction) for maximum protection.
-Trees (60%) are decent野外 cover. Fences (30%) provide minimal protection.
+Trees (60%) are decent cover. Fences (30%) provide minimal protection.
 
 #### Damage Types & Resistance
 
@@ -554,7 +554,7 @@ The Battlescape includes dynamic visual effects:
 | Motion Scanner | MSC | 3 | $5,000 |
 | Psi-Amplifier | PSI | 2 | $30,000 |
 
-**Storage:** Weapons weigh 5 per unit, armour weighs 8. Capacity = 50 per Storage facility.
+**Storage:** Weight varies by item (weapons 2–12, armour 8 per unit). Capacity = 50 per Storage facility.
 
 ---
 
@@ -719,14 +719,16 @@ The species seed ensures the same alien species are regenerated when loading a s
 |-----|--------|
 | hjkl / Arrows | Move cursor |
 | Space / Enter | Select / Confirm |
-| s | Cycle soldiers |
+| q | Cycle soldiers |
 | f | Fire weapon |
 | r | Reload |
-| e / n | End turn |
+| e | End turn |
 | c | Crouch |
 | g | Throw grenade |
-| m | Use medikit |
+| p | Psi attack |
+| h | Use medikit |
 | v | Toggle vision mode (Normal / Night / Thermal) |
+| o | Options |
 | ? | Help |
 
 ---

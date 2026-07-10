@@ -587,7 +587,7 @@ func init() {
 		"HELP_BAT_END":       ">e / n               End turn",
 		"HELP_BAT_CROUCH":    ">c                   Crouch (cover bonus)",
 		"HELP_BAT_GRENADE":   ">g                   Throw grenade",
-		"HELP_BAT_MEDIKIT":   ">m                   Use medikit",
+		"HELP_BAT_MEDIKIT":   ">h                   Use medikit",
 		"HELP_BAT_WHEEL":     ">Mouse wheel          Cycle soldiers",
 		"HELP_BAT_LCLICK":    ">Left click           Select/move",
 		"HELP_BAT_RCLICK":    ">Right click          Fire",

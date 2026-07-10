@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/civ13/ycom/internal/data"
+	"github.com/civ13/ycom/internal/soldier"
 )
 
 func TestMain(m *testing.M) {
@@ -580,5 +581,99 @@ func TestStartResearchAlreadyActive(t *testing.T) {
 	ok := b.StartResearch("elerium")
 	if ok {
 		t.Error("should not start second research while first is active")
+	}
+}
+
+func TestStorageCapBlocksOverflow(t *testing.T) {
+	b := NewBase("Test", 0)
+	b.Facilities = append(b.Facilities, &Facility{Type: FacStorage})
+	if b.StorageCapacity() != 50 {
+		t.Fatalf("expected capacity 50, got %d", b.StorageCapacity())
+	}
+	ok := b.AddItem("rifle", 50)
+	if !ok {
+		t.Error("should fill to capacity")
+	}
+	if b.UsedStorage != 50 {
+		t.Errorf("expected used 50, got %d", b.UsedStorage)
+	}
+	ok = b.AddItem("pistol", 1)
+	if ok {
+		t.Error("should reject item beyond capacity")
+	}
+	if b.CountItem("pistol") != 0 {
+		t.Error("pistol should not be added")
+	}
+}
+
+func TestCaptureContainmentInterrogation(t *testing.T) {
+	b := NewBase("Test", 0)
+	b.Facilities = append(b.Facilities, &Facility{Type: FacContainment})
+	b.Facilities = append(b.Facilities, &Facility{Type: FacLab})
+
+	if len(b.LiveAliens) != 0 {
+		t.Error("should start with no live aliens")
+	}
+
+	b.LiveAliens = append(b.LiveAliens, "Sectoid")
+	if len(b.LiveAliens) != 1 {
+		t.Fatalf("expected 1 live alien, got %d", len(b.LiveAliens))
+	}
+
+	data.ResearchTree = append(data.ResearchTree, data.ResearchTopic{
+		ID: "sectoid_autopsy", Name: "Sectoid Autopsy", Cost: 40, Tier: 1,
+	})
+
+	topic, ok := b.InterrogateAlien("Sectoid")
+	if !ok {
+		t.Error("interrogation should succeed")
+	}
+	if topic == "" {
+		t.Error("interrogation should return a topic name")
+	}
+	if len(b.LiveAliens) != 0 {
+		t.Error("live alien should be consumed after interrogation")
+	}
+	if !b.HasResearch("sectoid_autopsy") {
+		t.Error("sectoid_autopsy should be completed after interrogation")
+	}
+}
+
+func TestInterrogateAlienNoLabs(t *testing.T) {
+	b := NewBase("Test", 0)
+	b.Facilities = append(b.Facilities, &Facility{Type: FacContainment})
+	b.LiveAliens = append(b.LiveAliens, "Sectoid")
+
+	_, ok := b.InterrogateAlien("Sectoid")
+	if ok {
+		t.Error("interrogation should fail without labs")
+	}
+	if len(b.LiveAliens) != 1 {
+		t.Error("live alien should not be consumed on failure")
+	}
+}
+
+func TestPsiLabTraining(t *testing.T) {
+	b := NewBase("Test", 0)
+	b.Facilities = append(b.Facilities, &Facility{Type: FacPsiLab})
+	s := soldier.NewSoldier("PsiGuy")
+	s.PsiSkill = 10
+	b.Soldiers = append(b.Soldiers, s)
+
+	b.AdvanceDay()
+	if s.PsiSkill != 11 {
+		t.Errorf("expected PsiSkill 11 after 1 day, got %d", s.PsiSkill)
+	}
+
+	for i := 0; i < 70; i++ {
+		b.AdvanceDay()
+	}
+	if s.PsiSkill != 80 {
+		t.Errorf("expected PsiSkill capped at 80, got %d", s.PsiSkill)
+	}
+
+	b.AdvanceDay()
+	if s.PsiSkill != 80 {
+		t.Errorf("expected PsiSkill still 80 after cap, got %d", s.PsiSkill)
 	}
 }

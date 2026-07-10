@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/civ13/ycom/internal/base"
+	"github.com/civ13/ycom/internal/data"
 	"github.com/civ13/ycom/internal/soldier"
 )
 
@@ -166,5 +167,46 @@ func TestLoadNonexistent(t *testing.T) {
 	_, err := LoadGame("nonexistent_save_file.json")
 	if err == nil {
 		t.Error("expected error loading nonexistent file")
+	}
+}
+
+func TestInterceptorSaveRoundTrip(t *testing.T) {
+	b := base.NewBase("Interceptor Base", 0)
+	initialCount := len(b.Hangars)
+	b.Hangars = append(b.Hangars, &data.InterceptorState{
+		ID: initialCount, Name: "Skyranger-1", WeaponKey: "avalanche",
+		HP: 60, MaxHP: 60, Ammo: 8, Status: "Available",
+	})
+	b.Hangars = append(b.Hangars, &data.InterceptorState{
+		ID: initialCount + 1, Name: "Firestorm-1", WeaponKey: "laser_cannon",
+		HP: 45, MaxHP: 60, Ammo: 5, Status: "Damaged",
+	})
+
+	sd := &SaveData{
+		Bases: []*BaseSave{FromBase(b)},
+	}
+	path := "test_interceptor_save.json"
+	err := SaveGame(path, sd)
+	if err != nil {
+		t.Fatalf("SaveGame failed: %v", err)
+	}
+	defer os.Remove(path)
+
+	loaded, err := LoadGame(path)
+	if err != nil {
+		t.Fatalf("LoadGame failed: %v", err)
+	}
+
+	loadedBase := ToBase(loaded.Bases[0])
+	if len(loadedBase.Hangars) != initialCount+2 {
+		t.Fatalf("expected %d interceptors, got %d", initialCount+2, len(loadedBase.Hangars))
+	}
+	h1 := loadedBase.Hangars[initialCount]
+	if h1.Name != "Skyranger-1" || h1.WeaponKey != "avalanche" || h1.HP != 60 || h1.Ammo != 8 {
+		t.Errorf("interceptor 1 mismatch: %+v", h1)
+	}
+	h2 := loadedBase.Hangars[initialCount+1]
+	if h2.Name != "Firestorm-1" || h2.WeaponKey != "laser_cannon" || h2.HP != 45 || h2.Status != "Damaged" {
+		t.Errorf("interceptor 2 mismatch: %+v", h2)
 	}
 }

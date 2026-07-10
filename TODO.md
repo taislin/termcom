@@ -100,12 +100,11 @@
 - [x] Implement toggle for radar coverage overlay on minimap (key `V`)
 - [x] Draw regional radar ranges to illustrate coverage expansion from bases
 
-## Phase 25: Docs & Tests
-- [ ] D1 Update manual.md: capture/containment real, Psi-Lab cosmetic, corrected
-      healing rate and final-mission steps; fix other mismatched claims
-- [ ] E1 Tests: victory reachable & Cydonia fires once; interceptor save round-trip;
-      interception node path engages UFO; storage cap blocks overflow; capture ->
-      containment -> interrogation flow
+## Phase 25: Docs & Tests (DONE)
+- [x] D1 Update manual.md: victory condition (Cydonia), month length, storage weight,
+      battlescape key bindings (q/P/H), stray Chinese characters removed
+- [x] E1 Tests: storage cap blocks overflow, capture→containment→interrogation flow,
+      interceptor save round-trip, psi-Lab training cap
 
 ## Phase 26: Psi Abilities (DONE)
 - [x] Wire 'P' key in battlescape input to call PsiAttack()
