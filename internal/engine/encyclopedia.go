@@ -195,7 +195,7 @@ func (es *EncyclopediaScreen) Render(ctx *ScreenCtx) {
 
 				ctx.DrawString(pX, pY-1, at.Name, StyleRedBold)
 				for i, sl := range portrait.Lines {
-					style := tcell.StyleDefault.Foreground(tcell.NewRGBColor(sl.Color[0], sl.Color[1], sl.Color[2]))
+					style := tcell.StyleDefault.Foreground(tcell.NewRGBColor(sl.Color[0], sl.Color[1], sl.Color[2])).Background(tcell.ColorBlack)
 					ctx.DrawString(pX, pY+i, sl.Content, style)
 				}
 
