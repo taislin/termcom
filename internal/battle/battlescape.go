@@ -911,63 +911,41 @@ func (bs *Battlescape) SelectUnit() {
 	}
 }
 
-func (bs *Battlescape) Confirm() {
+func (bs *Battlescape) LeftClick() {
 	if bs.Phase != PhasePlayerTurn {
 		return
 	}
+	if bs.State.CursorState == StateMovePlan {
+		bs.State.CursorState = StateInspect
+		bs.State.MovePath = nil
+		return
+	}
 	unit := bs.Units.At(bs.CursorX, bs.CursorY)
-
-	// Click on friendly unit → select it
 	if unit != nil && unit.Faction == 0 && unit.Alive && unit.Soldier != nil {
 		bs.Selected = unit
+		bs.State.CursorState = StateInspect
 		bs.AddMessage(fmt.Sprintf(language.String("MSG_UNIT_SELECTED"), unit.Soldier.Name, unit.HP, unit.TU))
 		return
 	}
+	bs.State.CursorState = StateInspect
+}
 
-	// Click on enemy → fire at it (if selected soldier can see it)
-	if unit != nil && unit.Faction == 1 && unit.Alive {
-		if bs.Selected == nil {
-			bs.AddMessage(language.String("MSG_NO_SOLDIER_SELECTED"))
-			return
-		}
-		if !bs.Selected.CanSee(unit.X, unit.Y, bs.Map) {
-			bs.AddMessage(language.String("MSG_TARGET_NO_LOS"))
-			return
-		}
-		damage, hit, err := bs.Selected.FireAt(unit, bs.Map)
-		if err != nil {
-			bs.AddMessage(err.Error())
-			return
-		}
-		if hit {
-			audio.PlayHit()
-			name := "alien"
-			if unit.AlienType != nil {
-				name = unit.AlienType.Name
-			}
-			bs.AddMessage(fmt.Sprintf(language.String("MSG_HIT_TARGET"), damage, name, unit.HP))
-		} else {
-			audio.PlayMiss()
-			bs.AddMessage(language.String("MSG_MISSED"))
-		}
+func (bs *Battlescape) RightClick() {
+	if bs.Phase != PhasePlayerTurn {
 		return
 	}
-
-	// Click on empty ground → move selected soldier there
-	if unit == nil {
-		if bs.Selected == nil {
-			bs.AddMessage(language.String("MSG_NO_SOLDIER_SELECTED"))
-			return
-		}
-		if bs.Selected.MoveTo(bs.CursorX, bs.CursorY, bs.Map) {
-			audio.PlayMove()
-			bs.AddMessage(fmt.Sprintf(language.String("MSG_MOVED"), bs.Selected.Soldier.Name, bs.CursorX, bs.CursorY))
-			bs.ComputeFOVForTeam()
-		} else {
-			bs.AddMessage(language.String("MSG_CANNOT_MOVE"))
-		}
+	if bs.State.CursorState == StateTargeting {
+		bs.FireWeapon()
 		return
 	}
+	if bs.State.CursorState == StateMovePlan {
+		bs.MoveSelected()
+		bs.State.CursorState = StateInspect
+		bs.State.MovePath = nil
+		return
+	}
+	bs.State.CursorState = StateMovePlan
+	bs.updateMovePath()
 }
 
 func (bs *Battlescape) MoveSelected() {

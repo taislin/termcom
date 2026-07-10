@@ -51,10 +51,12 @@ func (bs *Battlescape) handleKey(e *tcell.EventKey) {
 		bs.MoveCursor(1, 0)
 		bs.updateMovePath()
 	case tcell.KeyEnter: 
-		bs.Confirm()
+		bs.LeftClick()
 	}
 	
 	switch e.Str() {
+	case " ":
+		bs.RightClick()
 	case "q", "Q": bs.cycleUnit(1)
 	case "m", "M": 
 		bs.State.CursorState = StateMovePlan
