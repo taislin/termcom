@@ -90,15 +90,15 @@
       rate and alien stat scaling
 - [x] C3 Nil-safety hardening: guard SelectedBase() usages in geoscape Update
 
-## Phase 23: Multi-Platform Audio Engine
-- [ ] Implement procedural sound synthesis in `audio_other.go` (Linux/macOS) using
-      `beep` or `oto` to replace terminal BEL beeps
-- [ ] Implement weapon-specific fire sounds, explosions, and ambient battle winds
-- [ ] Ensure parity with `audio_windows.go` synthesis logic
+## Phase 23: Multi-Platform Audio Engine (DONE)
+- [x] Implement procedural sound synthesis in `audio_other.go` (Linux/macOS) using
+      `oto` to replace terminal BEL beeps
+- [x] Implement weapon-specific fire sounds, explosions, and ambient battle winds
+- [x] Ensure parity with `audio_windows.go` synthesis logic
 
-## Phase 24: Radar Visualization
-- [ ] Implement toggle for radar coverage overlay on minimap (e.g., key `V`)
-- [ ] Draw regional radar ranges to illustrate coverage expansion from bases
+## Phase 24: Radar Visualization (DONE)
+- [x] Implement toggle for radar coverage overlay on minimap (key `V`)
+- [x] Draw regional radar ranges to illustrate coverage expansion from bases
 
 ## Phase 25: Docs & Tests
 - [ ] D1 Update manual.md: capture/containment real, Psi-Lab cosmetic, corrected

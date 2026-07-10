@@ -65,6 +65,7 @@ type Geoscape struct {
 	ActiveMissionType   string     // mission Type string of the battle in progress (for rewards)
 	ActiveFinalMission  bool       // non-nil if the current battle is the Cydonia final mission
 	CydoniaTriggered    bool       // ensures the final mission is added only once
+	ShowRadarOverlay    bool       // toggle radar coverage circles on minimap
 }
 
 func (gs *Geoscape) SelectedBase() *base.Base {
@@ -1428,34 +1429,35 @@ func (gs *Geoscape) renderMinimap(ctx *engine.ScreenCtx, x, y, w, h int) {
 		}
 	}
 
-	// Draw regional radar coverage around each base
-	radarRange := 24
-	radarStyle := tcell.StyleDefault.Foreground(tcell.NewRGBColor(0, 40, 70))
-	for _, b := range gs.Bases {
-		city := gs.CityByID(b.CityID)
-		if city == nil {
-			continue
-		}
-		for dy := -radarRange; dy <= radarRange; dy++ {
-			for dx := -radarRange; dx <= radarRange; dx++ {
-				if dx*dx+dy*dy > radarRange*radarRange {
-					continue
-				}
-				wx := city.X + dx
-				wy := city.Y + dy
-				if wx < 0 || wx >= worldW || wy < 0 || wy >= worldH {
-					continue
-				}
-				sx := x + 1 + (wx * innerW / worldW)
-				sy := y + 1 + (wy * innerH / worldH)
-				if sx <= x || sx >= x+w-1 || sy <= y || sy >= y+h-1 {
-					continue
-				}
-				cur, curStyle := ctx.Peek(sx, sy)
-				if cur == ' ' || cur == 0 {
-					ctx.SetCell(sx, sy, '·', radarStyle)
-				} else if curStyle == engine.StyleGray {
-					_ = curStyle
+	// Draw regional radar coverage around each base (toggle with V)
+	if gs.ShowRadarOverlay {
+		radarStyle := tcell.StyleDefault.Foreground(tcell.NewRGBColor(0, 40, 70))
+		for _, b := range gs.Bases {
+			city := gs.CityByID(b.CityID)
+			if city == nil {
+				continue
+			}
+			radarCount := b.CountFacility(base.FacRadar)
+			radarRange := 24 + radarCount*10
+			for dy := -radarRange; dy <= radarRange; dy++ {
+				for dx := -radarRange; dx <= radarRange; dx++ {
+					if dx*dx+dy*dy > radarRange*radarRange {
+						continue
+					}
+					wx := city.X + dx
+					wy := city.Y + dy
+					if wx < 0 || wx >= worldW || wy < 0 || wy >= worldH {
+						continue
+					}
+					sx := x + 1 + (wx * innerW / worldW)
+					sy := y + 1 + (wy * innerH / worldH)
+					if sx <= x || sx >= x+w-1 || sy <= y || sy >= y+h-1 {
+						continue
+					}
+					cur, _ := ctx.Peek(sx, sy)
+					if cur == ' ' || cur == 0 {
+						ctx.SetCell(sx, sy, '·', radarStyle)
+					}
 				}
 			}
 		}
@@ -1628,6 +1630,14 @@ func (gs *Geoscape) HandleKey(e *tcell.EventKey) {
 			break
 		}
 		gs.Game.PushScreen(gs.NewTransferScreen())
+	case "v", "V":
+		gs.ShowRadarOverlay = !gs.ShowRadarOverlay
+		if gs.ShowRadarOverlay {
+			gs.Message = "RADAR OVERLAY: ON"
+		} else {
+			gs.Message = "RADAR OVERLAY: OFF"
+		}
+		gs.MessageTimer = time.Now()
 	}
 }
 
