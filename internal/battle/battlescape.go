@@ -2142,11 +2142,11 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 				sy++
 			}
 		}
-		return
 	}
 
-	// Draw unit info in sidebar
-	sy := 1
+	if bs.HoveredUnit == nil || bs.HoveredUnit == bs.Selected {
+		// Draw unit info in sidebar
+		sy := 1
 	if bs.Selected != nil {
 		ctx.DrawString(sidebarX, sy, language.String("SIDE_UNIT_INFO"), engine.StyleCyanBold)
 		sy++
@@ -2211,6 +2211,7 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 		}
 		ctx.DrawString(sidebarX, sy+i, msg, engine.StyleDefault)
 	}
+	}
 
 	ctx.DrawPanel(0, h-4, w, 3, language.String("BATTLESCAPE"), engine.StyleDefault)
 	lightStr := language.String("LIGHT_DAY")
@@ -2231,8 +2232,13 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 	}
 
 	tile := bs.Map.At(bs.CursorX, bs.CursorY)
-	cursorStr := fmt.Sprintf(language.String("STATUS_CURSOR"), bs.CursorX, bs.CursorY, tileTypeName(tile.Type))
-	cursorX := w - len(cursorStr) - 2
+	tileName := tileTypeName(tile.Type)
+	cursorStr := fmt.Sprintf(language.String("STATUS_CURSOR"), bs.CursorX, bs.CursorY, tileName)
+	coverStr := ""
+	if tile.Cover > 0 {
+		coverStr = fmt.Sprintf(" (\u25C8 %d%%)", tile.Cover)
+	}
+	cursorX := w - len(cursorStr) - len(coverStr) - 2
 	if bs.Selected != nil {
 		selX := w / 2
 		selEnd := selX + len(fmt.Sprintf(language.String("STATUS_SELECTED"),
@@ -2246,6 +2252,9 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 		cursorX = 2
 	}
 	ctx.DrawString(cursorX, h-3, cursorStr, engine.StyleGray)
+	if coverStr != "" {
+		ctx.DrawString(cursorX+len(cursorStr), h-3, coverStr, engine.StyleOrange)
+	}
 
 	if bs.Message != "" {
 		ctx.DrawString(2, h-2, bs.Message, engine.StyleYellow)
@@ -2389,6 +2398,22 @@ func tileTypeName(t TileType) string {
 		return language.String("TILE_STAIRS")
 	case TileStairsDown:
 		return language.String("TILE_STAIRS_DOWN")
+	case TileBush:
+		return language.String("TILE_BUSH")
+	case TileFence:
+		return language.String("TILE_FENCE")
+	case TileSand:
+		return language.String("TILE_SAND")
+	case TileSnow:
+		return language.String("TILE_SNOW")
+	case TileMarsh:
+		return language.String("TILE_MARSH")
+	case TilePavement:
+		return language.String("TILE_PAVEMENT")
+	case TileRubble:
+		return language.String("TILE_RUBBLE")
+	case TileWindow:
+		return language.String("TILE_WINDOW")
 	}
 	return language.String("TILE_UNKNOWN")
 }

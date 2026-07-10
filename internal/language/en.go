@@ -213,6 +213,14 @@ func init() {
 		"TILE_ALIEN_TECH":   "Alien Tech",
 		"TILE_STAIRS":       "Stairs",
 		"TILE_STAIRS_DOWN":  "Stairs Down",
+		"TILE_BUSH":         "Bush",
+		"TILE_FENCE":        "Fence",
+		"TILE_SAND":         "Sand",
+		"TILE_SNOW":         "Snow",
+		"TILE_MARSH":        "Marsh",
+		"TILE_PAVEMENT":     "Pavement",
+		"TILE_RUBBLE":       "Rubble",
+		"TILE_WINDOW":       "Window",
 		"TILE_UNKNOWN":      "Unknown",
 
 		// Battle messages

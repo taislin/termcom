@@ -184,6 +184,7 @@ var StyleYellow = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.X
 var StyleCyan = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm6)
 var StyleMagenta = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm13)
 var StyleGray = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm8)
+var StyleOrange = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.Orange)
 
 var StyleCyanBold = StyleCyan.Bold(true)
 var StyleRedBold = StyleRed.Bold(true)
