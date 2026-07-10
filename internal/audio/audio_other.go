@@ -4,6 +4,7 @@ package audio
 
 import (
 	"math"
+	"math/rand"
 	"sync"
 	"time"
 
@@ -13,7 +14,7 @@ import (
 const (
 	sampleRate = 44100
 	channels   = 1
-	format     = oto.FormatSigned16LE
+	format     = oto.FormatFloat32LE
 )
 
 var (
@@ -32,7 +33,7 @@ func (m *mixerStream) Read(buf []byte) (int, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	samples := len(buf) / 2 // 16-bit mono
+	samples := len(buf) / 4 // float32 = 4 bytes
 	f32 := make([]float32, samples)
 
 	for i := range f32 {
@@ -56,9 +57,11 @@ func (m *mixerStream) Read(buf []byte) (int, error) {
 	}
 
 	for i, s := range f32 {
-		v := int16(s * 32767)
-		buf[i*2] = byte(v)
-		buf[i*2+1] = byte(v >> 8)
+		bits := math.Float32bits(s)
+		buf[i*4] = byte(bits)
+		buf[i*4+1] = byte(bits >> 8)
+		buf[i*4+2] = byte(bits >> 16)
+		buf[i*4+3] = byte(bits >> 24)
 	}
 	return len(buf), nil
 }
@@ -74,7 +77,7 @@ func ensureOto() {
 			BufferSize:   time.Duration(40) * time.Millisecond,
 		}
 		var err error
-		otoCtx, err = oto.NewContext(op)
+		otoCtx, _, err = oto.NewContext(op)
 		if err != nil {
 			close(otoReady)
 			return
@@ -113,7 +116,7 @@ func generateTone(freq float64, dur time.Duration, waveform func(float64) float6
 func sine(t float64) float64   { return math.Sin(t) }
 func square(t float64) float64 { if math.Sin(t) >= 0 { return 1.0 }; return -1.0 }
 func saw(t float64) float64   { return 2.0*(t/(2*math.Pi)-math.Floor(t/(2*math.Pi))) - 1.0 }
-func noise() float64           { return math/rand.Float64()*2 - 1 }
+func noise() float64           { return rand.Float64()*2 - 1 }
 
 func envDecay(t, dur float64) float64 {
 	return 1.0 - t/dur
