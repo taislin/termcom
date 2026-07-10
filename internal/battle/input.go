@@ -110,11 +110,13 @@ func (bs *Battlescape) handleMouse(e *tcell.EventMouse) {
 			bs.CursorX, bs.CursorY = mx, my
 			bs.State.CursorState = StateInspect
 			bs.State.MovePath = nil
+			bs.HoveredUnit = nil
 			bs.AddMessage(fmt.Sprintf(language.String("MSG_UNIT_SELECTED"), bs.Selected.Soldier.Name, bs.Selected.HP, bs.Selected.TU))
 			return
 		}
 
 		if unit != nil && unit.Faction == 1 && unit.Alive {
+			bs.HoveredUnit = unit
 			if bs.State.CursorState == StateTargeting && bs.CursorX == mx && bs.CursorY == my {
 				bs.FireWeapon()
 				bs.State.CursorState = StateInspect
@@ -136,11 +138,13 @@ func (bs *Battlescape) handleMouse(e *tcell.EventMouse) {
 		if bs.Selected != nil && bs.Phase == PhasePlayerTurn {
 			bs.CursorX, bs.CursorY = mx, my
 			bs.State.CursorState = StateMovePlan
+			bs.HoveredUnit = nil
 			bs.updateMovePath()
 		} else {
 			bs.CursorX, bs.CursorY = mx, my
 			bs.State.CursorState = StateInspect
 			bs.State.MovePath = nil
+			bs.HoveredUnit = nil
 		}
 	}
 }
