@@ -11,7 +11,7 @@ import (
 	"github.com/ebitengine/oto/v3"
 )
 
-const (
+var (
 	sampleRate = 44100
 	channels   = 1
 	format     = oto.FormatFloat32LE
@@ -229,7 +229,6 @@ func PlayMiss() {
 	out := make([]float32, samples)
 	for i := range out {
 		t := float64(i) / float64(sampleRate)
-		freq := freqSweep(400, 200, t, 0.08)
 		vol := envDecay(t, 0.08) * 0.2
 		out[i] = float32(noise() * vol)
 	}
