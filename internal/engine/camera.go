@@ -74,3 +74,10 @@ func (c *Camera) Pos() (int, int) {
 	defer c.mu.RUnlock()
 	return c.X + c.OffsetX, c.Y + c.OffsetY
 }
+
+func (c *Camera) Pan(dx, dy int) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.X += dx
+	c.Y += dy
+}

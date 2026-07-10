@@ -57,6 +57,14 @@ func (bs *Battlescape) handleKey(e *tcell.EventKey) {
 	switch e.Str() {
 	case " ":
 		bs.RightClick()
+	case "w", "W":
+		bs.Camera.Pan(0, -3)
+	case "a", "A":
+		bs.Camera.Pan(-3, 0)
+	case "s", "S":
+		bs.Camera.Pan(0, 3)
+	case "d", "D":
+		bs.Camera.Pan(3, 0)
 	case "q", "Q": bs.cycleUnit(1)
 	case "m", "M": 
 		bs.State.CursorState = StateMovePlan
@@ -86,19 +94,11 @@ func (bs *Battlescape) handleMouse(e *tcell.EventMouse) {
 	buttons := e.Buttons()
 
 	if buttons&tcell.WheelUp != 0 {
-		bs.ScrollX -= 3
-		bs.ScrollY -= 2
-		if bs.ScrollX < 0 {
-			bs.ScrollX = 0
-		}
-		if bs.ScrollY < 0 {
-			bs.ScrollY = 0
-		}
+		bs.Camera.Pan(0, -3)
 		return
 	}
 	if buttons&tcell.WheelDown != 0 {
-		bs.ScrollX += 3
-		bs.ScrollY += 2
+		bs.Camera.Pan(0, 3)
 		return
 	}
 
