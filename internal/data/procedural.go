@@ -243,6 +243,24 @@ func assemblePortrait(p portraitPart, dmgType int, rank int) string {
 	lines = append(lines, legBot(p, dmgType)...)
 	lines = append(lines, feet(p, dmgType)...)
 
+	maxW := 0
+	for _, l := range lines {
+		l = strings.TrimRight(l, " ")
+		if len(l) > maxW {
+			maxW = len(l)
+		}
+	}
+	for i, l := range lines {
+		l = strings.TrimRight(l, " ")
+		if len(l) > maxW {
+			l = l[:maxW]
+		}
+		for len(l) < maxW {
+			l += " "
+		}
+		lines[i] = l
+	}
+
 	return strings.Join(lines, "\n")
 }
 
@@ -256,7 +274,7 @@ func headTop(p portraitPart, dmg, rank int) []string {
 			}
 		}
 		return []string{
-			"         ",
+			"",
 			"  .---.  ",
 		}
 	case DMG_LASER:
@@ -267,7 +285,7 @@ func headTop(p portraitPart, dmg, rank int) []string {
 			}
 		}
 		return []string{
-			"         ",
+			"",
 			"  /---\\  ",
 		}
 	case DMG_MELEE:
@@ -278,7 +296,7 @@ func headTop(p portraitPart, dmg, rank int) []string {
 			}
 		}
 		return []string{
-			"         ",
+			"",
 			" /=====\\ ",
 		}
 	case DMG_EXPLOSIVE:
@@ -289,7 +307,7 @@ func headTop(p portraitPart, dmg, rank int) []string {
 			}
 		}
 		return []string{
-			"         ",
+			"",
 			"  /---\\  ",
 		}
 	case DMG_PSIONIC:
@@ -300,7 +318,7 @@ func headTop(p portraitPart, dmg, rank int) []string {
 			}
 		}
 		return []string{
-			"         ",
+			"",
 			"  (---)  ",
 		}
 	default: // DMG_KINETIC and others
@@ -311,7 +329,7 @@ func headTop(p portraitPart, dmg, rank int) []string {
 			}
 		}
 		return []string{
-			"         ",
+			"",
 			"  /---\\  ",
 		}
 	}

@@ -1636,6 +1636,77 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 		ctx.SetCell(sidebarX-1, y+1, '|', engine.StyleGray)
 	}
 
+	// If hovering an enemy, show ONLY target info in sidebar
+	if bs.HoveredUnit != nil && bs.HoveredUnit != bs.Selected {
+		sy := 1
+		u := bs.HoveredUnit
+		ctx.DrawString(sidebarX, sy, language.String("SIDE_TARGET_INFO"), engine.StyleRedBold)
+		sy++
+		name := ""
+		if u.Faction == 1 && u.AlienType != nil {
+			name = u.AlienType.Name
+		} else if u.Faction == 0 && u.Soldier != nil {
+			name = u.Soldier.Name
+		} else if u.Faction == 2 {
+			name = u.CivName
+		}
+		if len(name) > bs.SidebarW-1 {
+			name = name[:bs.SidebarW-1]
+		}
+		ctx.DrawString(sidebarX, sy, name, engine.StyleDefault.Bold(true))
+		sy++
+		weaponName := data.RuleItems[u.Weapon].ShortName
+		ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_WPN_TARGET"), weaponName), engine.StyleDefault)
+		sy++
+
+		hasAutopsy := u.Faction != 1 || u.AlienType == nil
+		if !hasAutopsy && u.AlienType != nil {
+			for _, id := range bs.Base.CompletedResearch {
+				if id == u.AlienType.AutopsyID {
+					hasAutopsy = true
+					break
+				}
+			}
+		}
+
+		if hasAutopsy {
+			ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_HP"), u.HP, u.MaxHP), engine.StyleDefault)
+			sy++
+			ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_ACC"), u.Accuracy), engine.StyleDefault)
+			sy++
+			ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_STR_TU"), u.Strength, u.TU), engine.StyleDefault)
+			sy++
+		}
+
+		if u.Faction == 1 && u.AlienType != nil {
+			portrait := u.AlienType.GetPortrait()
+			pLines := strings.Split(portrait, "\n")
+			sy++
+			maxW := 0
+			for _, pl := range pLines {
+				pl = strings.TrimRight(pl, " ")
+				if len(pl) > maxW {
+					maxW = len(pl)
+				}
+			}
+			if maxW > bs.SidebarW-1 {
+				maxW = bs.SidebarW - 1
+			}
+			for _, pl := range pLines {
+				pl = strings.TrimRight(pl, " ")
+				if len(pl) > maxW {
+					pl = pl[:maxW]
+				}
+				for len(pl) < maxW {
+					pl += " "
+				}
+				ctx.DrawString(sidebarX, sy, pl, engine.StyleRedBold)
+				sy++
+			}
+		}
+		return
+	}
+
 	// Draw unit info in sidebar
 	sy := 1
 	if bs.Selected != nil {
@@ -1688,62 +1759,6 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 	logTitle := language.String("BATTLE_LOG")
 	ctx.DrawString(sidebarX, sy, logTitle, engine.StyleCyanBold)
 	sy++
-
-	// Draw hovered unit info
-	if bs.HoveredUnit != nil && bs.HoveredUnit != bs.Selected {
-		ctx.DrawString(sidebarX, sy, language.String("SIDE_TARGET_INFO"), engine.StyleRedBold)
-		sy++
-		u := bs.HoveredUnit
-		name := ""
-		if u.Faction == 1 && u.AlienType != nil {
-			name = u.AlienType.Name
-		} else if u.Faction == 0 && u.Soldier != nil {
-			name = u.Soldier.Name
-		} else if u.Faction == 2 {
-			name = u.CivName
-		}
-		if len(name) > bs.SidebarW-1 {
-			name = name[:bs.SidebarW-1]
-		}
-		ctx.DrawString(sidebarX, sy, name, engine.StyleDefault.Bold(true))
-		sy++
-		weaponName := data.RuleItems[u.Weapon].ShortName
-		ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_WPN_TARGET"), weaponName), engine.StyleDefault)
-		sy++
-
-		hasAutopsy := u.Faction != 1 || u.AlienType == nil
-		if !hasAutopsy && u.AlienType != nil {
-			for _, id := range bs.Base.CompletedResearch {
-				if id == u.AlienType.AutopsyID {
-					hasAutopsy = true
-					break
-				}
-			}
-		}
-
-		if hasAutopsy {
-			ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_HP"), u.HP, u.MaxHP), engine.StyleDefault)
-			sy++
-			ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_ACC"), u.Accuracy), engine.StyleDefault)
-			sy++
-			ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_STR_TU"), u.Strength, u.TU), engine.StyleDefault)
-			sy++
-		}
-
-		if u.Faction == 1 && u.AlienType != nil {
-			portrait := u.AlienType.GetPortrait()
-			pLines := strings.Split(portrait, "\n")
-			sy++
-			for _, pl := range pLines {
-				if len(pl) > bs.SidebarW-1 {
-					pl = pl[:bs.SidebarW-1]
-				}
-				ctx.DrawString(sidebarX, sy, pl, engine.StyleRedBold)
-				sy++
-			}
-		}
-		sy++
-	}
 
 	availableLines := viewH - sy
 	logEntries := len(bs.Log)

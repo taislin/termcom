@@ -37,11 +37,11 @@
 
 ## Phase 15: Expanded Battle VFX
 - [ ] Muzzle flash particles on weapon fire
-- [ ] Explosion debris particles for grenades and heavy weapons
+- [x] Explosion debris particles for grenades and heavy weapons
 - [ ] Ambient particles per mission type (rain, snow, dust, embers)
-- [ ] Blood splatter on hit
+- [x] Blood splatter on hit
 
-## Phase 16: Sound Effects
+## Phase 16: Sound Effects (if feasible with our tone system)
 - [ ] Weapon fire sounds (laser, plasma, ballistic, melee)
 - [ ] UI navigation sounds (menu select, research complete, manufacturing done)
 - [ ] Ambient battle sounds (wind, distant explosions)
