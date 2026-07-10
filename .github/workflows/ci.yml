@@ -2,15 +2,18 @@ name: CI
 
 on:
   push:
-    branches: [main, master, termcom]
+    branches: [master]
   pull_request:
-    branches: [main, master, termcom]
+    branches: [master]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install ALSA dev headers
+        run: sudo apt-get update && sudo apt-get install -y libasound2-dev
 
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -33,6 +36,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install ALSA dev headers
+        run: sudo apt-get update && sudo apt-get install -y libasound2-dev
 
       - name: Set up Go
         uses: actions/setup-go@v5
