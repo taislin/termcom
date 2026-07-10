@@ -56,6 +56,7 @@ type Geoscape struct {
 	AlienActivity int
 	MissionsWon   int
 	Victory       bool
+	LastSpeed     int
 	// Cursor for node selection
 	CursorNode    int
 	TargetSelectionMode bool
@@ -770,12 +771,20 @@ func (gs *Geoscape) TogglePause() {
 	if gs.Game.Paused {
 		gs.Message = language.String("GEOSCAPE_TIME_PAUSED")
 	} else {
+		if gs.Game.TimeSpeed == 0 {
+			if gs.LastSpeed > 0 {
+				gs.Game.TimeSpeed = gs.LastSpeed
+			} else {
+				gs.Game.TimeSpeed = 1
+			}
+		}
 		gs.Message = fmt.Sprintf(language.String("GEOSCAPE_TIME_RUNNING"), gs.Game.TimeSpeed)
 	}
 	gs.MessageTimer = time.Now()
 }
 
 func (gs *Geoscape) SetSpeed(s int) {
+	gs.LastSpeed = s
 	gs.Game.TimeSpeed = s
 	gs.Game.Paused = false
 	gs.Message = fmt.Sprintf(language.String("GEOSCAPE_TIME_SPEED"), s)
@@ -1170,6 +1179,11 @@ func (gs *Geoscape) HandleKey(e *tcell.EventKey) {
 	case "b", "B":
 		gs.Game.PushState(engine.StateBase)
 	case "l", "L":
+		if !gs.Game.Paused {
+			gs.Game.Paused = true
+			gs.Message = language.String("GEOSCAPE_TIME_PAUSED")
+			gs.MessageTimer = time.Now()
+		}
 		gs.LaunchInterceptor()
 	case "a", "A":
 		gs.Autoresolve()
@@ -1188,6 +1202,11 @@ func (gs *Geoscape) HandleKey(e *tcell.EventKey) {
 	case "q", "Q":
 		gs.Game.Quit()
 	case "r", "R":
+		if !gs.Game.Paused {
+			gs.Game.Paused = true
+			gs.Message = language.String("GEOSCAPE_TIME_PAUSED")
+			gs.MessageTimer = time.Now()
+		}
 		gs.sendTransportToNearest()
 	case "e", "E":
 		gs.Game.OpenEncyclopedia(gs.Base.CompletedResearch, gs.Base.UnlockedWeapons, gs.Base.UnlockedArmor)
