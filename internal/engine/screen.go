@@ -55,9 +55,59 @@ func (s *ScreenRaw) SetCell(x, y int, ch rune, style tcell.Style) {
 		s.screen.SetContent(x, y, ch, nil, style)
 		fg := style.GetForeground()
 		bg := style.GetBackground()
-		attr := style.GetAttributes()
-		s.fb.Set(x, y, ch, fg, bg, attr)
+		s.fb.Set(x, y, ch, fg, bg, attrMaskFromStyle(style))
 	}
+}
+
+func attrMaskFromStyle(style tcell.Style) tcell.AttrMask {
+	var attr tcell.AttrMask
+	if style.HasBold() {
+		attr |= tcell.AttrBold
+	}
+	if style.HasBlink() {
+		attr |= tcell.AttrBlink
+	}
+	if style.HasReverse() {
+		attr |= tcell.AttrReverse
+	}
+	if style.HasDim() {
+		attr |= tcell.AttrDim
+	}
+	if style.HasItalic() {
+		attr |= tcell.AttrItalic
+	}
+	if style.HasStrikeThrough() {
+		attr |= tcell.AttrStrikeThrough
+	}
+	return attr
+}
+
+func styleFromCell(cd cellData) tcell.Style {
+	st := tcell.StyleDefault.Foreground(cd.fg).Background(cd.bg)
+	if cd.attr&tcell.AttrBold != 0 {
+		st = st.Bold(true)
+	}
+	if cd.attr&tcell.AttrBlink != 0 {
+		st = st.Blink(true)
+	}
+	if cd.attr&tcell.AttrReverse != 0 {
+		st = st.Reverse(true)
+	}
+	if cd.attr&tcell.AttrDim != 0 {
+		st = st.Dim(true)
+	}
+	if cd.attr&tcell.AttrItalic != 0 {
+		st = st.Italic(true)
+	}
+	if cd.attr&tcell.AttrStrikeThrough != 0 {
+		st = st.StrikeThrough(true)
+	}
+	return st
+}
+
+func (s *ScreenRaw) Peek(x, y int) (rune, tcell.Style) {
+	cd := s.fb.Get(x, y)
+	return cd.ch, styleFromCell(cd)
 }
 
 func (s *ScreenRaw) FrameBuffer() *FrameBuffer {
@@ -81,7 +131,7 @@ func (s *ScreenRaw) DrawMarkupString(x, y int, str string, normalStyle, highligh
 			highlight = false
 			continue
 		}
-		
+
 		style := normalStyle
 		if highlight {
 			style = highlightStyle

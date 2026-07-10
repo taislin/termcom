@@ -38,6 +38,15 @@ const (
 	PhaseDefeat
 )
 
+type CombatStatus int
+
+const (
+	StatusPlayerTurn CombatStatus = iota
+	StatusAlienTurn
+	StatusPlayerOverwatch
+	StatusAlienOverwatch
+)
+
 type Projectile struct {
 	FromX, FromY int
 	ToX, ToY     int
@@ -75,10 +84,13 @@ type Battlescape struct {
 	UFOName    string
 	ExitTimer  int
 	IsNight    bool
+	Status     CombatStatus
+	OverwatchFlash int
+	PlayerLock int
 
 	AlienTurnQueue  []AlienAction
 	AlienTurnIdx    int
-	AlienTurnDelay  int
+	ActionDelay     int
 	Projectile      *Projectile
 
 	Camera        *engine.Camera
@@ -92,7 +104,12 @@ type Battlescape struct {
 	Gas         *GasGrid
 	VisionMode  engine.VisionMode
 	FrameCount  int
-	
+
+	AlienSquadPlan *SquadPlan
+
+	PlayerGrenadeCount int
+	PlayerFlankCount   int
+
 	// Input State
 	State       BattleState
 }
@@ -234,6 +251,7 @@ func NewBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, ufoN
 		Base:    b,
 		Map:     m,
 		Phase:   PhasePlayerTurn,
+		Status:  StatusPlayerTurn,
 		Turn:    1,
 		CursorX: 3,
 		CursorY: m.Height - 3,
@@ -242,6 +260,7 @@ func NewBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, ufoN
 		IsNight: g.GameTime.Hour() < 6 || g.GameTime.Hour() > 18,
 		Camera:   engine.NewCamera(3, m.Height-3),
 		Particles: engine.NewParticleSystem(512),
+		ActionDelay: g.ActionDelay,
 		Gas:       NewGasGrid(m.Width, m.Height),
 	}
 
@@ -386,6 +405,21 @@ func (bs *Battlescape) Update() {
 	bs.Camera.UpdateShake(dt)
 	bs.Particles.Update(dt)
 
+	if bs.OverwatchFlash > 0 {
+		bs.OverwatchFlash--
+		if bs.OverwatchFlash == 0 {
+			if bs.Phase == PhaseAlienTurn {
+				bs.Status = StatusAlienTurn
+			} else {
+				bs.Status = StatusPlayerTurn
+			}
+		}
+	}
+
+	if bs.PlayerLock > 0 {
+		bs.PlayerLock--
+	}
+
 	if bs.FrameCount%1800 == 0 {
 		audio.PlayWind()
 	}
@@ -410,8 +444,8 @@ func (bs *Battlescape) Update() {
 			return
 		}
 
-		if bs.AlienTurnDelay > 0 {
-			bs.AlienTurnDelay--
+		if bs.ActionDelay > 0 {
+			bs.ActionDelay--
 			return
 		}
 
@@ -419,7 +453,7 @@ func (bs *Battlescape) Update() {
 			action := bs.AlienTurnQueue[bs.AlienTurnIdx]
 			bs.AlienTurnIdx++
 			bs.executeAlienAction(action)
-			bs.AlienTurnDelay = 8  // Increased delay so messages are visible
+			bs.ActionDelay = bs.Game.ActionDelay  // Use configured action delay
 		} else {
 			for _, cai := range bs.CivilianAIs {
 				actions := cai.GenerateActions(bs.Units, bs.Map)
@@ -557,6 +591,9 @@ func (bs *Battlescape) checkHumanReactionFire(movedAlien *Unit) {
 		}
 		bs.AddMessage(fmt.Sprintf(language.String("MSG_REACTION_FIRE"), u.Name(), movedAlien.Name()))
 		audio.PlayWeaponFire(u.Weapon)
+		bs.Status = StatusPlayerOverwatch
+		bs.OverwatchFlash = 30
+		bs.Camera.SetTarget(u.X, u.Y)
 		damage, hit, _ := u.FireAt(movedAlien, bs.Map)
 		bs.Projectile = &Projectile{
 			FromX: u.X, FromY: u.Y,
@@ -616,6 +653,9 @@ func (bs *Battlescape) checkAlienReactionFire(movedHuman *Unit) {
 		}
 		bs.AddMessage(fmt.Sprintf(language.String("MSG_REACTION_FIRE"), u.Name(), movedHuman.Name()))
 		audio.PlayWeaponFire(u.Weapon)
+		bs.Status = StatusAlienOverwatch
+		bs.OverwatchFlash = 30
+		bs.Camera.SetTarget(u.X, u.Y)
 		damage, hit, _ := u.FireAt(movedHuman, bs.Map)
 		dist2 := int(math.Sqrt(float64((movedHuman.X-u.X)*(movedHuman.X-u.X) + (movedHuman.Y-u.Y)*(movedHuman.Y-u.Y))))
 		if dist2 < 1 {
@@ -761,6 +801,18 @@ func (bs *Battlescape) finishBattle() {
 		bs.Game.Funds += 50000
 	}
 
+	// Update tactical tracking
+	bs.Game.Tactics.BattleCount++
+	bs.Game.Tactics.TotalAlienKills += alienKills
+	soldierLosses := 0
+	for _, s := range surviving {
+		if s.HP <= 0 {
+			soldierLosses++
+		}
+	}
+	bs.Game.Tactics.TotalSoldierLosses += soldierLosses
+	bs.Game.Tactics.GrenadeUsage += bs.PlayerGrenadeCount
+
 	bs.Game.ActiveBattle = &engine.BattleResult{
 		Won:       won,
 		Kills:     alienKills,
@@ -772,6 +824,7 @@ func (bs *Battlescape) finishBattle() {
 
 func (bs *Battlescape) finishAlienTurn() {
 	bs.Phase = PhasePlayerTurn
+	bs.Status = StatusPlayerTurn
 	bs.restorePlayerTU()
 	bs.ComputeFOVForTeam()
 	bs.Turn++
@@ -1085,6 +1138,7 @@ func (bs *Battlescape) FireWeapon() {
 		audio.PlayMiss()
 		bs.AddMessage(language.String("MSG_MISSED"))
 	}
+	bs.PlayerLock = bs.Game.ActionDelay / 2
 }
 
 func (bs *Battlescape) Reload() {
@@ -1117,10 +1171,13 @@ func (bs *Battlescape) EndTurn() {
 	}
 	audio.PlayAlienTurn()
 	bs.Phase = PhaseAlienTurn
+	bs.Status = StatusAlienTurn
 	bs.AddMessage(language.String("MSG_ALIEN_TURN"))
 
 	bs.AlienTurnQueue = nil
 	bs.AlienTurnIdx = 0
+
+	bs.AlienSquadPlan = bs.planSquadActions()
 
 	for _, ai := range bs.AlienAIs {
 		if !ai.Unit.Alive {
@@ -1128,15 +1185,135 @@ func (bs *Battlescape) EndTurn() {
 		}
 		ai.Unit.TU = ai.Unit.MaxTU
 		humanUnits := bs.Units.Faction(0)
-		actions := ai.GenerateActions(bs.Units, bs.Map, humanUnits)
+		actions := ai.Update(bs.Units, bs.Map, humanUnits, bs.AlienSquadPlan, &bs.Game.Tactics)
 		bs.AlienTurnQueue = append(bs.AlienTurnQueue, actions...)
 	}
 
 	if len(bs.AlienTurnQueue) == 0 {
 		bs.finishAlienTurn()
 	} else {
-		bs.AlienTurnDelay = 3
+		bs.ActionDelay = bs.Game.ActionDelay / 3 // Quicker delay for sub-actions
 	}
+}
+
+func (bs *Battlescape) planSquadActions() *SquadPlan {
+	humanUnits := bs.Units.Faction(0)
+	aliens := bs.Units.Faction(1)
+	
+	var aliveAliens []*Unit
+	for _, u := range aliens {
+		if u.Alive {
+			aliveAliens = append(aliveAliens, u)
+		}
+	}
+	if len(aliveAliens) == 0 {
+		return nil
+	}
+
+	var primary *Unit
+	var secondary *Unit
+	bestScore := -999.0
+
+	for _, h := range humanUnits {
+		if !h.Alive {
+			continue
+		}
+		score := 0.0
+		if h.HP < h.MaxHP/2 {
+			score += 8
+		}
+		switch h.Weapon {
+		case "rocket", "heavy_plasma", "laser_rifle":
+			score += 6
+		case "rifle", "heavy":
+			score += 3
+		}
+		if h.Crouching {
+			score -= 4
+		}
+		if !h.Crouching {
+			score += 2
+		}
+		for _, a := range aliveAliens {
+			dx := float64(h.X - a.X)
+			dy := float64(h.Y - a.Y)
+			dist := math.Sqrt(dx*dx + dy*dy)
+			if dist < 6 {
+				score += 2
+			}
+			if a.CanSee(h.X, h.Y, bs.Map) {
+				score += 3
+			}
+		}
+		if score > bestScore {
+			secondary = primary
+			bestScore = score
+			primary = h
+		}
+	}
+
+	roles := make(map[*Unit]SquadRole)
+	suppressorCount := len(aliveAliens) / 3
+	if suppressorCount < 1 {
+		suppressorCount = 0
+	}
+	flankerCount := len(aliveAliens) / 3
+
+	suppressors := 0
+	flankers := 0
+	for _, u := range aliveAliens {
+		ai := bs.findAIForUnit(u)
+		if ai == nil {
+			roles[u] = RoleNormal
+			continue
+		}
+		brave := 100
+		if u.AlienType != nil {
+			brave = u.AlienType.Bravery
+		}
+		aggro := 5
+		if u.AlienType != nil {
+			aggro = u.AlienType.Aggression
+		}
+
+		if suppressors < suppressorCount && brave > 60 && u.TU > 20 {
+			roles[u] = RoleSuppressor
+			suppressors++
+		} else if flankers < flankerCount && aggro > 6 && u.TU > 30 {
+			roles[u] = RoleFlanker
+			flankers++
+		} else {
+			roles[u] = RoleNormal
+		}
+	}
+
+	retreat := false
+	allyCount := len(aliveAliens)
+	enemyCount := 0
+	for _, h := range humanUnits {
+		if h.Alive {
+			enemyCount++
+		}
+	}
+	if allyCount > 0 && enemyCount > 0 && allyCount < enemyCount/2 {
+		retreat = true
+	}
+
+	return &SquadPlan{
+		PrimaryTarget:   primary,
+		SecondaryTarget: secondary,
+		Roles:           roles,
+		Retreat:         retreat,
+	}
+}
+
+func (bs *Battlescape) findAIForUnit(u *Unit) *AlienAI {
+	for _, ai := range bs.AlienAIs {
+		if ai.Unit == u {
+			return ai
+		}
+	}
+	return nil
 }
 
 func (bs *Battlescape) Crouch() {
@@ -1202,6 +1379,7 @@ func (bs *Battlescape) Grenade() {
 	if bs.Selected == nil || bs.Phase != PhasePlayerTurn {
 		return
 	}
+	bs.PlayerGrenadeCount++
 	if bs.Selected.TU < 20 {
 		bs.AddMessage(language.String("MSG_NOT_ENOUGH_TU_GRENADE"))
 		return
@@ -1374,6 +1552,39 @@ func (bs *Battlescape) PsiAttack() {
 	}
 }
 
+func (bs *Battlescape) DrawCombatStatusBar(ctx *engine.ScreenCtx, w int) {
+	label := ""
+	style := tcell.StyleDefault
+	switch bs.Status {
+	case StatusPlayerTurn:
+		label = language.String("STATUS_PLAYER_TURN")
+		style = engine.StyleBlue.Bold(true)
+	case StatusAlienTurn:
+		label = language.String("STATUS_ALIEN_TURN")
+		style = engine.StyleRed.Bold(true)
+	case StatusPlayerOverwatch:
+		label = language.String("STATUS_PLAYER_OVERWATCH")
+		style = engine.StyleCyan.Bold(true)
+	case StatusAlienOverwatch:
+		label = language.String("STATUS_ALIEN_OVERWATCH")
+		style = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.Orange).Bold(true)
+	}
+
+	for x := 0; x < w; x++ {
+		ctx.SetCell(x, 0, ' ', style)
+	}
+
+	text := " " + label + " "
+	if len(text) > w {
+		text = text[:w]
+	}
+	start := (w - len(text)) / 2
+	if start < 0 {
+		start = 0
+	}
+	ctx.DrawString(start, 0, text, style)
+}
+
 func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 	w, h := ctx.Size()
 	bs.SidebarW = w / 3
@@ -1385,6 +1596,8 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 		viewW = 10
 	}
 	viewH := h - 5
+
+	bs.DrawCombatStatusBar(ctx, w)
 
 	camX, camY := bs.Camera.Pos()
 	bs.ScrollX = camX - viewW/2

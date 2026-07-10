@@ -22,13 +22,15 @@ type SaveData struct {
 	AlienActivity  int
 	SpeciesSeed    int64
 	AlienKnowledge map[string]int
-	Base           *BaseSave
+	Bases          []*BaseSave
 	UFOs           []*UFOSave
 	Missions       []*MissionSave
+	MissionsWon    int
 }
 
 type BaseSave struct {
 	Name                 string
+	CityID               int
 	Scientists           int
 	Engineers            int
 	UnassignedScientists int
@@ -44,23 +46,23 @@ type BaseSave struct {
 }
 
 type SoldierSave struct {
-	Name      string
-	Rank      int
-	HP        int
-	MaxHP     int
-	TU        int
-	MaxTU     int
-	Accuracy  int
-	Bravery   int
-	Reactions int
-	Strength  int
-	PsiSkill  int
-	PsiStr    int
-	Weapon    string
-	Armor     string
-	Kills     int
-	Missions  int
-	Wounds    int
+	Name       string
+	Rank       int
+	HP         int
+	MaxHP      int
+	TU         int
+	MaxTU      int
+	Accuracy   int
+	Bravery    int
+	Reactions  int
+	Strength   int
+	PsiSkill   int
+	PsiStr     int
+	Weapon     string
+	Armor      string
+	Kills      int
+	Missions   int
+	Wounds     int
 	WeaponAmmo int
 }
 
@@ -155,8 +157,8 @@ func migrateSave(data *SaveData) error {
 }
 
 func migrateV1toV2(data *SaveData) {
-	if data.Base != nil {
-		for _, s := range data.Base.Soldiers {
+	if len(data.Bases) > 0 && data.Bases[0] != nil {
+		for _, s := range data.Bases[0].Soldiers {
 			if s.WeaponAmmo == 0 {
 				s.WeaponAmmo = 50
 			}
@@ -204,6 +206,7 @@ func LoadSaveInfo(slot int) (string, error) {
 func FromBase(b *base.Base) *BaseSave {
 	bs := &BaseSave{
 		Name:                 b.Name,
+		CityID:               b.CityID,
 		Scientists:           b.Scientists,
 		Engineers:            b.Engineers,
 		UnassignedScientists: b.UnassignedScientists,
@@ -268,7 +271,7 @@ func FromBase(b *base.Base) *BaseSave {
 }
 
 func ToBase(bs *BaseSave) *base.Base {
-	b := base.NewBase(bs.Name)
+	b := base.NewBase(bs.Name, bs.CityID)
 	b.Soldiers = nil
 	b.Facilities = nil
 	b.Hangars = nil

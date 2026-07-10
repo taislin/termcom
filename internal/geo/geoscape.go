@@ -26,46 +26,53 @@ type AlienMission struct {
 }
 
 type CrashSite struct {
-	UFOName  string
-	NodeID   int
-	Looted   bool
+	UFOName string
+	NodeID  int
+	Looted  bool
 }
 
 type Transport struct {
-	FromNode   int
-	ToNode     int
-	Progress   float64
-	Returning  bool
-	CrashSite  *CrashSite
+	FromNode  int
+	ToNode    int
+	Progress  float64
+	Returning bool
+	CrashSite *CrashSite
 }
 
 type Geoscape struct {
-	Game          *engine.Game
-	Cities        []*City // Renamed from Network
-	UFOs          UFOList
-	Interceptors  InterceptorList
-	CrashSites    []*CrashSite
-	Transport     *Transport
-	BaseNode      int     // home base node ID
-	Message       string
-	MessageTimer  time.Time
-	TickCounter   int
-	Base          *base.Base
-	LastMonth     int
-	Missions      []*AlienMission
-	AlienActivity int
-	MissionsWon   int
-	Victory       bool
-	LastSpeed     int
-	// Cursor for node selection
-	CursorNode    int
+	Game                *engine.Game
+	Cities              []*City
+	UFOs                UFOList
+	Interceptors        InterceptorList
+	CrashSites          []*CrashSite
+	Transport           *Transport
+	Message             string
+	MessageTimer        time.Time
+	TickCounter         int
+	Bases               []*base.Base
+	ActiveBase          int
+	LastMonth           int
+	Missions            []*AlienMission
+	AlienActivity       int
+	MissionsWon         int
+	Victory             bool
+	LastSpeed           int
+	CursorNode          int
 	TargetSelectionMode bool
-	PreBattleStats map[string][6]int // name -> {hp, accuracy, reactions, strength, bravery, tu}
-	ActiveCrashSite *CrashSite       // crash site being battled
+	PreBattleStats      map[string][6]int
+	ActiveCrashSite     *CrashSite
+	ActiveBaseDefense   *base.Base // non-nil if the current battle is defending this base
+}
+
+func (gs *Geoscape) SelectedBase() *base.Base {
+	if gs.ActiveBase < 0 || gs.ActiveBase >= len(gs.Bases) {
+		return nil
+	}
+	return gs.Bases[gs.ActiveBase]
 }
 
 func NewGeoscape(g *engine.Game) *Geoscape {
-	b := base.NewBase("Base 1")
+	b := base.NewBase("Base 1", 0)
 	b.Facilities = append(b.Facilities, &base.Facility{Type: base.FacLivingQuarters, Row: 0, Col: 0})
 	b.Facilities = append(b.Facilities, &base.Facility{Type: base.FacLab, Row: 0, Col: 1})
 	b.Facilities = append(b.Facilities, &base.Facility{Type: base.FacWorkshop, Row: 0, Col: 2})
@@ -79,31 +86,46 @@ func NewGeoscape(g *engine.Game) *Geoscape {
 	gs := &Geoscape{
 		Game:         g,
 		Cities:       cities,
-		BaseNode:     0,
+		Bases:        []*base.Base{b},
+		ActiveBase:   0,
 		CursorNode:   0,
 		Message:      language.String("MSG_WELCOME"),
 		MessageTimer: time.Now(),
-		Base:         b,
 		LastMonth:    int(g.GameTime.Month()),
 	}
 	return gs
 }
 
 func NewGeoscapeFromSave(g *engine.Game, sd *save.SaveData) *Geoscape {
-	b := save.ToBase(sd.Base)
+	var bases []*base.Base
+	for _, bs := range sd.Bases {
+		bases = append(bases, save.ToBase(bs))
+	}
+	if len(bases) == 0 {
+		b := base.NewBase("Base 1", 0)
+		b.Facilities = append(b.Facilities, &base.Facility{Type: base.FacLivingQuarters, Row: 0, Col: 0})
+		b.Facilities = append(b.Facilities, &base.Facility{Type: base.FacLab, Row: 0, Col: 1})
+		b.Facilities = append(b.Facilities, &base.Facility{Type: base.FacWorkshop, Row: 0, Col: 2})
+		b.Facilities = append(b.Facilities, &base.Facility{Type: base.FacStorage, Row: 0, Col: 3})
+		b.Facilities = append(b.Facilities, &base.Facility{Type: base.FacRadar, Row: 0, Col: 4})
+		bases = append(bases, b)
+	}
 
 	cities := GetCities()
-	cities[0].HasRadar = true
-	cities[0].InterceptorCount = 2
+	for _, b := range bases {
+		if b.CityID >= 0 && b.CityID < len(cities) {
+			cities[b.CityID].HasRadar = true
+		}
+	}
 
 	gs := &Geoscape{
 		Game:          g,
 		Cities:        cities,
-		BaseNode:      0,
+		Bases:         bases,
+		ActiveBase:    0,
 		CursorNode:    0,
 		Message:       language.String("MSG_GAME_LOADED"),
 		MessageTimer:  time.Now(),
-		Base:          b,
 		LastMonth:     int(sd.GameTime.Month()),
 		AlienActivity: sd.AlienActivity,
 	}
@@ -141,31 +163,41 @@ func (gs *Geoscape) Update() {
 	// Check for battle results
 	if gs.Game.ActiveBattle != nil {
 		r := gs.Game.ActiveBattle
-		gs.Base.Soldiers = r.Soldiers
-		dead := gs.Base.RemoveDeadSoldiers()
+		defendingBase := gs.SelectedBase()
+		if gs.ActiveBaseDefense != nil {
+			defendingBase = gs.ActiveBaseDefense
+		}
+		defendingBase.Soldiers = r.Soldiers
+		dead := defendingBase.RemoveDeadSoldiers()
 
 		if r.Won {
-			gs.Base.AddLoot(r.LootItems)
+			defendingBase.AddLoot(r.LootItems)
 			gs.MissionsWon++
-			// Collect UFO loot if this was a crash site battle
 			if gs.ActiveCrashSite != nil {
 				cs := gs.ActiveCrashSite
 				cs.Looted = true
 				loot := generateUFOLoot(cs.UFOName)
-				gs.Base.AddLoot(loot)
+				defendingBase.AddLoot(loot)
 				gs.Message = fmt.Sprintf(language.String("MSG_VICTORY_LOOT"), r.Kills, append(r.LootItems, loot...))
+			} else if gs.ActiveBaseDefense != nil {
+				gs.Message = fmt.Sprintf(language.String("MSG_BASE_DEFENDED"), defendingBase.Name, r.Kills)
 			} else {
 				gs.Message = fmt.Sprintf(language.String("MSG_VICTORY_LOOT"), r.Kills, r.LootItems)
 			}
 		} else {
-			gs.Message = fmt.Sprintf(language.String("MSG_DEFEAT_LOST"), dead)
+			if gs.ActiveBaseDefense != nil {
+				gs.destroyBase(defendingBase)
+			} else {
+				gs.Message = fmt.Sprintf(language.String("MSG_DEFEAT_LOST"), dead)
+			}
 		}
 		gs.MessageTimer = time.Now()
 		gs.ActiveCrashSite = nil
+		gs.ActiveBaseDefense = nil
 
 		if gs.PreBattleStats != nil {
 			statNames := []string{"HP", "ACC", "REA", "STR", "BRA", "TU"}
-			for _, s := range gs.Base.Soldiers {
+			for _, s := range defendingBase.Soldiers {
 				old, ok := gs.PreBattleStats[s.Name]
 				if !ok {
 					continue
@@ -201,7 +233,7 @@ func (gs *Geoscape) Update() {
 		// Instead of immediate victory, trigger Cydonia
 		gs.triggerCydonia()
 	}
-	
+
 	// Final mission check
 	if gs.Victory && gs.Game.ActiveBattle == nil {
 		stats := fmt.Sprintf("Campaign Complete. Missions Won: %d", gs.MissionsWon)
@@ -241,7 +273,7 @@ func (gs *Geoscape) Update() {
 		}
 
 		// Spawn alien missions periodically
-		// Increase frequency based on AlienActivity and game time: 
+		// Increase frequency based on AlienActivity and game time:
 		spawnRate := 1800 - (gs.AlienActivity * 15) - gameMonth*30
 		if spawnRate < 300 {
 			spawnRate = 300
@@ -265,9 +297,16 @@ func (gs *Geoscape) Update() {
 				if city != nil {
 					cityName = city.Name
 				}
-				gs.Message = fmt.Sprintf(language.String("MSG_ATTACK_CITY"), m.Type, cityName)
-				gs.MessageTimer = time.Now()
-				gs.AlienActivity += 10
+				// Base defense mission that expired: the aliens overrun the base
+				if defBase := gs.HasBaseAt(m.NodeID); defBase != nil {
+					gs.Message = fmt.Sprintf(language.String("MSG_BASE_DESTROYED"), defBase.Name)
+					gs.MessageTimer = time.Now()
+					gs.destroyBase(defBase)
+				} else {
+					gs.Message = fmt.Sprintf(language.String("MSG_ATTACK_CITY"), m.Type, cityName)
+					gs.MessageTimer = time.Now()
+					gs.AlienActivity += 10
+				}
 			} else {
 				remaining = append(remaining, m)
 			}
@@ -308,7 +347,7 @@ func (gs *Geoscape) Update() {
 									// Start tactical battle
 									gs.Transport = nil
 									aliveCount := 0
-									for _, s := range gs.Base.Soldiers {
+									for _, s := range gs.SelectedBase().Soldiers {
 										if s.HP > 0 {
 											aliveCount++
 										}
@@ -319,10 +358,10 @@ func (gs *Geoscape) Update() {
 										gs.Message = fmt.Sprintf(language.String("MSG_TRANSPORT_RETRIEVED"), cs.UFOName, 0)
 										gs.MessageTimer = time.Now()
 										gs.PreBattleStats = make(map[string][6]int)
-										for _, s := range gs.Base.Soldiers {
+										for _, s := range gs.SelectedBase().Soldiers {
 											gs.PreBattleStats[s.Name] = [6]int{s.HP, s.Accuracy, s.Reactions, s.Strength, s.Bravery, s.TU}
 										}
-										bs := battle.NewBattlescape(gs.Game, gs.Base, gs.Base.Soldiers, cs.UFOName)
+										bs := battle.NewBattlescape(gs.Game, gs.SelectedBase(), gs.SelectedBase().Soldiers, cs.UFOName)
 										gs.Game.SetScreen(engine.StateBattlescape, bs)
 										gs.Game.PushState(engine.StateBattlescape)
 										return
@@ -331,7 +370,7 @@ func (gs *Geoscape) Update() {
 									gs.MessageTimer = time.Now()
 								}
 								t.Returning = true
-								t.ToNode = gs.BaseNode
+								t.ToNode = gs.SelectedBase().CityID
 							}
 						}
 					}
@@ -360,17 +399,17 @@ func (gs *Geoscape) Update() {
 
 		// Advance research and manufacturing
 		if gs.TickCounter%30 == 0 {
-		var msgs []string
-		done := gs.Base.AdvanceResearch()
-		for _, name := range done {
-			audio.PlayResearchComplete()
-			msgs = append(msgs, fmt.Sprintf(language.String("MSG_RESEARCH_COMPLETE"), name))
-		}
-		crafted := gs.Base.AdvanceManufacture()
-		for _, item := range crafted {
-			audio.PlayManufactureComplete()
-			msgs = append(msgs, fmt.Sprintf(language.String("MSG_MANUFACTURE_COMPLETE"), item))
-		}
+			var msgs []string
+			done := gs.SelectedBase().AdvanceResearch()
+			for _, name := range done {
+				audio.PlayResearchComplete()
+				msgs = append(msgs, fmt.Sprintf(language.String("MSG_RESEARCH_COMPLETE"), name))
+			}
+			crafted := gs.SelectedBase().AdvanceManufacture()
+			for _, item := range crafted {
+				audio.PlayManufactureComplete()
+				msgs = append(msgs, fmt.Sprintf(language.String("MSG_MANUFACTURE_COMPLETE"), item))
+			}
 			if len(msgs) > 0 {
 				gs.Message = msgs[0]
 				gs.MessageTimer = time.Now()
@@ -382,18 +421,95 @@ func (gs *Geoscape) Update() {
 	curMonth := int(gs.Game.GameTime.Month())
 	if curMonth != gs.LastMonth {
 		gs.LastMonth = curMonth
-		gs.Base.AlienActivity = gs.AlienActivity
-		salary, funding := gs.Base.AdvanceMonth()
+		gs.SelectedBase().AlienActivity = gs.AlienActivity
+		salary, funding := gs.SelectedBase().AdvanceMonth()
 		gs.Game.Funds += int64(funding - salary)
-		gs.Base.AdvanceDay()
-		gs.Base.AdvanceDay()
-		gs.Base.AdvanceDay()
+		gs.SelectedBase().AdvanceDay()
+		gs.SelectedBase().AdvanceDay()
+		gs.SelectedBase().AdvanceDay()
 		gs.Message = fmt.Sprintf(language.String("MSG_MONTHLY_REPORT"), funding/1000, salary/1000)
 		gs.MessageTimer = time.Now()
 		gs.SaveGameAuto()
 	}
 }
 
+func (gs *Geoscape) destroyBase(b *base.Base) {
+	idx := -1
+	for i, base := range gs.Bases {
+		if base == b {
+			idx = i
+			break
+		}
+	}
+	if idx < 0 {
+		return
+	}
+	if len(gs.Bases) <= 1 {
+		gs.Message = fmt.Sprintf(language.String("MSG_BASE_DESTROYED"), b.Name)
+		gs.Game.GameOver(false, "Last base destroyed!")
+		gs.Victory = true
+		gs.Game.Paused = true
+		return
+	}
+	gs.Bases = append(gs.Bases[:idx], gs.Bases[idx+1:]...)
+	if gs.ActiveBase >= len(gs.Bases) {
+		gs.ActiveBase = len(gs.Bases) - 1
+	}
+	if b.CityID >= 0 && b.CityID < len(gs.Cities) {
+		gs.Cities[b.CityID].HasRadar = false
+	}
+	gs.Message = fmt.Sprintf(language.String("MSG_BASE_DESTROYED"), b.Name)
+	gs.MessageTimer = time.Now()
+}
+
+func (gs *Geoscape) HasBaseAt(cityID int) *base.Base {
+	for _, b := range gs.Bases {
+		if b.CityID == cityID {
+			return b
+		}
+	}
+	return nil
+}
+
+func (gs *Geoscape) CycleBase() {
+	if len(gs.Bases) <= 1 {
+		gs.Message = language.String("MSG_ONLY_ONE_BASE")
+		gs.MessageTimer = time.Now()
+		return
+	}
+	gs.ActiveBase = (gs.ActiveBase + 1) % len(gs.Bases)
+	gs.Message = fmt.Sprintf(language.String("MSG_SWITCHED_BASE"), gs.SelectedBase().Name)
+	gs.MessageTimer = time.Now()
+}
+
+func (gs *Geoscape) BuildBase() {
+	city := gs.CityByID(gs.CursorNode)
+	if city == nil {
+		return
+	}
+	if gs.HasBaseAt(gs.CursorNode) != nil {
+		gs.Message = fmt.Sprintf(language.String("MSG_BASE_EXISTS"), city.Name)
+		gs.MessageTimer = time.Now()
+		return
+	}
+	cost := int64(500000)
+	if gs.Game.Funds < cost {
+		gs.Message = language.String("MSG_INSUFFICIENT_FUNDS")
+		gs.MessageTimer = time.Now()
+		return
+	}
+	gs.Game.Funds -= cost
+	baseNum := len(gs.Bases) + 1
+	b := base.NewBase(fmt.Sprintf("Base %d", baseNum), gs.CursorNode)
+	b.Facilities = append(b.Facilities, &base.Facility{Type: base.FacLivingQuarters, Row: 0, Col: 0})
+	b.Facilities = append(b.Facilities, &base.Facility{Type: base.FacStorage, Row: 0, Col: 1})
+	b.Facilities = append(b.Facilities, &base.Facility{Type: base.FacRadar, Row: 0, Col: 2})
+	gs.Bases = append(gs.Bases, b)
+	city.HasRadar = true
+	gs.ActiveBase = len(gs.Bases) - 1
+	gs.Message = fmt.Sprintf(language.String("MSG_BASE_BUILT"), b.Name, city.Name)
+	gs.MessageTimer = time.Now()
+}
 func (gs *Geoscape) CityByID(id int) *City {
 	for _, c := range gs.Cities {
 		if c.ID == id {
@@ -450,15 +566,15 @@ func (gs *Geoscape) dogfight(inter *Interceptor) {
 			return
 		}
 	}
-	
+
 	// Check if interceptor is in range
-	dist := math.Sqrt(math.Pow(ufo.X-inter.X, 2)+math.Pow(ufo.Y-inter.Y, 2))
+	dist := math.Sqrt(math.Pow(ufo.X-inter.X, 2) + math.Pow(ufo.Y-inter.Y, 2))
 	if dist > float64(inter.Range) {
 		gs.Message = fmt.Sprintf(language.String("MSG_INTERCEPTOR_CLOSING"), inter.Weapon.Name, inter.Mode.String())
 		gs.MessageTimer = time.Now()
 		return
 	}
-	
+
 	damage := inter.FireAt(ufo)
 	audio.PlayShoot()
 	if damage == 0 {
@@ -466,7 +582,7 @@ func (gs *Geoscape) dogfight(inter *Interceptor) {
 		gs.MessageTimer = time.Now()
 	} else if damage == -1 {
 		gs.Game.Funds += int64(ufo.Type.Points * 1000)
-		
+
 		// Check if over water
 		city := gs.CityByID(ufo.CurrentNode())
 		if city != nil && GetTile(city.X, city.Y) == 0 { // 0 is water
@@ -512,12 +628,20 @@ func (gs *Geoscape) dogfight(inter *Interceptor) {
 
 func (gs *Geoscape) spawnMission() {
 	types := []string{language.String("MISSION_TERROR"), language.String("MISSION_SUPPLY"), language.String("MISSION_ALIEN_BASE"), language.String("MISSION_ABDUCTION")}
-	// Pick a random non-base city
+
+	// Build candidate list. If the player has multiple bases, aliens may
+	// directly assault a base (base defense scenario).
 	var candidates []*City
 	for _, c := range gs.Cities {
-		if c.ID != gs.BaseNode {
-			candidates = append(candidates, c)
+		if c.ID == gs.SelectedBase().CityID {
+			// Only allow the home (selected) base as a target occasionally,
+			// so base defense missions can occur.
+			if len(gs.Bases) > 1 && rand.Intn(100) < 25 {
+				candidates = append(candidates, c)
+			}
+			continue
 		}
+		candidates = append(candidates, c)
 	}
 	if len(candidates) == 0 {
 		return
@@ -545,12 +669,12 @@ func (gs *Geoscape) spawnMission() {
 func (gs *Geoscape) triggerCydonia() {
 	gs.Message = "Cydonia location detected! Final mission ready."
 	gs.MessageTimer = time.Now()
-	
+
 	// Add Cydonia as a special mission
 	mission := &AlienMission{
 		Type:      "Alien Base Assault", // Reuse for Cydonia
-		NodeID:    0, // Special node for Cydonia
-		HoursLeft: 9999.0, // Indefinite
+		NodeID:    0,                    // Special node for Cydonia
+		HoursLeft: 9999.0,               // Indefinite
 	}
 	gs.Missions = append(gs.Missions, mission)
 	gs.Game.Bell()
@@ -563,7 +687,7 @@ func (gs *Geoscape) RespondToMission(idx int) {
 		return
 	}
 	aliveCount := 0
-	for _, s := range gs.Base.Soldiers {
+	for _, s := range gs.SelectedBase().Soldiers {
 		if s.HP > 0 {
 			aliveCount++
 		}
@@ -581,12 +705,22 @@ func (gs *Geoscape) RespondToMission(idx int) {
 		cityName = city.Name
 		city.MissionHere = false
 	}
+
+	// Base defense mission if the target city hosts one of our bases
+	if defBase := gs.HasBaseAt(mission.NodeID); defBase != nil {
+		gs.ActiveBaseDefense = defBase
+	}
 	gs.Message = fmt.Sprintf(language.String("MSG_SQUAD_DEPLOYED"), mission.Type, cityName)
 	gs.MessageTimer = time.Now()
 	gs.Game.Paused = true
 
+	defBase := gs.SelectedBase()
+	if gs.ActiveBaseDefense != nil {
+		defBase = gs.ActiveBaseDefense
+	}
+
 	gs.PreBattleStats = make(map[string][6]int)
-	for _, s := range gs.Base.Soldiers {
+	for _, s := range defBase.Soldiers {
 		gs.PreBattleStats[s.Name] = [6]int{s.HP, s.Accuracy, s.Reactions, s.Strength, s.Bravery, s.TU}
 	}
 
@@ -604,7 +738,10 @@ func (gs *Geoscape) RespondToMission(idx int) {
 	if mission.NodeID == 0 {
 		ufoName = "Cydonia"
 	}
-	bs := battle.NewBattlescape(gs.Game, gs.Base, gs.Base.Soldiers, ufoName)
+	if gs.ActiveBaseDefense != nil {
+		ufoName = language.String("MISSION_TYPE_BASE")
+	}
+	bs := battle.NewBattlescape(gs.Game, defBase, defBase.Soldiers, ufoName)
 	gs.Game.SetScreen(engine.StateBattlescape, bs)
 	gs.Game.PushState(engine.StateBattlescape)
 }
@@ -617,7 +754,7 @@ func (gs *Geoscape) Autoresolve() {
 		if city == nil {
 			continue
 		}
-		baseCity := gs.CityByID(gs.BaseNode)
+		baseCity := gs.CityByID(gs.SelectedBase().CityID)
 		if baseCity == nil {
 			continue
 		}
@@ -636,7 +773,7 @@ func (gs *Geoscape) Autoresolve() {
 	}
 
 	aliveCount := 0
-	for _, s := range gs.Base.Soldiers {
+	for _, s := range gs.SelectedBase().Soldiers {
 		if s.HP > 0 {
 			aliveCount++
 		}
@@ -656,14 +793,14 @@ func (gs *Geoscape) Autoresolve() {
 		if squadSize > 0 {
 			// build list of alive soldiers
 			var alive []*soldier.Soldier
-			for _, s := range gs.Base.Soldiers {
+			for _, s := range gs.SelectedBase().Soldiers {
 				if s.HP > 0 {
 					alive = append(alive, s)
 				}
 			}
 			idx := rand.Intn(len(alive))
 			alive[idx].HP = 0
-			gs.Base.RemoveDeadSoldiers()
+			gs.SelectedBase().RemoveDeadSoldiers()
 			gs.Message = fmt.Sprintf(language.String("MSG_AUTO_DEFEAT"), nearest.Type.Name)
 		} else {
 			gs.Message = language.String("MSG_AUTO_NO_SOLDIERS")
@@ -692,6 +829,10 @@ func (gs *Geoscape) buildSaveData() *save.SaveData {
 			Y:         0,
 		})
 	}
+	var baseSaves []*save.BaseSave
+	for _, b := range gs.Bases {
+		baseSaves = append(baseSaves, save.FromBase(b))
+	}
 	return &save.SaveData{
 		GameTime:       gs.Game.GameTime,
 		Funds:          gs.Game.Funds,
@@ -700,9 +841,10 @@ func (gs *Geoscape) buildSaveData() *save.SaveData {
 		AlienActivity:  gs.AlienActivity,
 		SpeciesSeed:    gs.Game.SpeciesSeed,
 		AlienKnowledge: gs.Game.AlienKnowledge,
-		Base:           save.FromBase(gs.Base),
+		Bases:          baseSaves,
 		UFOs:           ufoSaves,
 		Missions:       missionSaves,
+		MissionsWon:    gs.MissionsWon,
 	}
 }
 
@@ -765,7 +907,15 @@ func (gs *Geoscape) loadFromSaveData(sd *save.SaveData) {
 	}
 	gs.Game.AlienSpecies, gs.Game.AlienTypes = data.GenerateSpecies(sd.SpeciesSeed)
 	data.InitResearchTree(sd.SpeciesSeed, gs.Game.AlienSpecies)
-	gs.Base = save.ToBase(sd.Base)
+	gs.Bases = nil
+	for _, bs := range sd.Bases {
+		gs.Bases = append(gs.Bases, save.ToBase(bs))
+	}
+	if len(gs.Bases) == 0 {
+		b := base.NewBase("Base 1", 0)
+		gs.Bases = append(gs.Bases, b)
+	}
+	gs.ActiveBase = 0
 	gs.UFOs = nil
 	for _, u := range sd.UFOs {
 		ufoType := GetUFOTypeByName(u.TypeName)
@@ -857,15 +1007,15 @@ func (gs *Geoscape) LaunchInterceptor() {
 
 func (gs *Geoscape) confirmLaunch(target interface{}) {
 	gs.TargetSelectionMode = false
-	
+
 	// Get available interceptors from Base
-	available := gs.Base.GetAvailableInterceptors()
+	available := gs.SelectedBase().GetAvailableInterceptors()
 	if len(available) == 0 {
 		gs.Message = language.String("MSG_NO_INTERCEPTORS_AVAILABLE")
 		gs.MessageTimer = time.Now()
 		return
 	}
-	baseCity := gs.CityByID(gs.BaseNode)
+	baseCity := gs.CityByID(gs.SelectedBase().CityID)
 	interState := available[0]
 	interState.Status = "Active"
 	inter := NewInterceptorFromState(interState, baseCity.X, baseCity.Y)
@@ -917,7 +1067,7 @@ func (gs *Geoscape) Render(ctx *engine.ScreenCtx) {
 	ctx.DrawString(w/3, h-5, timeStr, engine.StyleDefault)
 	ctx.DrawString(w*2/3, h-5, pauseStr, engine.StyleYellow)
 
-	soldiersStr := fmt.Sprintf(language.String("GEOSCAPE_SQUAD"), len(gs.Base.Soldiers))
+	soldiersStr := fmt.Sprintf("[%s] ", gs.SelectedBase().Name) + fmt.Sprintf(language.String("GEOSCAPE_SQUAD"), len(gs.SelectedBase().Soldiers))
 	alienStr := fmt.Sprintf(language.String("GEOSCAPE_ACTIVITY"), gs.AlienActivity)
 	missionStr := fmt.Sprintf(language.String("GEOSCAPE_MISSIONS"), len(gs.Missions), gs.MissionsWon)
 
@@ -973,9 +1123,9 @@ func (gs *Geoscape) renderRegionTable(ctx *engine.ScreenCtx, x, y, w, h int) {
 				break
 			}
 			ry := y + 2 + row
-			
+
 			// Highlight selected (reuse cursor for selection index)
-			sel := row == gs.CursorNode % len(targets)
+			sel := row == gs.CursorNode%len(targets)
 			baseStyle := engine.StyleDefault
 			if sel {
 				baseStyle = engine.StyleHighlight
@@ -988,7 +1138,7 @@ func (gs *Geoscape) renderRegionTable(ctx *engine.ScreenCtx, x, y, w, h int) {
 			case *CrashSite:
 				name = "Crash: " + target.UFOName
 			}
-			
+
 			prefix := "  "
 			if sel {
 				prefix = "> "
@@ -1065,7 +1215,7 @@ func (gs *Geoscape) renderRegionTable(ctx *engine.ScreenCtx, x, y, w, h int) {
 			sx := x + int(float64(w)*0.85)
 			if c.MissionHere {
 				ctx.DrawString(sx, ry, language.String("GEO_STATUS_MISSION"), engine.StyleMagenta)
-			} else if c.ID == 0 {
+			} else if gs.HasBaseAt(c.ID) != nil {
 				ctx.DrawString(sx, ry, language.String("GEO_STATUS_BASE"), engine.StyleCyanBold)
 			} else if c.Threat > 50 {
 				ctx.DrawString(sx, ry, language.String("GEO_STATUS_DANGER"), engine.StyleRedBold)
@@ -1111,6 +1261,39 @@ func (gs *Geoscape) renderMinimap(ctx *engine.ScreenCtx, x, y, w, h int) {
 				style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(0, 20, 60))
 			}
 			ctx.SetCell(x+1+dx, y+1+dy, ch, style)
+		}
+	}
+
+	// Draw regional radar coverage around each base
+	radarRange := 24
+	radarStyle := tcell.StyleDefault.Foreground(tcell.NewRGBColor(0, 40, 70))
+	for _, b := range gs.Bases {
+		city := gs.CityByID(b.CityID)
+		if city == nil {
+			continue
+		}
+		for dy := -radarRange; dy <= radarRange; dy++ {
+			for dx := -radarRange; dx <= radarRange; dx++ {
+				if dx*dx+dy*dy > radarRange*radarRange {
+					continue
+				}
+				wx := city.X + dx
+				wy := city.Y + dy
+				if wx < 0 || wx >= worldW || wy < 0 || wy >= worldH {
+					continue
+				}
+				sx := x + 1 + (wx * innerW / worldW)
+				sy := y + 1 + (wy * innerH / worldH)
+				if sx <= x || sx >= x+w-1 || sy <= y || sy >= y+h-1 {
+					continue
+				}
+				cur, curStyle := ctx.Peek(sx, sy)
+				if cur == ' ' || cur == 0 {
+					ctx.SetCell(sx, sy, '·', radarStyle)
+				} else if curStyle == engine.StyleGray {
+					_ = curStyle
+				}
+			}
 		}
 	}
 
@@ -1192,7 +1375,7 @@ func (gs *Geoscape) renderMinimap(ctx *engine.ScreenCtx, x, y, w, h int) {
 }
 
 func (gs *Geoscape) cityStyle(c *City) (rune, tcell.Style) {
-	if c.ID == 0 {
+	if gs.HasBaseAt(c.ID) != nil {
 		return '\u25C6', tcell.StyleDefault.Background(color.XTerm8).Foreground(color.XTerm6).Bold(true)
 	}
 	if c.Threat > 50 {
@@ -1203,8 +1386,6 @@ func (gs *Geoscape) cityStyle(c *City) (rune, tcell.Style) {
 	}
 	return '\u25CB', tcell.StyleDefault.Background(color.XTerm8).Foreground(color.XTerm2)
 }
-
-
 
 func (gs *Geoscape) HandleKey(e *tcell.EventKey) {
 	switch e.Key() {
@@ -1231,6 +1412,10 @@ func (gs *Geoscape) HandleKey(e *tcell.EventKey) {
 	}
 	switch e.Str() {
 	case "b", "B":
+		gs.Game.SetScreen(engine.StateBase, base.NewBaseScreen(gs.Game, gs.SelectedBase()))
+		gs.Game.SetScreen(engine.StateEquip, base.NewEquipScreen(gs.Game, gs.SelectedBase()))
+		gs.Game.SetScreen(engine.StateResearch, base.NewResearchScreen(gs.Game, gs.SelectedBase()))
+		gs.Game.SetScreen(engine.StateManufacture, base.NewManufactureScreen(gs.Game, gs.SelectedBase()))
 		gs.Game.PushState(engine.StateBase)
 	case "l", "L":
 		if !gs.Game.Paused {
@@ -1263,14 +1448,25 @@ func (gs *Geoscape) HandleKey(e *tcell.EventKey) {
 		}
 		gs.sendTransportToNearest()
 	case "e", "E":
-		gs.Game.OpenEncyclopedia(gs.Base.CompletedResearch, gs.Base.UnlockedWeapons, gs.Base.UnlockedArmor)
+		gs.Game.OpenEncyclopedia(gs.SelectedBase().CompletedResearch, gs.SelectedBase().UnlockedWeapons, gs.SelectedBase().UnlockedArmor)
+	case "c", "C":
+		gs.CycleBase()
+	case "n", "N":
+		gs.BuildBase()
+	case "t", "T":
+		if len(gs.Bases) < 2 {
+			gs.Message = language.String("MSG_NEED_TWO_BASES")
+			gs.MessageTimer = time.Now()
+			break
+		}
+		gs.Game.PushScreen(gs.NewTransferScreen())
 	}
 }
 
 func (gs *Geoscape) moveCursor(dx, dy int) {
 	// Move based on list index instead of spatial position
 	// dx is ignored as we move linearly through the Cities list
-	
+
 	curIdx := -1
 	for i, c := range gs.Cities {
 		if c.ID == gs.CursorNode {
@@ -1278,18 +1474,18 @@ func (gs *Geoscape) moveCursor(dx, dy int) {
 			break
 		}
 	}
-	
+
 	if curIdx == -1 {
 		return
 	}
-	
+
 	newIdx := curIdx + dy
 	if newIdx < 0 {
 		newIdx = len(gs.Cities) - 1
 	} else if newIdx >= len(gs.Cities) {
 		newIdx = 0
 	}
-	
+
 	gs.CursorNode = gs.Cities[newIdx].ID
 }
 
@@ -1300,7 +1496,7 @@ func (gs *Geoscape) sendTransportToNearest() {
 		if cs.Looted {
 			continue
 		}
-		path := gs.ShortestPath(gs.BaseNode, cs.NodeID)
+		path := gs.ShortestPath(gs.SelectedBase().CityID, cs.NodeID)
 		dist := len(path)
 		if dist < bestDist {
 			bestDist = dist
@@ -1331,7 +1527,13 @@ func (gs *Geoscape) HandleMouse(e *tcell.EventMouse) {
 			func() { gs.LaunchInterceptor() },
 			func() { gs.Autoresolve() },
 			func() { gs.RespondToMission(0) },
-			func() { gs.Game.PushState(engine.StateBase) },
+			func() {
+				gs.Game.SetScreen(engine.StateBase, base.NewBaseScreen(gs.Game, gs.SelectedBase()))
+				gs.Game.SetScreen(engine.StateEquip, base.NewEquipScreen(gs.Game, gs.SelectedBase()))
+				gs.Game.SetScreen(engine.StateResearch, base.NewResearchScreen(gs.Game, gs.SelectedBase()))
+				gs.Game.SetScreen(engine.StateManufacture, base.NewManufactureScreen(gs.Game, gs.SelectedBase()))
+				gs.Game.PushState(engine.StateBase)
+			},
 			func() { gs.sendTransportToNearest() },
 			func() { gs.TogglePause() },
 			func() { gs.Game.Quit() },
@@ -1444,7 +1646,7 @@ func (gs *Geoscape) DispatchTransport(cs *CrashSite) {
 		return
 	}
 	gs.Transport = &Transport{
-		FromNode:  gs.BaseNode,
+		FromNode:  gs.SelectedBase().CityID,
 		ToNode:    cs.NodeID,
 		Progress:  0,
 		CrashSite: cs,

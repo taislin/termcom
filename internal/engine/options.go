@@ -21,7 +21,7 @@ func (os *OptionsScreen) Render(ctx *ScreenCtx) {
 	w, h := ctx.Size()
 	ctx.DrawPanel(0, 0, w, h, language.String("OPTIONS_TITLE"), StyleDefault)
 
-	options := []struct {
+	boolOpts := []struct {
 		Label string
 		Value *bool
 	}{
@@ -30,7 +30,7 @@ func (os *OptionsScreen) Render(ctx *ScreenCtx) {
 		{language.String("OPTIONS_LIGHTING"), &Config.LightingEnabled},
 	}
 
-	for i, opt := range options {
+	for i, opt := range boolOpts {
 		style := StyleDefault
 		if i == os.Selection {
 			style = StyleHighlight
@@ -42,13 +42,23 @@ func (os *OptionsScreen) Render(ctx *ScreenCtx) {
 		}
 
 		line := fmt.Sprintf("[%s] %s", status, opt.Label)
-		ctx.DrawString(w/2-15, h/2-3+i, line, style)
+		ctx.DrawString(w/2-15, h/2-4+i, line, style)
 	}
 
+	// Resolution speed option (int slider)
+	speedIdx := len(boolOpts)
+	speedStyle := StyleDefault
+	if os.Selection == speedIdx {
+		speedStyle = StyleHighlight
+	}
+	speed := os.Game.ActionDelay
+	line := fmt.Sprintf("%s: %d", language.String("OPTIONS_RESOLUTION_SPEED"), speed)
+	ctx.DrawString(w/2-15, h/2-4+speedIdx, line, speedStyle)
+
 	// Language option
-	langY := h/2 - 3 + len(options)
+	langY := h/2 - 4 + speedIdx + 1
 	langStyle := StyleDefault
-	if os.Selection == len(options) {
+	if os.Selection == speedIdx+1 {
 		langStyle = StyleHighlight
 	}
 	langs := language.Available()
@@ -59,15 +69,16 @@ func (os *OptionsScreen) Render(ctx *ScreenCtx) {
 			break
 		}
 	}
-	line := fmt.Sprintf("      %s: [%s]", language.String("OPTIONS_LANGUAGE"), langs[langIdx])
+	line = fmt.Sprintf("      %s: [%s]", language.String("OPTIONS_LANGUAGE"), langs[langIdx])
 	ctx.DrawString(w/2-15, langY+1, line, langStyle)
 
 	ctx.DrawPanel(0, h-1, w, 1, "", StyleGray)
-	ctx.DrawMarkupString(1, h-1, "[\u2190]/[\u2192]=Language  [\u2191]/[\u2193]=Select  Enter=Toggle  [Esc]=Back", StyleGray, StyleHotkey)
+	ctx.DrawMarkupString(1, h-1, "[\u2190]/[\u2192]=Adjust  [\u2191]/[\u2193]=Select  Enter=Toggle  [Esc]=Back", StyleGray, StyleHotkey)
 }
 
 func (os *OptionsScreen) HandleKey(e *tcell.EventKey) {
-	totalOptions := 4 // 3 toggles + 1 language
+	speedIdx := 3 // 3 bool toggles precede the speed option
+	totalOptions := 5
 	switch e.Key() {
 	case tcell.KeyUp:
 		audio.PlayMenuNav()
@@ -86,12 +97,22 @@ func (os *OptionsScreen) HandleKey(e *tcell.EventKey) {
 		os.toggle()
 	case tcell.KeyLeft:
 		audio.PlayMenuNav()
-		if os.Selection == 3 {
+		if os.Selection == speedIdx {
+			os.Game.ActionDelay--
+			if os.Game.ActionDelay < 1 {
+				os.Game.ActionDelay = 1
+			}
+		} else if os.Selection == speedIdx+1 {
 			os.cycleLang(-1)
 		}
 	case tcell.KeyRight:
 		audio.PlayMenuNav()
-		if os.Selection == 3 {
+		if os.Selection == speedIdx {
+			os.Game.ActionDelay++
+			if os.Game.ActionDelay > 20 {
+				os.Game.ActionDelay = 20
+			}
+		} else if os.Selection == speedIdx+1 {
 			os.cycleLang(1)
 		}
 	case tcell.KeyEsc:
@@ -108,7 +129,7 @@ func (os *OptionsScreen) toggle() {
 		Config.DistortionEnabled = !Config.DistortionEnabled
 	case 2:
 		Config.LightingEnabled = !Config.LightingEnabled
-	case 3:
+	case 4:
 		os.cycleLang(1)
 	}
 }

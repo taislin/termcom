@@ -84,10 +84,10 @@ The Geoscape uses a **regional dashboard** layout:
 
 | Symbol | Meaning |
 |--------|---------|
-| ◆ | Your base (home node) |
+| ◆ | A base (any base node) |
 | ◉ | Currently selected node |
 | ○ | Regional hub (green=safe, yellow=threat, red=danger) |
-| · | Flight path connections |
+| · | Radar coverage (faint dots around each base) |
 
 ### Controls
 
@@ -99,8 +99,33 @@ The Geoscape uses a **regional dashboard** layout:
 | M | Respond to alien mission |
 | B | Open base management |
 | R | Dispatch transport to crash site |
+| C | Cycle to the next base |
+| N | Build a new base at the selected node ($500K) |
+| T | Open the transfer screen (move soldiers/items between bases) |
 | Space | Pause/unpause time |
 | 1-4 | Time compression |
+
+### Multiple Bases
+
+You can build additional bases to expand radar coverage and split your forces.
+Each base is constructed at a regional node for $500,000 and comes with Living
+Quarters, Storage, and a Radar facility. Press `N` while the cursor is on an
+empty node to build there.
+
+- **Radar coverage** is drawn as a faint `·` ring around every base on the minimap.
+- Press `C` to cycle the *active* base. All base screens (management, research,
+  manufacture, equipment) operate on the active base.
+- Press `T` to open the **Transfer** screen and move soldiers or items between
+  bases. Use `Tab` to choose the destination base, `Space` to move the selected
+  soldier, and `Enter` to move one unit of the selected item.
+
+### Base Defense
+
+If an alien mission targets a node that hosts one of your bases, responding with
+`M` launches a **Base Defense** battle on that base's map. Each base defends with
+its own stationed squad. If you **lose** a base defense battle — or let a base
+defense mission expire — the base is **destroyed** and all its personnel are lost.
+Losing your last remaining base ends the game.
 
 ### Time Controls
 

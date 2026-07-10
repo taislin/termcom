@@ -10,7 +10,7 @@ import (
 )
 
 func TestSaveLoadGame(t *testing.T) {
-	b := base.NewBase("Test Base")
+	b := base.NewBase("Test Base", 0)
 	b.Scientists = 15
 	b.Engineers = 8
 	b.Facilities = append(b.Facilities, &base.Facility{Type: base.FacLab, Building: false})
@@ -46,7 +46,7 @@ func TestSaveLoadGame(t *testing.T) {
 		Paused:        true,
 		TimeSpeed:     2,
 		AlienActivity: 15,
-		Base:          FromBase(b),
+		Bases:         []*BaseSave{FromBase(b)},
 	}
 
 	path := "test_save.json"
@@ -61,7 +61,7 @@ func TestSaveLoadGame(t *testing.T) {
 		t.Fatalf("LoadGame failed: %v", err)
 	}
 
-	loadedBase := ToBase(loaded.Base)
+	loadedBase := ToBase(loaded.Bases[0])
 
 	if loaded.Funds != 500000 {
 		t.Errorf("expected funds 500000, got %d", loaded.Funds)
@@ -109,7 +109,7 @@ func TestSaveLoadGame(t *testing.T) {
 }
 
 func TestFromBaseToBase(t *testing.T) {
-	b := base.NewBase("Round Trip")
+	b := base.NewBase("Round Trip", 2)
 	b.Scientists = 20
 	b.Engineers = 12
 	b.Facilities = append(b.Facilities, &base.Facility{Type: base.FacStorage, Building: false})

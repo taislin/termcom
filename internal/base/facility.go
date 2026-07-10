@@ -48,25 +48,26 @@ type Facility struct {
 const HireCost = 50000
 
 type ResearchProject struct {
-	TopicID     string
-	Progress    int
-	Cost        int
-	Scientists  int
-	Completed   bool
+	TopicID    string
+	Progress   int
+	Cost       int
+	Scientists int
+	Completed  bool
 }
 
 type ManufactureJob struct {
-	ItemKey     string
-	Count       int
-	Progress    int
-	CostDays    int
-	Materials   map[string]int
-	Engineers   int
-	Completed   bool
+	ItemKey   string
+	Count     int
+	Progress  int
+	CostDays  int
+	Materials map[string]int
+	Engineers int
+	Completed bool
 }
 
 type Base struct {
 	Name                 string
+	CityID               int // geoscape city ID where this base is located
 	Facilities           []*Facility
 	Soldiers             []*soldier.Soldier
 	Scientists           int
@@ -85,9 +86,10 @@ type Base struct {
 	AlienActivity        int
 }
 
-func NewBase(name string) *Base {
+func NewBase(name string, cityID int) *Base {
 	b := &Base{
 		Name:                 name,
+		CityID:               cityID,
 		Scientists:           10,
 		UnassignedScientists: 10,
 		Engineers:            10,

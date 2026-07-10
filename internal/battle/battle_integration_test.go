@@ -80,7 +80,7 @@ func TestFullBattleSimulation(t *testing.T) {
 
 	for _, ai := range alienAIs {
 		ai.Unit.TU = ai.Unit.MaxTU
-		ai.Update(units, m, humanUnits)
+		ai.Update(units, m, humanUnits, nil, nil)
 	}
 
 	alienHPBefore := 0
@@ -276,7 +276,7 @@ func TestAlienAIPatrol(t *testing.T) {
 	ai.PatrolY = 10
 	m := GenerateCrashSite(30, 24)
 	humans := UnitList{}
-	ai.Update(UnitList{}, m, humans)
+	ai.Update(UnitList{}, m, humans, nil, nil)
 	if ai.State != AIPatrol {
 		t.Error("should be patrolling with no humans visible")
 	}
@@ -287,7 +287,7 @@ func TestAlienAIAttack(t *testing.T) {
 	human := &Unit{X: 11, Y: 10, TU: 50, HP: 20, MaxHP: 20, Armour: 0, Alive: true, Faction: 0}
 	ai := NewAlienAI(alien)
 	m := GenerateCrashSite(30, 24)
-	ai.Update(UnitList{}, m, UnitList{human})
+	ai.Update(UnitList{}, m, UnitList{human}, nil, nil)
 	if ai.State != AIAttack {
 		t.Error("should attack when human visible nearby")
 	}
@@ -302,7 +302,7 @@ func TestAlienAIRetreat(t *testing.T) {
 	}
 	ai := NewAlienAI(alien)
 	m := GenerateCrashSite(30, 24)
-	ai.Update(UnitList{}, m, UnitList{})
+	ai.Update(UnitList{}, m, UnitList{}, nil, nil)
 	if ai.State != AIRetreat {
 		t.Error("should retreat when HP low and low bravery")
 	}
@@ -356,14 +356,14 @@ func TestAlienAIStateTransitions(t *testing.T) {
 	}
 
 	human := &Unit{X: 12, Y: 10, TU: 50, HP: 20, MaxHP: 20, Armour: 0, Alive: true, Faction: 0}
-	ai.Update(UnitList{}, m, UnitList{human})
+	ai.Update(UnitList{}, m, UnitList{human}, nil, nil)
 
 	alien.HP = 3
 	alien.AlienType = &data.AlienType{Name: "Test", Bravery: 30}
 	alien.Bravery = 30
 	for i := 0; i < 10; i++ {
 		ai.TurnsSince = 0
-		ai.Update(UnitList{}, m, UnitList{})
+		ai.Update(UnitList{}, m, UnitList{}, nil, nil)
 	}
 }
 

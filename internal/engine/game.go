@@ -45,6 +45,15 @@ type BattleResult struct {
 	LootItems []string
 }
 
+type PlayerTactics struct {
+	BattleCount        int
+	TotalAlienKills    int
+	TotalSoldierLosses int
+	AverageRange       float64
+	GrenadeUsage       int
+	FlankingObserved   int
+}
+
 type Game struct {
 	screen     *ScreenRaw
 	state      GameState
@@ -61,11 +70,14 @@ type Game struct {
 	eventDone    chan struct{}
 	ActiveBattle *BattleResult
 
-	SpeciesSeed  int64
-	AlienSpecies []*data.AlienSpecies
-	AlienTypes   []*data.AlienType
-	AlienKnowledge map[string]int // alien name -> knowledge level (0=unknown, 1=sighted, 2=killed, 3=autopsied)
-	
+	SpeciesSeed    int64
+	AlienSpecies   []*data.AlienSpecies
+	AlienTypes     []*data.AlienType
+	AlienKnowledge map[string]int
+	ActionDelay    int
+
+	Tactics PlayerTactics
+
 	FrameCount int
 
 	OnNewGame  func()
@@ -97,6 +109,7 @@ func NewGame() (*Game, error) {
 		keyChan:        make(chan tcell.Event, 20),
 		eventDone:      make(chan struct{}),
 		AlienKnowledge: make(map[string]int),
+		ActionDelay:    8,
 	}
 	g.initSpecies()
 	return g, nil

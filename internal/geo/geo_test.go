@@ -2,6 +2,7 @@ package geo
 
 import (
 	"testing"
+	"time"
 
 	"github.com/civ13/ycom/internal/engine"
 )
@@ -99,7 +100,7 @@ func TestInterceptorFire(t *testing.T) {
 	inter := NewInterceptor(48, 31)
 	cities := GetCities()
 	ufo := SpawnUFOOnCities(cities, 0)
-	ufo.Type.Toughness = 1000 // high HP so it doesn't die
+	ufo.Type.Toughness = 1000    // high HP so it doesn't die
 	ufo.X = float64(inter.X) + 1 // place nearby
 	ufo.Y = float64(inter.Y)
 
@@ -187,12 +188,12 @@ func TestInterceptorListActive(t *testing.T) {
 func TestUFOExpiry(t *testing.T) {
 	cities := GetCities()
 	ufo := &UFO{
-		NodeFrom:   cities[0].ID,
-		NodeTo:     cities[1].ID,
-		Progress:   0.5,
-		TurnsLeft:  1,
-		Active:     true,
-		Type:       UFOTypes[0],
+		NodeFrom:  cities[0].ID,
+		NodeTo:    cities[1].ID,
+		Progress:  0.5,
+		TurnsLeft: 1,
+		Active:    true,
+		Type:      UFOTypes[0],
 	}
 	ufo.Update(cities)
 	if ufo.Active {
@@ -210,5 +211,105 @@ func TestShortestPath(t *testing.T) {
 	}
 	if path[0] != 0 || path[len(path)-1] != 16 {
 		t.Errorf("path should start at 0 and end at 16, got %v", path)
+	}
+}
+
+func TestMultiBaseBuildCycleTransfer(t *testing.T) {
+	g := &engine.Game{Funds: 1000000, GameTime: time.Date(1999, time.March, 1, 0, 0, 0, 0, time.UTC)}
+	gs := NewGeoscape(g)
+	if len(gs.Bases) != 1 {
+		t.Fatalf("expected 1 base, got %d", len(gs.Bases))
+	}
+	if gs.SelectedBase() == nil {
+		t.Fatal("selected base is nil")
+	}
+
+	// Build a second base at city 1
+	gs.CursorNode = 1
+	g.Funds = 1000000
+	gs.BuildBase()
+	if len(gs.Bases) != 2 {
+		t.Fatalf("expected 2 bases after build, got %d", len(gs.Bases))
+	}
+	if gs.HasBaseAt(1) == nil {
+		t.Error("expected a base at city 1")
+	}
+	if !gs.Cities[1].HasRadar {
+		t.Error("city 1 should have radar after building base")
+	}
+
+	// Cannot build two bases at the same city
+	gs.BuildBase()
+	if len(gs.Bases) != 2 {
+		t.Errorf("expected still 2 bases, got %d", len(gs.Bases))
+	}
+
+	// Cycle base (start from base 0)
+	gs.ActiveBase = 0
+	gs.CycleBase()
+	if gs.ActiveBase != 1 {
+		t.Errorf("expected active base 1 after cycle, got %d", gs.ActiveBase)
+	}
+
+	// Transfer a soldier from base 0 to base 1
+	src := gs.Bases[0]
+	dst := gs.Bases[1]
+	if len(src.Soldiers) == 0 {
+		t.Fatal("source base has no soldiers to transfer")
+	}
+	beforeDst := len(dst.Soldiers)
+	before := len(src.Soldiers)
+	ts := gs.NewTransferScreen()
+	ts.FromIdx = 0
+	ts.ToIdx = 1
+	ts.Tab = 0
+	ts.SelSoldier = 0
+	ts.transferSoldier()
+	if len(src.Soldiers) != before-1 {
+		t.Errorf("expected source to lose 1 soldier, got %d -> %d", before, len(src.Soldiers))
+	}
+	if len(dst.Soldiers) != beforeDst+1 {
+		t.Errorf("expected destination to gain 1 soldier, got %d -> %d", beforeDst, len(dst.Soldiers))
+	}
+}
+
+func TestBaseDefenseDestroy(t *testing.T) {
+	g := &engine.Game{Funds: 1000000, GameTime: time.Date(1999, time.March, 1, 0, 0, 0, 0, time.UTC)}
+	gs := NewGeoscape(g)
+	// add a second base
+	g.Funds = 1000000
+	gs.CursorNode = 2
+	gs.BuildBase()
+	if len(gs.Bases) != 2 {
+		t.Fatalf("expected 2 bases, got %d", len(gs.Bases))
+	}
+	def := gs.Bases[1]
+	gs.destroyBase(def)
+	if len(gs.Bases) != 1 {
+		t.Errorf("expected 1 base after destroy, got %d", len(gs.Bases))
+	}
+	if gs.HasBaseAt(2) != nil {
+		t.Error("base at city 2 should be gone")
+	}
+	if gs.Cities[2].HasRadar {
+		t.Error("city 2 radar should be off after base destroyed")
+	}
+}
+
+func TestMultiBaseSaveLoad(t *testing.T) {
+	g := &engine.Game{Funds: 1000000, GameTime: time.Date(1999, time.March, 1, 0, 0, 0, 0, time.UTC)}
+	gs := NewGeoscape(g)
+	g.Funds = 1000000
+	gs.CursorNode = 3
+	gs.BuildBase()
+	if len(gs.Bases) != 2 {
+		t.Fatalf("expected 2 bases, got %d", len(gs.Bases))
+	}
+	bs := gs.buildSaveData()
+	if len(bs.Bases) != 2 {
+		t.Fatalf("save data should have 2 bases, got %d", len(bs.Bases))
+	}
+	if bs.Bases[0].CityID != gs.Bases[0].CityID || bs.Bases[1].CityID != gs.Bases[1].CityID {
+		t.Error("saved base city IDs do not match")
 	}
 }

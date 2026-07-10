@@ -3,6 +3,9 @@ package battle
 import (
 	"math"
 	"math/rand"
+
+	"github.com/civ13/ycom/internal/data"
+	"github.com/civ13/ycom/internal/engine"
 )
 
 type AIState int
@@ -15,7 +18,23 @@ const (
 	AIFlee
 	AIFlank
 	AIRetreat
+	AISuppress
 )
+
+type SquadRole int
+
+const (
+	RoleNormal SquadRole = iota
+	RoleFlanker
+	RoleSuppressor
+)
+
+type SquadPlan struct {
+	PrimaryTarget   *Unit
+	SecondaryTarget *Unit
+	Roles           map[*Unit]SquadRole
+	Retreat         bool
+}
 
 type AlienAI struct {
 	Unit       *Unit
@@ -25,6 +44,7 @@ type AlienAI struct {
 	LastSeenX  int
 	LastSeenY  int
 	TurnsSince int
+	InCover    bool
 }
 
 func NewAlienAI(u *Unit) *AlienAI {
@@ -34,64 +54,129 @@ func NewAlienAI(u *Unit) *AlienAI {
 	}
 }
 
-func (ai *AlienAI) GenerateActions(units UnitList, m *BattleMap, humanUnits UnitList) []AlienAction {
+func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList, plan *SquadPlan, tactics *engine.PlayerTactics) []AlienAction {
 	if !ai.Unit.Alive {
 		return nil
 	}
 
 	var actions []AlienAction
 	nearest, dist := ai.findNearest(humanUnits, m)
+	role := RoleNormal
+	if plan != nil {
+		if r, ok := plan.Roles[ai.Unit]; ok {
+			role = r
+		}
+	}
+
+	if ai.Unit.HP <= 0 {
+		return nil
+	}
+
+	ai.InCover = ai.evaluateCover(ai.Unit.X, ai.Unit.Y, m) > 0
 
 	switch ai.State {
 	case AIPatrol:
-		if nearest != nil && dist < 15 {
+		if nearest != nil && dist < 12 {
 			ai.State = AIAttack
 			ai.LastSeenX = nearest.X
 			ai.LastSeenY = nearest.Y
 			ai.TurnsSince = 0
 		} else {
 			px, py := ai.patrolTarget(m)
-			actions = append(actions, AlienAction{
-				Type: "patrol", Unit: ai.Unit,
-				FromX: ai.Unit.X, FromY: ai.Unit.Y,
-				ToX: px, ToY: py,
-			})
-		}
-
-	case AIAttack:
-		if nearest != nil && dist < 20 {
-			ai.LastSeenX = nearest.X
-			ai.LastSeenY = nearest.Y
-			ai.TurnsSince = 0
-
-			if dist <= 1 {
-				actions = append(actions, AlienAction{
-					Type: "melee", Unit: ai.Unit, Target: nearest,
-					FromX: ai.Unit.X, FromY: ai.Unit.Y,
-					ToX: nearest.X, ToY: nearest.Y,
-				})
-			} else if ai.Unit.TU >= 15 {
-				actions = append(actions, AlienAction{
-					Type: "fire", Unit: ai.Unit, Target: nearest,
-					FromX: ai.Unit.X, FromY: ai.Unit.Y,
-					ToX: nearest.X, ToY: nearest.Y,
-				})
-			}
-
-			if ai.Unit.AlienType != nil && ai.Unit.AlienType.Aggression > 5 && dist > 3 {
-				nx, ny := ai.moveTowardTarget(nearest.X, nearest.Y, m)
+			if m.Passable(px, py) {
 				actions = append(actions, AlienAction{
 					Type: "move", Unit: ai.Unit,
 					FromX: ai.Unit.X, FromY: ai.Unit.Y,
-					ToX: nx, ToY: ny,
+					ToX: px, ToY: py,
 				})
 			}
-		} else {
+		}
+
+	case AIAttack:
+		if nearest == nil {
 			ai.TurnsSince++
-			if ai.TurnsSince > 3 {
+			if ai.TurnsSince > 2 {
 				ai.State = AISearch
-				ai.TurnsSince = 0
 			}
+			return nil
+		}
+
+		ai.LastSeenX = nearest.X
+		ai.LastSeenY = nearest.Y
+		ai.TurnsSince = 0
+
+		target := ai.selectTarget(nearest, humanUnits, plan, m)
+
+		if target != nil && ai.canFireAt(target) {
+			if role == RoleSuppressor && ai.InCover {
+				actions = append(actions, AlienAction{
+					Type: "fire", Unit: ai.Unit, Target: target,
+					FromX: ai.Unit.X, FromY: ai.Unit.Y,
+					ToX: target.X, ToY: target.Y,
+				})
+				ai.State = AISuppress
+			} else if role == RoleFlanker && dist > 3 && ai.Unit.TU >= 20 {
+				ai.State = AIFlank
+			} else if dist <= 2 || ai.Unit.AlienType.Aggression > 7 {
+				if dist <= 1 {
+					actions = append(actions, AlienAction{
+						Type: "melee", Unit: ai.Unit, Target: target,
+						FromX: ai.Unit.X, FromY: ai.Unit.Y,
+						ToX: target.X, ToY: target.Y,
+					})
+				} else {
+					actions = append(actions, AlienAction{
+						Type: "fire", Unit: ai.Unit, Target: target,
+						FromX: ai.Unit.X, FromY: ai.Unit.Y,
+						ToX: target.X, ToY: target.Y,
+					})
+				}
+			}
+		}
+
+		if role == RoleFlanker && dist > 3 && ai.Unit.TU >= 20 {
+			fx, fy := ai.findFlankPosition(target, nearest, m, humanUnits)
+			if (fx != ai.Unit.X || fy != ai.Unit.Y) && m.Passable(fx, fy) {
+				actions = append(actions, AlienAction{
+					Type: "move", Unit: ai.Unit,
+					FromX: ai.Unit.X, FromY: ai.Unit.Y,
+					ToX: fx, ToY: fy,
+				})
+			}
+		} else if !ai.InCover && dist > 3 && ai.Unit.TU >= 16 {
+			cx, cy := ai.findCoverTowardTarget(nearest.X, nearest.Y, m, humanUnits)
+			if (cx != ai.Unit.X || cy != ai.Unit.Y) && m.Passable(cx, cy) {
+				actions = append(actions, AlienAction{
+					Type: "move", Unit: ai.Unit,
+					FromX: ai.Unit.X, FromY: ai.Unit.Y,
+					ToX: cx, ToY: cy,
+				})
+			}
+		} else if ai.Unit.TU >= 20 && ai.Unit.TU < ai.Unit.MaxTU && target != nil && ai.canFireAt(target) {
+			actions = append(actions, AlienAction{
+				Type: "fire", Unit: ai.Unit, Target: target,
+				FromX: ai.Unit.X, FromY: ai.Unit.Y,
+				ToX: target.X, ToY: target.Y,
+			})
+		}
+
+	case AISuppress:
+		if nearest == nil {
+			ai.State = AIAttack
+			break
+		}
+		target := ai.selectTarget(nearest, humanUnits, plan, m)
+		if target != nil && ai.canFireAt(target) {
+			actions = append(actions, AlienAction{
+				Type: "fire", Unit: ai.Unit, Target: target,
+				FromX: ai.Unit.X, FromY: ai.Unit.Y,
+				ToX: target.X, ToY: target.Y,
+			})
+		}
+		ai.TurnsSince++
+		if ai.TurnsSince > 3 || !ai.InCover {
+			ai.State = AIAttack
+			ai.TurnsSince = 0
 		}
 
 	case AISearch:
@@ -101,44 +186,27 @@ func (ai *AlienAI) GenerateActions(units UnitList, m *BattleMap, humanUnits Unit
 			ai.State = AIAttack
 			ai.TurnsSince = 0
 		} else {
-			nx, ny := ai.moveTowardTarget(ai.LastSeenX, ai.LastSeenY, m)
-			actions = append(actions, AlienAction{
-				Type: "move", Unit: ai.Unit,
-				FromX: ai.Unit.X, FromY: ai.Unit.Y,
-				ToX: nx, ToY: ny,
-			})
+			nx, ny := ai.moveTowardTargetCover(ai.LastSeenX, ai.LastSeenY, m, humanUnits)
+			if (nx != ai.Unit.X || ny != ai.Unit.Y) && m.Passable(nx, ny) {
+				actions = append(actions, AlienAction{
+					Type: "move", Unit: ai.Unit,
+					FromX: ai.Unit.X, FromY: ai.Unit.Y,
+					ToX: nx, ToY: ny,
+				})
+			}
 			ai.TurnsSince++
-			if ai.TurnsSince > 5 {
+			if ai.TurnsSince > 6 {
 				ai.State = AIPatrol
 			}
 		}
 
 	case AIFlank:
-		if nearest != nil {
-			// Move laterally
-			dx := nearest.X - ai.Unit.X
-			dy := nearest.Y - ai.Unit.Y
-			// Lateral move: swap dx/dy and negate one
-			nx := ai.Unit.X + signum(-dy)
-			ny := ai.Unit.Y + signum(dx)
-			actions = append(actions, AlienAction{
-				Type: "move", Unit: ai.Unit,
-				FromX: ai.Unit.X, FromY: ai.Unit.Y,
-				ToX: nx, ToY: ny,
-			})
-		}
-		ai.TurnsSince++
-		if ai.TurnsSince > 2 {
+		if nearest == nil {
 			ai.State = AIAttack
+			break
 		}
-
-	case AIRetreat:
-		if nearest != nil {
-			// Move away from nearest human
-			dx := ai.Unit.X - nearest.X
-			dy := ai.Unit.Y - nearest.Y
-			fx := ai.Unit.X + signum(dx)*3
-			fy := ai.Unit.Y + signum(dy)*3
+		fx, fy := ai.findFlankPosition(nearest, nearest, m, humanUnits)
+		if (fx != ai.Unit.X || fy != ai.Unit.Y) && m.Passable(fx, fy) {
 			actions = append(actions, AlienAction{
 				Type: "move", Unit: ai.Unit,
 				FromX: ai.Unit.X, FromY: ai.Unit.Y,
@@ -146,236 +214,376 @@ func (ai *AlienAI) GenerateActions(units UnitList, m *BattleMap, humanUnits Unit
 			})
 		}
 		ai.TurnsSince++
+		if ai.TurnsSince > 2 {
+			ai.State = AIAttack
+			ai.TurnsSince = 0
+		}
+
+	case AIRetreat:
+		if nearest != nil {
+			fx, fy := ai.retreatTarget(nearest, m)
+			if m.Passable(fx, fy) {
+				actions = append(actions, AlienAction{
+					Type: "move", Unit: ai.Unit,
+					FromX: ai.Unit.X, FromY: ai.Unit.Y,
+					ToX: fx, ToY: fy,
+				})
+			}
+		}
+		ai.TurnsSince++
 		if ai.TurnsSince > 3 {
 			ai.State = AIPatrol
 		}
 	}
 
-	if ai.Unit.HP < ai.Unit.MaxHP/4 && ai.Unit.Alive {
-		if ai.Unit.AlienType != nil && ai.Unit.AlienType.Bravery < 50 {
+	if ai.Unit.HP < ai.Unit.MaxHP/4 && ai.Unit.Alive && ai.Unit.AlienType != nil {
+		if ai.Unit.AlienType.Bravery < 50 {
 			ai.State = AIRetreat
 			ai.TurnsSince = 0
+			return actions
 		}
 	}
 
-	// Check for flank opportunities (e.g. target is crouched)
-	if ai.State == AIAttack && nearest != nil && nearest.Crouching {
-		if ai.Unit.AlienType != nil && ai.Unit.AlienType.Aggression > 7 {
-			ai.State = AIFlank
-			ai.TurnsSince = 0
-		}
+	if plan != nil && plan.Retreat {
+		ai.State = AIRetreat
+		ai.TurnsSince = 0
+		return actions
 	}
 
 	return actions
 }
 
-func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList) {
-	if !ai.Unit.Alive {
-		return
-	}
-
-	nearest, dist := ai.findNearest(humanUnits, m)
-
-	// Check for flank opportunities (e.g. target is crouched)
-	if ai.State == AIAttack && nearest != nil && nearest.Crouching {
-		if ai.Unit.AlienType != nil && ai.Unit.AlienType.Aggression > 7 {
-			ai.State = AIFlank
-			ai.TurnsSince = 0
+func (ai *AlienAI) selectTarget(nearest *Unit, humanUnits UnitList, plan *SquadPlan, m *BattleMap) *Unit {
+	if plan != nil && plan.PrimaryTarget != nil && plan.PrimaryTarget.Alive {
+		if ai.Unit.CanSee(plan.PrimaryTarget.X, plan.PrimaryTarget.Y, m) {
+			return plan.PrimaryTarget
+		}
+		if plan.SecondaryTarget != nil && plan.SecondaryTarget.Alive {
+			if ai.Unit.CanSee(plan.SecondaryTarget.X, plan.SecondaryTarget.Y, m) {
+				return plan.SecondaryTarget
+			}
 		}
 	}
 
-	switch ai.State {
-	case AIPatrol:
-		if nearest != nil && dist < 15 {
-			ai.State = AIAttack
-			ai.LastSeenX = nearest.X
-			ai.LastSeenY = nearest.Y
-			ai.TurnsSince = 0
-		} else {
-			ai.patrol(m)
+	best := nearest
+	bestScore := -999.0
+	for _, h := range humanUnits {
+		if !h.Alive || !ai.Unit.CanSee(h.X, h.Y, m) {
+			continue
+		}
+		dx := float64(h.X - ai.Unit.X)
+		dy := float64(h.Y - ai.Unit.Y)
+		dist := math.Sqrt(dx*dx + dy*dy)
+		score := -dist
+		if h.HP < h.MaxHP/2 {
+			score += 5
+		}
+		if h.Crouching {
+			score -= 3
+		}
+		if h.Weapon == "rocket" || h.Weapon == "heavy_plasma" {
+			score -= 5
+		}
+		if h.TU < 20 {
+			score += 3
+		}
+		if score > bestScore {
+			bestScore = score
+			best = h
+		}
+	}
+	return best
+}
+
+func (ai *AlienAI) canFireAt(target *Unit) bool {
+	if target == nil || !target.Alive {
+		return false
+	}
+	if ai.Unit.TU < 15 {
+		return false
+	}
+	w, ok := data.RuleItems[ai.Unit.Weapon]
+	if !ok {
+		return false
+	}
+	if w.AmmoMax < 99 && ai.Unit.WeaponAmmo <= 0 {
+		return false
+	}
+	return true
+}
+
+func (ai *AlienAI) evaluateCover(x, y int, m *BattleMap) int {
+	t := m.At(x, y)
+	return t.Cover
+}
+
+func (ai *AlienAI) findCoverTowardTarget(tx, ty int, m *BattleMap, units UnitList) (int, int) {
+	bestX, bestY := ai.Unit.X, ai.Unit.Y
+	bestScore := -999.0
+
+	dirs := [][2]int{{0, 1}, {0, -1}, {1, 0}, {-1, 0}, {1, 1}, {1, -1}, {-1, 1}, {-1, -1}}
+	dx := tx - ai.Unit.X
+	dy := ty - ai.Unit.Y
+	dirX := 0
+	if dx > 0 {
+		dirX = 1
+	} else if dx < 0 {
+		dirX = -1
+	}
+	dirY := 0
+	if dy > 0 {
+		dirY = 1
+	} else if dy < 0 {
+		dirY = -1
+	}
+
+	for _, d := range dirs {
+		nx := ai.Unit.X + d[0]
+		ny := ai.Unit.Y + d[1]
+		if nx < 0 || nx >= m.Width || ny < 0 || ny >= m.LevelHeight {
+			continue
+		}
+		if !m.Passable(nx, ny) {
+			continue
+		}
+		unitAt := units.At(nx, ny)
+		if unitAt != nil && unitAt != ai.Unit {
+			continue
 		}
 
-	case AIAttack:
-		if nearest != nil && dist < 20 {
-			ai.LastSeenX = nearest.X
-			ai.LastSeenY = nearest.Y
-			ai.TurnsSince = 0
+		cover := ai.evaluateCover(nx, ny, m)
+		tdx := tx - nx
+		tdy := ty - ny
+		tDist := math.Sqrt(float64(tdx*tdx + tdy*tdy))
+		moveDist := math.Abs(float64(d[0])) + math.Abs(float64(d[1]))
 
-			if dist <= 1 {
-				ai.meleeAttack(nearest)
-			} else if ai.Unit.TU >= 15 {
-				_, _, _ = ai.Unit.FireAt(nearest, m)
-			}
-
-			if ai.Unit.AlienType != nil && ai.Unit.AlienType.Aggression > 5 && dist > 3 {
-				ai.moveToward(nearest.X, nearest.Y, m)
-			}
-		} else {
-			ai.TurnsSince++
-			if ai.TurnsSince > 3 {
-				ai.State = AISearch
-				ai.TurnsSince = 0
-			}
+		score := float64(cover)*3.0 - tDist*2.0 - moveDist*2.0
+		if cover > 0 {
+			score += 10
+		}
+		if (d[0] == dirX || d[1] == dirY) && cover > 0 {
+			score += 5
 		}
 
-	case AISearch:
-		if nearest != nil {
-			ai.LastSeenX = nearest.X
-			ai.LastSeenY = nearest.Y
-			ai.State = AIAttack
-			ai.TurnsSince = 0
-		} else {
-			ai.moveToward(ai.LastSeenX, ai.LastSeenY, m)
-			ai.TurnsSince++
-			if ai.TurnsSince > 5 {
-				ai.State = AIPatrol
-			}
-		}
-
-	case AIFlank:
-		if nearest != nil {
-			dx := nearest.X - ai.Unit.X
-			dy := nearest.Y - ai.Unit.Y
-			nx := ai.Unit.X + signum(-dy)
-			ny := ai.Unit.Y + signum(dx)
-			ai.Unit.MoveTo(nx, ny, m)
-		}
-		ai.TurnsSince++
-		if ai.TurnsSince > 2 {
-			ai.State = AIAttack
-		}
-
-	case AIRetreat:
-		if nearest != nil {
-			dx := ai.Unit.X - nearest.X
-			dy := ai.Unit.Y - nearest.Y
-			fx := ai.Unit.X + signum(dx)*3
-			fy := ai.Unit.Y + signum(dy)*3
-			ai.Unit.MoveTo(fx, fy, m)
-		}
-		ai.TurnsSince++
-		if ai.TurnsSince > 3 {
-			ai.State = AIPatrol
+		if score > bestScore {
+			bestScore = score
+			bestX = nx
+			bestY = ny
 		}
 	}
 
-	if ai.Unit.HP < ai.Unit.MaxHP/4 && ai.Unit.Alive {
-		if ai.Unit.AlienType != nil && ai.Unit.AlienType.Bravery < 50 {
-			ai.State = AIRetreat
-			ai.TurnsSince = 0
+	return bestX, bestY
+}
+
+func (ai *AlienAI) findFlankPosition(target, nearest *Unit, m *BattleMap, units UnitList) (int, int) {
+	if target == nil {
+		return ai.Unit.X, ai.Unit.Y
+	}
+
+	dx := target.X - ai.Unit.X
+	dy := target.Y - ai.Unit.Y
+
+	absDx := dx
+	if absDx < 0 {
+		absDx = -absDx
+	}
+	absDy := dy
+	if absDy < 0 {
+		absDy = -absDy
+	}
+
+	var flankDirs [][2]int
+	if absDx > absDy {
+		flankDirs = [][2]int{{0, 3}, {0, -3}, {0, 2}, {0, -2}}
+	} else {
+		flankDirs = [][2]int{{3, 0}, {-3, 0}, {2, 0}, {-2, 0}}
+	}
+
+	bestX, bestY := ai.Unit.X, ai.Unit.Y
+	bestScore := -999.0
+
+	for _, fd := range flankDirs {
+		fx := ai.Unit.X + fd[0]
+		fy := ai.Unit.Y + fd[1]
+		if fx < 1 || fx >= m.Width-1 || fy < 1 || fy >= m.LevelHeight-1 {
+			continue
+		}
+		if !m.Passable(fx, fy) {
+			continue
+		}
+		unitAt := units.At(fx, fy)
+		if unitAt != nil && unitAt != ai.Unit {
+			continue
+		}
+
+		tdx := target.X - fx
+		tdy := target.Y - fy
+		tDist := math.Sqrt(float64(tdx*tdx + tdy*tdy))
+		if tDist < 3 {
+			continue
+		}
+
+		mdx := ai.Unit.X - fx
+		mdy := ai.Unit.Y - fy
+		mDist := math.Abs(float64(mdx)) + math.Abs(float64(mdy))
+
+		cover := ai.evaluateCover(fx, fy, m)
+		score := -mDist + float64(cover)*5 + tDist*0.5
+
+		if !ai.Unit.CanSee(fx, fy, m) {
+			score -= 8
+		}
+
+		if m.CoverAlongLine(ai.Unit.X, ai.Unit.Y, fx, fy) > 20 {
+			score += 5
+		}
+
+		if score > bestScore {
+			bestScore = score
+			bestX = fx
+			bestY = fy
 		}
 	}
+
+	return bestX, bestY
+}
+
+func (ai *AlienAI) retreatTarget(threat *Unit, m *BattleMap) (int, int) {
+	dx := ai.Unit.X - threat.X
+	dy := ai.Unit.Y - threat.Y
+
+	mag := math.Sqrt(float64(dx*dx + dy*dy))
+	if mag < 1 {
+		mag = 1
+	}
+	fx := ai.Unit.X + int(float64(dx)/mag*4)
+	fy := ai.Unit.Y + int(float64(dy)/mag*4)
+
+	if fx < 1 {
+		fx = 1
+	}
+	if fy < 1 {
+		fy = 1
+	}
+	if fx >= m.Width-1 {
+		fx = m.Width - 2
+	}
+	if fy >= m.LevelHeight-1 {
+		fy = m.LevelHeight - 2
+	}
+
+	bestX, bestY := fx, fy
+	bestCover := 0
+
+	for ox := -1; ox <= 1; ox++ {
+		for oy := -1; oy <= 1; oy++ {
+			cx := fx + ox
+			cy := fy + oy
+			if cx < 1 || cx >= m.Width-1 || cy < 1 || cy >= m.LevelHeight-1 {
+				continue
+			}
+			if !m.Passable(cx, cy) {
+				continue
+			}
+			cover := ai.evaluateCover(cx, cy, m)
+			tdx := threat.X - cx
+			tdy := threat.Y - cy
+			threatDist := math.Sqrt(float64(tdx*tdx + tdy*tdy))
+			if cover > bestCover && threatDist > 4 {
+				bestCover = cover
+				bestX = cx
+				bestY = cy
+			}
+		}
+	}
+
+	return bestX, bestY
+}
+
+func (ai *AlienAI) moveTowardTargetCover(tx, ty int, m *BattleMap, units UnitList) (int, int) {
+	dx := tx - ai.Unit.X
+	dy := ty - ai.Unit.Y
+
+	var candidates [][2]int
+	if dx > 0 {
+		candidates = append(candidates, [2]int{ai.Unit.X + 1, ai.Unit.Y})
+	}
+	if dx < 0 {
+		candidates = append(candidates, [2]int{ai.Unit.X - 1, ai.Unit.Y})
+	}
+	if dy > 0 {
+		candidates = append(candidates, [2]int{ai.Unit.X, ai.Unit.Y + 1})
+	}
+	if dy < 0 {
+		candidates = append(candidates, [2]int{ai.Unit.X, ai.Unit.Y - 1})
+	}
+
+	bestX, bestY := ai.Unit.X, ai.Unit.Y
+	bestScore := -999.0
+
+	for _, c := range candidates {
+		nx, ny := c[0], c[1]
+		if nx < 0 || nx >= m.Width || ny < 0 || ny >= m.LevelHeight {
+			continue
+		}
+		if !m.Passable(nx, ny) {
+			continue
+		}
+		unitAt := units.At(nx, ny)
+		if unitAt != nil && unitAt != ai.Unit {
+			continue
+		}
+
+		cover := ai.evaluateCover(nx, ny, m)
+		tdx := tx - nx
+		tdy := ty - ny
+		tDist := math.Sqrt(float64(tdx*tdx + tdy*tdy))
+
+		score := -tDist + float64(cover)*8
+
+		if score > bestScore {
+			bestScore = score
+			bestX = nx
+			bestY = ny
+		}
+	}
+
+	return bestX, bestY
 }
 
 func (ai *AlienAI) patrolTarget(m *BattleMap) (int, int) {
 	if ai.PatrolX == 0 && ai.PatrolY == 0 {
-		ai.PatrolX = ai.Unit.X + rand.Intn(10) - 5
-		ai.PatrolY = ai.Unit.Y + rand.Intn(10) - 5
-		if ai.PatrolX < 1 {
-			ai.PatrolX = 1
-		}
-		if ai.PatrolY < 1 {
-			ai.PatrolY = 1
-		}
-		if ai.PatrolX >= m.Width-1 {
-			ai.PatrolX = m.Width - 2
-		}
-		boundY := m.Height - 1
-		if m.NumLevels > 1 {
-			boundY = m.LevelHeight - 1
-		}
-		if ai.PatrolY >= boundY {
-			ai.PatrolY = boundY - 1
+		for attempt := 0; attempt < 10; attempt++ {
+			px := ai.Unit.X + rand.Intn(12) - 6
+			py := ai.Unit.Y + rand.Intn(12) - 6
+			if px < 1 {
+				px = 1
+			}
+			if py < 1 {
+				py = 1
+			}
+			if px >= m.Width-1 {
+				px = m.Width - 2
+			}
+			boundY := m.Height - 1
+			if m.NumLevels > 1 {
+				boundY = m.LevelHeight - 1
+			}
+			if py >= boundY {
+				py = boundY - 1
+			}
+			if m.Passable(px, py) && ai.evaluateCover(px, py, m) > 0 {
+				ai.PatrolX = px
+				ai.PatrolY = py
+				break
+			}
+			if attempt == 9 {
+				ai.PatrolX = px
+				ai.PatrolY = py
+			}
 		}
 	}
 	return ai.PatrolX, ai.PatrolY
-}
-
-func (ai *AlienAI) patrol(m *BattleMap) {
-	if ai.PatrolX == 0 && ai.PatrolY == 0 {
-		ai.PatrolX = ai.Unit.X + rand.Intn(10) - 5
-		ai.PatrolY = ai.Unit.Y + rand.Intn(10) - 5
-		if ai.PatrolX < 1 {
-			ai.PatrolX = 1
-		}
-		if ai.PatrolY < 1 {
-			ai.PatrolY = 1
-		}
-		if ai.PatrolX >= m.Width-1 {
-			ai.PatrolX = m.Width - 2
-		}
-		boundY := m.Height - 1
-		if m.NumLevels > 1 {
-			boundY = m.LevelHeight - 1
-		}
-		if ai.PatrolY >= boundY {
-			ai.PatrolY = boundY - 1
-		}
-	}
-
-	if !ai.Unit.MoveTo(ai.PatrolX, ai.PatrolY, m) {
-		ai.PatrolX = 0
-		ai.PatrolY = 0
-	}
-
-	dx := ai.PatrolX - ai.Unit.X
-	dy := ai.PatrolY - ai.Unit.Y
-	if dx*dx+dy*dy < 4 {
-		ai.PatrolX = 0
-		ai.PatrolY = 0
-	}
-}
-
-func (ai *AlienAI) moveTowardTarget(tx, ty int, m *BattleMap) (int, int) {
-	dx := tx - ai.Unit.X
-	dy := ty - ai.Unit.Y
-	nx := ai.Unit.X
-	ny := ai.Unit.Y
-	if dx > 0 {
-		nx++
-	} else if dx < 0 {
-		nx--
-	}
-	if dy > 0 {
-		ny++
-	} else if dy < 0 {
-		ny--
-	}
-	return nx, ny
-}
-
-func (ai *AlienAI) moveToward(tx, ty int, m *BattleMap) {
-	dx := tx - ai.Unit.X
-	dy := ty - ai.Unit.Y
-	nx := ai.Unit.X
-	ny := ai.Unit.Y
-	if dx > 0 {
-		nx++
-	} else if dx < 0 {
-		nx--
-	}
-	if dy > 0 {
-		ny++
-	} else if dy < 0 {
-		ny--
-	}
-	ai.Unit.MoveTo(nx, ny, m)
-}
-
-func (ai *AlienAI) meleeAttack(target *Unit) {
-	if ai.Unit.TU < 10 {
-		return
-	}
-	ai.Unit.TU -= 10
-	damage := ai.Unit.Strength + rand.Intn(10)
-	damage -= target.Armour
-	if damage < 1 {
-		damage = 1
-	}
-	target.HP -= damage
-	if target.HP <= 0 {
-		target.Alive = false
-	}
 }
 
 func (ai *AlienAI) findNearest(humanUnits UnitList, m *BattleMap) (*Unit, float64) {
@@ -397,16 +605,6 @@ func (ai *AlienAI) findNearest(humanUnits UnitList, m *BattleMap) (*Unit, float6
 		}
 	}
 	return nearest, bestDist
-}
-
-func signum(x int) int {
-	if x > 0 {
-		return 1
-	}
-	if x < 0 {
-		return -1
-	}
-	return 0
 }
 
 type CivilianAI struct {
@@ -457,8 +655,8 @@ func (cai *CivilianAI) GenerateActions(units UnitList, m *BattleMap) []AlienActi
 	if dist < 1 {
 		dist = 1
 	}
-	fx := cai.Unit.X + int(dx/dist*2)
-	fy := cai.Unit.Y + int(dy/dist*2)
+	fx := cai.Unit.X + int(dx/dist*3)
+	fy := cai.Unit.Y + int(dy/dist*3)
 
 	if fx < 0 {
 		fx = 0

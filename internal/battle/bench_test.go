@@ -18,7 +18,7 @@ func BenchmarkAIUpdate(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		alien.TU = alien.MaxTU
-		ai.Update(allUnits, m, humans)
+		ai.Update(allUnits, m, humans, nil, nil)
 	}
 }
 
@@ -32,7 +32,7 @@ func BenchmarkAIPatrol(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		alien.TU = alien.MaxTU
-		ai.patrol(m)
+		ai.patrolTarget(m)
 	}
 }
 

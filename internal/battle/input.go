@@ -37,6 +37,9 @@ func (bs *Battlescape) HandleEvent(ev tcell.Event) {
 }
 
 func (bs *Battlescape) handleKey(e *tcell.EventKey) {
+	if bs.PlayerLock > 0 && bs.Phase == PhasePlayerTurn {
+		return
+	}
 	switch e.Key() {
 	case tcell.KeyUp: 
 		bs.MoveCursor(0, -1)

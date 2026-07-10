@@ -1,0 +1,197 @@
+package geo
+
+import (
+	"fmt"
+
+	"github.com/civ13/ycom/internal/base"
+	"github.com/civ13/ycom/internal/engine"
+	"github.com/civ13/ycom/internal/language"
+	"github.com/gdamore/tcell/v3"
+)
+
+type TransferScreen struct {
+	Game       *engine.Game
+	Geo        *Geoscape
+	FromIdx    int
+	ToIdx      int
+	SelSoldier int
+	SelItem    int
+	Tab        int // 0 = soldiers, 1 = items
+	Message    string
+}
+
+func (gs *Geoscape) NewTransferScreen() *TransferScreen {
+	si := gs.ActiveBase
+	di := gs.ActiveBase
+	if len(gs.Bases) > 1 {
+		di = (gs.ActiveBase + 1) % len(gs.Bases)
+	}
+	return &TransferScreen{
+		Game:    gs.Game,
+		Geo:     gs,
+		FromIdx: si,
+		ToIdx:   di,
+	}
+}
+
+func (ts *TransferScreen) Update() {}
+
+func (ts *TransferScreen) Render(ctx *engine.ScreenCtx) {
+	w, h := ctx.Size()
+	ctx.DrawPanel(0, 0, w, h-2, language.String("TRANSFER_TITLE"), engine.StyleDefault)
+
+	from := ts.Geo.Bases[ts.FromIdx]
+	to := ts.Geo.Bases[ts.ToIdx]
+
+	ctx.DrawString(2, 1, fmt.Sprintf(language.String("TRANSFER_FROM"), from.Name), engine.StyleCyanBold)
+	ctx.DrawString(2, 2, fmt.Sprintf(language.String("TRANSFER_TO"), to.Name), engine.StyleGreen)
+
+	if ts.Tab == 0 {
+		ctx.DrawString(2, 4, language.String("TRANSFER_SOLDIERS"), engine.StyleYellow)
+		if len(from.Soldiers) == 0 {
+			ctx.DrawString(4, 5, language.String("SECTION_NO_SOLDIERS"), engine.StyleGray)
+		}
+		for i, s := range from.Soldiers {
+			if 5+i >= h-2 {
+				break
+			}
+			style := engine.StyleDefault
+			if i == ts.SelSoldier {
+				style = engine.StyleHighlight
+			}
+			line := fmt.Sprintf("%-12s %-10s HP:%d", s.Name, s.Rank, s.HP)
+			ctx.DrawString(4, 5+i, line, style)
+		}
+	} else {
+		ctx.DrawString(2, 4, language.String("TRANSFER_ITEMS"), engine.StyleYellow)
+		items := sortedStoreItems(from)
+		if len(items) == 0 {
+			ctx.DrawString(4, 5, language.String("SECTION_NO_ITEMS"), engine.StyleGray)
+		}
+		for i, item := range items {
+			if 5+i >= h-2 {
+				break
+			}
+			style := engine.StyleDefault
+			if i == ts.SelItem {
+				style = engine.StyleHighlight
+			}
+			qty := from.CountItem(item)
+			line := fmt.Sprintf("%-18s x%d", item, qty)
+			ctx.DrawString(4, 5+i, line, style)
+		}
+	}
+
+	if ts.Message != "" {
+		ctx.DrawString(2, h-3, ts.Message, engine.StyleYellow)
+	}
+	help := language.String("HELP_TRANSFER")
+	ctx.DrawMarkupString(2, h-1, help, engine.StyleGray, engine.StyleHotkey)
+}
+
+func (ts *TransferScreen) HandleKey(e *tcell.EventKey) {
+	switch e.Key() {
+	case tcell.KeyEscape:
+		ts.Game.PopState()
+		return
+	case tcell.KeyTab:
+		ts.cycleDest()
+		return
+	case tcell.KeyUp:
+		ts.moveSel(-1)
+	case tcell.KeyDown:
+		ts.moveSel(1)
+	}
+	switch e.Str() {
+	case "t", "T":
+		ts.cycleDest()
+	case " ":
+		ts.transferSoldier()
+	case "\n", "\r", "e", "E":
+		ts.transferItem()
+	}
+}
+
+func (ts *TransferScreen) HandleMouse(e *tcell.EventMouse) {}
+
+func (ts *TransferScreen) cycleDest() {
+	if len(ts.Geo.Bases) < 2 {
+		return
+	}
+	ts.ToIdx = (ts.ToIdx + 1) % len(ts.Geo.Bases)
+	if ts.ToIdx == ts.FromIdx {
+		ts.ToIdx = (ts.ToIdx + 1) % len(ts.Geo.Bases)
+	}
+}
+
+func (ts *TransferScreen) moveSel(d int) {
+	from := ts.Geo.Bases[ts.FromIdx]
+	if ts.Tab == 0 {
+		ts.SelSoldier += d
+		if ts.SelSoldier < 0 {
+			ts.SelSoldier = 0
+		}
+		if ts.SelSoldier >= len(from.Soldiers) {
+			ts.SelSoldier = len(from.Soldiers) - 1
+		}
+	} else {
+		items := sortedStoreItems(from)
+		ts.SelItem += d
+		if ts.SelItem < 0 {
+			ts.SelItem = 0
+		}
+		if ts.SelItem >= len(items) {
+			ts.SelItem = len(items) - 1
+		}
+	}
+}
+
+func (ts *TransferScreen) transferSoldier() {
+	from := ts.Geo.Bases[ts.FromIdx]
+	to := ts.Geo.Bases[ts.ToIdx]
+	if ts.SelSoldier < 0 || ts.SelSoldier >= len(from.Soldiers) {
+		return
+	}
+	s := from.Soldiers[ts.SelSoldier]
+	from.Soldiers = append(from.Soldiers[:ts.SelSoldier], from.Soldiers[ts.SelSoldier+1:]...)
+	to.Soldiers = append(to.Soldiers, s)
+	if ts.SelSoldier >= len(from.Soldiers) {
+		ts.SelSoldier = len(from.Soldiers) - 1
+	}
+	if ts.SelSoldier < 0 {
+		ts.SelSoldier = 0
+	}
+	ts.Message = fmt.Sprintf(language.String("MSG_TRANSFER_SOLDIER"), s.Name, to.Name)
+}
+
+func (ts *TransferScreen) transferItem() {
+	from := ts.Geo.Bases[ts.FromIdx]
+	to := ts.Geo.Bases[ts.ToIdx]
+	items := sortedStoreItems(from)
+	if ts.SelItem < 0 || ts.SelItem >= len(items) {
+		return
+	}
+	item := items[ts.SelItem]
+	if from.CountItem(item) <= 0 {
+		return
+	}
+	from.RemoveItem(item, 1)
+	to.AddItem(item, 1)
+	ts.Message = fmt.Sprintf(language.String("MSG_TRANSFER_ITEM"), 1, item, to.Name)
+}
+
+func sortedStoreItems(b *base.Base) []string {
+	items := make([]string, 0, len(b.Stores))
+	for k, v := range b.Stores {
+		if v > 0 {
+			items = append(items, k)
+		}
+	}
+	// simple insertion sort to avoid import
+	for i := 1; i < len(items); i++ {
+		for j := i; j > 0 && items[j-1] > items[j]; j-- {
+			items[j-1], items[j] = items[j], items[j-1]
+		}
+	}
+	return items
+}
