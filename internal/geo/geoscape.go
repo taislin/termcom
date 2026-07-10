@@ -1215,28 +1215,24 @@ func (gs *Geoscape) confirmLaunch(target interface{}) {
 		return
 	}
 
-	// Get available interceptors from Base
-	available := gs.SelectedBase().GetAvailableInterceptors()
-	if len(available) == 0 {
-		gs.Message = language.String("MSG_NO_INTERCEPTORS_AVAILABLE")
-		gs.MessageTimer = time.Now()
-		return
-	}
-	baseCity := gs.CityByID(gs.SelectedBase().CityID)
-	interState := available[0]
-	interState.Status = "Active"
-	inter := NewInterceptorFromState(interState, baseCity.X, baseCity.Y)
-
 	switch t := target.(type) {
 	case *UFO:
+		available := gs.SelectedBase().GetAvailableInterceptors()
+		if len(available) == 0 {
+			gs.Message = language.String("MSG_NO_INTERCEPTORS_AVAILABLE")
+			gs.MessageTimer = time.Now()
+			return
+		}
+		baseCity := gs.CityByID(gs.SelectedBase().CityID)
+		interState := available[0]
+		interState.Status = "Active"
+		inter := NewInterceptorFromState(interState, baseCity.X, baseCity.Y)
 		inter.LaunchAtUFO(t)
 		gs.Interceptors = append(gs.Interceptors, inter)
 		gs.Message = fmt.Sprintf(language.String("MSG_INTERCEPTOR_LAUNCHED"), t.Type.Name)
 	case *CrashSite:
-		// Send to crash site
-		inter.LaunchAtNode(t.NodeID, gs.Cities)
-		gs.Interceptors = append(gs.Interceptors, inter)
-		gs.Message = fmt.Sprintf("Interceptor dispatched to crash site at %s", gs.CityByID(t.NodeID).Name)
+		gs.DispatchTransport(t)
+		gs.Message = fmt.Sprintf("Transport dispatched to crash site at %s", gs.CityByID(t.NodeID).Name)
 	}
 	gs.MessageTimer = time.Now()
 }
