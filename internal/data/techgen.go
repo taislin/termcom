@@ -207,62 +207,6 @@ func validateDAG(topics []ResearchTopic) {
 
 var fallbackAutopsySpecies = []string{"Sectoid", "Floater", "Muton", "Ethereal"}
 
-func PrintTree(topics []ResearchTopic) {
-	byID := make(map[string]*ResearchTopic)
-	for i := range topics {
-		byID[topics[i].ID] = &topics[i]
-	}
-
-	byTier := make(map[int][]ResearchTopic)
-	for _, t := range topics {
-		byTier[t.Tier] = append(byTier[t.Tier], t)
-	}
-
-	for tier := 1; tier <= 5; tier++ {
-		ts := byTier[tier]
-		if len(ts) == 0 {
-			continue
-		}
-		fmt.Printf("Tier %d:\n", tier)
-		for _, t := range ts {
-			reqs := ""
-			if len(t.Requires) > 0 {
-				names := make([]string, len(t.Requires))
-				for i, rid := range t.Requires {
-					if rt, ok := byID[rid]; ok {
-						names[i] = rt.Name
-					} else {
-						names[i] = rid
-					}
-				}
-				reqs = fmt.Sprintf(" <- [%s]", joinStr(names, ", "))
-			}
-			unlocks := ""
-			if len(t.UnlockWeap) > 0 {
-				unlocks += fmt.Sprintf(" weapons=%v", t.UnlockWeap)
-			}
-			if len(t.UnlockArmor) > 0 {
-				unlocks += fmt.Sprintf(" armor=%v", t.UnlockArmor)
-			}
-			if len(t.UnlockItems) > 0 {
-				unlocks += fmt.Sprintf(" items=%v", t.UnlockItems)
-			}
-			fmt.Printf("  [%d] %s (cost=%d)%s%s\n", t.Tier, t.Name, t.Cost, reqs, unlocks)
-		}
-	}
-}
-
-func joinStr(parts []string, sep string) string {
-	result := ""
-	for i, p := range parts {
-		if i > 0 {
-			result += sep
-		}
-		result += p
-	}
-	return result
-}
-
 func dedupStrings(in []string) []string {
 	seen := make(map[string]bool)
 	var out []string
