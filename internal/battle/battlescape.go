@@ -1789,181 +1789,8 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 
 			tile := bs.Map.At(mx, my)
 
-			if !tile.Seen {
-				if bs.IsNight {
-					ctx.SetCell(x+1, y+1, ' ', blackStyle)
-				} else {
-					ctx.SetCell(x+1, y+1, ' ', engine.StyleDefault)
-				}
-				continue
-			}
-
-			ch := TileChar(tile.Type)
-			style := engine.StyleGreen
-
-			v := tileVar(mx, my, 6)
-			switch tile.Type {
-			case TileGrass:
-				grassChars := []rune{'·', '·', '\'', ',', '·', '"'}
-				ch = grassChars[v]
-			case TileTree:
-				treeChars := []rune{'♣', '♠', '\u03C8', '\u03A8', '♣', '♠'}
-				ch = treeChars[v]
-			case TileBush:
-				bushChars := []rune{'†', '\u03C8', '‡', '†', '\u03C8', '†'}
-				ch = bushChars[v%len(bushChars)]
-			}
-
-			if tile.Visible {
-				switch tile.Type {
-				case TileGrass:
-					grassColors := [][3]int32{{42, 130, 42}, {55, 148, 35}, {36, 118, 58}, {62, 142, 30}, {32, 112, 65}, {48, 138, 28}}
-					gc := grassColors[v]
-					style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(gc[0], gc[1], gc[2]))
-				case TileWall:
-					wv := tileVar(mx, my, 4)
-					wallColors := [][3]int32{{108, 108, 108}, {92, 92, 95}, {118, 112, 108}, {100, 98, 100}}
-					wc := wallColors[wv]
-					style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(wc[0], wc[1], wc[2]))
-				case TileDoor:
-					style = engine.StyleYellow
-				case TileTree:
-					treeColors := [][3]int32{{22, 112, 22}, {32, 92, 14}, {16, 122, 42}, {42, 98, 10}, {26, 108, 50}, {38, 88, 18}}
-					tc := treeColors[v]
-					style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(tc[0], tc[1], tc[2]))
-				case TileBush:
-					bushColors := [][3]int32{{52, 132, 28}, {42, 118, 42}, {62, 122, 18}, {36, 128, 52}, {58, 115, 30}, {44, 125, 40}}
-					bc := bushColors[v]
-					style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(bc[0], bc[1], bc[2]))
-				case TilePavement:
-					style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(80, 80, 80))
-				case TileSand:
-					style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(210, 180, 140))
-				case TileSnow:
-					style = engine.StyleSnow
-				case TileRock:
-					rv := tileVar(mx, my, 4)
-					rockColors := [][3]int32{{128, 118, 105}, {105, 98, 92}, {138, 128, 112}, {115, 108, 100}}
-					rc := rockColors[rv]
-					style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(rc[0], rc[1], rc[2]))
-				case TileWater:
-					if bs.IsNight {
-						style = tcell.StyleDefault.Foreground(
-							tcell.NewRGBColor(20, 60, 140),
-						).Background(tcell.NewRGBColor(0, 10, 60))
-					} else {
-						style = tcell.StyleDefault.Foreground(
-							tcell.NewRGBColor(40, 100, 200),
-						).Background(tcell.NewRGBColor(0, 30, 120))
-					}
-				case TileUFOFloor:
-					style = engine.StyleCyan
-				case TileUFOWall:
-					style = engine.StyleCyanBold
-				case TileConsole:
-					style = engine.StyleYellow
-				case TileMachinery:
-					style = engine.StyleGray
-				case TilePod:
-					style = engine.StyleGreenBold
-				case TilePowerSource:
-					style = engine.StyleRed
-				case TileStorage:
-					style = engine.StyleYellow
-				case TileAlienTech:
-					style = engine.StyleMagenta
-				}
-			} else {
-				if bs.IsNight {
-					switch tile.Type {
-					case TileGrass:
-						sgv := tileVar(mx, my, 3)
-						seenGrass := [][3]int32{{8, 20, 8}, {10, 22, 6}, {7, 18, 10}}
-						sgc := seenGrass[sgv]
-						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(sgc[0], sgc[1], sgc[2]))
-					case TileTree:
-						stv := tileVar(mx, my, 3)
-						seenTree := [][3]int32{{5, 18, 5}, {7, 16, 3}, {4, 20, 7}}
-						stc := seenTree[stv]
-						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(stc[0], stc[1], stc[2]))
-					case TileBush:
-						sbv := tileVar(mx, my, 3)
-						seenBush := [][3]int32{{9, 22, 6}, {7, 18, 9}, {10, 20, 5}}
-						sbc := seenBush[sbv]
-						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(sbc[0], sbc[1], sbc[2]))
-					case TileWall:
-						swv := tileVar(mx, my, 3)
-						seenWall := [][3]int32{{20, 20, 20}, {17, 17, 18}, {22, 21, 20}}
-						swc := seenWall[swv]
-						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(swc[0], swc[1], swc[2]))
-					case TileRock:
-						srv := tileVar(mx, my, 3)
-						seenRock := [][3]int32{{22, 20, 18}, {18, 16, 15}, {24, 22, 20}}
-						src := seenRock[srv]
-						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(src[0], src[1], src[2]))
-					case TileWater:
-						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(8, 14, 26))
-					case TileUFOFloor:
-						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(10, 20, 22))
-					case TileUFOWall:
-						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(12, 23, 26))
-					case TileDoor:
-						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(22, 19, 7))
-					case TilePavement:
-						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(15, 15, 15))
-					case TileSand:
-						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(20, 15, 10))
-					case TileSnow:
-						style = engine.StyleSnowDim
-					case TileConsole, TileMachinery, TilePod, TilePowerSource, TileStorage, TileAlienTech:
-						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(30, 30, 30))
-					}
-				} else {
-					switch tile.Type {
-					case TileGrass:
-						sgv := tileVar(mx, my, 3)
-						seenGrass := [][3]int32{{20, 52, 20}, {24, 58, 16}, {17, 48, 26}}
-						sgc := seenGrass[sgv]
-						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(sgc[0], sgc[1], sgc[2]))
-					case TileTree:
-						stv := tileVar(mx, my, 3)
-						seenTree := [][3]int32{{12, 48, 12}, {18, 42, 8}, {9, 52, 18}}
-						stc := seenTree[stv]
-						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(stc[0], stc[1], stc[2]))
-					case TileBush:
-						sbv := tileVar(mx, my, 3)
-						seenBush := [][3]int32{{22, 54, 14}, {18, 48, 22}, {26, 50, 12}}
-						sbc := seenBush[sbv]
-						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(sbc[0], sbc[1], sbc[2]))
-					case TileWall:
-						swv := tileVar(mx, my, 3)
-						seenWall := [][3]int32{{52, 52, 52}, {44, 44, 46}, {58, 56, 52}}
-						swc := seenWall[swv]
-						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(swc[0], swc[1], swc[2]))
-					case TileRock:
-						srv := tileVar(mx, my, 3)
-						seenRock := [][3]int32{{55, 50, 46}, {46, 42, 40}, {60, 56, 50}}
-						src := seenRock[srv]
-						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(src[0], src[1], src[2]))
-					case TileWater:
-						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(20, 35, 65))
-					case TileUFOFloor:
-						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(25, 50, 55))
-					case TileUFOWall:
-						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(30, 58, 64))
-					case TileDoor:
-						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(55, 48, 18))
-					case TilePavement:
-						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(40, 40, 40))
-					case TileSand:
-						style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(60, 50, 40))
-					case TileSnow:
-						style = engine.StyleSnow
-					case TileConsole, TileMachinery, TilePod, TilePowerSource, TileStorage, TileAlienTech:
-						style = engine.StyleGray
-					}
-				}
-			}
+			ctx2 := bs.Map.neighbourhood(mx, my)
+			ch, style := RenderTile(tile, ctx2, tile.Visible, tile.Seen, bs.FrameCount)
 
 			if bs.Selected != nil && bs.Phase == PhasePlayerTurn {
 				movementRange := bs.GetMovementRange()
@@ -1977,33 +1804,6 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 			}
 
 			style = bs.ApplyCursorStyles(mx, my, style)
-
-			tile = bs.Map.At(mx, my)
-			if tile.Fire > 0 {
-				fireFrame := (bs.FrameCount / 4) % 3
-				switch fireFrame {
-				case 0:
-					ch = '^'
-					style = tcell.StyleDefault.Foreground(color.XTerm11).Background(tcell.NewRGBColor(40, 20, 0))
-				case 1:
-					ch = 'w'
-					style = tcell.StyleDefault.Foreground(color.Orange).Background(tcell.NewRGBColor(50, 15, 0))
-				case 2:
-					ch = '*'
-					style = tcell.StyleDefault.Foreground(color.XTerm9).Background(tcell.NewRGBColor(30, 10, 0))
-				}
-			} else if tile.Blood > 0 {
-				ch = bloodRunes[tile.Blood]
-				switch tile.Blood {
-				case 1:
-					style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(140, 10, 10))
-				case 2:
-					style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(20, 180, 20))
-				case 3:
-					style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(160, 30, 200))
-				}
-			}
-
 			ctx.SetCell(x+1, y+1, ch, style)
 		}
 	}
@@ -2172,21 +1972,15 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 		// Draw sprite on the right side
 		if u.Faction == 1 && u.AlienType != nil {
 			portrait := u.AlienType.GetPortrait()
+			alienImg := engine.GenerateAlienPortrait(portrait, 1)
 			portX := sidebarX + halfSide
-			for i, sl := range portrait.Lines {
-				pl := sl.Content
-				if len(pl) > halfSide-1 {
-					pl = pl[:halfSide-1]
-				}
-				style := tcell.StyleDefault.Foreground(tcell.NewRGBColor(sl.Color[0], sl.Color[1], sl.Color[2])).Background(tcell.ColorBlack)
-				ctx.DrawString(portX, 2+i, pl, style)
-			}
+			ctx.DrawPixelImage(portX, 2, alienImg)
 		}
 
 		// Draw log below both columns
 		portH := 0
 		if u.Faction == 1 && u.AlienType != nil {
-			portH = len(u.AlienType.GetPortrait().Lines)
+			portH = 4
 		}
 		if sy < 2+portH {
 			sy = 2 + portH
@@ -2258,6 +2052,16 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 			sy++
 		}
 		sy++
+	}
+
+	// Draw soldier portrait on the right side of sidebar
+	if bs.Selected != nil {
+		halfSide := bs.SidebarW / 2
+		portraitImg := engine.MakeSoldierPortrait(bs.Selected.Soldier.Name, bs.Selected.Soldier.Armor, 8, 8)
+		ctx.DrawPixelImage(sidebarX+halfSide, 2, portraitImg)
+		if sy < 6 {
+			sy = 6
+		}
 	}
 
 	// Draw log in sidebar

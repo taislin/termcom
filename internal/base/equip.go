@@ -56,6 +56,9 @@ func (es *EquipScreen) Render(ctx *engine.ScreenCtx) {
 
 	s := es.Base.Soldiers[es.SelectedSol]
 
+	soldierImg := engine.MakeSoldierPortrait(s.Name, s.Armor, 12, 20)
+	ctx.DrawPixelImage(2, h-13, soldierImg)
+
 	ctx.DrawString(rightX, 2, language.String("SECTION_EQUIPMENT"), engine.StyleCyanBold)
 
 	weaponLabel := language.String("LABEL_WEAPON")

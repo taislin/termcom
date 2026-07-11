@@ -2,6 +2,8 @@ package battle
 
 import (
 	"math/rand"
+
+	"github.com/gdamore/tcell/v3"
 )
 
 func max(a, b int) int {
@@ -59,6 +61,8 @@ type Tile struct {
 	Seen      bool
 	Blood     int // 0=none, 1=human(red), 2=alien_green, 3=alien_purple
 	Fire      int // 0=none, >0=turns of fire remaining
+	BaseColor tcell.Color
+	Rune      rune
 }
 
 // TileCover returns the base cover value for a tile type.
@@ -711,6 +715,55 @@ func ApplyCommands(m *BattleMap, cmds []MapCommand) {
 	}
 }
 
+// Biome defines a terrain generation preset.
+type Biome struct {
+	DefaultTile TileType
+	TileProbs   map[TileType]int // percentage chances that sum to ~100
+}
+
+// Biomes is the registry of named biomes for procedural map generation.
+var Biomes = map[string]*Biome{
+	"forest": {
+		DefaultTile: TileGrass,
+		TileProbs: map[TileType]int{
+			TileTree:  35,
+			TileBush:  15,
+			TileRock:  5,
+			TileFence: 2,
+		},
+	},
+	"urban": {
+		DefaultTile: TilePavement,
+		TileProbs: map[TileType]int{
+			TileWall:    20,
+			TileRubble:  5,
+			TileFence:   3,
+		},
+	},
+	"desert": {
+		DefaultTile: TileSand,
+		TileProbs: map[TileType]int{
+			TileRock: 12,
+			TileBush: 3,
+		},
+	},
+	"snow": {
+		DefaultTile: TileSnow,
+		TileProbs: map[TileType]int{
+			TileRock: 8,
+			TileTree: 5,
+		},
+	},
+	"marsh": {
+		DefaultTile: TileMarsh,
+		TileProbs: map[TileType]int{
+			TileWater: 15,
+			TileBush:  10,
+			TileTree:  5,
+		},
+	},
+}
+
 // GenerateProcedural creates a map based on a terrain biome definition.
 func GenerateProcedural(biomeName string, w, h int) *BattleMap {
 	biome, ok := Biomes[biomeName]
@@ -1196,3 +1249,19 @@ func GeneratePolar(w, h int) *BattleMap {
 	})
 	return m
 }
+
+func (m *BattleMap) neighbourhood(x, y int) [3][3]TileType {
+	var res [3][3]TileType
+	for dy := -1; dy <= 1; dy++ {
+		for dx := -1; dx <= 1; dx++ {
+			nx, ny := x+dx, y+dy
+			if nx < 0 || nx >= m.Width || ny < 0 || ny >= m.LevelHeight {
+				res[dy+1][dx+1] = TileGrass
+			} else {
+				res[dy+1][dx+1] = m.At(nx, ny).Type
+			}
+		}
+	}
+	return res
+}
+

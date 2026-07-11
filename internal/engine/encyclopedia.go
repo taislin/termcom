@@ -190,16 +190,14 @@ func (es *EncyclopediaScreen) Render(ctx *ScreenCtx) {
 			if e.Category == "Aliens" && e.AlienType != nil {
 				at := e.AlienType
 				portrait := at.GetPortrait()
-				pX := infoX + infoW - len(portrait.Lines[0].Content) - 2
+				alienImg := GenerateAlienPortrait(portrait, 2)
+				pX := infoX + infoW - alienImg.Width - 2
 				pY := listY + 5
 
 				ctx.DrawString(pX, pY-1, at.Name, StyleRedBold)
-				for i, sl := range portrait.Lines {
-					style := tcell.StyleDefault.Foreground(tcell.NewRGBColor(sl.Color[0], sl.Color[1], sl.Color[2])).Background(tcell.ColorBlack)
-					ctx.DrawString(pX, pY+i, sl.Content, style)
-				}
+				ctx.DrawPixelImage(pX, pY, alienImg)
 
-				statY := pY + len(portrait.Lines) + 1
+				statY := pY + alienImg.Height/2 + 1
 				ctx.DrawString(infoX+1, statY, fmt.Sprintf(language.String("ENCYCLO_ALIEN_STATS_1"), at.HP, at.TU, at.Accuracy), StyleGray)
 				ctx.DrawString(infoX+1, statY+1, fmt.Sprintf(language.String("ENCYCLO_ALIEN_STATS_2"), at.Strength, at.Psi, at.Bravery), StyleGray)
 				ctx.DrawString(infoX+1, statY+2, fmt.Sprintf(language.String("ENCYCLO_ALIEN_STATS_3"), data.DamageTypeStr(at.DamageType), data.RuleItems[at.Weapon].Name), StyleGray)

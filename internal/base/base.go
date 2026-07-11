@@ -240,6 +240,13 @@ func (bs *BaseScreen) renderSoldiers(ctx *engine.ScreenCtx, x, y, w, h int) {
 			ctx.DrawString(x, y+3+i, line, style)
 		}
 	}
+
+	if bs.Selection >= 0 && bs.Selection < len(squad) {
+		s := squad[bs.Selection]
+		portraitImg := engine.MakeSoldierPortrait(s.Name, s.Armor, 12, 20)
+		portX := x + w - portraitImg.Width - 2
+		ctx.DrawPixelImage(portX, y+2, portraitImg)
+	}
 }
 
 func (bs *BaseScreen) renderResearch(ctx *engine.ScreenCtx, x, y, w, h int) {

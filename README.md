@@ -1,26 +1,17 @@
 # termcom — ASCII X-COM Demake
 
-A faithful demake of **X-COM: UFO Defense** (1994, MicroProse) rendered entirely
-in coloured ASCII on a terminal. Written in Go with [tcell](https://github.com/gdamore/tcell).
-
+A roguelike-ified demake of **X-COM: UFO Defense** *(1994, MicroProse)* rendered entirely in coloured ASCII on a terminal. Written in Go with [tcell](https://github.com/gdamore/tcell). It brings the classic alien invasion strategy experience to your terminal. It features a complete implementation of all gameplay loops: the Geoscape (global strategy), Base management, and the tactical Battlescape.
 
 ## Features
 
-- **Geoscape** — Real-time world map with time compression, UFO tracking, interceptor launch
-- **Battlescape** — Turn-based tactical combat with Time Units, cover, line-of-sight
-- **Base Management** — Build facilities, hire soldiers, equip squad
-- **Research & Manufacturing** — Unlock alien tech, build plasma rifles and power suits
-- **Soldier Progression** — Stats improve with combat experience, ranks from Rookie to Colonel
-- **Alien AI** — Patrol, seek, attack, flee, flank, and retreat behaviors
-- **Hangar Management** — Purchase and manage multiple interceptors at base hangars
-- **Enhanced Dogfights** — Diverse weapon loadouts (Cannon, Stingray, Avalanche) and pilot combat modes (Attack, Cautious, Break-off)
-- **Multiple Alien Species** — Sectoids, Floaters, Mutons, Ethereals, Chryssalids, Cyberdiscs, and more
-- **Destructible Terrain** — Grenades destroy walls, trees, and rocks, leaving rubble
-- **Volumetric Gas** — Smoke clouds expand and thin over turns, blocking LOS and providing cover
-- **Vision Modes** — Night vision (green phosphor) and thermal overlay (heat signatures)
-- **Dynamic VFX** — Particle explosions, screen shake, rubble physics, night lighting
-- **Blood & Fire** — Persistent blood decals (faction-colored), animated fire with spread
-- **Browser Version** — Play in your web browser (experimental)
+- **Geoscape** — Real-time world map with time compression, UFO tracking, interceptor launch.
+- **Battlescape** — Turn-based tactical combat with Time Units, cover, line-of-sight.
+- **Base Management** — Build facilities, hire soldiers, equip squad.
+- **Research & Manufacturing** — Unlock alien tech, build plasma rifles and power suits.
+- **Alien AI** — Patrol, seek, attack, flee, flank, and retreat behaviors.
+- **Procedurally Generated Aliens** — A roster of aliens is generated at the start of each campaign, each with unique abilities, strengths, weaknesses, and weapons.
+- **Destructible Terrain** — Grenades destroy walls, trees, and rocks, leaving rubble.
+- **Dynamic VFX** — Particle explosions, screen shake, rubble physics, night lighting.
 
 ## Requirements
 
@@ -106,23 +97,4 @@ See `AGENTS.md` for architecture details.
 
 ## License
 
-MIT
-
-## Browser Version
-
-The browser version uses:
-- [xterm.js](https://xtermjs.org/) for terminal rendering in the browser
-- [gorilla/websocket](https://github.com/gorilla/websocket) for WebSocket communication
-- Go HTTP server for serving the web application
-
-To run the browser version:
-
-```bash
-# Start the web server
-go run ./cmd/webserver
-
-# Or with custom port
-go run ./cmd/webserver :3000
-```
-
-Then open http://localhost:8080 in your browser.
+MIT, see `LICENSE` file.

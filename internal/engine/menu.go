@@ -210,7 +210,7 @@ func (ms *MenuScreen) Render(ctx *ScreenCtx) {
 	ctx.DrawString(decX, subY-1, deco, StyleGray)
 	ctx.DrawString(decX, subY+1, deco, StyleGray)
 
-	verX := (w - 9) / 2
+	verX := (w - 5) / 2
 	if verX < 0 {
 		verX = 0
 	}

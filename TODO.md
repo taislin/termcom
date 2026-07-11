@@ -116,3 +116,96 @@
 - [x] Mind Control research: +20 PsiSkill bonus to all soldiers at that base
 - [x] Psi formula: success = attackerSkill - defenderPsiStr/3, min 5% chance
 - [x] Verify the codebase for errors/mistakes
+
+## Phase 27: Sub-Cell "Pixel" Portrait Engine (URR Half-Block Renderer) (DONE)
+- [x] P1 Create `internal/engine/pixel.go`:
+  - [x] P1a Define `PixelImage` struct (`Width, Height int`, `Pixels [][]tcell.Color`)
+  - [x] P1b Implement `NewPixelImage(w, h int) *PixelImage` (allocates, fills black)
+  - [x] P1c Implement `DrawPixelImage(screen *ScreenRaw, x, y int, img *PixelImage)`:
+        iterates rows 2-by-2, maps Pixels[row][col] → FG and Pixels[row+1][col] → BG,
+        draws '▀' (U+2580); odd-height images pad last BG to tcell.ColorBlack
+  - [x] P1d Implement `CompositeImages(base, overlay *PixelImage) *PixelImage`:
+        skips overlay pixels equal to tcell.ColorDefault (transparent), returns new image
+  - [x] P1e Implement `DarkenColor(c tcell.Color, factor float64) tcell.Color`:
+        extracts RGB, multiplies each channel by factor, clamps to [0,255],
+        returns via tcell.NewRGBColor; passes through tcell.ColorDefault unchanged
+  - [x] P1f Implement `LightenColor(c tcell.Color, factor float64) tcell.Color`:
+        blends toward white (255,255,255) by factor beyond 1.0
+- [x] P2 Create `internal/engine/portrait.go`:
+  - [x] P2a Define `PortraitLayer` int enum (LayerSkin, LayerEyes, LayerHair, LayerHelmet,
+        LayerArmour, LayerDecal, LayerCount)
+  - [x] P2b Define `PortraitSpec` struct (Width, Height, SkinColor, EyeColor, HairColor,
+        HelmetColor, ArmourColor, DecalColor, Seed int64)
+  - [x] P2c Implement `generateSkinLayer(spec PortraitSpec) *PixelImage`:
+        oval head + rectangular torso fill; edge pixels DarkenColor by 0.7 for rim shading
+  - [x] P2d Implement `generateEyeLayer(spec PortraitSpec) *PixelImage`:
+        two small rectangles at fixed head positions; pupils as DarkenColor by 0.4 dots
+  - [x] P2e Implement `generateHairLayer(spec PortraitSpec) *PixelImage`:
+        top-of-head band; style variant chosen from spec.Seed % 4
+  - [x] P2f Implement `generateHelmetLayer(spec PortraitSpec) *PixelImage`:
+        trapezoidal upper-head region; visor strip DarkenColor by 0.5; returns nil if
+        spec.HelmetColor == tcell.ColorDefault
+  - [x] P2g Implement `generateArmourLayer(spec PortraitSpec) *PixelImage`:
+        torso region overwrite; highlight edges LightenColor by 1.3; returns nil if
+        spec.ArmourColor == tcell.ColorDefault
+  - [x] P2h Implement `generateDecalLayer(spec PortraitSpec) *PixelImage`:
+        1-5 rank pips at fixed torso position, colored spec.DecalColor
+  - [x] P2i Implement `GenerateSoldierPortrait(spec PortraitSpec) *PixelImage`:
+        calls each generator, composites Skin → Eyes → Hair → Helmet → Armour → Decal
+  - [x] P2j Implement `GenerateAlienPortrait(sp data.StyledPortrait, scale int) *PixelImage`:
+        upscales each ASCII rune to scale×scale pixels using a rune-density lookup table
+        (space=transparent, '.'=25% fill, '@'=100% fill, etc.)
+- [x] P3 Create `internal/engine/pixel_test.go`:
+  - [x] P3a TestDrawPixelImageOddHeight: odd height must not panic; last cell BG = black
+  - [x] P3b TestCompositeImages: ColorDefault in overlay leaves base pixel unchanged
+  - [x] P3c TestDarkenColor: factor=0.0→black, factor=1.0→identity, factor=0.5→half channels
+  - [x] P3d TestDarkenColor_Transparent: ColorDefault passes through unchanged
+- [x] P4 Integrate portrait rendering into existing screens:
+  - [x] P4a `internal/base/equip.go`: replace `StyledPortrait` text drawing with
+        `GenerateSoldierPortrait` + `DrawPixelImage` in the right-panel portrait region
+  - [x] P4b `internal/engine/encyclopedia.go`: replace `StyledPortrait` text drawing with
+        `GenerateAlienPortrait(at.GetPortrait(), 2)` + `DrawPixelImage` in portrait region
+- [x] P5 Update `docs/manual.md` to note half-block portrait rendering
+
+
+## Phase 28: Geometric Terrain Engine (URR ASCII Geometry)
+- [ ] G1 Extend `Tile` struct in `internal/battle/map.go`:
+  - [x] G1a Add `Elevation int` field (skipped per user request)
+  - [ ] G1b Add `BaseColor tcell.Color` field (tcell.ColorDefault = use TilePalette lookup)
+  - [ ] G1c Add `Rune rune` field (0 = use TileGeomRune contextual logic)
+  - [x] G1d Verify `NewBattleMap` and `NewMultiLevelBattleMap` zero-initialize new fields (skipped elevation verification)
+- [ ] G2 Create `internal/battle/terrain.go`:
+  - [ ] G2a Define UFO geometry rune constants (◤ ◥ ◣ ◢ ▬ ▐ ⊠) with comments
+  - [ ] G2b Define human building box-drawing rune constants (╔ ═ ╗ ║ ╚ ╝ ┼) with comments
+  - [ ] G2c Define `TilePalette map[TileType]tcell.Color` for all tile types with
+        curated RGB values (dark earth tones for terrain, blue-grey for UFO, etc.)
+  - [x] G2d Implement `ElevationDarken(elevation int) float64` (skipped per user request)
+  - [ ] G2e Implement `TileBaseColor(t Tile) tcell.Color`:
+        returns t.BaseColor if not ColorDefault, else TilePalette[t.Type], else neutral grey
+  - [ ] G2f Implement `(m *BattleMap) neighbourhood(x, y int) [3][3]TileType`:
+        reads 3×3 grid centred on (x,y), clamping OOB to TileGrass; added to map.go
+  - [ ] G2g Implement `TileGeomRune(t Tile, ctx [3][3]TileType) rune`:
+        - Tile.Rune override (non-zero) returned immediately
+        - TileUFOWall: check N/S/E/W neighbours for non-UFO → select ◤/◥/◣/◢ or █
+        - TileWall: check N/S/E/W neighbours → select ╔/╗/╚/╝/═/║/# accordingly
+        - Fallback: tileChars[t.Type]
+  - [ ] G2h Implement private `bloodColor(bloodType int) tcell.Color` mapping 1→red,
+        2→green, 3→purple
+  - [ ] G2i Implement private `fireColor(frame int) tcell.Color` returning an animated
+        orange-yellow flickered via frame%3 step
+  - [ ] G2j Implement `RenderTile(t Tile, ctx [3][3]TileType, visible, seen bool) (rune, tcell.Style)`:
+        full pipeline: TileBaseColor → DarkenColor FG/BG if unseen → blood/fire overlay → TileGeomRune → return style
+- [ ] G3 Create `internal/battle/terrain_test.go`:
+  - [ ] G3a TestTileGeomRune_UFOCornerNW: north+west neighbour non-UFO → ◤
+  - [ ] G3b TestTileGeomRune_UFOSolid: all UFO neighbours → █
+  - [ ] G3c TestTileGeomRune_BuildingCornerTL: wall with south+east neighbours → ╔
+  - [ ] G3d TestRenderTile_Unseen: !visible && !seen → blank rune returned
+  - [x] G3e TestRenderTile_ElevationDarkens (skipped per user request)
+  - [x] G3f TestElevationDarken_Clamped (skipped per user request)
+- [ ] G4 Integrate `RenderTile` into battlescape draw loop in `internal/battle/battlescape.go`:
+  - [ ] G4a Locate existing per-tile rune+style inline block in the render loop
+  - [ ] G4b Replace with `ctx := bs.Map.neighbourhood(mapX, mapY)` + `RenderTile(tile, ctx, visible, seen)`
+  - [ ] G4c Verify blood/fire rendering parity with previous inline code
+- [x] G5 Optionally populate Elevation on existing map generators (skipped per user request)
+- [ ] G6 Update `docs/manual.md` to note geometric terrain rendering
+
