@@ -171,17 +171,17 @@ type faceGeom struct {
 
 func computeFaceGeom(w, h int) faceGeom {
 	cx := w / 2
-	cy := h * 40 / 100
-	rx := w * 25 / 100 // Narrower
-	ry := h * 45 / 100 // Longer (oval)
-	if rx < 2 {
-		rx = 2
+	cy := h * 45 / 100
+	rx := w * 42 / 100
+	ry := h * 42 / 100
+	if rx < 3 {
+		rx = 3
 	}
-	if ry < 2 {
-		ry = 2
+	if ry < 3 {
+		ry = 3
 	}
 
-	eyeY := cy - ry/6 // Slightly adjusted
+	eyeY := cy - ry/6
 	eyeOff := rx * 5 / 8
 	if eyeOff < 1 {
 		eyeOff = 1

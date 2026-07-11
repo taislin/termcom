@@ -2058,8 +2058,8 @@ func (bs *Battlescape) DrawCombatStatusBar(ctx *engine.ScreenCtx, w int) {
 func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 	w, h := ctx.Size()
 	bs.SidebarW = w / 3
-	if bs.SidebarW < 20 {
-		bs.SidebarW = 20
+	if bs.SidebarW < 30 {
+		bs.SidebarW = 30
 	}
 	viewW := w - bs.SidebarW - 2
 	if viewW < 10 {
@@ -2364,12 +2364,12 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 			}
 			sy++
 
-			// Draw portrait on the right side of sidebar
-			portraitImg := engine.MakeSoldierPortrait(bs.Selected.Soldier.Name, bs.Selected.Soldier.Armor, 16, 16)
-			ctx.DrawPixelImageFramed(sidebarX+halfSide, 1, portraitImg, engine.StyleCyan)
-			if sy < 14 {
-				sy = 14
-			}
+			// Draw portrait aligned right at top of sidebar
+			portraitImg := engine.MakeSoldierPortrait(bs.Selected.Soldier.Name, bs.Selected.Soldier.Armor, 20, 24)
+			portW := portraitImg.Width + 2
+			portX := sidebarX + bs.SidebarW - portW
+			ctx.DrawPixelImageFramed(portX, 1, portraitImg, engine.StyleCyan)
+			sy = 1 + portraitImg.Height/2 + 2
 		}
 
 		// Draw log in sidebar
