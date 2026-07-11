@@ -220,11 +220,11 @@ func (b *Base) BuildFacility(ft FacilityType) bool {
 	return true
 }
 
-// HealthySoldiers returns soldiers with Wounds == 0 (fully fit for deployment).
+// HealthySoldiers returns soldiers fit for deployment (HP > 0, no wounds, no fatigue).
 func (b *Base) HealthySoldiers() []*soldier.Soldier {
 	var healthy []*soldier.Soldier
 	for _, s := range b.Soldiers {
-		if s.HP > 0 && s.Wounds == 0 {
+		if s.CanDeploy() {
 			healthy = append(healthy, s)
 		}
 	}
@@ -294,6 +294,9 @@ func (b *Base) AdvanceDay() {
 					s.HP = s.MaxHP
 				}
 			}
+		}
+		if s.Fatigue > 0 {
+			s.Fatigue--
 		}
 		if hasPsiLab && s.Wounds <= 0 && s.PsiSkill < 80 {
 			s.PsiSkill++

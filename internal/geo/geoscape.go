@@ -841,7 +841,7 @@ func (gs *Geoscape) RespondToMission(idx int) {
 	}
 	aliveCount := 0
 	for _, s := range gs.SelectedBase().Soldiers {
-		if s.HP > 0 && s.Wounds == 0 {
+		if s.CanDeploy() {
 			aliveCount++
 		}
 	}
@@ -962,7 +962,7 @@ func (gs *Geoscape) Autoresolve() {
 
 	aliveCount := 0
 	for _, s := range gs.SelectedBase().Soldiers {
-		if s.HP > 0 && s.Wounds == 0 {
+		if s.CanDeploy() {
 			aliveCount++
 		}
 	}

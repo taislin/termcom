@@ -151,6 +151,49 @@ Mission types are defined in `internal/battle/battlescape.go` (`NewBattlescape`)
 | desert | Desert | Rocks and sand |
 | polar | Polar | Snow and ice |
 
+## Mission Modifiers
+
+| Modifier | Description | Effect |
+|----------|-------------|--------|
+| Night Ops | Forced night battle | -25% accuracy, +20% loot |
+| Reinforcements | Extra alien wave | +2 aliens on turn 4 |
+| Time Limit | Turn limit | Defeat if >15 turns with aliens alive |
+| VIP Rescue | Protect civilian | +$50K bonus if VIP survives |
+| Booby Trapped | More explosives | Extra grenades/mines on map |
+| Heavy Fog | Reduced visibility | -40% sight range |
+| Alien Ambush | Pre-positioned aliens | Aliens start in overwatch |
+| Low Visibility | Poor conditions | -10% accuracy for all |
+| High Ground | Elevated terrain | Accuracy bonus from height |
+
+## Weather Effects
+
+| Weather | Accuracy | Sight | Fire Spread |
+|---------|----------|-------|-------------|
+| Clear | 0% | 0 | 20% |
+| Rain | -5% | -2 | 5% |
+| Wind | 0% | 0 | 30% |
+| Snow | -3% | -2 | 20% |
+| Fog | -5 to -10% | -3 to -6 | 20% |
+| Storm | -5% | -2 | 30% |
+| Cold | -3% | 0 | 20% |
+
+## Soldier Perks
+
+| Perk | Stat Bonus | Battle Effect |
+|------|------------|---------------|
+| Lightning Reflexes | +10 Reactions | — |
+| Marksman | — | +15% accuracy at range > 8 |
+| Grenadier | — | +2 grenade splash radius |
+| Field Medic | — | Medikit heals 15 HP |
+| Iron Will | +10 PsiSkill | +20 Psi Strength |
+| Steady Aim | — | +10% accuracy when not moving |
+| Close Combat Specialist | — | +15% accuracy at range ≤ 4 |
+| Overwatch Expert | — | +20% reaction fire accuracy |
+| Demolitions | — | +50% grenade damage |
+| Scavenger | — | +25% loot from battles |
+| Tough | +5 MaxHP | — |
+| Quick Learner | — | +50% XP from battles |
+
 ## Key Bindings
 
 ### Geoscape

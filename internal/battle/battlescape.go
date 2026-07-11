@@ -119,6 +119,10 @@ type Battlescape struct {
 
 	CustomVictory *CustomVictory
 
+	MissionModifiers []MissionModifier
+	Weather          Weather
+	ReinforcementsSpawned bool
+
 	// Input State
 	State BattleState
 }
@@ -277,22 +281,28 @@ func NewBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, ufoN
 		m = GenerateCrashSite(50, 50)
 	}
 
+	rng := rand.New(rand.NewSource(int64(g.GameTime.UnixNano())))
+	mods := RollModifiers(rng, ufoName)
+	weather := RollWeather(rng, ufoName)
+
 	bs := &Battlescape{
-		Game:        g,
-		Base:        b,
-		Map:         m,
-		Phase:       PhasePlayerTurn,
-		Status:      StatusPlayerTurn,
-		Turn:        1,
-		CursorX:     3,
-		CursorY:     m.Height - 3,
-		Squad:       squad,
-		UFOName:     ufoName,
-		IsNight:     g.GameTime.Hour() < 6 || g.GameTime.Hour() > 18,
-		Camera:      engine.NewCamera(3, m.Height-3),
-		Particles:   engine.NewParticleSystem(512),
-		ActionDelay: g.ActionDelay,
-		Gas:         NewGasGrid(m.Width, m.Height),
+		Game:             g,
+		Base:             b,
+		Map:              m,
+		Phase:            PhasePlayerTurn,
+		Status:           StatusPlayerTurn,
+		Turn:             1,
+		CursorX:          3,
+		CursorY:          m.Height - 3,
+		Squad:            squad,
+		UFOName:          ufoName,
+		IsNight:          g.GameTime.Hour() < 6 || g.GameTime.Hour() > 18 || HasModifier(mods, ModNightOps),
+		Camera:           engine.NewCamera(3, m.Height-3),
+		Particles:        engine.NewParticleSystem(512),
+		ActionDelay:      g.ActionDelay,
+		Gas:              NewGasGrid(m.Width, m.Height),
+		MissionModifiers: mods,
+		Weather:          weather,
 	}
 
 	if ufoName == "Abduction" || ufoName == "Council" {
@@ -301,6 +311,26 @@ func NewBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, ufoN
 	m.Gas = bs.Gas
 
 	bs.AddMessage(fmt.Sprintf(language.String("MSG_MISSION_START"), ufoName))
+
+	if HasModifier(mods, ModNightOps) {
+		bs.AddMessage("MISSION MODIFIER: Night Ops - forced night battle")
+	}
+	if HasModifier(mods, ModReinforcements) {
+		bs.AddMessage("MISSION MODIFIER: Reinforcements - extra alien wave incoming")
+	}
+	if HasModifier(mods, ModTimeLimit) {
+		bs.AddMessage("MISSION MODIFIER: Time Limit - 15 turns remaining")
+		bs.ReinforceTimer = 15
+	}
+	if HasModifier(mods, ModHeavyFog) {
+		bs.AddMessage("MISSION MODIFIER: Heavy Fog - reduced visibility")
+	}
+	if HasModifier(mods, ModAlienAmbush) {
+		bs.AddMessage("MISSION MODIFIER: Alien Ambush - aliens in overwatch")
+	}
+	if weather.Name() != "Clear" {
+		bs.AddMessage(fmt.Sprintf("WEATHER: %s", weather.Name()))
+	}
 
 	for i, s := range squad {
 		if s.HP <= 0 || s.Wounds > 0 {
@@ -547,6 +577,10 @@ func (bs *Battlescape) ComputeFOVForTeam() {
 	if bs.IsNight {
 		sightRange = 10
 	}
+	sightRange -= bs.Weather.SightReduction()
+	if sightRange < 3 {
+		sightRange = 3
+	}
 	for _, u := range bs.Units {
 		if u.Faction == 0 && u.Alive && u.Level == bs.Map.CurrentLevel {
 			bs.Map.ComputeFOV(u.X, u.Y, sightRange)
@@ -644,7 +678,7 @@ func (bs *Battlescape) executeAlienAction(action AlienAction) {
 		if action.Target == nil || !action.Target.Alive {
 			return
 		}
-		damage, hit, err := action.Unit.FireAt(action.Target, bs.Map)
+		damage, hit, err := action.Unit.FireAt(action.Target, bs.Map, &bs.Weather)
 		if err != nil {
 			return
 		}
@@ -782,7 +816,7 @@ func (bs *Battlescape) checkHumanReactionFire(movedAlien *Unit) {
 		bs.Status = StatusPlayerOverwatch
 		bs.OverwatchFlash = 30
 		bs.Camera.SetTarget(u.X, u.Y)
-		damage, hit, _ := u.FireAt(movedAlien, bs.Map)
+		damage, hit, _ := u.FireAt(movedAlien, bs.Map, &bs.Weather)
 		bs.recordPlayerShot(u, movedAlien)
 		bs.Projectile = &Projectile{
 			FromX: u.X, FromY: u.Y,
@@ -845,7 +879,7 @@ func (bs *Battlescape) checkAlienReactionFire(movedHuman *Unit) {
 		bs.Status = StatusAlienOverwatch
 		bs.OverwatchFlash = 30
 		bs.Camera.SetTarget(u.X, u.Y)
-		damage, hit, _ := u.FireAt(movedHuman, bs.Map)
+		damage, hit, _ := u.FireAt(movedHuman, bs.Map, &bs.Weather)
 		dist2 := int(math.Sqrt(float64((movedHuman.X-u.X)*(movedHuman.X-u.X) + (movedHuman.Y-u.Y)*(movedHuman.Y-u.Y))))
 		if dist2 < 1 {
 			dist2 = 1
@@ -887,6 +921,14 @@ func (bs *Battlescape) finishBattle() {
 				if u.Soldier.Wounds > 30 {
 					u.Soldier.Wounds = 30
 				}
+			}
+			// Fatigue: survivors need rest
+			if u.HP > 0 {
+				fatigueDays := 1 + bs.Turn/3
+				if fatigueDays > 5 {
+					fatigueDays = 5
+				}
+				u.Soldier.Fatigue += fatigueDays
 			}
 		}
 	}
@@ -1101,7 +1143,14 @@ func (bs *Battlescape) processAbduction() {
 }
 
 func (bs *Battlescape) checkReinforcements() {
-	// Reinforcements only on terror and alien base missions
+	// Check for ModReinforcements: spawn on turn 4 regardless of mission type
+	if HasModifier(bs.MissionModifiers, ModReinforcements) && bs.Turn == 4 && !bs.ReinforcementsSpawned {
+		bs.ReinforcementsSpawned = true
+		bs.spawnReinforcementWave(2)
+		return
+	}
+
+	// Standard reinforcements only on terror and alien base missions
 	if bs.UFOName != "Terror" && bs.UFOName != "Alien Base Assault" {
 		return
 	}
@@ -1198,6 +1247,71 @@ func (bs *Battlescape) checkReinforcements() {
 	bs.AddMessage(fmt.Sprintf(language.String("MSG_REINFORCEMENTS"), count))
 }
 
+func (bs *Battlescape) spawnReinforcementWave(count int) {
+	g := bs.Game
+	alienTypes := g.GetAlienTypes()
+	gameMonth := int(g.GameTime.Month()) - 3 + (g.GameTime.Year()-1999)*12
+	if gameMonth < 0 {
+		gameMonth = 0
+	}
+	alienRank := gameMonth / 3
+	if alienRank > 3 {
+		alienRank = 3
+	}
+	diffMult := 1.0
+	if g.Difficulty >= 0 && g.Difficulty < len(engine.Difficulties) {
+		diffMult = engine.Difficulties[g.Difficulty].AlienScale
+	}
+	for i := 0; i < count; i++ {
+		at := getAlienByRank(alienTypes, alienRank)
+		if at == nil {
+			continue
+		}
+		u := NewAlienUnit(at)
+		u.HP += int(float64(gameMonth*2) * diffMult)
+		u.MaxHP += int(float64(gameMonth*2) * diffMult)
+		u.Accuracy += int(float64(gameMonth*3) * diffMult)
+		side := rand.Intn(4)
+		switch side {
+		case 0:
+			u.X = 0
+			u.Y = rand.Intn(bs.Map.Height)
+		case 1:
+			u.X = bs.Map.Width - 1
+			u.Y = rand.Intn(bs.Map.Height)
+		case 2:
+			u.X = rand.Intn(bs.Map.Width)
+			u.Y = 0
+		case 3:
+			u.X = rand.Intn(bs.Map.Width)
+			u.Y = bs.Map.Height - 1
+		}
+		if !bs.Map.Passable(u.X, u.Y) {
+			for dy := -2; dy <= 2; dy++ {
+				for dx := -2; dx <= 2; dx++ {
+					nx, ny := u.X+dx, u.Y+dy
+					if nx >= 0 && nx < bs.Map.Width && ny >= 0 && ny < bs.Map.Height && bs.Map.Passable(nx, ny) {
+						u.X, u.Y = nx, ny
+						dy = 3
+						dx = 3
+					}
+				}
+			}
+		}
+		u.IsNight = bs.IsNight
+		bs.Units = append(bs.Units, u)
+		ai := NewAlienAI(u)
+		ai.State = AIAttack
+		nearest, _ := ai.findNearest(bs.Units.Faction(0), bs.Map)
+		if nearest != nil {
+			ai.LastSeenX = nearest.X
+			ai.LastSeenY = nearest.Y
+		}
+		bs.AlienAIs = append(bs.AlienAIs, ai)
+	}
+	bs.AddMessage(fmt.Sprintf("REINFORCEMENTS: %d aliens arrive!", count))
+}
+
 // learnFromKills scans dead aliens and increases knowledge level for each.
 func (bs *Battlescape) learnFromKills() {
 	for _, u := range bs.Units {
@@ -1272,6 +1386,14 @@ func (bs *Battlescape) checkVictory() {
 			}
 			return
 		}
+	}
+
+	// TimeLimit modifier: defeat if turns exceed limit and aliens remain
+	if HasModifier(bs.MissionModifiers, ModTimeLimit) && bs.Turn > 15 && len(aliens) > 0 {
+		bs.Phase = PhaseDefeat
+		audio.PlayDefeat()
+		bs.AddMessage("TIME'S UP! Mission failed - exceeded time limit.")
+		return
 	}
 
 	if len(aliens) == 0 {
@@ -1404,7 +1526,7 @@ func (bs *Battlescape) FireWeapon() {
 		bs.AddMessage(language.String("MSG_TARGET_NO_LOS"))
 		return
 	}
-	damage, hit, err := bs.Selected.FireAt(target, bs.Map)
+	damage, hit, err := bs.Selected.FireAt(target, bs.Map, &bs.Weather)
 	if err != nil {
 		bs.AddMessage(err.Error())
 		return

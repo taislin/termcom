@@ -349,11 +349,40 @@ against alien forces.
 2. **Alien Turn** — Aliens act using their TU pool and AI.
 3. Repeat until one side is eliminated.
 
+### Mission Modifiers
+
+Missions can have random modifiers that change gameplay:
+
+| Modifier | Effect |
+|----------|--------|
+| Night Ops | Forced night battle. +20% loot reward. |
+| Reinforcements | Extra alien wave arrives on turn 4. |
+| Time Limit | 15 turns to eliminate all aliens or you lose. |
+| VIP Rescue | Protect the VIP. Bonus $50K if VIP survives. |
+| Booby Trapped | More grenades and proximity mines on the map. |
+| Heavy Fog | Sight range reduced by 40%. Smoke lingers longer. |
+| Alien Ambush | Aliens start in overwatch positions. |
+| Low Visibility | Reduced accuracy (-10%) for all units. |
+| High Ground | Map has elevated positions with accuracy bonus. |
+
+### Weather
+
+Weather conditions affect combat based on the mission location:
+
+| Weather | Effect |
+|---------|--------|
+| Rain | -5% accuracy, fire spreads slower |
+| Wind | +10% fire spread, grenades may drift |
+| Snow | Movement costs +1 TU in deep snow |
+| Fog | -5-10% accuracy, reduced sight range |
+| Storm | Combined rain + wind effects |
+| Cold | -3% accuracy, reduced sight in wind |
+
 ### Victory & Defeat
 
 - **Victory:** All aliens eliminated. Soldiers earn XP, you recover loot, and
   receive $50,000.
-- **Defeat:** All soldiers killed. Soldiers are lost.
+- **Defeat:** All soldiers killed. Soldiers are lost. Time limit exceeded (if applicable).
 
 ### Time Units (TU)
 
@@ -708,6 +737,32 @@ Aliens spawn in groups: 3 lowest-rank + 2 rank-1 aliens (if available).
 ### Per Rank-Up Bonuses
 
 +2 HP, +1 MaxTU, +2 Accuracy, +1 Strength, +1 Reactions
+
+### Perks
+
+Soldiers gain a random perk on each rank-up. Perks provide special abilities:
+
+| Perk | Effect |
+|------|--------|
+| Lightning Reflexes | +10 Reactions |
+| Marksman | +15% accuracy at range > 8 tiles |
+| Grenadier | +2 grenade splash radius |
+| Field Medic | Medikit heals 15 HP instead of 10 |
+| Iron Will | +10 Psi Skill, +20 Psi Strength |
+| Steady Aim | +10% accuracy when not moving |
+| Close Combat Specialist | +15% accuracy at range ≤ 4 tiles |
+| Overwatch Expert | +20% reaction fire accuracy |
+| Demolitions | +50% grenade damage |
+| Scavenger | +25% loot from battles |
+| Tough | +5 MaxHP |
+| Quick Learner | +50% XP from battles |
+
+### Fatigue & Wounds
+
+- **Wounded soldiers** cannot deploy until healed (2 HP/day recovery)
+- **Fatigue:** Surviving battles causes 1-5 days of fatigue
+- Fatigue and wounds stack — a soldier may need multiple days off
+- Build Living Quarters to maintain a deep roster
 
 ### XP Earning
 

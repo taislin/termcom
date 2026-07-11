@@ -53,6 +53,12 @@ type Soldier struct {
 	Kills     int
 	Missions  int
 	Wounds    int // days until healed
+	Fatigue   int // days until rested
+	Perks     []string
+}
+
+func (s *Soldier) CanDeploy() bool {
+	return s.HP > 0 && s.Wounds == 0 && s.Fatigue == 0
 }
 
 func NewSoldier(name string) *Soldier {
@@ -101,9 +107,11 @@ func (s *Soldier) FireWeapon(target *Soldier) (int, bool) {
 	return dmg, true
 }
 
-func (s *Soldier) GainXP(kills int) {
+func (s *Soldier) GainXP(kills int) *Perk {
 	s.Kills += kills
 	xpThreshold := []int{0, 10, 25, 50, 80, 120, 170, 230}
+	var awardedPerk *Perk
+	rng := rand.New(rand.NewSource(int64(s.Kills)))
 	for int(s.Rank) < len(xpThreshold)-1 && s.Kills >= xpThreshold[int(s.Rank)+1] {
 		s.Rank++
 		s.MaxHP += 2
@@ -113,7 +121,14 @@ func (s *Soldier) GainXP(kills int) {
 		s.Accuracy += 2
 		s.Strength += 1
 		s.Reactions += 1
+		if awardedPerk == nil {
+			awardedPerk = RollPerk(rng, s.Perks)
+			if awardedPerk != nil {
+				s.ApplyPerk(*awardedPerk)
+			}
+		}
 	}
+	return awardedPerk
 }
 
 type Squad []*Soldier

@@ -121,7 +121,7 @@ func (u *Unit) Name() string {
 	return "Civilian"
 }
 
-func (u *Unit) FireAt(target *Unit, m *BattleMap) (int, bool, error) {
+func (u *Unit) FireAt(target *Unit, m *BattleMap, weather *Weather) (int, bool, error) {
 	w, ok := data.RuleItems[u.Weapon]
 	if !ok {
 		return 0, false, fmt.Errorf("unknown weapon: %s", u.Weapon)
@@ -148,6 +148,9 @@ func (u *Unit) FireAt(target *Unit, m *BattleMap) (int, bool, error) {
 	}
 	if u.IsNight {
 		hitChance = hitChance * 75 / 100
+	}
+	if weather != nil {
+		hitChance -= weather.AccuracyPenalty()
 	}
 
 	if rand.Intn(100) >= hitChance {

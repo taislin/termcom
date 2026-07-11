@@ -68,7 +68,9 @@ type SoldierSave struct {
 	Kills      int
 	Missions   int
 	Wounds     int
+	Fatigue    int
 	WeaponAmmo int
+	Perks      []string
 }
 
 type FacilitySave struct {
@@ -239,7 +241,9 @@ func FromBase(b *base.Base) *BaseSave {
 			Kills:      s.Kills,
 			Missions:   s.Missions,
 			Wounds:     s.Wounds,
+			Fatigue:    s.Fatigue,
 			WeaponAmmo: s.WeaponAmmo,
+			Perks:      s.Perks,
 		})
 	}
 	for _, f := range b.Facilities {
@@ -317,6 +321,8 @@ func ToBase(bs *BaseSave) *base.Base {
 		s.Kills = ss.Kills
 		s.Missions = ss.Missions
 		s.Wounds = ss.Wounds
+		s.Fatigue = ss.Fatigue
+		s.Perks = ss.Perks
 		s.WeaponAmmo = ss.WeaponAmmo
 		b.Soldiers = append(b.Soldiers, s)
 	}

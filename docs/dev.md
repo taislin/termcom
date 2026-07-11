@@ -310,6 +310,38 @@ Each playthrough generates unique content from a seed:
 - Biome-based tile probability distributions
 - Seeded for reproducible layouts
 
+### Mission modifiers
+
+Random modifiers are rolled per mission in `internal/battle/modifiers.go`:
+- `RollModifiers(rng, missionType)` returns a slice of modifiers
+- Applied in `NewBattlescape` — affects alien count, visibility, win conditions
+- `ModReinforcements` spawns extra aliens on turn 4
+- `ModTimeLimit` causes defeat if battle exceeds 15 turns
+- `ModNightOps` forces night battle
+- `ModHeavyFog` reduces sight range
+
+### Weather system
+
+Weather is generated per mission in `internal/battle/modifiers.go`:
+- `RollWeather(rng, biome)` returns a `Weather` struct
+- Affects accuracy penalties, sight range, fire spread chance
+- Applied in `ComputeFOVForTeam` (sight) and `FireAt` (accuracy)
+
+### Soldier perks
+
+Perks are defined in `internal/soldier/perks.go`:
+- 12 perks with stat bonuses and battle modifiers
+- Random perk awarded on each rank-up via `GainXP`
+- Perks saved/loaded via `Perks []string` field
+- Battle effects checked via `HasPerk` / `HasBattleMod`
+
+### Fatigue system
+
+- Soldiers gain 1-5 days fatigue after surviving a battle
+- Fatigue heals 1 per day alongside wounds
+- `CanDeploy()` checks HP > 0, Wounds == 0, Fatigue == 0
+- `HealthySoldiers()` uses `CanDeploy()` for deployment lists
+
 ### Modifying balance
 
 - Soldier stats: `internal/soldier/soldier.go` (NewSoldier defaults)
@@ -318,6 +350,9 @@ Each playthrough generates unique content from a seed:
 - Body subtype resistances: `internal/data/procedural.go` (`subtypeResistMod`)
 - Weapon damage/accuracy/TU: `internal/data/items.go` (RuleItems map)
 - Difficulty scaling: `internal/engine/difficulty.go`
+- Mission modifiers: `internal/battle/modifiers.go` (RollModifiers)
+- Weather: `internal/battle/modifiers.go` (RollWeather)
+- Perks: `internal/soldier/perks.go` (AllPerks, RollPerk)
 
 ## Save Versioning
 
