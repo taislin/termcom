@@ -1,6 +1,8 @@
 package engine
 
 import (
+	"unicode/utf8"
+
 	"github.com/civ13/termcom/internal/data"
 	"github.com/gdamore/tcell/v3"
 )
@@ -862,7 +864,7 @@ func GenerateAlienPortrait(sp data.StyledPortrait, scale int) *PixelImage {
 	}
 
 	linesH := len(sp.Lines)
-	linesW := len(sp.Lines[0].Content)
+	linesW := utf8.RuneCountInString(sp.Lines[0].Content)
 
 	imgW := linesW * scale
 	imgH := linesH * scale
@@ -903,6 +905,40 @@ func GenerateAlienPortrait(sp data.StyledPortrait, scale int) *PixelImage {
 							}
 						}
 					}
+				}
+			}
+		}
+	}
+
+	return img
+}
+
+// GenerateAlienPortraitPadded generates an alien portrait scaled and padded to exact dimensions.
+func GenerateAlienPortraitPadded(sp data.StyledPortrait, targetW, targetH int, bgColor tcell.Color) *PixelImage {
+	img := NewPixelImage(targetW, targetH)
+
+	for y := 0; y < targetH; y++ {
+		for x := 0; x < targetW; x++ {
+			img.Pixels[y][x] = bgColor
+		}
+	}
+
+	if len(sp.Lines) == 0 {
+		return img
+	}
+
+	// Scale 2 gives 20x24 from a 10x12 text grid (exact match)
+	scale := 2
+	inner := GenerateAlienPortrait(sp, scale)
+
+	offX := (targetW - inner.Width) / 2
+	offY := (targetH - inner.Height) / 2
+	for y := 0; y < inner.Height; y++ {
+		for x := 0; x < inner.Width; x++ {
+			px, py := offX+x, offY+y
+			if px >= 0 && px < targetW && py >= 0 && py < targetH {
+				if inner.Pixels[y][x] != tcell.ColorDefault {
+					img.Pixels[py][px] = inner.Pixels[y][x]
 				}
 			}
 		}

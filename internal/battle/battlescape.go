@@ -2278,21 +2278,20 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 			sy++
 		}
 
-		// Draw sprite on the right side
+		// Draw sprite aligned right at top of sidebar
 		if u.Faction == 1 && u.AlienType != nil {
 			portrait := u.AlienType.GetPortrait()
-			alienImg := engine.GenerateAlienPortrait(portrait, 1)
-			portX := sidebarX + halfSide
-			ctx.DrawPixelImage(portX, 2, alienImg)
+			bgColor := tcell.NewRGBColor(20, 20, 28)
+			alienImg := engine.GenerateAlienPortraitPadded(portrait, 20, 24, bgColor)
+			portW := alienImg.Width + 2
+			portX := sidebarX + bs.SidebarW - portW
+			ctx.DrawPixelImageFramed(portX, 1, alienImg, engine.StyleRed)
+			if sy < 14 {
+				sy = 14
+			}
 		}
-
-		// Draw log below both columns
-		portH := 0
-		if u.Faction == 1 && u.AlienType != nil {
-			portH = 4
-		}
-		if sy < 2+portH {
-			sy = 2 + portH
+		if sy < 2 {
+			sy = 2
 		}
 		sy++
 		logTitle := language.String("BATTLE_LOG")

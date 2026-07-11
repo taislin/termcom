@@ -916,61 +916,82 @@ func pickSenseSensor(rng *rand.Rand, m *Morphology) rune {
 	return ' '
 }
 
-// headShape returns the 2-line head silhouette for a body subtype.
-func headShape(subtype string, chest rune) (string, string) {
+// headShape returns the 4-line head silhouette for a body subtype (10 chars wide).
+func headShape(subtype string, chest rune) (string, string, string, string) {
 	switch subtype {
 	case SubtypeCarbonFlesh:
-		return " (o.o) ", fmt.Sprintf("  |%c|  ", chest)
+		return "  .---.   ", " (o.o.o)  ", "  ) - (   ", "   | |    "
 	case SubtypeSilicon:
-		return " <◊◊◊> ", fmt.Sprintf("  |%c|  ", chest)
+		return "  .---.   ", " <◊◊◊◊>   ", "  =====   ", "   | |    "
 	case SubtypeGaseous:
-		return " ~~~~  ", fmt.Sprintf("  ~%c~  ", chest)
+		return "   ~~~    ", "  ~~~~~   ", "   ~~~    ", "   | |    "
 	case SubtypeCrystalline:
-		return " /△△\\ ", fmt.Sprintf("  |%c|  ", chest)
+		return "   /\\    ", "  /△△\\   ", "  /  \\   ", "   ||     "
 	case SubtypeAmorphous:
-		return " (~~~) ", fmt.Sprintf("  ~%c~  ", chest)
+		return "   ~~~    ", "  (~~~)   ", "   ~~~    ", "   | |    "
 	case SubtypeMechanical:
-		return " [=■=] ", fmt.Sprintf("  |%c|  ", chest)
+		return "  [===]   ", "  [=■=]   ", "  [---]   ", "   | |    "
 	case SubtypeBioSynthetic:
-		return " (o-o) ", fmt.Sprintf("  |%c|  ", chest)
+		return "   .-.    ", "  (o-o)   ", "   )_(    ", "   | |    "
 	case SubtypeNanotech:
-		return " ·:.·  ", fmt.Sprintf("  ·%c·  ", chest)
+		return "  ·:.·    ", "  .:.·    ", "  ·:.·    ", "   ...    "
 	default:
-		return " (o.o) ", fmt.Sprintf("  |%c|  ", chest)
+		return "  .---.   ", " (o.o.o)  ", "  ) - (   ", "   | |    "
 	}
 }
 
-// armRow returns the arm visualization row.
-func armRow(arms int, chest rune) string {
+// neckLine returns the neck row (10 chars).
+func neckLine() string {
+	return "    |     "
+}
+
+// shoulderRows returns the shoulder + upper arm rows based on arm count.
+func shoulderRows(arms int, chest rune) (string, string) {
 	switch {
 	case arms == 0:
-		return fmt.Sprintf("  |%c|  ", chest)
+		return "    |     ", "    |c|    "
 	case arms == 1:
-		return fmt.Sprintf(" /-+%c\\ ", chest)
+		return "   _/|    ", "  /-c+    "
 	case arms == 2:
-		return fmt.Sprintf("/-%c-+-%c\\", chest, chest)
+		return "   _/ \\_  ", "  /-c-+-c\\ "
 	case arms <= 4:
-		return fmt.Sprintf("†-%c-+-%c†", chest, chest)
+		return "  _/ \\_/ \\", " /-c-+-c-\\"
 	default:
-		return fmt.Sprintf("※-%c+-%c※", chest, chest)
+		return " _/ \\_/ \\_", "/-c-+-c-\\ "
 	}
 }
 
-// legRows returns the 2 bottom rows for leg visualization.
-func legRows(legs int) (string, string) {
+// torsoRows returns the lower torso + lower arm rows.
+func torsoRows(arms int, chest rune) (string, string) {
+	switch {
+	case arms == 0:
+		return "    |     ", "    |     "
+	case arms == 1:
+		return "   | |    ", "   | |    "
+	case arms == 2:
+		return " | | | |  ", "  |   |   "
+	case arms <= 4:
+		return " | | | |  ", "  |   |   "
+	default:
+		return "| | | | | ", "  |   |   "
+	}
+}
+
+// legRows returns the 3 bottom rows for leg visualization (10 chars wide).
+func legRows(legs int) (string, string, string) {
 	switch legs {
 	case 0:
-		return " ~~~  ", "  ~~~  "
+		return "  ~~~    ", "  ~~~    ", "  ...    "
 	case 2:
-		return " \\_/  ", " |_|_| "
+		return "  _| |_   ", " |_   _|  ", "   |   |  "
 	case 4:
-		return " \\_/_/ ", "|_|_|_|"
+		return " _| | |_  ", "|_     _| ", "  |   |   "
 	case 6:
-		return "\\_/_/_/", "|_|_|_|"
+		return " _| | |_  ", "|_     _| ", "  |   |   "
 	case 8:
-		return "\\_/_/_/_/", "|_|_|_|_|"
+		return "_| | | |_ ", "|_     _| ", " |     |  "
 	default:
-		return " \\_/  ", " |_|_| "
+		return "  _| |_   ", " |_   _|  ", "   |   |  "
 	}
 }
 
@@ -980,22 +1001,23 @@ func sensorRow(p portraitPart, m *Morphology) string {
 	if s == ' ' {
 		return ""
 	}
-	return fmt.Sprintf("  %c%c%c  ", s, s, s)
+	return fmt.Sprintf("    %c     ", s)
 }
 
-// assemblePortrait builds a 7-column by 6-row alien portrait driven by morphology.
-// Row layout: [sensor] [head1] [head2] [neck] [torso+arms] [legs1] [legs2]
+// assemblePortrait builds a 10-column by 12-row alien portrait driven by morphology.
+// Row layout: [sensor] [head(4)] [neck] [shoulders(2)] [torso(2)] [legs(3)]
 func assemblePortrait(p portraitPart, m *Morphology, rank int, palette [3]int32) StyledPortrait {
 	chest := p.chest
 
-	head1, head2 := headShape(m.BodySubtype, chest)
-	neck := "   |   "
-	torso := armRow(m.Arms, chest)
-	leg1, leg2 := legRows(m.Legs)
+	h1, h2, h3, h4 := headShape(m.BodySubtype, chest)
+	neck := neckLine()
+	sh1, sh2 := shoulderRows(m.Arms, chest)
+	t1, t2 := torsoRows(m.Arms, chest)
+	l1, l2, l3 := legRows(m.Legs)
 
-	lines := []string{head1, head2, neck, torso, leg1, leg2}
+	lines := []string{h1, h2, h3, h4, neck, sh1, sh2, t1, t2, l1, l2, l3}
 
-	// Sensor decoration row (replaces head1 if senses warrant it)
+	// Sensor decoration row (replaces h1 if senses warrant it)
 	sensorLine := sensorRow(p, m)
 	if sensorLine != "" {
 		lines[0] = sensorLine
@@ -1004,19 +1026,19 @@ func assemblePortrait(p portraitPart, m *Morphology, rank int, palette [3]int32)
 	// Rank crown: rank >= 2 replaces line 0 with crown
 	if rank >= 2 {
 		crown := p.crown
-		lines[0] = fmt.Sprintf("  %c%c%c  ", crown, crown, crown)
+		lines[0] = fmt.Sprintf("  %c %c %c   ", crown, crown, crown)
 	}
 
-	// Pad every line to exactly 7 runes
+	// Pad every line to exactly 10 runes
 	for i, l := range lines {
 		r := []rune(l)
-		for len(r) < 7 {
+		for len(r) < 10 {
 			r = append(r, ' ')
 		}
-		lines[i] = string(r[:7])
+		lines[i] = string(r[:10])
 	}
 
-	// Color zones: head, torso, legs
+	// Color zones: 0-3=head, 4=neck(head), 5-8=torso, 9-11=legs
 	headColor := [3]int32{
 		int32(clamp(int(palette[0])+40, 0, 255)),
 		int32(clamp(int(palette[1])+40, 0, 255)),
@@ -1029,8 +1051,7 @@ func assemblePortrait(p portraitPart, m *Morphology, rank int, palette [3]int32)
 		int32(clamp(int(palette[2])-30, 0, 255)),
 	}
 
-	// 6 rows: 0-1 = head, 2-3 = torso, 4-5 = legs
-	sections := []int{0, 0, 1, 1, 2, 2}
+	sections := []int{0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2}
 	styledLines := make([]StyledLine, len(lines))
 	for i, l := range lines {
 		var color [3]int32

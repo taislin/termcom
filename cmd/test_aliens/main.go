@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	"github.com/civ13/termcom/internal/data"
+	"github.com/civ13/termcom/internal/engine"
+	"github.com/gdamore/tcell/v3"
 )
 
 const (
@@ -54,57 +56,32 @@ func rgbBg(r, g, b int32) string {
 	return fmt.Sprintf("\033[48;2;%d;%d;%dm", r, g, b)
 }
 
-func renderPortraitHalfBlock(sp data.StyledPortrait) {
-	if len(sp.Lines) == 0 {
-		return
-	}
+func renderPortraitPadded(at *data.AlienType) {
+	portrait := at.GetPortrait()
+	bgColor := tcell.NewRGBColor(20, 20, 28)
+	img := engine.GenerateAlienPortraitPadded(portrait, 20, 24, bgColor)
 
-	lines := len(sp.Lines)
-	// Pad all lines to 7 runes
-	content := make([][]rune, lines)
-	for i, l := range sp.Lines {
-		r := []rune(l.Content)
-		for len(r) < 7 {
-			r = append(r, ' ')
-		}
-		content[i] = r[:7]
-	}
-
-	// Render pairs of rows using half-block characters
-	for row := 0; row < lines; row += 2 {
-		// Top line uses content[row]'s color, bottom uses content[row+1]'s color (or same)
-		topColor := sp.Lines[row].Color
-		botColor := topColor
-		if row+1 < lines {
-			botColor = sp.Lines[row+1].Color
-		}
-
-		topChars := content[row]
-		botChars := content[row]
-		if row+1 < lines {
-			botChars = content[row+1]
-		}
-
+	for row := 0; row < img.Height; row += 2 {
 		fmt.Print("    ")
-		for col := 0; col < 7; col++ {
-			topR := topChars[col]
-			botR := botChars[col]
-			topFill := runeDensity(topR)
-			botFill := runeDensity(botR)
-
-			// Top pixel color
-			tr, tg, tb := topColor[0], topColor[1], topColor[2]
-			// Bottom pixel color
-			br, bg, bb := botColor[0], botColor[1], botColor[2]
-
-			// Draw top half-block (▀) with top color as FG and bottom color as BG
-			// Only show character if at least one pixel is filled
-			if topFill == 0 && botFill == 0 {
-				fmt.Print("  ")
-			} else {
-				// Set BG to bottom color, FG to top color
-				fmt.Printf("%s%s%s%s", rgbBg(br, bg, bb), rgbFg(tr, tg, tb), "\u2580", ansiReset)
+		for col := 0; col < img.Width; col++ {
+			topColor := img.Pixels[row][col]
+			bottomColor := tcell.ColorDefault
+			if row+1 < img.Height {
+				bottomColor = img.Pixels[row+1][col]
 			}
+
+			tr, tg, tb := topColor.RGB()
+			br, bg, bb := bottomColor.RGB()
+			if bottomColor == tcell.ColorDefault {
+				br, bg, bb = 0, 0, 0
+			}
+
+			// Half-block: FG=top pixel, BG=bottom pixel
+			fmt.Printf("%s%s%s%s",
+				rgbBg(br, bg, bb),
+				rgbFg(tr, tg, tb),
+				"\u2580",
+				ansiReset)
 		}
 		fmt.Println()
 	}
@@ -200,9 +177,8 @@ func main() {
 				dmgColor, ansiBold, alienIdx, at.Name, at.Icon, dmgColor, ansiReset)
 
 			// Portrait
-			portrait := at.GetPortrait()
 			fmt.Println()
-			renderPortraitHalfBlock(portrait)
+			renderPortraitPadded(at)
 			fmt.Println()
 
 			// Stats block
