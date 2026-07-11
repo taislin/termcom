@@ -862,12 +862,34 @@ func GenerateAlienPixelsImage(ap data.AlienPixels, fgColor, bgColor tcell.Color)
 	wR, wG, wB := data.AlienWeaponColor(bR, bG, bB)
 	weaponColor := tcell.NewRGBColor(wR, wG, wB)
 
+	lightR := clampColor(bR + 45)
+	lightG := clampColor(bG + 45)
+	lightB := clampColor(bB + 45)
+	darkR := clampColor(bR - 55)
+	darkG := clampColor(bG - 55)
+	darkB := clampColor(bB - 55)
+	accentR := clampColor(bR + 70)
+	accentG := clampColor(bG + 30)
+	accentB := clampColor(bB + 70)
+
+	lightColor := tcell.NewRGBColor(lightR, lightG, lightB)
+	darkColor := tcell.NewRGBColor(darkR, darkG, darkB)
+	accentColor := tcell.NewRGBColor(accentR, accentG, accentB)
+
 	img := NewPixelImage(20, 24)
 	for y := 0; y < 24; y++ {
 		for x := 0; x < 20; x++ {
 			switch {
 			case ap.Weapon[y][x]:
 				img.Pixels[y][x] = weaponColor
+			case ap.Eyes[y][x]:
+				img.Pixels[y][x] = tcell.NewRGBColor(255, 255, 255)
+			case ap.Highlight[y][x]:
+				img.Pixels[y][x] = lightColor
+			case ap.Shadow[y][x]:
+				img.Pixels[y][x] = darkColor
+			case ap.Accent[y][x]:
+				img.Pixels[y][x] = accentColor
 			case ap.Body[y][x]:
 				img.Pixels[y][x] = fgColor
 			default:
@@ -876,6 +898,16 @@ func GenerateAlienPixelsImage(ap data.AlienPixels, fgColor, bgColor tcell.Color)
 		}
 	}
 	return img
+}
+
+func clampColor(v int32) int32 {
+	if v < 0 {
+		return 0
+	}
+	if v > 255 {
+		return 255
+	}
+	return v
 }
 
 // GenerateAlienSpriteFromSeed creates a PixelImage from a seeded sprite assembly,

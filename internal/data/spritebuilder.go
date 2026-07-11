@@ -50,8 +50,12 @@ type TaggedLegs struct {
 // --- AlienPixels: body + weapon layers ---
 
 type AlienPixels struct {
-	Body   [24][20]bool
-	Weapon [24][20]bool
+	Body      [24][20]bool
+	Weapon    [24][20]bool
+	Shadow    [24][20]bool
+	Highlight [24][20]bool
+	Accent    [24][20]bool
+	Eyes      [24][20]bool
 }
 
 // --- Registry ---
@@ -86,7 +90,7 @@ func NewAlienSpriteRegistry() *SpriteRegistry {
 
 var headStandard = []string{
 	"....................",
-	"......XXXXXXXX......",
+	"......XXXXXX......",
 	".....XXXXXXXXXX.....",
 	"....XXXXXXXXXXXX....",
 	"....XXX......XXX....",
@@ -255,17 +259,38 @@ func GenerateAlienPixels(seed int64, m *Morphology) AlienPixels {
 
 	var result AlienPixels
 
+	headOffset := centerOffset(head[0], 20)
 	for y, row := range head {
 		if y >= 10 {
 			break
 		}
 		for x, ch := range row {
 			if ch == 'X' {
-				result.Body[y][x] = true
+				result.Body[y][x+headOffset] = true
 			}
 		}
 	}
 
+	if m.Eyesight != SenseNone && m.Eyesight != "none" && m.Eyesight != "blind" {
+		for y := 0; y < 10; y++ {
+			for x := 0; x < 20; x++ {
+				if y >= len(head) || x+headOffset >= len(head[y]) {
+					continue
+				}
+				ch := rune(head[y][x+headOffset])
+				if ch == 'X' {
+					if (x == 6 || x == 13) && y >= 3 && y <= 6 {
+						result.Eyes[y][x+headOffset] = true
+					}
+					if y == 4 && (x == 7 || x == 12) {
+						result.Eyes[y][x+headOffset] = true
+					}
+				}
+			}
+		}
+	}
+
+	torsoOffset := centerOffset(torso[0], 20)
 	for y, row := range torso {
 		ty := 10 + y
 		if ty >= 18 {
@@ -274,13 +299,14 @@ func GenerateAlienPixels(seed int64, m *Morphology) AlienPixels {
 		for x, ch := range row {
 			switch ch {
 			case 'X':
-				result.Body[ty][x] = true
+				result.Body[ty][x+torsoOffset] = true
 			case 'W':
-				result.Weapon[ty][x] = true
+				result.Weapon[ty][x+torsoOffset] = true
 			}
 		}
 	}
 
+	legsOffset := centerOffset(legs[0], 20)
 	for y, row := range legs {
 		ly := 18 + y
 		if ly >= 24 {
@@ -288,12 +314,57 @@ func GenerateAlienPixels(seed int64, m *Morphology) AlienPixels {
 		}
 		for x, ch := range row {
 			if ch == 'X' {
-				result.Body[ly][x] = true
+				result.Body[ly][x+legsOffset] = true
+			}
+		}
+	}
+
+	for y := 0; y < 24; y++ {
+		for x := 0; x < 20; x++ {
+			if !result.Body[y][x] {
+				continue
+			}
+			if x > 0 && x < 19 && y > 0 && y < 23 {
+				left := result.Body[y][x-1]
+				right := result.Body[y][x+1]
+				up := result.Body[y-1][x]
+				down := result.Body[y+1][x]
+				if !left && right {
+					result.Highlight[y][x] = true
+				}
+				if !right && left {
+					result.Shadow[y][x] = true
+				}
+				if !up && down {
+					result.Accent[y][x] = true
+				}
+			}
+			if y == 0 || y == 23 || x == 0 || x == 19 {
+				result.Shadow[y][x] = true
 			}
 		}
 	}
 
 	return result
+}
+
+func centerOffset(row string, width int) int {
+	left := 0
+	right := len(row) - 1
+	for left < len(row) && row[left] == '.' {
+		left++
+	}
+	for right >= 0 && row[right] == '.' {
+		right--
+	}
+	if left > right {
+		return 0
+	}
+	trimmed := right - left + 1
+	if trimmed >= width {
+		return 0
+	}
+	return (width - trimmed) / 2 - left
 }
 
 func pickHead(candidates []TaggedHead, sense Sense, rng *rand.Rand) []string {
@@ -343,22 +414,12 @@ func AlienColorFromSeed(seed int64) (r, g, b int32) {
 		int32(rng.Intn(150) + 100)
 }
 
-// AlienWeaponColor returns a lighter variant of the body color for the weapon.
+// AlienWeaponColor returns a metallic-grey variant for weapons.
 func AlienWeaponColor(bodyR, bodyG, bodyB int32) (r, g, b int32) {
-	boost := int32(80)
-	r = bodyR + boost
-	g = bodyG + boost
-	b = bodyB + boost
-	if r > 255 {
-		r = 255
-	}
-	if g > 255 {
-		g = 255
-	}
-	if b > 255 {
-		b = 255
-	}
-	return r, g, b
+	_ = bodyR
+	_ = bodyG
+	_ = bodyB
+	return 170, 180, 190
 }
 
 // CompressToHalfBlocks converts a 24x20 boolean pixel grid to a 12x10
