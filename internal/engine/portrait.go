@@ -1,8 +1,6 @@
 package engine
 
 import (
-	"unicode/utf8"
-
 	"github.com/civ13/termcom/internal/data"
 	"github.com/gdamore/tcell/v3"
 )
@@ -857,92 +855,34 @@ func generateDecalLayer(w, h int, color tcell.Color, rank int) *PixelImage {
 	return img
 }
 
-// GenerateAlienPortrait upscales a StyledPortrait text block to a sub-cell half-block PixelImage.
-func GenerateAlienPortrait(sp data.StyledPortrait, scale int) *PixelImage {
-	if len(sp.Lines) == 0 {
-		return NewPixelImage(14, 14)
-	}
+// GenerateAlienPixelsImage converts an AlienPixels grid to a PixelImage,
+// rendering body and weapon layers in distinct colors.
+func GenerateAlienPixelsImage(ap data.AlienPixels, fgColor, bgColor tcell.Color) *PixelImage {
+	bR, bG, bB := fgColor.RGB()
+	wR, wG, wB := data.AlienWeaponColor(bR, bG, bB)
+	weaponColor := tcell.NewRGBColor(wR, wG, wB)
 
-	linesH := len(sp.Lines)
-	linesW := utf8.RuneCountInString(sp.Lines[0].Content)
-
-	imgW := linesW * scale
-	imgH := linesH * scale
-	img := NewPixelImage(imgW, imgH)
-
-	for rY, line := range sp.Lines {
-		runes := []rune(line.Content)
-		cVal := tcell.NewRGBColor(line.Color[0], line.Color[1], line.Color[2])
-
-		for rX, rn := range runes {
-			density := 0
-			switch rn {
-			case ' ', 0:
-				density = 0
-			case '.', '·', '°', '*':
-				density = 1
-			case '|', '-', '/', '\\', '+', '¤', '~', '†', 'o':
-				density = 2
+	img := NewPixelImage(20, 24)
+	for y := 0; y < 24; y++ {
+		for x := 0; x < 20; x++ {
+			switch {
+			case ap.Weapon[y][x]:
+				img.Pixels[y][x] = weaponColor
+			case ap.Body[y][x]:
+				img.Pixels[y][x] = fgColor
 			default:
-				density = 3
-			}
-
-			for dy := 0; dy < scale; dy++ {
-				for dx := 0; dx < scale; dx++ {
-					pixelY := rY*scale + dy
-					pixelX := rX*scale + dx
-
-					if pixelY < imgH && pixelX < imgW {
-						if density == 3 {
-							img.Pixels[pixelY][pixelX] = cVal
-						} else if density == 2 {
-							if (dy+dx)%2 == 0 {
-								img.Pixels[pixelY][pixelX] = cVal
-							}
-						} else if density == 1 {
-							if dy == scale/2 && dx == scale/2 {
-								img.Pixels[pixelY][pixelX] = cVal
-							}
-						}
-					}
-				}
+				img.Pixels[y][x] = bgColor
 			}
 		}
 	}
-
 	return img
 }
 
-// GenerateAlienPortraitPadded generates an alien portrait scaled and padded to exact dimensions.
-func GenerateAlienPortraitPadded(sp data.StyledPortrait, targetW, targetH int, bgColor tcell.Color) *PixelImage {
-	img := NewPixelImage(targetW, targetH)
-
-	for y := 0; y < targetH; y++ {
-		for x := 0; x < targetW; x++ {
-			img.Pixels[y][x] = bgColor
-		}
-	}
-
-	if len(sp.Lines) == 0 {
-		return img
-	}
-
-	// Scale 2 gives 20x24 from a 10x12 text grid (exact match)
-	scale := 2
-	inner := GenerateAlienPortrait(sp, scale)
-
-	offX := (targetW - inner.Width) / 2
-	offY := (targetH - inner.Height) / 2
-	for y := 0; y < inner.Height; y++ {
-		for x := 0; x < inner.Width; x++ {
-			px, py := offX+x, offY+y
-			if px >= 0 && px < targetW && py >= 0 && py < targetH {
-				if inner.Pixels[y][x] != tcell.ColorDefault {
-					img.Pixels[py][px] = inner.Pixels[y][x]
-				}
-			}
-		}
-	}
-
-	return img
+// GenerateAlienSpriteFromSeed creates a PixelImage from a seeded sprite assembly,
+// using the alien's morphology to select trait-matched visual templates.
+func GenerateAlienSpriteFromSeed(seed int64, m *data.Morphology, bgColor tcell.Color) *PixelImage {
+	ap := data.GenerateAlienPixels(seed, m)
+	r, g, b := data.AlienColorFromSeed(seed)
+	fgColor := tcell.NewRGBColor(r, g, b)
+	return GenerateAlienPixelsImage(ap, fgColor, bgColor)
 }

@@ -57,9 +57,8 @@ func rgbBg(r, g, b int32) string {
 }
 
 func renderPortraitPadded(at *data.AlienType) {
-	portrait := at.GetPortrait()
 	bgColor := tcell.NewRGBColor(20, 20, 28)
-	img := engine.GenerateAlienPortraitPadded(portrait, 20, 24, bgColor)
+	img := engine.GenerateAlienSpriteFromSeed(int64(at.Icon), at.Morphology, bgColor)
 
 	for row := 0; row < img.Height; row += 2 {
 		fmt.Print("    ")

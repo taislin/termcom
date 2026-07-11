@@ -189,9 +189,8 @@ func (es *EncyclopediaScreen) Render(ctx *ScreenCtx) {
 
 			if e.Category == "Aliens" && e.AlienType != nil {
 				at := e.AlienType
-				portrait := at.GetPortrait()
 				bgColor := tcell.NewRGBColor(20, 20, 28)
-				alienImg := GenerateAlienPortraitPadded(portrait, 20, 24, bgColor)
+				alienImg := GenerateAlienSpriteFromSeed(int64(at.Icon), at.Morphology, bgColor)
 				pX := infoX + infoW - alienImg.Width - 4
 				pY := listY + 2
 

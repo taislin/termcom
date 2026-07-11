@@ -2280,9 +2280,8 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 
 		// Draw sprite aligned right at top of sidebar
 		if u.Faction == 1 && u.AlienType != nil {
-			portrait := u.AlienType.GetPortrait()
 			bgColor := tcell.NewRGBColor(20, 20, 28)
-			alienImg := engine.GenerateAlienPortraitPadded(portrait, 20, 24, bgColor)
+			alienImg := engine.GenerateAlienSpriteFromSeed(int64(u.AlienType.Icon), u.AlienType.Morphology, bgColor)
 			portW := alienImg.Width + 2
 			portX := sidebarX + bs.SidebarW - portW
 			ctx.DrawPixelImageFramed(portX, 1, alienImg, engine.StyleRed)
@@ -2338,8 +2337,15 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 			ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_ACC"), bs.Selected.Accuracy), engine.StyleDefault)
 			sy++
 
-			weaponName := data.RuleItems[bs.Selected.Weapon].ShortName
-			ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_WEAPON"), weaponName, bs.Selected.WeaponAmmo), engine.StyleDefault)
+			weaponName := data.RuleItems[bs.Selected.Weapon].Name
+			if len(weaponName) > bs.SidebarW-4 {
+				weaponName = weaponName[:bs.SidebarW-4]
+			}
+			ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_WEAPON"), weaponName), engine.StyleDefault)
+			sy++
+
+			w := data.RuleItems[bs.Selected.Weapon]
+			ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_AMMO"), bs.Selected.WeaponAmmo, w.AmmoMax), engine.StyleDefault)
 			sy++
 
 			armourName := "None"
