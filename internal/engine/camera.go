@@ -57,18 +57,6 @@ func (c *Camera) SetTarget(x, y int) {
 	c.Y = y
 }
 
-func (c *Camera) ViewX() int {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
-	return c.X + c.OffsetX
-}
-
-func (c *Camera) ViewY() int {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
-	return c.Y + c.OffsetY
-}
-
 func (c *Camera) Pos() (int, int) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()

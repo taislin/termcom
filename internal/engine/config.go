@@ -2,6 +2,7 @@ package engine
 
 import (
 	"encoding/json"
+	"log"
 	"os"
 
 	"github.com/civ13/termcom/internal/language"
@@ -28,7 +29,10 @@ func LoadConfig() {
 	if err != nil {
 		return
 	}
-	_ = json.Unmarshal(data, &Config)
+	if err := json.Unmarshal(data, &Config); err != nil {
+		log.Printf("config: ignoring corrupt %s: %v", ConfigFile, err)
+		return
+	}
 	if Config.Language != "" {
 		language.SetLanguage(Config.Language)
 	}
@@ -39,5 +43,7 @@ func SaveConfig() {
 	if err != nil {
 		return
 	}
-	_ = os.WriteFile(ConfigFile, data, 0644)
+	if err := os.WriteFile(ConfigFile, data, 0644); err != nil {
+		log.Printf("config: failed to save %s: %v", ConfigFile, err)
+	}
 }

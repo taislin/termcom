@@ -119,13 +119,12 @@ internal/
   base/              Base management: facilities, research, manufacture
   soldier/           Soldier stats, ranking, inventory
   data/              Game data: items, aliens, research, tech tree
+  data/procedural.go         Procedural alien species generation
+  data/procedural_items.go   Procedural weapons and armor generation
+  data/techgen.go            Procedural tech tree generation
   save/              Save/load system, version migration
   language/          Localization strings
   audio/             Platform-specific audio synthesis
-docs/
-  manual.md          Player manual
-  dev.md             This file
-  tables.md          Data tables reference
 ```
 
 ## Architecture Notes
@@ -141,10 +140,23 @@ docs/
 
 ### Adding a new alien type
 
+**Hardcoded aliens** (in `var AlienTypes` in `internal/data/aliens.go`):
 1. Add struct to `internal/data/aliens.go`
 2. Add weapon to `internal/data/items.go` if needed
 3. Add lore text to `internal/language/en.go`
 4. Add resistances appropriate to the damage type
+5. Portrait defaults to carbon_flesh morphology (set `Morphology: nil`)
+
+**Procedural aliens** (generated from seed in `internal/data/procedural.go`):
+- Morphology is auto-generated from damage type and random rolls
+- To add a new body subtype: add constant to `aliens.go`, add entry to
+  `pickOrganicSubtype`/`pickSyntheticSubtype`, add head shape to `headShape()`,
+  add resistance modifiers to `subtypeResistMod()`, add stat modifiers to the
+  `morphXMod()` functions, and add lore snippet to `morphLoreSnippets`
+- To add a new sense: add constant to `aliens.go`, update `pickSenseQuality`/
+  `pickHearingQuality`/`pickBinarySense`, add effect to `canSense()` in `ai.go`,
+  add targeting bonus to `selectTarget()` in `ai.go`, and add portrait decoration
+  to `pickSenseSensor()`
 
 ### Adding a new map type
 
@@ -158,10 +170,39 @@ docs/
 2. Add language strings to `internal/language/en.go`
 3. Add to base stores if purchasable
 
+### Procedural systems
+
+Each playthrough generates unique content from a seed:
+
+**Alien species** (`internal/data/procedural.go`):
+- 5-7 species per run with unique names, morphology, stats, resistances
+- Rank variants (0-4) with scaled stats
+- ASCII portraits driven by morphology
+- Called via `GenerateSpecies(seed)`
+
+**Research tree** (`internal/data/techgen.go`):
+- 16 base techs + autopsies per species
+- DAG prerequisites randomized each run
+- Species study topics unlocked after autopsies
+- Called via `GenerateTechTree(seed, aliens)`
+
+**Items** (`internal/data/procedural_items.go`):
+- 2-3 procedural weapons based on species damage types
+- 1-2 procedural armor pieces based on species
+- Registered via `RegisterProceduralItems(seed, aliens)`
+- Called during game init and save load
+
+**Maps** (`internal/battle/map.go`):
+- 10 procedural map generators
+- Biome-based tile probability distributions
+- Seeded for reproducible layouts
+
 ### Modifying balance
 
 - Soldier stats: `internal/soldier/soldier.go` (NewSoldier defaults)
-- Alien stats: `internal/data/aliens.go` (AlienTypes array)
+- Alien stats: `internal/data/aliens.go` (AlienTypes array for hardcoded aliens)
+- Morphology stat modifiers: `internal/data/procedural.go` (`morphXMod` functions)
+- Body subtype resistances: `internal/data/procedural.go` (`subtypeResistMod`)
 - Weapon damage/accuracy/TU: `internal/data/items.go` (RuleItems map)
 - Difficulty scaling: `internal/engine/difficulty.go`
 

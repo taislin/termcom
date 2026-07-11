@@ -261,6 +261,7 @@ Key mechanics:
 | 1 | UFO Power Source | 120 | Alien lore |
 | 1 | Alien Communications | 90 | Alien lore |
 | 1 | [Species] Autopsy | 40-70 | Alien lore |
+| 2 | [Species] Xenobiology/Study | 60-110 | Alien lore (requires autopsy) |
 | 2 | Laser Weapons | 120 | Laser Pistol, Laser Rifle |
 | 2 | Personal Armour | 80 | Personal Armour |
 | 3 | Plasma Weapons | 200 | Plasma Pistol, Plasma Rifle |
@@ -273,11 +274,19 @@ Key mechanics:
 | 5 | Power Suit | 400 | Power Suit |
 | 5 | Flying Suit | 500 | Flying Suit |
 
+### Procedural Species Studies
+
+Each procedural species unlocks a unique study topic after autopsy. These topics
+have randomized names (Xenobiology, Behavioral Analysis, Tactical Study, etc.)
+and provide additional lore about the species. They're optional but help build
+your encyclopedia and may provide strategic insights.
+
 ### Recommended Early Research
 
 Alien Alloys and Elerium-115 are always available at Tier 1 and should be
 researched first. After that, check which autopsies your scientists can
 perform — some weapon techs require a specific alien autopsy as a catalyst.
+Species studies are optional but provide valuable intelligence.
 
 ---
 
@@ -554,6 +563,22 @@ The Battlescape includes dynamic visual effects:
 | Motion Scanner | MSC | 3 | $5,000 |
 | Psi-Amplifier | PSI | 2 | $30,000 |
 
+### Procedural Items
+
+Each playthrough generates unique weapons and armor based on the procedural alien
+species. These items have randomized stats and names, making every game different.
+
+**Procedural Weapons:** 2-3 weapons with damage types matching the alien species.
+Names combine prefixes (Plasma, Laser, Rail, Psi, etc.) with weapon types (Pistol,
+Rifle, Carbine, Blaster, Cannon, Emitter).
+
+**Procedural Armor:** 1-2 armor pieces with protection matching alien damage types.
+Names combine prefixes (Plasma-Shielded, Reflective, Ballistic, Psi-Shielded, etc.)
+with armor types (Vest, Suit, Plating, Armour, Guard).
+
+These items are automatically added to your stores when the game starts and can be
+equipped like any other item.
+
 **Storage:** Weight varies by item (weapons 2–12, armour 8 per unit). Capacity = 50 per Storage facility.
 
 ---
@@ -585,10 +610,55 @@ Species traits are determined at generation:
 - **Primary damage type** — the damage type the species deals
 - **Resistance spread** — each species has unique resistances and weaknesses
 - **Weapon preference** — lower ranks use pistols, higher ranks use heavy weapons
+- **Morphology** — physical form that determines stats, resistances, and portrait
 
 This means every playthrough features different alien threats. One run may have
 a psionic-heavy species resistant to plasma, while another has melee predators
 weak to explosives.
+
+### Morphology
+
+Every procedural species has a morphology — its physical body plan — that affects
+combat stats, damage resistances, and visual appearance.
+
+#### Limbs
+
+| Variable | Range | Effect |
+|----------|-------|--------|
+| Arms (manipulative) | 0–6 | 0 = no arms (-15 Acc, pistol-only), 2 = baseline, 3–4 = extra stability (+5 Acc), 5–6 = dual-wield |
+| Legs (locomotive) | 0–8 | 0 = floating (+10 Reactions, harder to hit), 2 = baseline, 4 = fast (+10 TU), 6–8 = very fast but large target |
+
+#### Body Type & Subtype
+
+| Body Type | Subtype | Resistances | Special |
+|-----------|---------|-------------|---------|
+| Organic | Carbon Flesh | +10 Kinetic, -10 Explosive | None |
+| Organic | Silicon Based | +20 Laser, +10 Plasma, -15 Explosive | Reflective |
+| Organic | Gaseous | Immune Kinetic, -20 Plasma | Phasing (move through walls) |
+| Organic | Crystalline | +15 all except Explosive (-25) | Shatter (AoE on death) |
+| Organic | Amorphous | +10 Psionic | Regenerate (2 HP/turn) |
+| Synthetic | Mechanical | Immune Psionic, +15 Plasma, -15 Laser | Overload (self-destruct AoE) |
+| Synthetic | Bio-Synthetic | +5 all | Healer (heal adjacent aliens) |
+| Synthetic | Nanotech | +20 Kinetic, -10 energy | Disperse (50% revive on death) |
+
+#### Senses
+
+| Sense | Qualities | Combat Effect |
+|-------|-----------|---------------|
+| Eyesight | none / poor / normal / excellent / multi-spectrum | Affects accuracy and reaction fire. Multi-spectrum ignores smoke/darkness. |
+| Hearing | none / poor / normal / excellent / echolocation | Echolocation detects units through smoke within 6 tiles. |
+| Thermal Sense | none / low / high | High detects any living unit within 10 tiles regardless of cover/smoke. |
+| Psionic Sense | none / low / high | High grants +15 Psi and detects mind-controlled humans. |
+| Chemical Sense | none / low / high | High grants +10 Accuracy vs wounded targets. |
+
+#### Morphology & Stats
+
+Morphology modifies base stats before rank scaling:
+- Floating aliens: -5 TU, +10 Reactions, -3 HP
+- Multi-armed aliens: +5–10 Accuracy, +5–10 Strength
+- Many-legged aliens: +10–15 TU, +5–10 Reactions, +5 Strength
+- Blind aliens (Eyesight=none): -20 Accuracy, +10 Psi (compensates)
+- Crystalline: +5 HP, +5 Armour, -10 TU
 
 ### Knowledge Levels
 
@@ -603,10 +673,13 @@ As you encounter aliens, your knowledge increases:
 
 ### Alien AI Behavior
 
-- **Patrol:** Wander until a human is within 15 tiles, then switch to Attack.
+- **Patrol:** Wander until a human is detected, then switch to Attack.
 - **Attack:** Fire at target. High-aggression aliens (>5) charge if distance > 3 tiles.
 - **Search:** Move toward last-seen position for 5 turns, then resume Patrol.
 - **Flee:** Triggered when HP < 25% AND Bravery < 50. Runs for 3 turns.
+- **Senses:** Aliens with thermal sense or echolocation can detect units they
+  cannot see directly (through smoke, around corners). Chemical sense prioritises
+  wounded targets. Excellent eyesight grants accuracy bonuses at long range.
 - **Adaptive:** Across missions the aliens study your habits (stored in `Game.Tactics`).
   If you snipe from long range they rush to close distance; if you lean on grenades
   they spread out to avoid clusters; if you flank often they post more suppressors

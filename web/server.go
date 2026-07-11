@@ -143,7 +143,11 @@ func (s *Server) SendOutput(output string) {
 		Type: "output",
 		Data: output,
 	}
-	data, _ := json.Marshal(msg)
+	data, err := json.Marshal(msg)
+	if err != nil {
+		log.Printf("web: failed to marshal output message: %v", err)
+		return
+	}
 	s.Broadcast(data)
 }
 

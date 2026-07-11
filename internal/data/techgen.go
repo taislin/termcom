@@ -40,6 +40,23 @@ var baseTechs = []techDef{
 	{ID: "flight_suit", Name: "Flying Suit", BaseCost: 500, Tier: 5, UnlockArmor: []string{"flight_suit"}},
 }
 
+var studyNames = []string{
+	"Xenobiology", "Behavioral Analysis", "Tactical Study", "Morphology Review",
+	"Neural Mapping", "Genetic Analysis", "Combat Doctrine", "Psionic Profile",
+}
+
+func generateSpeciesStudyTopic(rng *rand.Rand, sp *AlienSpecies, autopsyID string) techDef {
+	nameSuffix := studyNames[rng.Intn(len(studyNames))]
+	return techDef{
+		ID:       sp.Name + "_study",
+		Name:     sp.Name + " " + nameSuffix,
+		BaseCost: 60 + rng.Intn(50),
+		Tier:     2,
+		Requires: []string{autopsyID},
+		AlienLore: true,
+	}
+}
+
 func GenerateTechTree(seed int64, aliens []*AlienSpecies) []ResearchTopic {
 	rng := rand.New(rand.NewSource(seed))
 
@@ -69,6 +86,13 @@ func GenerateTechTree(seed int64, aliens []*AlienSpecies) []ResearchTopic {
 			}
 			autopsyIDs = append(autopsyIDs, def.ID)
 			defs = append(defs, def)
+		}
+	}
+
+	for i, sp := range aliens {
+		if i < len(autopsyIDs) {
+			study := generateSpeciesStudyTopic(rng, sp, autopsyIDs[i])
+			defs = append(defs, study)
 		}
 	}
 

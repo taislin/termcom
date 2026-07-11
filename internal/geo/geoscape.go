@@ -1064,7 +1064,10 @@ func (gs *Geoscape) SaveGameToSlot(slot int) {
 
 func (gs *Geoscape) SaveGameAuto() {
 	sd := gs.buildSaveData()
-	_ = save.SaveGame(save.AutoSavePath(), sd)
+	if err := save.SaveGame(save.AutoSavePath(), sd); err != nil {
+		gs.Message = language.String("MSG_SAVE_FAILED") + err.Error()
+		gs.MessageTimer = time.Now()
+	}
 }
 
 func (gs *Geoscape) LoadGameFromFile() {
@@ -1099,6 +1102,7 @@ func (gs *Geoscape) loadFromSaveData(sd *save.SaveData) {
 	}
 	gs.Game.AlienSpecies, gs.Game.AlienTypes = data.GenerateSpecies(sd.SpeciesSeed)
 	data.InitResearchTree(sd.SpeciesSeed, gs.Game.AlienSpecies)
+	data.RegisterProceduralItems(sd.SpeciesSeed, gs.Game.AlienSpecies)
 	gs.Bases = nil
 	for _, bs := range sd.Bases {
 		gs.Bases = append(gs.Bases, save.ToBase(bs))

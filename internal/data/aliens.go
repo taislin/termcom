@@ -76,6 +76,69 @@ func UsedHardcodedIcons() map[rune]bool {
 	return used
 }
 
+// Body type constants.
+const (
+	BodyOrganic   = "organic"
+	BodySynthetic = "synthetic"
+)
+
+// Body subtype constants.
+const (
+	SubtypeCarbonFlesh  = "carbon_flesh"
+	SubtypeSilicon      = "silicon_based"
+	SubtypeGaseous      = "gaseous"
+	SubtypeCrystalline  = "crystalline"
+	SubtypeAmorphous    = "amorphous"
+	SubtypeMechanical   = "mechanical"
+	SubtypeBioSynthetic = "bio_synthetic"
+	SubtypeNanotech     = "nanotech"
+)
+
+// Sense quality constants.
+const (
+	SenseNone      = "none"
+	SensePoor      = "poor"
+	SenseNormal    = "normal"
+	SenseExcellent = "excellent"
+	SenseMultiSpec = "multi_spectrum"
+	SenseEcholoc   = "echolocation"
+	SenseLow       = "low"
+	SenseHigh      = "high"
+)
+
+// Morphology describes the physical form of an alien species.
+type Morphology struct {
+	Arms          int    // 0-6 manipulative limbs
+	Legs          int    // 0-8 locomotive limbs (0=floating)
+	BodyType      string // "organic" | "synthetic"
+	BodySubtype   string // e.g. "carbon_flesh", "mechanical"
+	Eyesight      string // sense quality
+	Hearing       string // sense quality
+	ThermalSense  string // "none" | "low" | "high"
+	PsionicSense  string // "none" | "low" | "high"
+	ChemicalSense string // "none" | "low" | "high"
+}
+
+// OrganicSubtypes lists valid organic body subtypes.
+var OrganicSubtypes = []string{
+	SubtypeCarbonFlesh, SubtypeSilicon, SubtypeGaseous,
+	SubtypeCrystalline, SubtypeAmorphous,
+}
+
+// SyntheticSubtypes lists valid synthetic body subtypes.
+var SyntheticSubtypes = []string{
+	SubtypeMechanical, SubtypeBioSynthetic, SubtypeNanotech,
+}
+
+// IsFloating returns true if the alien has no legs (levitates/slithers).
+func (m *Morphology) IsFloating() bool { return m.Legs == 0 }
+
+// IsLarge returns true if the alien has 4+ legs (big silhouette).
+func (m *Morphology) IsLarge() bool { return m.Legs >= 4 }
+
+// MultiArmed returns true if the alien has 3+ arms.
+func (m *Morphology) MultiArmed() bool { return m.Arms >= 3 }
+
 // StyledLine represents a line of the portrait with color information.
 type StyledLine struct {
 	Content string
@@ -115,9 +178,10 @@ type AlienType struct {
 	ResistKinetic   int
 	ResistPsionic   int
 
-	AutopsyID string         // research ID that unlocks this alien's stats in battlescape sidebar
-	Lore      string         // autopsy flavor text
-	Portrait  StyledPortrait // ASCII portrait with color info
+	AutopsyID  string         // research ID that unlocks this alien's stats in battlescape sidebar
+	Lore       string         // autopsy flavor text
+	Portrait   StyledPortrait // ASCII portrait with color info
+	Morphology *Morphology    // physical form (nil for hardcoded aliens)
 }
 
 // GetPortrait returns the alien's portrait, generating one if not set.
@@ -126,7 +190,15 @@ func (at *AlienType) GetPortrait() StyledPortrait {
 		return at.Portrait
 	}
 	rng := rand.New(rand.NewSource(int64(at.Icon)))
-	at.Portrait = generatePortrait(rng, at.Icon, at.DamageType, at.Rank)
+	if at.Morphology != nil {
+		at.Portrait = generatePortrait(rng, at.Icon, at.DamageType, at.Rank, at.Morphology)
+	} else {
+		// Hardcoded aliens: use default morphology for portrait
+		at.Portrait = generatePortrait(rng, at.Icon, at.DamageType, at.Rank, &Morphology{
+			Arms: 2, Legs: 2, BodyType: BodyOrganic, BodySubtype: SubtypeCarbonFlesh,
+			Eyesight: SenseNormal, Hearing: SenseNormal,
+		})
+	}
 	return at.Portrait
 }
 

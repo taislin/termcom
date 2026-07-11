@@ -201,14 +201,16 @@ func (u *Unit) FireAt(target *Unit, m *BattleMap) (int, bool, error) {
 // WeaponDamageType returns the damage type for a given weapon ID.
 func WeaponDamageType(weapon string) int {
 	switch weapon {
-	case "plasma_pistol", "plasma_rifle", "heavy_plasma", "alien_grenade":
+	case "plasma_pistol", "plasma_rifle", "heavy_plasma", "alien_grenade", "alien_rocket":
 		return data.DMG_PLASMA
-	case "laser_pistol", "laser_rifle":
+	case "laser_pistol", "laser_rifle", "alien_laser", "alien_heavy_laser":
 		return data.DMG_LASER
 	case "rocket":
 		return data.DMG_EXPLOSIVE
-	case "chryssalid_claw", "reaper_claw", "stun_rod":
+	case "chryssalid_claw", "reaper_claw", "stun_rod", "alien_claw", "alien_fang":
 		return data.DMG_MELEE
+	case "alien_psi_bolt":
+		return data.DMG_PSIONIC
 	default:
 		return data.DMG_KINETIC
 	}

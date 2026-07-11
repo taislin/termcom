@@ -94,6 +94,7 @@ func (g *Game) GameOver(won bool, stats string) {
 }
 
 func NewGame() (*Game, error) {
+	LoadConfig()
 	scr, err := NewScreenRaw()
 	if err != nil {
 		return nil, err
@@ -123,6 +124,7 @@ func (g *Game) initSpecies() {
 	g.AlienSpecies, g.AlienTypes = data.GenerateSpecies(g.SpeciesSeed)
 	g.AlienKnowledge = make(map[string]int)
 	data.InitResearchTree(g.SpeciesSeed, g.AlienSpecies)
+	data.RegisterProceduralItems(g.SpeciesSeed, g.AlienSpecies)
 }
 
 // LearnAlien increases knowledge level for an alien type.
@@ -138,6 +140,15 @@ func (g *Game) GetAlienTypes() []*data.AlienType {
 	if len(g.AlienTypes) > 0 {
 		return g.AlienTypes
 	}
+	result := make([]*data.AlienType, len(data.AlienTypes))
+	for i := range data.AlienTypes {
+		result[i] = &data.AlienTypes[i]
+	}
+	return result
+}
+
+// GetHardcodedAliens returns the hardcoded alien roster (reserved for scripted missions).
+func (g *Game) GetHardcodedAliens() []*data.AlienType {
 	result := make([]*data.AlienType, len(data.AlienTypes))
 	for i := range data.AlienTypes {
 		result[i] = &data.AlienTypes[i]

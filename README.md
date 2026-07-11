@@ -15,7 +15,7 @@ A roguelike-ified demake of **X-COM: UFO Defense** *(1994, MicroProse)* rendered
 
 ## Requirements
 
-- Go 1.22+
+- Go 1.25+
 - Terminal with Unicode support (for box-drawing characters)
 - Web browser (for browser version)
 
