@@ -2057,7 +2057,7 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 	// Draw soldier portrait on the right side of sidebar
 	if bs.Selected != nil {
 		halfSide := bs.SidebarW / 2
-		portraitImg := engine.MakeSoldierPortrait(bs.Selected.Soldier.Name, bs.Selected.Soldier.Armor, 8, 8)
+		portraitImg := engine.MakeSoldierPortrait(bs.Selected.Soldier.Name, bs.Selected.Soldier.Armor, 12, 14)
 		ctx.DrawPixelImage(sidebarX+halfSide, 2, portraitImg)
 		if sy < 6 {
 			sy = 6
