@@ -67,6 +67,10 @@ type Geoscape struct {
 	ActiveFinalMission  bool       // non-nil if the current battle is the Cydonia final mission
 	CydoniaTriggered    bool       // ensures the final mission is added only once
 	ShowRadarOverlay    bool       // toggle radar coverage circles on minimap
+
+	MissionSelectMode bool
+	MissionSelectIdx  int
+	MissionOdds       int
 }
 
 func (gs *Geoscape) SelectedBase() *base.Base {
@@ -912,6 +916,218 @@ func (gs *Geoscape) RespondToMission(idx int) {
 	gs.Game.PushState(engine.StateBattlescape)
 }
 
+func (gs *Geoscape) AutoresolveMission(idx int) {
+	if idx < 0 || idx >= len(gs.Missions) {
+		return
+	}
+	if gs.SelectedBase() == nil {
+		return
+	}
+	mission := gs.Missions[idx]
+	gs.Missions = append(gs.Missions[:idx], gs.Missions[idx+1:]...)
+
+	defBase := gs.SelectedBase()
+	if gs.ActiveBaseDefense != nil {
+		defBase = gs.ActiveBaseDefense
+	}
+	healthy := defBase.HealthySoldiers()
+	if len(healthy) == 0 {
+		gs.Message = language.String("MSG_NO_HEALTHY_SOLDIERS")
+		gs.MessageTimer = time.Now()
+		return
+	}
+
+	city := gs.CityByID(mission.NodeID)
+	cityName := "?"
+	if city != nil {
+		cityName = city.Name
+		city.MissionHere = false
+	}
+
+	alienCount := 5 + gs.MissionsWon/2
+	if alienCount > 10 {
+		alienCount = 10
+	}
+
+	diffMult := 1.0
+	if gs.Game.Difficulty >= 0 && gs.Game.Difficulty < len(engine.Difficulties) {
+		diffMult = engine.Difficulties[gs.Game.Difficulty].AlienScale
+	}
+
+	squadPower := 0
+	for _, s := range healthy {
+		squadPower += s.HP + s.Accuracy/2 + s.Strength + s.Reactions/2
+		if s.HasPerk("marksman") {
+			squadPower += 15
+		}
+		if s.HasPerk("tough") {
+			squadPower += 20
+		}
+		if s.HasPerk("close_combat") {
+			squadPower += 10
+		}
+		if s.HasPerk("overwatch") {
+			squadPower += 10
+		}
+	}
+
+	alienPower := int(float64(alienCount*(40+gs.MissionsWon*3)) * diffMult)
+
+	winChance := 30 + (squadPower-alienPower)/5
+	if winChance > 70 {
+		winChance = 70
+	}
+	if winChance < 10 {
+		winChance = 10
+	}
+
+	missionTypeMod := 0
+	switch mission.Type {
+	case language.String("MISSION_TERROR"):
+		missionTypeMod = -10
+	case language.String("MISSION_COUNCIL"):
+		missionTypeMod = 10
+	case language.String("MISSION_ALIEN_BASE"):
+		missionTypeMod = -15
+	}
+	winChance += missionTypeMod
+	if winChance > 70 {
+		winChance = 70
+	}
+	if winChance < 10 {
+		winChance = 10
+	}
+
+	won := rand.Intn(100) < winChance
+
+	if won {
+		reward := int64(25000 + gs.MissionsWon*2000)
+		gs.Game.Funds += reward
+		gs.MissionsWon++
+
+		xp := alienCount * 2
+		for _, s := range healthy {
+			s.GainXP(xp)
+			s.Missions++
+			s.Fatigue += 2
+		}
+
+		weaponDrops := make(map[string]bool)
+		deadAliens := make(map[string]bool)
+		for i := 0; i < alienCount; i++ {
+			if rand.Intn(100) < 25 {
+				alienTypes := gs.Game.GetAlienTypes()
+				if len(alienTypes) > 0 {
+					at := alienTypes[rand.Intn(len(alienTypes))]
+					weaponDrops[at.Weapon] = true
+					deadAliens[at.Name] = true
+				}
+			}
+		}
+		for wpn := range weaponDrops {
+			if _, ok := data.RuleItems[wpn]; ok {
+				defBase.AddItem(wpn, 1)
+			}
+		}
+		for name := range deadAliens {
+			gs.Game.LearnAlien(name, 2)
+		}
+
+		gs.Message = fmt.Sprintf("AUTO-RESOLVE: Victory in %s! Earned $%dK. %d aliens eliminated.",
+			cityName, reward/1000, alienCount)
+	} else {
+		casualtyCount := 1 + rand.Intn(min(3, len(healthy)))
+		if casualtyCount > len(healthy) {
+			casualtyCount = len(healthy)
+		}
+		killed := make([]string, 0, casualtyCount)
+		shuffled := make([]*soldier.Soldier, len(healthy))
+		copy(shuffled, healthy)
+		rand.Shuffle(len(shuffled), func(i, j int) { shuffled[i], shuffled[j] = shuffled[j], shuffled[i] })
+		for i := 0; i < casualtyCount && i < len(shuffled); i++ {
+			shuffled[i].HP = 0
+			shuffled[i].Wounds = 30
+			killed = append(killed, shuffled[i].Name)
+		}
+		defBase.RemoveDeadSoldiers()
+
+		for _, s := range healthy {
+			if s.HP > 0 {
+				s.Fatigue += 3
+			}
+		}
+
+		gs.Message = fmt.Sprintf("AUTO-RESOLVE: Defeat in %s! Lost %d soldier(s): %s",
+			cityName, casualtyCount, strings.Join(killed, ", "))
+	}
+
+	gs.ActiveMissionType = ""
+	gs.Game.Paused = false
+	gs.MessageTimer = time.Now()
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+func (gs *Geoscape) enterMissionSelectMode() {
+	idx := gs.missionIndexAtCursor()
+	if idx < 0 {
+		gs.Message = "No mission at this location."
+		gs.MessageTimer = time.Now()
+		return
+	}
+
+	defBase := gs.SelectedBase()
+	if defBase == nil {
+		return
+	}
+	healthy := defBase.HealthySoldiers()
+	if len(healthy) == 0 {
+		gs.Message = language.String("MSG_NO_HEALTHY_SOLDIERS")
+		gs.MessageTimer = time.Now()
+		return
+	}
+
+	alienCount := 5 + gs.MissionsWon/2
+	if alienCount > 10 {
+		alienCount = 10
+	}
+	diffMult := 1.0
+	if gs.Game.Difficulty >= 0 && gs.Game.Difficulty < len(engine.Difficulties) {
+		diffMult = engine.Difficulties[gs.Game.Difficulty].AlienScale
+	}
+	squadPower := 0
+	for _, s := range healthy {
+		squadPower += s.HP + s.Accuracy/2 + s.Strength + s.Reactions/2
+		if s.HasPerk("marksman") {
+			squadPower += 15
+		}
+		if s.HasPerk("tough") {
+			squadPower += 20
+		}
+		if s.HasPerk("close_combat") {
+			squadPower += 10
+		}
+	}
+	alienPower := int(float64(alienCount*(40+gs.MissionsWon*3)) * diffMult)
+	winChance := 30 + (squadPower-alienPower)/5
+	if winChance > 70 {
+		winChance = 70
+	}
+	if winChance < 10 {
+		winChance = 10
+	}
+
+	gs.MissionSelectMode = true
+	gs.MissionSelectIdx = 0
+	gs.MissionOdds = winChance
+	gs.Game.Paused = true
+}
+
 // RespondToSelectedMission responds to the mission at the cursor's node if one
 // exists, otherwise the first available mission.
 func (gs *Geoscape) RespondToSelectedMission() {
@@ -1294,6 +1510,54 @@ func (gs *Geoscape) Render(ctx *engine.ScreenCtx) {
 
 	help := language.String("HELP_GEOSCAPE")
 	ctx.DrawMarkupString(1, h-1, help, engine.StyleGray, engine.StyleHotkey)
+
+	if gs.MissionSelectMode {
+		gs.renderMissionSelect(ctx, w, h)
+	}
+}
+
+func (gs *Geoscape) renderMissionSelect(ctx *engine.ScreenCtx, w, h int) {
+	overlayW := 50
+	overlayH := 12
+	ox := (w - overlayW) / 2
+	oy := (h - overlayH) / 2
+
+	for dy := 0; dy < overlayH; dy++ {
+		for dx := 0; dx < overlayW; dx++ {
+			ctx.SetCell(ox+dx, oy+dy, ' ', engine.StyleDefault.Background(tcell.NewRGBColor(20, 20, 40)))
+		}
+	}
+
+	ctx.DrawPanel(ox, oy, overlayW, overlayH, "MISSION RESPONSE", engine.StyleCyanBold)
+
+	idx := gs.missionIndexAtCursor()
+	if idx < 0 || idx >= len(gs.Missions) {
+		return
+	}
+	mission := gs.Missions[idx]
+	city := gs.CityByID(mission.NodeID)
+	cityName := "?"
+	if city != nil {
+		cityName = city.Name
+	}
+
+	ctx.DrawString(ox+2, oy+2, fmt.Sprintf("Mission: %s in %s", mission.Type, cityName), engine.StyleDefault)
+	ctx.DrawString(ox+2, oy+3, fmt.Sprintf("Auto-resolve odds: ~%d%% win chance", gs.MissionOdds), engine.StyleYellow)
+
+	options := []string{
+		"[1] Deploy squad (tactical combat)",
+		"[2] Auto-resolve (alien-favored odds)",
+		"[3] Ignore mission",
+	}
+	for i, opt := range options {
+		style := engine.StyleDefault
+		if i == gs.MissionSelectIdx {
+			style = engine.StyleGreen
+		}
+		ctx.DrawString(ox+2, oy+5+i, opt, style)
+	}
+
+	ctx.DrawString(ox+2, oy+9, "Arrow keys to select, Enter to confirm, Esc to cancel", engine.StyleGray)
 }
 
 func (gs *Geoscape) getTargets() []interface{} {
@@ -1602,6 +1866,42 @@ func (gs *Geoscape) cityStyle(c *City) (rune, tcell.Style) {
 }
 
 func (gs *Geoscape) HandleKey(e *tcell.EventKey) {
+	if gs.MissionSelectMode {
+		switch e.Key() {
+		case tcell.KeyUp:
+			gs.MissionSelectIdx--
+			if gs.MissionSelectIdx < 0 {
+				gs.MissionSelectIdx = 2
+			}
+		case tcell.KeyDown:
+			gs.MissionSelectIdx++
+			if gs.MissionSelectIdx > 2 {
+				gs.MissionSelectIdx = 0
+			}
+		case tcell.KeyEnter:
+			switch gs.MissionSelectIdx {
+			case 0:
+				gs.MissionSelectMode = false
+				gs.RespondToSelectedMission()
+			case 1:
+				gs.MissionSelectMode = false
+				idx := gs.missionIndexAtCursor()
+				if idx < 0 {
+					idx = 0
+				}
+				gs.AutoresolveMission(idx)
+			case 2:
+				gs.MissionSelectMode = false
+				gs.Message = "Mission ignored."
+				gs.MessageTimer = time.Now()
+			}
+		case tcell.KeyEscape:
+			gs.MissionSelectMode = false
+			gs.Message = "Mission select cancelled."
+			gs.MessageTimer = time.Now()
+		}
+		return
+	}
 	switch e.Key() {
 	case tcell.KeyUp:
 		gs.moveCursor(0, -1)
@@ -1643,7 +1943,26 @@ func (gs *Geoscape) HandleKey(e *tcell.EventKey) {
 	case "a", "A":
 		gs.Autoresolve()
 	case "m", "M":
-		gs.RespondToSelectedMission()
+		if gs.MissionSelectMode {
+			switch gs.MissionSelectIdx {
+			case 0:
+				gs.MissionSelectMode = false
+				gs.RespondToSelectedMission()
+			case 1:
+				gs.MissionSelectMode = false
+				idx := gs.missionIndexAtCursor()
+				if idx < 0 {
+					idx = 0
+				}
+				gs.AutoresolveMission(idx)
+			case 2:
+				gs.MissionSelectMode = false
+				gs.Message = "Mission ignored."
+				gs.MessageTimer = time.Now()
+			}
+		} else {
+			gs.enterMissionSelectMode()
+		}
 	case " ":
 		gs.TogglePause()
 	case "1":

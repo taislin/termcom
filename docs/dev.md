@@ -342,6 +342,27 @@ Perks are defined in `internal/soldier/perks.go`:
 - `CanDeploy()` checks HP > 0, Wounds == 0, Fatigue == 0
 - `HealthySoldiers()` uses `CanDeploy()` for deployment lists
 
+### Mission auto-resolve
+
+Tactical battles can be auto-resolved from the geoscape via `AutoresolveMission()`:
+
+- Player presses `M` → mission select overlay appears with odds calculation
+- Win chance: `30 + (squadPower - alienPower) / 5`, capped at 10-70%
+- Squad power: HP + Accuracy/2 + Strength + Reactions/2 + perk bonuses
+- Alien power: `alienCount * (40 + missionsWon*3) * difficultyScale`
+- Mission type modifiers: Terror -10%, Council +10%, Alien Base -15%
+
+**Rewards (vs tactical):**
+- XP: 50% of tactical
+- Corpses: None
+- Weapon drops: 25% chance per alien (vs 15-55% tactical)
+- Alloys/elerium: Full
+- Fatigue: 2-3 days (vs 1-5 tactical)
+
+**Casualties:**
+- Win: 33% chance of 1 soldier wounded
+- Loss: 1-3 soldiers killed (permanent death)
+
 ### Modifying balance
 
 - Soldier stats: `internal/soldier/soldier.go` (NewSoldier defaults)

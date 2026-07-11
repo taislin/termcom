@@ -194,6 +194,32 @@ Mission types are defined in `internal/battle/battlescape.go` (`NewBattlescape`)
 | Tough | +5 MaxHP | — |
 | Quick Learner | — | +50% XP from battles |
 
+## Auto-Resolve System
+
+### Win Chance Calculation
+
+| Factor | Effect |
+|--------|--------|
+| Base | 30% |
+| Squad power | +1 per 5 points above alien power |
+| Alien power | alienCount × (40 + missionsWon×3) × difficultyScale |
+| Terror mission | -10% |
+| Council mission | +10% |
+| Alien Base | -15% |
+| Maximum cap | 70% |
+| Minimum floor | 10% |
+
+### Rewards Comparison
+
+| Reward | Tactical | Auto-Resolve |
+|--------|----------|--------------|
+| XP | 100% | 50% |
+| Corpses | Yes | No |
+| Weapon drops | 15-55% | 25% |
+| Alloys/Elerium | Full | Full |
+| Fatigue | 1-5 days | 2-3 days |
+| Casualties (loss) | All die | 1-3 die |
+
 ## Key Bindings
 
 ### Geoscape

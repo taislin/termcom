@@ -55,8 +55,30 @@ appear and move across the globe. Your radar detects them as they come into rang
 
 When a UFO is detected, you can:
 - **Launch interceptor** (`L`) to shoot it down
-- **Autoresolve** (`A`) for an automatic engagement
+- **Autoresolve** (`A`) for an automatic interception
 - **Respond to missions** (`M`) when alien terror or supply missions appear
+
+### Mission Response Options
+
+When pressing `M` to respond to a mission, you have three choices:
+
+| Option | Description |
+|--------|-------------|
+| Deploy squad | Enter tactical combat (full rewards, full risk) |
+| Auto-resolve | Statistical outcome (reduced rewards, alien-favored odds) |
+| Ignore | Skip the mission (increases alien activity) |
+
+**Auto-resolve odds** are calculated based on:
+- Squad power (HP + Accuracy + Strength + perks)
+- Alien count and difficulty
+- Mission type (Terror/Council modifiers)
+- Win chance is capped at 70% maximum (aliens always have a chance)
+
+**Auto-resolve rewards:**
+- 50% XP compared to tactical combat
+- No corpse loot (only 25% weapon drop chance)
+- Alloy/Elerium rewards remain full
+- Soldiers gain fatigue (2-3 days)
 
 After shooting down a UFO or engaging an alien mission, you deploy your soldiers for
 **tactical combat** on the Battlescape.
