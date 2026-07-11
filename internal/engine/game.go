@@ -83,9 +83,10 @@ type Game struct {
 
 	FrameCount int
 
-	OnNewGame  func()
-	OnContinue func()
-	OnLoadGame func()
+	OnNewGame      func()
+	OnContinue     func()
+	OnLoadGame     func()
+	OnCustomBattle func()
 }
 
 func (g *Game) GameOver(won bool, stats string) {

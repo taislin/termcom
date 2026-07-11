@@ -1,0 +1,130 @@
+{
+  "name": "Extraction Point",
+  "author": "termcom",
+  "date": "2026-07-11",
+  "description": "Intel recovered. Get at least one soldier to the extraction zone in the southeast corner.",
+  "night": false,
+  "map": {
+    "type": "generated",
+    "generator": "desert",
+    "width": 50,
+    "height": 50
+  },
+  "soldiers": [
+    {
+      "name": "Sgt. Runner",
+      "rank": 3,
+      "hp": 28,
+      "tu": 58,
+      "accuracy": 65,
+      "reactions": 55,
+      "strength": 16,
+      "weapon": "pistol",
+      "armor": "none",
+      "x": 5,
+      "y": 5
+    },
+    {
+      "name": "Cpl. Overwatch",
+      "rank": 2,
+      "hp": 30,
+      "tu": 52,
+      "accuracy": 78,
+      "reactions": 70,
+      "strength": 20,
+      "weapon": "rifle",
+      "armor": "personal",
+      "x": 7,
+      "y": 6
+    },
+    {
+      "name": "Pvt. Distraction",
+      "rank": 1,
+      "hp": 22,
+      "tu": 50,
+      "accuracy": 55,
+      "reactions": 45,
+      "strength": 14,
+      "weapon": "auto",
+      "armor": "none",
+      "x": 4,
+      "y": 7
+    }
+  ],
+  "aliens": [
+    {
+      "name": "Silacoid",
+      "hp": 20,
+      "tu": 40,
+      "accuracy": 45,
+      "bravery": 80,
+      "reactions": 35,
+      "strength": 16,
+      "psi": 0,
+      "armour": 20,
+      "weapon": "plasma_pistol",
+      "rank": 1,
+      "damage_type": 4,
+      "aggression": 4,
+      "x": 15,
+      "y": 15
+    },
+    {
+      "name": "Floater",
+      "hp": 15,
+      "tu": 55,
+      "accuracy": 60,
+      "bravery": 50,
+      "reactions": 60,
+      "strength": 12,
+      "psi": 10,
+      "armour": 10,
+      "weapon": "plasma_rifle",
+      "rank": 1,
+      "damage_type": 0,
+      "aggression": 6,
+      "x": 30,
+      "y": 30
+    },
+    {
+      "name": "Floater Navigator",
+      "hp": 16,
+      "tu": 58,
+      "accuracy": 63,
+      "bravery": 55,
+      "reactions": 63,
+      "strength": 13,
+      "psi": 18,
+      "armour": 11,
+      "weapon": "plasma_rifle",
+      "rank": 2,
+      "damage_type": 0,
+      "aggression": 6,
+      "x": 40,
+      "y": 35
+    },
+    {
+      "name": "Sectoid",
+      "hp": 10,
+      "tu": 50,
+      "accuracy": 55,
+      "bravery": 40,
+      "reactions": 50,
+      "strength": 8,
+      "psi": 40,
+      "armour": 5,
+      "weapon": "plasma_pistol",
+      "rank": 0,
+      "damage_type": 0,
+      "aggression": 3,
+      "x": 20,
+      "y": 25
+    }
+  ],
+  "victory": {
+    "condition": "reach_point",
+    "target_x": 46,
+    "target_y": 46,
+    "min_soldiers": 1
+  }
+}

@@ -10,6 +10,7 @@ func init() {
 		"MENU_LOAD_GAME": "Load Game",
 		"MENU_QUIT":      "Quit",
 		"MENU_OPTIONS":   "Options",
+		"MENU_CUSTOM_BATTLE": "Custom Battle",
 		"MENU_HELP":      "\u2191/\u2193=Select  Enter=Confirm  Q=Quit  F5=Save  F9=Load",
 
 		// ── Difficulty ─────────────────────────────────────

@@ -42,11 +42,16 @@ make clean          # Remove binary and coverage
 ```
 cmd/
   termcom/              Main game entry point (with icon.ico + .syso)
-  termcom_battle/       Test script: direct battle launch (with icon.ico + .syso)
+  termcom_battle/       Interactive battle launcher (menu, custom battles)
+  test_aliens/          Alien roster viewer (colored console output)
   webserver/            Web server for browser version (xterm.js)
+maps/
+  *.json                Custom battle definitions (name, author, date, units, victory)
 internal/
   engine/game.go           Game state machine, main loop, input dispatch
   engine/screen.go         Low-level screen/cell rendering, FrameBuffer, styles
+  engine/custom_battle.go  Custom battle selection screen (split-panel, JSON loading)
+  engine/portrait.go       Soldier/alien portrait rendering (half-block PixelImage)
   engine/vfx.go            True-color lighting, alpha blending
   engine/particles.go      Particle system with sync.Pool (explosions, smoke)
   engine/filters.go        Vision filters (night vision, thermal overlay)
@@ -64,7 +69,7 @@ internal/
   geo/ufo.go               UFO spawning, movement
   geo/interceptor.go       Interceptor launch, dogfight, weapon systems
   geo/transfer.go          Transport movement between bases
-  battle/battlescape.go    Battlescape: turn logic, TU, line-of-sight, VFX integration
+  battle/battlescape.go    Battlescape: turn logic, TU, LOS, VFX, custom victory conditions
   battle/map.go            Tactical map generation (crash sites, terror, forest, etc.)
   battle/gas.go            Volumetric smoke/poison gas grid with diffusion
   battle/unit.go           Soldiers and aliens on the tactical map

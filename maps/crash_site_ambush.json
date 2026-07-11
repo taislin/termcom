@@ -1,0 +1,162 @@
+{
+  "name": "Crash Site Ambush",
+  "author": "termcom",
+  "date": "2026-07-11",
+  "description": "A small UFO has crashed in a forest clearing. Eliminate all hostiles.",
+  "night": false,
+  "map": {
+    "type": "generated",
+    "generator": "crash_site",
+    "width": 50,
+    "height": 50
+  },
+  "soldiers": [
+    {
+      "name": "Cpl. Alpha",
+      "rank": 2,
+      "hp": 28,
+      "tu": 52,
+      "accuracy": 72,
+      "reactions": 60,
+      "strength": 18,
+      "weapon": "rifle",
+      "armor": "personal",
+      "x": 5,
+      "y": 25
+    },
+    {
+      "name": "Sgt. Bravo",
+      "rank": 3,
+      "hp": 32,
+      "tu": 55,
+      "accuracy": 78,
+      "reactions": 65,
+      "strength": 22,
+      "weapon": "laser_rifle",
+      "armor": "light",
+      "x": 7,
+      "y": 27
+    },
+    {
+      "name": "Pvt. Charlie",
+      "rank": 1,
+      "hp": 24,
+      "tu": 48,
+      "accuracy": 58,
+      "reactions": 45,
+      "strength": 15,
+      "weapon": "auto",
+      "armor": "personal",
+      "x": 4,
+      "y": 28
+    },
+    {
+      "name": "Lt. Delta",
+      "rank": 4,
+      "hp": 35,
+      "tu": 58,
+      "accuracy": 82,
+      "reactions": 70,
+      "strength": 24,
+      "weapon": "heavy",
+      "armor": "medium",
+      "x": 6,
+      "y": 30
+    }
+  ],
+  "aliens": [
+    {
+      "name": "Sectoid",
+      "hp": 10,
+      "tu": 50,
+      "accuracy": 55,
+      "bravery": 40,
+      "reactions": 50,
+      "strength": 8,
+      "psi": 40,
+      "armour": 5,
+      "weapon": "plasma_pistol",
+      "rank": 0,
+      "damage_type": 0,
+      "aggression": 3,
+      "x": 25,
+      "y": 8
+    },
+    {
+      "name": "Sectoid Navigator",
+      "hp": 11,
+      "tu": 52,
+      "accuracy": 58,
+      "bravery": 45,
+      "reactions": 52,
+      "strength": 8,
+      "psi": 50,
+      "armour": 6,
+      "weapon": "plasma_pistol",
+      "rank": 1,
+      "damage_type": 0,
+      "aggression": 3,
+      "x": 28,
+      "y": 10
+    },
+    {
+      "name": "Floater",
+      "hp": 15,
+      "tu": 55,
+      "accuracy": 60,
+      "bravery": 50,
+      "reactions": 60,
+      "strength": 12,
+      "psi": 10,
+      "armour": 10,
+      "weapon": "plasma_rifle",
+      "rank": 1,
+      "damage_type": 0,
+      "aggression": 6,
+      "x": 22,
+      "y": 12
+    },
+    {
+      "name": "Chryssalid",
+      "hp": 14,
+      "tu": 65,
+      "accuracy": 70,
+      "bravery": 100,
+      "reactions": 75,
+      "strength": 18,
+      "psi": 0,
+      "armour": 8,
+      "weapon": "chryssalid_claw",
+      "rank": 1,
+      "damage_type": 3,
+      "aggression": 10,
+      "x": 30,
+      "y": 15
+    },
+    {
+      "name": "Sectoid Commander",
+      "hp": 14,
+      "tu": 55,
+      "accuracy": 62,
+      "bravery": 55,
+      "reactions": 58,
+      "strength": 9,
+      "psi": 70,
+      "armour": 8,
+      "weapon": "plasma_rifle",
+      "rank": 2,
+      "damage_type": 0,
+      "aggression": 4,
+      "x": 26,
+      "y": 6
+    }
+  ],
+  "civilians": [
+    { "name": "Survivor A", "x": 18, "y": 35 },
+    { "name": "Survivor B", "x": 20, "y": 37 },
+    { "name": "Survivor C", "x": 15, "y": 38 }
+  ],
+  "victory": {
+    "condition": "eliminate_all"
+  }
+}

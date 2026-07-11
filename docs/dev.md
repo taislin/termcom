@@ -89,6 +89,102 @@ go run ./cmd/termcom_battle council
 - Launches the selected map type
 - Drops straight into player turn
 
+### Alien Roster Viewer (`cmd/test_aliens`)
+
+Generates the full procedural alien roster and prints each alien to the console with colored portraits, stats, and morphology info.
+
+```bash
+# Default seed (42)
+go run ./cmd/test_aliens
+
+# Specific seed
+go run ./cmd/test_aliens 12345
+```
+
+**What it does:**
+- Generates 5-7 procedural species (10-28 alien types) via `data.GenerateSpecies(seed)`
+- Renders each alien's 7x6 ASCII portrait using half-block characters with true-color ANSI RGB
+- Displays all stats (HP, TU, Accuracy, Bravery, Reactions, Strength, Psi, Armour, Aggression)
+- Shows resistances (green = resist, red = weak, gray = neutral)
+- Lists morphology details (body type, limbs, senses) and lore
+- Ends with a summary table of all aliens
+
+### Custom Battles
+
+Create custom battle scenarios by placing JSON files in the `maps/` folder. These appear in both the main menu ("Custom Battle") and the battle test tool.
+
+```bash
+# Via main menu
+go run ./cmd/termcom
+# Select "Custom Battle"
+
+# Via battle test tool (interactive menu or direct)
+go run ./cmd/termcom_battle
+# Select from the list (custom maps marked with [custom])
+```
+
+**Template files in `maps/`:**
+
+| File | Description |
+|------|-------------|
+| `crash_site_ambush.json` | Crash site with 4 soldiers vs 5 aliens + civilians. Eliminate all. |
+| `hold_the_line.json` | Forest defense, night. Survive 10 turns against 7 aliens. |
+| `extraction_point.json` | Desert extraction. Reach the exit zone in the southeast. |
+
+**JSON schema:**
+
+```json
+{
+  "name": "Mission Name",
+  "author": "Author",
+  "date": "2026-07-11",
+  "description": "Brief description shown in the menu.",
+  "night": false,
+  "map": {
+    "type": "generated",
+    "generator": "crash_site",
+    "width": 50,
+    "height": 50
+  },
+  "soldiers": [
+    {
+      "name": "Cpl. Alpha", "rank": 2,
+      "hp": 28, "tu": 52, "accuracy": 72, "reactions": 60, "strength": 18,
+      "weapon": "rifle", "armor": "personal",
+      "x": 5, "y": 25
+    }
+  ],
+  "aliens": [
+    {
+      "name": "Sectoid", "hp": 10, "tu": 50, "accuracy": 55,
+      "bravery": 40, "reactions": 50, "strength": 8, "psi": 40, "armour": 5,
+      "weapon": "plasma_pistol", "rank": 0, "damage_type": 0, "aggression": 3,
+      "x": 25, "y": 8
+    }
+  ],
+  "civilians": [
+    { "name": "Survivor", "x": 18, "y": 35 }
+  ],
+  "victory": {
+    "condition": "eliminate_all"
+  }
+}
+```
+
+**Victory conditions:**
+
+| Condition | Fields | Description |
+|-----------|--------|-------------|
+| `eliminate_all` | _(none)_ | Kill all aliens to win |
+| `survive_turns` | `turns` | Survive N turns without squad wipe |
+| `reach_point` | `target_x`, `target_y`, `min_soldiers` | Get N soldiers to the target tile |
+
+**Available map generators:** `crash_site`, `terror`, `supply_raid`/`ufo_interior`, `alien_base`, `council`, `cydonia`, `abduction`, `forest`, `desert`, `polar`
+
+**Available weapon IDs:** `pistol`, `rifle`, `heavy`, `auto`, `rocket`, `laser_pistol`, `laser_rifle`, `stun_rod`, `plasma_pistol`, `plasma_rifle`, `heavy_plasma`, `alien_blaster`, `alien_cannon`, `alien_laser`, `alien_heavy_laser`, `alien_grenade`, `alien_rocket`, `alien_psi_bolt`, `chryssalid_claw`, `reaper_claw`, `alien_claw`, `alien_fang`
+
+**Available armor IDs:** `none`, `personal`, `light`, `medium`, `heavy`, `power_suit`, `flight_suit`
+
 ## Map Types
 
 | Type | Generator | Description |
@@ -110,21 +206,38 @@ go run ./cmd/termcom_battle council
 ```
 cmd/
   termcom/              Main game entry point
-  termcom_battle/       Test script: direct battle launch
-  webserver/         Web server (for remote play)
+  termcom_battle/       Test script: interactive battle launcher
+  test_aliens/          Alien roster viewer (console output)
+  webserver/            Web server (for remote play)
+maps/
+  *.json                Custom battle definitions
 internal/
-  engine/            Core engine: game loop, rendering, VFX, particles, camera
-  battle/            Battlescape: maps, units, AI, turns, line-of-sight
-  geo/               Geoscape: world map, UFOs, interceptors, missions
-  base/              Base management: facilities, research, manufacture
-  soldier/           Soldier stats, ranking, inventory
-  data/              Game data: items, aliens, research, tech tree
-  data/procedural.go         Procedural alien species generation
-  data/procedural_items.go   Procedural weapons and armor generation
-  data/techgen.go            Procedural tech tree generation
-  save/              Save/load system, version migration
-  language/          Localization strings
-  audio/             Platform-specific audio synthesis
+  engine/
+    game.go             Game loop, state machine
+    screen.go           Rendering primitives (DrawPanel, DrawString, etc.)
+    custom_battle.go    Custom battle selection screen
+    portrait.go         Soldier/alien portrait rendering
+    ...                 (VFX, particles, camera, menu, help, options, etc.)
+  battle/
+    battlescape.go      Battlescape: turns, units, AI, victory conditions
+    map.go              Tactical map generators (10+ biomes)
+    unit.go             Unit creation (soldier, alien, civilian)
+    ai.go               Alien AI behavior
+    gas.go              Volumetric smoke/gas
+    ...                 (input, movement, LOS, etc.)
+  geo/                  Geoscape: world map, UFOs, interceptors, missions
+  base/                 Base management: facilities, research, manufacture
+  soldier/              Soldier stats, ranking, inventory
+  data/
+    items.go            Weapons, armor, items (RuleItems map)
+    aliens.go           Alien species, portraits, morphology types
+    procedural.go       Procedural alien species + portraits per run
+    procedural_items.go Procedural weapons and armor generation
+    techgen.go          Procedural tech tree generation
+    research.go         Research topic definitions
+  save/                 Save/load system, version migration
+  language/             Localization strings
+  audio/                Platform-specific audio synthesis
 ```
 
 ## Architecture Notes
