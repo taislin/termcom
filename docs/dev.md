@@ -119,13 +119,12 @@ internal/
   base/              Base management: facilities, research, manufacture
   soldier/           Soldier stats, ranking, inventory
   data/              Game data: items, aliens, research, tech tree
+  data/procedural.go         Procedural alien species generation
+  data/procedural_items.go   Procedural weapons and armor generation
+  data/techgen.go            Procedural tech tree generation
   save/              Save/load system, version migration
   language/          Localization strings
   audio/             Platform-specific audio synthesis
-docs/
-  manual.md          Player manual
-  dev.md             This file
-  tables.md          Data tables reference
 ```
 
 ## Architecture Notes
@@ -170,6 +169,33 @@ docs/
 1. Add struct to `internal/data/items.go` with all fields
 2. Add language strings to `internal/language/en.go`
 3. Add to base stores if purchasable
+
+### Procedural systems
+
+Each playthrough generates unique content from a seed:
+
+**Alien species** (`internal/data/procedural.go`):
+- 5-7 species per run with unique names, morphology, stats, resistances
+- Rank variants (0-4) with scaled stats
+- ASCII portraits driven by morphology
+- Called via `GenerateSpecies(seed)`
+
+**Research tree** (`internal/data/techgen.go`):
+- 16 base techs + autopsies per species
+- DAG prerequisites randomized each run
+- Species study topics unlocked after autopsies
+- Called via `GenerateTechTree(seed, aliens)`
+
+**Items** (`internal/data/procedural_items.go`):
+- 2-3 procedural weapons based on species damage types
+- 1-2 procedural armor pieces based on species
+- Registered via `RegisterProceduralItems(seed, aliens)`
+- Called during game init and save load
+
+**Maps** (`internal/battle/map.go`):
+- 10 procedural map generators
+- Biome-based tile probability distributions
+- Seeded for reproducible layouts
 
 ### Modifying balance
 

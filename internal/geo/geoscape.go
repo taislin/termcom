@@ -1102,6 +1102,7 @@ func (gs *Geoscape) loadFromSaveData(sd *save.SaveData) {
 	}
 	gs.Game.AlienSpecies, gs.Game.AlienTypes = data.GenerateSpecies(sd.SpeciesSeed)
 	data.InitResearchTree(sd.SpeciesSeed, gs.Game.AlienSpecies)
+	data.RegisterProceduralItems(sd.SpeciesSeed, gs.Game.AlienSpecies)
 	gs.Bases = nil
 	for _, bs := range sd.Bases {
 		gs.Bases = append(gs.Bases, save.ToBase(bs))

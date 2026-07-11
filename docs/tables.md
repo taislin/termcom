@@ -39,15 +39,17 @@ with rank and combat experience.
 Weapon stats are defined in `internal/data/items.go`. See that file for full
 stat blocks. The table below lists key, name, damage type, and notable traits.
 
+### Hardcoded Weapons
+
 | Key | Name | Damage Type | Notable Traits |
 |-----|------|-------------|----------------|
-| pistol | Pistol | conventional | Starting sidearm |
-| rifle | Rifle | conventional | Standard issue |
+| pistol | Pistol | kinetic | Starting sidearm |
+| rifle | Rifle | kinetic | Standard issue |
 | heavy | Heavy Cannon | explosive | High damage, slow |
 | auto | Auto Cannon | explosive | 3-round burst |
 | rocket | Rocket Launcher | explosive | Devastating, 1 ammo |
-| laser_pistol | Laser Pistol | energy | Unlimited ammo |
-| laser_rifle | Laser Rifle | energy | Unlimited ammo |
+| laser_pistol | Laser Pistol | laser | Unlimited ammo |
+| laser_rifle | Laser Rifle | laser | Unlimited ammo |
 | plasma_rifle | Plasma Rifle | plasma | Alien tech, high damage |
 | plasma_pistol | Plasma Pistol | plasma | Alien sidearm |
 | heavy_plasma | Heavy Plasma | plasma | Best weapon in game |
@@ -56,19 +58,53 @@ stat blocks. The table below lists key, name, damage type, and notable traits.
 | stun_rod | Stun Rod | melee | Non-lethal |
 | medi_kit | Medi-Kit | special | Heals 10 HP |
 
+### Procedural Weapons
+
+Each playthrough generates 2-3 unique weapons based on the procedural species'
+damage types. Generated in `internal/data/procedural_items.go`.
+
+| Property | Range | Description |
+|----------|-------|-------------|
+| Damage | 20-60 | Varies by damage type |
+| Accuracy | 55-85% | Base accuracy |
+| TU | 15-30 | Time units to fire |
+| Range | 10-30 | Tiles |
+| Ammo | 6-45 | Depends on burst mode |
+| Burst | 1 or 3 | 33% chance of burst weapon |
+
+Weapon names combine damage-type prefixes (Plasma, Laser, Rail, Psi, etc.) with
+weapon suffixes (Pistol, Rifle, Carbine, Blaster, Cannon, Emitter).
+
 ## Armor
 
 Armor stats are defined in `internal/data/items.go`.
 
-| Key | Name | Health Bonus | TU Modifier |
-|-----|------|-------------|-------------|
+### Hardcoded Armor
+
+| Key | Name | Undersuit | TU Modifier |
+|-----|------|-----------|-------------|
 | none | None | 0 | 0 |
-| personal | Personal Armour | +10 | 0 |
-| light | Light Suit | +20 | -5 |
-| medium | Medium Suit | +30 | -10 |
-| heavy | Heavy Suit | +40 | -15 |
-| power_suit | Power Suit | +50 | -10 |
-| flight_suit | Flying Suit | +45 | -5 |
+| personal | Personal Armour | 10 | 0 |
+| light | Light Suit | 20 | -5 |
+| medium | Medium Suit | 30 | -10 |
+| heavy | Heavy Suit | 40 | -15 |
+| power_suit | Power Suit | 50 | -10 |
+| flight_suit | Flying Suit | 45 | -5 |
+
+### Procedural Armor
+
+Each playthrough generates 1-2 unique armor pieces based on the procedural species'
+damage types. Generated in `internal/data/procedural_items.go`.
+
+| Property | Range | Description |
+|----------|-------|-------------|
+| Undersuit | 15-45 | Base armor value |
+| Health | 0-15 | Bonus HP |
+| TU Modifier | -5 to -15% | Movement penalty |
+| Value | $20K-$60K | Sell value |
+
+Armor names combine damage-type prefixes (Plasma-Shielded, Reflective, Ballistic,
+Psi-Shielded, etc.) with armor suffixes (Vest, Suit, Plating, Armour, Guard).
 
 ## Tile Types
 

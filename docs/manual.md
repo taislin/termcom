@@ -261,6 +261,7 @@ Key mechanics:
 | 1 | UFO Power Source | 120 | Alien lore |
 | 1 | Alien Communications | 90 | Alien lore |
 | 1 | [Species] Autopsy | 40-70 | Alien lore |
+| 2 | [Species] Xenobiology/Study | 60-110 | Alien lore (requires autopsy) |
 | 2 | Laser Weapons | 120 | Laser Pistol, Laser Rifle |
 | 2 | Personal Armour | 80 | Personal Armour |
 | 3 | Plasma Weapons | 200 | Plasma Pistol, Plasma Rifle |
@@ -273,11 +274,19 @@ Key mechanics:
 | 5 | Power Suit | 400 | Power Suit |
 | 5 | Flying Suit | 500 | Flying Suit |
 
+### Procedural Species Studies
+
+Each procedural species unlocks a unique study topic after autopsy. These topics
+have randomized names (Xenobiology, Behavioral Analysis, Tactical Study, etc.)
+and provide additional lore about the species. They're optional but help build
+your encyclopedia and may provide strategic insights.
+
 ### Recommended Early Research
 
 Alien Alloys and Elerium-115 are always available at Tier 1 and should be
 researched first. After that, check which autopsies your scientists can
 perform — some weapon techs require a specific alien autopsy as a catalyst.
+Species studies are optional but provide valuable intelligence.
 
 ---
 
@@ -553,6 +562,22 @@ The Battlescape includes dynamic visual effects:
 | Medi-Kit | MDK | 2 | $6,000 |
 | Motion Scanner | MSC | 3 | $5,000 |
 | Psi-Amplifier | PSI | 2 | $30,000 |
+
+### Procedural Items
+
+Each playthrough generates unique weapons and armor based on the procedural alien
+species. These items have randomized stats and names, making every game different.
+
+**Procedural Weapons:** 2-3 weapons with damage types matching the alien species.
+Names combine prefixes (Plasma, Laser, Rail, Psi, etc.) with weapon types (Pistol,
+Rifle, Carbine, Blaster, Cannon, Emitter).
+
+**Procedural Armor:** 1-2 armor pieces with protection matching alien damage types.
+Names combine prefixes (Plasma-Shielded, Reflective, Ballistic, Psi-Shielded, etc.)
+with armor types (Vest, Suit, Plating, Armour, Guard).
+
+These items are automatically added to your stores when the game starts and can be
+equipped like any other item.
 
 **Storage:** Weight varies by item (weapons 2–12, armour 8 per unit). Capacity = 50 per Storage facility.
 

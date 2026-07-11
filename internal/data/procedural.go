@@ -20,24 +20,96 @@ type AlienSpecies struct {
 
 // Syllable pools for alien name generation.
 var (
-	prefixSyll = []string{"Vr", "Za", "Xo", "Kr", "Th", "Qu", "Sh", "Bl", "Dr", "Gh",
-		"Ny", "Py", "Wr", "Sk", "Tr", "Ch", "Ph", "Fl", "St", "Sn"}
-	midSyll = []string{"ek", "or", "an", "ul", "ix", "az", "en", "on", "ar", "al",
-		"is", "us", "ox", "ir", "um", "ak", "el", "id", "os", "ym"}
-	endSyll = []string{"id", "on", "ar", "ex", "us", "ith", "ax", "or", "en", "al",
-		"ix", "um", "ak", "oi", "esh", "urr", "oth", "agh", "unn", "izz"}
+	prefixSyll = []string{
+		"Vr", "Za", "Xo", "Kr", "Th", "Qu", "Sh", "Bl", "Dr", "Gh",
+		"Ny", "Py", "Wr", "Sk", "Tr", "Ch", "Ph", "Fl", "St", "Sn",
+		"Br", "Gr", "Cr", "Pr", "Fr", "Cl", "Sp", "Sl", "Sm", "Sw",
+		"Zr", "Xk", "Ql", "Jx", "Vh", "Ng", "Mk", "Nz", "Rq", "Wx",
+	}
+	midSyll = []string{
+		"ek", "or", "an", "ul", "ix", "az", "en", "on", "ar", "al",
+		"is", "us", "ox", "ir", "um", "ak", "el", "id", "os", "ym",
+		"iv", "un", "ag", "eb", "og", "iz", "ub", "am", "ol", "ed",
+		"ik", "av", "od", "ul", "er", "at", "op", "ev", "im", "yx",
+	}
+	endSyll = []string{
+		"id", "on", "ar", "ex", "us", "ith", "ax", "or", "en", "al",
+		"ix", "um", "ak", "oi", "esh", "urr", "oth", "agh", "unn", "izz",
+		"eon", "aux", "yne", "oph", "ule", "urg", "ash", "isk", "orn", "uum",
+		"exx", "ylt", "oph", "uun", "eir", "aq", "iim", "oxx", "uum", "aaz",
+	}
 )
 
-// Rank titles used as suffixes for variant names.
-var rankTitles = []string{"", "Navigator", "Commander", "Elite", "Overlord"}
+// Rank title pools — each damage type gets its own themed set of titles.
+var rankTitlePools = map[int][]string{
+	DMG_PLASMA:    {"", "Navigator", "Commander", "Elite", "Overlord"},
+	DMG_LASER:     {"", "Sentinel", "Arbiter", "Warden", "Sovereign"},
+	DMG_EXPLOSIVE: {"", "Demolisher", "Vanguard", "Berserker", "Annihilator"},
+	DMG_MELEE:     {"", "Stalker", "Predator", "Reaper", "Apex"},
+	DMG_KINETIC:   {"", "Scout", "Striker", "Warlord", "Titan"},
+	DMG_PSIONIC:   {"", "Acolyte", "Hierophant", "Archon", "Nexus"},
+}
 
-// Weapons available to procedural aliens, ordered by rank suitability.
-var alienWeaponsByRank = [][]string{
-	{"plasma_pistol"},
-	{"plasma_pistol", "plasma_rifle"},
-	{"plasma_rifle"},
-	{"plasma_rifle", "heavy_plasma"},
-	{"heavy_plasma"},
+func rankTitle(dmgType, rank int) string {
+	if rank <= 0 {
+		return ""
+	}
+	pool, ok := rankTitlePools[dmgType]
+	if !ok {
+		pool = rankTitlePools[DMG_PLASMA]
+	}
+	idx := rank
+	if idx >= len(pool) {
+		idx = len(pool) - 1
+	}
+	return pool[idx]
+}
+
+// Weapons available to procedural aliens, keyed by damage type, ordered by rank.
+// Each inner slice maps rank 0..4 to a pool of weapons for that rank.
+var alienWeaponsByDmgType = map[int][][]string{
+	DMG_PLASMA: {
+		{"plasma_pistol"},
+		{"plasma_pistol", "plasma_rifle"},
+		{"plasma_rifle"},
+		{"plasma_rifle", "heavy_plasma"},
+		{"heavy_plasma"},
+	},
+	DMG_LASER: {
+		{"alien_laser"},
+		{"alien_laser"},
+		{"alien_laser", "alien_heavy_laser"},
+		{"alien_heavy_laser"},
+		{"alien_heavy_laser"},
+	},
+	DMG_MELEE: {
+		{"alien_claw"},
+		{"alien_claw", "alien_fang"},
+		{"alien_fang"},
+		{"alien_fang"},
+		{"alien_fang"},
+	},
+	DMG_KINETIC: {
+		{"alien_blaster"},
+		{"alien_blaster"},
+		{"alien_blaster", "alien_cannon"},
+		{"alien_cannon"},
+		{"alien_cannon"},
+	},
+	DMG_EXPLOSIVE: {
+		{"alien_grenade"},
+		{"alien_grenade"},
+		{"alien_grenade", "alien_rocket"},
+		{"alien_rocket"},
+		{"alien_rocket"},
+	},
+	DMG_PSIONIC: {
+		{"alien_psi_bolt"},
+		{"alien_psi_bolt", "plasma_pistol"},
+		{"alien_psi_bolt"},
+		{"alien_psi_bolt", "heavy_plasma"},
+		{"alien_psi_bolt"},
+	},
 }
 
 // Lore templates filled with species name and traits.
@@ -45,8 +117,18 @@ var loreTemplates = []string{
 	"A hive species from the outer void. Their %s affinity makes them dangerous at any range.",
 	"Bioengineered warriors with natural %s resistance. They adapt quickly to new threats.",
 	"Silent hunters who strike from the shadows. Their %s attacks leave no survivors.",
-	"A ancient race augmented by unknown technology. %s runs through their veins.",
+	"An ancient race augmented by unknown technology. %s runs through their veins.",
 	"Parasitic organisms that absorb the traits of their prey. %s is their signature.",
+	"Nomadic scavengers who evolved in low gravity. %s is their primary mode of defense.",
+	"A splinter colony of a dying empire, desperate and ruthless. They wield %s with precision.",
+	"Deep-dwelling creatures from a world without sunlight. %s compensates for their blindness.",
+	"Engineered weapons of a long-dead civilization, still following ancient directives. %s is their charge.",
+	"Swarm intelligence embodied in chitinous shells. Each unit channels %s independently.",
+	"Crystalline entities that communicate through resonant frequencies. %s is both language and weapon.",
+	"Paradoxical beings that exist between dimensions. %s bleeds through when they manifest.",
+	"Territorial predators from a high-pressure ocean world. %s replaces their vestigial eyes.",
+	"Silk-weaving architects of vast underground networks. %s is used to subdue prey.",
+	"Phototrophic organisms that feed on energy discharges. %s is a byproduct of their metabolism.",
 }
 
 // Morphology lore snippets describing body subtypes.
@@ -59,6 +141,16 @@ var morphLoreSnippets = map[string]string{
 	SubtypeMechanical:   "precision-forged mechanical components",
 	SubtypeBioSynthetic: "a fusion of organic tissue and synthetic armor",
 	SubtypeNanotech:     "a swarm of nanoscale machines",
+}
+
+// Sense lore snippets for flavor text.
+var senseLoreSnippets = map[string]string{
+	SenseNone:      "completely blind",
+	SensePoor:      "nearsighted",
+	SenseNormal:    "of average perception",
+	SenseExcellent: "with preternaturally sharp senses",
+	SenseMultiSpec: "perceiving light far beyond the visible spectrum",
+	SenseEcholoc:   "navigating by sound alone",
 }
 
 // Limb lore descriptions.
@@ -405,21 +497,35 @@ func pickBinarySense(rng *rand.Rand) string {
 	}
 }
 
+// pickAlienWeapon selects a weapon for a procedural alien based on its damage type and rank.
+func pickAlienWeapon(rng *rand.Rand, dmgType int, rank int) string {
+	pool, ok := alienWeaponsByDmgType[dmgType]
+	if !ok || rank >= len(pool) {
+		return "plasma_pistol"
+	}
+	weaps := pool[rank]
+	return weaps[rng.Intn(len(weaps))]
+}
+
 // --- Morphology stat modifiers ---
+// Each modifier applies tradeoffs: strong advantages come with compensating weaknesses.
 
 func morphHPMod(m *Morphology) int {
 	mod := 0
 	if m.IsFloating() {
 		mod -= 3
 	}
-	if m.BodySubtype == SubtypeCrystalline {
+	switch m.BodySubtype {
+	case SubtypeCrystalline:
 		mod += 5
-	}
-	if m.BodySubtype == SubtypeAmorphous {
+	case SubtypeAmorphous:
 		mod -= 2
-	}
-	if m.BodySubtype == SubtypeNanotech {
+	case SubtypeNanotech:
 		mod -= 4
+	case SubtypeGaseous:
+		mod -= 1 // gaseous: low HP compensated by kinetic immunity
+	case SubtypeMechanical:
+		mod += 2 // mechanical: slightly tougher
 	}
 	return mod
 }
@@ -435,11 +541,13 @@ func morphTUMod(m *Morphology) int {
 	case 6, 8:
 		mod += 15
 	}
-	if m.BodySubtype == SubtypeCrystalline {
+	switch m.BodySubtype {
+	case SubtypeCrystalline:
 		mod -= 10
-	}
-	if m.BodySubtype == SubtypeMechanical {
+	case SubtypeMechanical:
 		mod += 5
+	case SubtypeAmorphous:
+		mod -= 3 // amorphous: slow movement
 	}
 	return mod
 }
@@ -464,8 +572,15 @@ func morphAccMod(m *Morphology) int {
 	} else if m.Eyesight == SenseExcellent || m.Eyesight == SenseMultiSpec {
 		mod += 10
 	}
-	if m.BodySubtype == SubtypeMechanical {
+	switch m.BodySubtype {
+	case SubtypeMechanical:
 		mod += 5
+	case SubtypeGaseous:
+		mod -= 5 // gaseous: unfocused form, harder to aim
+	case SubtypeCrystalline:
+		mod -= 3 // crystalline: rigid, less precise
+	case SubtypeAmorphous:
+		mod -= 3 // amorphous: shifting form
 	}
 	return mod
 }
@@ -487,6 +602,10 @@ func morphReactMod(m *Morphology) int {
 	if m.ThermalSense == SenseHigh {
 		mod += 5
 	}
+	// Tradeoff: floating + high reactions → lower bravery (fragile confidence)
+	if m.IsFloating() && m.BodySubtype == SubtypeMechanical {
+		mod -= 3 // mechanical hovering: predictable movement patterns
+	}
 	return mod
 }
 
@@ -506,8 +625,15 @@ func morphStrMod(m *Morphology) int {
 	case 6, 8:
 		mod += 5
 	}
-	if m.BodySubtype == SubtypeCrystalline {
+	switch m.BodySubtype {
+	case SubtypeCrystalline:
 		mod += 5
+	case SubtypeGaseous:
+		mod -= 5 // gaseous: no physical strength
+	case SubtypeAmorphous:
+		mod -= 3
+	case SubtypeNanotech:
+		mod -= 2
 	}
 	return mod
 }
@@ -515,7 +641,7 @@ func morphStrMod(m *Morphology) int {
 func morphPsiMod(m *Morphology) int {
 	mod := 0
 	if m.Eyesight == SenseNone {
-		mod += 10 // blind aliens compensate with psi
+		mod += 10
 	}
 	if m.PsionicSense == SenseHigh {
 		mod += 15
@@ -524,6 +650,31 @@ func morphPsiMod(m *Morphology) int {
 	}
 	if m.BodySubtype == SubtypeAmorphous || m.BodySubtype == SubtypeGaseous {
 		mod += 10
+	}
+	// Tradeoff: mechanical/nanotech can't develop psi
+	if m.BodySubtype == SubtypeMechanical || m.BodySubtype == SubtypeNanotech {
+		mod -= 20
+	}
+	return mod
+}
+
+func morphBraveMod(m *Morphology) int {
+	mod := 0
+	// Floating aliens: more evasive but less resolute
+	if m.IsFloating() {
+		mod -= 5
+	}
+	// Mechanical: fearless (no self-preservation instinct)
+	if m.BodySubtype == SubtypeMechanical {
+		mod += 15
+	}
+	// Crystalline: slow to panic
+	if m.BodySubtype == SubtypeCrystalline {
+		mod += 10
+	}
+	// Amorphous/gaseous: hard to intimidate
+	if m.BodySubtype == SubtypeAmorphous || m.BodySubtype == SubtypeGaseous {
+		mod += 5
 	}
 	return mod
 }
@@ -628,6 +779,7 @@ func generateVariant(rng *rand.Rand, sp *AlienSpecies, rank int, usedIcons map[r
 	hpBase += morphHPMod(m)
 	tuBase += morphTUMod(m)
 	accBase += morphAccMod(m)
+	braveBase += morphBraveMod(m)
 	reactBase += morphReactMod(m)
 	strBase += morphStrMod(m)
 	psiBase += morphPsiMod(m)
@@ -645,9 +797,8 @@ func generateVariant(rng *rand.Rand, sp *AlienSpecies, rank int, usedIcons map[r
 	armBase = max(armBase, 0)
 	aggroBase = clamp(aggroBase, 1, 10)
 
-	// Choose weapon based on rank
-	weaps := alienWeaponsByRank[rank]
-	weapon := weaps[rng.Intn(len(weaps))]
+	// Choose weapon based on damage type and rank
+	weapon := pickAlienWeapon(rng, sp.PrimaryDMG, rank)
 
 	// Generate base resistances
 	resistPlasma := genResist(rng, sp.PrimaryDMG, DMG_PLASMA, rank)
@@ -675,8 +826,8 @@ func generateVariant(rng *rand.Rand, sp *AlienSpecies, rank int, usedIcons map[r
 
 	// Build variant name
 	varName := sp.Name
-	if rank > 0 && rank <= len(rankTitles) {
-		varName = sp.Name + " " + rankTitles[rank-1]
+	if title := rankTitle(sp.PrimaryDMG, rank); title != "" {
+		varName = sp.Name + " " + title
 	}
 
 	// Build short name
@@ -690,8 +841,8 @@ func generateVariant(rng *rand.Rand, sp *AlienSpecies, rank int, usedIcons map[r
 
 	// Lore per variant
 	variantLore := sp.Lore
-	if rank > 0 {
-		variantLore = rankTitles[rank-1] + " of the " + sp.Name + " species. " + variantLore
+	if title := rankTitle(sp.PrimaryDMG, rank); title != "" {
+		variantLore = title + " of the " + sp.Name + " species. " + variantLore
 	}
 
 	return &AlienType{
@@ -920,7 +1071,13 @@ func genResist(rng *rand.Rand, affinity int, dmgType int, rank int) int {
 }
 
 func generateLore(name string, dmgType int, m *Morphology) string {
-	template := loreTemplates[dmgType%len(loreTemplates)]
+	// Mix damage type and body subtype for template variety
+	subtypeHash := 0
+	for _, c := range m.BodySubtype {
+		subtypeHash += int(c)
+	}
+	idx := (dmgType*7 + subtypeHash) % len(loreTemplates)
+	template := loreTemplates[idx]
 	base := strings.Replace(template, "%s", DamageTypeStr(dmgType), 1)
 
 	bodyDesc := morphLoreSnippets[m.BodySubtype]
@@ -930,7 +1087,16 @@ func generateLore(name string, dmgType int, m *Morphology) string {
 
 	limbDesc := limbLore(m)
 
-	return fmt.Sprintf("%s %s. Its body is composed of %s.", limbDesc, base, bodyDesc)
+	senseDesc := ""
+	if m.Eyesight == SenseNone {
+		senseDesc = " It is " + senseLoreSnippets[SenseNone] + "."
+	} else if m.Eyesight == SenseMultiSpec {
+		senseDesc = " It is " + senseLoreSnippets[SenseMultiSpec] + "."
+	} else if m.Hearing == SenseEcholoc {
+		senseDesc = " It is " + senseLoreSnippets[SenseEcholoc] + "."
+	}
+
+	return fmt.Sprintf("%s %s. Its body is composed of %s.%s", limbDesc, base, bodyDesc, senseDesc)
 }
 
 func pickRune(rng *rand.Rand, pool []rune) rune {
