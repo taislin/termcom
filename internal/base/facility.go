@@ -370,10 +370,16 @@ func (b *Base) SellItem(item string) int64 {
 	return value
 }
 
-func (b *Base) AddLoot(items []string) {
+// AddLoot stores items in the base, returning the number that could not be
+// stored because storage was full.
+func (b *Base) AddLoot(items []string) int {
+	dropped := 0
 	for _, item := range items {
-		_ = b.AddItem(item, 1)
+		if !b.AddItem(item, 1) {
+			dropped++
+		}
 	}
+	return dropped
 }
 
 func (b *Base) EquipWeapon(soldierIdx int, weaponKey string) bool {
@@ -516,14 +522,12 @@ func (b *Base) InterrogateAlien(alienName string) (string, bool) {
 		}
 		for _, wpn := range topic.UnlockWeap {
 			if _, ok := data.RuleItems[wpn]; ok {
-				b.Stores[wpn] += 1
-				b.UsedStorage++
+				b.AddItem(wpn, 1)
 			}
 		}
 		for _, arm := range topic.UnlockArmor {
 			if _, ok := data.Armors[arm]; ok {
-				b.Stores[arm] += 1
-				b.UsedStorage++
+				b.AddItem(arm, 1)
 			}
 		}
 		benefit = true
@@ -621,12 +625,12 @@ func (b *Base) AdvanceResearch() []string {
 			}
 			for _, wpn := range topic.UnlockWeap {
 				if _, ok := data.RuleItems[wpn]; ok {
-					b.Stores[wpn] = 1
+					b.AddItem(wpn, 1)
 				}
 			}
 			for _, arm := range topic.UnlockArmor {
 				if _, ok := data.Armors[arm]; ok {
-					b.Stores[arm] = 1
+					b.AddItem(arm, 1)
 				}
 			}
 			if b.ActiveResearch.TopicID == "mind_control" {
@@ -646,13 +650,15 @@ func (b *Base) AdvanceResearch() []string {
 }
 
 func (b *Base) CanManufacture(item string, count int) bool {
+	if count <= 0 {
+		return false
+	}
 	if b.TotalWorkshops() == 0 {
 		return false
 	}
 	if b.Engineers <= 0 {
 		return false
 	}
-	_ = count
 	return true
 }
 

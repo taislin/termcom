@@ -316,11 +316,11 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList, pla
 
 func (ai *AlienAI) selectTarget(nearest *Unit, humanUnits UnitList, plan *SquadPlan, m *BattleMap) *Unit {
 	if plan != nil && plan.PrimaryTarget != nil && plan.PrimaryTarget.Alive {
-		if ai.Unit.CanSee(plan.PrimaryTarget.X, plan.PrimaryTarget.Y, m) {
+		if ai.canSense(plan.PrimaryTarget.X, plan.PrimaryTarget.Y, m) {
 			return plan.PrimaryTarget
 		}
 		if plan.SecondaryTarget != nil && plan.SecondaryTarget.Alive {
-			if ai.Unit.CanSee(plan.SecondaryTarget.X, plan.SecondaryTarget.Y, m) {
+			if ai.canSense(plan.SecondaryTarget.X, plan.SecondaryTarget.Y, m) {
 				return plan.SecondaryTarget
 			}
 		}
@@ -329,7 +329,7 @@ func (ai *AlienAI) selectTarget(nearest *Unit, humanUnits UnitList, plan *SquadP
 	best := nearest
 	bestScore := -999.0
 	for _, h := range humanUnits {
-		if !h.Alive || !ai.Unit.CanSee(h.X, h.Y, m) {
+		if !h.Alive || !ai.canSense(h.X, h.Y, m) {
 			continue
 		}
 		dx := float64(h.X - ai.Unit.X)
@@ -348,12 +348,53 @@ func (ai *AlienAI) selectTarget(nearest *Unit, humanUnits UnitList, plan *SquadP
 		if h.TU < 20 {
 			score += 3
 		}
+
+		if at := ai.Unit.AlienType; at != nil && at.Morphology != nil {
+			morph := at.Morphology
+			if morph.ThermalSense == data.SenseHigh && h.Crouching {
+				score += 4
+			}
+			if morph.ChemicalSense == data.SenseHigh && h.HP < h.MaxHP/2 {
+				score += 5
+			}
+			if (morph.Eyesight == data.SenseExcellent || morph.Eyesight == data.SenseMultiSpec) && dist > 8 {
+				score += 3
+			}
+		}
+
 		if score > bestScore {
 			bestScore = score
 			best = h
 		}
 	}
 	return best
+}
+
+func (ai *AlienAI) canSense(tx, ty int, m *BattleMap) bool {
+	if ai.Unit.CanSee(tx, ty, m) {
+		return true
+	}
+	if ai.Unit.AlienType == nil || ai.Unit.AlienType.Morphology == nil {
+		return false
+	}
+	morph := ai.Unit.AlienType.Morphology
+	if morph.ThermalSense == data.SenseHigh {
+		dx := float64(tx - ai.Unit.X)
+		dy := float64(ty - ai.Unit.Y)
+		dist := math.Sqrt(dx*dx + dy*dy)
+		if dist <= 10 {
+			return true
+		}
+	}
+	if morph.Hearing == data.SenseEcholoc {
+		dx := float64(tx - ai.Unit.X)
+		dy := float64(ty - ai.Unit.Y)
+		dist := math.Sqrt(dx*dx + dy*dy)
+		if dist <= 6 {
+			return true
+		}
+	}
+	return false
 }
 
 func (ai *AlienAI) canFireAt(target *Unit) bool {
@@ -769,7 +810,7 @@ func (ai *AlienAI) findNearest(humanUnits UnitList, m *BattleMap) (*Unit, float6
 		if !h.Alive || h.Level != ai.Unit.Level {
 			continue
 		}
-		if !ai.Unit.CanSee(h.X, h.Y, m) {
+		if !ai.canSense(h.X, h.Y, m) {
 			continue
 		}
 		dx := float64(h.X - ai.Unit.X)

@@ -2,6 +2,7 @@ package engine
 
 import (
 	"github.com/gdamore/tcell/v3"
+	"github.com/gdamore/tcell/v3/color"
 )
 
 // PixelImage represents a 2D grid of colors.
@@ -32,12 +33,12 @@ func NewPixelImage(w, h int) *PixelImage {
 // DrawPixelImage draws the PixelImage onto a tcell.Screen.
 // Each cell at (x + col, y + row/2) uses '▀' (U+2580) with
 // FG = top pixel (row) and BG = bottom pixel (row+1).
-// If the height is odd, the bottom pixel of the last cell row defaults to tcell.ColorBlack.
+// If the height is odd, the bottom pixel of the last cell row defaults to color.Black.
 func DrawPixelImage(screen tcell.Screen, x, y int, img *PixelImage) {
 	for row := 0; row < img.Height; row += 2 {
 		for col := 0; col < img.Width; col++ {
 			topColor := img.Pixels[row][col]
-			bottomColor := tcell.ColorBlack
+			bottomColor := color.Black
 			if row+1 < img.Height {
 				bottomColor = img.Pixels[row+1][col]
 			}
@@ -50,11 +51,11 @@ func DrawPixelImage(screen tcell.Screen, x, y int, img *PixelImage) {
 			// If one of them is transparent, we handle it by blending or drawing against a black fallback.
 			resolvedTop := topColor
 			if topColor == tcell.ColorDefault {
-				resolvedTop = tcell.ColorBlack
+				resolvedTop = color.Black
 			}
 			resolvedBottom := bottomColor
 			if bottomColor == tcell.ColorDefault {
-				resolvedBottom = tcell.ColorBlack
+				resolvedBottom = color.Black
 			}
 
 			style := tcell.StyleDefault.Foreground(resolvedTop).Background(resolvedBottom)

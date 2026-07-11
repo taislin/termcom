@@ -94,6 +94,7 @@ func (g *Game) GameOver(won bool, stats string) {
 }
 
 func NewGame() (*Game, error) {
+	LoadConfig()
 	scr, err := NewScreenRaw()
 	if err != nil {
 		return nil, err

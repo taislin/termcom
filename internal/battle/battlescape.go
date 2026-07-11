@@ -357,8 +357,8 @@ func NewBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, ufoN
 			continue
 		}
 		u := NewAlienUnit(at)
-		u.X = 10 + rand.Intn(m.Width-14)
-		u.Y = 3 + rand.Intn(m.Height/2-4)
+		u.X = 10 + randn(m.Width-14)
+		u.Y = 3 + randn(m.Height/2-4)
 		u.IsNight = bs.IsNight
 		u.HP += hpBonus
 		u.MaxHP += hpBonus
@@ -375,8 +375,8 @@ func NewBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, ufoN
 		for i := 0; i < civCount; i++ {
 			name := civNames[rand.Intn(len(civNames))]
 			u := NewCivilianUnit(name)
-			u.X = 5 + rand.Intn(m.Width-10)
-			u.Y = m.Height/2 + rand.Intn(m.Height/2-5)
+			u.X = 5 + randn(m.Width-10)
+			u.Y = m.Height/2 + randn(m.Height/2-5)
 			if m.Passable(u.X, u.Y) {
 				u.IsNight = bs.IsNight
 				bs.Units = append(bs.Units, u)
@@ -389,8 +389,8 @@ func NewBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, ufoN
 		for i := 0; i < bs.AbductionTotal; i++ {
 			name := civNames[rand.Intn(len(civNames))]
 			u := NewCivilianUnit(name)
-			u.X = 10 + rand.Intn(m.Width-20)
-			u.Y = 5 + rand.Intn(m.Height-10)
+			u.X = 10 + randn(m.Width-20)
+			u.Y = 5 + randn(m.Height-10)
 			if m.Passable(u.X, u.Y) {
 				u.IsNight = bs.IsNight
 				bs.Units = append(bs.Units, u)
@@ -2297,14 +2297,6 @@ func (ul UnitList) Faction(f int) UnitList {
 		}
 	}
 	return result
-}
-
-func tileVar(mx, my, n int) int {
-	h := mx*2654435761 ^ my*2246822519
-	if h < 0 {
-		h = -h
-	}
-	return h % n
 }
 
 func (bs *Battlescape) ApplyCursorStyles(x, y int, style tcell.Style) tcell.Style {

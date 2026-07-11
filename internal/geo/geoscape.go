@@ -1064,7 +1064,10 @@ func (gs *Geoscape) SaveGameToSlot(slot int) {
 
 func (gs *Geoscape) SaveGameAuto() {
 	sd := gs.buildSaveData()
-	_ = save.SaveGame(save.AutoSavePath(), sd)
+	if err := save.SaveGame(save.AutoSavePath(), sd); err != nil {
+		gs.Message = language.String("MSG_SAVE_FAILED") + err.Error()
+		gs.MessageTimer = time.Now()
+	}
 }
 
 func (gs *Geoscape) LoadGameFromFile() {

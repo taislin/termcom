@@ -116,14 +116,21 @@ type MissionSave struct {
 
 func SaveGame(path string, data *SaveData) error {
 	data.Version = CurrentVersion
-	file, err := os.Create(path)
+	buf, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
 		return err
 	}
-	defer file.Close()
-	enc := json.NewEncoder(file)
-	enc.SetIndent("", "  ")
-	return enc.Encode(data)
+	// Write to a temp file first, then rename, so a failure never leaves a
+	// truncated/corrupt save behind.
+	tmp := path + ".tmp"
+	if err := os.WriteFile(tmp, buf, 0644); err != nil {
+		return err
+	}
+	if err := os.Rename(tmp, path); err != nil {
+		os.Remove(tmp)
+		return err
+	}
+	return nil
 }
 
 func SaveGameToSlot(slot int, data *SaveData) error {

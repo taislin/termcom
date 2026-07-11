@@ -585,10 +585,55 @@ Species traits are determined at generation:
 - **Primary damage type** — the damage type the species deals
 - **Resistance spread** — each species has unique resistances and weaknesses
 - **Weapon preference** — lower ranks use pistols, higher ranks use heavy weapons
+- **Morphology** — physical form that determines stats, resistances, and portrait
 
 This means every playthrough features different alien threats. One run may have
 a psionic-heavy species resistant to plasma, while another has melee predators
 weak to explosives.
+
+### Morphology
+
+Every procedural species has a morphology — its physical body plan — that affects
+combat stats, damage resistances, and visual appearance.
+
+#### Limbs
+
+| Variable | Range | Effect |
+|----------|-------|--------|
+| Arms (manipulative) | 0–6 | 0 = no arms (-15 Acc, pistol-only), 2 = baseline, 3–4 = extra stability (+5 Acc), 5–6 = dual-wield |
+| Legs (locomotive) | 0–8 | 0 = floating (+10 Reactions, harder to hit), 2 = baseline, 4 = fast (+10 TU), 6–8 = very fast but large target |
+
+#### Body Type & Subtype
+
+| Body Type | Subtype | Resistances | Special |
+|-----------|---------|-------------|---------|
+| Organic | Carbon Flesh | +10 Kinetic, -10 Explosive | None |
+| Organic | Silicon Based | +20 Laser, +10 Plasma, -15 Explosive | Reflective |
+| Organic | Gaseous | Immune Kinetic, -20 Plasma | Phasing (move through walls) |
+| Organic | Crystalline | +15 all except Explosive (-25) | Shatter (AoE on death) |
+| Organic | Amorphous | +10 Psionic | Regenerate (2 HP/turn) |
+| Synthetic | Mechanical | Immune Psionic, +15 Plasma, -15 Laser | Overload (self-destruct AoE) |
+| Synthetic | Bio-Synthetic | +5 all | Healer (heal adjacent aliens) |
+| Synthetic | Nanotech | +20 Kinetic, -10 energy | Disperse (50% revive on death) |
+
+#### Senses
+
+| Sense | Qualities | Combat Effect |
+|-------|-----------|---------------|
+| Eyesight | none / poor / normal / excellent / multi-spectrum | Affects accuracy and reaction fire. Multi-spectrum ignores smoke/darkness. |
+| Hearing | none / poor / normal / excellent / echolocation | Echolocation detects units through smoke within 6 tiles. |
+| Thermal Sense | none / low / high | High detects any living unit within 10 tiles regardless of cover/smoke. |
+| Psionic Sense | none / low / high | High grants +15 Psi and detects mind-controlled humans. |
+| Chemical Sense | none / low / high | High grants +10 Accuracy vs wounded targets. |
+
+#### Morphology & Stats
+
+Morphology modifies base stats before rank scaling:
+- Floating aliens: -5 TU, +10 Reactions, -3 HP
+- Multi-armed aliens: +5–10 Accuracy, +5–10 Strength
+- Many-legged aliens: +10–15 TU, +5–10 Reactions, +5 Strength
+- Blind aliens (Eyesight=none): -20 Accuracy, +10 Psi (compensates)
+- Crystalline: +5 HP, +5 Armour, -10 TU
 
 ### Knowledge Levels
 
@@ -603,10 +648,13 @@ As you encounter aliens, your knowledge increases:
 
 ### Alien AI Behavior
 
-- **Patrol:** Wander until a human is within 15 tiles, then switch to Attack.
+- **Patrol:** Wander until a human is detected, then switch to Attack.
 - **Attack:** Fire at target. High-aggression aliens (>5) charge if distance > 3 tiles.
 - **Search:** Move toward last-seen position for 5 turns, then resume Patrol.
 - **Flee:** Triggered when HP < 25% AND Bravery < 50. Runs for 3 turns.
+- **Senses:** Aliens with thermal sense or echolocation can detect units they
+  cannot see directly (through smoke, around corners). Chemical sense prioritises
+  wounded targets. Excellent eyesight grants accuracy bonuses at long range.
 - **Adaptive:** Across missions the aliens study your habits (stored in `Game.Tactics`).
   If you snipe from long range they rush to close distance; if you lean on grenades
   they spread out to avoid clusters; if you flank often they post more suppressors

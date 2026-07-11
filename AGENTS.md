@@ -68,7 +68,7 @@ internal/
   battle/map.go            Tactical map generation (crash sites, terror, forest, etc.)
   battle/gas.go            Volumetric smoke/poison gas grid with diffusion
   battle/unit.go           Soldiers and aliens on the tactical map
-  battle/ai.go             Alien AI (patrol, seek, attack, flee, flank, retreat)
+  battle/ai.go             Alien AI (patrol, seek, attack, flee, flank, retreat, senses)
   battle/input.go          Battlescape input handling (mouse + keyboard)
   base/base.go             Base management screen
   base/facility.go         Facility types, construction, base state, hangars
@@ -77,10 +77,10 @@ internal/
   base/manufacture.go      Manufacturing screen
   soldier/soldier.go       Soldier stats, ranking, inventory
   data/items.go            Weapons, armor, items (RuleItems map)
-  data/aliens.go           Alien species, stat blocks, portraits
+  data/aliens.go           Alien species, stat blocks, portraits, morphology types
   data/research.go         Research topic struct and dynamic lookup
   data/techgen.go          Procedural tech tree generator (DAG, tiers, cost variance)
-  data/procedural.go       Procedural alien species + portrait generation
+  data/procedural.go       Procedural alien species + morphology + portrait generation
   save/save.go             Save/load system (JSON, version migration v1-v3)
   language/en.go           English localization strings
   audio/audio_common.go    Platform-independent audio dispatch
@@ -108,7 +108,7 @@ internal/
 - Soldiers gain stats from combat experience
 - Line-of-sight uses Bresenham raycasting
 - Cover system: tiles have 0-100% damage reduction (walls 80%, rocks 70%, trees 60%, bushes 40%)
-- Procedural alien species + portraits per run
+- Procedural alien species + morphology + portraits per run
 
 ### Key Bindings (Geoscape)
 | Key | Action |

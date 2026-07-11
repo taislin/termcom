@@ -6,22 +6,16 @@ import (
 	"github.com/gdamore/tcell/v3"
 )
 
-func max(a, b int) int {
-	if a > b {
-		return a
+// randn returns rand.Intn(n) but safely yields 0 when n <= 0, avoiding a panic
+// on degenerate (very small) map dimensions.
+func randn(n int) int {
+	if n <= 0 {
+		return 0
 	}
-	return b
-}
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
+	return rand.Intn(n)
 }
 
 type TileType int
-
 const (
 	TileFloor TileType = iota
 	TileWall
@@ -96,8 +90,6 @@ func (t Tile) IsFlammable() bool {
 	}
 	return false
 }
-
-var bloodRunes = [4]rune{0, ',', '%', ':'}
 
 func (m *BattleMap) SpawnBlood(x, y, bloodType int) {
 	if x < 0 || x >= m.Width || y < 0 || y >= m.Height {
@@ -850,8 +842,8 @@ func GenerateTerrorSite(w, h int) *BattleMap {
 		attempts++
 		bw := 6 + rand.Intn(8)
 		bh := 5 + rand.Intn(7)
-		bx := rand.Intn(w-bw-2) + 1
-		by := rand.Intn(h-bh-2) + 1
+		bx := randn(w-bw-2) + 1
+		by := randn(h-bh-2) + 1
 
 		// Check for overlap (simple check)
 		overlap := false
@@ -904,8 +896,8 @@ func GenerateAbductionSite(w, h int) *BattleMap {
 		attempts++
 		bw := 4 + rand.Intn(4)
 		bh := 3 + rand.Intn(3)
-		bx := rand.Intn(w-bw-2) + 1
-		by := rand.Intn(h-bh-2) + 1
+		bx := randn(w-bw-2) + 1
+		by := randn(h-bh-2) + 1
 		overlap := false
 		for dy := -1; dy <= bh; dy++ {
 			for dx := -1; dx <= bw; dx++ {
@@ -1062,8 +1054,8 @@ func GenerateUFOInterior(w, h int) *BattleMap {
 	m.SetLevel(stairsX+2, stairsY+2, 0, TilePowerSource)
 
 	for i := 0; i < 6; i++ {
-		x := rand.Intn(w-4) + 2
-		y := rand.Intn(levelH-4) + 2
+		x := randn(w-4) + 2
+		y := randn(levelH-4) + 2
 		if m.AtLevel(x, y, 0).Type == TileUFOFloor {
 			m.SetLevel(x, y, 0, TileAlienTech)
 		}
@@ -1132,8 +1124,8 @@ func GenerateCydonia(w, h int) *BattleMap {
 
 	// Add some Alien Alloy objects
 	for i := 0; i < 20; i++ {
-		x := rand.Intn(w-4) + 2
-		y := rand.Intn(h-4) + 2
+		x := randn(w-4) + 2
+		y := randn(h-4) + 2
 		if m.At(x, y).Type == TileUFOFloor {
 			m.Set(x, y, TileObject)
 		}

@@ -3,7 +3,7 @@ package battle
 import (
 	"testing"
 
-	"github.com/gdamore/tcell/v3"
+	"github.com/gdamore/tcell/v3/color"
 )
 
 func TestTileGeomRune_UFOCorners(t *testing.T) {
@@ -60,7 +60,7 @@ func TestRenderTile_Visibility(t *testing.T) {
 		t.Errorf("Expected blank rune for unseen tile, got %c", rUnseen)
 	}
 	bgUnseen := styleUnseen.GetBackground()
-	if bgUnseen != tcell.ColorBlack {
+	if bgUnseen != color.Black {
 		t.Errorf("Expected black BG for unseen tile, got %v", bgUnseen)
 	}
 

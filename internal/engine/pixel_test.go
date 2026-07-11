@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/gdamore/tcell/v3"
+	"github.com/gdamore/tcell/v3/color"
 )
 
 // mockScreen implements a minimal tcell.Screen for test verification of SetContent.
@@ -33,9 +34,9 @@ func (m *mockScreen) SetContent(x, y int, primary rune, combining []rune, style 
 
 func TestDrawPixelImageOddHeight(t *testing.T) {
 	img := NewPixelImage(3, 3) // Odd height
-	img.Pixels[0][0] = tcell.ColorRed
-	img.Pixels[1][0] = tcell.ColorBlue
-	img.Pixels[2][0] = tcell.ColorGreen // Last pixel, odd row
+	img.Pixels[0][0] = color.Red
+	img.Pixels[1][0] = color.Blue
+	img.Pixels[2][0] = color.Green // Last pixel, odd row
 
 	scr := newMockScreen()
 	DrawPixelImage(scr, 0, 0, img)
@@ -50,7 +51,7 @@ func TestDrawPixelImageOddHeight(t *testing.T) {
 	}
 	fg := cell1.style.GetForeground()
 	bg := cell1.style.GetBackground()
-	if fg != tcell.ColorRed || bg != tcell.ColorBlue {
+	if fg != color.Red || bg != color.Blue {
 		t.Errorf("Expected FG=Red, BG=Blue, got FG=%v, BG=%v", fg, bg)
 	}
 
@@ -64,28 +65,28 @@ func TestDrawPixelImageOddHeight(t *testing.T) {
 	}
 	fg2 := cell2.style.GetForeground()
 	bg2 := cell2.style.GetBackground()
-	if fg2 != tcell.ColorGreen || bg2 != tcell.ColorBlack {
+	if fg2 != color.Green || bg2 != color.Black {
 		t.Errorf("Expected FG=Green, BG=Black (padded), got FG=%v, BG=%v", fg2, bg2)
 	}
 }
 
 func TestCompositeImages(t *testing.T) {
 	base := NewPixelImage(2, 2)
-	base.Pixels[0][0] = tcell.ColorRed
-	base.Pixels[1][1] = tcell.ColorBlue
+	base.Pixels[0][0] = color.Red
+	base.Pixels[1][1] = color.Blue
 
 	overlay := NewPixelImage(2, 2)
-	overlay.Pixels[0][0] = tcell.ColorGreen
+	overlay.Pixels[0][0] = color.Green
 	// overlay.Pixels[1][1] is ColorDefault (transparent)
 
 	res := CompositeImages(base, overlay)
 
 	// Check (0,0) was overwritten by overlay
-	if res.Pixels[0][0] != tcell.ColorGreen {
+	if res.Pixels[0][0] != color.Green {
 		t.Errorf("Expected (0,0) to be Green, got %v", res.Pixels[0][0])
 	}
 	// Check (1,1) kept base color because overlay was transparent
-	if res.Pixels[1][1] != tcell.ColorBlue {
+	if res.Pixels[1][1] != color.Blue {
 		t.Errorf("Expected (1,1) to be Blue, got %v", res.Pixels[1][1])
 	}
 }

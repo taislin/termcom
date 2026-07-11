@@ -201,6 +201,12 @@ func (es *EncyclopediaScreen) Render(ctx *ScreenCtx) {
 				ctx.DrawString(infoX+1, statY, fmt.Sprintf(language.String("ENCYCLO_ALIEN_STATS_1"), at.HP, at.TU, at.Accuracy), StyleGray)
 				ctx.DrawString(infoX+1, statY+1, fmt.Sprintf(language.String("ENCYCLO_ALIEN_STATS_2"), at.Strength, at.Psi, at.Bravery), StyleGray)
 				ctx.DrawString(infoX+1, statY+2, fmt.Sprintf(language.String("ENCYCLO_ALIEN_STATS_3"), data.DamageTypeStr(at.DamageType), data.RuleItems[at.Weapon].Name), StyleGray)
+
+				if m := at.Morphology; m != nil {
+					ctx.DrawString(infoX+1, statY+4, fmt.Sprintf("Body: %s %s | Arms: %d | Legs: %d", m.BodyType, m.BodySubtype, m.Arms, m.Legs), StyleGray)
+					ctx.DrawString(infoX+1, statY+5, fmt.Sprintf("Eyes: %s | Hearing: %s | Thermal: %s", m.Eyesight, m.Hearing, m.ThermalSense), StyleGray)
+					ctx.DrawString(infoX+1, statY+6, fmt.Sprintf("PsiSense: %s | ChemSense: %s", m.PsionicSense, m.ChemicalSense), StyleGray)
+				}
 			}
 		} else {
 			ctx.DrawString(infoX+1, listY+2, language.String("ENCYCLO_NOT_DISCOVERED"), StyleGray)
