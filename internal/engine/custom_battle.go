@@ -245,5 +245,4 @@ func (cs *CustomBattleScreen) confirm() {
 	if cs.Selection >= 0 && cs.Selection < len(cs.Entries) && cs.OnPick != nil {
 		cs.OnPick(cs.Entries[cs.Selection])
 	}
-	cs.Game.PopState()
 }

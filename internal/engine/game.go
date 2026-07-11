@@ -230,13 +230,17 @@ func (g *Game) drainEvents() {
 			case *tcell.EventResize:
 				g.screen.UpdateSize()
 			case *tcell.EventKey:
-				if e.Key() == tcell.KeyEscape || e.Str() == "\x1b" {
-					switch g.state {
-					case StateGeoscape, StateMenu:
-						g.running = false
-					default:
-						g.PopState()
+			if e.Key() == tcell.KeyEscape || e.Str() == "\x1b" {
+				switch g.state {
+				case StateGeoscape, StateMenu:
+					g.running = false
+				case StateBattlescape:
+					if sc, ok := g.screens[g.state]; ok {
+						sc.HandleKey(e)
 					}
+				default:
+					g.PopState()
+				}
 				} else if e.Str() == "?" {
 					g.PushState(StateHelp)
 				} else if e.Str() == "o" || e.Str() == "O" {
