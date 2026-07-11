@@ -51,6 +51,9 @@ jobs:
         with:
           go-version: '1.25'
 
+      - name: Install Dependencies
+        run: sudo apt-get update && sudo apt-get install -y upx
+
       - name: Get Version
         id: get_version
         run: echo "VERSION=$(cat VERSION)" >> $GITHUB_ENV
@@ -60,7 +63,10 @@ jobs:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
         run: |
-          go build -o termcom_${{ env.VERSION }}_${{ matrix.os }}_${{ matrix.arch }}${{ matrix.ext }} ./cmd/termcom
+          go build -ldflags="-s -w" -trimpath -o termcom_${{ env.VERSION }}_${{ matrix.os }}_${{ matrix.arch }}${{ matrix.ext }} ./cmd/termcom
+          if [ "${{ matrix.goos }}" != "darwin" ]; then
+            upx --best --lzma termcom_${{ env.VERSION }}_${{ matrix.os }}_${{ matrix.arch }}${{ matrix.ext }} || echo "UPX compression failed, skipping"
+          fi
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
