@@ -1,8 +1,6 @@
 package engine
 
 import (
-	"math"
-
 	"github.com/civ13/termcom/internal/data"
 	"github.com/gdamore/tcell/v3"
 )
@@ -133,11 +131,6 @@ func GenerateSoldierPortrait(spec PortraitSpec) *PixelImage {
 	res = CompositeImages(res, mouth)
 	res = CompositeImages(res, hair)
 
-	if spec.MarkingsColor != tcell.ColorDefault {
-		markings := generateMarkingsLayer(w, h, spec.MarkingsColor, rng.Intn(3))
-		res = CompositeImages(res, markings)
-	}
-
 	if spec.HelmetColor != tcell.ColorDefault {
 		helmet := generateHelmetLayer(w, h, spec.HelmetColor)
 		res = CompositeImages(res, helmet)
@@ -178,9 +171,9 @@ type faceGeom struct {
 
 func computeFaceGeom(w, h int) faceGeom {
 	cx := w / 2
-	cy := h * 45 / 100
-	rx := w * 35 / 100
-	ry := h * 45 / 100
+	cy := h * 40 / 100
+	rx := w * 25 / 100 // Narrower
+	ry := h * 45 / 100 // Longer (oval)
 	if rx < 2 {
 		rx = 2
 	}
@@ -188,13 +181,13 @@ func computeFaceGeom(w, h int) faceGeom {
 		ry = 2
 	}
 
-	eyeY := cy - ry/4
+	eyeY := cy - ry/6 // Slightly adjusted
 	eyeOff := rx * 5 / 8
 	if eyeOff < 1 {
 		eyeOff = 1
 	}
 	noseTipY := cy + ry/5
-	mouthY := cy + ry*4/10
+	mouthY := cy + ry*5/10 // Mouth lower
 	earTop := eyeY - ry/6
 	earBot := noseTipY + ry/8
 	neckY := cy + ry + 1
@@ -226,78 +219,17 @@ func generateSkinLayer(w, h int, baseColor tcell.Color, bgColor tcell.Color) *Pi
 		}
 	}
 
-	dark1 := DarkenColor(baseColor, 0.88)
-	dark2 := DarkenColor(baseColor, 0.75)
-	light1 := LightenColor(baseColor, 1.08)
-	light2 := LightenColor(baseColor, 1.05)
-
 	for y := 0; y < h; y++ {
 		for x := 0; x < w; x++ {
 			if !inHead(x, y, g) {
 				continue
 			}
-
-			relY := float64(y-g.cy) / float64(g.ry)
-			relX := float64(x-g.cx) / float64(g.rx)
-
-			col := baseColor
-
-			// Forehead highlight
-			if relY < -0.3 && math.Abs(relX) < 0.4 {
-				col = light1
-			}
-
-			// Nose bridge highlight
-			if math.Abs(relX) < 0.15 && relY > -0.2 && relY < 0.3 {
-				col = light1
-			}
-
-			// Cheekbone highlights — prominent on upper cheeks
-			if relY > -0.15 && relY < 0.15 {
-				if (relX > 0.3 && relX < 0.6) || (relX < -0.3 && relX > -0.6) {
-					col = light2
-				}
-			}
-
-			// Eye socket shadows — depressions around eyes
-			if relY > -0.35 && relY < -0.15 {
-				if (relX > 0.15 && relX < 0.45) || (relX < -0.15 && relX > -0.45) {
-					col = dark1
-				}
-			}
-
-			// Cheek shadow
-			if relY > -0.1 && relY < 0.35 && (relX < -0.45 || relX > 0.45) {
-				col = dark1
-			}
-
-			// Jaw shadow
-			if relY > 0.5 {
-				factor := 0.78 - (relY-0.5)*0.4
-				if factor < 0.5 {
-					factor = 0.5
-				}
-				col = DarkenColor(baseColor, factor)
-			}
-
-			// Temple shadow
-			if relY < -0.2 && (relX < -0.6 || relX > 0.6) {
-				col = dark1
-			}
-
-			// Edge darkening
-			edgeDist := math.Sqrt(relX*relX + relY*relY)
-			if edgeDist > 0.85 {
-				factor := 0.78 - (edgeDist-0.85)*1.5
-				if factor < 0.5 {
-					factor = 0.5
-				}
-				col = DarkenColor(baseColor, factor)
-			}
-
-			img.Pixels[y][x] = col
+			img.Pixels[y][x] = baseColor
 		}
 	}
+
+	// Ears
+    // ... (rest of function)
 
 	// Ears
 	earW := g.rx / 3
@@ -310,13 +242,13 @@ func generateSkinLayer(w, h int, baseColor tcell.Color, bgColor tcell.Color) *Pi
 			for dx := 0; dx < earW; dx++ {
 				px := ex + side*dx
 				if px >= 0 && px < w && y >= 0 && y < h {
-					img.Pixels[y][px] = dark1
+					img.Pixels[y][px] = DarkenColor(baseColor, 0.8)
 				}
 			}
 			// Inner ear
 			ix := ex + side
 			if ix >= 0 && ix < w && y >= 0 && y < h {
-				img.Pixels[y][ix] = dark2
+				img.Pixels[y][ix] = DarkenColor(baseColor, 0.6)
 			}
 		}
 	}
