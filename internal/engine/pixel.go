@@ -143,3 +143,58 @@ func (s *ScreenRaw) DrawPixelImage(x, y int, img *PixelImage) {
 	DrawPixelImage(s.screen, x, y, img)
 }
 
+// DrawPixelImageFramed draws a PixelImage with a box-drawing frame around it.
+// The frame uses: ┌─┐ │ └─┘ characters.
+func DrawPixelImageFramed(screen tcell.Screen, x, y int, img *PixelImage, frameStyle tcell.Style) {
+	fw := img.Width + 2
+	fh := img.Height/2 + 2
+
+	// Top border
+	screen.SetContent(x, y, '┌', nil, frameStyle)
+	for i := 0; i < fw-2; i++ {
+		screen.SetContent(x+1+i, y, '─', nil, frameStyle)
+	}
+	screen.SetContent(x+fw-1, y, '┐', nil, frameStyle)
+
+	// Sides + portrait
+	for row := 0; row < img.Height; row += 2 {
+		cellRow := y + 1 + row/2
+		screen.SetContent(x, cellRow, '│', nil, frameStyle)
+
+		for col := 0; col < img.Width; col++ {
+			topColor := img.Pixels[row][col]
+			bottomColor := color.Black
+			if row+1 < img.Height {
+				bottomColor = img.Pixels[row+1][col]
+			}
+
+			resolvedTop := topColor
+			if topColor == tcell.ColorDefault {
+				resolvedTop = color.Black
+			}
+			resolvedBottom := bottomColor
+			if bottomColor == tcell.ColorDefault {
+				resolvedBottom = color.Black
+			}
+
+			style := tcell.StyleDefault.Foreground(resolvedTop).Background(resolvedBottom)
+			screen.SetContent(x+1+col, cellRow, '▀', nil, style)
+		}
+
+		screen.SetContent(x+fw-1, cellRow, '│', nil, frameStyle)
+	}
+
+	// Bottom border
+	bottomY := y + fh - 1
+	screen.SetContent(x, bottomY, '└', nil, frameStyle)
+	for i := 0; i < fw-2; i++ {
+		screen.SetContent(x+1+i, bottomY, '─', nil, frameStyle)
+	}
+	screen.SetContent(x+fw-1, bottomY, '┘', nil, frameStyle)
+}
+
+// DrawPixelImageFramed helper for drawing inside the engine on ScreenRaw.
+func (s *ScreenRaw) DrawPixelImageFramed(x, y int, img *PixelImage, frameStyle tcell.Style) {
+	DrawPixelImageFramed(s.screen, x, y, img, frameStyle)
+}
+

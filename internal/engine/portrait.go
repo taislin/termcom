@@ -120,11 +120,12 @@ func GenerateSoldierPortrait(spec PortraitSpec) *PixelImage {
 
 	rng := rngFromSeed(spec.Seed)
 
-	skin := generateSkinLayer(w, h, spec.SkinColor)
+	bgColor := tcell.NewRGBColor(20, 20, 28)
+	skin := generateSkinLayer(w, h, spec.SkinColor, bgColor)
 	eyes := generateEyeLayer(w, h, spec.EyeColor)
 	nose := generateNoseLayer(w, h, spec.SkinColor)
 	mouth := generateMouthLayer(w, h, spec.SkinColor)
-	hair := generateHairLayer(w, h, spec.HairColor, rng.Intn(6))
+	hair := generateHairLayer(w, h, spec.HairColor, rng.Intn(8))
 
 	res := skin
 	res = CompositeImages(res, eyes)
@@ -140,16 +141,6 @@ func GenerateSoldierPortrait(spec PortraitSpec) *PixelImage {
 	if spec.HelmetColor != tcell.ColorDefault {
 		helmet := generateHelmetLayer(w, h, spec.HelmetColor)
 		res = CompositeImages(res, helmet)
-	}
-
-	if spec.ArmourColor != tcell.ColorDefault {
-		armour := generateArmourLayer(w, h, spec.ArmourColor)
-		res = CompositeImages(res, armour)
-	}
-
-	if spec.DecalColor != tcell.ColorDefault {
-		decal := generateDecalLayer(w, h, spec.DecalColor, rng.Intn(5)+1)
-		res = CompositeImages(res, decal)
 	}
 
 	return res
@@ -187,30 +178,27 @@ type faceGeom struct {
 
 func computeFaceGeom(w, h int) faceGeom {
 	cx := w / 2
-	cy := h * 3 / 10
-	rx := w * 3 / 10
+	cy := h * 45 / 100
+	rx := w * 35 / 100
+	ry := h * 45 / 100
 	if rx < 2 {
 		rx = 2
 	}
-	ry := h * 3 / 10
 	if ry < 2 {
 		ry = 2
 	}
 
-	eyeY := cy - ry/5
-	eyeOff := rx * 3 / 5
+	eyeY := cy - ry/4
+	eyeOff := rx * 5 / 8
 	if eyeOff < 1 {
 		eyeOff = 1
 	}
-	noseTipY := cy + ry/6
-	mouthY := cy + ry/3
+	noseTipY := cy + ry/5
+	mouthY := cy + ry*4/10
 	earTop := eyeY - ry/6
 	earBot := noseTipY + ry/8
 	neckY := cy + ry + 1
-	torsoY := neckY + h/12
-	if torsoY >= h {
-		torsoY = h - 1
-	}
+	torsoY := neckY
 
 	return faceGeom{
 		cx: cx, cy: cy, rx: rx, ry: ry,
@@ -227,13 +215,21 @@ func inHead(x, y int, g faceGeom) bool {
 	return (dx*dx)/(float64(g.rx*g.rx))+(dy*dy)/(float64(g.ry*g.ry)) <= 1.0
 }
 
-func generateSkinLayer(w, h int, baseColor tcell.Color) *PixelImage {
+func generateSkinLayer(w, h int, baseColor tcell.Color, bgColor tcell.Color) *PixelImage {
 	img := NewPixelImage(w, h)
 	g := computeFaceGeom(w, h)
 
-	dark1 := DarkenColor(baseColor, 0.78)
-	dark2 := DarkenColor(baseColor, 0.62)
-	light1 := LightenColor(baseColor, 1.15)
+	// Fill background
+	for y := 0; y < h; y++ {
+		for x := 0; x < w; x++ {
+			img.Pixels[y][x] = bgColor
+		}
+	}
+
+	dark1 := DarkenColor(baseColor, 0.88)
+	dark2 := DarkenColor(baseColor, 0.75)
+	light1 := LightenColor(baseColor, 1.08)
+	light2 := LightenColor(baseColor, 1.05)
 
 	for y := 0; y < h; y++ {
 		for x := 0; x < w; x++ {
@@ -254,6 +250,20 @@ func generateSkinLayer(w, h int, baseColor tcell.Color) *PixelImage {
 			// Nose bridge highlight
 			if math.Abs(relX) < 0.15 && relY > -0.2 && relY < 0.3 {
 				col = light1
+			}
+
+			// Cheekbone highlights — prominent on upper cheeks
+			if relY > -0.15 && relY < 0.15 {
+				if (relX > 0.3 && relX < 0.6) || (relX < -0.3 && relX > -0.6) {
+					col = light2
+				}
+			}
+
+			// Eye socket shadows — depressions around eyes
+			if relY > -0.35 && relY < -0.15 {
+				if (relX > 0.15 && relX < 0.45) || (relX < -0.15 && relX > -0.45) {
+					col = dark1
+				}
 			}
 
 			// Cheek shadow
@@ -311,45 +321,6 @@ func generateSkinLayer(w, h int, baseColor tcell.Color) *PixelImage {
 		}
 	}
 
-	// Neck
-	neckW := g.rx / 3
-	if neckW < 1 {
-		neckW = 1
-	}
-	for y := g.neckY; y < g.torsoY && y < h; y++ {
-		for x := g.cx - neckW; x <= g.cx+neckW; x++ {
-			if x >= 0 && x < w {
-				col := dark1
-				if x == g.cx-neckW || x == g.cx+neckW {
-					col = dark2
-				}
-				img.Pixels[y][x] = col
-			}
-		}
-	}
-
-	// Shoulders/torso
-	for y := g.torsoY; y < h; y++ {
-		slope := (y - g.torsoY) * (w / 14)
-		left := g.cx - w/4 - slope
-		right := g.cx + w/4 + slope
-		if left < 0 {
-			left = 0
-		}
-		if right >= w-1 {
-			right = w - 2
-		}
-		for x := left; x <= right; x++ {
-			col := baseColor
-			if x == left || x == right {
-				col = dark1
-			} else if x == left+1 || x == right-1 {
-				col = dark2
-			}
-			img.Pixels[y][x] = col
-		}
-	}
-
 	return img
 }
 
@@ -359,84 +330,118 @@ func generateEyeLayer(w, h int, irisColor tcell.Color) *PixelImage {
 
 	white := tcell.NewRGBColor(240, 240, 240)
 	black := tcell.NewRGBColor(15, 15, 15)
+	irisHighlight := LightenColor(irisColor, 1.4)
 	browColor := DarkenColor(irisColor, 0.3)
 	if browColor == tcell.ColorDefault {
 		browColor = tcell.NewRGBColor(60, 50, 40)
+	}
+	eyeShadow := DarkenColor(irisColor, 0.12)
+
+	eyeW := g.rx / 3
+	if eyeW < 2 {
+		eyeW = 2
 	}
 
 	for side := -1; side <= 1; side += 2 {
 		ex := g.cx + side*g.eyeOff
 		ey := g.eyeY
 
-		// Eyebrow
+		// Eyebrow — arched, wider for larger faces
 		browY := ey - 3
 		if browY >= 0 && browY < h {
-			for dx := -2; dx <= 2; dx++ {
+			for dx := -(eyeW + 1); dx <= eyeW+1; dx++ {
 				px := ex + dx
 				if px >= 0 && px < w {
 					thickness := 1
-					if dx == -2 || dx == 2 {
+					arch := 0
+					edge := dx == -(eyeW+1) || dx == eyeW+1
+					if edge {
+						arch = 1
 						thickness = 0
-						if side*dx < 0 {
-							// inner end tapers down
-							if browY+1 < h {
-								img.Pixels[browY+1][px] = browColor
-							}
-						}
 					}
 					for t := 0; t <= thickness; t++ {
-						if browY-t >= 0 {
-							img.Pixels[browY-t][px] = browColor
+						by := browY - arch - t
+						if by >= 0 {
+							img.Pixels[by][px] = browColor
 						}
 					}
 				}
 			}
 		}
 
-		// Eye socket (darker area around eye)
-		for dy := -2; dy <= 1; dy++ {
-			for dx := -2; dx <= 2; dx++ {
+		// Eye socket shadow (subtle)
+		for dy := -2; dy <= 2; dy++ {
+			for dx := -(eyeW + 1); dx <= eyeW+1; dx++ {
 				px, py := ex+dx, ey+dy
 				if px >= 0 && px < w && py >= 0 && py < h {
-					if img.Pixels[py][px] == tcell.ColorDefault || true {
-						img.Pixels[py][px] = DarkenColor(irisColor, 0.15)
-					}
+					img.Pixels[py][px] = eyeShadow
 				}
 			}
 		}
 
-		// Sclera (eye white)
-		for dx := -1; dx <= 1; dx++ {
+		// Sclera (eye white) — almond shape, wider
+		// Top row: narrower
+		for dx := -(eyeW - 1); dx <= eyeW-1; dx++ {
 			px := ex + dx
-			if px >= 0 && px < w && ey >= 0 && ey < h {
-				img.Pixels[ey][px] = white
-			}
 			if px >= 0 && px < w && ey-1 >= 0 && ey-1 < h {
 				img.Pixels[ey-1][px] = white
 			}
 		}
+		// Middle row: full width
+		for dx := -eyeW; dx <= eyeW; dx++ {
+			px := ex + dx
+			if px >= 0 && px < w && ey >= 0 && ey < h {
+				img.Pixels[ey][px] = white
+			}
+		}
+		// Bottom row: narrower
+		for dx := -(eyeW - 1); dx <= eyeW-1; dx++ {
+			px := ex + dx
+			if px >= 0 && px < w && ey+1 >= 0 && ey+1 < h {
+				img.Pixels[ey+1][px] = white
+			}
+		}
 
-		// Iris
+		// Iris — 2x2 block centered
+		for dy := 0; dy <= 1; dy++ {
+			for dx := -1; dx <= 0; dx++ {
+				px, py := ex+dx, ey+dy
+				if px >= 0 && px < w && py >= 0 && py < h {
+					img.Pixels[py][px] = irisColor
+				}
+			}
+		}
+
+		// Pupil — center of iris
 		if ex >= 0 && ex < w && ey >= 0 && ey < h {
-			img.Pixels[ey][ex] = irisColor
-		}
-		if ey-1 >= 0 && ey-1 < h && ex >= 0 && ex < w {
-			img.Pixels[ey-1][ex] = irisColor
+			img.Pixels[ey][ex] = black
 		}
 
-		// Pupil
-		pupX := ex + side
-		if pupX >= 0 && pupX < w && ey >= 0 && ey < h {
-			img.Pixels[ey][pupX] = black
+		// Iris highlight — small bright dot
+		highX := ex - 1
+		highY := ey - 1
+		if highX >= 0 && highX < w && highY >= 0 && highY < h {
+			img.Pixels[highY][highX] = irisHighlight
 		}
 
 		// Upper eyelid crease
 		lidY := ey - 2
 		if lidY >= 0 && lidY < h {
-			for dx := -2; dx <= 2; dx++ {
+			for dx := -eyeW; dx <= eyeW; dx++ {
 				px := ex + dx
 				if px >= 0 && px < w {
 					img.Pixels[lidY][px] = DarkenColor(irisColor, 0.35)
+				}
+			}
+		}
+
+		// Lower lash line
+		lashY := ey + 2
+		if lashY >= 0 && lashY < h {
+			for dx := -(eyeW - 1); dx <= eyeW-1; dx++ {
+				px := ex + dx
+				if px >= 0 && px < w {
+					img.Pixels[lashY][px] = DarkenColor(irisColor, 0.2)
 				}
 			}
 		}
@@ -449,45 +454,62 @@ func generateNoseLayer(w, h int, skinColor tcell.Color) *PixelImage {
 	img := NewPixelImage(w, h)
 	g := computeFaceGeom(w, h)
 
-	dark := DarkenColor(skinColor, 0.6)
 	highlight := LightenColor(skinColor, 1.12)
+	shadow := DarkenColor(skinColor, 0.82)
+	deepShadow := DarkenColor(skinColor, 0.7)
 
-	// Nose bridge (vertical highlight)
+	tipW := g.rx / 3
+	if tipW < 1 {
+		tipW = 1
+	}
+
+	// Nose bridge — highlight down center
 	for y := g.eyeY + 1; y <= g.noseTipY; y++ {
-		if y >= 0 && y < h {
-			if g.cx >= 0 && g.cx < w {
-				img.Pixels[y][g.cx] = highlight
+		if y >= 0 && y < h && g.cx >= 0 && g.cx < w {
+			img.Pixels[y][g.cx] = highlight
+		}
+	}
+
+	// Nose bridge shadow — both sides, tapering
+	for y := g.eyeY + 2; y <= g.noseTipY; y++ {
+		progress := float64(y-g.eyeY) / float64(g.noseTipY-g.eyeY)
+		sideOff := tipW + int(progress*float64(tipW))
+		for side := -1; side <= 1; side += 2 {
+			sx := g.cx + side*sideOff
+			if sx >= 0 && sx < w && y >= 0 && y < h {
+				img.Pixels[y][sx] = shadow
 			}
 		}
 	}
 
-	// Nose tip (wider, slightly darker)
-	tipW := 1
-	if g.rx > 4 {
-		tipW = 2
-	}
+	// Nose tip — rounded, wider
 	for dx := -tipW; dx <= tipW; dx++ {
 		px := g.cx + dx
 		y := g.noseTipY
 		if px >= 0 && px < w && y >= 0 && y < h {
-			img.Pixels[y][px] = DarkenColor(skinColor, 0.82)
+			img.Pixels[y][px] = shadow
 		}
 	}
+	// Tip highlight
+	if g.cx >= 0 && g.cx < w && g.noseTipY >= 0 && g.noseTipY < h {
+		img.Pixels[g.noseTipY][g.cx] = highlight
+	}
 
-	// Nostrils
+	// Nostrils — two dark dots
 	for side := -1; side <= 1; side += 2 {
 		nx := g.cx + side*tipW
 		ny := g.noseTipY + 1
 		if nx >= 0 && nx < w && ny >= 0 && ny < h {
-			img.Pixels[ny][nx] = dark
+			img.Pixels[ny][nx] = deepShadow
 		}
 	}
 
-	// Nose shadow (one side)
-	for y := g.eyeY + 2; y <= g.noseTipY; y++ {
-		sx := g.cx - tipW - 1
-		if sx >= 0 && sx < w && y >= 0 && y < h {
-			img.Pixels[y][sx] = DarkenColor(skinColor, 0.85)
+	// Nose base shadow
+	baseY := g.noseTipY + 1
+	for dx := -tipW + 1; dx <= tipW-1; dx++ {
+		px := g.cx + dx
+		if px >= 0 && px < w && baseY >= 0 && baseY < h {
+			img.Pixels[baseY][px] = DarkenColor(skinColor, 0.75)
 		}
 	}
 
@@ -501,6 +523,7 @@ func generateMouthLayer(w, h int, skinColor tcell.Color) *PixelImage {
 	lipColor := DarkenColor(skinColor, 0.78)
 	darkLine := DarkenColor(skinColor, 0.55)
 	lowerLip := LightenColor(skinColor, 1.05)
+	upperLipDark := DarkenColor(skinColor, 0.72)
 
 	mouthW := g.rx * 3 / 5
 	if mouthW < 2 {
@@ -509,24 +532,49 @@ func generateMouthLayer(w, h int, skinColor tcell.Color) *PixelImage {
 
 	my := g.mouthY
 
-	// Mouth line (dark crease)
+	// Mouth line (dark crease) — curves up slightly at corners
 	for dx := -mouthW; dx <= mouthW; dx++ {
 		px := g.cx + dx
-		if px >= 0 && px < w && my >= 0 && my < h {
-			img.Pixels[my][px] = darkLine
+		lineY := my
+		if dx == -mouthW || dx == mouthW {
+			lineY = my - 1 // corners lift slightly
+		}
+		if px >= 0 && px < w && lineY >= 0 && lineY < h {
+			img.Pixels[lineY][px] = darkLine
 		}
 	}
 
-	// Upper lip
+	// Upper lip — cupid's bow shape
 	for dx := -mouthW + 1; dx <= mouthW-1; dx++ {
 		px := g.cx + dx
 		py := my - 1
 		if px >= 0 && px < w && py >= 0 && py < h {
-			img.Pixels[py][px] = lipColor
+			// Cupid's bow: dip in center, peaks at sides
+			absDx := dx
+			if absDx < 0 {
+				absDx = -absDx
+			}
+			bowOffset := 0
+			if absDx <= mouthW/3 {
+				bowOffset = 1 // center part dips down
+			}
+			if bowOffset == 0 {
+				img.Pixels[py][px] = lipColor
+			} else {
+				img.Pixels[py][px] = upperLipDark
+			}
+		}
+	}
+	// Upper lip peak (philtrum columns)
+	for side := -1; side <= 1; side += 2 {
+		peakX := g.cx + side*(mouthW/3)
+		py := my - 2
+		if peakX >= 0 && peakX < w && py >= 0 && py < h {
+			img.Pixels[py][peakX] = lipColor
 		}
 	}
 
-	// Lower lip (slightly fuller)
+	// Lower lip — fuller, rounded
 	lipW := mouthW
 	for dx := -lipW; dx <= lipW; dx++ {
 		px := g.cx + dx
@@ -535,7 +583,15 @@ func generateMouthLayer(w, h int, skinColor tcell.Color) *PixelImage {
 			img.Pixels[py][px] = lowerLip
 		}
 	}
-	// Lower lip highlight
+	// Lower lip bottom edge — shadow under lip
+	for dx := -lipW + 1; dx <= lipW-1; dx++ {
+		px := g.cx + dx
+		py := my + 2
+		if px >= 0 && px < w && py >= 0 && py < h {
+			img.Pixels[py][px] = DarkenColor(skinColor, 0.85)
+		}
+	}
+	// Lower lip highlight — center
 	if mouthW > 1 {
 		px := g.cx
 		py := my + 1
@@ -556,6 +612,7 @@ func generateHairLayer(w, h int, color tcell.Color, style int) *PixelImage {
 		hairTop = 0
 	}
 	darkHair := DarkenColor(color, 0.7)
+	lightHair := LightenColor(color, 1.15)
 
 	switch style {
 	case 0: // Buzzcut
@@ -636,6 +693,73 @@ func generateHairLayer(w, h int, color tcell.Color, style int) *PixelImage {
 		for y := hairTop; y <= g.cy-g.ry/2; y++ {
 			if partX >= 0 && partX < w && y >= 0 && y < h {
 				img.Pixels[y][partX] = darkHair
+			}
+		}
+
+	case 5: // Curly — rounded tufts
+		afroR := float64(g.rx) * 1.2
+		afroCY := float64(g.cy - g.ry/2)
+		for y := hairTop - 1; y <= g.cy-g.ry/3; y++ {
+			for x := g.cx - int(afroR) - 1; x <= g.cx+int(afroR)+1; x++ {
+				if x >= 0 && x < w && y >= 0 && y < h {
+					dx := float64(x - g.cx)
+					dy := float64(y) - afroCY
+					dist := dx*dx + dy*dy
+					if dist <= afroR*afroR && float64(y) < afroCY+afroR*0.4 {
+						// Create curl pattern with alternating light/dark
+						curl := (x+y)%3 == 0
+						if curl {
+							img.Pixels[y][x] = lightHair
+						} else if dist > afroR*afroR*0.6 {
+							img.Pixels[y][x] = darkHair
+						} else {
+							img.Pixels[y][x] = color
+						}
+					}
+				}
+			}
+		}
+
+	case 6: // Ponytail — hair on top + tail down one side
+		// Top part
+		for y := hairTop; y <= g.cy-g.ry/3; y++ {
+			for x := g.cx - g.rx - 1; x <= g.cx+g.rx+1; x++ {
+				if x >= 0 && x < w && y >= 0 && y < h {
+					if inHead(x, y, g) && y < g.cy {
+						img.Pixels[y][x] = color
+					}
+				}
+			}
+		}
+		// Tail — hangs down from right side
+		tailX := g.cx + g.rx + 1
+		for y := g.cy - g.ry/2; y <= g.cy+g.ry; y++ {
+			if tailX >= 0 && tailX < w && y >= 0 && y < h {
+				img.Pixels[y][tailX] = color
+				if tailX+1 < w {
+					img.Pixels[y][tailX+1] = darkHair
+				}
+			}
+		}
+
+	case 7: // Shaved sides / undercut — short on top, skin on sides
+		// Short hair on top only
+		for y := hairTop; y <= g.cy-g.ry/2; y++ {
+			for x := g.cx - g.rx/2; x <= g.cx+g.rx/2; x++ {
+				if x >= 0 && x < w && y >= 0 && y < h {
+					if inHead(x, y, g) && y < g.cy {
+						img.Pixels[y][x] = color
+					}
+				}
+			}
+		}
+		// Fade gradient on sides
+		for y := g.cy - g.ry/2; y <= g.cy-g.ry/4; y++ {
+			for side := -1; side <= 1; side += 2 {
+				fadeX := g.cx + side*(g.rx/2 + 1)
+				if fadeX >= 0 && fadeX < w && y >= 0 && y < h {
+					img.Pixels[y][fadeX] = darkHair
+				}
 			}
 		}
 
