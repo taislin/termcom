@@ -186,6 +186,80 @@ func (es *EquipScreen) equipSelected() {
 	}
 }
 
+// autoEquip scans base stores and equips every soldier with the best available
+// weapon (highest damage they have strength for) and best available armor.
+func (es *EquipScreen) autoEquip() {
+	equipped := 0
+	// Collect eligible weapons from stores (firearms/melee with damage > 0)
+	type wpnScore struct {
+		key    string
+		damage int
+	}
+	var weapons []wpnScore
+	for key, item := range data.RuleItems {
+		if item.Damage <= 0 || item.IsAmmo {
+			continue
+		}
+		if es.Base.CountItem(key) <= 0 {
+			continue
+		}
+		weapons = append(weapons, wpnScore{key, item.Damage})
+	}
+	// Sort descending by damage
+	sort.Slice(weapons, func(i, j int) bool {
+		return weapons[i].damage > weapons[j].damage
+	})
+
+	// Collect eligible armors from stores
+	type armScore struct {
+		key     string
+		defense int
+	}
+	var armors []armScore
+	for key, a := range data.Armors {
+		if key == "none" {
+			continue
+		}
+		if es.Base.CountItem(key) <= 0 {
+			continue
+		}
+		armors = append(armors, armScore{key, a.Undersuit})
+	}
+	sort.Slice(armors, func(i, j int) bool {
+		return armors[i].defense > armors[j].defense
+	})
+
+	for idx, s := range es.Base.Soldiers {
+		// Best weapon soldier can use
+		bestWpn := ""
+		for _, w := range weapons {
+			if s.Strength >= data.RuleItems[w.key].Strength {
+				bestWpn = w.key
+				break
+			}
+		}
+		if bestWpn != "" {
+			if es.Base.EquipWeapon(idx, bestWpn) {
+				s.WeaponAmmo = data.RuleItems[bestWpn].AmmoMax
+			}
+		}
+
+		// Best armor
+		bestArm := "none"
+		if len(armors) > 0 {
+			bestArm = armors[0].key
+		}
+		if bestArm != "none" {
+			if es.Base.EquipArmor(idx, bestArm) {
+				// Armor equipped (no ammo side-effect needed)
+			}
+		}
+		equipped++
+	}
+
+	es.Message = fmt.Sprintf(language.String("MSG_AUTO_EQUIPPED"), equipped)
+}
+
 func (es *EquipScreen) HandleKey(e *tcell.EventKey) {
 	switch e.Key() {
 	case tcell.KeyUp:
@@ -218,6 +292,8 @@ func (es *EquipScreen) HandleKey(e *tcell.EventKey) {
 		es.CycleIdx = 0
 	case " ":
 		es.equipSelected()
+	case "a", "A":
+		es.autoEquip()
 	}
 }
 
@@ -231,20 +307,20 @@ func (es *EquipScreen) HandleMouse(e *tcell.EventMouse) {
 
 	// Handle help bar clicks (bottom bar)
 	if y == h-1 {
-		// Help bar: "j/k=Select  1=Weapon  2=Armor  Space=Equip  [Esc]=Back"
 		switch {
-		case x >= 1 && x <= 3: // j/k=Select
-			// Scroll down
+		case x >= 1 && x <= 12: // ↑/↓=Soldier
 			if es.CycleIdx < len(es.getAvailableItems())-1 {
 				es.CycleIdx++
 			}
-		case x >= 5 && x <= 11: // 1=Weapon
+		case x >= 14 && x <= 22: // 1=Weapon
 			es.SelectedSlot = 0
-		case x >= 13 && x <= 19: // 2=Armor
+		case x >= 24 && x <= 31: // 2=Armor
 			es.SelectedSlot = 1
-		case x >= 21 && x <= 29: // Space=Equip
+		case x >= 33 && x <= 44: // Space=Equip
 			es.equipSelected()
-		case x >= 31 && x <= 37: // [Esc]=Back
+		case x >= 46 && x <= 52: // A=Auto
+			es.autoEquip()
+		case x >= 54 && x <= 64: // [Esc]=Back
 			es.Game.PopState()
 		}
 		return

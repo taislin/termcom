@@ -25,6 +25,7 @@ const (
 	StateSlotPicker
 	StateDifficulty
 	StateGameOver
+	StateDebrief
 	StateQuit
 )
 
@@ -234,7 +235,7 @@ func (g *Game) drainEvents() {
 				switch g.state {
 				case StateGeoscape, StateMenu:
 					g.running = false
-				case StateBattlescape:
+				case StateBattlescape, StateDebrief:
 					if sc, ok := g.screens[g.state]; ok {
 						sc.HandleKey(e)
 					}

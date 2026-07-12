@@ -51,6 +51,7 @@ internal/
   engine/game.go           Game state machine, main loop, input dispatch
   engine/screen.go         Low-level screen/cell rendering, FrameBuffer, styles
   engine/custom_battle.go  Custom battle selection screen (split-panel, JSON loading)
+  engine/debrief.go        After-action report screen (kills, casualties, stat gains, loot)
   engine/portrait.go       Soldier/alien portrait rendering (half-block PixelImage)
   engine/vfx.go            True-color lighting, alpha blending
   engine/particles.go      Particle system with sync.Pool (explosions, smoke)
@@ -145,6 +146,21 @@ internal/
 | P | Psi attack |
 | Esc | Cancel / deselect |
 | ? | Help |
+
+### Key Bindings (Equipment)
+| Key | Action |
+|-----|--------|
+| ↑/↓ | Select soldier |
+| 1 / 2 | Weapon / Armor slot |
+| Tab | Cycle available items |
+| Space | Equip selected item |
+| A | Auto-equip all soldiers (best weapon + armor) |
+| Esc | Back |
+
+### Key Bindings (Debrief Screen)
+| Key | Action |
+|-----|--------|
+| Enter / Space / Esc | Dismiss after-action report |
 
 ### Key Bindings (Battlescape Mouse)
 | Action | Input |

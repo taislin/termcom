@@ -370,15 +370,24 @@ From the Soldiers tab, press `E` to open the equip screen.
 
 | Key | Action |
 |-----|--------|
-| j/k | Select soldier |
+| ↑/↓ | Select soldier |
 | Tab | Cycle available items |
 | 1 | Select weapon slot |
 | 2 | Select armour slot |
 | Space | Equip selected item |
+| A | Auto-equip all soldiers (best weapon + armour) |
 | Esc | Back |
 
 Each soldier has a weapon slot and an armour slot. You can only equip items you
 have manufactured or recovered.
+
+### Auto-Equip
+
+Pressing `A` on the equip screen scans the base stores and equips every soldier
+with the best available weapon (highest damage their Strength stat permits) and
+the best available armour (highest defence rating). Existing equipment is
+returned to stores. This is a fast way to regear your entire squad after
+researching or manufacturing new equipment.
 
 ---
 
@@ -427,6 +436,20 @@ Weather conditions affect combat based on the mission location:
 - **Victory:** All aliens eliminated. Soldiers earn XP, you recover loot, and
   receive $50,000.
 - **Defeat:** All soldiers killed. Soldiers are lost. Time limit exceeded (if applicable).
+
+### After-Action Report
+
+After every tactical battle an **After-Action Report** (debrief screen) is
+displayed showing:
+
+- Battle outcome (Victory / Defeat)
+- Aliens eliminated and soldiers lost
+- Loot recovered and aliens captured
+- Funds earned
+- Per-soldier breakdown: name, rank, and stat gains (HP, ACC, REA, STR, BRA, TU)
+  or "KIA" for fallen soldiers
+
+Press **Enter**, **Space**, or **Esc** to dismiss and return to the Geoscape.
 
 ### Time Units (TU)
 
@@ -891,6 +914,23 @@ The species seed ensures the same alien species are regenerated when loading a s
 | E | Equip screen |
 | D | Dismiss soldier |
 | Esc | Back to geoscape |
+
+### Equip Screen
+
+| Key | Action |
+|-----|--------|
+| ↑/↓ | Select soldier |
+| 1 / 2 | Weapon / Armour slot |
+| Tab | Cycle available items |
+| Space | Equip selected item |
+| A | Auto-equip all soldiers |
+| Esc | Back |
+
+### After-Action Report (Debrief)
+
+| Key | Action |
+|-----|--------|
+| Enter / Space / Esc | Dismiss |
 
 ### Battlescape
 

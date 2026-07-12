@@ -104,6 +104,145 @@ func (gs *Geoscape) SelectedBase() *base.Base {
 	return gs.Bases[gs.ActiveBase]
 }
 
+// processBattleResult handles battle resolution and pushes the debrief screen.
+func (gs *Geoscape) processBattleResult() {
+	r := gs.Game.ActiveBattle
+	defendingBase := gs.SelectedBase()
+	if gs.ActiveBaseDefense != nil {
+		defendingBase = gs.ActiveBaseDefense
+	}
+	if defendingBase == nil {
+		gs.Game.ActiveBattle = nil
+		return
+	}
+	defendingBase.Soldiers = r.Soldiers
+	dead := defendingBase.RemoveDeadSoldiers()
+
+	// Build per-soldier report from PreBattleStats
+	statNames := []string{"HP", "ACC", "REA", "STR", "BRA", "TU"}
+	var soldiers []engine.DebriefSoldier
+	if gs.PreBattleStats != nil {
+		// Include dead soldiers from the map not in defendingBase.Soldiers
+		alive := make(map[string]bool, len(defendingBase.Soldiers))
+		for _, s := range defendingBase.Soldiers {
+			alive[s.Name] = true
+		}
+		for name, old := range gs.PreBattleStats {
+			died := !alive[name]
+			// Find current soldier data if alive
+			var cur *soldier.Soldier
+			for _, s := range defendingBase.Soldiers {
+				if s.Name == name {
+					cur = s
+					break
+				}
+			}
+			rankStr := "---"
+			gains := ""
+			if cur != nil {
+				rankStr = cur.Rank.String()
+				newStats := [6]int{cur.HP, cur.Accuracy, cur.Reactions, cur.Strength, cur.Bravery, cur.TU}
+				gainParts := []string{}
+				for i := 0; i < 6; i++ {
+					if newStats[i] > old[i] {
+						gainParts = append(gainParts, fmt.Sprintf("%s+%d", statNames[i], newStats[i]-old[i]))
+					}
+				}
+				gains = strings.Join(gainParts, " ")
+			}
+			soldiers = append(soldiers, engine.DebriefSoldier{
+				Name:      name,
+				Rank:      rankStr,
+				Died:      died,
+				StatGains: gains,
+			})
+		}
+		gs.PreBattleStats = nil
+	}
+
+	// Build mission name
+	missionName := "Tactical Mission"
+	baseDestroyed := false
+	if gs.ActiveFinalMission {
+		missionName = language.String("MSG_CYDONIA_ASSAULT")
+	} else if gs.ActiveCrashSite != nil {
+		missionName = fmt.Sprintf("Crash Site — %s", gs.ActiveCrashSite.UFOName)
+	} else if gs.ActiveBaseDefense != nil {
+		missionName = fmt.Sprintf("Base Defense — %s", defendingBase.Name)
+	} else if gs.ActiveMissionType != "" {
+		missionName = gs.ActiveMissionType
+	}
+
+	if r.Won {
+		stunnedCount := 0
+		if len(r.StunnedAliens) > 0 {
+			capacity := defendingBase.CountFacility(base.FacContainment) * 10
+			for _, alien := range r.StunnedAliens {
+				if len(defendingBase.LiveAliens) < capacity {
+					defendingBase.LiveAliens = append(defendingBase.LiveAliens, alien)
+					stunnedCount++
+				} else {
+					break
+				}
+			}
+		}
+		defendingBase.AddLoot(r.LootItems)
+		gs.MissionsWon++
+		if gs.ActiveFinalMission {
+			gs.Victory = true
+		} else if gs.ActiveCrashSite != nil {
+			cs := gs.ActiveCrashSite
+			cs.Looted = true
+			loot := generateUFOLoot(cs.UFOName)
+			defendingBase.AddLoot(loot)
+			r.LootItems = append(r.LootItems, loot...)
+		}
+		if gs.ActiveMissionType != "" {
+			gs.applyMissionRewards(defendingBase)
+		}
+
+		dd := &engine.DebriefData{
+			Won:           true,
+			MissionName:   missionName,
+			BaseName:      defendingBase.Name,
+			Kills:         r.Kills,
+			Casualties:    dead,
+			LootItems:     r.LootItems,
+			StunnedCount:  stunnedCount,
+			FundsEarned:   50000,
+			Soldiers:      soldiers,
+			CydoniaVictory: gs.ActiveFinalMission,
+		}
+		gs.Game.SetScreen(engine.StateDebrief, engine.NewDebriefScreen(gs.Game, dd))
+		gs.Game.PushState(engine.StateDebrief)
+	} else {
+		if gs.ActiveBaseDefense != nil {
+			gs.destroyBase(defendingBase)
+			baseDestroyed = true
+		}
+		dd := &engine.DebriefData{
+			Won:           false,
+			MissionName:   missionName,
+			BaseName:      defendingBase.Name,
+			Kills:         r.Kills,
+			Casualties:    dead,
+			LootItems:     nil,
+			StunnedCount:  0,
+			FundsEarned:   0,
+			Soldiers:      soldiers,
+			BaseDestroyed: baseDestroyed,
+		}
+		gs.Game.SetScreen(engine.StateDebrief, engine.NewDebriefScreen(gs.Game, dd))
+		gs.Game.PushState(engine.StateDebrief)
+	}
+	gs.MessageTimer = time.Now()
+	gs.ActiveCrashSite = nil
+	gs.ActiveBaseDefense = nil
+	gs.ActiveMissionType = ""
+	gs.ActiveFinalMission = false
+	gs.Game.ActiveBattle = nil
+}
+
 func NewGeoscape(g *engine.Game) *Geoscape {
 	b := base.NewBase("Base 1", 0)
 	b.Facilities = append(b.Facilities, &base.Facility{Type: base.FacLivingQuarters, Row: 0, Col: 0})
@@ -201,95 +340,7 @@ func (gs *Geoscape) Update() {
 
 	// Check for battle results
 	if gs.Game.ActiveBattle != nil {
-		r := gs.Game.ActiveBattle
-		defendingBase := gs.SelectedBase()
-		if gs.ActiveBaseDefense != nil {
-			defendingBase = gs.ActiveBaseDefense
-		}
-		if defendingBase == nil {
-			gs.Game.ActiveBattle = nil
-			return
-		}
-		defendingBase.Soldiers = r.Soldiers
-		dead := defendingBase.RemoveDeadSoldiers()
-
-		if r.Won {
-			if len(r.StunnedAliens) > 0 {
-				capacity := defendingBase.CountFacility(base.FacContainment) * 10
-				captured := 0
-				for _, alien := range r.StunnedAliens {
-					if len(defendingBase.LiveAliens) < capacity {
-						defendingBase.LiveAliens = append(defendingBase.LiveAliens, alien)
-						captured++
-					} else {
-						break
-					}
-				}
-				if captured > 0 {
-					gs.Message += fmt.Sprintf(language.String("MSG_ALIENS_CAPTURED"), captured)
-				}
-				if len(r.StunnedAliens) > captured {
-					gs.Message += language.String("MSG_ALIEN_NO_SPACE")
-				}
-			}
-
-			defendingBase.AddLoot(r.LootItems)
-			gs.MissionsWon++
-			if gs.ActiveFinalMission {
-				// Winning the Cydonia assault ends the campaign in victory.
-				gs.Victory = true
-				gs.Message = language.String("MSG_CYDONIA_WON")
-			} else if gs.ActiveCrashSite != nil {
-				cs := gs.ActiveCrashSite
-				cs.Looted = true
-				loot := generateUFOLoot(cs.UFOName)
-				defendingBase.AddLoot(loot)
-				gs.Message = fmt.Sprintf(language.String("MSG_VICTORY_LOOT"), r.Kills, append(r.LootItems, loot...))
-			} else if gs.ActiveBaseDefense != nil {
-				gs.Message = fmt.Sprintf(language.String("MSG_BASE_DEFENDED"), defendingBase.Name, r.Kills)
-			} else {
-				gs.Message = fmt.Sprintf(language.String("MSG_VICTORY_LOOT"), r.Kills, r.LootItems)
-			}
-			// Mission-specific bonus rewards (non-crash, non-base-defense)
-			if gs.ActiveMissionType != "" {
-				gs.applyMissionRewards(defendingBase)
-			}
-		} else {
-			if gs.ActiveBaseDefense != nil {
-				gs.destroyBase(defendingBase)
-			} else {
-				gs.Message = fmt.Sprintf(language.String("MSG_DEFEAT_LOST"), dead)
-			}
-		}
-		gs.MessageTimer = time.Now()
-		gs.ActiveCrashSite = nil
-		gs.ActiveBaseDefense = nil
-		gs.ActiveMissionType = ""
-		gs.ActiveFinalMission = false
-
-		if gs.PreBattleStats != nil {
-			statNames := []string{"HP", "ACC", "REA", "STR", "BRA", "TU"}
-			for _, s := range defendingBase.Soldiers {
-				old, ok := gs.PreBattleStats[s.Name]
-				if !ok {
-					continue
-				}
-				newStats := [6]int{s.HP, s.Accuracy, s.Reactions, s.Strength, s.Bravery, s.TU}
-				gains := []string{}
-				for i := 0; i < 6; i++ {
-					if newStats[i] > old[i] {
-						gains = append(gains, fmt.Sprintf("%s+%d", statNames[i], newStats[i]-old[i]))
-					}
-				}
-				if len(gains) > 0 {
-					gs.Message = fmt.Sprintf("%s improved: %s", s.Name, strings.Join(gains, " "))
-					gs.MessageTimer = time.Now()
-				}
-			}
-			gs.PreBattleStats = nil
-		}
-
-		gs.Game.ActiveBattle = nil
+		gs.processBattleResult()
 	}
 
 	// Defeat check — alien activity too high
