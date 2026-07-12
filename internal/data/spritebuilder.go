@@ -56,9 +56,10 @@ type AlienPixels struct {
 	Highlight [24][20]bool
 	Accent    [24][20]bool
 	Eyes      [24][20]bool
-	Interior  [24][20]bool // body pixels fully surrounded → lighter 3D rounding
-	Belly     [24][20]bool // lighter central torso patch
-	Texture   [24][20]bool // speckle pattern for organic detail
+	Mouth     [24][20]bool
+	Interior  [24][20]bool
+	Belly     [24][20]bool
+	Texture   [24][20]bool
 }
 
 // --- Registry ---
@@ -75,19 +76,29 @@ func NewAlienSpriteRegistry() *SpriteRegistry {
 	if defaultSpriteRegistry == nil {
 		defaultSpriteRegistry = &SpriteRegistry{
 			Heads: []TaggedHead{
-				{Pixels: headStandard, Sense: SenseStandard},
-				{Pixels: headEcholocation, Sense: SenseEcholocation},
-				{Pixels: headOmni, Sense: SenseOmni},
+				{Pixels: headRound, Sense: SenseStandard},
+				{Pixels: headSquare, Sense: SenseStandard},
+				{Pixels: headTall, Sense: SenseStandard},
+				{Pixels: headSkull, Sense: SenseStandard},
+				{Pixels: headWide, Sense: SenseEcholocation},
+				{Pixels: headAntennae, Sense: SenseEcholocation},
+				{Pixels: headVisor, Sense: SenseOmni},
+				{Pixels: headCone, Sense: SenseOmni},
 			},
 			Torsos: []TaggedTorso{
-				{Pixels: torsoBipedalArms, Manipulators: ManipBipedal},
+				{Pixels: torsoSlim, Manipulators: ManipBipedal},
+				{Pixels: torsoWide, Manipulators: ManipBipedal},
+				{Pixels: torsoArmored, Manipulators: ManipBipedal},
+				{Pixels: torsoTentacle, Manipulators: ManipNone},
 				{Pixels: torsoMultiArmed, Manipulators: ManipMultiArmed},
-				{Pixels: torsoNone, Manipulators: ManipNone},
 			},
 			Legs: []TaggedLegs{
 				{Pixels: legsBipedal, Locomotion: LocomBipedal},
+				{Pixels: legsLong, Locomotion: LocomBipedal},
+				{Pixels: legsWide, Locomotion: LocomBipedal},
 				{Pixels: legsArachnid, Locomotion: LocomArachnid},
-				{Pixels: legsFloating, Locomotion: LocomFloating},
+				{Pixels: legsTentacle, Locomotion: LocomFloating},
+				{Pixels: legsPillar, Locomotion: LocomFloating},
 			},
 		}
 	}
@@ -95,69 +106,157 @@ func NewAlienSpriteRegistry() *SpriteRegistry {
 }
 
 // --- Head templates (10 rows x 20 wide) ---
+// Detail chars: e=eye, m=mouth, a=antenna, h=highlight, d=dark
 
-var headStandard = []string{
+var headRound = []string{
 	"....................",
 	"......XXXXXX......",
 	".....XXXXXXXXXX.....",
 	"....XXXXXXXXXXXX....",
-	"....XXX......XXX....",
-	"....X...XX...X......",
-	"....XXX......XXX....",
+	"....XXeXXXXeXXX....",
+	"....XXXXXXXXXXX....",
+	"....XXXmmXXXmXXX....",
 	".....XXXXXXXXXX.....",
 	"......XXXXXXXX......",
 	".......XXXXXX.......",
 }
 
-var headEcholocation = []string{
+var headSquare = []string{
 	"....................",
-	".XX..............XX.",
-	".XXX............XXX.",
-	".XXXX..........XXXX.",
-	"..XXXX........XXXX..",
-	"...XXXXXXXXXXXXXX...",
 	"....XXXXXXXXXXXX....",
+	"...XXXXXXXXXXXXXXX..",
+	"...XXeXXXXXXeXXXX...",
+	"...XXXXXXXXXXXXXXX..",
+	"...XXXXXXXXXXXXXXX..",
+	"...XXmmmmmmmmmmXX...",
+	"...XXXXXXXXXXXXXXX..",
+	"...XXXXXXXXXXXXXXX..",
 	"....XXXXXXXXXXXX....",
-	".....XXXXXXXXXX.....",
-	"......XXXXXXXX......",
 }
 
-var headOmni = []string{
+var headTall = []string{
+	".......XXXX.........",
+	"......XXXXXX........",
+	"......XXXXXX........",
+	".....XXXXXXXX.......",
+	".....XXeXXeXX.......",
+	".....XXXXXXXX.......",
+	".....XXmmmmXX.......",
+	".....XXXXXXXX.......",
+	"......XXXXXX........",
+	".......XXXX.........",
+}
+
+var headSkull = []string{
 	"....................",
-	"......XXXXXXXX......",
+	"......XXXXXX......",
 	".....XXXXXXXXXX.....",
+	"....XXdXXXXXdXXX....",
+	"....XdXXXdXXXXdX....",
 	"....XXXXXXXXXXXX....",
-	"...XX..XXXX..XX.....",
-	"..XX....XX....XX....",
-	"...XX..XXXX..XX.....",
-	"....XXXXXXXXXXXX....",
+	"....XXXddXXddXXX....",
 	".....XXXXXXXXXX.....",
 	"......XXXXXXXX......",
+	".......XXXXXX.......",
+}
+
+var headWide = []string{
+	"....................",
+	"XX................XX",
+	"XXX..............XXX",
+	"XXXX............XXXX",
+	"XXXXeXXXXXXXXeXXXXX.",
+	"XXXXXXXXXXXXXXXXXX.",
+	"XXXXXXmmmmmmXXXXXX.",
+	"XXXXXXXXXXXXXXXXXX.",
+	".XXXXXXXXXXXXXXXXXX",
+	"..XXXXXXXXXXXXXXX..",
+}
+
+var headAntennae = []string{
+	"..X...........X....",
+	"..XX.........XX....",
+	"...XX.......XX.....",
+	"....XXXXXXXXXX.....",
+	"....XXeXXXXeXX.....",
+	"....XXXXXXXXXX.....",
+	"....XXmmmmXXX.....",
+	".....XXXXXXXX......",
+	"......XXXXXX.......",
+	".......XXXX........",
+}
+
+var headVisor = []string{
+	"....................",
+	"......XXXXXX......",
+	".....XXXXXXXXXX.....",
+	"....dddXXXXXXddd....",
+	"....deeeeeeeedX....",
+	"....XXXXXXXXXXXX....",
+	"....XXXmmmmXXX.....",
+	".....XXXXXXXXXX.....",
+	"......XXXXXXXX......",
+	".......XXXXXX.......",
+}
+
+var headCone = []string{
+	"........XX..........",
+	"........XXXX........",
+	".......XXXXXX.......",
+	"......XXXXXXXX......",
+	"......XXeXXeXX......",
+	".....XXXXXXXXXX.....",
+	".....XXmmmmXXX.....",
+	"....XXXXXXXXXXXX....",
+	"....XXXXXXXXXXXX....",
+	".....XXXXXXXXXX.....",
 }
 
 // --- Torso templates (8 rows x 20 wide) ---
-// 'X' = body, 'W' = weapon (rendered in a distinct lighter color).
+// 'X' = body, 'W' = weapon, 'a' = accent, 'h' = highlight, 'd' = dark
 
-var torsoNone = []string{
-	"......XXXXXXXX......",
-	"......XXXXXXXX......",
-	"......XXXXXXXX......",
+var torsoSlim = []string{
+	".......XXXXXXXX.....",
+	".......XXXXXXXX.....",
+	"......XXXXXXXXXX....",
+	"......XX.XX.XXXX....",
+	".......XX.XX........",
+	"........XX.XX.WWWW..",
+	"........XX..WWWW....",
+	"........WWWWWWW.....",
+}
+
+var torsoWide = []string{
+	".....XXXXXXXXXX.....",
+	"....XXXXXXXXXXXX....",
+	"...XXXXXXXXXXXXXX...",
+	"...XXXX.XX.XXXXXX...",
+	"..XXXXX.XX.XXXXXX...",
+	".........XX.WWWWW...",
+	".........XX.WWWW....",
+	".........WWWWWWW....",
+}
+
+var torsoArmored = []string{
+	".....dddXXXXdd......",
+	"....dXXXXXXXXXXd....",
+	"...XXdXXXXXXXXdXX...",
+	 "...XX.XX.XX.XXXX...",
+	 "..XXXX.XX.XXXXXXX..",
+	 ".........XX.WWWWW..",
+	 ".........XX.WWWW...",
+	 ".........WWWWWWW...",
+}
+
+var torsoTentacle = []string{
 	"......XXXXXXXX......",
 	"......XXXXXXXX......",
 	"......XXXXXXXX......",
 	"......XXXXXXXX......",
 	".......XXXXXX.......",
-}
-
-var torsoBipedalArms = []string{
-	"......XXXXXXXX......",
-	".....XXXXXXXXXX.....",
-	"....XXXX.XX.XXXX....",
-	"...XXXX..XX..XXXX...",
-	"..XXXXX..XX..XXXXX..",
-	".........XX.WWWWW...",
-	".........XX.WWWW....",
-	".........WWWWWWW....",
+	"......XX.XXXX.......",
+	".....XX...XXXX......",
+	"....XX.....XXX......",
 }
 
 var torsoMultiArmed = []string{
@@ -173,15 +272,6 @@ var torsoMultiArmed = []string{
 
 // --- Leg templates (6 rows x 20 wide) ---
 
-var legsFloating = []string{
-	".......XXXXXX.......",
-	".......XXXXXX.......",
-	"........XXXX........",
-	"........XXXX........",
-	".........XX.........",
-	".........XX.........",
-}
-
 var legsBipedal = []string{
 	".......XXXXXX.......",
 	"......XXX..XXX......",
@@ -191,6 +281,24 @@ var legsBipedal = []string{
 	"....XXX......XXX....",
 }
 
+var legsLong = []string{
+	".......XXXXXX.......",
+	".......XXXXXX.......",
+	"........XXXX........",
+	"........XXXX........",
+	"........XXXX........",
+	".......XX..XX.......",
+}
+
+var legsWide = []string{
+	".......XXXXXX.......",
+	"......XXXXXXXX......",
+	".....XX......XX.....",
+	"....XX........XX....",
+	"...XX..........XX...",
+	"..XX............XX..",
+}
+
 var legsArachnid = []string{
 	".......XXXXXX.......",
 	"......XX.XX.XX......",
@@ -198,6 +306,24 @@ var legsArachnid = []string{
 	"....XX...XX...XX....",
 	"...XX....XX....XX...",
 	"..XX.....XX.....XX..",
+}
+
+var legsTentacle = []string{
+	".......XXXXXX.......",
+	".......XXXXXX.......",
+	"......XX.XXXX.......",
+	".....XX...XXX.......",
+	"....XX.....XX.......",
+	"....X.......X.......",
+}
+
+var legsPillar = []string{
+	".......XXXXXX.......",
+	"........XXXX........",
+	"........XXXX........",
+	"........XXXX........",
+	"........XXXX........",
+	".......XXXXXX.......",
 }
 
 // --- Morphology -> trait mapping ---
@@ -273,26 +399,32 @@ func GenerateAlienPixels(seed int64, m *Morphology) AlienPixels {
 			break
 		}
 		for x, ch := range row {
-			if ch == 'X' {
+			if ch == 'X' || ch == 'e' || ch == 'm' || ch == 'a' || ch == 'h' || ch == 'd' {
 				result.Body[y][x+headOffset] = true
+			}
+			if ch == 'e' {
+				result.Eyes[y][x+headOffset] = true
+			}
+			if ch == 'm' {
+				result.Mouth[y][x+headOffset] = true
+			}
+			if ch == 'a' {
+				result.Accent[y][x+headOffset] = true
+			}
+			if ch == 'h' {
+				result.Highlight[y][x+headOffset] = true
+			}
+			if ch == 'd' {
+				result.Shadow[y][x+headOffset] = true
 			}
 		}
 	}
 
-	if m.Eyesight != SenseNone && m.Eyesight != "none" && m.Eyesight != "blind" {
+	if m.Eyesight == SenseNone || m.Eyesight == "none" || m.Eyesight == "blind" {
 		for y := 0; y < 10; y++ {
 			for x := 0; x < 20; x++ {
-				if y >= len(head) || x+headOffset >= len(head[y]) {
-					continue
-				}
-				ch := rune(head[y][x+headOffset])
-				if ch == 'X' {
-					if (x == 6 || x == 13) && y >= 3 && y <= 6 {
-						result.Eyes[y][x+headOffset] = true
-					}
-					if y == 4 && (x == 7 || x == 12) {
-						result.Eyes[y][x+headOffset] = true
-					}
+				if result.Eyes[y][x] {
+					result.Eyes[y][x] = false
 				}
 			}
 		}
@@ -310,6 +442,15 @@ func GenerateAlienPixels(seed int64, m *Morphology) AlienPixels {
 				result.Body[ty][x+torsoOffset] = true
 			case 'W':
 				result.Weapon[ty][x+torsoOffset] = true
+			case 'a':
+				result.Body[ty][x+torsoOffset] = true
+				result.Accent[ty][x+torsoOffset] = true
+			case 'h':
+				result.Body[ty][x+torsoOffset] = true
+				result.Highlight[ty][x+torsoOffset] = true
+			case 'd':
+				result.Body[ty][x+torsoOffset] = true
+				result.Shadow[ty][x+torsoOffset] = true
 			}
 		}
 	}
@@ -327,7 +468,7 @@ func GenerateAlienPixels(seed int64, m *Morphology) AlienPixels {
 		}
 	}
 
-	// Seed a local RNG for deterministic texture
+	// Edge detection for 3D shading
 	texRng := rand.New(rand.NewSource(seed ^ 0xF0F0F0F0F0))
 
 	for y := 0; y < 24; y++ {
@@ -335,37 +476,37 @@ func GenerateAlienPixels(seed int64, m *Morphology) AlienPixels {
 			if !result.Body[y][x] {
 				continue
 			}
-			// Edge detection for 3D shading
 			if x > 0 && x < 19 && y > 0 && y < 23 {
 				left := result.Body[y][x-1]
 				right := result.Body[y][x+1]
 				up := result.Body[y-1][x]
 				down := result.Body[y+1][x]
-				if !left && right {
+				if !left && right && !result.Highlight[y][x] {
 					result.Highlight[y][x] = true
 				}
-				if !right && left {
+				if !right && left && !result.Shadow[y][x] {
 					result.Shadow[y][x] = true
 				}
-				if !up && down {
+				if !up && down && !result.Accent[y][x] {
 					result.Accent[y][x] = true
 				}
-				// Fully-surrounded interior → lighter rounding
 				if left && right && up && down {
 					result.Interior[y][x] = true
 				}
 			}
 			if y == 0 || y == 23 || x == 0 || x == 19 {
-				result.Shadow[y][x] = true
+				if !result.Shadow[y][x] {
+					result.Shadow[y][x] = true
+				}
 			}
 
-			// Belly patch: central torso area (rows 11-16, cols 7-12)
+			// Belly patch: central torso area
 			if y >= 11 && y <= 16 && x >= 7 && x <= 12 {
 				result.Belly[y][x] = true
 			}
 
-			// Texture speckle — roughly 20% of body pixels get a speckle
-			if !result.Highlight[y][x] && !result.Shadow[y][x] && !result.Accent[y][x] {
+			// Texture speckle
+			if !result.Highlight[y][x] && !result.Shadow[y][x] && !result.Accent[y][x] && !result.Mouth[y][x] {
 				if texRng.Intn(100) < 20 {
 					result.Texture[y][x] = true
 				}
@@ -403,7 +544,7 @@ func pickHead(candidates []TaggedHead, sense Sense, rng *rand.Rand) []string {
 		}
 	}
 	if len(filtered) == 0 {
-		return headStandard
+		return headRound
 	}
 	return filtered[rng.Intn(len(filtered))]
 }
@@ -416,7 +557,7 @@ func pickTorso(candidates []TaggedTorso, manip Manipulators, rng *rand.Rand) []s
 		}
 	}
 	if len(filtered) == 0 {
-		return torsoBipedalArms
+		return torsoSlim
 	}
 	return filtered[rng.Intn(len(filtered))]
 }
