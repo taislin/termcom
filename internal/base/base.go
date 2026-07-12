@@ -203,6 +203,24 @@ func (bs *BaseScreen) renderFacilities(ctx *engine.ScreenCtx, x, y, w, h int) {
 		line := fmt.Sprintf("%-20s x%d $%dK%s", def.Name, count, def.Cost/1000, building)
 		ctx.DrawString(x, y+2+i, line, style)
 	}
+
+	// Adjacency bonus info
+	yOff := y + 2 + len(facTypes) + 1
+	adj := []struct {
+		label string
+		fac1  FacilityType
+		fac2  FacilityType
+		bonus string
+	}{
+		{"Adjacent Labs:", FacLab, FacLab, "+10% research each (max +30%)"},
+		{"Adjacent Workshops:", FacWorkshop, FacWorkshop, "+10% manufacture each (max +30%)"},
+		{"Adjacent Living Qtrs:", FacLivingQuarters, FacLivingQuarters, "+1 HP/day each (max +3)"},
+	}
+	for _, a := range adj {
+		n := bs.Base.AdjacentCount(a.fac1, a.fac2)
+		ctx.DrawString(x, yOff, fmt.Sprintf("%-22s %d %s", a.label, n, a.bonus), engine.StyleGray)
+		yOff++
+	}
 }
 
 func (bs *BaseScreen) renderSoldiers(ctx *engine.ScreenCtx, x, y, w, h int) {

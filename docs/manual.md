@@ -110,6 +110,12 @@ The Geoscape uses a **regional dashboard** layout:
 | ◉ | Currently selected node |
 | ○ | Regional hub (green=safe, yellow=threat, red=danger) |
 | · | Radar coverage (faint dots around each base) |
+| ! | UFO (red, bold) |
+| > | Interceptor patrolling (cyan) |
+| ► | Interceptor engaging a UFO (cyan, bold) |
+| ✕ | Destroyed interceptor or UFO (during combat animation) |
+| * | Crash site (yellow = unlooted, gray = looted) |
+| ≈ | Transport en route (green) |
 
 ### Controls
 
@@ -168,6 +174,16 @@ UFOs travel along edges between nodes. You can:
 
 **Interceptor stats:** 60 HP, 8 missiles, speed 36, damage 15–34 per shot.
 **UFO retaliation:** 30% chance per tick, 5–14 damage.
+
+**Combat visuals:** When an interceptor engages a UFO, a multi-frame
+animation plays on the minimap:
+- Interceptor icon changes from `>` (patrol) to `►` (engaging).
+- Icons flash red/yellow during hit exchanges.
+- An HP bar overlay appears at the bottom-right of the minimap showing
+  interceptor and UFO HP with color-coded bars (green > yellow > red).
+- Combat result text (HIT/MISS/DESTROYED) and damage numbers appear
+  alongside the HP bars.
+- On destruction, the destroyed icon displays as `✕`.
 
 ### Alien Missions
 
@@ -235,6 +251,12 @@ Navigate with `j`/`k` or arrow keys. Use `Enter` to select.
 | Alien Containment | $100K | 10 days | Live alien capture (capacity: 10 per facility) |
 | Psi-Lab | $150K | 14 days | Trains psi skill (+1/day, max 80) |
 | Hangar | $120K | 8 days | Houses interceptors |
+
+**Facility adjacency bonuses:** Placing same-type facilities next to each
+other on the base grid provides stacking bonuses (shown in the base screen):
+- **Adjacent Laboratories:** +10% research speed per connection (max +30%).
+- **Adjacent Workshops:** +10% manufacturing speed per connection (max +30%).
+- **Adjacent Living Quarters:** +1 HP/day healing per connection (max +3).
 
 **Controls:**
 - `B` — Build selected facility
@@ -737,7 +759,14 @@ As you encounter aliens, your knowledge increases:
   to pin you; if they are losing badly they retreat sooner, and if they dominate
   they fight on aggressively.
 
-Aliens spawn in groups: 3 lowest-rank + 2 rank-1 aliens (if available).
+**Equipment escalation:** As the campaign progresses, aliens deploy with
+better weapons and equipment. The escalation is tied to the campaign month:
+- **Month 0–2 (Tier 0):** Plasma pistols, basic armour.
+- **Month 3–5 (Tier 1):** Plasma rifles and light heavy plasma; +2 HP & armour.
+- **Month 6–8 (Tier 2):** Heavy plasma, alien cannons, alien lasers; +4 HP & armour.
+- **Month 9+ (Tier 3):** Top-tier alien weaponry; +6 HP & armour.
+
+Alien stat scaling (HP, Accuracy) still applies on top of equipment tiers.
 
 ---
 

@@ -263,6 +263,62 @@ func (b *Base) RemoveDeadSoldiers() []string {
 	return names
 }
 
+// AdjacentCount returns how many completed (non-building) facilities of type
+// targetType are orthogonally adjacent to any facility of type ft in this base.
+// Checks the Row/Col grid (8-column layout).
+func (b *Base) AdjacentCount(ft, targetType FacilityType) int {
+	// Build a set of occupied grid positions for the target facility type
+	type pos struct{ row, col int }
+	targets := make(map[pos]bool)
+	for _, f := range b.Facilities {
+		if !f.Building && f.Type == targetType {
+			targets[pos{f.Row, f.Col}] = true
+		}
+	}
+	count := 0
+	for _, f := range b.Facilities {
+		if f.Building || f.Type != ft {
+			continue
+		}
+		for _, d := range []pos{{-1, 0}, {1, 0}, {0, -1}, {0, 1}} {
+			if targets[pos{f.Row + d.row, f.Col + d.col}] {
+				count++
+			}
+		}
+	}
+	return count
+}
+
+// AdjacentResearchBonus returns a research speed multiplier (1.0 = no bonus)
+// based on Lab-to-Lab adjacency. Each adjacent Lab gives +10% (max +30%).
+func (b *Base) AdjacentResearchBonus() float64 {
+	n := b.AdjacentCount(FacLab, FacLab)
+	if n > 3 {
+		n = 3
+	}
+	return 1.0 + float64(n)*0.10
+}
+
+// AdjacentManufactureBonus returns a manufacture speed multiplier (1.0 = no bonus)
+// based on Workshop-to-Workshop adjacency. Each adjacent Workshop gives +10% (max +30%).
+func (b *Base) AdjacentManufactureBonus() float64 {
+	n := b.AdjacentCount(FacWorkshop, FacWorkshop)
+	if n > 3 {
+		n = 3
+	}
+	return 1.0 + float64(n)*0.10
+}
+
+// AdjacentHealBonus returns extra HP healed per day from adjacent Living Quarters.
+// Each adjacent pair provides +1 HP/day (max +3).
+func (b *Base) AdjacentHealBonus() int {
+	n := b.AdjacentCount(FacLivingQuarters, FacLivingQuarters)
+	if n > 3 {
+		n = 3
+	}
+	return n
+}
+
 func (b *Base) TotalLabs() int {
 	return b.CountFacility(FacLab)
 }
@@ -288,7 +344,7 @@ func (b *Base) AdvanceDay() {
 				s.Wounds = 0
 				s.HP = s.MaxHP
 			} else {
-				healRate := 2
+				healRate := 2 + b.AdjacentHealBonus()
 				s.HP += healRate
 				if s.HP > s.MaxHP {
 					s.HP = s.MaxHP
@@ -614,7 +670,8 @@ func (b *Base) AdvanceResearch() []string {
 	if b.ActiveResearch == nil || b.ActiveResearch.Completed || b.ActiveResearch.Scientists == 0 {
 		return nil
 	}
-	b.ActiveResearch.Progress += b.ActiveResearch.Scientists
+	bonus := b.AdjacentResearchBonus()
+	b.ActiveResearch.Progress += int(float64(b.ActiveResearch.Scientists) * bonus)
 	if b.ActiveResearch.Progress >= b.ActiveResearch.Cost {
 		b.ActiveResearch.Completed = true
 		topic := data.ResearchByID(b.ActiveResearch.TopicID)
@@ -715,13 +772,14 @@ func (b *Base) AssignEngineers(jobIdx, engineers int) bool {
 
 func (b *Base) AdvanceManufacture() []string {
 	var completed []string
+	bonus := b.AdjacentManufactureBonus()
 	remaining := make([]*ManufactureJob, 0, len(b.ManufactureQueue))
 	for _, job := range b.ManufactureQueue {
 		if job.Completed {
 			continue
 		}
 		if job.Engineers > 0 {
-			job.Progress += job.Engineers
+			job.Progress += int(float64(job.Engineers) * bonus)
 		}
 		if job.Progress >= job.CostDays {
 			b.AddItem(job.ItemKey, job.Count)

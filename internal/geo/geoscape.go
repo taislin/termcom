@@ -71,6 +71,30 @@ type Geoscape struct {
 	MissionSelectMode bool
 	MissionSelectIdx  int
 	MissionOdds       int
+
+	DogfightVisual *DogfightAnim
+}
+
+// DogfightAnim drives the minimap combat visual for interceptor-vs-UFO engagements.
+type DogfightAnim struct {
+	Active      bool
+	Timer       int // frames remaining
+	Interceptor *Interceptor
+	UFO         *UFO
+
+	InterHP    int // snapshot for display
+	InterMaxHP int
+	UFOHP      int
+	UFOMaxHP   int
+
+	InterDamage    int  // damage dealt to UFO (0=miss, -1=destroyed, >0=hit)
+	UFODamage      int  // damage received from UFO
+	UFOAlive       bool // UFO survived the exchange
+	InterAlive     bool // interceptor survived
+	InterDestroyed bool
+
+	HitFlash    int // >0 = flash interceptor (damage taken)
+	UFOHitFlash int // >0 = flash UFO (damage taken)
 }
 
 func (gs *Geoscape) SelectedBase() *base.Base {
@@ -383,8 +407,15 @@ func (gs *Geoscape) Update() {
 		}
 		gs.UFOs = activeUFOs
 
+		// Advance dogfight animation if one is playing
+		gs.updateDogfightVisual()
+
 		for _, i := range gs.Interceptors {
 			if i.Launching {
+				// Skip if this interceptor is already in a dogfight animation
+				if gs.DogfightVisual != nil && gs.DogfightVisual.Active && gs.DogfightVisual.Interceptor == i {
+					continue
+				}
 				reached := i.Update(gs.Cities, gs.UFOs)
 				if reached {
 					gs.dogfight(i)
@@ -671,10 +702,61 @@ func (gs *Geoscape) ShortestPath(from, to int) []int {
 	return nil
 }
 
+func (gs *Geoscape) updateDogfightVisual() {
+	dv := gs.DogfightVisual
+	if dv == nil || !dv.Active {
+		return
+	}
+
+	dv.Timer--
+	if dv.HitFlash > 0 {
+		dv.HitFlash--
+	}
+	if dv.UFOHitFlash > 0 {
+		dv.UFOHitFlash--
+	}
+
+	if dv.Timer > 0 {
+		return
+	}
+
+	// Animation finished — display result
+	inter := dv.Interceptor
+	ufo := dv.UFO
+	damage := dv.InterDamage
+
+	if damage == 0 {
+		gs.Message = fmt.Sprintf(language.String("MSG_INTERCEPTOR_MISS"), inter.Weapon.Name)
+	} else if !dv.UFOAlive {
+		city := gs.CityByID(ufo.CurrentNode())
+		if city != nil && GetTile(city.X, city.Y) == 0 {
+			gs.Message = fmt.Sprintf(language.String("MSG_UFO_LOST_AT_SEA"), ufo.Type.Name)
+		} else {
+			gs.Message = fmt.Sprintf(language.String("MSG_UFO_CRASHED"), ufo.Type.Name)
+		}
+	} else {
+		gs.Message = fmt.Sprintf(language.String("MSG_HIT_UFO"), damage)
+	}
+	if dv.UFODamage > 0 {
+		gs.Message += fmt.Sprintf(language.String("MSG_UFO_HIT_INTERCEPTOR"), dv.UFODamage, inter.HP, inter.MaxHP)
+	}
+	if dv.InterDestroyed {
+		gs.Message += " | INTERCEPTOR DESTROYED!"
+	}
+
+	gs.MessageTimer = time.Now()
+
+	// Disengage interceptor if destroyed or target down
+	if dv.InterDestroyed || !dv.UFOAlive {
+		inter.Disengage()
+	}
+
+	gs.DogfightVisual = nil
+}
+
 func (gs *Geoscape) dogfight(inter *Interceptor) {
 	ufo := inter.TargetUFO
 	if ufo == nil {
-		// Interceptor reached patrol node, look for UFOs here
 		for _, u := range gs.UFOs {
 			if u.Active && u.CurrentNode() == inter.TargetNode {
 				ufo = u
@@ -686,7 +768,6 @@ func (gs *Geoscape) dogfight(inter *Interceptor) {
 		}
 	}
 
-	// Check if interceptor is in range
 	dist := math.Sqrt(math.Pow(ufo.X-inter.X, 2) + math.Pow(ufo.Y-inter.Y, 2))
 	if dist > float64(inter.Range) {
 		gs.Message = fmt.Sprintf(language.String("MSG_INTERCEPTOR_CLOSING"), inter.Weapon.Name, inter.Mode.String())
@@ -694,54 +775,84 @@ func (gs *Geoscape) dogfight(inter *Interceptor) {
 		return
 	}
 
+	// Resolve combat immediately
 	damage := inter.FireAt(ufo)
 	audio.PlayShoot()
-	if damage == 0 {
-		gs.Message = fmt.Sprintf(language.String("MSG_INTERCEPTOR_MISS"), inter.Weapon.Name)
-		gs.MessageTimer = time.Now()
-	} else if damage == -1 {
-		gs.Game.Funds += int64(ufo.Type.Points * 1000)
 
-		// Check if over water
+	var ufoDmg int
+	var interDestroyed bool
+
+	if damage == -1 {
+		// UFO destroyed — handle crash site / funding immediately
+		gs.Game.Funds += int64(ufo.Type.Points * 1000)
 		city := gs.CityByID(ufo.CurrentNode())
-		if city != nil && GetTile(city.X, city.Y) == 0 { // 0 is water
-			gs.Message = fmt.Sprintf(language.String("MSG_UFO_LOST_AT_SEA"), ufo.Type.Name)
+		if city != nil && GetTile(city.X, city.Y) == 0 {
+			// lost at sea
 		} else {
 			gs.CrashSites = append(gs.CrashSites, &CrashSite{
 				UFOName: ufo.Type.Name,
 				NodeID:  ufo.CurrentNode(),
 			})
-			gs.Message = fmt.Sprintf(language.String("MSG_UFO_CRASHED"), ufo.Type.Name)
 		}
-
-		gs.MessageTimer = time.Now()
-		inter.Disengage()
-	} else {
-
-		gs.Message = fmt.Sprintf(language.String("MSG_HIT_UFO"), damage)
-		gs.MessageTimer = time.Now()
+		if inter.State != nil {
+			inter.State.Status = "Available"
+			inter.State.HP = inter.HP
+		}
 	}
 
-	// UFO fires back
 	if ufo.Active && inter.HP > 0 {
-		ufoDmg := ufo.FireAtInterceptor(inter)
+		ufoDmg = ufo.FireAtInterceptor(inter)
 		audio.PlayPlasmaFire()
-		if ufoDmg > 0 {
-			gs.Message = fmt.Sprintf(language.String("MSG_UFO_HIT_INTERCEPTOR"), ufoDmg, inter.HP, inter.MaxHP)
-			gs.MessageTimer = time.Now()
-			if inter.State != nil {
-				inter.State.HP = inter.HP
-			}
+		if inter.State != nil {
+			inter.State.HP = inter.HP
 		}
-		if inter.HP <= 0 {
-			gs.Message = language.String("MSG_INTERCEPTOR_DESTROYED")
-			gs.MessageTimer = time.Now()
-			if inter.State != nil {
-				inter.State.HP = 0
-				inter.State.Status = "Destroyed"
-			}
-			inter.Disengage()
+	}
+
+	if inter.HP <= 0 {
+		interDestroyed = true
+		if inter.State != nil {
+			inter.State.HP = 0
+			inter.State.Status = "Destroyed"
 		}
+	}
+
+	// Set up animation state (messages are displayed when animation ends)
+	ufoMaxHP := ufo.Type.MaxHP
+	if ufoMaxHP <= 0 {
+		ufoMaxHP = ufo.Type.Toughness
+	}
+	ufoHP := ufo.Type.Toughness
+	if ufoHP < 0 {
+		ufoHP = 0
+	}
+	hitFlash := 0
+	if ufoDmg > 0 {
+		hitFlash = 8
+	}
+	ufoHitFlash := 0
+	if damage > 0 || damage == -1 {
+		ufoHitFlash = 6
+	}
+
+	gs.DogfightVisual = &DogfightAnim{
+		Active:      true,
+		Timer:       28,
+		Interceptor: inter,
+		UFO:         ufo,
+
+		InterHP:    inter.HP,
+		InterMaxHP: inter.MaxHP,
+		UFOHP:      ufoHP,
+		UFOMaxHP:   ufoMaxHP,
+
+		InterDamage:    damage,
+		UFODamage:      ufoDmg,
+		UFOAlive:       ufo.Active,
+		InterAlive:     inter.HP > 0,
+		InterDestroyed: interDestroyed,
+
+		HitFlash:    hitFlash,
+		UFOHitFlash: ufoHitFlash,
 	}
 }
 
@@ -1822,7 +1933,32 @@ func (gs *Geoscape) renderMinimap(ctx *engine.ScreenCtx, x, y, w, h int) {
 		if sx <= x || sx >= x+w-1 || sy <= y || sy >= y+h-1 {
 			continue
 		}
-		ctx.SetCell(sx, sy, '!', engine.StyleRedBold)
+
+		ch := '!'
+		style := engine.StyleRedBold
+
+		// Dogfight animation effects
+		if gs.DogfightVisual != nil && gs.DogfightVisual.Active && gs.DogfightVisual.UFO == u {
+			if gs.DogfightVisual.UFOHitFlash > 0 {
+				ch = '◉'
+				style = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm11).Bold(true)
+			} else if gs.DogfightVisual.Timer%6 < 3 {
+				style = engine.StyleRed
+			} else {
+				style = engine.StyleRedBold
+			}
+			if !gs.DogfightVisual.UFOAlive {
+				// Destroyed / crashing
+				if gs.DogfightVisual.Timer%4 < 2 {
+					ch = '✕'
+					style = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm11).Bold(true)
+				} else {
+					ch = '✕'
+					style = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm9).Bold(true)
+				}
+			}
+		}
+		ctx.SetCell(sx, sy, ch, style)
 	}
 
 	// Draw interceptors
@@ -1832,7 +1968,34 @@ func (gs *Geoscape) renderMinimap(ctx *engine.ScreenCtx, x, y, w, h int) {
 		if sx <= x || sx >= x+w-1 || sy <= y || sy >= y+h-1 {
 			continue
 		}
-		ctx.SetCell(sx, sy, '>', engine.StyleCyanBold)
+
+		ch := '>'
+		style := engine.StyleCyanBold
+
+		// Engaging a UFO vs patrolling
+		if i.TargetUFO != nil && i.TargetUFO.Active {
+			ch = '►'
+		}
+
+		// Dogfight animation effects
+		if gs.DogfightVisual != nil && gs.DogfightVisual.Active && gs.DogfightVisual.Interceptor == i {
+			if gs.DogfightVisual.HitFlash > 0 {
+				// Flashing red when taking damage
+				ch = '◄'
+				style = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm9).Bold(true)
+			} else if gs.DogfightVisual.Timer%6 < 3 {
+				ch = '►'
+				style = engine.StyleCyan
+			} else {
+				ch = '►'
+				style = engine.StyleCyanBold
+			}
+			if !gs.DogfightVisual.InterAlive {
+				ch = '✕'
+				style = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm9).Bold(true)
+			}
+		}
+		ctx.SetCell(sx, sy, ch, style)
 	}
 
 	// Draw transport
@@ -1847,6 +2010,75 @@ func (gs *Geoscape) renderMinimap(ctx *engine.ScreenCtx, x, y, w, h int) {
 			sy := y + 1 + int(ty*float64(innerH)/float64(worldH))
 			if sx > x && sx < x+w-1 && sy > y && sy < y+h-1 {
 				ctx.SetCell(sx, sy, '≈', engine.StyleGreen)
+			}
+		}
+	}
+
+	// Draw dogfight combat info overlay on the minimap
+	if gs.DogfightVisual != nil && gs.DogfightVisual.Active {
+		dv := gs.DogfightVisual
+		pX := x + w - 22
+		pY := y + h - 5
+		if pX > x && pY > y {
+			for dy := 0; dy < 3; dy++ {
+				for dx := 0; dx < 21; dx++ {
+					ctx.SetCell(pX+dx, pY+dy, ' ', tcell.StyleDefault.Background(tcell.NewRGBColor(10, 10, 30)))
+				}
+			}
+			interPct := float64(dv.InterHP) / float64(dv.InterMaxHP)
+			if interPct < 0 {
+				interPct = 0
+			}
+			barLen := 10
+			filled := int(interPct * float64(barLen))
+			barStr := ""
+			for b := 0; b < barLen; b++ {
+				if b < filled {
+					barStr += "█"
+				} else {
+					barStr += "░"
+				}
+			}
+			barColor := engine.StyleGreen
+			if interPct < 0.3 {
+				barColor = engine.StyleRed
+			} else if interPct < 0.6 {
+				barColor = engine.StyleYellow
+			}
+			ctx.DrawString(pX+1, pY, fmt.Sprintf("> %s %d/%d", barStr, dv.InterHP, dv.InterMaxHP), barColor)
+
+			ufoPct := float64(dv.UFOHP) / float64(dv.UFOMaxHP)
+			if ufoPct < 0 {
+				ufoPct = 0
+			}
+			filled = int(ufoPct * float64(barLen))
+			barStr = ""
+			for b := 0; b < barLen; b++ {
+				if b < filled {
+					barStr += "█"
+				} else {
+					barStr += "░"
+				}
+			}
+			ctx.DrawString(pX+1, pY+1, fmt.Sprintf("! %s %d/%d", barStr, dv.UFOHP, dv.UFOMaxHP), engine.StyleRed)
+
+			dmgStr := ""
+			if dv.InterDamage > 0 {
+				dmgStr = fmt.Sprintf("HIT -%d!", dv.InterDamage)
+			} else if dv.InterDamage == -1 {
+				dmgStr = "UFO DESTROYED!"
+			} else {
+				dmgStr = "MISS"
+			}
+			if dv.UFODamage > 0 {
+				if dmgStr != "" {
+					dmgStr += fmt.Sprintf(" | -%d", dv.UFODamage)
+				} else {
+					dmgStr = fmt.Sprintf("HIT -%d!", dv.UFODamage)
+				}
+			}
+			if dmgStr != "" {
+				ctx.DrawString(pX+1, pY+2, dmgStr, engine.StyleYellow)
 			}
 		}
 	}

@@ -209,21 +209,21 @@
 - [x] G5 Optionally populate Elevation on existing map generators (skipped per user request)
 - [x] G6 Update `docs/manual.md` to note geometric terrain rendering
 
-## Phase 29: Interceptor Combat Visuals
-- [ ] Add minimap combat animation during dogfights (interceptor/UFO icon flashes, hit sparks, explosion effects)
-- [ ] Show damage numbers or health bars during air combat
-- [ ] Add visual distinction between interceptor traveling vs engaging
-- [ ] Update `docs/manual.md` with interceptor combat visual details
+## Phase 29: Interceptor Combat Visuals (DONE)
+- [x] Add minimap combat animation during dogfights (interceptor/UFO icon flashes, explosion effects, pulsing engagement icons)
+- [x] Show damage numbers and HP bars during air combat (minimap overlay panel with green/yellow/red bars)
+- [x] Add visual distinction between interceptors traveling vs engaging (patrol `>` vs intercept `►`)
+- [x] Update `docs/manual.md` with interceptor combat visual details
 
-## Phase 30: Alien Equipment Escalation
-- [ ] Define alien tech tiers (e.g., early: basic plasma, mid: heavy plasma, late: blaster launcher)
-- [ ] Scale alien weapon/armor loadouts with game time or alien activity level
-- [ ] Ensure loot tables reflect escalated equipment
-- [ ] Update `docs/manual.md` with alien equipment escalation details
+## Phase 30: Alien Equipment Escalation (DONE)
+- [x] Define alien tech tiers (early: plasma pistol/rifle, mid: heavy plasma, late: alien cannon/laser)
+- [x] Scale alien weapon/armor loadouts with game month (tiers at month 0/3/6/9)
+- [x] Ensure loot tables reflect escalated equipment (tier-based stat bonuses applied alongside existing scaling)
+- [x] Update `docs/manual.md` with alien equipment escalation details
 
-## Phase 31: Base Facility Adjacency Bonuses
-- [ ] Design adjacency bonus system (labs+research speed, workshops+manufacturing, living quarters+healing, hangars+refuel)
-- [ ] Implement adjacency check on base grid layout
-- [ ] Display adjacency bonuses in base management UI
-- [ ] Update `docs/manual.md` with adjacency bonus details
+## Phase 31: Base Facility Adjacency Bonuses (DONE)
+- [x] Design adjacency bonus system (Lab+Lab → +10% research, Workshop+Workshop → +10% manufacture, Living Quarters+Living Quarters → +1 HP/day)
+- [x] Implement adjacency check on base grid layout (orthogonal adjacency in Row/Col grid)
+- [x] Display adjacency bonuses in base management UI (counts shown below facility list)
+- [x] Update `docs/manual.md` with adjacency bonus details
 

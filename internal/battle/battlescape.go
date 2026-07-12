@@ -378,6 +378,9 @@ func NewBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, ufoN
 		accBonus = 30
 	}
 
+	// Equipment escalation tier (Phase 30)
+	equipTier := data.GetAlienEquipTier(gameMonth)
+
 	spawnAliens := make([]*data.AlienType, 0, totalAliens)
 	for i := 0; i < totalAliens; i++ {
 		rank := alienRank
@@ -392,6 +395,7 @@ func NewBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, ufoN
 		spawnAliens = append(spawnAliens, at)
 	}
 
+	tierHP, tierArmor := data.GetTierStatBonus(equipTier)
 	for _, at := range spawnAliens {
 		if at == nil {
 			continue
@@ -400,9 +404,15 @@ func NewBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, ufoN
 		u.X = 10 + randn(m.Width-14)
 		u.Y = 3 + randn(m.Height/2-4)
 		u.IsNight = bs.IsNight
-		u.HP += hpBonus
-		u.MaxHP += hpBonus
+		u.HP += hpBonus + tierHP
+		u.MaxHP += hpBonus + tierHP
+		u.Armour += tierArmor
 		u.Accuracy += accBonus
+		// Upgrade weapon based on equipment tier
+		u.Weapon = data.GetTierWeapon(equipTier, at.Rank)
+		if ammo, ok := data.RuleItems[u.Weapon]; ok {
+			u.WeaponAmmo = ammo.AmmoMax
+		}
 		bs.Units = append(bs.Units, u)
 		ai := NewAlienAI(u)
 		ai.PatrolX = u.X + rand.Intn(6) - 3
@@ -1196,6 +1206,9 @@ func (bs *Battlescape) checkReinforcements() {
 		alienRank = 5
 	}
 
+	equipTier := data.GetAlienEquipTier(gameMonth)
+	tierHP, tierArmor := data.GetTierStatBonus(equipTier)
+
 	count := 1 + rand.Intn(2)
 	for i := 0; i < count; i++ {
 		at := getAlienByRank(alienTypes, alienRank)
@@ -1203,9 +1216,14 @@ func (bs *Battlescape) checkReinforcements() {
 			continue
 		}
 		u := NewAlienUnit(at)
-		u.HP += int(float64(gameMonth*2) * diffMult)
-		u.MaxHP += int(float64(gameMonth*2) * diffMult)
+		u.HP += int(float64(gameMonth*2)*diffMult) + tierHP
+		u.MaxHP += int(float64(gameMonth*2)*diffMult) + tierHP
+		u.Armour += tierArmor
 		u.Accuracy += int(float64(gameMonth*3) * diffMult)
+		u.Weapon = data.GetTierWeapon(equipTier, at.Rank)
+		if ammo, ok := data.RuleItems[u.Weapon]; ok {
+			u.WeaponAmmo = ammo.AmmoMax
+		}
 		side := rand.Intn(4)
 		switch side {
 		case 0:
@@ -1262,15 +1280,22 @@ func (bs *Battlescape) spawnReinforcementWave(count int) {
 	if g.Difficulty >= 0 && g.Difficulty < len(engine.Difficulties) {
 		diffMult = engine.Difficulties[g.Difficulty].AlienScale
 	}
+	equipTier := data.GetAlienEquipTier(gameMonth)
+	tierHP, tierArmor := data.GetTierStatBonus(equipTier)
 	for i := 0; i < count; i++ {
 		at := getAlienByRank(alienTypes, alienRank)
 		if at == nil {
 			continue
 		}
 		u := NewAlienUnit(at)
-		u.HP += int(float64(gameMonth*2) * diffMult)
-		u.MaxHP += int(float64(gameMonth*2) * diffMult)
+		u.HP += int(float64(gameMonth*2)*diffMult) + tierHP
+		u.MaxHP += int(float64(gameMonth*2)*diffMult) + tierHP
+		u.Armour += tierArmor
 		u.Accuracy += int(float64(gameMonth*3) * diffMult)
+		u.Weapon = data.GetTierWeapon(equipTier, at.Rank)
+		if ammo, ok := data.RuleItems[u.Weapon]; ok {
+			u.WeaponAmmo = ammo.AmmoMax
+		}
 		side := rand.Intn(4)
 		switch side {
 		case 0:
