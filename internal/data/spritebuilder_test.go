@@ -113,6 +113,34 @@ func TestConsistency(t *testing.T) {
 	}
 }
 
+func TestAlienNewLayersPopulated(t *testing.T) {
+	m := &Morphology{Arms: 2, Legs: 2, Eyesight: "normal", Hearing: "normal"}
+	ap := GenerateAlienPixels(42, m)
+	interior, belly, texture := 0, 0, 0
+	for y := 0; y < 24; y++ {
+		for x := 0; x < 20; x++ {
+			if ap.Interior[y][x] {
+				interior++
+			}
+			if ap.Belly[y][x] {
+				belly++
+			}
+			if ap.Texture[y][x] {
+				texture++
+			}
+		}
+	}
+	if interior == 0 {
+		t.Error("expected interior pixels for 3D rounding")
+	}
+	if belly == 0 {
+		t.Error("expected belly patch pixels")
+	}
+	if texture == 0 {
+		t.Error("expected texture speckle pixels")
+	}
+}
+
 func TestWeaponColorBrighter(t *testing.T) {
 	bR, bG, bB := int32(100), int32(120), int32(80)
 	wR, wG, wB := AlienWeaponColor()

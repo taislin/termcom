@@ -796,6 +796,9 @@ func GenerateAlienPixelsImage(ap data.AlienPixels, fgColor, bgColor tcell.Color)
 	lightColor := tcell.NewRGBColor(lightR, lightG, lightB)
 	darkColor := tcell.NewRGBColor(darkR, darkG, darkB)
 	accentColor := tcell.NewRGBColor(accentR, accentG, accentB)
+	interiorColor := tcell.NewRGBColor(clampColor(bR+20), clampColor(bG+25), clampColor(bB+15))
+	bellyColor := tcell.NewRGBColor(clampColor(bR+40), clampColor(bG+30), clampColor(bB+50))
+	textureColor := tcell.NewRGBColor(clampColor(bR-12), clampColor(bG+18), clampColor(bB-8))
 
 	img := NewPixelImage(20, 24)
 	for y := 0; y < 24; y++ {
@@ -811,6 +814,12 @@ func GenerateAlienPixelsImage(ap data.AlienPixels, fgColor, bgColor tcell.Color)
 				img.Pixels[y][x] = darkColor
 			case ap.Accent[y][x]:
 				img.Pixels[y][x] = accentColor
+			case ap.Interior[y][x]:
+				img.Pixels[y][x] = interiorColor
+			case ap.Belly[y][x]:
+				img.Pixels[y][x] = bellyColor
+			case ap.Texture[y][x]:
+				img.Pixels[y][x] = textureColor
 			case ap.Body[y][x]:
 				img.Pixels[y][x] = fgColor
 			default:

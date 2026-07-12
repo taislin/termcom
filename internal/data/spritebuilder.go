@@ -56,6 +56,9 @@ type AlienPixels struct {
 	Highlight [24][20]bool
 	Accent    [24][20]bool
 	Eyes      [24][20]bool
+	Interior  [24][20]bool // body pixels fully surrounded → lighter 3D rounding
+	Belly     [24][20]bool // lighter central torso patch
+	Texture   [24][20]bool // speckle pattern for organic detail
 }
 
 // --- Registry ---
@@ -324,11 +327,15 @@ func GenerateAlienPixels(seed int64, m *Morphology) AlienPixels {
 		}
 	}
 
+	// Seed a local RNG for deterministic texture
+	texRng := rand.New(rand.NewSource(seed ^ 0xF0F0F0F0F0))
+
 	for y := 0; y < 24; y++ {
 		for x := 0; x < 20; x++ {
 			if !result.Body[y][x] {
 				continue
 			}
+			// Edge detection for 3D shading
 			if x > 0 && x < 19 && y > 0 && y < 23 {
 				left := result.Body[y][x-1]
 				right := result.Body[y][x+1]
@@ -343,9 +350,25 @@ func GenerateAlienPixels(seed int64, m *Morphology) AlienPixels {
 				if !up && down {
 					result.Accent[y][x] = true
 				}
+				// Fully-surrounded interior → lighter rounding
+				if left && right && up && down {
+					result.Interior[y][x] = true
+				}
 			}
 			if y == 0 || y == 23 || x == 0 || x == 19 {
 				result.Shadow[y][x] = true
+			}
+
+			// Belly patch: central torso area (rows 11-16, cols 7-12)
+			if y >= 11 && y <= 16 && x >= 7 && x <= 12 {
+				result.Belly[y][x] = true
+			}
+
+			// Texture speckle — roughly 20% of body pixels get a speckle
+			if !result.Highlight[y][x] && !result.Shadow[y][x] && !result.Accent[y][x] {
+				if texRng.Intn(100) < 20 {
+					result.Texture[y][x] = true
+				}
 			}
 		}
 	}
