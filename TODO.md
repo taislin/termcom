@@ -168,44 +168,62 @@
 - [x] P5 Update `docs/manual.md` to note half-block portrait rendering
 
 
-## Phase 28: Geometric Terrain Engine (URR ASCII Geometry)
-- [ ] G1 Extend `Tile` struct in `internal/battle/map.go`:
+## Phase 28: Geometric Terrain Engine (URR ASCII Geometry) (DONE)
+- [x] G1 Extend `Tile` struct in `internal/battle/map.go`:
   - [x] G1a Add `Elevation int` field (skipped per user request)
-  - [ ] G1b Add `BaseColor tcell.Color` field (tcell.ColorDefault = use TilePalette lookup)
-  - [ ] G1c Add `Rune rune` field (0 = use TileGeomRune contextual logic)
+  - [x] G1b Add `BaseColor tcell.Color` field (tcell.ColorDefault = use TilePalette lookup)
+  - [x] G1c Add `Rune rune` field (0 = use TileGeomRune contextual logic)
   - [x] G1d Verify `NewBattleMap` and `NewMultiLevelBattleMap` zero-initialize new fields (skipped elevation verification)
-- [ ] G2 Create `internal/battle/terrain.go`:
-  - [ ] G2a Define UFO geometry rune constants (◤ ◥ ◣ ◢ ▬ ▐ ⊠) with comments
-  - [ ] G2b Define human building box-drawing rune constants (╔ ═ ╗ ║ ╚ ╝ ┼) with comments
-  - [ ] G2c Define `TilePalette map[TileType]tcell.Color` for all tile types with
+- [x] G2 Create `internal/battle/terrain.go`:
+  - [x] G2a Define UFO geometry rune constants (◤ ◥ ◣ ◢ ▬ ▐ ⊠) with comments
+  - [x] G2b Define human building box-drawing rune constants (╔ ═ ╗ ║ ╚ ╝ ┼) with comments
+  - [x] G2c Define `TilePalette map[TileType]tcell.Color` for all tile types with
         curated RGB values (dark earth tones for terrain, blue-grey for UFO, etc.)
   - [x] G2d Implement `ElevationDarken(elevation int) float64` (skipped per user request)
-  - [ ] G2e Implement `TileBaseColor(t Tile) tcell.Color`:
+  - [x] G2e Implement `TileBaseColor(t Tile) tcell.Color`:
         returns t.BaseColor if not ColorDefault, else TilePalette[t.Type], else neutral grey
-  - [ ] G2f Implement `(m *BattleMap) neighbourhood(x, y int) [3][3]TileType`:
+  - [x] G2f Implement `(m *BattleMap) neighbourhood(x, y int) [3][3]TileType`:
         reads 3×3 grid centred on (x,y), clamping OOB to TileGrass; added to map.go
-  - [ ] G2g Implement `TileGeomRune(t Tile, ctx [3][3]TileType) rune`:
+  - [x] G2g Implement `TileGeomRune(t Tile, ctx [3][3]TileType) rune`:
         - Tile.Rune override (non-zero) returned immediately
         - TileUFOWall: check N/S/E/W neighbours for non-UFO → select ◤/◥/◣/◢ or █
         - TileWall: check N/S/E/W neighbours → select ╔/╗/╚/╝/═/║/# accordingly
         - Fallback: tileChars[t.Type]
-  - [ ] G2h Implement private `bloodColor(bloodType int) tcell.Color` mapping 1→red,
+  - [x] G2h Implement private `bloodColor(bloodType int) tcell.Color` mapping 1→red,
         2→green, 3→purple
-  - [ ] G2i Implement private `fireColor(frame int) tcell.Color` returning an animated
+  - [x] G2i Implement private `fireColor(frame int) tcell.Color` returning an animated
         orange-yellow flickered via frame%3 step
-  - [ ] G2j Implement `RenderTile(t Tile, ctx [3][3]TileType, visible, seen bool) (rune, tcell.Style)`:
+  - [x] G2j Implement `RenderTile(t Tile, ctx [3][3]TileType, visible, seen bool) (rune, tcell.Style)`:
         full pipeline: TileBaseColor → DarkenColor FG/BG if unseen → blood/fire overlay → TileGeomRune → return style
-- [ ] G3 Create `internal/battle/terrain_test.go`:
-  - [ ] G3a TestTileGeomRune_UFOCornerNW: north+west neighbour non-UFO → ◤
-  - [ ] G3b TestTileGeomRune_UFOSolid: all UFO neighbours → █
-  - [ ] G3c TestTileGeomRune_BuildingCornerTL: wall with south+east neighbours → ╔
-  - [ ] G3d TestRenderTile_Unseen: !visible && !seen → blank rune returned
+- [x] G3 Create `internal/battle/terrain_test.go`:
+  - [x] G3a TestTileGeomRune_UFOCornerNW: north+west neighbour non-UFO → ◤
+  - [x] G3b TestTileGeomRune_UFOSolid: all UFO neighbours → █
+  - [x] G3c TestTileGeomRune_BuildingCornerTL: wall with south+east neighbours → ╔
+  - [x] G3d TestRenderTile_Unseen: !visible && !seen → blank rune returned
   - [x] G3e TestRenderTile_ElevationDarkens (skipped per user request)
   - [x] G3f TestElevationDarken_Clamped (skipped per user request)
-- [ ] G4 Integrate `RenderTile` into battlescape draw loop in `internal/battle/battlescape.go`:
-  - [ ] G4a Locate existing per-tile rune+style inline block in the render loop
-  - [ ] G4b Replace with `ctx := bs.Map.neighbourhood(mapX, mapY)` + `RenderTile(tile, ctx, visible, seen)`
-  - [ ] G4c Verify blood/fire rendering parity with previous inline code
+- [x] G4 Integrate `RenderTile` into battlescape draw loop in `internal/battle/battlescape.go`:
+  - [x] G4a Locate existing per-tile rune+style inline block in the render loop
+  - [x] G4b Replace with `ctx := bs.Map.neighbourhood(mapX, mapY)` + `RenderTile(tile, ctx, visible, seen)`
+  - [x] G4c Verify blood/fire rendering parity with previous inline code
 - [x] G5 Optionally populate Elevation on existing map generators (skipped per user request)
-- [ ] G6 Update `docs/manual.md` to note geometric terrain rendering
+- [x] G6 Update `docs/manual.md` to note geometric terrain rendering
+
+## Phase 29: Interceptor Combat Visuals
+- [ ] Add minimap combat animation during dogfights (interceptor/UFO icon flashes, hit sparks, explosion effects)
+- [ ] Show damage numbers or health bars during air combat
+- [ ] Add visual distinction between interceptor traveling vs engaging
+- [ ] Update `docs/manual.md` with interceptor combat visual details
+
+## Phase 30: Alien Equipment Escalation
+- [ ] Define alien tech tiers (e.g., early: basic plasma, mid: heavy plasma, late: blaster launcher)
+- [ ] Scale alien weapon/armor loadouts with game time or alien activity level
+- [ ] Ensure loot tables reflect escalated equipment
+- [ ] Update `docs/manual.md` with alien equipment escalation details
+
+## Phase 31: Base Facility Adjacency Bonuses
+- [ ] Design adjacency bonus system (labs+research speed, workshops+manufacturing, living quarters+healing, hangars+refuel)
+- [ ] Implement adjacency check on base grid layout
+- [ ] Display adjacency bonuses in base management UI
+- [ ] Update `docs/manual.md` with adjacency bonus details
 

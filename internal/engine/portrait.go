@@ -1,9 +1,40 @@
 package engine
 
 import (
+	"sync"
+
 	"github.com/civ13/termcom/internal/data"
 	"github.com/gdamore/tcell/v3"
 )
+
+var alienSpriteCache sync.Map
+
+type spriteCacheKey struct {
+	seed          int64
+	bgR, bgG, bgB int32
+	mk            uint64
+}
+
+func morphKey(m *data.Morphology) uint64 {
+	if m == nil {
+		return 0
+	}
+	h := uint64(m.Arms) | uint64(m.Legs)<<8
+	h |= hashStr(m.Eyesight) << 16
+	h |= hashStr(m.Hearing) << 24
+	h |= hashStr(m.PsionicSense) << 32
+	h |= hashStr(m.ThermalSense) << 40
+	h |= hashStr(m.ChemicalSense) << 48
+	return h
+}
+
+func hashStr(s string) uint64 {
+	var h uint64
+	for i := 0; i < len(s); i++ {
+		h = h*31 + uint64(s[i])
+	}
+	return h
+}
 
 type PortraitLayer int
 
@@ -21,16 +52,16 @@ const (
 )
 
 type PortraitSpec struct {
-	Width        int
-	Height       int
-	SkinColor    tcell.Color
-	EyeColor     tcell.Color
-	HairColor    tcell.Color
+	Width         int
+	Height        int
+	SkinColor     tcell.Color
+	EyeColor      tcell.Color
+	HairColor     tcell.Color
 	MarkingsColor tcell.Color // tcell.ColorDefault = none
-	HelmetColor  tcell.Color // tcell.ColorDefault = none
-	ArmourColor  tcell.Color // tcell.ColorDefault = none
-	DecalColor   tcell.Color
-	Seed         int64
+	HelmetColor   tcell.Color // tcell.ColorDefault = none
+	ArmourColor   tcell.Color // tcell.ColorDefault = none
+	DecalColor    tcell.Color
+	Seed          int64
 }
 
 // MakeSoldierPortrait builds a portrait from a soldier's name and armor string.
@@ -229,7 +260,7 @@ func generateSkinLayer(w, h int, baseColor tcell.Color, bgColor tcell.Color) *Pi
 	}
 
 	// Ears
-    // ... (rest of function)
+	// ... (rest of function)
 
 	// Ears
 	earW := g.rx / 3
@@ -688,7 +719,7 @@ func generateHairLayer(w, h int, color tcell.Color, style int) *PixelImage {
 		// Fade gradient on sides
 		for y := g.cy - g.ry/2; y <= g.cy-g.ry/4; y++ {
 			for side := -1; side <= 1; side += 2 {
-				fadeX := g.cx + side*(g.rx/2 + 1)
+				fadeX := g.cx + side*(g.rx/2+1)
 				if fadeX >= 0 && fadeX < w && y >= 0 && y < h {
 					img.Pixels[y][fadeX] = darkHair
 				}
@@ -703,51 +734,6 @@ func generateHairLayer(w, h int, color tcell.Color, style int) *PixelImage {
 						img.Pixels[y][x] = color
 					}
 				}
-			}
-		}
-	}
-
-	return img
-}
-
-func generateMarkingsLayer(w, h int, color tcell.Color, style int) *PixelImage {
-	img := NewPixelImage(w, h)
-	g := computeFaceGeom(w, h)
-
-	switch style {
-	case 0: // Cheek stripes (both sides)
-		for side := -1; side <= 1; side += 2 {
-			for i := 0; i < 3; i++ {
-				sx := g.cx + side*(g.rx/2+i*2)
-				sy := g.eyeY + 1
-				for dy := 0; dy < 3; dy++ {
-					px := sx + side*dy
-					py := sy + dy
-					if px >= 0 && px < w && py >= 0 && py < h && inHead(px, py, g) {
-						img.Pixels[py][px] = color
-					}
-				}
-			}
-		}
-
-	case 1: // Forehead band
-		bandY := g.cy - g.ry + g.ry/3
-		for x := g.cx - g.rx + 2; x <= g.cx+g.rx-2; x++ {
-			for dy := 0; dy < 2; dy++ {
-				px, py := x, bandY+dy
-				if px >= 0 && px < w && py >= 0 && py < h && inHead(px, py, g) {
-					img.Pixels[py][px] = color
-				}
-			}
-		}
-
-	case 2: // Chin mark
-		chinY := g.cy + g.ry - g.ry/4
-		for dx := -1; dx <= 1; dx++ {
-			px := g.cx + dx
-			py := chinY
-			if px >= 0 && px < w && py >= 0 && py < h && inHead(px, py, g) {
-				img.Pixels[py][px] = color
 			}
 		}
 	}
@@ -790,76 +776,11 @@ func generateHelmetLayer(w, h int, color tcell.Color) *PixelImage {
 	return img
 }
 
-func generateArmourLayer(w, h int, color tcell.Color) *PixelImage {
-	img := NewPixelImage(w, h)
-	g := computeFaceGeom(w, h)
-
-	dark := DarkenColor(color, 0.7)
-	light := LightenColor(color, 1.3)
-
-	for y := g.torsoY; y < h; y++ {
-		slope := (y - g.torsoY) * (w / 14)
-		left := g.cx - w/4 - slope
-		right := g.cx + w/4 + slope
-		if left < 0 {
-			left = 0
-		}
-		if right >= w {
-			right = w - 1
-		}
-
-		for x := left; x <= right; x++ {
-			col := color
-			// Shoulder pads
-			if y < g.torsoY+4 && (x < left+3 || x > right-3) {
-				col = light
-			}
-			// Edge highlight
-			if x == left+1 || x == right-1 {
-				col = light
-			}
-			// Edge shadow
-			if x == left || x == right {
-				col = dark
-			}
-			img.Pixels[y][x] = col
-		}
-	}
-
-	return img
-}
-
-func generateDecalLayer(w, h int, color tcell.Color, rank int) *PixelImage {
-	img := NewPixelImage(w, h)
-	g := computeFaceGeom(w, h)
-
-	decalY := g.torsoY + 2
-
-	for i := 0; i < rank; i++ {
-		offset := (i - rank/2) * 2
-		px := g.cx + offset
-		if px >= 0 && px < w && decalY >= 0 && decalY < h {
-			img.Pixels[decalY][px] = color
-			if decalY+1 < h {
-				img.Pixels[decalY+1][px] = color
-			}
-			if px+1 < w {
-				img.Pixels[decalY][px+1] = color
-			}
-			if decalY+1 < h && px+1 < w {
-				img.Pixels[decalY+1][px+1] = color
-			}
-		}
-	}
-
-	return img
-}
-
 // GenerateAlienPixelsImage converts an AlienPixels grid to a PixelImage,
 // rendering body and weapon layers in distinct colors.
 func GenerateAlienPixelsImage(ap data.AlienPixels, fgColor, bgColor tcell.Color) *PixelImage {
 	bR, bG, bB := fgColor.RGB()
-	wR, wG, wB := data.AlienWeaponColor(bR, bG, bB)
+	wR, wG, wB := data.AlienWeaponColor()
 	weaponColor := tcell.NewRGBColor(wR, wG, wB)
 
 	lightR := clampColor(bR + 45)
@@ -912,9 +833,17 @@ func clampColor(v int32) int32 {
 
 // GenerateAlienSpriteFromSeed creates a PixelImage from a seeded sprite assembly,
 // using the alien's morphology to select trait-matched visual templates.
+// Results are cached per (seed, bgColor, morphology) since the sprite never changes.
 func GenerateAlienSpriteFromSeed(seed int64, m *data.Morphology, bgColor tcell.Color) *PixelImage {
+	br, bg, bb := bgColor.RGB()
+	key := spriteCacheKey{seed: seed, bgR: br, bgG: bg, bgB: bb, mk: morphKey(m)}
+	if v, ok := alienSpriteCache.Load(key); ok {
+		return v.(*PixelImage)
+	}
 	ap := data.GenerateAlienPixels(seed, m)
 	r, g, b := data.AlienColorFromSeed(seed)
 	fgColor := tcell.NewRGBColor(r, g, b)
-	return GenerateAlienPixelsImage(ap, fgColor, bgColor)
+	img := GenerateAlienPixelsImage(ap, fgColor, bgColor)
+	alienSpriteCache.Store(key, img)
+	return img
 }

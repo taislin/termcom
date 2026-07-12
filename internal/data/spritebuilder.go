@@ -9,7 +9,7 @@ import (
 type Sense int
 
 const (
-	SenseStandard    Sense = iota
+	SenseStandard Sense = iota
 	SenseEcholocation
 	SenseOmni
 )
@@ -17,7 +17,7 @@ const (
 type Manipulators int
 
 const (
-	ManipNone     Manipulators = iota
+	ManipNone Manipulators = iota
 	ManipBipedal
 	ManipMultiArmed
 )
@@ -66,24 +66,29 @@ type SpriteRegistry struct {
 	Legs   []TaggedLegs
 }
 
+var defaultSpriteRegistry *SpriteRegistry
+
 func NewAlienSpriteRegistry() *SpriteRegistry {
-	return &SpriteRegistry{
-		Heads: []TaggedHead{
-			{Pixels: headStandard, Sense: SenseStandard},
-			{Pixels: headEcholocation, Sense: SenseEcholocation},
-			{Pixels: headOmni, Sense: SenseOmni},
-		},
-		Torsos: []TaggedTorso{
-			{Pixels: torsoBipedalArms, Manipulators: ManipBipedal},
-			{Pixels: torsoMultiArmed, Manipulators: ManipMultiArmed},
-			{Pixels: torsoNone, Manipulators: ManipNone},
-		},
-		Legs: []TaggedLegs{
-			{Pixels: legsBipedal, Locomotion: LocomBipedal},
-			{Pixels: legsArachnid, Locomotion: LocomArachnid},
-			{Pixels: legsFloating, Locomotion: LocomFloating},
-		},
+	if defaultSpriteRegistry == nil {
+		defaultSpriteRegistry = &SpriteRegistry{
+			Heads: []TaggedHead{
+				{Pixels: headStandard, Sense: SenseStandard},
+				{Pixels: headEcholocation, Sense: SenseEcholocation},
+				{Pixels: headOmni, Sense: SenseOmni},
+			},
+			Torsos: []TaggedTorso{
+				{Pixels: torsoBipedalArms, Manipulators: ManipBipedal},
+				{Pixels: torsoMultiArmed, Manipulators: ManipMultiArmed},
+				{Pixels: torsoNone, Manipulators: ManipNone},
+			},
+			Legs: []TaggedLegs{
+				{Pixels: legsBipedal, Locomotion: LocomBipedal},
+				{Pixels: legsArachnid, Locomotion: LocomArachnid},
+				{Pixels: legsFloating, Locomotion: LocomFloating},
+			},
+		}
 	}
+	return defaultSpriteRegistry
 }
 
 // --- Head templates (10 rows x 20 wide) ---
@@ -364,7 +369,7 @@ func centerOffset(row string, width int) int {
 	if trimmed >= width {
 		return 0
 	}
-	return (width - trimmed) / 2 - left
+	return (width-trimmed)/2 - left
 }
 
 func pickHead(candidates []TaggedHead, sense Sense, rng *rand.Rand) []string {
@@ -415,32 +420,6 @@ func AlienColorFromSeed(seed int64) (r, g, b int32) {
 }
 
 // AlienWeaponColor returns a metallic-grey variant for weapons.
-func AlienWeaponColor(bodyR, bodyG, bodyB int32) (r, g, b int32) {
-	_ = bodyR
-	_ = bodyG
-	_ = bodyB
+func AlienWeaponColor() (r, g, b int32) {
 	return 170, 180, 190
-}
-
-// CompressToHalfBlocks converts a 24x20 boolean pixel grid to a 12x10
-// rune grid using half-block characters.
-func CompressToHalfBlocks(pixels [24][20]bool) [12][10]rune {
-	var result [12][10]rune
-	for y := 0; y < 12; y++ {
-		for x := 0; x < 10; x++ {
-			top := pixels[y*2][x]
-			bottom := pixels[y*2+1][x]
-			switch {
-			case top && bottom:
-				result[y][x] = '\u2588'
-			case top:
-				result[y][x] = '\u2580'
-			case bottom:
-				result[y][x] = '\u2584'
-			default:
-				result[y][x] = ' '
-			}
-		}
-	}
-	return result
 }

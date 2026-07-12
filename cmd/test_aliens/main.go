@@ -24,9 +24,6 @@ const (
 	ansiCyan    = "\033[36m"
 	ansiWhite   = "\033[37m"
 	ansiGray    = "\033[90m"
-
-	ansiBgRed   = "\033[41m"
-	ansiBgGreen = "\033[42m"
 )
 
 var damageColors = []string{
@@ -83,19 +80,6 @@ func renderPortraitPadded(at *data.AlienType) {
 				ansiReset)
 		}
 		fmt.Println()
-	}
-}
-
-func runeDensity(r rune) int {
-	switch r {
-	case ' ', 0:
-		return 0
-	case '.', '·', '°', '*':
-		return 1
-	case '|', '-', '/', '\\', '+', '¤', '~', '†', 'o':
-		return 2
-	default:
-		return 3
 	}
 }
 

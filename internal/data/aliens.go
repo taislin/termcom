@@ -1,7 +1,5 @@
 package data
 
-import "math/rand"
-
 // Damage types used by weapons and resisted/weak to by aliens.
 const (
 	DMG_PLASMA = iota
@@ -139,17 +137,6 @@ func (m *Morphology) IsLarge() bool { return m.Legs >= 4 }
 // MultiArmed returns true if the alien has 3+ arms.
 func (m *Morphology) MultiArmed() bool { return m.Arms >= 3 }
 
-// StyledLine represents a line of the portrait with color information.
-type StyledLine struct {
-	Content string
-	Color   [3]int32 // RGB values
-}
-
-// StyledPortrait holds the structured portrait data.
-type StyledPortrait struct {
-	Lines []StyledLine
-}
-
 // AlienType defines a species/variant encountered in tactical combat.
 type AlienType struct {
 	Name       string
@@ -178,28 +165,9 @@ type AlienType struct {
 	ResistKinetic   int
 	ResistPsionic   int
 
-	AutopsyID  string         // research ID that unlocks this alien's stats in battlescape sidebar
-	Lore       string         // autopsy flavor text
-	Portrait   StyledPortrait // ASCII portrait with color info
-	Morphology *Morphology    // physical form (nil for hardcoded aliens)
-}
-
-// GetPortrait returns the alien's portrait, generating one if not set.
-func (at *AlienType) GetPortrait() StyledPortrait {
-	if len(at.Portrait.Lines) > 0 {
-		return at.Portrait
-	}
-	rng := rand.New(rand.NewSource(int64(at.Icon)))
-	if at.Morphology != nil {
-		at.Portrait = generatePortrait(rng, at.Icon, at.DamageType, at.Rank, at.Morphology)
-	} else {
-		// Hardcoded aliens: use default morphology for portrait
-		at.Portrait = generatePortrait(rng, at.Icon, at.DamageType, at.Rank, &Morphology{
-			Arms: 2, Legs: 2, BodyType: BodyOrganic, BodySubtype: SubtypeCarbonFlesh,
-			Eyesight: SenseNormal, Hearing: SenseNormal,
-		})
-	}
-	return at.Portrait
+	AutopsyID  string      // research ID that unlocks this alien's stats in battlescape sidebar
+	Lore       string      // autopsy flavor text
+	Morphology *Morphology // physical form (nil for hardcoded aliens)
 }
 
 var AlienTypes = []AlienType{

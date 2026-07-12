@@ -115,7 +115,7 @@ func TestConsistency(t *testing.T) {
 
 func TestWeaponColorBrighter(t *testing.T) {
 	bR, bG, bB := int32(100), int32(120), int32(80)
-	wR, wG, wB := AlienWeaponColor(bR, bG, bB)
+	wR, wG, wB := AlienWeaponColor()
 	if wR <= bR || wG <= bG || wB <= bB {
 		t.Errorf("weapon color should be brighter: body=(%d,%d,%d) weapon=(%d,%d,%d)", bR, bG, bB, wR, wG, wB)
 	}

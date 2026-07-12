@@ -2260,7 +2260,7 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 		sy++
 
 		hasAutopsy := u.Faction != 1 || u.AlienType == nil
-		if !hasAutopsy && u.AlienType != nil {
+		if !hasAutopsy {
 			for _, id := range bs.Base.CompletedResearch {
 				if id == u.AlienType.AutopsyID {
 					hasAutopsy = true
