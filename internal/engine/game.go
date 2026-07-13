@@ -3,10 +3,10 @@ package engine
 import (
 	"time"
 
-	"github.com/civ13/termcom/internal/audio"
-	"github.com/civ13/termcom/internal/data"
-	"github.com/civ13/termcom/internal/language"
-	"github.com/civ13/termcom/internal/soldier"
+	"github.com/taislin/termcom/internal/audio"
+	"github.com/taislin/termcom/internal/data"
+	"github.com/taislin/termcom/internal/language"
+	"github.com/taislin/termcom/internal/soldier"
 	"github.com/gdamore/tcell/v3"
 )
 

@@ -10,11 +10,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/civ13/termcom/internal/base"
-	"github.com/civ13/termcom/internal/battle"
-	"github.com/civ13/termcom/internal/data"
-	"github.com/civ13/termcom/internal/engine"
-	"github.com/civ13/termcom/internal/soldier"
+	"github.com/taislin/termcom/internal/base"
+	"github.com/taislin/termcom/internal/battle"
+	"github.com/taislin/termcom/internal/data"
+	"github.com/taislin/termcom/internal/engine"
+	"github.com/taislin/termcom/internal/soldier"
 )
 
 const (

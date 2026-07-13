@@ -1,8 +1,8 @@
 package base
 
 import (
-	"github.com/civ13/termcom/internal/data"
-	"github.com/civ13/termcom/internal/soldier"
+	"github.com/taislin/termcom/internal/data"
+	"github.com/taislin/termcom/internal/soldier"
 )
 
 type FacilityType int

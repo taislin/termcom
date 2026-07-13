@@ -3,7 +3,7 @@ package battle
 import (
 	"math/rand"
 
-	"github.com/civ13/termcom/internal/language"
+	"github.com/taislin/termcom/internal/language"
 )
 
 // MissionModifier defines mission-specific environment rules.

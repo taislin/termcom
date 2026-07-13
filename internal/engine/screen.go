@@ -194,6 +194,7 @@ func (s *ScreenRaw) DrawPanel(x, y, w, h int, title string, style tcell.Style) {
 
 // Define theme-agnostic placeholders if needed
 var ColorBlack = color.Black
+var ColorBlackTcell = color.Black
 
 // Global styles
 var StyleDefault = tcell.StyleDefault.Background(ColorBlack).Foreground(color.XTerm15)
@@ -216,6 +217,7 @@ func ApplyTheme(theme string) {
 	switch theme {
 	case "high_contrast":
 		ColorBlack = color.Black
+		ColorBlackTcell = color.Black
 		StyleDefault = tcell.StyleDefault.Background(ColorBlack).Foreground(color.White).Bold(true)
 		StyleHighlight = tcell.StyleDefault.Background(color.White).Foreground(ColorBlack).Bold(true)
 		StyleRed = tcell.StyleDefault.Background(ColorBlack).Foreground(color.Red).Bold(true)
@@ -233,6 +235,7 @@ func ApplyTheme(theme string) {
 
 	case "amber":
 		ColorBlack = tcell.NewRGBColor(12, 8, 0)
+		ColorBlackTcell = ColorBlack
 		bg := ColorBlack
 		fg := tcell.NewRGBColor(255, 190, 0)
 		dim := tcell.NewRGBColor(120, 90, 0)
@@ -253,6 +256,7 @@ func ApplyTheme(theme string) {
 
 	case "green":
 		ColorBlack = tcell.NewRGBColor(0, 12, 0)
+		ColorBlackTcell = ColorBlack
 		bg := ColorBlack
 		fg := tcell.NewRGBColor(0, 220, 0)
 		dim := tcell.NewRGBColor(0, 90, 0)
@@ -273,6 +277,7 @@ func ApplyTheme(theme string) {
 
 	case "paper":
 		ColorBlack = tcell.NewRGBColor(200, 190, 170)
+		ColorBlackTcell = ColorBlack
 		bg := ColorBlack
 		fg := tcell.NewRGBColor(10, 10, 10)
 		dim := tcell.NewRGBColor(120, 110, 100)
@@ -293,6 +298,7 @@ func ApplyTheme(theme string) {
 
 	default:
 		ColorBlack = color.XTerm0
+		ColorBlackTcell = color.XTerm0
 		StyleDefault = tcell.StyleDefault.Background(ColorBlack).Foreground(color.XTerm15)
 		StyleHighlight = tcell.StyleDefault.Background(color.Blue).Foreground(color.XTerm15)
 		StyleRed = tcell.StyleDefault.Background(ColorBlack).Foreground(color.XTerm9)

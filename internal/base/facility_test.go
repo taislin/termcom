@@ -4,8 +4,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/civ13/termcom/internal/data"
-	"github.com/civ13/termcom/internal/soldier"
+	"github.com/taislin/termcom/internal/data"
+	"github.com/taislin/termcom/internal/soldier"
 )
 
 func TestMain(m *testing.M) {

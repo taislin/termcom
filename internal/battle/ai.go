@@ -4,8 +4,8 @@ import (
 	"math"
 	"math/rand"
 
-	"github.com/civ13/termcom/internal/data"
-	"github.com/civ13/termcom/internal/engine"
+	"github.com/taislin/termcom/internal/data"
+	"github.com/taislin/termcom/internal/engine"
 )
 
 // AIState defines the current behavioral mode of an alien unit.

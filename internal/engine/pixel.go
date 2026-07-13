@@ -2,8 +2,8 @@ package engine
 
 import (
 	"github.com/gdamore/tcell/v3"
-	"github.com/gdamore/tcell/v3/color"
 )
+
 
 // PixelImage represents a 2D grid of colors.
 // Since each terminal cell can show two vertically stacked pixels (foreground and background of ▀),
@@ -42,7 +42,7 @@ func DrawPixelImage(screen tcell.Screen, x, y int, img *PixelImage) {
 				continue
 			}
 			topColor := img.Pixels[row][col]
-			bottomColor := color.Black
+			bottomColor := ColorBlackTcell
 			if row+1 < img.Height {
 				bottomColor = img.Pixels[row+1][col]
 			}
@@ -55,11 +55,11 @@ func DrawPixelImage(screen tcell.Screen, x, y int, img *PixelImage) {
 			// If one of them is transparent, we handle it by blending or drawing against a black fallback.
 			resolvedTop := topColor
 			if topColor == tcell.ColorDefault {
-				resolvedTop = color.Black
+				resolvedTop = ColorBlackTcell
 			}
 			resolvedBottom := bottomColor
 			if bottomColor == tcell.ColorDefault {
-				resolvedBottom = color.Black
+				resolvedBottom = ColorBlackTcell
 			}
 
 			style := tcell.StyleDefault.Foreground(resolvedTop).Background(resolvedBottom)
@@ -167,23 +167,25 @@ func DrawPixelImageFramed(screen tcell.Screen, x, y int, img *PixelImage, frameS
 
 		for col := 0; col < img.Width; col++ {
 			topColor := img.Pixels[row][col]
-			bottomColor := color.Black
+			bottomColor := ColorBlackTcell
 			if row+1 < img.Height {
 				bottomColor = img.Pixels[row+1][col]
 			}
 
 			resolvedTop := topColor
 			if topColor == tcell.ColorDefault {
-				resolvedTop = color.Black
+				resolvedTop = ColorBlackTcell
 			}
 			resolvedBottom := bottomColor
 			if bottomColor == tcell.ColorDefault {
-				resolvedBottom = color.Black
+				resolvedBottom = ColorBlackTcell
 			}
 
-			style := tcell.StyleDefault.Foreground(resolvedTop).Background(resolvedBottom)
-			screen.SetContent(x+1+col, cellRow, '▀', nil, style)
-		}
+
+				style := tcell.StyleDefault.Foreground(resolvedTop).Background(resolvedBottom)
+				screen.SetContent(x+1+col, cellRow, '▀', nil, style)
+			}
+
 
 		screen.SetContent(x+fw-1, cellRow, '│', nil, frameStyle)
 	}

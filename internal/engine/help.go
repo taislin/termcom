@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"github.com/civ13/termcom/internal/language"
+	"github.com/taislin/termcom/internal/language"
 	"github.com/gdamore/tcell/v3"
 )
 

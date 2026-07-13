@@ -1,6 +1,6 @@
 package data
 
-import "github.com/civ13/termcom/internal/language"
+import "github.com/taislin/termcom/internal/language"
 
 // Damage types used by weapons and resisted/weak to by aliens.
 const (

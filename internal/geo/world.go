@@ -1,6 +1,6 @@
 package geo
 
-import "github.com/civ13/termcom/internal/language"
+import "github.com/taislin/termcom/internal/language"
 
 // Equirectangular world map. Each char = 1 cell. Land is 1, water is 0.
 // Map is 180 wide x 90 tall (2-degree resolution).

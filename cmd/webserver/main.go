@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/civ13/termcom/web"
+	"github.com/taislin/termcom/web"
 )
 
 func main() {

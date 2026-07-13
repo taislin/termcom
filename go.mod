@@ -1,4 +1,4 @@
-module github.com/civ13/termcom
+module github.com/taislin/termcom
 
 go 1.25.0
 

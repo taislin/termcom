@@ -1,7 +1,7 @@
 .PHONY: build test lint coverage clean run
 
-export PATH := /home/civ13/go/bin:$(PATH)
-export GOPATH := /home/civ13/gopath
+export PATH := /home/taislin/go/bin:$(PATH)
+export GOPATH := /home/taislin/gopath
 
 run:
 	go run ./cmd/termcom

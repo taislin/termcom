@@ -5,8 +5,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/civ13/termcom/internal/audio"
-	"github.com/civ13/termcom/internal/language"
+	"github.com/taislin/termcom/internal/audio"
+	"github.com/taislin/termcom/internal/language"
 )
 
 const GameVersion = "0.34"

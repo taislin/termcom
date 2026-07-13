@@ -5,7 +5,7 @@ import (
 	"math/rand"
 	"strings"
 
-	"github.com/civ13/termcom/internal/language"
+	"github.com/taislin/termcom/internal/language"
 )
 
 // AlienSpecies represents a procedurally generated alien species.

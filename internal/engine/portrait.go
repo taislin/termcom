@@ -3,7 +3,7 @@ package engine
 import (
 	"sync"
 
-	"github.com/civ13/termcom/internal/data"
+	"github.com/taislin/termcom/internal/data"
 	"github.com/gdamore/tcell/v3"
 )
 

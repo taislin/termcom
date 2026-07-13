@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/civ13/termcom/internal/base"
-	"github.com/civ13/termcom/internal/data"
-	"github.com/civ13/termcom/internal/soldier"
+	"github.com/taislin/termcom/internal/base"
+	"github.com/taislin/termcom/internal/data"
+	"github.com/taislin/termcom/internal/soldier"
 )
 
 func TestSaveLoadGame(t *testing.T) {
