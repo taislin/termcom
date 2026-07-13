@@ -403,7 +403,7 @@ func (gs *Geoscape) Update() {
 				city := gs.CityByID(ufo.CurrentNode())
 				cityName := "?"
 				if city != nil {
-					cityName = city.Name
+					cityName = city.LangName()
 				}
 				gs.Message = fmt.Sprintf(language.String("MSG_UFO_DETECTED"), ufo.Type.Name, cityName)
 				gs.MessageTimer = time.Now()
@@ -436,7 +436,7 @@ func (gs *Geoscape) Update() {
 				city := gs.CityByID(m.NodeID)
 				cityName := "?"
 				if city != nil {
-					cityName = city.Name
+					cityName = city.LangName()
 				}
 				// Base defense mission that expired: the aliens overrun the base
 				if defBase := gs.HasBaseAt(m.NodeID); defBase != nil {
@@ -690,7 +690,7 @@ func (gs *Geoscape) BuildBase() {
 		return
 	}
 	if gs.HasBaseAt(gs.CursorNode) != nil {
-		gs.Message = fmt.Sprintf(language.String("MSG_BASE_EXISTS"), city.Name)
+		gs.Message = fmt.Sprintf(language.String("MSG_BASE_EXISTS"), city.LangName())
 		gs.MessageTimer = time.Now()
 		return
 	}
@@ -709,7 +709,7 @@ func (gs *Geoscape) BuildBase() {
 	gs.Bases = append(gs.Bases, b)
 	city.HasRadar = true
 	gs.ActiveBase = len(gs.Bases) - 1
-	gs.Message = fmt.Sprintf(language.String("MSG_BASE_BUILT"), b.Name, city.Name)
+	gs.Message = fmt.Sprintf(language.String("MSG_BASE_BUILT"), b.Name, city.LangName())
 	gs.MessageTimer = time.Now()
 }
 func (gs *Geoscape) CityByID(id int) *City {
@@ -984,7 +984,7 @@ func (gs *Geoscape) spawnMission() {
 	}
 	gs.Missions = append(gs.Missions, mission)
 	target.MissionHere = true
-	gs.Message = fmt.Sprintf(language.String("MSG_ALERT_MISSION"), chosen, target.Name)
+	gs.Message = fmt.Sprintf(language.String("MSG_ALERT_MISSION"), chosen, target.LangName())
 	gs.MessageTimer = time.Now()
 	gs.Game.Bell()
 	audio.PlayAlert()
@@ -1033,7 +1033,7 @@ func (gs *Geoscape) RespondToMission(idx int) {
 	city := gs.CityByID(mission.NodeID)
 	cityName := "?"
 	if city != nil {
-		cityName = city.Name
+		cityName = city.LangName()
 		city.MissionHere = false
 	}
 
@@ -1114,7 +1114,7 @@ func (gs *Geoscape) AutoresolveMission(idx int) {
 	city := gs.CityByID(mission.NodeID)
 	cityName := "?"
 	if city != nil {
-		cityName = city.Name
+		cityName = city.LangName()
 		city.MissionHere = false
 	}
 
@@ -1626,7 +1626,7 @@ func (gs *Geoscape) confirmLaunch(target interface{}) {
 		gs.Message = fmt.Sprintf(language.String("MSG_INTERCEPTOR_LAUNCHED"), t.Type.Name)
 	case *CrashSite:
 		gs.DispatchTransport(t)
-		gs.Message = fmt.Sprintf("Transport dispatched to crash site at %s", gs.CityByID(t.NodeID).Name)
+		gs.Message = fmt.Sprintf(language.String("MSG_TRANSPORT_DISPATCHED"), gs.CityByID(t.NodeID).LangName())
 	}
 	gs.MessageTimer = time.Now()
 }
@@ -1656,7 +1656,7 @@ func (gs *Geoscape) Render(ctx *engine.ScreenCtx) {
 	ctx.DrawPanel(0, h-6, w, 5, language.String("GEOSCAPE"), engine.StyleDefault)
 	fundsStr := fmt.Sprintf(language.String("GEOSCAPE_FUNDS"), gs.Game.Funds/1000)
 	if gs.Game.Difficulty > 0 && gs.Game.Difficulty < len(engine.Difficulties) {
-		fundsStr += fmt.Sprintf("  [%s]", engine.Difficulties[gs.Game.Difficulty].Name)
+		fundsStr += fmt.Sprintf("  [%s]", engine.Difficulties[gs.Game.Difficulty].LangName())
 	}
 	timeStr := fmt.Sprintf(language.String("GEOSCAPE_TIME"), gs.Game.GameTime.Format("02/01/2006 15:04"))
 	pauseStr := language.String("GEOSCAPE_RUNNING")
@@ -1712,7 +1712,7 @@ func (gs *Geoscape) renderMissionSelect(ctx *engine.ScreenCtx, w, h int) {
 	city := gs.CityByID(mission.NodeID)
 	cityName := "?"
 	if city != nil {
-		cityName = city.Name
+		cityName = city.LangName()
 	}
 
 	ctx.DrawString(ox+2, oy+2, fmt.Sprintf("Mission: %s in %s", mission.Type, cityName), engine.StyleDefault)
@@ -1812,7 +1812,7 @@ func (gs *Geoscape) renderRegionTable(ctx *engine.ScreenCtx, x, y, w, h int) {
 			}
 
 			// City name (truncated)
-			name := c.Name
+			name := c.LangName()
 			if len(name) > 14 {
 				name = name[:14]
 			}
@@ -2467,7 +2467,7 @@ func (gs *Geoscape) HandleMouse(e *tcell.EventMouse) {
 		row := y - 3
 		if row >= 0 && row < len(gs.Cities) {
 			gs.CursorNode = gs.Cities[row].ID
-			gs.Message = fmt.Sprintf(language.String("GEOSCAPE_NODE_SELECTED"), gs.Cities[row].Name, gs.Cities[row].Region)
+			gs.Message = fmt.Sprintf(language.String("GEOSCAPE_NODE_SELECTED"), gs.Cities[row].LangName(), gs.Cities[row].LangRegion())
 			gs.MessageTimer = time.Now()
 		}
 	}
@@ -2496,7 +2496,7 @@ func (gs *Geoscape) HandleMouse(e *tcell.EventMouse) {
 		}
 		if bestCity != nil {
 			gs.CursorNode = bestCity.ID
-			gs.Message = fmt.Sprintf(language.String("GEOSCAPE_NODE_SELECTED"), bestCity.Name, bestCity.Region)
+			gs.Message = fmt.Sprintf(language.String("GEOSCAPE_NODE_SELECTED"), bestCity.LangName(), bestCity.LangRegion())
 			gs.MessageTimer = time.Now()
 		}
 	}

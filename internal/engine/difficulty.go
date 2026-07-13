@@ -10,17 +10,33 @@ import (
 type DifficultyEntry struct {
 	Name        string
 	Description string
+	NameKey     string
+	DescKey     string
 	AlienScale  float64 // multiplier for alien stats
 	UFOScale    float64 // multiplier for UFO spawn rate & count
 	FundsScale  float64 // starting funds multiplier
 }
 
+func (d *DifficultyEntry) LangName() string {
+	if d.NameKey != "" {
+		return language.String(d.NameKey)
+	}
+	return d.Name
+}
+
+func (d *DifficultyEntry) LangDesc() string {
+	if d.DescKey != "" {
+		return language.String(d.DescKey)
+	}
+	return d.Description
+}
+
 var Difficulties = []DifficultyEntry{
-	{Name: "Beginner", Description: "Weaker aliens, slower UFOs, more funds", AlienScale: 0.7, UFOScale: 0.7, FundsScale: 1.5},
-	{Name: "Experienced", Description: "Standard challenge", AlienScale: 1.0, UFOScale: 1.0, FundsScale: 1.0},
-	{Name: "Veteran", Description: "Stronger aliens, faster UFOs", AlienScale: 1.2, UFOScale: 1.3, FundsScale: 0.8},
-	{Name: "Genius", Description: "Much harder combat and economy", AlienScale: 1.5, UFOScale: 1.6, FundsScale: 0.6},
-	{Name: "Superhuman", Description: "Maximum alien threat", AlienScale: 2.0, UFOScale: 2.0, FundsScale: 0.5},
+	{Name: "Beginner", Description: "Weaker aliens, slower UFOs, more funds", NameKey: "DIFF_BEGINNER", DescKey: "DIFF_BEGINNER_DESC", AlienScale: 0.7, UFOScale: 0.7, FundsScale: 1.5},
+	{Name: "Experienced", Description: "Standard challenge", NameKey: "DIFF_EXPERIENCED", DescKey: "DIFF_EXPERIENCED_DESC", AlienScale: 1.0, UFOScale: 1.0, FundsScale: 1.0},
+	{Name: "Veteran", Description: "Stronger aliens, faster UFOs", NameKey: "DIFF_VETERAN", DescKey: "DIFF_VETERAN_DESC", AlienScale: 1.2, UFOScale: 1.3, FundsScale: 0.8},
+	{Name: "Genius", Description: "Much harder combat and economy", NameKey: "DIFF_GENIUS", DescKey: "DIFF_GENIUS_DESC", AlienScale: 1.5, UFOScale: 1.6, FundsScale: 0.6},
+	{Name: "Superhuman", Description: "Maximum alien threat", NameKey: "DIFF_SUPERHUMAN", DescKey: "DIFF_SUPERHUMAN_DESC", AlienScale: 2.0, UFOScale: 2.0, FundsScale: 0.5},
 }
 
 type DifficultyScreen struct {
@@ -54,7 +70,7 @@ func (ds *DifficultyScreen) Render(ctx *ScreenCtx) {
 		if i == ds.Selection {
 			style = StyleHighlight
 		}
-		line := fmt.Sprintf("%-14s %s", d.Name, d.Description)
+		line := fmt.Sprintf("%-14s %s", d.LangName(), d.LangDesc())
 		ctx.DrawString(2, 4+i, line, style)
 	}
 

@@ -28,8 +28,8 @@ func TestCityByID(t *testing.T) {
 	if c == nil {
 		t.Fatal("CityByID(0) returned nil")
 	}
-	if c.Name != "New York" {
-		t.Errorf("expected New York, got %s", c.Name)
+	if c.LangName() != language.String("CITY_NEW_YORK") {
+		t.Errorf("expected New York, got %s", c.LangName())
 	}
 }
 

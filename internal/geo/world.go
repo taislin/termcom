@@ -1,5 +1,7 @@
 package geo
 
+import "github.com/civ13/termcom/internal/language"
+
 // Equirectangular world map. Each char = 1 cell. Land is 1, water is 0.
 // Map is 180 wide x 90 tall (2-degree resolution).
 // x = longitude/2 (0..360 -> 0..179)
@@ -11,14 +13,17 @@ var worldMap [mapH][mapW]int
 
 type City struct {
 	ID               int
-	Name             string
+	NameKey          string
+	RegionKey        string
 	X, Y             int // screen coordinates (0-179, 0-89)
-	Region           string
 	Threat           int // 0-100, alien activity level
 	HasRadar         bool
 	InterceptorCount int
 	MissionHere      bool
 }
+
+func (c *City) LangName() string  { return language.String(c.NameKey) }
+func (c *City) LangRegion() string { return language.String(c.RegionKey) }
 
 var cities []*City
 
@@ -42,30 +47,30 @@ func init() {
 
 	cities = []*City{
 		// North America
-		{ID: 0, Name: "New York", X: 48, Y: 31, Region: "NA East"},
-		{ID: 1, Name: "Los Angeles", X: 28, Y: 34, Region: "NA West"},
-		{ID: 2, Name: "Chicago", X: 41, Y: 30, Region: "NA Central"},
-		{ID: 3, Name: "Mexico City", X: 35, Y: 41, Region: "Central Am"},
+		{ID: 0, NameKey: "CITY_NEW_YORK", X: 48, Y: 31, RegionKey: "REGION_NA_EAST"},
+		{ID: 1, NameKey: "CITY_LOS_ANGELES", X: 28, Y: 34, RegionKey: "REGION_NA_WEST"},
+		{ID: 2, NameKey: "CITY_CHICAGO", X: 41, Y: 30, RegionKey: "REGION_NA_CENTRAL"},
+		{ID: 3, NameKey: "CITY_MEXICO_CITY", X: 35, Y: 41, RegionKey: "REGION_CENTRAL_AM"},
 		// South America
-		{ID: 4, Name: "Bogota", X: 48, Y: 48, Region: "SA North"},
-		{ID: 5, Name: "Brasilia", X: 61, Y: 54, Region: "SA East"},
-		{ID: 6, Name: "Buenos Aires", X: 56, Y: 68, Region: "SA South"},
+		{ID: 4, NameKey: "CITY_BOGOTA", X: 48, Y: 48, RegionKey: "REGION_SA_NORTH"},
+		{ID: 5, NameKey: "CITY_BRASILIA", X: 61, Y: 54, RegionKey: "REGION_SA_EAST"},
+		{ID: 6, NameKey: "CITY_BUENOS_AIRES", X: 56, Y: 68, RegionKey: "REGION_SA_SOUTH"},
 		// Europe
-		{ID: 7, Name: "London", X: 85, Y: 25, Region: "Europe W"},
-		{ID: 8, Name: "Paris", X: 86, Y: 27, Region: "Europe W"},
-		{ID: 9, Name: "Berlin", X: 92, Y: 25, Region: "Europe C"},
-		{ID: 10, Name: "Moscow", X: 104, Y: 23, Region: "Europe E"},
+		{ID: 7, NameKey: "CITY_LONDON", X: 85, Y: 25, RegionKey: "REGION_EUROPE_W"},
+		{ID: 8, NameKey: "CITY_PARIS", X: 86, Y: 27, RegionKey: "REGION_EUROPE_W"},
+		{ID: 9, NameKey: "CITY_BERLIN", X: 92, Y: 25, RegionKey: "REGION_EUROPE_C"},
+		{ID: 10, NameKey: "CITY_MOSCOW", X: 104, Y: 23, RegionKey: "REGION_EUROPE_E"},
 		// Africa
-		{ID: 11, Name: "Cairo", X: 102, Y: 36, Region: "Africa N"},
-		{ID: 12, Name: "Lagos", X: 87, Y: 48, Region: "Africa W"},
-		{ID: 13, Name: "Nairobi", X: 103, Y: 50, Region: "Africa E"},
+		{ID: 11, NameKey: "CITY_CAIRO", X: 102, Y: 36, RegionKey: "REGION_AFRICA_N"},
+		{ID: 12, NameKey: "CITY_LAGOS", X: 87, Y: 48, RegionKey: "REGION_AFRICA_W"},
+		{ID: 13, NameKey: "CITY_NAIROBI", X: 103, Y: 50, RegionKey: "REGION_AFRICA_E"},
 		// Asia
-		{ID: 14, Name: "Delhi", X: 124, Y: 37, Region: "South Asia"},
-		{ID: 15, Name: "Beijing", X: 143, Y: 31, Region: "East Asia"},
-		{ID: 16, Name: "Tokyo", X: 154, Y: 33, Region: "East Asia"},
-		{ID: 17, Name: "Singapore", X: 137, Y: 50, Region: "SE Asia"},
+		{ID: 14, NameKey: "CITY_DELHI", X: 124, Y: 37, RegionKey: "REGION_SOUTH_ASIA"},
+		{ID: 15, NameKey: "CITY_BEIJING", X: 143, Y: 31, RegionKey: "REGION_EAST_ASIA"},
+		{ID: 16, NameKey: "CITY_TOKYO", X: 154, Y: 33, RegionKey: "REGION_EAST_ASIA"},
+		{ID: 17, NameKey: "CITY_SINGAPORE", X: 137, Y: 50, RegionKey: "REGION_SE_ASIA"},
 		// Australasia
-		{ID: 18, Name: "Sydney", X: 159, Y: 69, Region: "Oceania"},
+		{ID: 18, NameKey: "CITY_SYDNEY", X: 159, Y: 69, RegionKey: "REGION_OCEANIA"},
 	}
 }
 
