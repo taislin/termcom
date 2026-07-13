@@ -1,9 +1,18 @@
 package engine
 
 import (
+	"github.com/clipperhouse/displaywidth"
 	"github.com/gdamore/tcell/v3"
 	"github.com/gdamore/tcell/v3/color"
 )
+
+func RuneWidth(ch rune) int {
+	return displaywidth.Rune(ch)
+}
+
+func StringWidth(str string) int {
+	return displaywidth.String(str)
+}
 
 type ScreenRaw struct {
 	screen tcell.Screen
@@ -117,8 +126,9 @@ func (s *ScreenRaw) FrameBuffer() *FrameBuffer {
 func (s *ScreenRaw) DrawString(x, y int, str string, style tcell.Style) {
 	currX := x
 	for _, ch := range str {
+		w := RuneWidth(ch)
 		s.SetCell(currX, y, ch, style)
-		currX++
+		currX += w
 	}
 }
 
@@ -138,8 +148,9 @@ func (s *ScreenRaw) DrawMarkupString(x, y int, str string, normalStyle, highligh
 		if highlight {
 			style = highlightStyle
 		}
+		w := RuneWidth(ch)
 		s.SetCell(currX, y, ch, style)
-		currX++
+		currX += w
 	}
 }
 
@@ -171,7 +182,8 @@ func (s *ScreenRaw) DrawPanel(x, y, w, h int, title string, style tcell.Style) {
 	s.DrawBorder(x, y, w, h, style)
 	if title != "" {
 		titleStr := "┤ " + title + " ├"
-		s.DrawString(x+w/2-len(titleStr)/2, y, titleStr, style)
+		titleW := StringWidth(titleStr)
+		s.DrawString(x+w/2-titleW/2, y, titleStr, style)
 	}
 }
 

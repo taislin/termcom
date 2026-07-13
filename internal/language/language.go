@@ -3,8 +3,8 @@ package language
 import "fmt"
 
 var (
-	current    = "en"
-	strings    = map[string]string{}
+	current    = "en" // British English
+	strings    = map[string]map[string]string{}
 	available  = []string{"en"}
 	registered = map[string]bool{"en": true}
 )
@@ -26,11 +26,13 @@ func Available() []string {
 	return available
 }
 
-// String returns the translated string for the given key.
+// String returns the translated string for the given key in the active language.
 // Falls back to the key itself if not found.
 func String(key string) string {
-	if s, ok := strings[key]; ok {
-		return s
+	if m, ok := strings[current]; ok {
+		if s, ok := m[key]; ok {
+			return s
+		}
 	}
 	return key
 }
@@ -43,9 +45,7 @@ func Sprintf(key string, args ...interface{}) string {
 
 // register adds a language's string map to the registry.
 func register(lang string, strs map[string]string) {
-	for k, v := range strs {
-		strings[k] = v
-	}
+	strings[lang] = strs
 	if !registered[lang] {
 		registered[lang] = true
 		available = append(available, lang)

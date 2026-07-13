@@ -122,7 +122,7 @@ func (bs *BaseScreen) Render(ctx *engine.ScreenCtx) {
 	tabs := []string{language.String("TAB_FACILITIES"), language.String("TAB_SOLDIERS"), language.String("TAB_RESEARCH"), language.String("TAB_MANUFACTURE"), language.String("TAB_TRANSFER"), language.String("TAB_HANGARS")}
 	tabW := 0
 	for _, t := range tabs {
-		tw := len(t) + 4 // brackets + space
+		tw := engine.StringWidth(t) + 4 // brackets + space
 		if tw > tabW {
 			tabW = tw
 		}
@@ -520,7 +520,7 @@ func (bs *BaseScreen) HandleMouse(e *tcell.EventMouse) {
 		tabs := []string{language.String("TAB_FACILITIES"), language.String("TAB_SOLDIERS"), language.String("TAB_RESEARCH"), language.String("TAB_MANUFACTURE"), language.String("TAB_TRANSFER")}
 		tabW := 0
 		for _, t := range tabs {
-			tw := len(t) + 4
+			tw := engine.StringWidth(t) + 4
 			if tw > tabW {
 				tabW = tw
 			}
@@ -530,7 +530,7 @@ func (bs *BaseScreen) HandleMouse(e *tcell.EventMouse) {
 		}
 		for i := 0; i < 5; i++ {
 			tx := 2 + i*tabW
-			if x >= tx && x <= tx+len(tabs[i])+2 {
+			if x >= tx && x <= tx+engine.StringWidth(tabs[i])+2 {
 				bs.Tab = i
 				bs.Selection = 0
 				return

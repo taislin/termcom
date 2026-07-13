@@ -801,18 +801,24 @@ func (bs *Battlescape) checkHumanReactionFire(movedAlien *Unit) {
 		if u.TU < 15 || u.Weapon == "" {
 			continue
 		}
-		if !u.CanSee(movedAlien.X, movedAlien.Y, bs.Map) {
-			continue
-		}
 		dx := movedAlien.X - u.X
 		dy := movedAlien.Y - u.Y
 		dist := int(math.Sqrt(float64(dx*dx + dy*dy)))
 		if dist == 0 {
 			dist = 1
 		}
+		if dist > SightRange {
+			continue
+		}
+		if !bs.Map.IsVisible(movedAlien.X, movedAlien.Y) {
+			continue
+		}
+		if !u.CanSee(movedAlien.X, movedAlien.Y, bs.Map) {
+			continue
+		}
 		chance := u.Reactions*2 + u.Accuracy/3 - dist*5
-		if chance < 5 {
-			chance = 5
+		if chance < 1 {
+			chance = 1
 		}
 		if rand.Intn(100) >= chance {
 			continue
@@ -861,21 +867,21 @@ func (bs *Battlescape) checkAlienReactionFire(movedHuman *Unit) {
 		if u.TU < 15 || u.Weapon == "" {
 			continue
 		}
-		if !bs.Map.IsVisible(u.X, u.Y) {
-			continue
-		}
-		if !u.CanSee(movedHuman.X, movedHuman.Y, bs.Map) {
-			continue
-		}
 		dx := movedHuman.X - u.X
 		dy := movedHuman.Y - u.Y
 		dist := int(math.Sqrt(float64(dx*dx + dy*dy)))
 		if dist == 0 {
 			dist = 1
 		}
+		if dist > SightRange {
+			continue
+		}
+		if !u.CanSee(movedHuman.X, movedHuman.Y, bs.Map) {
+			continue
+		}
 		chance := u.Reactions*2 + u.Accuracy/3 - dist*5
-		if chance < 5 {
-			chance = 5
+		if chance < 1 {
+			chance = 1
 		}
 		if rand.Intn(100) >= chance {
 			continue
@@ -890,14 +896,10 @@ func (bs *Battlescape) checkAlienReactionFire(movedHuman *Unit) {
 		bs.OverwatchFlash = 30
 		bs.Camera.SetTarget(u.X, u.Y)
 		damage, hit, _ := u.FireAt(movedHuman, bs.Map, &bs.Weather)
-		dist2 := int(math.Sqrt(float64((movedHuman.X-u.X)*(movedHuman.X-u.X) + (movedHuman.Y-u.Y)*(movedHuman.Y-u.Y))))
-		if dist2 < 1 {
-			dist2 = 1
-		}
 		bs.Projectile = &Projectile{
 			FromX: u.X, FromY: u.Y,
 			ToX: movedHuman.X, ToY: movedHuman.Y,
-			Progress: 0, Length: dist2,
+			Progress: 0, Length: dist,
 			Symbol: '*', Style: engine.StyleRedBold,
 		}
 		if hit {
@@ -2070,10 +2072,12 @@ func (bs *Battlescape) DrawCombatStatusBar(ctx *engine.ScreenCtx, w int) {
 	}
 
 	text := " " + label + " "
-	if len(text) > w {
+	tw := engine.StringWidth(text)
+	if tw > w {
 		text = text[:w]
+		tw = engine.StringWidth(text)
 	}
-	start := (w - len(text)) / 2
+	start := (w - tw) / 2
 	if start < 0 {
 		start = 0
 	}

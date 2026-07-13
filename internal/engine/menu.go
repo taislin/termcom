@@ -118,7 +118,7 @@ func (ms *MenuScreen) Update() {
 			const menuY = 17
 			optY := menuY + ms.Selection*2
 			textX := w/2 - 8
-			textLen := len([]rune(opts[ms.Selection]))
+			textLen := StringWidth(opts[ms.Selection])
 			SpawnMenuDrift(ms.menuParticles, textX, optY, -1)
 			SpawnMenuDrift(ms.menuParticles, textX+textLen-1, optY, 1)
 		}
@@ -196,7 +196,7 @@ func (ms *MenuScreen) Render(ctx *ScreenCtx) {
 	// ── 4. Subtitle + decorations ─────────────────────────────────────────────
 	subY := startY + len(title) + 1
 	subtitle := language.String("MENU_TITLE")
-	subX := (w - len(subtitle)) / 2
+	subX := (w - StringWidth(subtitle)) / 2
 	if subX < 0 {
 		subX = 0
 	}
@@ -246,7 +246,7 @@ func (ms *MenuScreen) Render(ctx *ScreenCtx) {
 
 	for i, opt := range options {
 		y := menuY + i*2
-		textLen := len([]rune(opt))
+		textLen := StringWidth(opt)
 		textX := w/2 - textLen/2
 
 		if i == ms.Selection {

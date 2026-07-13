@@ -6,7 +6,36 @@ import (
 	"github.com/civ13/termcom/internal/audio"
 	"github.com/civ13/termcom/internal/language"
 	"github.com/gdamore/tcell/v3"
+	"github.com/gdamore/tcell/v3/color"
 )
+
+type flagGrid [3][3]color.Color
+
+var langFlags = map[string]flagGrid{
+	"en": {
+		{color.XTerm9, color.XTerm15, color.XTerm9},
+		{color.XTerm15, color.XTerm9, color.XTerm15},
+		{color.XTerm9, color.XTerm15, color.XTerm9},
+	},
+	"zh": {
+		{color.XTerm9, color.XTerm9, color.XTerm9},
+		{color.XTerm9, color.XTerm11, color.XTerm9},
+		{color.XTerm9, color.XTerm9, color.XTerm9},
+	},
+}
+
+func drawFlag(ctx *ScreenCtx, x, y int, code string) {
+	f, ok := langFlags[code]
+	if !ok {
+		return
+	}
+	for dy := 0; dy < 3; dy++ {
+		for dx := 0; dx < 3; dx++ {
+			style := tcell.StyleDefault.Foreground(f[dy][dx])
+			ctx.SetCell(x+dx, y+dy, '█', style)
+		}
+	}
+}
 
 type OptionsScreen struct {
 	Game      *Game
@@ -69,8 +98,11 @@ func (os *OptionsScreen) Render(ctx *ScreenCtx) {
 			break
 		}
 	}
-	line = fmt.Sprintf("      %s: [%s]", language.String("OPTIONS_LANGUAGE"), langs[langIdx])
-	ctx.DrawString(w/2-15, langY+1, line, langStyle)
+	flagX := w/2 - 15
+	flagY := langY + 1
+	drawFlag(ctx, flagX, flagY, language.Current())
+	line = fmt.Sprintf("  %s: [%s]", language.String("OPTIONS_LANGUAGE"), langs[langIdx])
+	ctx.DrawString(flagX+4, flagY+1, line, langStyle)
 
 	ctx.DrawPanel(0, h-1, w, 1, "", StyleGray)
 	ctx.DrawMarkupString(1, h-1, "[\u2190]/[\u2192]=Adjust  [\u2191]/[\u2193]=Select  Enter=Toggle  [Esc]=Back", StyleGray, StyleHotkey)

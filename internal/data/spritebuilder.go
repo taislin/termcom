@@ -30,11 +30,26 @@ const (
 	LocomArachnid
 )
 
+type EyeStyle int
+
+const (
+	EyeClassic EyeStyle = iota
+	EyeCyclops
+	EyeArachnid
+	EyeVisor
+	EyeNone
+)
+
 // --- Tagged module types ---
 
 type TaggedHead struct {
 	Pixels []string
 	Sense  Sense
+}
+
+type TaggedEyes struct {
+	Pixels []string
+	Style  EyeStyle
 }
 
 type TaggedTorso struct {
@@ -66,6 +81,7 @@ type AlienPixels struct {
 
 type SpriteRegistry struct {
 	Heads  []TaggedHead
+	Eyes   []TaggedEyes
 	Torsos []TaggedTorso
 	Legs   []TaggedLegs
 }
@@ -85,10 +101,20 @@ func NewAlienSpriteRegistry() *SpriteRegistry {
 				{Pixels: headVisor, Sense: SenseOmni},
 				{Pixels: headCone, Sense: SenseOmni},
 			},
+			Eyes: []TaggedEyes{
+				{Pixels: eyeClassic, Style: EyeClassic},
+				{Pixels: eyeCyclops, Style: EyeCyclops},
+				{Pixels: eyeArachnid, Style: EyeArachnid},
+				{Pixels: eyeVisor, Style: EyeVisor},
+				{Pixels: eyeNone, Style: EyeNone},
+			},
 			Torsos: []TaggedTorso{
 				{Pixels: torsoSlim, Manipulators: ManipBipedal},
 				{Pixels: torsoWide, Manipulators: ManipBipedal},
 				{Pixels: torsoArmored, Manipulators: ManipBipedal},
+				{Pixels: torsoHollow, Manipulators: ManipBipedal},
+				{Pixels: torsoAsymmetric, Manipulators: ManipBipedal},
+				{Pixels: torsoBladed, Manipulators: ManipBipedal},
 				{Pixels: torsoTentacle, Manipulators: ManipNone},
 				{Pixels: torsoMultiArmed, Manipulators: ManipMultiArmed},
 			},
@@ -97,6 +123,7 @@ func NewAlienSpriteRegistry() *SpriteRegistry {
 				{Pixels: legsLong, Locomotion: LocomBipedal},
 				{Pixels: legsWide, Locomotion: LocomBipedal},
 				{Pixels: legsArachnid, Locomotion: LocomArachnid},
+				{Pixels: legsSerpentine, Locomotion: LocomFloating},
 				{Pixels: legsTentacle, Locomotion: LocomFloating},
 				{Pixels: legsPillar, Locomotion: LocomFloating},
 			},
@@ -113,7 +140,7 @@ var headRound = []string{
 	"......XXXXXX......",
 	".....XXXXXXXXXX.....",
 	"....XXXXXXXXXXXX....",
-	"....XXeXXXXeXXX....",
+	"....XXXXXXXXXXX....",
 	"....XXXXXXXXXXX....",
 	"....XXXmmXXXmXXX....",
 	".....XXXXXXXXXX.....",
@@ -125,7 +152,7 @@ var headSquare = []string{
 	"....................",
 	"....XXXXXXXXXXXX....",
 	"...XXXXXXXXXXXXXXX..",
-	"...XXeXXXXXXeXXXX...",
+	"...XXXXXXXXXXXXXXX...",
 	"...XXXXXXXXXXXXXXX..",
 	"...XXXXXXXXXXXXXXX..",
 	"...XXmmmmmmmmmmXX...",
@@ -139,7 +166,7 @@ var headTall = []string{
 	"......XXXXXX........",
 	"......XXXXXX........",
 	".....XXXXXXXX.......",
-	".....XXeXXeXX.......",
+	".....XXXXXXXXX.......",
 	".....XXXXXXXX.......",
 	".....XXmmmmXX.......",
 	".....XXXXXXXX.......",
@@ -165,7 +192,7 @@ var headWide = []string{
 	"XX................XX",
 	"XXX..............XXX",
 	"XXXX............XXXX",
-	"XXXXeXXXXXXXXeXXXXX.",
+	"XXXXXXXXXXXXXXXXXXXX.",
 	"XXXXXXXXXXXXXXXXXX.",
 	"XXXXXXmmmmmmXXXXXX.",
 	"XXXXXXXXXXXXXXXXXX.",
@@ -174,16 +201,16 @@ var headWide = []string{
 }
 
 var headAntennae = []string{
-	"..X...........X....",
-	"..XX.........XX....",
-	"...XX.......XX.....",
-	"....XXXXXXXXXX.....",
-	"....XXeXXXXeXX.....",
-	"....XXXXXXXXXX.....",
-	"....XXmmmmXXX.....",
-	".....XXXXXXXX......",
-	"......XXXXXX.......",
-	".......XXXX........",
+	"..X...........X.....",
+	"..XX.........XX.....",
+	"...XX.......XX......",
+	"....XXXXXXXXXX......",
+	"....XXXXXXXXXX......",
+	"....XXXXXXXXXX......",
+	"....XXmmmmXXX.......",
+	".....XXXXXXXX.......",
+	"......XXXXXX........",
+	".......XXXX.........",
 }
 
 var headVisor = []string{
@@ -191,7 +218,7 @@ var headVisor = []string{
 	"......XXXXXX......",
 	".....XXXXXXXXXX.....",
 	"....dddXXXXXXddd....",
-	"....deeeeeeeedX....",
+	"....dXXXXXXXXdX....",
 	"....XXXXXXXXXXXX....",
 	"....XXXmmmmXXX.....",
 	".....XXXXXXXXXX.....",
@@ -210,6 +237,75 @@ var headCone = []string{
 	"....XXXXXXXXXXXX....",
 	"....XXXXXXXXXXXX....",
 	".....XXXXXXXXXX.....",
+}
+
+// --- Eye templates (10 rows x 20 wide) ---
+// These act as masks: 'X' carves a hole in the head silhouette and
+// marks the eyes layer for white/glowing rendering.
+
+var eyeClassic = []string{
+	"....................",
+	"....................",
+	"....................",
+	".....XXX...XXX.....",
+	"....XXXXX.XXXX....",
+	"...XXXXX...XXXXX..",
+	"....XX.....XX.....",
+	"....................",
+	"....................",
+	"....................",
+}
+
+var eyeCyclops = []string{
+	"....................",
+	"....................",
+	"....................",
+	"......XXXXX.......",
+	"......XXXXX.......",
+	"......XXXXX.......",
+	"....................",
+	"....................",
+	"....................",
+	"....................",
+}
+
+var eyeArachnid = []string{
+	"....................",
+	"......X...X........",
+	"....................",
+	"..X...X.X...X......",
+	"....................",
+	"..X...X.X...X......",
+	"....................",
+	"......X...X........",
+	"....................",
+	"....................",
+}
+
+var eyeVisor = []string{
+	"....................",
+	"....................",
+	"....................",
+	"....................",
+	"....XXXXXXXXXXXX....",
+	"....................",
+	"....................",
+	"....................",
+	"....................",
+	"....................",
+}
+
+var eyeNone = []string{
+	"....................",
+	"....................",
+	"....................",
+	"....................",
+	"....................",
+	"....................",
+	"....................",
+	"....................",
+	"....................",
+	"....................",
 }
 
 // --- Torso templates (8 rows x 20 wide) ---
@@ -270,6 +366,39 @@ var torsoMultiArmed = []string{
 	".......XXXXXX.......",
 }
 
+var torsoHollow = []string{
+	"......XXXXXXXX......",
+	".....XXXXXXXXXX.....",
+	"....XXX....XXXX....",
+	"....XX......XXX....",
+	"....XXX....XXXX....",
+	".....XXXXXXXXXX.....",
+	"......XXXX.WWW......",
+	"..........WWWWW......",
+}
+
+var torsoAsymmetric = []string{
+	".....XXXXXXX........",
+	"....XXXXXXXXXX......",
+	"...XXXX.XX.XXXXX....",
+	"..XXXXX.XX.XXXXXX...",
+	"..XXXX.XX.XXXXXXX...",
+	"......XX.WWWW.......",
+	".......WWWWWWW......",
+	"........WWWWW.......",
+}
+
+var torsoBladed = []string{
+	"......XXXXXXXX......",
+	".....XXXXXXXXXX.....",
+	"....XXXX.XX.XXXX....",
+	"..WWXXXX.XX.XXXXWW..",
+	"..WWXXXXXXXXXXXXWW..",
+	"......XX.XX.WWW....",
+	".......XX...WW......",
+	"..............WW....",
+}
+
 // --- Leg templates (6 rows x 20 wide) ---
 
 var legsBipedal = []string{
@@ -326,7 +455,14 @@ var legsPillar = []string{
 	".......XXXXXX.......",
 }
 
-// --- Morphology -> trait mapping ---
+var legsSerpentine = []string{
+	".......XXXXXX.......",
+	"......XXXX.XXX......",
+	".....XXXX...XXX.....",
+	"....XXXX.....XXX....",
+	"...XXXX.......XXX...",
+	"..XXXX........XXX...",
+}
 
 func SenseFromMorphology(m *Morphology) Sense {
 	if m.Hearing == "echolocation" {
@@ -388,6 +524,7 @@ func GenerateAlienPixels(seed int64, m *Morphology) AlienPixels {
 	loco := LocomotionFromMorphology(m)
 
 	head := pickHead(reg.Heads, sense, rng)
+	eyes := pickEyes(reg.Eyes, m, rng)
 	torso := pickTorso(reg.Torsos, manip, rng)
 	legs := pickLegs(reg.Legs, loco, rng)
 
@@ -399,11 +536,8 @@ func GenerateAlienPixels(seed int64, m *Morphology) AlienPixels {
 			break
 		}
 		for x, ch := range row {
-			if ch == 'X' || ch == 'e' || ch == 'm' || ch == 'a' || ch == 'h' || ch == 'd' {
+			if ch == 'X' || ch == 'm' || ch == 'a' || ch == 'h' || ch == 'd' {
 				result.Body[y][x+headOffset] = true
-			}
-			if ch == 'e' {
-				result.Eyes[y][x+headOffset] = true
 			}
 			if ch == 'm' {
 				result.Mouth[y][x+headOffset] = true
@@ -420,12 +554,23 @@ func GenerateAlienPixels(seed int64, m *Morphology) AlienPixels {
 		}
 	}
 
-	if m.Eyesight == SenseNone || m.Eyesight == "none" || m.Eyesight == "blind" {
-		for y := 0; y < 10; y++ {
-			for x := 0; x < 20; x++ {
-				if result.Eyes[y][x] {
-					result.Eyes[y][x] = false
+	// Eye masking: overlay eyes template on the head area.
+	// For each 'X' in the eye template, carve a hole in the body
+	// and mark it on the Eyes layer for white/glowing rendering.
+	if eyes != nil {
+		eyeOffset := centerOffset(eyes[0], 20)
+		for y := 0; y < 10 && y < len(eyes); y++ {
+			for x := 0; x < len(eyes[y]) && x < 20; x++ {
+				if eyes[y][x] != 'X' {
+					continue
 				}
+				ex := x + eyeOffset
+				ey := y
+				if ex < 0 || ex >= 20 || ey < 0 || ey >= 10 {
+					continue
+				}
+				result.Body[ey][ex] = false
+				result.Eyes[ey][ex] = true
 			}
 		}
 	}
@@ -514,6 +659,66 @@ func GenerateAlienPixels(seed int64, m *Morphology) AlienPixels {
 		}
 	}
 
+	// Biology-specific rendering pass
+	switch m.BodySubtype {
+	case SubtypeGaseous:
+		for y := 0; y < 24; y++ {
+			for x := 0; x < 20; x++ {
+				if result.Body[y][x] && texRng.Intn(100) < 40 {
+					result.Body[y][x] = false
+					result.Texture[y][x] = true
+				}
+			}
+		}
+	case SubtypeCrystalline:
+		for y := 0; y < 24; y++ {
+			for x := 0; x < 20; x++ {
+				if result.Body[y][x] && !result.Highlight[y][x] && !result.Shadow[y][x] {
+					if texRng.Intn(100) < 15 {
+						result.Accent[y][x] = true
+					}
+				}
+			}
+		}
+	case SubtypeMechanical, SubtypeSilicon:
+		for y := 0; y < 24; y++ {
+			for x := 0; x < 20; x++ {
+				if result.Body[y][x] && texRng.Intn(100) < 10 {
+					result.Highlight[y][x] = true
+				}
+			}
+		}
+	case SubtypeAmorphous:
+		for y := 0; y < 24; y++ {
+			for x := 0; x < 20; x++ {
+				if result.Body[y][x] && texRng.Intn(100) < 25 {
+					result.Texture[y][x] = true
+				}
+			}
+		}
+	case SubtypeNanotech:
+		for y := 0; y < 24; y++ {
+			for x := 0; x < 20; x++ {
+				if result.Body[y][x] && texRng.Intn(100) < 30 {
+					result.Highlight[y][x] = true
+				}
+				if result.Body[y][x] && texRng.Intn(100) < 15 {
+					result.Texture[y][x] = true
+				}
+			}
+		}
+	case SubtypeBioSynthetic:
+		for y := 0; y < 24; y++ {
+			for x := 0; x < 20; x++ {
+				if result.Body[y][x] && !result.Highlight[y][x] && !result.Shadow[y][x] {
+					if texRng.Intn(100) < 10 {
+						result.Accent[y][x] = true
+					}
+				}
+			}
+		}
+	}
+
 	return result
 }
 
@@ -573,6 +778,39 @@ func pickLegs(candidates []TaggedLegs, loco Locomotion, rng *rand.Rand) []string
 		return legsBipedal
 	}
 	return filtered[rng.Intn(len(filtered))]
+}
+
+// EyeTypeFromMorphology selects an eye style based on the alien's eyesight.
+func EyeTypeFromMorphology(m *Morphology, rng *rand.Rand) EyeStyle {
+	if m == nil {
+		return EyeClassic
+	}
+	switch m.Eyesight {
+	case "none", "blind":
+		return EyeNone
+	case "echolocation":
+		return EyeVisor
+	case "excellent":
+		if rng.Intn(2) == 0 {
+			return EyeArachnid
+		}
+		return EyeClassic
+	default: // "normal" or anything else
+		if rng.Intn(2) == 0 {
+			return EyeCyclops
+		}
+		return EyeClassic
+	}
+}
+
+func pickEyes(candidates []TaggedEyes, m *Morphology, rng *rand.Rand) []string {
+	style := EyeTypeFromMorphology(m, rng)
+	for _, e := range candidates {
+		if e.Style == style {
+			return e.Pixels
+		}
+	}
+	return eyeClassic
 }
 
 // AlienColorFromSeed returns a deterministic RGB color derived from seed.

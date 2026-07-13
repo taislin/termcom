@@ -35,8 +35,12 @@ func NewPixelImage(w, h int) *PixelImage {
 // FG = top pixel (row) and BG = bottom pixel (row+1).
 // If the height is odd, the bottom pixel of the last cell row defaults to color.Black.
 func DrawPixelImage(screen tcell.Screen, x, y int, img *PixelImage) {
+	w, h := screen.Size()
 	for row := 0; row < img.Height; row += 2 {
 		for col := 0; col < img.Width; col++ {
+			if x+col < 0 || x+col >= w || y+row/2 < 0 || y+row/2 >= h {
+				continue
+			}
 			topColor := img.Pixels[row][col]
 			bottomColor := color.Black
 			if row+1 < img.Height {

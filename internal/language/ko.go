@@ -1,7 +1,9 @@
 package language
 
+// Korean — pending translation. Current values are English placeholders.
+
 func init() {
-	register("en", map[string]string{
+	register("ko", map[string]string{
 		// ── Menu ──────────────────────────────────────────
 		"MENU_TITLE":     "T U R N   B A S E D   T A C T I C S",
 		"MENU_SUBTITLE":  "v0.27",
@@ -613,7 +615,7 @@ func init() {
 		"HELP_RES_RESEARCH": "#Research:",
 		"HELP_RES_R1":       ">Select topics to research with scientists",
 		"HELP_RES_R2":       ">Prerequisites must be completed first",
-		"HELP_RES_R3":       ">Unlocks new weapons, armour, and items",
+		"HELP_RES_R3":       ">Unlocks new weapons, armor, and items",
 		"HELP_RES_R4":       ">Progress = scientists per day",
 		"HELP_RES_MFG":      "#Manufacturing:",
 		"HELP_RES_M1":       ">Queue items to build with engineers",

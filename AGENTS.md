@@ -88,7 +88,7 @@ internal/
   data/techgen.go          Procedural tech tree generator (DAG, tiers, cost variance)
   data/procedural.go       Procedural alien species + morphology + portrait generation
   save/save.go             Save/load system (JSON, version migration v1-v3)
-  language/en.go           English localization strings
+  language/               Multi-language system (en, zh, es, fr, ru, pt, ja, ko)
   audio/audio_common.go    Platform-independent audio dispatch
   audio/audio_windows.go   Windows MIDI-based sound synthesis
   audio/audio_other.go     Linux/macOS stub (oto PCM synthesis)
@@ -105,6 +105,7 @@ internal/
 - Map tiles: rune-based, colored via tcell.Style
 - **NO EMOJIS**: Never use emoji characters (U+1F300-U+1F9FF, U+FE00-U+FE0F, U+200D, etc.) in tileChars or anywhere in game code. Use Unicode symbols from BMP only (U+0000-U+FFFF) — box drawing, technical symbols, miscellaneous symbols (⚙, ⌁, etc.) are fine.
 - Always update `docs/manual.md` whenever game data, balance, or mechanics change.
+- **Translations**: Every language file in `internal/language/` must be kept in sync. When adding or changing a string key, add/change it in ALL language files (en, zh, es, fr, ru, pt, ja, ko). The language files are: `en.go`, `zh.go`, `es.go`, `fr.go`, `ru.go`, `pt.go`, `ja.go`, `ko.go`. Never add a key to only one file.
 
 ### Game Conventions (faithful to original X-COM)
 - Time Units (TU) for all actions in Battlescape

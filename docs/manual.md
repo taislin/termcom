@@ -49,6 +49,17 @@ UFO spawn rates, and starting funds:
 - Starting base with Living Quarters, Laboratory, Workshop, Storage, and Radar
 - Several Rifles and Pistols
 
+**Language support:**
+The game can be switched between 8 languages in the Options screen (Right/Left arrows to cycle, Esc to save):
+- **English** (en)
+- **Chinese** (zh)
+- **Spanish** (es)
+- **French** (fr)
+- **Russian** (ru)
+- **Portuguese** (pt)
+- **Japanese** (ja)
+- **Korean** (ko)
+
 ---
 
 ## Getting Started
