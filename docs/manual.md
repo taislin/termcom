@@ -33,8 +33,18 @@ and lead squads into tactical combat to eliminate the alien threat.
 
 **Defeat condition:** Alien Activity reaches 100%.
 
+**Difficulty selection:**
+Before the game begins, you choose a difficulty level that affects alien strength,
+UFO spawn rates, and starting funds:
+
+- **Beginner** — Weaker aliens (0.7× stats), slower UFOs (0.7× spawns), 1.5× funds
+- **Experienced** — Standard challenge
+- **Veteran** — Stronger aliens (1.2×), faster UFOs (1.3×), reduced funds (0.8×)
+- **Genius** — Much harder combat and economy (1.5× aliens, 1.6× UFOs, 0.6× funds)
+- **Superhuman** — Maximum alien threat (2.0× all)
+
 **Starting resources:**
-- $500,000
+- $500,000 (× funds scale from difficulty)
 - 10 scientists, 10 engineers
 - Starting base with Living Quarters, Laboratory, Workshop, Storage, and Radar
 - Several Rifles and Pistols
@@ -140,7 +150,7 @@ Each base is constructed at a regional node for $500,000 and comes with Living
 Quarters, Storage, and a Radar facility. Press `N` while the cursor is on an
 empty node to build there.
 
-- **Radar coverage** is drawn as a faint `·` ring around every base on the minimap.
+- **Radar coverage** is drawn as a faint `·` ring around every base on the minimap (toggle with `V`).
 - Press `C` to cycle the *active* base. All base screens (management, research,
   manufacture, equipment) operate on the active base.
 - Press `T` to open the **Transfer** screen and move soldiers or items between
@@ -897,6 +907,7 @@ The species seed ensures the same alien species are regenerated when loading a s
 | M | Respond to mission |
 | R | Dispatch transport to crash site |
 | E | Open encyclopedia |
+| V | Toggle radar coverage overlay on minimap |
 | F5 | Save |
 | F9 | Load |
 | Q | Quit |
@@ -933,6 +944,14 @@ The species seed ensures the same alien species are regenerated when loading a s
 | Enter / Space / Esc | Dismiss |
 
 ### Battlescape
+
+The tactical view shows a grid-based map with your soldiers and alien enemies.
+The right sidebar displays information on the selected or hovered unit:
+
+- **Soldiers** show their name, rank, HP, and the soldier's portrait (colored 20×24 half-block face).
+- **Aliens** after autopsy shows their HP, accuracy, TU, strength, and a procedurally-generated 7×7 colored ASCII sprite showing the alien's head, torso, and limbs in species-specific colors. Before autopsy, the alien appears as "???" with no stats.
+
+The sidebar also contains the battle log (attack results, damage, kills).
 
 | Key | Action |
 |-----|--------|
