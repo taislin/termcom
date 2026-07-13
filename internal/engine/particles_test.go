@@ -10,7 +10,7 @@ func TestParticleSystem(t *testing.T) {
 	ps := NewParticleSystem(maxCount)
 
 	// Test Spawn
-	style := tcell.StyleDefault.Foreground(tcell.ColorRed)
+	style := tcell.StyleDefault.Foreground(color.Red)
 	ps.Spawn(0, 0, 1, 1, '*', style, 1.0, 0.1)
 
 	ps.mu.RLock()

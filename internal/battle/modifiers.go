@@ -6,6 +6,7 @@ import (
 	"github.com/civ13/termcom/internal/language"
 )
 
+// MissionModifier defines mission-specific environment rules.
 type MissionModifier int
 
 const (
@@ -20,31 +21,6 @@ const (
 	ModLowVisibility
 	ModHighGround
 )
-
-var modifierNames = map[MissionModifier]string{
-	ModNone:           "None",
-	ModNightOps:       "Night Ops",
-	ModReinforcements: "Reinforcements",
-	ModTimeLimit:      "Time Limit",
-	ModVIPRescue:      "VIP Rescue",
-	ModBoobyTrapped:   "Booby Trapped",
-	ModHeavyFog:       "Heavy Fog",
-	ModAlienAmbush:    "Alien Ambush",
-	ModLowVisibility:  "Low Visibility",
-	ModHighGround:     "High Ground",
-}
-
-var modifierDescriptions = map[MissionModifier]string{
-	ModNightOps:       "Forced night battle. +20% loot reward.",
-	ModReinforcements: "Extra alien wave arrives on turn 4.",
-	ModTimeLimit:      "15 turns to eliminate all aliens or reach objective.",
-	ModVIPRescue:      "Protect the VIP. Bonus $50K if VIP survives.",
-	ModBoobyTrapped:   "More grenades and proximity mines on the map.",
-	ModHeavyFog:       "Sight range reduced by 40%. Smoke lingers longer.",
-	ModAlienAmbush:    "Aliens start in overwatch positions.",
-	ModLowVisibility:  "Reduced accuracy (-10%) for all units.",
-	ModHighGround:     "Map has elevated positions with accuracy bonus.",
-}
 
 func (m MissionModifier) String() string {
 	switch m {

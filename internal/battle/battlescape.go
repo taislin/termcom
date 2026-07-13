@@ -737,7 +737,7 @@ func (bs *Battlescape) executeAlienAction(action AlienAction) {
 		}
 		engine.SpawnMuzzleFlash(bs.Particles, action.Unit.X-bs.ScrollX+1, action.Unit.Y-bs.ScrollY+1)
 		if hit {
-			engine.SpawnExplosion(bs.Particles, action.Target.X-bs.ScrollX+1, action.Target.Y-bs.ScrollY+1, tcell.NewRGBColor(255, 80, 30), 8)
+			engine.SpawnExplosion(bs.Particles, action.Target.X-bs.ScrollX+1, action.Target.Y-bs.ScrollY+1, color.NewRGBColor(255, 80, 30), 8)
 			if engine.Config.ScreenShake {
 				bs.Camera.TriggerShake(0.5)
 			}
@@ -789,7 +789,7 @@ func (bs *Battlescape) executeAlienAction(action AlienAction) {
 			return
 		}
 		audio.PlayLaserFire()
-		engine.SpawnExplosion(bs.Particles, action.Target.X-bs.ScrollX+1, action.Target.Y-bs.ScrollY+1, tcell.NewRGBColor(120, 0, 200), 12)
+		engine.SpawnExplosion(bs.Particles, action.Target.X-bs.ScrollX+1, action.Target.Y-bs.ScrollY+1, color.NewRGBColor(120, 0, 200), 12)
 		if engine.Config.ScreenShake {
 			bs.Camera.TriggerShake(0.3)
 		}
@@ -871,7 +871,7 @@ func (bs *Battlescape) checkHumanReactionFire(movedAlien *Unit) {
 			Symbol: '*', Style: engine.StyleCyanBold,
 		}
 		if hit {
-			engine.SpawnExplosion(bs.Particles, movedAlien.X-bs.ScrollX+1, movedAlien.Y-bs.ScrollY+1, tcell.NewRGBColor(255, 80, 30), 8)
+			engine.SpawnExplosion(bs.Particles, movedAlien.X-bs.ScrollX+1, movedAlien.Y-bs.ScrollY+1, color.NewRGBColor(255, 80, 30), 8)
 			if engine.Config.ScreenShake {
 				bs.Camera.TriggerShake(0.3)
 			}
@@ -935,7 +935,7 @@ func (bs *Battlescape) checkAlienReactionFire(movedHuman *Unit) {
 			Symbol: '*', Style: engine.StyleRedBold,
 		}
 		if hit {
-			engine.SpawnExplosion(bs.Particles, movedHuman.X-bs.ScrollX+1, movedHuman.Y-bs.ScrollY+1, tcell.NewRGBColor(255, 80, 30), 8)
+			engine.SpawnExplosion(bs.Particles, movedHuman.X-bs.ScrollX+1, movedHuman.Y-bs.ScrollY+1, color.NewRGBColor(255, 80, 30), 8)
 			if engine.Config.ScreenShake {
 				bs.Camera.TriggerShake(0.3)
 			}
