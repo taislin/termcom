@@ -7,18 +7,18 @@ import (
 )
 
 // AlienSpecies represents a procedurally generated alien species.
-// Each species has variants at different ranks.
+// Each species has variants at different ranks, sharing a base morphology and damage affinity.
 type AlienSpecies struct {
-	Name       string       // e.g. "Vrekt"
-	Prefix     string       // short prefix for rank variants, e.g. "VRK"
+	Name       string       // The generated species name (e.g. "Vrekt")
+	Prefix     string       // Short prefix for rank variants (e.g. "VRK")
 	BaseIcon   rune         // shared icon across all variants
 	PrimaryDMG int          // species-wide damage affinity
 	Lore       string       // species-wide lore
-	Morphology *Morphology  // shared morphology across all variants
+	Morphology *Morphology  // shared physical form across all variants
 	Types      []*AlienType // Rank 0..4 variants (may be nil for higher ranks)
 }
 
-// Syllable pools for alien name generation.
+// Syllable pools for generating exotic-sounding alien names.
 var (
 	prefixSyll = []string{
 		"Vr", "Za", "Xo", "Kr", "Th", "Qu", "Sh", "Bl", "Dr", "Gh",
@@ -27,7 +27,7 @@ var (
 		"Zr", "Xk", "Ql", "Jx", "Vh", "Ng", "Mk", "Nz", "Rq", "Wx",
 	}
 	midSyll = []string{
-		"ek", "or", "an", "ul", "ix", "az", "en", "on", "ar", "al",
+		"ek", "or", "an",, "ul", "ix", "az", "en", "on", "ar", "al",
 		"is", "us", "ox", "ir", "um", "ak", "el", "id", "os", "ym",
 		"iv", "un", "ag", "eb", "og", "iz", "ub", "am", "ol", "ed",
 		"ik", "av", "od", "ul", "er", "at", "op", "ev", "im", "yx",
@@ -41,6 +41,7 @@ var (
 )
 
 // Rank title pools — each damage type gets its own themed set of titles.
+// Index 0 is empty for Rank 0 (Rookies).
 var rankTitlePools = map[int][]string{
 	DMG_PLASMA:    {"", "Navigator", "Commander", "Elite", "Overlord"},
 	DMG_LASER:     {"", "Sentinel", "Arbiter", "Warden", "Sovereign"},
@@ -50,6 +51,7 @@ var rankTitlePools = map[int][]string{
 	DMG_PSIONIC:   {"", "Acolyte", "Hierophant", "Archon", "Nexus"},
 }
 
+// rankTitle returns the appropriate rank title for a given damage type and rank.
 func rankTitle(dmgType, rank int) string {
 	if rank <= 0 {
 		return ""
@@ -264,7 +266,7 @@ func generateMorphology(rng *rand.Rand, dmgType int) *Morphology {
 		bodyType = BodySynthetic
 	}
 
-	// Pick body subtype influenced by damage type
+	// 1. Determine body subtype based on body type and damage affinity.
 	var subtype string
 	if bodyType == BodyOrganic {
 		subtype = pickOrganicSubtype(rng, dmgType)
@@ -272,40 +274,41 @@ func generateMorphology(rng *rand.Rand, dmgType int) *Morphology {
 		subtype = pickSyntheticSubtype(rng, dmgType)
 	}
 
-	// Generate limb counts — constrained by body subtype
+	// 2. Generate limb counts — constrained by body subtype (e.g. amorphous have no legs).
 	arms := generateArmCount(rng, subtype)
 	legs := generateLegCount(rng, subtype)
 
-	// Generate senses
+	// 3. Generate base senses.
 	eyesight := pickSenseQuality(rng)
 	hearing := pickHearingQuality(rng)
 	thermal := pickBinarySense(rng)
 	psiSense := pickBinarySense(rng)
 	chemSense := pickBinarySense(rng)
 
-	// Enforce sense restrictions
+	// 4. Apply subtype-specific sense restrictions and bonuses.
 	if subtype == SubtypeMechanical || subtype == SubtypeNanotech {
 		chemSense = SenseNone
 	}
 	if subtype == SubtypeGaseous || subtype == SubtypeAmorphous {
-		// Amorphous/gaseous: compensate with psi and thermal
+		// Amorphous/gaseous: compensate for lack of physical form with psi and thermal.
 		if psiSense == SenseNone {
 			psiSense = SenseLow
 		}
 		thermal = SenseHigh
 	}
 	if subtype == SubtypeCrystalline {
-		// Crystalline: good eyesight (light refraction), poor hearing
+		// Crystalline: light refraction grants excellent eyesight, but poor hearing.
 		hearing = SensePoor
 		if eyesight == SenseNormal || eyesight == SensePoor {
 			eyesight = SenseExcellent
 		}
 	}
 	if subtype == SubtypeSilicon {
-		// Silicon-based: thermal vision
+		// Silicon-based: usually possess thermal vision.
 		thermal = SenseHigh
 	}
 	if dmgType == DMG_PSIONIC && psiSense == SenseNone {
+		// Psionic species must have at least some psionic sense.
 		psiSense = SenseHigh
 	}
 

@@ -15,6 +15,25 @@ func randn(n int) int {
 	return rand.Intn(n)
 }
 
+package battle
+
+import (
+	"math/rand"
+
+	"github.com/gdamore/tcell/v3"
+)
+
+// randn returns rand.Intn(n) but safely yields 0 when n <= 0, avoiding a panic
+// on degenerate (very small) map dimensions.
+func randn(n int) int {
+	if n <= 0 {
+		return 0
+	}
+	return rand.Intn(n)
+}
+
+// TileType defines the physical nature of a map cell, determining its
+// appearance, movement cost, and defensive value.
 type TileType int
 const (
 	TileFloor TileType = iota
@@ -46,6 +65,7 @@ const (
 	TileStairsDown  // stairs leading to lower level
 )
 
+// Tile represents a single cell on the tactical map.
 type Tile struct {
 	Type      TileType
 	Level     int // which level this tile is on (0=ground, 1=upper)
@@ -203,6 +223,8 @@ func TileChar(t TileType) rune {
 	return '.'
 }
 
+// BattleMap represents the tactical grid for a combat mission,
+// managing tile data, visibility, and multi-level geometry.
 type BattleMap struct {
 	Width        int
 	Height       int
@@ -462,6 +484,8 @@ func (m *BattleMap) ComputeFOV(ux, uy int, sightRange int) {
 	}
 }
 
+// hasLOS determines if there is a clear line-of-sight between two coordinates.
+// It uses Bresenham's line algorithm to traverse the map and check for opaque tiles.
 func (m *BattleMap) hasLOS(x1, y1, x2, y2 int) bool {
 	dx := x2 - x1
 	dy := y2 - y1
@@ -503,11 +527,13 @@ func (m *BattleMap) hasLOS(x1, y1, x2, y2 int) bool {
 	}
 }
 
+// IsVisible returns true if the tile at (x, y) is currently within a unit's line-of-sight.
 func (m *BattleMap) IsVisible(x, y int) bool {
 	t := m.At(x, y)
 	return t.Visible
 }
 
+// IsSeen returns true if the tile at (x, y) has ever been visited or seen by the player.
 func (m *BattleMap) IsSeen(x, y int) bool {
 	t := m.At(x, y)
 	return t.Seen
@@ -845,7 +871,7 @@ func GenerateTerrorSite(w, h int) *BattleMap {
 		bx := randn(w-bw-2) + 1
 		by := randn(h-bh-2) + 1
 
-		// Check for overlap (simple check)
+		// Ensure building doesn't overlap existing structures or map boundaries
 		overlap := false
 		for dy := -1; dy <= bh; dy++ {
 			for dx := -1; dx <= bw; dx++ {
@@ -853,6 +879,12 @@ func GenerateTerrorSite(w, h int) *BattleMap {
 					overlap = true
 					break
 				}
+			}
+			if overlap {
+				break
+			}
+		}
+
 			}
 			if overlap {
 				break

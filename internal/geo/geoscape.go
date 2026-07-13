@@ -19,18 +19,21 @@ import (
 	"github.com/gdamore/tcell/v3/color"
 )
 
+// AlienMission describes an active UFO threat that must be responded to.
 type AlienMission struct {
 	Type      string
-	NodeID    int     // target node ID
-	HoursLeft float64 // hours remaining to respond
+	NodeID    int     // target node ID on the world map
+	HoursLeft float64 // hours remaining to respond before the UFO departs
 }
 
+// CrashSite represents a landed UFO that can be explored for loot/tech.
 type CrashSite struct {
 	UFOName string
 	NodeID  int
 	Looted  bool
 }
 
+// Transport handles the movement of soldiers between bases.
 type Transport struct {
 	FromNode  int
 	ToNode    int
@@ -39,7 +42,9 @@ type Transport struct {
 	CrashSite *CrashSite
 }
 
+// Geoscape is the main state controller for the strategic world map.
 type Geoscape struct {
+	// Game Engine and State
 	Game                *engine.Game
 	Cities              []*City
 	UFOs                UFOList
@@ -68,17 +73,19 @@ type Geoscape struct {
 	CydoniaTriggered    bool       // ensures the final mission is added only once
 	ShowRadarOverlay    bool       // toggle radar coverage circles on minimap
 
+	// Interaction State
 	MissionSelectMode bool
 	MissionSelectIdx  int
 	MissionOdds       int
 
+	// Visual Effects
 	DogfightVisual *DogfightAnim
 }
 
 // DogfightAnim drives the minimap combat visual for interceptor-vs-UFO engagements.
 type DogfightAnim struct {
 	Active      bool
-	Timer       int // frames remaining
+	Timer       int // frames remaining in animation
 	Interceptor *Interceptor
 	UFO         *UFO
 
@@ -338,12 +345,12 @@ func NewGeoscapeFromSave(g *engine.Game, sd *save.SaveData) *Geoscape {
 func (gs *Geoscape) Update() {
 	gs.TickCounter++
 
-	// Check for battle results
+	// 1. Process battle outcomes (rewards, casualties)
 	if gs.Game.ActiveBattle != nil {
 		gs.processBattleResult()
 	}
 
-	// Defeat check — alien activity too high
+	// 2. Defeat condition: alien activity exceeds the threshold
 	if gs.AlienActivity >= 100 && !gs.Victory {
 		stats := fmt.Sprintf("Missions Won: %d", gs.MissionsWon)
 		gs.Game.GameOver(false, stats)
@@ -351,23 +358,24 @@ func (gs *Geoscape) Update() {
 		gs.Game.Paused = true
 	}
 
-	// Victory check — enough missions completed
+	// 3. Victory condition: check if enough missions have been completed
 	if gs.MissionsWon >= 10 && !gs.Victory {
-		// Instead of immediate victory, trigger Cydonia
+		// Instead of immediate victory, trigger the final campaign stage (Cydonia)
 		gs.triggerCydonia()
 	}
 
-	// Final mission check
+	// 4. Final mission check: campaign ends when final mission is resolved
 	if gs.Victory && gs.Game.ActiveBattle == nil {
-		stats := fmt.Sprintf("Campaign Complete. Missions Won: %d", gs.MissionsWon)
+		stats := fmt.Sprintf("Campaign Complete.H Missions Won: %d", gs.MissionsWon)
 		gs.Game.GameOver(true, stats)
 	}
 
+	// 5. Real-time world simulation (only when game is not paused and time is moving)
 	if !gs.Game.Paused && gs.Game.TimeSpeed > 0 {
 		speedMult := []int{0, 1, 5, 20, 60}
 		minutes := speedMult[gs.Game.TimeSpeed]
 
-		// Spawn UFOs periodically, scaled by game time
+		// UFO Spawning: Frequency increases as the campaign progresses (gameMonth).
 		gameMonth := int(gs.Game.GameTime.Month()) - 3 + (gs.Game.GameTime.Year()-1999)*12
 		if gameMonth < 0 {
 			gameMonth = 0
@@ -403,8 +411,7 @@ func (gs *Geoscape) Update() {
 			}
 		}
 
-		// Spawn alien missions periodically
-		// Increase frequency based on AlienActivity and game time:
+		// Mission Spawning: Trigger events based on AlienActivity and game time.
 		spawnRate := 1800 - (gs.AlienActivity * 15) - gameMonth*30
 		if spawnRate < 300 {
 			spawnRate = 300
@@ -413,12 +420,12 @@ func (gs *Geoscape) Update() {
 			gs.spawnMission()
 		}
 
-		// Gradually increase activity over time
+		// Periodic increase in overall alien activity.
 		if gs.TickCounter%7200 == 0 { // ~2 hours at speed 1
 			gs.AlienActivity++
 		}
 
-		// Check mission timers
+		// Mission Timer Update: decrease remaining time and trigger consequences if expired.
 		remaining := make([]*AlienMission, 0, len(gs.Missions))
 		for _, m := range gs.Missions {
 			m.HoursLeft -= float64(minutes) / 60.0
