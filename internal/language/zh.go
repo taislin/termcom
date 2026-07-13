@@ -54,7 +54,7 @@ func init() {
 		"TRANSFER_SOLDIERS":             "\u58eb\u5175 ([\u7a7a\u683c]=\u8f6c\u79fb)\uff1a",
 		"TRANSFER_ITEMS":                "\u7269\u8d44 ([Enter]=\u8f6c\u79fb)\uff1a",
 		"HELP_TRANSFER":                 "[\u2191]/[\u2193]=\u5bfc\u822a  [Tab]=\u76ee\u6807\u5730  [\u7a7a\u683c]=\u58eb\u5175  [Enter]=\u7269\u8d44  [Esc]=\u8fd4\u56de",
-		"GEO_HEADER_REGION":             " \u533a\u57df            \u5a01\u80c1  \u96f7\u8fbe  \u5c0f\u961f  \u72b6\u6001",
+		"GEO_HEADER_REGION":             " \u533a\u57df             \u5a01\u80c1  \u96f7\u8fbe  \u5c0f\u961f  \u72b6\u6001",
 		"GEO_RADAR_ON":                  " R ",
 		"GEO_RADAR_OFF":                 " - ",
 		"GEO_STATUS_MISSION":            "\u4efb\u52a1",
