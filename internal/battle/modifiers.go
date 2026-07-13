@@ -2,6 +2,8 @@ package battle
 
 import (
 	"math/rand"
+
+	"github.com/civ13/termcom/internal/language"
 )
 
 type MissionModifier int
@@ -45,17 +47,53 @@ var modifierDescriptions = map[MissionModifier]string{
 }
 
 func (m MissionModifier) String() string {
-	if s, ok := modifierNames[m]; ok {
-		return s
+	switch m {
+	case ModNightOps:
+		return language.String("MODIFIER_NIGHT_OPS")
+	case ModReinforcements:
+		return language.String("MODIFIER_REINFORCEMENTS")
+	case ModTimeLimit:
+		return language.String("MODIFIER_TIME_LIMIT")
+	case ModVIPRescue:
+		return language.String("MODIFIER_VIP_RESCUE")
+	case ModBoobyTrapped:
+		return language.String("MODIFIER_BOOBY_TRAPPED")
+	case ModHeavyFog:
+		return language.String("MODIFIER_HEAVY_FOG")
+	case ModAlienAmbush:
+		return language.String("MODIFIER_ALIEN_AMBUSH")
+	case ModLowVisibility:
+		return language.String("MODIFIER_LOW_VISIBILITY")
+	case ModHighGround:
+		return language.String("MODIFIER_HIGH_GROUND")
+	default:
+		return language.String("NONE")
 	}
-	return "Unknown"
 }
 
 func (m MissionModifier) Description() string {
-	if s, ok := modifierDescriptions[m]; ok {
-		return s
+	switch m {
+	case ModNightOps:
+		return language.String("MODDESC_NIGHT_OPS")
+	case ModReinforcements:
+		return language.String("MODDESC_REINFORCEMENTS")
+	case ModTimeLimit:
+		return language.String("MODDESC_TIME_LIMIT")
+	case ModVIPRescue:
+		return language.String("MODDESC_VIP_RESCUE")
+	case ModBoobyTrapped:
+		return language.String("MODDESC_BOOBY_TRAPPED")
+	case ModHeavyFog:
+		return language.String("MODDESC_HEAVY_FOG")
+	case ModAlienAmbush:
+		return language.String("MODDESC_ALIEN_AMBUSH")
+	case ModLowVisibility:
+		return language.String("MODDESC_LOW_VISIBILITY")
+	case ModHighGround:
+		return language.String("MODDESC_HIGH_GROUND")
+	default:
+		return ""
 	}
-	return ""
 }
 
 func RollModifiers(rng *rand.Rand, missionType string) []MissionModifier {
@@ -192,24 +230,28 @@ func (w Weather) FireSpreadChance() int {
 	return 20
 }
 
+func (w Weather) IsClear() bool {
+	return !w.Snow && !w.Rain && !w.Wind && w.FogDensity == 0 && !w.TempCold
+}
+
 func (w Weather) Name() string {
 	if w.Snow {
-		return "Snow"
+		return language.String("WEATHER_SNOW")
 	}
 	if w.Rain && w.Wind {
-		return "Storm"
+		return language.String("WEATHER_STORM")
 	}
 	if w.Rain {
-		return "Rain"
+		return language.String("WEATHER_RAIN")
 	}
 	if w.Wind {
-		return "Wind"
+		return language.String("WEATHER_WIND")
 	}
 	if w.FogDensity > 0 {
-		return "Fog"
+		return language.String("WEATHER_FOG")
 	}
 	if w.TempCold {
-		return "Cold"
+		return language.String("WEATHER_COLD")
 	}
-	return "Clear"
+	return language.String("WEATHER_CLEAR")
 }

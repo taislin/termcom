@@ -1,5 +1,7 @@
 package data
 
+import "github.com/civ13/termcom/internal/language"
+
 // Damage types used by weapons and resisted/weak to by aliens.
 const (
 	DMG_PLASMA = iota
@@ -374,19 +376,19 @@ func GetAlienByRank(minRank int) *AlienType {
 func DamageTypeStr(dt int) string {
 	switch dt {
 	case DMG_PLASMA:
-		return "Plasma"
+		return language.String("DTYPE_PLASMA")
 	case DMG_LASER:
-		return "Laser"
+		return language.String("DTYPE_LASER")
 	case DMG_EXPLOSIVE:
-		return "Explosive"
+		return language.String("DTYPE_EXPLOSIVE")
 	case DMG_MELEE:
-		return "Melee"
+		return language.String("DTYPE_MELEE")
 	case DMG_KINETIC:
-		return "Kinetic"
+		return language.String("DTYPE_KINETIC")
 	case DMG_PSIONIC:
-		return "Psionic"
+		return language.String("DTYPE_PSIONIC")
 	default:
-		return "Unknown"
+		return language.String("UNKNOWN")
 	}
 }
 

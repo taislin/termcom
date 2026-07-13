@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/civ13/termcom/internal/language"
 	"github.com/gdamore/tcell/v3"
 )
 
@@ -79,12 +80,12 @@ func (ds *DebriefScreen) Render(ctx *ScreenCtx) {
 	}
 
 	// Title
-	title := " AFTER ACTION REPORT "
+	title := language.String("DEBRIEF_TITLE")
 	if d.Won {
 		ctx.DrawPanel(2, 1, w-4, h-3, title, StyleGreen.Bold(true))
 	} else {
 		if d.BaseDestroyed {
-			title = " BASE LOST "
+			title = language.String("DEBRIEF_BASE_LOST")
 		}
 		ctx.DrawPanel(2, 1, w-4, h-3, title, StyleRed.Bold(true))
 	}
@@ -92,47 +93,47 @@ func (ds *DebriefScreen) Render(ctx *ScreenCtx) {
 	yOff := 3
 
 	// Mission info
-	ctx.DrawString(4, yOff, fmt.Sprintf("Mission: %s", d.MissionName), StyleCyan)
+	ctx.DrawString(4, yOff, fmt.Sprintf(language.String("DEBRIEF_MISSION"), d.MissionName), StyleCyan)
 	yOff++
-	ctx.DrawString(4, yOff, fmt.Sprintf("Base:    %s", d.BaseName), StyleDefault)
+	ctx.DrawString(4, yOff, fmt.Sprintf(language.String("DEBRIEF_BASE"), d.BaseName), StyleDefault)
 	yOff += 2
 
 	// Outcome
-	outcome := "VICTORY"
+	outcome := language.String("DEBRIEF_VICTORY")
 	outStyle := StyleGreen.Bold(true)
 	if !d.Won {
-		outcome = "DEFEAT"
+		outcome = language.String("DEBRIEF_DEFEAT")
 		outStyle = StyleRed.Bold(true)
 	}
-	ctx.DrawString(4, yOff, "Outcome: ", StyleDefault)
-	ctx.DrawString(13, yOff, outcome, outStyle)
+	ctx.DrawString(4, yOff, language.String("DEBRIEF_OUTCOME"), StyleDefault)
+	ctx.DrawString(4+len(language.String("DEBRIEF_OUTCOME")), yOff, outcome, outStyle)
 	yOff += 2
 
 	// Kills & casualties
-	ctx.DrawString(4, yOff, fmt.Sprintf("Aliens eliminated: %d", d.Kills), StyleDefault)
+	ctx.DrawString(4, yOff, fmt.Sprintf(language.String("DEBRIEF_ALIENS_KILLED"), d.Kills), StyleDefault)
 	yOff++
 	if len(d.Casualties) > 0 {
-		ctx.DrawString(4, yOff, fmt.Sprintf("Soldiers lost: %s", strings.Join(d.Casualties, ", ")), StyleRed)
+		ctx.DrawString(4, yOff, fmt.Sprintf(language.String("DEBRIEF_SOLDIERS_LOST"), strings.Join(d.Casualties, ", ")), StyleRed)
 	} else {
-		ctx.DrawString(4, yOff, "Soldiers lost: none", StyleGreen)
+		ctx.DrawString(4, yOff, language.String("DEBRIEF_SOLDIERS_LOST_NONE"), StyleGreen)
 	}
 	yOff++
-	ctx.DrawString(4, yOff, fmt.Sprintf("Loot recovered: %d items", len(d.LootItems)), StyleYellow)
+	ctx.DrawString(4, yOff, fmt.Sprintf(language.String("DEBRIEF_LOOT_RECOVERED"), len(d.LootItems)), StyleYellow)
 	if d.StunnedCount > 0 {
 		yOff++
-		ctx.DrawString(4, yOff, fmt.Sprintf("Aliens captured: %d", d.StunnedCount), StyleMagenta)
+		ctx.DrawString(4, yOff, fmt.Sprintf(language.String("DEBRIEF_ALIENS_CAPTURED"), d.StunnedCount), StyleMagenta)
 	}
 	if d.FundsEarned > 0 {
 		yOff++
-		ctx.DrawString(4, yOff, fmt.Sprintf("Funds earned: $%dK", d.FundsEarned/1000), StyleGreen)
+		ctx.DrawString(4, yOff, fmt.Sprintf(language.String("DEBRIEF_FUNDS_EARNED"), d.FundsEarned/1000), StyleGreen)
 	}
 	yOff += 2
 
 	// Per-soldier report
 	if len(d.Soldiers) > 0 {
-		ctx.DrawString(4, yOff, "Squad:", StyleCyanBold)
+		ctx.DrawString(4, yOff, language.String("DEBRIEF_SQUAD"), StyleCyanBold)
 		yOff++
-		header := fmt.Sprintf("  %-16s %-10s %s", "Name", "Rank", "Changes")
+		header := fmt.Sprintf("  %-16s %-10s %s", language.String("DEBRIEF_HEADER_NAME"), language.String("DEBRIEF_HEADER_RANK"), language.String("DEBRIEF_HEADER_CHANGES"))
 		ctx.DrawString(4, yOff, header, StyleGray)
 		yOff++
 		for _, s := range d.Soldiers {
@@ -143,9 +144,9 @@ func (ds *DebriefScreen) Render(ctx *ScreenCtx) {
 			gains := s.StatGains
 			if gains == "" {
 				if s.Died {
-					gains = "KIA"
+					gains = language.String("DEBRIEF_KIA")
 				} else {
-					gains = "no change"
+					gains = language.String("DEBRIEF_NO_CHANGE")
 				}
 			}
 			ctx.DrawString(4, yOff, fmt.Sprintf("  %-16s %-10s %s", s.Name, s.Rank, gains), nameStyle)
@@ -157,9 +158,9 @@ func (ds *DebriefScreen) Render(ctx *ScreenCtx) {
 	}
 
 	// Dismiss prompt
-	prompt := "Press Enter, Space, or Esc to continue"
+	prompt := language.String("DEBRIEF_PROMPT")
 	if d.CydoniaVictory {
-		prompt = "Press Enter, Space, or Esc to see victory screen"
+		prompt = language.String("DEBRIEF_VICTORY_PROMPT")
 	}
 	ctx.DrawString(w/2-len(prompt)/2, h-2, prompt, StyleGray)
 }

@@ -3,20 +3,20 @@ package language
 func init() {
 	register("en", map[string]string{
 		// ── Menu ──────────────────────────────────────────
-		"MENU_TITLE":     "T U R N   B A S E D   T A C T I C S",
-		"MENU_SUBTITLE":  "v0.33",
-		"MENU_NEW_GAME":  "New Game",
-		"MENU_CONTINUE":  "Continue",
-		"MENU_LOAD_GAME": "Load Game",
-		"MENU_QUIT":      "Quit",
-		"MENU_OPTIONS":   "Options",
+		"MENU_TITLE":         "T U R N   B A S E D   T A C T I C S",
+		"MENU_SUBTITLE":      "v0.33",
+		"MENU_NEW_GAME":      "New Game",
+		"MENU_CONTINUE":      "Continue",
+		"MENU_LOAD_GAME":     "Load Game",
+		"MENU_QUIT":          "Quit",
+		"MENU_OPTIONS":       "Options",
 		"MENU_CUSTOM_BATTLE": "Custom Battle",
-		"MENU_HELP":      "[\u2191]/[\u2193]=Select  [Enter]=Confirm  [Q]=Quit  [F5]=Save  [F9]=Load",
+		"MENU_HELP":          "[\u2191]/[\u2193]=Select  [Enter]=Confirm  [Q]=Quit  [F5]=Save  [F9]=Load",
 
 		// ── Difficulty ─────────────────────────────────────
-		"DIFFICULTY_TITLE":    "SELECT DIFFICULTY",
-		"DIFFICULTY_PROMPT":   "Choose your challenge level:",
-		"HELP_DIFFICULTY":     "[\u2191]/[\u2193]=Select  [Enter]=Confirm",
+		"DIFFICULTY_TITLE":  "SELECT DIFFICULTY",
+		"DIFFICULTY_PROMPT": "Choose your challenge level:",
+		"HELP_DIFFICULTY":   "[\u2191]/[\u2193]=Select  [Enter]=Confirm",
 
 		// ── Geoscape ──────────────────────────────────────
 		"GEOSCAPE":              "GEOSCAPE",
@@ -81,8 +81,8 @@ func init() {
 		"MSG_GAME_LOADED":           "Game loaded successfully!",
 		"MSG_GAME_OVER_ACTIVITY":    "Earth has fallen! Alien activity is overwhelming!",
 		"MSG_GAME_WON":              "Alien threat neutralized! You have saved Earth!",
-		"MSG_CYDONIA_ASSAULT":      "Cydonia Assault",
-		"MSG_CYDONIA_WON":          "Cydonia destroyed! The alien threat is broken. Victory!",
+		"MSG_CYDONIA_ASSAULT":       "Cydonia Assault",
+		"MSG_CYDONIA_WON":           "Cydonia destroyed! The alien threat is broken. Victory!",
 		"MSG_INTERCEPTOR_DESTROYED": "Interceptor destroyed!",
 		"MSG_NO_SOLDIERS":           "No soldiers available to deploy!",
 		"MSG_SHOT_DOWN":             "%s shot down! Sending squad...",
@@ -299,8 +299,8 @@ func init() {
 		"MSG_VISION_NORMAL":  "NORMAL VISION",
 
 		// Battlescape help bars
-		"HELP_BATTLESCAPE":       "[hjkl]/[WSAD]=Move [Enter]=Select [Space]=Plan/Move [q]=Cycle [f]=Fire [r]=Reload [g]=Grenade [m]=Medikit [e]=End [c]=Crouch",
-		"HELP_STAIRS_SUFFIX":     " [<>]=Stairs",
+		"HELP_BATTLESCAPE":   "[hjkl]/[WSAD]=Move [Enter]=Select [Space]=Plan/Move [q]=Cycle [f]=Fire [r]=Reload [g]=Grenade [m]=Medikit [e]=End [c]=Crouch",
+		"HELP_STAIRS_SUFFIX": " [<>]=Stairs",
 
 		// ── Base Management ───────────────────────────────
 		"BASE_MANAGEMENT": "BASE MANAGEMENT",
@@ -397,27 +397,27 @@ func init() {
 		"EQUIP_ITEM_GENERIC": "%-14s x%d",
 
 		// ── Research ───────────────────────────────────────
-		"RESEARCH_TITLE":       "RESEARCH",
-		"NO_LABS_RESEARCH":     "No laboratories. Build a Lab first.",
-		"LABS_INFO":            "Labs: %d  Scientists: %d",
-		"RESEARCH_IN_PROGRESS": "IN PROGRESS: %s (%d%% complete, %d scientists)",
-		"NO_ACTIVE_RESEARCH":   "No active research. Select a topic below.",
-		"ALL_TOPICS":           "ALL TOPICS:",
-		"NO_TOPICS":            "No topics available. Collect more artifacts.",
-		"RESEARCH_CAPTURED":    "Captured aliens: %d  [I]nterrogate",
+		"RESEARCH_TITLE":              "RESEARCH",
+		"NO_LABS_RESEARCH":            "No laboratories. Build a Lab first.",
+		"LABS_INFO":                   "Labs: %d  Scientists: %d",
+		"RESEARCH_IN_PROGRESS":        "IN PROGRESS: %s (%d%% complete, %d scientists)",
+		"NO_ACTIVE_RESEARCH":          "No active research. Select a topic below.",
+		"ALL_TOPICS":                  "ALL TOPICS:",
+		"NO_TOPICS":                   "No topics available. Collect more artifacts.",
+		"RESEARCH_CAPTURED":           "Captured aliens: %d  [I]nterrogate",
 		"RESEARCH_INTERROGATE_PROMPT": "Press Enter to interrogate first captured alien.",
-		"HELP_RESEARCH":        "[\u2191]/[\u2193]=Select  [Enter]=Start  [Esc]=Back  [T]ree  [I]nterrogate",
-		"RESEARCH_REQUIRES":    " [Requires: %s]",
-		"RESEARCH_COST":        "[T%d] %-22s Cost: %4d%s",
-		"RESEARCH_DONE":        "\u2713",
-		"RESEARCH_LOCKED":      "\u2717",
-		"RESEARCH_TIER":        "T%d",
-		"RESEARCH_TREE_TITLE":  "PREREQUISITE TREE",
-		"RESEARCH_PREREQS":     "Prerequisites:",
-		"RESEARCH_UNLOCKS":     "Unlocks:",
-		"MSG_RESEARCH_STARTED": "Research started: %s",
-		"MSG_CANNOT_RESEARCH":  "Cannot start research!",
-		"RESEARCH_UNASSIGNED":  "Unassigned Scientists: %d. [+/-] Assign/Unassign.",
+		"HELP_RESEARCH":               "[\u2191]/[\u2193]=Select  [Enter]=Start  [Esc]=Back  [T]ree  [I]nterrogate",
+		"RESEARCH_REQUIRES":           " [Requires: %s]",
+		"RESEARCH_COST":               "[T%d] %-22s Cost: %4d%s",
+		"RESEARCH_DONE":               "\u2713",
+		"RESEARCH_LOCKED":             "\u2717",
+		"RESEARCH_TIER":               "T%d",
+		"RESEARCH_TREE_TITLE":         "PREREQUISITE TREE",
+		"RESEARCH_PREREQS":            "Prerequisites:",
+		"RESEARCH_UNLOCKS":            "Unlocks:",
+		"MSG_RESEARCH_STARTED":        "Research started: %s",
+		"MSG_CANNOT_RESEARCH":         "Cannot start research!",
+		"RESEARCH_UNASSIGNED":         "Unassigned Scientists: %d. [+/-] Assign/Unassign.",
 
 		// ── Manufacturing ─────────────────────────────────
 		"MANUFACTURE_TITLE":  "MANUFACTURING",
@@ -683,16 +683,16 @@ func init() {
 		"REGION_OCEANIA":    "Oceania",
 
 		// ── Difficulty Names ────────────────────────────────
-		"DIFF_BEGINNER":      "Beginner",
-		"DIFF_EXPERIENCED":   "Experienced",
-		"DIFF_VETERAN":       "Veteran",
-		"DIFF_GENIUS":        "Genius",
-		"DIFF_SUPERHUMAN":    "Superhuman",
-		"DIFF_BEGINNER_DESC":      "Weaker aliens, slower UFOs, more funds",
-		"DIFF_EXPERIENCED_DESC":   "Standard challenge",
-		"DIFF_VETERAN_DESC":       "Stronger aliens, faster UFOs",
-		"DIFF_GENIUS_DESC":        "Much harder combat and economy",
-		"DIFF_SUPERHUMAN_DESC":    "Maximum alien threat",
+		"DIFF_BEGINNER":         "Beginner",
+		"DIFF_EXPERIENCED":      "Experienced",
+		"DIFF_VETERAN":          "Veteran",
+		"DIFF_GENIUS":           "Genius",
+		"DIFF_SUPERHUMAN":       "Superhuman",
+		"DIFF_BEGINNER_DESC":    "Weaker aliens, slower UFOs, more funds",
+		"DIFF_EXPERIENCED_DESC": "Standard challenge",
+		"DIFF_VETERAN_DESC":     "Stronger aliens, faster UFOs",
+		"DIFF_GENIUS_DESC":      "Much harder combat and economy",
+		"DIFF_SUPERHUMAN_DESC":  "Maximum alien threat",
 
 		// ── Options ──────────────────────────────────────
 		"OPTIONS_TITLE":            "OPTIONS",
@@ -714,6 +714,157 @@ func init() {
 		"OPTIONS_OFF":              "OFF",
 		"CONFIRM_QUIT":             "ARE YOU SURE YOU WANT TO QUIT?",
 		"CONFIRM_QUIT_HINT":        "[Y] = Yes   [N] = No",
+
+		// ── Battle ────────────────────────────────────────
+		"BATTLE_COVER_FMT":          " (\u25C8 %d%%)",
+		"BATTLE_LEVEL_FMT":          " [L%d]",
+		"BATTLE_MOD_ALIEN_AMBUSH":   "MISSION MODIFIER: Alien Ambush - aliens in overwatch",
+		"BATTLE_MOD_HEAVY_FOG":      "MISSION MODIFIER: Heavy Fog - reduced visibility",
+		"BATTLE_MOD_NIGHT_OPS":      "MISSION MODIFIER: Night Ops - forced night battle",
+		"BATTLE_MOD_REINFORCEMENTS": "MISSION MODIFIER: Reinforcements - extra alien wave incoming",
+		"BATTLE_MOD_TIME_LIMIT":     "MISSION MODIFIER: Time Limit - 15 turns remaining",
+		"BATTLE_REINFORCEMENTS":     "REINFORCEMENTS: %d aliens arrive!",
+		"BATTLE_SURVIVE_TURNS":      "Survive %d turns!",
+		"BATTLE_SURVIVED_TURNS":     "Survived %d turns! Mission complete.",
+		"BATTLE_WEATHER":            "WEATHER: %s",
+
+		// ── Custom Battle ─────────────────────────────────
+		"CUSTOM_AUTHOR":         "Author:  %s",
+		"CUSTOM_DATE":           "Date:    %s",
+		"CUSTOM_DESC":           "Desc:",
+		"CUSTOM_FILE":           "File:    %s",
+		"CUSTOM_HELP":           "[j]/[k]=Select  Enter=Confirm  [Esc]=Cancel",
+		"CUSTOM_MISSION_SELECT": "Mission Select",
+		"CUSTOM_NO_BATTLES":     "No custom battles found.",
+		"CUSTOM_PLACE_JSON":     "Place .json files in the maps/ folder.",
+		"CUSTOM_TIME_DAY":       "Time:    day",
+		"CUSTOM_TIME_NIGHT":     "Time:    night",
+
+		// ── Debrief ───────────────────────────────────────
+		"DEBRIEF_ALIENS_CAPTURED":    "Aliens captured: %d",
+		"DEBRIEF_ALIENS_KILLED":      "Aliens eliminated: %d",
+		"DEBRIEF_BASE":               "Base:    %s",
+		"DEBRIEF_BASE_LOST":          "BASE LOST",
+		"DEBRIEF_DEFEAT":             "DEFEAT",
+		"DEBRIEF_FUNDS_EARNED":       "Funds earned: $%dK",
+		"DEBRIEF_HEADER_CHANGES":     "Changes",
+		"DEBRIEF_HEADER_NAME":        "Name",
+		"DEBRIEF_HEADER_RANK":        "Rank",
+		"DEBRIEF_KIA":                "KIA",
+		"DEBRIEF_LOOT_RECOVERED":     "Loot recovered: %d items",
+		"DEBRIEF_MISSION":            "Mission: %s",
+		"DEBRIEF_NO_CHANGE":          "no change",
+		"DEBRIEF_OUTCOME":            "Outcome: ",
+		"DEBRIEF_PROMPT":             "Press Enter, Space, or Esc to continue",
+		"DEBRIEF_SOLDIERS_LOST":      "Soldiers lost: %s",
+		"DEBRIEF_SOLDIERS_LOST_NONE": "Soldiers lost: none",
+		"DEBRIEF_SQUAD":              "Squad:",
+		"DEBRIEF_TITLE":              "AFTER ACTION REPORT",
+		"DEBRIEF_VICTORY":            "VICTORY",
+		"DEBRIEF_VICTORY_PROMPT":     "Press Enter, Space, or Esc to see victory screen",
+
+		// ── Dogfight ──────────────────────────────────────
+		"DOGFIGHT_HIT":           "HIT -%d!",
+		"DOGFIGHT_MISS":          "MISS",
+		"DOGFIGHT_SEPARATOR":     " | -%d",
+		"DOGFIGHT_UFO_DESTROYED": "UFO DESTROYED!",
+
+		// ── Damage Types ──────────────────────────────────
+		"DTYPE_EXPLOSIVE": "Explosive",
+		"DTYPE_KINETIC":   "Kinetic",
+		"DTYPE_LASER":     "Laser",
+		"DTYPE_MELEE":     "Melee",
+		"DTYPE_PLASMA":    "Plasma",
+		"DTYPE_PSIONIC":   "Psionic",
+
+		// ── Encyclopedia ──────────────────────────────────
+		"ENCYCLO_MORPH_BODY":   "Body: %s %s | Arms: %d | Legs: %d",
+		"ENCYCLO_MORPH_PSI":    "PsiSense: %s | ChemSense: %s",
+		"ENCYCLO_MORPH_SENSES": "Eyes: %s | Hearing: %s | Thermal: %s",
+
+		// ── Floater ───────────────────────────────────────
+		"FLOATER_MISS": "MISS",
+
+		// ── Game Over ─────────────────────────────────────
+		"GAMEOVER_PROMPT":  "Press ESC to Quit",
+		"GAMEOVER_TITLE":   "GAME OVER",
+		"GAMEOVER_VICTORY": "VICTORY",
+
+		// ── Geoscape ──────────────────────────────────────
+		"GEO_AUTORESOLVE_DEFEAT":   "AUTO-RESOLVE: Defeat in %s! Lost %d soldier(s): %s",
+		"GEO_AUTORESOLVE_ODDS":     "Auto-resolve odds: ~%d%% win chance",
+		"GEO_AUTORESOLVE_VICTORY":  "AUTO-RESOLVE: Victory in %s! Earned $%dK. %d aliens eliminated.",
+		"GEO_BASE_NAME_FMT":        "Base %d",
+		"GEO_CAMPAIGN_COMPLETE":    "Campaign Complete.H Missions Won: %d",
+		"GEO_CRASH_LABEL":          "Crash: %s",
+		"GEO_MISSION_BASE_DEFENSE": "Base Defense \u2014 %s",
+		"GEO_MISSION_CRASH_SITE":   "Crash Site \u2014 %s",
+		"GEO_MISSION_FMT":          "Mission: %s in %s",
+		"GEO_MISSION_HELP":         "Arrow keys to select, Enter to confirm, Esc to cancel",
+		"GEO_MISSION_RESPONSE":     "MISSION RESPONSE",
+		"GEO_MISSION_TACTICAL":     "Tactical Mission",
+		"GEO_MISSIONS_WON":         "Missions Won: %d",
+		"GEO_OPTION_AUTORESOLVE":   "[2] Auto-resolve (alien-favored odds)",
+		"GEO_OPTION_IGNORE":        "[3] Ignore mission",
+		"GEO_OPTION_TACTICAL":      "[1] Deploy squad (tactical combat)",
+		"GEO_UFO_LABEL":            "UFO: %s",
+
+		// ── Interceptor ───────────────────────────────────
+		"INTERCEPTOR_DEFAULT_NAME":     "Interceptor",
+		"INTERCEPTOR_STATUS_AVAILABLE": "Available",
+		"INTERCEPTOR_STATUS_DESTROYED": "Destroyed",
+
+		// ── Modifier Descriptions ─────────────────────────
+		"MODDESC_ALIEN_AMBUSH":   "Aliens start in overwatch positions.",
+		"MODDESC_BOOBY_TRAPPED":  "More grenades and proximity mines on the map.",
+		"MODDESC_HEAVY_FOG":      "Sight range reduced by 40%. Smoke lingers longer.",
+		"MODDESC_HIGH_GROUND":    "Map has elevated positions with accuracy bonus.",
+		"MODDESC_LOW_VISIBILITY": "Reduced accuracy (-10%) for all units.",
+		"MODDESC_NIGHT_OPS":      "Forced night battle. +20% loot reward.",
+		"MODDESC_REINFORCEMENTS": "Extra alien wave arrives on turn 4.",
+		"MODDESC_TIME_LIMIT":     "15 turns to eliminate all aliens or reach objective.",
+		"MODDESC_VIP_RESCUE":     "Protect the VIP. Bonus $50K if VIP survives.",
+
+		// ── Modifier Names ────────────────────────────────
+		"MODIFIER_ALIEN_AMBUSH":   "Alien Ambush",
+		"MODIFIER_BOOBY_TRAPPED":  "Booby Trapped",
+		"MODIFIER_HEAVY_FOG":      "Heavy Fog",
+		"MODIFIER_HIGH_GROUND":    "High Ground",
+		"MODIFIER_LOW_VISIBILITY": "Low Visibility",
+		"MODIFIER_NIGHT_OPS":      "Night Ops",
+		"MODIFIER_REINFORCEMENTS": "Reinforcements",
+		"MODIFIER_TIME_LIMIT":     "Time Limit",
+		"MODIFIER_VIP_RESCUE":     "VIP Rescue",
+
+		// ── Morphology ────────────────────────────────────
+		"MORPH_ARMS_1":      "a single manipulative tentacle",
+		"MORPH_ARMS_2":      "a pair of arms",
+		"MORPH_ARMS_MASS":   "a mass of %d limbs",
+		"MORPH_ARMS_MULTI":  "%d grasping limbs",
+		"MORPH_ARMS_NONE":   "no arms",
+		"MORPH_LEGS_1":      "it slithers on a single muscular foot",
+		"MORPH_LEGS_2":      "it walks upright",
+		"MORPH_LEGS_4":      "it moves on four legs",
+		"MORPH_LEGS_HOVER":  "it hovers above the ground",
+		"MORPH_LEGS_SCURRY": "it scurries on %d legs",
+		"MORPH_WRAP":        "With %s, %s",
+
+		// ── Sidebar ───────────────────────────────────────
+		"SIDE_HP_BAR":      "HP %s %d/%d",
+		"SIDE_TU_BAR":      "TU %s %d",
+		"SIDE_TU_BAR_FULL": "TU %s %d/%d",
+
+		// ── Slot ──────────────────────────────────────────
+		"SLOT_FORMAT": "Slot %d: %s  $%dK",
+
+		// ── Weather ───────────────────────────────────────
+		"WEATHER_CLEAR": "Clear",
+		"WEATHER_COLD":  "Cold",
+		"WEATHER_FOG":   "Fog",
+		"WEATHER_RAIN":  "Rain",
+		"WEATHER_SNOW":  "Snow",
+		"WEATHER_STORM": "Storm",
+		"WEATHER_WIND":  "Wind",
 
 		// ── Common ─────────────────────────────────────────
 		"NONE":    "None",

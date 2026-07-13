@@ -5,6 +5,7 @@ import (
 	"math/rand"
 
 	"github.com/civ13/termcom/internal/data"
+	"github.com/civ13/termcom/internal/language"
 )
 
 type Rank int
@@ -26,10 +27,26 @@ var RankNames = []string{
 }
 
 func (r Rank) String() string {
-	if int(r) < len(RankNames) {
-		return RankNames[r]
+	switch r {
+	case Rookie:
+		return language.String("RANK_ROOKIE")
+	case Squaddie:
+		return language.String("RANK_SQUADDIE")
+	case Corporal:
+		return language.String("RANK_CORPORAL")
+	case Sergeant:
+		return language.String("RANK_SERGEANT")
+	case Lieutenant:
+		return language.String("RANK_LIEUTENANT")
+	case Captain:
+		return language.String("RANK_CAPTAIN")
+	case Major:
+		return language.String("RANK_MAJOR")
+	case Colonel:
+		return language.String("RANK_COLONEL")
+	default:
+		return language.String("UNKNOWN")
 	}
-	return "Unknown"
 }
 
 type Soldier struct {

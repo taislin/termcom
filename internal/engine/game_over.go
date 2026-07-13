@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"github.com/civ13/termcom/internal/language"
 	"github.com/gdamore/tcell/v3"
 )
 
@@ -22,13 +23,13 @@ func (gos *GameOverScreen) Update() {}
 
 func (gos *GameOverScreen) Render(ctx *ScreenCtx) {
 	w, h := ctx.Size()
-	title := "GAME OVER"
+	title := language.String("GAMEOVER_TITLE")
 	if gos.Won {
-		title = "VICTORY"
+		title = language.String("GAMEOVER_VICTORY")
 	}
 	ctx.DrawString(w/2-len(title)/2, h/2-2, title, StyleRedBold)
 	ctx.DrawString(w/2-len(gos.Stats)/2, h/2, gos.Stats, StyleDefault)
-	ctx.DrawString(w/2-10, h/2+2, "Press ESC to Quit", StyleGray)
+	ctx.DrawString(w/2-10, h/2+2, language.String("GAMEOVER_PROMPT"), StyleGray)
 }
 
 func (gos *GameOverScreen) HandleKey(e *tcell.EventKey) {

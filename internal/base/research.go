@@ -227,11 +227,11 @@ func (rs *ResearchScreen) renderTree(ctx *engine.ScreenCtx, x, y, maxW, maxH int
 
 	// Show children (topics that require this one)
 	y++
-	ctx.DrawString(x, y, "Unlocks topics:", engine.StyleYellow)
+	ctx.DrawString(x, y, language.String("RESEARCH_UNLOCKS"), engine.StyleYellow)
 	y++
 	children := rs.getChildren(t)
 	if len(children) == 0 {
-		ctx.DrawString(x+2, y, "(none)", engine.StyleGray)
+		ctx.DrawString(x+2, y, language.String("SIDE_NONE"), engine.StyleGray)
 	} else {
 		for _, child := range children {
 			if y >= y+maxH {

@@ -5,6 +5,7 @@ import (
 	"math/rand"
 
 	"github.com/civ13/termcom/internal/data"
+	"github.com/civ13/termcom/internal/language"
 )
 
 type TrailPoint struct {
@@ -35,7 +36,7 @@ type Interceptor struct {
 func NewInterceptor(baseX, baseY int) *Interceptor {
 	w := data.InterceptorWeapons["avalanche"]
 	return &Interceptor{
-		Name:       "Interceptor",
+		Name:       language.String("INTERCEPTOR_DEFAULT_NAME"),
 		X:          float64(baseX),
 		Y:          float64(baseY),
 		Speed:      36,
@@ -273,9 +274,9 @@ func (i *Interceptor) Disengage() {
 		i.State.HP = i.HP
 		i.State.Ammo = i.Ammo
 		if i.HP <= 0 {
-			i.State.Status = "Destroyed"
+			i.State.Status = language.String("INTERCEPTOR_STATUS_DESTROYED")
 		} else {
-			i.State.Status = "Available"
+			i.State.Status = language.String("INTERCEPTOR_STATUS_AVAILABLE")
 		}
 	}
 }

@@ -9,7 +9,7 @@ import (
 	"github.com/civ13/termcom/internal/language"
 )
 
-const GameVersion = "0.33"
+const GameVersion = "0.34"
 
 type GlobalConfig struct {
 	BloomEnabled       bool   `json:"bloom_enabled"`

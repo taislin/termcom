@@ -3,6 +3,8 @@ package soldier
 import (
 	"fmt"
 	"math/rand"
+
+	"github.com/civ13/termcom/internal/language"
 )
 
 type Perk struct {
@@ -174,7 +176,7 @@ func (s *Soldier) PerkNames() []string {
 
 func FormatPerks(perks []string) string {
 	if len(perks) == 0 {
-		return "None"
+		return language.String("NONE")
 	}
 	names := make([]string, 0, len(perks))
 	for _, pID := range perks {

@@ -2,6 +2,7 @@ package engine
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -75,8 +76,8 @@ func (cs *CustomBattleScreen) Render(ctx *ScreenCtx) {
 	ctx.DrawPanel(0, 0, w, h, language.String("MENU_CUSTOM_BATTLE"), StyleDefault)
 
 	if len(cs.Entries) == 0 {
-		ctx.DrawString(2, 3, "No custom battles found.", StyleGray)
-		ctx.DrawString(2, 5, "Place .json files in the maps/ folder.", StyleGray)
+		ctx.DrawString(2, 3, language.String("CUSTOM_NO_BATTLES"), StyleGray)
+		ctx.DrawString(2, 5, language.String("CUSTOM_PLACE_JSON"), StyleGray)
 		ctx.DrawPanel(0, h-1, w, 1, "", StyleGray)
 		ctx.DrawString(1, h-1, "[Esc]=Back", StyleGray)
 		return
@@ -86,7 +87,7 @@ func (cs *CustomBattleScreen) Render(ctx *ScreenCtx) {
 	leftW := w/2 - 1
 	rightX := leftW + 2
 
-	ctx.DrawString(2, 2, "Mission Select", StyleCyanBold)
+	ctx.DrawString(2, 2, language.String("CUSTOM_MISSION_SELECT"), StyleCyanBold)
 	// Vertical divider
 	for y := 3; y < h-3; y++ {
 		ctx.SetCell(leftW, y, '│', StyleGray)
@@ -123,18 +124,18 @@ func (cs *CustomBattleScreen) Render(ctx *ScreenCtx) {
 		ry++
 
 		if entry.Author != "" {
-			ctx.DrawString(rightX, ry, "Author:  "+entry.Author, StyleGray)
+			ctx.DrawString(rightX, ry, fmt.Sprintf(language.String("CUSTOM_AUTHOR"), entry.Author), StyleGray)
 			ry++
 		}
 		if entry.Date != "" {
-			ctx.DrawString(rightX, ry, "Date:    "+entry.Date, StyleGray)
+			ctx.DrawString(rightX, ry, fmt.Sprintf(language.String("CUSTOM_DATE"), entry.Date), StyleGray)
 			ry++
 		}
 		ry++
 
 		// Word-wrap description
 		if entry.Description != "" {
-			ctx.DrawString(rightX, ry, "Desc:", StyleGray)
+			ctx.DrawString(rightX, ry, language.String("CUSTOM_DESC"), StyleGray)
 			ry++
 			words := strings.Fields(entry.Description)
 			line := ""
@@ -158,18 +159,18 @@ func (cs *CustomBattleScreen) Render(ctx *ScreenCtx) {
 		ry++
 
 		if entry.Night {
-			ctx.DrawString(rightX, ry, "Time:    night", StyleBlue)
+			ctx.DrawString(rightX, ry, language.String("CUSTOM_TIME_NIGHT"), StyleBlue)
 		} else {
-			ctx.DrawString(rightX, ry, "Time:    day", StyleDefault)
+			ctx.DrawString(rightX, ry, language.String("CUSTOM_TIME_DAY"), StyleDefault)
 		}
 		ry++
 
-		ctx.DrawString(rightX, ry, "File:    "+filepath.Base(entry.FilePath), StyleGray)
+		ctx.DrawString(rightX, ry, fmt.Sprintf(language.String("CUSTOM_FILE"), filepath.Base(entry.FilePath)), StyleGray)
 	}
 
 	// Status bar
 	ctx.DrawPanel(0, h-3, w, 3, "", StyleGray)
-	ctx.DrawMarkupString(1, h-2, "[j]/[k]=Select  Enter=Confirm  [Esc]=Cancel", StyleGray, StyleHotkey)
+	ctx.DrawMarkupString(1, h-2, language.String("CUSTOM_HELP"), StyleGray, StyleHotkey)
 }
 
 func (cs *CustomBattleScreen) HandleKey(e *tcell.EventKey) {

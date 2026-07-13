@@ -5,20 +5,20 @@ package language
 func init() {
 	register("es", map[string]string{
 		// ── Menu ──────────────────────────────────────────
-		"MENU_TITLE":     "T A C T I C A S   P O R   T U R N O S",
-		"MENU_SUBTITLE":  "v0.33",
-		"MENU_NEW_GAME":  "Nueva partida",
-		"MENU_CONTINUE":  "Continuar",
-		"MENU_LOAD_GAME": "Cargar partida",
-		"MENU_QUIT":      "Salir",
-		"MENU_OPTIONS":   "Opciones",
+		"MENU_TITLE":         "T A C T I C A S   P O R   T U R N O S",
+		"MENU_SUBTITLE":      "v0.33",
+		"MENU_NEW_GAME":      "Nueva partida",
+		"MENU_CONTINUE":      "Continuar",
+		"MENU_LOAD_GAME":     "Cargar partida",
+		"MENU_QUIT":          "Salir",
+		"MENU_OPTIONS":       "Opciones",
 		"MENU_CUSTOM_BATTLE": "Batalla personalizada",
-		"MENU_HELP":      "[\u2191]/[\u2193]=Seleccionar  [Enter]=Confirmar  [Q]=Salir  [F5]=Guardar  [F9]=Cargar",
+		"MENU_HELP":          "[\u2191]/[\u2193]=Seleccionar  [Enter]=Confirmar  [Q]=Salir  [F5]=Guardar  [F9]=Cargar",
 
 		// ── Dificultad ─────────────────────────────────────
-		"DIFFICULTY_TITLE":    "SELECCIONAR DIFICULTAD",
-		"DIFFICULTY_PROMPT":   "Elegid vuestro nivel de desaf\u00edo:",
-		"HELP_DIFFICULTY":     "[\u2191]/[\u2193]=Seleccionar  [Enter]=Confirmar",
+		"DIFFICULTY_TITLE":  "SELECCIONAR DIFICULTAD",
+		"DIFFICULTY_PROMPT": "Elegid vuestro nivel de desaf\u00edo:",
+		"HELP_DIFFICULTY":   "[\u2191]/[\u2193]=Seleccionar  [Enter]=Confirmar",
 
 		// ── Geoscape ──────────────────────────────────────
 		"GEOSCAPE":              "GEOSCAPE",
@@ -83,8 +83,8 @@ func init() {
 		"MSG_GAME_LOADED":           "\u00a1Partida cargada con \u00e9xito!",
 		"MSG_GAME_OVER_ACTIVITY":    "\u00a1La Tierra ha ca\u00eddo! \u00a1La actividad alien\u00edgena es abrumadora!",
 		"MSG_GAME_WON":              "\u00a1La amenaza alien\u00edgena neutralizada! \u00a1Hab\u00e9is salvado la Tierra!",
-		"MSG_CYDONIA_ASSAULT":      "Asalto a Cydonia",
-		"MSG_CYDONIA_WON":          "\u00a1Cydonia destruida! La amenaza alien\u00edgena ha sido derrotada. \u00a1Victoria!",
+		"MSG_CYDONIA_ASSAULT":       "Asalto a Cydonia",
+		"MSG_CYDONIA_WON":           "\u00a1Cydonia destruida! La amenaza alien\u00edgena ha sido derrotada. \u00a1Victoria!",
 		"MSG_INTERCEPTOR_DESTROYED": "\u00a1Interceptor destruido!",
 		"MSG_NO_SOLDIERS":           "\u00a1No hay soldados disponibles para desplegar!",
 		"MSG_SHOT_DOWN":             "\u00a1%s derribado! Enviando escuadr\u00f3n...",
@@ -301,8 +301,8 @@ func init() {
 		"MSG_VISION_NORMAL":  "VISI\u00d3N NORMAL",
 
 		// Barras de ayuda de batalla
-		"HELP_BATTLESCAPE":       "[hjkl]/[WSAD]=Mover [Enter]=Seleccionar [Espacio]=Planear/Mover [q]=Ciclo [f]=Disparar [r]=Recargar [g]=Granada [m]=Medipack [e]=Terminar [c]=Agacharse",
-		"HELP_STAIRS_SUFFIX":     " [<>]=Escaleras",
+		"HELP_BATTLESCAPE":   "[hjkl]/[WSAD]=Mover [Enter]=Seleccionar [Espacio]=Planear/Mover [q]=Ciclo [f]=Disparar [r]=Recargar [g]=Granada [m]=Medipack [e]=Terminar [c]=Agacharse",
+		"HELP_STAIRS_SUFFIX": " [<>]=Escaleras",
 
 		// ── Gesti\u00f3n de base ───────────────────────────────
 		"BASE_MANAGEMENT": "GESTI\u00d3N DE BASE",
@@ -399,27 +399,27 @@ func init() {
 		"EQUIP_ITEM_GENERIC": "%-14s x%d",
 
 		// ── Investigaci\u00f3n ───────────────────────────────────
-		"RESEARCH_TITLE":       "INVESTIGACI\u00d3N",
-		"NO_LABS_RESEARCH":     "No hay laboratorios. Construid primero un Laboratorio.",
-		"LABS_INFO":            "Laboratorios: %d  Cient\u00edficos: %d",
-		"RESEARCH_IN_PROGRESS": "EN PROGRESO: %s (%d%% completado, %d cient\u00edficos)",
-		"NO_ACTIVE_RESEARCH":   "No hay investigaci\u00f3n activa. Seleccionad un tema abajo.",
-		"ALL_TOPICS":           "TODOS LOS TEMAS:",
-		"NO_TOPICS":            "No hay temas disponibles. Recogid m\u00e1s artefactos.",
-		"RESEARCH_CAPTURED":    "Alien\u00edgenas capturados: %d  [I]nterrogar",
+		"RESEARCH_TITLE":              "INVESTIGACI\u00d3N",
+		"NO_LABS_RESEARCH":            "No hay laboratorios. Construid primero un Laboratorio.",
+		"LABS_INFO":                   "Laboratorios: %d  Cient\u00edficos: %d",
+		"RESEARCH_IN_PROGRESS":        "EN PROGRESO: %s (%d%% completado, %d cient\u00edficos)",
+		"NO_ACTIVE_RESEARCH":          "No hay investigaci\u00f3n activa. Seleccionad un tema abajo.",
+		"ALL_TOPICS":                  "TODOS LOS TEMAS:",
+		"NO_TOPICS":                   "No hay temas disponibles. Recogid m\u00e1s artefactos.",
+		"RESEARCH_CAPTURED":           "Alien\u00edgenas capturados: %d  [I]nterrogar",
 		"RESEARCH_INTERROGATE_PROMPT": "Pulsad Enter para interrogar al primer alien\u00edgena capturado.",
-		"HELP_RESEARCH":        "[\u2191]/[\u2193]=Seleccionar  [Enter]=Empezar  [Esc]=Volver  [T]\u00c1rbol  [I]nterrogar",
-		"RESEARCH_REQUIRES":    " [Requiere: %s]",
-		"RESEARCH_COST":        "[T%d] %-22s Coste: %4d%s",
-		"RESEARCH_DONE":        "\u2713",
-		"RESEARCH_LOCKED":      "\u2717",
-		"RESEARCH_TIER":        "T%d",
-		"RESEARCH_TREE_TITLE":  "\u00c1RBOL DE PREREQUISITOS",
-		"RESEARCH_PREREQS":     "Prerrequisitos:",
-		"RESEARCH_UNLOCKS":     "Desbloquea:",
-		"MSG_RESEARCH_STARTED": "Investigaci\u00f3n empezada: %s",
-		"MSG_CANNOT_RESEARCH":  "\u00a1No se puede empezar la investigaci\u00f3n!",
-		"RESEARCH_UNASSIGNED":  "Cient\u00edficos sin asignar: %d. [+/-] Asignar/Desasignar.",
+		"HELP_RESEARCH":               "[\u2191]/[\u2193]=Seleccionar  [Enter]=Empezar  [Esc]=Volver  [T]\u00c1rbol  [I]nterrogar",
+		"RESEARCH_REQUIRES":           " [Requiere: %s]",
+		"RESEARCH_COST":               "[T%d] %-22s Coste: %4d%s",
+		"RESEARCH_DONE":               "\u2713",
+		"RESEARCH_LOCKED":             "\u2717",
+		"RESEARCH_TIER":               "T%d",
+		"RESEARCH_TREE_TITLE":         "\u00c1RBOL DE PREREQUISITOS",
+		"RESEARCH_PREREQS":            "Prerrequisitos:",
+		"RESEARCH_UNLOCKS":            "Desbloquea:",
+		"MSG_RESEARCH_STARTED":        "Investigaci\u00f3n empezada: %s",
+		"MSG_CANNOT_RESEARCH":         "\u00a1No se puede empezar la investigaci\u00f3n!",
+		"RESEARCH_UNASSIGNED":         "Cient\u00edficos sin asignar: %d. [+/-] Asignar/Desasignar.",
 
 		// ── Fabricaci\u00f3n ─────────────────────────────────
 		"MANUFACTURE_TITLE":  "FABRICACI\u00d3N",
@@ -685,16 +685,16 @@ func init() {
 		"REGION_OCEANIA":    "Oceanía",
 
 		// ── Nombres de dificultad ────────────────────────────────
-		"DIFF_BEGINNER":      "Principiante",
-		"DIFF_EXPERIENCED":   "Experimentado",
-		"DIFF_VETERAN":       "Veterano",
-		"DIFF_GENIUS":        "Genio",
-		"DIFF_SUPERHUMAN":    "Superhumano",
-		"DIFF_BEGINNER_DESC":      "Aliens débiles, OVNIs lentos, más fondos",
-		"DIFF_EXPERIENCED_DESC":   "Desafío estándar",
-		"DIFF_VETERAN_DESC":       "Aliens fuertes, OVNIs rápidos",
-		"DIFF_GENIUS_DESC":        "Combate y economía mucho más duros",
-		"DIFF_SUPERHUMAN_DESC":    "Amenaza alienígena máxima",
+		"DIFF_BEGINNER":         "Principiante",
+		"DIFF_EXPERIENCED":      "Experimentado",
+		"DIFF_VETERAN":          "Veterano",
+		"DIFF_GENIUS":           "Genio",
+		"DIFF_SUPERHUMAN":       "Superhumano",
+		"DIFF_BEGINNER_DESC":    "Aliens débiles, OVNIs lentos, más fondos",
+		"DIFF_EXPERIENCED_DESC": "Desafío estándar",
+		"DIFF_VETERAN_DESC":     "Aliens fuertes, OVNIs rápidos",
+		"DIFF_GENIUS_DESC":      "Combate y economía mucho más duros",
+		"DIFF_SUPERHUMAN_DESC":  "Amenaza alienígena máxima",
 
 		// ── Opciones ──────────────────────────────────────
 		"OPTIONS_TITLE":            "OPCIONES",
@@ -716,6 +716,157 @@ func init() {
 		"OPTIONS_RESOLUTION_SPEED": "Velocidad de resoluci\u00f3n",
 		"OPTIONS_ON":               "S\u00cd ",
 		"OPTIONS_OFF":              "NO",
+
+		// ── Batalla ──────────────────────────────────────
+		"BATTLE_COVER_FMT":          " (◈ %d%%)",
+		"BATTLE_LEVEL_FMT":          " [L%d]",
+		"BATTLE_MOD_ALIEN_AMBUSH":   "MOD. MISIÓN: Emboscada Alien - aliens en vigilancia",
+		"BATTLE_MOD_HEAVY_FOG":      "MOD. MISIÓN: Niebla Espesa - visibilidad reducida",
+		"BATTLE_MOD_NIGHT_OPS":      "MOD. MISIÓN: Ops Nocturnas - batalla nocturna forzada",
+		"BATTLE_MOD_REINFORCEMENTS": "MOD. MISIÓN: Refuerzos - oleada alien extra entrante",
+		"BATTLE_MOD_TIME_LIMIT":     "MOD. MISIÓN: Límite Tiempo - 15 turnos restantes",
+		"BATTLE_REINFORCEMENTS":     "¡REFUERZOS: llegan %d aliens!",
+		"BATTLE_SURVIVE_TURNS":      "¡Sobrevive %d turnos!",
+		"BATTLE_SURVIVED_TURNS":     "¡%d turnos sobrevividos! Misión completada.",
+		"BATTLE_WEATHER":            "CLIMA: %s",
+
+		// ── Batalla Personalizada ─────────────────────────
+		"CUSTOM_AUTHOR":         "Autor:  %s",
+		"CUSTOM_DATE":           "Fecha:    %s",
+		"CUSTOM_DESC":           "Desc:",
+		"CUSTOM_FILE":           "Archivo:    %s",
+		"CUSTOM_HELP":           "[j]/[k]=Seleccionar  Enter=Confirmar  [Esc]=Cancelar",
+		"CUSTOM_MISSION_SELECT": "Seleccionar Misión",
+		"CUSTOM_NO_BATTLES":     "No se encontraron batallas personalizadas.",
+		"CUSTOM_PLACE_JSON":     "Coloca archivos .json en la carpeta maps/.",
+		"CUSTOM_TIME_DAY":       "Tiempo:    día",
+		"CUSTOM_TIME_NIGHT":     "Tiempo:    noche",
+
+		// ── Informe ───────────────────────────────────────
+		"DEBRIEF_ALIENS_CAPTURED":    "Aliens capturados: %d",
+		"DEBRIEF_ALIENS_KILLED":      "Aliens eliminados: %d",
+		"DEBRIEF_BASE":               "Base:    %s",
+		"DEBRIEF_BASE_LOST":          "BASE PERDIDA",
+		"DEBRIEF_DEFEAT":             "DERROTA",
+		"DEBRIEF_FUNDS_EARNED":       "Fondos ganados: $%dK",
+		"DEBRIEF_HEADER_CHANGES":     "Cambios",
+		"DEBRIEF_HEADER_NAME":        "Nombre",
+		"DEBRIEF_HEADER_RANK":        "Rango",
+		"DEBRIEF_KIA":                "KIA",
+		"DEBRIEF_LOOT_RECOVERED":     "Botín recuperado: %d objetos",
+		"DEBRIEF_MISSION":            "Misión: %s",
+		"DEBRIEF_NO_CHANGE":          "sin cambios",
+		"DEBRIEF_OUTCOME":            "Resultado: ",
+		"DEBRIEF_PROMPT":             "Presiona Enter, Space o Esc para continuar",
+		"DEBRIEF_SOLDIERS_LOST":      "Soldados perdidos: %s",
+		"DEBRIEF_SOLDIERS_LOST_NONE": "Soldados perdidos: ninguno",
+		"DEBRIEF_SQUAD":              "Escuadrón:",
+		"DEBRIEF_TITLE":              "INFORME DE MISIÓN",
+		"DEBRIEF_VICTORY":            "VICTORIA",
+		"DEBRIEF_VICTORY_PROMPT":     "Presiona Enter, Space o Esc para ver la pantalla de victoria",
+
+		// ── Combate Aéreo ─────────────────────────────────
+		"DOGFIGHT_HIT":           "¡GOLPE -%d!",
+		"DOGFIGHT_MISS":          "FALLO",
+		"DOGFIGHT_SEPARATOR":     " | -%d",
+		"DOGFIGHT_UFO_DESTROYED": "¡OVNI DESTRUIDO!",
+
+		// ── Tipos de Daño ─────────────────────────────────
+		"DTYPE_EXPLOSIVE": "Explosivo",
+		"DTYPE_KINETIC":   "Cinético",
+		"DTYPE_LASER":     "Láser",
+		"DTYPE_MELEE":     "Cuerpo a cuerpo",
+		"DTYPE_PLASMA":    "Plasma",
+		"DTYPE_PSIONIC":   "Psiónico",
+
+		// ── Enciclopedia ──────────────────────────────────
+		"ENCYCLO_MORPH_BODY":   "Cuerpo: %s %s | Brazos: %d | Piernas: %d",
+		"ENCYCLO_MORPH_PSI":    "Sentido Psi: %s | Sentido Químico: %s",
+		"ENCYCLO_MORPH_SENSES": "Ojos: %s | Oído: %s | Térmico: %s",
+
+		// ── Varios ────────────────────────────────────────
+		"FLOATER_MISS": "FALLO",
+
+		// ── Fin del Juego ─────────────────────────────────
+		"GAMEOVER_PROMPT":  "Presiona ESC para Salir",
+		"GAMEOVER_TITLE":   "JUEGO TERMINADO",
+		"GAMEOVER_VICTORY": "VICTORIA",
+
+		// ── Geoscape ──────────────────────────────────────
+		"GEO_AUTORESOLVE_DEFEAT":   "AUTORRESOLUCIÓN: ¡Derrota en %s! Perdidos %d soldado(s): %s",
+		"GEO_AUTORESOLVE_ODDS":     "Probabilidades de autorresolución: ~%d%% chance de ganar",
+		"GEO_AUTORESOLVE_VICTORY":  "AUTORRESOLUCIÓN: ¡Victoria en %s! Ganados $%dK. %d aliens eliminados.",
+		"GEO_BASE_NAME_FMT":        "Base %d",
+		"GEO_CAMPAIGN_COMPLETE":    "Campaña Completada.H Misiones Ganadas: %d",
+		"GEO_CRASH_LABEL":          "Choque: %s",
+		"GEO_MISSION_BASE_DEFENSE": "Defensa de Base — %s",
+		"GEO_MISSION_CRASH_SITE":   "Sitio de Choque — %s",
+		"GEO_MISSION_FMT":          "Misión: %s en %s",
+		"GEO_MISSION_HELP":         "Flechas para seleccionar, Enter para confirmar, Esc para cancelar",
+		"GEO_MISSION_RESPONSE":     "RESPUESTA A MISIÓN",
+		"GEO_MISSION_TACTICAL":     "Misión Táctica",
+		"GEO_MISSIONS_WON":         "Misiones Ganadas: %d",
+		"GEO_OPTION_AUTORESOLVE":   "[2] Autorresolución (probabilidades a favor del alien)",
+		"GEO_OPTION_IGNORE":        "[3] Ignorar misión",
+		"GEO_OPTION_TACTICAL":      "[1] Desplegar escuadrón (combate táctico)",
+		"GEO_UFO_LABEL":            "OVNI: %s",
+
+		// ── Interceptor ───────────────────────────────────
+		"INTERCEPTOR_DEFAULT_NAME":     "Interceptor",
+		"INTERCEPTOR_STATUS_AVAILABLE": "Disponible",
+		"INTERCEPTOR_STATUS_DESTROYED": "Destruido",
+
+		// ── Descripciones de Modificadores ────────────────
+		"MODDESC_ALIEN_AMBUSH":   "Los alienígenas comienzan en posiciones de vigilancia.",
+		"MODDESC_BOOBY_TRAPPED":  "Más granadas y minas de proximidad en el mapa.",
+		"MODDESC_HEAVY_FOG":      "Rango de visión reducido en un 40%. El humo persiste más tiempo.",
+		"MODDESC_HIGH_GROUND":    "El mapa tiene posiciones elevadas con bonificación de precisión.",
+		"MODDESC_LOW_VISIBILITY": "Precisión reducida (-10%) para todas las unidades.",
+		"MODDESC_NIGHT_OPS":      "Batalla nocturna forzada. +20% recompensa de botín.",
+		"MODDESC_REINFORCEMENTS": "Oleada alienígena extra llega en el turno 4.",
+		"MODDESC_TIME_LIMIT":     "15 turnos para eliminar a todos los alienígenas o alcanzar el objetivo.",
+		"MODDESC_VIP_RESCUE":     "Protege al VIP. Bonus $50K si el VIP sobrevive.",
+
+		// ── Nombres de Modificadores ──────────────────────
+		"MODIFIER_ALIEN_AMBUSH":   "Emboscada Alienígena",
+		"MODIFIER_BOOBY_TRAPPED":  "Con Trampas",
+		"MODIFIER_HEAVY_FOG":      "Niebla Espesa",
+		"MODIFIER_HIGH_GROUND":    "Terreno Elevado",
+		"MODIFIER_LOW_VISIBILITY": "Baja Visibilidad",
+		"MODIFIER_NIGHT_OPS":      "Ops Nocturnas",
+		"MODIFIER_REINFORCEMENTS": "Refuerzos",
+		"MODIFIER_TIME_LIMIT":     "Límite de Tiempo",
+		"MODIFIER_VIP_RESCUE":     "Rescate VIP",
+
+		// ── Morfología ────────────────────────────────────
+		"MORPH_ARMS_1":      "un solo tentáculo manipulador",
+		"MORPH_ARMS_2":      "un par de brazos",
+		"MORPH_ARMS_MASS":   "una masa de %d extremidades",
+		"MORPH_ARMS_MULTI":  "%d extremidades prensiles",
+		"MORPH_ARMS_NONE":   "sin brazos",
+		"MORPH_LEGS_1":      "se desliza sobre un solo pie muscular",
+		"MORPH_LEGS_2":      "camina erguido",
+		"MORPH_LEGS_4":      "se mueve sobre cuatro patas",
+		"MORPH_LEGS_HOVER":  "flota sobre el suelo",
+		"MORPH_LEGS_SCURRY": "corre sobre %d patas",
+		"MORPH_WRAP":        "Con %s, %s",
+
+		// ── Barra Lateral ─────────────────────────────────
+		"SIDE_HP_BAR":      "HP %s %d/%d",
+		"SIDE_TU_BAR":      "TU %s %d",
+		"SIDE_TU_BAR_FULL": "TU %s %d/%d",
+
+		// ── Guardar/Cargar ────────────────────────────────
+		"SLOT_FORMAT": "Ranura %d: %s  $%dK",
+
+		// ── Clima ─────────────────────────────────────────
+		"WEATHER_CLEAR": "Despejado",
+		"WEATHER_COLD":  "Frío",
+		"WEATHER_FOG":   "Niebla",
+		"WEATHER_RAIN":  "Lluvia",
+		"WEATHER_SNOW":  "Nieve",
+		"WEATHER_STORM": "Tormenta",
+		"WEATHER_WIND":  "Viento",
 
 		// ── Com\u00fan ─────────────────────────────────────────
 		"NONE":    "Ninguno",

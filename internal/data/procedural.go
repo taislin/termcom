@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math/rand"
 	"strings"
+
+	"github.com/civ13/termcom/internal/language"
 )
 
 // AlienSpecies represents a procedurally generated alien species.
@@ -157,29 +159,29 @@ var senseLoreSnippets = map[string]string{
 
 // Limb lore descriptions.
 func limbLore(m *Morphology) string {
-	armDesc := "no arms"
+	armDesc := language.String("MORPH_ARMS_NONE")
 	switch {
 	case m.Arms == 1:
-		armDesc = "a single manipulative tentacle"
+		armDesc = language.String("MORPH_ARMS_1")
 	case m.Arms == 2:
-		armDesc = "a pair of arms"
+		armDesc = language.String("MORPH_ARMS_2")
 	case m.Arms <= 4:
-		armDesc = fmt.Sprintf("%d grasping limbs", m.Arms)
+		armDesc = language.Sprintf("MORPH_ARMS_MULTI", m.Arms)
 	default:
-		armDesc = fmt.Sprintf("a mass of %d limbs", m.Arms)
+		armDesc = language.Sprintf("MORPH_ARMS_MASS", m.Arms)
 	}
-	legDesc := "it hovers above the ground"
+	legDesc := language.String("MORPH_LEGS_HOVER")
 	switch {
 	case m.Legs == 1:
-		legDesc = "it slithers on a single muscular foot"
+		legDesc = language.String("MORPH_LEGS_1")
 	case m.Legs == 2:
-		legDesc = "it walks upright"
+		legDesc = language.String("MORPH_LEGS_2")
 	case m.Legs == 4:
-		legDesc = "it moves on four legs"
+		legDesc = language.String("MORPH_LEGS_4")
 	case m.Legs >= 6:
-		legDesc = fmt.Sprintf("it scurries on %d legs", m.Legs)
+		legDesc = language.Sprintf("MORPH_LEGS_SCURRY", m.Legs)
 	}
-	return fmt.Sprintf("With %s, %s", armDesc, legDesc)
+	return language.Sprintf("MORPH_WRAP", armDesc, legDesc)
 }
 
 // GenerateSpecies creates a full set of procedural alien species from a seed.

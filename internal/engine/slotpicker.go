@@ -1,8 +1,6 @@
 package engine
 
 import (
-	"fmt"
-
 	"github.com/civ13/termcom/internal/language"
 	"github.com/gdamore/tcell/v3"
 )
@@ -177,5 +175,5 @@ func (sp *SlotPickerScreen) confirm() {
 }
 
 func FormatSlotLabel(slot int, gameTime string, funds int64) string {
-	return fmt.Sprintf("Slot %d: %s  $%dK", slot, gameTime, funds/1000)
+	return language.Sprintf("SLOT_FORMAT", slot, gameTime, funds/1000)
 }

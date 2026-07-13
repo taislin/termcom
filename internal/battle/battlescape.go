@@ -327,23 +327,23 @@ func NewBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, ufoN
 	bs.AddMessage(fmt.Sprintf(language.String("MSG_MISSION_START"), ufoName))
 
 	if HasModifier(mods, ModNightOps) {
-		bs.AddMessage("MISSION MODIFIER: Night Ops - forced night battle")
+		bs.AddMessage(language.String("BATTLE_MOD_NIGHT_OPS"))
 	}
 	if HasModifier(mods, ModReinforcements) {
-		bs.AddMessage("MISSION MODIFIER: Reinforcements - extra alien wave incoming")
+		bs.AddMessage(language.String("BATTLE_MOD_REINFORCEMENTS"))
 	}
 	if HasModifier(mods, ModTimeLimit) {
-		bs.AddMessage("MISSION MODIFIER: Time Limit - 15 turns remaining")
+		bs.AddMessage(language.String("BATTLE_MOD_TIME_LIMIT"))
 		bs.ReinforceTimer = 15
 	}
 	if HasModifier(mods, ModHeavyFog) {
-		bs.AddMessage("MISSION MODIFIER: Heavy Fog - reduced visibility")
+		bs.AddMessage(language.String("BATTLE_MOD_HEAVY_FOG"))
 	}
 	if HasModifier(mods, ModAlienAmbush) {
-		bs.AddMessage("MISSION MODIFIER: Alien Ambush - aliens in overwatch")
+		bs.AddMessage(language.String("BATTLE_MOD_ALIEN_AMBUSH"))
 	}
-	if weather.Name() != "Clear" {
-		bs.AddMessage(fmt.Sprintf("WEATHER: %s", weather.Name()))
+	if !weather.IsClear() {
+		bs.AddMessage(language.Sprintf("BATTLE_WEATHER", weather.Name()))
 	}
 
 	for i, s := range squad {
@@ -586,7 +586,7 @@ func NewCustomBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier
 	}
 
 	if bs.CustomVictory != nil && bs.CustomVictory.Condition == "survive_turns" {
-		bs.AddMessage(fmt.Sprintf("Survive %d turns!", bs.CustomVictory.Turns))
+		bs.AddMessage(language.Sprintf("BATTLE_SURVIVE_TURNS", bs.CustomVictory.Turns))
 	} else {
 		bs.AddMessage(fmt.Sprintf(language.String("MSG_MISSION_START"), ufoName))
 	}
@@ -1370,7 +1370,7 @@ func (bs *Battlescape) spawnReinforcementWave(count int) {
 		}
 		bs.AlienAIs = append(bs.AlienAIs, ai)
 	}
-	bs.AddMessage(fmt.Sprintf("REINFORCEMENTS: %d aliens arrive!", count))
+	bs.AddMessage(language.Sprintf("BATTLE_REINFORCEMENTS", count))
 }
 
 // learnFromKills scans dead aliens and increases knowledge level for each.
@@ -1407,7 +1407,7 @@ func (bs *Battlescape) checkVictory() {
 			if bs.Turn >= cv.Turns {
 				bs.Phase = PhaseVictory
 				audio.PlayVictory()
-				bs.AddMessage(fmt.Sprintf("Survived %d turns! Mission complete.", cv.Turns))
+				bs.AddMessage(language.Sprintf("BATTLE_SURVIVED_TURNS", cv.Turns))
 			} else if len(humans) == 0 {
 				bs.Phase = PhaseDefeat
 				audio.PlayDefeat()
@@ -1615,7 +1615,7 @@ func (bs *Battlescape) FireWeapon() {
 	} else {
 		audio.PlayMiss()
 		bs.AddMessage(language.String("MSG_MISSED"))
-		bs.spawnFloater(target.X, target.Y, "MISS", color.XTerm8)
+		bs.spawnFloater(target.X, target.Y, language.String("FLOATER_MISS"), color.XTerm8)
 	}
 	bs.PlayerLock = bs.Game.ActionDelay / 2
 }
@@ -1878,7 +1878,7 @@ func (bs *Battlescape) UseStairs() {
 	} else if oldLevel > 0 {
 		bs.Map.CurrentLevel = 0
 	} else {
-		bs.AddMessage("No stairs here.")
+		bs.AddMessage(language.String("MSG_NO_STAIRS_HERE"))
 		return
 	}
 
@@ -1887,13 +1887,13 @@ func (bs *Battlescape) UseStairs() {
 		bs.Selected.TU -= 8
 		bs.Selected.Level = bs.Map.CurrentLevel
 		bs.ComputeFOVForTeam()
-		bs.AddMessage(fmt.Sprintf("Descended to level %d.", bs.Map.CurrentLevel+1))
+		bs.AddMessage(language.Sprintf("MSG_DESCENDED_LEVEL", bs.Map.CurrentLevel+1))
 	} else if bs.Selected != nil {
 		bs.Map.CurrentLevel = oldLevel
-		bs.AddMessage("Not enough TU to use stairs.")
+		bs.AddMessage(language.String("MSG_NOT_ENOUGH_TU_STAIRS"))
 	} else {
 		bs.Map.CurrentLevel = oldLevel
-		bs.AddMessage("Select a soldier first.")
+		bs.AddMessage(language.String("MSG_NO_SOLDIER_SELECTED"))
 	}
 }
 
@@ -2400,7 +2400,7 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 			} else if u.HP*2 < u.MaxHP {
 				hpColor = engine.StyleYellow
 			}
-			ctx.DrawString(sidebarX, sy, fmt.Sprintf("HP %s %d/%d", barString(u.HP, u.MaxHP, 8), u.HP, u.MaxHP), hpColor)
+			ctx.DrawString(sidebarX, sy, language.Sprintf("SIDE_HP_BAR", barString(u.HP, u.MaxHP, 8), u.HP, u.MaxHP), hpColor)
 			sy++
 			ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_ACC"), u.Accuracy), engine.StyleDefault)
 			sy++
@@ -2410,7 +2410,7 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 			} else if u.TU < u.MaxTU/2 {
 				tuColor = engine.StyleYellow
 			}
-			ctx.DrawString(sidebarX, sy, fmt.Sprintf("TU %s %d", barString(u.TU, u.MaxTU, 8), u.TU), tuColor)
+			ctx.DrawString(sidebarX, sy, language.Sprintf("SIDE_TU_BAR", barString(u.TU, u.MaxTU, 8), u.TU), tuColor)
 			sy++
 		}
 
@@ -2470,7 +2470,7 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 			} else if bs.Selected.HP*2 < bs.Selected.MaxHP {
 				hpColor = engine.StyleYellow
 			}
-			ctx.DrawString(sidebarX, sy, fmt.Sprintf("HP %s %d/%d", barString(bs.Selected.HP, bs.Selected.MaxHP, 8), bs.Selected.HP, bs.Selected.MaxHP), hpColor)
+			ctx.DrawString(sidebarX, sy, language.Sprintf("SIDE_HP_BAR", barString(bs.Selected.HP, bs.Selected.MaxHP, 8), bs.Selected.HP, bs.Selected.MaxHP), hpColor)
 			sy++
 
 			tuColor := engine.StyleCyan
@@ -2479,7 +2479,7 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 			} else if bs.Selected.TU < bs.Selected.MaxTU/2 {
 				tuColor = engine.StyleYellow
 			}
-			ctx.DrawString(sidebarX, sy, fmt.Sprintf("TU %s %d/%d", barString(bs.Selected.TU, bs.Selected.MaxTU, 8), bs.Selected.TU, bs.Selected.MaxTU), tuColor)
+			ctx.DrawString(sidebarX, sy, language.Sprintf("SIDE_TU_BAR_FULL", barString(bs.Selected.TU, bs.Selected.MaxTU, 8), bs.Selected.TU, bs.Selected.MaxTU), tuColor)
 			sy++
 
 			ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_ACC"), bs.Selected.Accuracy), engine.StyleDefault)
@@ -2496,7 +2496,7 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 			ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_AMMO"), bs.Selected.WeaponAmmo, w.AmmoMax), engine.StyleDefault)
 			sy++
 
-			armourName := "None"
+			armourName := language.String("NONE")
 			if bs.Selected.Armour > 0 {
 				for k, v := range data.Armors {
 					if v.Undersuit == bs.Selected.Armour {
@@ -2552,7 +2552,7 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 	}
 	turnStr := fmt.Sprintf(language.String("STATUS_TURN"), bs.Turn, bs.phaseStr()+" ("+lightStr+")")
 	if bs.Map.NumLevels > 1 {
-		turnStr += fmt.Sprintf(" [L%d]", bs.Map.CurrentLevel+1)
+		turnStr += language.Sprintf("BATTLE_LEVEL_FMT", bs.Map.CurrentLevel+1)
 	}
 	ctx.DrawString(2, h-3, turnStr, engine.StyleDefault)
 
@@ -2568,7 +2568,7 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 	cursorStr := fmt.Sprintf(language.String("STATUS_CURSOR"), bs.CursorX, bs.CursorY, tileName)
 	coverStr := ""
 	if tile.Cover > 0 {
-		coverStr = fmt.Sprintf(" (\u25C8 %d%%)", tile.Cover)
+		coverStr = language.Sprintf("BATTLE_COVER_FMT", tile.Cover)
 	}
 	cursorX := w - len(cursorStr) - len(coverStr) - 2
 	if bs.Selected != nil {

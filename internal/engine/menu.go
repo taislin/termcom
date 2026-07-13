@@ -261,7 +261,7 @@ func (ms *MenuScreen) Render(ctx *ScreenCtx) {
 
 	// ── 6. Status bar ─────────────────────────────────────────────────────────
 	ctx.DrawPanel(0, h-3, w, 3, "", StyleGray)
-	ctx.DrawMarkupString(1, h-2, "[j]/[k]=Select [Enter]=Confirm [Q]=Quit", StyleGray, StyleHotkey)
+	ctx.DrawMarkupString(1, h-2, language.String("MENU_HELP"), StyleGray, StyleHotkey)
 }
 
 func (ms *MenuScreen) options() []string {

@@ -5,20 +5,20 @@ package language
 func init() {
 	register("ja", map[string]string{
 		// ── Menu ──────────────────────────────────────────
-		"MENU_TITLE":     "T U R N   B A S E D   T A C T I C S",
-		"MENU_SUBTITLE":  "v0.33",
-		"MENU_NEW_GAME":  "ニューゲーム",
-		"MENU_CONTINUE":  "コンティニュー",
-		"MENU_LOAD_GAME": "ロード",
-		"MENU_QUIT":      "終了",
-		"MENU_OPTIONS":   "オプション",
+		"MENU_TITLE":         "T U R N   B A S E D   T A C T I C S",
+		"MENU_SUBTITLE":      "v0.33",
+		"MENU_NEW_GAME":      "ニューゲーム",
+		"MENU_CONTINUE":      "コンティニュー",
+		"MENU_LOAD_GAME":     "ロード",
+		"MENU_QUIT":          "終了",
+		"MENU_OPTIONS":       "オプション",
 		"MENU_CUSTOM_BATTLE": "カスタムバトル",
-		"MENU_HELP":      "[\u2191]/[\u2193]=選択  [Enter]=確定  [Q]=終了  [F5]=セーブ  [F9]=ロード",
+		"MENU_HELP":          "[\u2191]/[\u2193]=選択  [Enter]=確定  [Q]=終了  [F5]=セーブ  [F9]=ロード",
 
 		// ── Difficulty ─────────────────────────────────────
-		"DIFFICULTY_TITLE":    "難易度を選択",
-		"DIFFICULTY_PROMPT":   "難易度を選んでください：",
-		"HELP_DIFFICULTY":     "[\u2191]/[\u2193]=選択  [Enter]=確定",
+		"DIFFICULTY_TITLE":  "難易度を選択",
+		"DIFFICULTY_PROMPT": "難易度を選んでください：",
+		"HELP_DIFFICULTY":   "[\u2191]/[\u2193]=選択  [Enter]=確定",
 
 		// ── Geoscape ──────────────────────────────────────
 		"GEOSCAPE":              "ジオスケープ",
@@ -83,8 +83,8 @@ func init() {
 		"MSG_GAME_LOADED":           "ゲームをロードしました！",
 		"MSG_GAME_OVER_ACTIVITY":    "地球が陥落しました！エイリアン活動が限界を超えています！",
 		"MSG_GAME_WON":              "エイリアンの脅威を排除しました！地球を救いました！",
-		"MSG_CYDONIA_ASSAULT":      "サイドニア強襲",
-		"MSG_CYDONIA_WON":          "サイドニアを破壊！エイリアンの脅威は打ち払われました。勝利！",
+		"MSG_CYDONIA_ASSAULT":       "サイドニア強襲",
+		"MSG_CYDONIA_WON":           "サイドニアを破壊！エイリアンの脅威は打ち払われました。勝利！",
 		"MSG_INTERCEPTOR_DESTROYED": "攻撃機が撃墜されました！",
 		"MSG_NO_SOLDIERS":           "派遣できる兵士がいません！",
 		"MSG_SHOT_DOWN":             "%s を撃墜！小隊を派遣中...",
@@ -301,8 +301,8 @@ func init() {
 		"MSG_VISION_NORMAL":  "通常視覚",
 
 		// Battlescape help bars
-		"HELP_BATTLESCAPE":       "[hjkl]/[WSAD]=移動 [Enter]=選択 [Space]=計画/移動 [q]=切替 [f]=射撃 [r]=リロード [g]=手榴弾 [m]=メディキット [e]=終了 [c]=伏せ",
-		"HELP_STAIRS_SUFFIX":     " [<>]=階段",
+		"HELP_BATTLESCAPE":   "[hjkl]/[WSAD]=移動 [Enter]=選択 [Space]=計画/移動 [q]=切替 [f]=射撃 [r]=リロード [g]=手榴弾 [m]=メディキット [e]=終了 [c]=伏せ",
+		"HELP_STAIRS_SUFFIX": " [<>]=階段",
 
 		// ── Base Management ───────────────────────────────
 		"BASE_MANAGEMENT": "基地管理",
@@ -399,27 +399,27 @@ func init() {
 		"EQUIP_ITEM_GENERIC": "%-14s x%d",
 
 		// ── Research ───────────────────────────────────────
-		"RESEARCH_TITLE":       "研究",
-		"NO_LABS_RESEARCH":     "研究所がありません。まず研究所を建設してください。",
-		"LABS_INFO":            "研究所: %d  科学者: %d",
-		"RESEARCH_IN_PROGRESS": "研究中: %s (%d%% 完了, 科学者 %d 名)",
-		"NO_ACTIVE_RESEARCH":   "進行中の研究がありません。以下のトピックを選んでください。",
-		"ALL_TOPICS":           "全トピック:",
-		"NO_TOPICS":            "利用できるトピックがありません。更多のアーティファクトを収集してください。",
-		"RESEARCH_CAPTURED":    "捕獲エイリアン: %d  [I]尋問",
+		"RESEARCH_TITLE":              "研究",
+		"NO_LABS_RESEARCH":            "研究所がありません。まず研究所を建設してください。",
+		"LABS_INFO":                   "研究所: %d  科学者: %d",
+		"RESEARCH_IN_PROGRESS":        "研究中: %s (%d%% 完了, 科学者 %d 名)",
+		"NO_ACTIVE_RESEARCH":          "進行中の研究がありません。以下のトピックを選んでください。",
+		"ALL_TOPICS":                  "全トピック:",
+		"NO_TOPICS":                   "利用できるトピックがありません。更多のアーティファクトを収集してください。",
+		"RESEARCH_CAPTURED":           "捕獲エイリアン: %d  [I]尋問",
 		"RESEARCH_INTERROGATE_PROMPT": "Enter で最初の捕獲エイリアンを尋問します。",
-		"HELP_RESEARCH":        "[\u2191]/[\u2193]=選択  [Enter]=開始  [Esc]=戻る  [T]ツリー  [I]尋問",
-		"RESEARCH_REQUIRES":    " [必要: %s]",
-		"RESEARCH_COST":        "[T%d] %-22s コスト: %4d%s",
-		"RESEARCH_DONE":        "\u2713",
-		"RESEARCH_LOCKED":      "\u2717",
-		"RESEARCH_TIER":        "T%d",
-		"RESEARCH_TREE_TITLE":  "前提ツリー",
-		"RESEARCH_PREREQS":     "前提条件:",
-		"RESEARCH_UNLOCKS":     "解放:",
-		"MSG_RESEARCH_STARTED": "研究開始: %s",
-		"MSG_CANNOT_RESEARCH":  "研究を開始できません！",
-		"RESEARCH_UNASSIGNED":  "未配置の科学者: %d 名。[+/-] 配置/解除。",
+		"HELP_RESEARCH":               "[\u2191]/[\u2193]=選択  [Enter]=開始  [Esc]=戻る  [T]ツリー  [I]尋問",
+		"RESEARCH_REQUIRES":           " [必要: %s]",
+		"RESEARCH_COST":               "[T%d] %-22s コスト: %4d%s",
+		"RESEARCH_DONE":               "\u2713",
+		"RESEARCH_LOCKED":             "\u2717",
+		"RESEARCH_TIER":               "T%d",
+		"RESEARCH_TREE_TITLE":         "前提ツリー",
+		"RESEARCH_PREREQS":            "前提条件:",
+		"RESEARCH_UNLOCKS":            "解放:",
+		"MSG_RESEARCH_STARTED":        "研究開始: %s",
+		"MSG_CANNOT_RESEARCH":         "研究を開始できません！",
+		"RESEARCH_UNASSIGNED":         "未配置の科学者: %d 名。[+/-] 配置/解除。",
 
 		// ── Manufacturing ─────────────────────────────────
 		"MANUFACTURE_TITLE":  "製造",
@@ -685,16 +685,16 @@ func init() {
 		"REGION_OCEANIA":    "オセアニア",
 
 		// ── 難易度名 ────────────────────────────────
-		"DIFF_BEGINNER":      "初心者",
-		"DIFF_EXPERIENCED":   "経験者",
-		"DIFF_VETERAN":       "ベテラン",
-		"DIFF_GENIUS":        "天才",
-		"DIFF_SUPERHUMAN":    "超人",
-		"DIFF_BEGINNER_DESC":      "弱いエイリアン、遅いUFO、多くの資金",
-		"DIFF_EXPERIENCED_DESC":   "標準的な挑戦",
-		"DIFF_VETERAN_DESC":       "強いエイリアン、速いUFO",
-		"DIFF_GENIUS_DESC":        "戦闘と経済が大幅に困難",
-		"DIFF_SUPERHUMAN_DESC":    "最大のエイリアンの脅威",
+		"DIFF_BEGINNER":         "初心者",
+		"DIFF_EXPERIENCED":      "経験者",
+		"DIFF_VETERAN":          "ベテラン",
+		"DIFF_GENIUS":           "天才",
+		"DIFF_SUPERHUMAN":       "超人",
+		"DIFF_BEGINNER_DESC":    "弱いエイリアン、遅いUFO、多くの資金",
+		"DIFF_EXPERIENCED_DESC": "標準的な挑戦",
+		"DIFF_VETERAN_DESC":     "強いエイリアン、速いUFO",
+		"DIFF_GENIUS_DESC":      "戦闘と経済が大幅に困難",
+		"DIFF_SUPERHUMAN_DESC":  "最大のエイリアンの脅威",
 
 		// ── Options ──────────────────────────────────────
 		"OPTIONS_TITLE":            "オプション",
@@ -710,11 +710,162 @@ func init() {
 		"OPTIONS_THEME":            "テーマ",
 		"OPTIONS_CONFIRM":          "確認ダイアログ",
 		"OPTIONS_VOLUME":           "音量",
+		"OPTIONS_PAUSE_ALIEN":      "エイリアン行動時に一時停止",
 		"OPTIONS_RESOLUTION_SPEED": "解像度速度",
 		"OPTIONS_ON":               "ON ",
 		"OPTIONS_OFF":              "OFF",
 		"CONFIRM_QUIT":             "終了してもよろしいですか？",
 		"CONFIRM_QUIT_HINT":        "[Y] = はい   [N] = いいえ",
+
+		"BATTLE_COVER_FMT":          " (\u25C8 %d%%)",
+		"BATTLE_LEVEL_FMT":          " [L%d]",
+		"BATTLE_MOD_ALIEN_AMBUSH":   "ミッションモディファイア: エイリアンの待ち伏せ - エイリアンがオーバーウォッチ状態",
+		"BATTLE_MOD_HEAVY_FOG":      "ミッションモディファイア: 濃霧 - 視界低下",
+		"BATTLE_MOD_NIGHT_OPS":      "ミッションモディファイア: 夜間作戦 - 強制夜間戦闘",
+		"BATTLE_MOD_REINFORCEMENTS": "ミッションモディファイア: 増援 - エイリアンの追加波が接近中",
+		"BATTLE_MOD_TIME_LIMIT":     "ミッションモディファイア: 制限時間 - 残り15ターン",
+		"BATTLE_REINFORCEMENTS":     "増援: エイリアン %d 体が到着！",
+		"BATTLE_SURVIVE_TURNS":      "%d ターン生き残れ！",
+		"BATTLE_SURVIVED_TURNS":     "%d ターン生き残りました！ミッション完了。",
+		"BATTLE_WEATHER":            "天気: %s",
+
+		// ── Custom Battle ─────────────────────────────────
+		"CUSTOM_AUTHOR":         "作者:  %s",
+		"CUSTOM_DATE":           "日付:  %s",
+		"CUSTOM_DESC":           "説明:",
+		"CUSTOM_FILE":           "ファイル:  %s",
+		"CUSTOM_HELP":           "[j]/[k]=選択  Enter=確定  [Esc]=キャンセル",
+		"CUSTOM_MISSION_SELECT": "ミッション選択",
+		"CUSTOM_NO_BATTLES":     "カスタムバトルが見つかりません。",
+		"CUSTOM_PLACE_JSON":     "maps/ フォルダに .json ファイルを配置してください。",
+		"CUSTOM_TIME_DAY":       "時間:  昼",
+		"CUSTOM_TIME_NIGHT":     "時間:  夜",
+
+		// ── Debrief ───────────────────────────────────────
+		"DEBRIEF_ALIENS_CAPTURED":    "捕獲エイリアン: %d",
+		"DEBRIEF_ALIENS_KILLED":      "排除エイリアン: %d",
+		"DEBRIEF_BASE":               "基地:    %s",
+		"DEBRIEF_BASE_LOST":          "基地喪失",
+		"DEBRIEF_DEFEAT":             "敗北",
+		"DEBRIEF_FUNDS_EARNED":       "獲得資金: $%dK",
+		"DEBRIEF_HEADER_CHANGES":     "変更点",
+		"DEBRIEF_HEADER_NAME":        "名前",
+		"DEBRIEF_HEADER_RANK":        "階級",
+		"DEBRIEF_KIA":                "戦死",
+		"DEBRIEF_LOOT_RECOVERED":     "回収戦利品: %d アイテム",
+		"DEBRIEF_MISSION":            "ミッション: %s",
+		"DEBRIEF_NO_CHANGE":          "変更なし",
+		"DEBRIEF_OUTCOME":            "結果: ",
+		"DEBRIEF_PROMPT":             "Enter、Space、または Esc で続行",
+		"DEBRIEF_SOLDIERS_LOST":      "失った兵士: %s",
+		"DEBRIEF_SOLDIERS_LOST_NONE": "失った兵士: なし",
+		"DEBRIEF_SQUAD":              "小隊:",
+		"DEBRIEF_TITLE":              "事後報告書",
+		"DEBRIEF_VICTORY":            "勝利",
+		"DEBRIEF_VICTORY_PROMPT":     "Enter、Space、または Esc で勝利画面を表示",
+
+		// ── Dogfight ──────────────────────────────────────
+		"DOGFIGHT_HIT":           "命中 -%d!",
+		"DOGFIGHT_MISS":          "外れた",
+		"DOGFIGHT_SEPARATOR":     " | -%d",
+		"DOGFIGHT_UFO_DESTROYED": "UFO撃破！",
+
+		// ── Damage Types ──────────────────────────────────
+		"DTYPE_EXPLOSIVE": "爆発",
+		"DTYPE_KINETIC":   "運動エネルギー",
+		"DTYPE_LASER":     "レーザー",
+		"DTYPE_MELEE":     "近接",
+		"DTYPE_PLASMA":    "プラズマ",
+		"DTYPE_PSIONIC":   "サイ能力",
+
+		// ── Encyclopedia ──────────────────────────────────
+		"ENCYCLO_MORPH_BODY":   "体: %s %s | 腕: %d | 脚: %d",
+		"ENCYCLO_MORPH_PSI":    "サイ感知: %s | 化学感知: %s",
+		"ENCYCLO_MORPH_SENSES": "目: %s | 聴覚: %s | 熱感知: %s",
+
+		// ── Floater ───────────────────────────────────────
+		"FLOATER_MISS": "外れた",
+
+		// ── Game Over ─────────────────────────────────────
+		"GAMEOVER_PROMPT":  "ESC で終了",
+		"GAMEOVER_TITLE":   "ゲームオーバー",
+		"GAMEOVER_VICTORY": "勝利",
+
+		// ── Geoscape ──────────────────────────────────────
+		"GEO_AUTORESOLVE_DEFEAT":   "自動解決: %s で敗北！兵士 %d 名を喪失: %s",
+		"GEO_AUTORESOLVE_ODDS":     "自動解決確率: ~%d%% 勝率",
+		"GEO_AUTORESOLVE_VICTORY":  "自動解決: %s で勝利！ $%dK 獲得。エイリアン %d 体排除。",
+		"GEO_BASE_NAME_FMT":        "基地 %d",
+		"GEO_CAMPAIGN_COMPLETE":    "キャンペーン完了。ミッション成功数: %d",
+		"GEO_CRASH_LABEL":          "墜落: %s",
+		"GEO_MISSION_BASE_DEFENSE": "基地防衛 - %s",
+		"GEO_MISSION_CRASH_SITE":   "墜落現場 - %s",
+		"GEO_MISSION_FMT":          "ミッション: %s (%sにて)",
+		"GEO_MISSION_HELP":         "矢印キーで選択、Enterで確定、Escでキャンセル",
+		"GEO_MISSION_RESPONSE":     "ミッション対応",
+		"GEO_MISSION_TACTICAL":     "戦術ミッション",
+		"GEO_MISSIONS_WON":         "ミッション成功数: %d",
+		"GEO_OPTION_AUTORESOLVE":   "[2] 自動解決 (エイリアン有利な確率)",
+		"GEO_OPTION_IGNORE":        "[3] ミッションを無視",
+		"GEO_OPTION_TACTICAL":      "[1] 小隊を展開 (戦術戦闘)",
+		"GEO_UFO_LABEL":            "UFO: %s",
+
+		// ── Interceptor ───────────────────────────────────
+		"INTERCEPTOR_DEFAULT_NAME":     "攻撃機",
+		"INTERCEPTOR_STATUS_AVAILABLE": "利用可能",
+		"INTERCEPTOR_STATUS_DESTROYED": "撃破",
+
+		// ── Modifier Descriptions ─────────────────────────
+		"MODDESC_ALIEN_AMBUSH":   "エイリアンがオーバーウォッチ状態で開始。",
+		"MODDESC_BOOBY_TRAPPED":  "マップ上に手榴弾と近接地雷が増加。",
+		"MODDESC_HEAVY_FOG":      "視界範囲が40%減少。煙が長く残る。",
+		"MODDESC_HIGH_GROUND":    "マップ上に精度ボーナスのある高所が存在。",
+		"MODDESC_LOW_VISIBILITY": "全ユニットの精度低下 (-10%)。",
+		"MODDESC_NIGHT_OPS":      "強制夜間戦闘。戦利品報酬+20%。",
+		"MODDESC_REINFORCEMENTS": "ターン4にエイリアンの追加波が到着。",
+		"MODDESC_TIME_LIMIT":     "全エイリアン排除または目標到達まで15ターン。",
+		"MODDESC_VIP_RESCUE":     "VIPを保護せよ。VIP生存でボーナス$50K。",
+
+		// ── Modifier Names ────────────────────────────────
+		"MODIFIER_ALIEN_AMBUSH":   "エイリアンの待ち伏せ",
+		"MODIFIER_BOOBY_TRAPPED":  "ブービートラップ",
+		"MODIFIER_HEAVY_FOG":      "濃霧",
+		"MODIFIER_HIGH_GROUND":    "高所",
+		"MODIFIER_LOW_VISIBILITY": "低視界",
+		"MODIFIER_NIGHT_OPS":      "夜間作戦",
+		"MODIFIER_REINFORCEMENTS": "増援",
+		"MODIFIER_TIME_LIMIT":     "制限時間",
+		"MODIFIER_VIP_RESCUE":     "VIP救出",
+
+		// ── Morphology ────────────────────────────────────
+		"MORPH_ARMS_1":      "単一の操作可能な触手",
+		"MORPH_ARMS_2":      "一対の腕",
+		"MORPH_ARMS_MASS":   "%d 本の肢の塊",
+		"MORPH_ARMS_MULTI":  "%d 本の掴む肢",
+		"MORPH_ARMS_NONE":   "腕なし",
+		"MORPH_LEGS_1":      "単一の筋肉質の足で滑る",
+		"MORPH_LEGS_2":      "直立歩行する",
+		"MORPH_LEGS_4":      "4本の足で動く",
+		"MORPH_LEGS_HOVER":  "地面の上に浮かぶ",
+		"MORPH_LEGS_SCURRY": "%d 本の足で動き回る",
+		"MORPH_WRAP":        "%s で、%s",
+
+		// ── Sidebar ───────────────────────────────────────
+		"SIDE_HP_BAR":      "HP %s %d/%d",
+		"SIDE_TU_BAR":      "TU %s %d",
+		"SIDE_TU_BAR_FULL": "TU %s %d/%d",
+
+		// ── Slot ──────────────────────────────────────────
+		"SLOT_FORMAT": "スロット %d: %s  $%dK",
+
+		// ── Weather ───────────────────────────────────────
+		"WEATHER_CLEAR": "晴れ",
+		"WEATHER_COLD":  "寒い",
+		"WEATHER_FOG":   "霧",
+		"WEATHER_RAIN":  "雨",
+		"WEATHER_SNOW":  "雪",
+		"WEATHER_STORM": "嵐",
+		"WEATHER_WIND":  "風",
 
 		// ── Common ─────────────────────────────────────────
 		"NONE":    "なし",
