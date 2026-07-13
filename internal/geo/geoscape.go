@@ -1895,11 +1895,11 @@ func (gs *Geoscape) renderMinimap(ctx *engine.ScreenCtx, x, y, w, h int) {
 			var style tcell.Style
 
 			if tile == 1 {
+				ch = ' '
+				style = engine.StyleDefault
+			} else {
 				ch = '░'
 				style = engine.StyleGray
-			} else {
-				ch = ' '
-				style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(0, 20, 60))
 			}
 			ctx.SetCell(x+1+dx, y+1+dy, ch, style)
 		}
@@ -1949,11 +1949,6 @@ func (gs *Geoscape) renderMinimap(ctx *engine.ScreenCtx, x, y, w, h int) {
 		}
 
 		ch, style := gs.cityStyle(c)
-		worldX := int(c.X)
-		worldY := int(c.Y)
-		if worldX >= 0 && worldX < worldW && worldY >= 0 && worldY < worldH && GetTile(worldX, worldY) == 1 {
-			style = style.Background(color.XTerm0)
-		}
 		if c.ID == gs.CursorNode {
 			ch = '◉'
 			style = engine.StyleDefault.Bold(true)
@@ -2139,15 +2134,15 @@ func (gs *Geoscape) renderMinimap(ctx *engine.ScreenCtx, x, y, w, h int) {
 
 func (gs *Geoscape) cityStyle(c *City) (rune, tcell.Style) {
 	if gs.HasBaseAt(c.ID) != nil {
-		return '\u25C6', tcell.StyleDefault.Background(color.XTerm8).Foreground(color.XTerm6).Bold(true)
+		return '\u25C6', tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm6).Bold(true)
 	}
 	if c.Threat > 50 {
-		return '\u25CF', tcell.StyleDefault.Background(color.XTerm8).Foreground(color.XTerm9)
+		return '\u25CF', tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm9)
 	}
 	if c.Threat > 0 {
-		return '\u25CB', tcell.StyleDefault.Background(color.XTerm8).Foreground(color.XTerm11)
+		return '\u25CB', tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm11)
 	}
-	return '\u25CB', tcell.StyleDefault.Background(color.XTerm8).Foreground(color.XTerm2)
+	return '\u25CB', tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm2)
 }
 
 func (gs *Geoscape) HandleKey(e *tcell.EventKey) {

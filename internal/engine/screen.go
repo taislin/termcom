@@ -219,7 +219,7 @@ func ApplyTheme(hc bool) {
 		StyleHotkey = tcell.StyleDefault.Background(color.Black).Foreground(color.Orange).Bold(true)
 	} else {
 		StyleDefault = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm15)
-		StyleHighlight = tcell.StyleDefault.Background(color.DarkBlue).Foreground(color.XTerm15)
+		StyleHighlight = tcell.StyleDefault.Background(color.Blue).Foreground(color.XTerm15)
 		StyleRed = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm9)
 		StyleGreen = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm2)
 		StyleBlue = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm12)

@@ -655,10 +655,13 @@ func init() {
 		"OPTIONS_MOUSE":            "마우스 지원",
 		"OPTIONS_GRID":             "격자선",
 		"OPTIONS_HIGH_CONTRAST":    "고대비",
+		"OPTIONS_CONFIRM":          "확인 대화상자",
 		"OPTIONS_VOLUME":           "SFX 볼륨",
 		"OPTIONS_RESOLUTION_SPEED": "Resolution Speed",
 		"OPTIONS_ON":               "ON ",
 		"OPTIONS_OFF":              "OFF",
+		"CONFIRM_QUIT":             "종료하시겠습니까?",
+		"CONFIRM_QUIT_HINT":        "Y = 예   N = 아니오",
 
 		// ── Common ─────────────────────────────────────────
 		"NONE":    "None",

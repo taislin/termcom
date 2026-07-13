@@ -100,9 +100,9 @@ func (os *OptionsScreen) Render(ctx *ScreenCtx) {
 	ctx.DrawPanel(0, 0, w, h, language.String("OPTIONS_TITLE"), StyleDefault)
 
 	const (
-		speedIdx = 8
-		volIdx   = 9
-		langIdx  = 10
+		speedIdx = 9
+		volIdx   = 10
+		langIdx  = 11
 	)
 	startY := h/2 - 5
 	baseX := w/2 - 15
@@ -120,6 +120,7 @@ func (os *OptionsScreen) Render(ctx *ScreenCtx) {
 		{language.String("OPTIONS_MOUSE"), &Config.MouseEnabled},
 		{language.String("OPTIONS_GRID"), &Config.GridLines},
 		{language.String("OPTIONS_HIGH_CONTRAST"), &Config.HighContrast},
+		{language.String("OPTIONS_CONFIRM"), &Config.ConfirmDialogs},
 	}
 	for i, opt := range boolOpts {
 		style := StyleDefault
@@ -169,7 +170,7 @@ func (os *OptionsScreen) Render(ctx *ScreenCtx) {
 }
 
 func (os *OptionsScreen) HandleKey(e *tcell.EventKey) {
-	const totalOptions = 11
+	const totalOptions = 12
 	switch e.Key() {
 	case tcell.KeyUp:
 		audio.PlayMenuNav()
@@ -189,37 +190,37 @@ func (os *OptionsScreen) HandleKey(e *tcell.EventKey) {
 	case tcell.KeyLeft:
 		audio.PlayMenuNav()
 		switch os.Selection {
-		case 8:
+		case 9:
 			Config.ActionDelay--
 			if Config.ActionDelay < 1 {
 				Config.ActionDelay = 1
 			}
 			os.Game.ActionDelay = Config.ActionDelay
-		case 9:
+		case 10:
 			Config.SfxVolume--
 			if Config.SfxVolume < 0 {
 				Config.SfxVolume = 0
 			}
 			audio.SetSfxVolume(Config.SfxVolume)
-		case 10:
+		case 11:
 			os.cycleLang(-1)
 		}
 	case tcell.KeyRight:
 		audio.PlayMenuNav()
 		switch os.Selection {
-		case 8:
+		case 9:
 			Config.ActionDelay++
 			if Config.ActionDelay > 20 {
 				Config.ActionDelay = 20
 			}
 			os.Game.ActionDelay = Config.ActionDelay
-		case 9:
+		case 10:
 			Config.SfxVolume++
 			if Config.SfxVolume > 10 {
 				Config.SfxVolume = 10
 			}
 			audio.SetSfxVolume(Config.SfxVolume)
-		case 10:
+		case 11:
 			os.cycleLang(1)
 		}
 	case tcell.KeyEsc:
@@ -248,6 +249,8 @@ func (os *OptionsScreen) toggle() {
 	case 7:
 		Config.HighContrast = !Config.HighContrast
 		ApplyTheme(Config.HighContrast)
+	case 8:
+		Config.ConfirmDialogs = !Config.ConfirmDialogs
 	}
 }
 

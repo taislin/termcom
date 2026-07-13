@@ -29,24 +29,27 @@ func getAlienByRank(types []*data.AlienType, minRank int) *data.AlienType {
 	return best
 }
 
+// BattlePhase represents the high-level state of the tactical combat.
 type BattlePhase int
 
 const (
-	PhasePlayerTurn BattlePhase = iota
-	PhaseAlienTurn
-	PhaseVictory
-	PhaseDefeat
+	PhasePlayerTurn BattlePhase = iota // Player is actively controlling units
+	PhaseAlienTurn                     // AI is executing queued actions
+	PhaseVictory                      // Mission objectives achieved
+	PhaseDefeat                       // Squad wiped or objective lost
 )
 
+// CombatStatus tracks the specific sub-state of a turn.
 type CombatStatus int
 
 const (
 	StatusPlayerTurn CombatStatus = iota
 	StatusAlienTurn
-	StatusPlayerOverwatch
-	StatusAlienOverwatch
+	StatusPlayerOverwatch // Triggered by an alien move
+	StatusAlienOverwatch  // Triggered by a player move
 )
 
+// Projectile represents a visual effect of a shot traveling across the map.
 type Projectile struct {
 	FromX, FromY int
 	ToX, ToY     int
@@ -56,6 +59,7 @@ type Projectile struct {
 	Style        tcell.Style
 }
 
+// AlienAction defines a specific task for the Alien AI to execute during its turn.
 type AlienAction struct {
 	Type         string // "move", "fire", "melee", "patrol"
 	Unit         *Unit
@@ -65,6 +69,7 @@ type AlienAction struct {
 }
 
 type Battlescape struct {
+	// Game Engine and World State
 	Game           *engine.Game
 	Base           *base.Base
 	Map            *BattleMap
@@ -88,15 +93,18 @@ type Battlescape struct {
 	OverwatchFlash int
 	PlayerLock     int
 
+	// Combat Tracking
 	PlayerShotDistSum float64
 	PlayerShotCount   int
 	PlayerFlankShots  int
 
+	// Turn Management
 	AlienTurnQueue []AlienAction
 	AlienTurnIdx   int
 	ActionDelay    int
 	Projectile     *Projectile
 
+	// Visual Effects
 	Camera         *engine.Camera
 	Particles      *engine.ParticleSystem
 	HoveredUnit    *Unit
@@ -109,16 +117,21 @@ type Battlescape struct {
 	VisionMode engine.VisionMode
 	FrameCount int
 
+	// Tactical Planning
 	AlienSquadPlan *SquadPlan
 
+	// Combat Resources
 	PlayerGrenadeCount int
 	PlayerFlankCount   int
 
+	// Pathfinding and Cache
 	MovementCache    map[[2]int]bool
 	MovementCacheKey int
 
+	// Mission Objectives
 	CustomVictory *CustomVictory
 
+	// Environmental State
 	MissionModifiers []MissionModifier
 	Weather          Weather
 	ReinforcementsSpawned bool
@@ -607,11 +620,13 @@ func (bs *Battlescape) ComputeFOVForTeam() {
 }
 
 func (bs *Battlescape) Update() {
-	dt := 0.016
+	dt := 0.016 // Fixed delta time for visual updates
 	bs.FrameCount++
 	bs.Camera.UpdateShake(dt)
 	bs.Particles.Update(dt)
 
+	// Handle overwatch flash effect: when an alien is triggered, 
+	// they flash briefly before performing their action.
 	if bs.OverwatchFlash > 0 {
 		bs.OverwatchFlash--
 		if bs.OverwatchFlash == 0 {
@@ -623,10 +638,12 @@ func (bs *Battlescape) Update() {
 		}
 	}
 
+	// Handle input locking (e.g., during animations or dialogs)
 	if bs.PlayerLock > 0 {
 		bs.PlayerLock--
 	}
 
+	// Periodic ambient sound effects
 	if bs.FrameCount%1800 == 0 {
 		audio.PlayWind()
 	}
@@ -644,7 +661,9 @@ func (bs *Battlescape) Update() {
 	}
 	*/
 
+	// Process Alien Turn: execute actions from the queue with a delay between them.
 	if bs.Phase == PhaseAlienTurn {
+		// If a projectile is mid-flight, block other actions until it hits.
 		if bs.Projectile != nil {
 			bs.Projectile.Progress++
 			if bs.Projectile.Progress >= bs.Projectile.Length {
@@ -653,17 +672,20 @@ func (bs *Battlescape) Update() {
 			return
 		}
 
+		// Delay between individual alien actions for visual pacing.
 		if bs.ActionDelay > 0 {
 			bs.ActionDelay--
 			return
 		}
 
+		// Execute the next action in the queue.
 		if bs.AlienTurnIdx < len(bs.AlienTurnQueue) {
 			action := bs.AlienTurnQueue[bs.AlienTurnIdx]
 			bs.AlienTurnIdx++
 			bs.executeAlienAction(action)
 			bs.ActionDelay = bs.Game.ActionDelay // Use configured action delay
 		} else {
+			// After all queued actions, process civilian behaviors and finish turn.
 			for _, cai := range bs.CivilianAIs {
 				actions := cai.GenerateActions(bs.Units, bs.Map)
 				for _, a := range actions {
@@ -674,6 +696,7 @@ func (bs *Battlescape) Update() {
 		}
 	}
 
+	// Handle mission end timers.
 	if bs.Phase == PhaseVictory || bs.Phase == PhaseDefeat {
 		bs.ExitTimer++
 		if bs.ExitTimer > 60 {
@@ -2099,6 +2122,7 @@ func (bs *Battlescape) DrawCombatStatusBar(ctx *engine.ScreenCtx, w int) {
 }
 
 func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
+	// 1. Calculate view dimensions and layout
 	w, h := ctx.Size()
 	bs.SidebarW = w / 3
 	if bs.SidebarW < 30 {
@@ -2110,8 +2134,10 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 	}
 	viewH := h - 5
 
+	// 2. Top-level UI elements
 	bs.DrawCombatStatusBar(ctx, w)
 
+	// 3. Camera and scrolling
 	camX, camY := bs.Camera.Pos()
 	bs.ScrollX = camX - viewW/2
 	bs.ScrollY = camY - viewH/2

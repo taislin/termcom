@@ -18,6 +18,7 @@ type GlobalConfig struct {
 	MouseEnabled    bool   `json:"mouse_enabled"`
 	GridLines       bool   `json:"grid_lines"`
 	HighContrast    bool   `json:"high_contrast"`
+	ConfirmDialogs  bool   `json:"confirm_dialogs"`
 	ActionDelay     int    `json:"action_delay"`
 	SfxVolume       int    `json:"sfx_volume"`
 	Language        string `json:"language"`
@@ -32,6 +33,7 @@ var Config = GlobalConfig{
 	MouseEnabled:    true,
 	GridLines:       false,
 	HighContrast:    false,
+	ConfirmDialogs:  true,
 	ActionDelay:     8,
 	SfxVolume:       10,
 	Language:        "en",

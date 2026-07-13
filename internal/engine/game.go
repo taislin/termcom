@@ -5,6 +5,7 @@ import (
 
 	"github.com/civ13/termcom/internal/audio"
 	"github.com/civ13/termcom/internal/data"
+	"github.com/civ13/termcom/internal/language"
 	"github.com/civ13/termcom/internal/soldier"
 	"github.com/gdamore/tcell/v3"
 )
@@ -62,6 +63,7 @@ type Game struct {
 	state      GameState
 	stateStack []GameState
 	running    bool
+	quitConfirm bool
 
 	GameTime  time.Time
 	TimeSpeed int
@@ -213,6 +215,10 @@ func (g *Game) Run() {
 			sc.Render(ctx)
 		}
 
+		if g.quitConfirm {
+			g.renderQuitConfirm(ctx)
+		}
+
 		g.screen.Flush()
 		g.FrameCount++
 		time.Sleep(16 * time.Millisecond)
@@ -227,17 +233,27 @@ func (g *Game) drainEvents() {
 			case *tcell.EventResize:
 				g.screen.UpdateSize()
 			case *tcell.EventKey:
-			if e.Key() == tcell.KeyEscape || e.Str() == "\x1b" {
-				switch g.state {
-				case StateGeoscape, StateMenu:
+			if g.quitConfirm {
+				switch {
+				case e.Str() == "y" || e.Str() == "Y" || e.Key() == tcell.KeyEnter:
 					g.running = false
-				case StateBattlescape, StateDebrief:
-					if sc, ok := g.screens[g.state]; ok {
-						sc.HandleKey(e)
-					}
-				default:
-					g.PopState()
+					return
+				case e.Str() == "n" || e.Str() == "N" || e.Key() == tcell.KeyEscape || e.Str() == "\x1b":
+					g.quitConfirm = false
 				}
+				continue
+			}
+				if e.Key() == tcell.KeyEscape || e.Str() == "\x1b" {
+					switch g.state {
+					case StateGeoscape, StateMenu:
+						g.Quit()
+					case StateBattlescape, StateDebrief:
+						if sc, ok := g.screens[g.state]; ok {
+							sc.HandleKey(e)
+						}
+					default:
+						g.PopState()
+					}
 				} else if e.Str() == "?" {
 					g.PushState(StateHelp)
 				} else if e.Str() == "o" || e.Str() == "O" {
@@ -249,6 +265,9 @@ func (g *Game) drainEvents() {
 					sc.HandleKey(e)
 				}
 			case *tcell.EventMouse:
+				if g.quitConfirm {
+					continue
+				}
 				if sc, ok := g.screens[g.state]; ok {
 					sc.HandleMouse(e)
 				}
@@ -289,7 +308,24 @@ func (g *Game) ScreenSize() (int, int) {
 }
 
 func (g *Game) Quit() {
-	g.running = false
+	if !Config.ConfirmDialogs {
+		g.running = false
+		return
+	}
+	g.quitConfirm = true
+}
+
+func (g *Game) renderQuitConfirm(ctx *ScreenCtx) {
+	w, h := ctx.Size()
+	boxW := 46
+	boxH := 7
+	x := (w - boxW) / 2
+	y := (h - boxH) / 2
+	ctx.DrawPanel(x, y, boxW, boxH, "", StyleGray)
+	msg := language.String("CONFIRM_QUIT")
+	ctx.DrawString(x+(boxW-StringWidth(msg))/2, y+2, msg, StyleDefault)
+	hint := language.String("CONFIRM_QUIT_HINT")
+	ctx.DrawString(x+(boxW-StringWidth(hint))/2, y+4, hint, StyleGray)
 }
 
 func (g *Game) Bell() {

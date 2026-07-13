@@ -653,10 +653,13 @@ func init() {
 		"OPTIONS_MOUSE":            "Mouse Support",
 		"OPTIONS_GRID":             "Grid Lines",
 		"OPTIONS_HIGH_CONTRAST":    "High Contrast",
+		"OPTIONS_CONFIRM":          "Confirm Dialogs",
 		"OPTIONS_VOLUME":           "SFX Volume",
 		"OPTIONS_RESOLUTION_SPEED": "Resolution Speed",
 		"OPTIONS_ON":               "ON ",
 		"OPTIONS_OFF":              "OFF",
+		"CONFIRM_QUIT":             "ARE YOU SURE YOU WANT TO QUIT?",
+		"CONFIRM_QUIT_HINT":        "Y = Yes   N = No",
 
 		// ── Common ─────────────────────────────────────────
 		"NONE":    "None",

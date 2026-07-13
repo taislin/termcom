@@ -655,10 +655,13 @@ func init() {
 		"OPTIONS_MOUSE":            "マウスサポート",
 		"OPTIONS_GRID":             "グリッド線",
 		"OPTIONS_HIGH_CONTRAST":    "ハイコントラスト",
+		"OPTIONS_CONFIRM":          "確認ダイアログ",
 		"OPTIONS_VOLUME":           "音量",
 		"OPTIONS_RESOLUTION_SPEED": "解像度速度",
 		"OPTIONS_ON":               "ON ",
 		"OPTIONS_OFF":              "OFF",
+		"CONFIRM_QUIT":             "終了してもよろしいですか？",
+		"CONFIRM_QUIT_HINT":        "Y = はい   N = いいえ",
 
 		// ── Common ─────────────────────────────────────────
 		"NONE":    "なし",
