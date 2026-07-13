@@ -655,6 +655,7 @@ func init() {
 		"OPTIONS_MOUSE":            "Suporte para Rato",
 		"OPTIONS_GRID":             "Linhas de Grelha",
 		"OPTIONS_HIGH_CONTRAST":    "Alto Contraste",
+		"OPTIONS_THEME":            "Tema",
 		"OPTIONS_CONFIRM":          "Caixas de Confirmação",
 		"CONFIRM_QUIT":             "TEM A CERTEZA QUE QUER SAIR?",
 		"CONFIRM_QUIT_HINT":        "Y = Sim   N = Não",

@@ -173,8 +173,16 @@ func fireColor(frame int) tcell.Color {
 	}
 }
 
+func isOpaqueTile(t TileType) bool {
+	switch t {
+	case TileWall, TileTree, TileRock, TileUFOWall, TileFence:
+		return true
+	}
+	return false
+}
+
 // RenderTile produces the character and style for drawing a tile.
-func RenderTile(t Tile, ctx [3][3]TileType, visible, seen bool, frame int) (rune, tcell.Style) {
+func RenderTile(t Tile, ctx [3][3]TileType, visible, seen bool, frame int, tileX, tileY int) (rune, tcell.Style) {
 	if !visible && !seen {
 		return ' ', tcell.StyleDefault.Background(color.Black).Foreground(color.Black)
 	}
@@ -185,6 +193,39 @@ func RenderTile(t Tile, ctx [3][3]TileType, visible, seen bool, frame int) (rune
 
 	// Make background a very dark version of the base color to add rich depth
 	bg = engine.DarkenColor(baseCol, 0.15)
+
+	// Ambient occlusion: darken floor tiles adjacent to opaque walls
+	if !isOpaqueTile(t.Type) {
+		n := ctx[0][1]
+		s := ctx[2][1]
+		w := ctx[1][0]
+		e := ctx[1][2]
+		aoCount := 0
+		if isOpaqueTile(n) {
+			aoCount++
+		}
+		if isOpaqueTile(s) {
+			aoCount++
+		}
+		if isOpaqueTile(w) {
+			aoCount++
+		}
+		if isOpaqueTile(e) {
+			aoCount++
+		}
+		if aoCount > 0 {
+			aoFactor := 1.0 - float64(aoCount)*0.12
+			if aoFactor < 0.5 {
+				aoFactor = 0.5
+			}
+			bg = engine.DarkenColor(bg, aoFactor)
+		}
+	}
+
+	// Subtle per-tile dither based on checkerboard parity
+	if (tileX+tileY)%2 == 0 {
+		bg = engine.DarkenColor(bg, 0.92)
+	}
 
 	if !visible && seen {
 		// Fog of War: dim both foreground and background

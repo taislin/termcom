@@ -655,6 +655,7 @@ func init() {
 		"OPTIONS_MOUSE":            "Поддержка мыши",
 		"OPTIONS_GRID":             "Линии сетки",
 		"OPTIONS_HIGH_CONTRAST":    "Высокий контраст",
+		"OPTIONS_THEME":            "Тема",
 		"OPTIONS_CONFIRM":          "Диалоги подтверждения",
 		"CONFIRM_QUIT":             "ВЫ УВЕРЕНЫ, ЧТО ХОТИТЕ ВЫЙТИ?",
 		"CONFIRM_QUIT_HINT":        "Y = Да   N = Нет",

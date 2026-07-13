@@ -2174,7 +2174,7 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 			tile := bs.Map.At(mx, my)
 
 			ctx2 := bs.Map.neighbourhood(mx, my)
-			ch, style := RenderTile(tile, ctx2, tile.Visible, tile.Seen, bs.FrameCount)
+			ch, style := RenderTile(tile, ctx2, tile.Visible, tile.Seen, bs.FrameCount, mx, my)
 
 			if bs.Selected != nil && bs.Phase == PhasePlayerTurn {
 				movementRange := bs.GetMovementRange()
@@ -2394,11 +2394,23 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 		}
 
 		if hasAutopsy {
-			ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_HP"), u.HP, u.MaxHP), engine.StyleDefault)
+			hpColor := engine.StyleGreen
+			if u.HP*3 < u.MaxHP {
+				hpColor = engine.StyleRed
+			} else if u.HP*2 < u.MaxHP {
+				hpColor = engine.StyleYellow
+			}
+			ctx.DrawString(sidebarX, sy, fmt.Sprintf("HP %s %d/%d", barString(u.HP, u.MaxHP, 8), u.HP, u.MaxHP), hpColor)
 			sy++
 			ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_ACC"), u.Accuracy), engine.StyleDefault)
 			sy++
-			ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_STR_TU"), u.Strength, u.TU), engine.StyleDefault)
+			tuColor := engine.StyleCyan
+			if u.TU < u.MaxTU/3 {
+				tuColor = engine.StyleRed
+			} else if u.TU < u.MaxTU/2 {
+				tuColor = engine.StyleYellow
+			}
+			ctx.DrawString(sidebarX, sy, fmt.Sprintf("TU %s %d", barString(u.TU, u.MaxTU, 8), u.TU), tuColor)
 			sy++
 		}
 
@@ -2452,10 +2464,22 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 			ctx.DrawString(sidebarX, sy, name, engine.StyleDefault.Bold(true))
 			sy++
 
-			ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_HP"), bs.Selected.HP, bs.Selected.MaxHP), engine.StyleDefault)
+			hpColor := engine.StyleGreen
+			if bs.Selected.HP*3 < bs.Selected.MaxHP {
+				hpColor = engine.StyleRed
+			} else if bs.Selected.HP*2 < bs.Selected.MaxHP {
+				hpColor = engine.StyleYellow
+			}
+			ctx.DrawString(sidebarX, sy, fmt.Sprintf("HP %s %d/%d", barString(bs.Selected.HP, bs.Selected.MaxHP, 8), bs.Selected.HP, bs.Selected.MaxHP), hpColor)
 			sy++
 
-			ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_TU"), bs.Selected.TU, bs.Selected.MaxTU), engine.StyleDefault)
+			tuColor := engine.StyleCyan
+			if bs.Selected.TU < bs.Selected.MaxTU/3 {
+				tuColor = engine.StyleRed
+			} else if bs.Selected.TU < bs.Selected.MaxTU/2 {
+				tuColor = engine.StyleYellow
+			}
+			ctx.DrawString(sidebarX, sy, fmt.Sprintf("TU %s %d/%d", barString(bs.Selected.TU, bs.Selected.MaxTU, 8), bs.Selected.TU, bs.Selected.MaxTU), tuColor)
 			sy++
 
 			ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_ACC"), bs.Selected.Accuracy), engine.StyleDefault)
@@ -2810,4 +2834,27 @@ func (bs *Battlescape) ApplyCursorStyles(x, y int, style tcell.Style) tcell.Styl
 	}
 
 	return style
+}
+
+// barString returns a filled/empty bar string for the HP/TU display.
+func barString(current, max, length int) string {
+	if max <= 0 {
+		max = 1
+	}
+	filled := current * length / max
+	if filled > length {
+		filled = length
+	}
+	if filled < 0 {
+		filled = 0
+	}
+	out := make([]rune, length)
+	for i := 0; i < length; i++ {
+		if i < filled {
+			out[i] = '█'
+		} else {
+			out[i] = '░'
+		}
+	}
+	return string(out)
 }

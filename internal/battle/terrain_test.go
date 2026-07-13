@@ -195,7 +195,7 @@ func TestRenderTile_Visibility(t *testing.T) {
 	var ctx [3][3]TileType
 
 	// 1. Unseen tile
-	rUnseen, styleUnseen := RenderTile(tile, ctx, false, false, 0)
+	rUnseen, styleUnseen := RenderTile(tile, ctx, false, false, 0, 0, 0)
 	if rUnseen != ' ' {
 		t.Errorf("Expected blank rune for unseen tile, got %c", rUnseen)
 	}
@@ -205,7 +205,7 @@ func TestRenderTile_Visibility(t *testing.T) {
 	}
 
 	// 2. Visible tile
-	rVisible, styleVisible := RenderTile(tile, ctx, true, true, 0)
+	rVisible, styleVisible := RenderTile(tile, ctx, true, true, 0, 0, 0)
 	if rVisible != '·' {
 		t.Errorf("Expected '·' for Grass, got %c", rVisible)
 	}
@@ -216,7 +216,7 @@ func TestRenderTile_Visibility(t *testing.T) {
 	}
 
 	// 3. Seen but not currently visible (Fog of War)
-	_, styleFog := RenderTile(tile, ctx, false, true, 0)
+	_, styleFog := RenderTile(tile, ctx, false, true, 0, 0, 0)
 	fgFog := styleFog.GetForeground()
 	rV, gV, bV := fgVisible.RGB()
 	rF, gF, bF := fgFog.RGB()
@@ -228,7 +228,7 @@ func TestRenderTile_Visibility(t *testing.T) {
 func TestRenderTile_BloodOverlay(t *testing.T) {
 	tile := Tile{Type: TileGrass, Blood: 1}
 	var ctx [3][3]TileType
-	_, style := RenderTile(tile, ctx, true, true, 0)
+	_, style := RenderTile(tile, ctx, true, true, 0, 0, 0)
 	fg := style.GetForeground()
 	r, g, b := fg.RGB()
 	if r < 150 || g > 50 || b > 50 {
@@ -239,7 +239,7 @@ func TestRenderTile_BloodOverlay(t *testing.T) {
 func TestRenderTile_FireOverlay(t *testing.T) {
 	tile := Tile{Type: TileGrass, Fire: 3}
 	var ctx [3][3]TileType
-	_, style := RenderTile(tile, ctx, true, true, 0)
+	_, style := RenderTile(tile, ctx, true, true, 0, 0, 0)
 	fg := style.GetForeground()
 	r, g, b := fg.RGB()
 	if r < 200 || g < 30 {
@@ -250,7 +250,7 @@ func TestRenderTile_FireOverlay(t *testing.T) {
 func TestRenderTile_RuneOverride(t *testing.T) {
 	tile := Tile{Type: TileGrass, Rune: 'X'}
 	var ctx [3][3]TileType
-	r, _ := RenderTile(tile, ctx, true, true, 0)
+	r, _ := RenderTile(tile, ctx, true, true, 0, 0, 0)
 	if r != 'X' {
 		t.Errorf("Expected rune override 'X', got %c", r)
 	}

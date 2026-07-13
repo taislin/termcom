@@ -7,6 +7,10 @@ import (
 	"github.com/civ13/termcom/internal/data"
 )
 
+type TrailPoint struct {
+	X, Y float64
+}
+
 type Interceptor struct {
 	Name       string
 	X, Y       float64
@@ -24,6 +28,8 @@ type Interceptor struct {
 	Mode       data.CombatMode
 	PilotSkill int // 0-100, affects accuracy
 	State      *data.InterceptorState
+	Trail      []TrailPoint
+	TrailTick  int // throttle counter to avoid dense trails
 }
 
 func NewInterceptor(baseX, baseY int) *Interceptor {
@@ -193,6 +199,7 @@ func (i *Interceptor) moveToWithTarget(tx, ty float64, rangeFraction float64) bo
 	if dist > 0 {
 		i.X += (dx / dist) * speed
 		i.Y += (dy / dist) * speed
+		i.recordTrail()
 	}
 
 	i.RangeLeft--
@@ -204,6 +211,26 @@ func (i *Interceptor) moveToWithTarget(tx, ty float64, rangeFraction float64) bo
 	}
 
 	return false
+}
+
+func (i *Interceptor) recordTrail() {
+	i.TrailTick++
+	if i.TrailTick%3 != 0 {
+		return
+	}
+	pt := TrailPoint{X: i.X, Y: i.Y}
+	if len(i.Trail) > 0 {
+		last := i.Trail[len(i.Trail)-1]
+		dx := pt.X - last.X
+		dy := pt.Y - last.Y
+		if dx*dx+dy*dy < 0.5 {
+			return
+		}
+	}
+	i.Trail = append(i.Trail, pt)
+	if len(i.Trail) > 30 {
+		i.Trail = i.Trail[1:]
+	}
 }
 
 func (i *Interceptor) moveTo(tx, ty float64) bool {
@@ -222,6 +249,7 @@ func (i *Interceptor) moveTo(tx, ty float64) bool {
 	if dist > 0 {
 		i.X += (dx / dist) * speed
 		i.Y += (dy / dist) * speed
+		i.recordTrail()
 	}
 
 	i.RangeLeft--
@@ -239,6 +267,8 @@ func (i *Interceptor) Disengage() {
 	i.TargetNode = -1
 	i.TargetUFO = nil
 	i.Launching = false
+	i.Trail = nil
+	i.TrailTick = 0
 	if i.State != nil {
 		i.State.HP = i.HP
 		i.State.Ammo = i.Ammo

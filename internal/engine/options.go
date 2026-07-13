@@ -100,6 +100,7 @@ func (os *OptionsScreen) Render(ctx *ScreenCtx) {
 	ctx.DrawPanel(0, 0, w, h, language.String("OPTIONS_TITLE"), StyleDefault)
 
 	const (
+		themeIdx = 8
 		speedIdx = 9
 		volIdx   = 10
 		langIdx  = 11
@@ -119,7 +120,6 @@ func (os *OptionsScreen) Render(ctx *ScreenCtx) {
 		{language.String("OPTIONS_SHAKE"), &Config.ScreenShake},
 		{language.String("OPTIONS_MOUSE"), &Config.MouseEnabled},
 		{language.String("OPTIONS_GRID"), &Config.GridLines},
-		{language.String("OPTIONS_HIGH_CONTRAST"), &Config.HighContrast},
 		{language.String("OPTIONS_CONFIRM"), &Config.ConfirmDialogs},
 	}
 	for i, opt := range boolOpts {
@@ -133,6 +133,17 @@ func (os *OptionsScreen) Render(ctx *ScreenCtx) {
 		}
 		ctx.DrawString(baseX, startY+i, fmt.Sprintf("[%s] %s", status, opt.Label), style)
 	}
+
+	// Theme cycler
+	themeStyle := StyleDefault
+	if os.Selection == themeIdx {
+		themeStyle = StyleHighlight
+	}
+	themeName := Config.Theme
+	if tn, ok := themeDisplayNames[Config.Theme]; ok {
+		themeName = tn
+	}
+	ctx.DrawString(baseX, startY+themeIdx, fmt.Sprintf("%s: [%s]", language.String("OPTIONS_THEME"), themeName), themeStyle)
 
 	// Speed slider
 	speedStyle := StyleDefault
@@ -190,6 +201,8 @@ func (os *OptionsScreen) HandleKey(e *tcell.EventKey) {
 	case tcell.KeyLeft:
 		audio.PlayMenuNav()
 		switch os.Selection {
+		case 8:
+			os.cycleTheme(-1)
 		case 9:
 			Config.ActionDelay--
 			if Config.ActionDelay < 1 {
@@ -208,6 +221,8 @@ func (os *OptionsScreen) HandleKey(e *tcell.EventKey) {
 	case tcell.KeyRight:
 		audio.PlayMenuNav()
 		switch os.Selection {
+		case 8:
+			os.cycleTheme(1)
 		case 9:
 			Config.ActionDelay++
 			if Config.ActionDelay > 20 {
@@ -247,10 +262,9 @@ func (os *OptionsScreen) toggle() {
 	case 6:
 		Config.GridLines = !Config.GridLines
 	case 7:
-		Config.HighContrast = !Config.HighContrast
-		ApplyTheme(Config.HighContrast)
-	case 8:
 		Config.ConfirmDialogs = !Config.ConfirmDialogs
+	case 8:
+		os.cycleTheme(1)
 	}
 }
 
@@ -272,6 +286,35 @@ func (os *OptionsScreen) cycleLang(dir int) {
 	}
 	language.SetLanguage(langs[idx])
 	Config.Language = langs[idx]
+}
+
+var themes = []string{"default", "high_contrast", "amber", "green", "paper"}
+
+var themeDisplayNames = map[string]string{
+	"default":       "Default",
+	"high_contrast": "HighCon",
+	"amber":         "Amber",
+	"green":         "Green",
+	"paper":         "Paper",
+}
+
+func (os *OptionsScreen) cycleTheme(dir int) {
+	idx := 0
+	for i, t := range themes {
+		if t == Config.Theme {
+			idx = i
+			break
+		}
+	}
+	idx += dir
+	if idx < 0 {
+		idx = len(themes) - 1
+	}
+	if idx >= len(themes) {
+		idx = 0
+	}
+	Config.Theme = themes[idx]
+	ApplyTheme(Config.Theme)
 }
 
 func (os *OptionsScreen) HandleMouse(e *tcell.EventMouse) {

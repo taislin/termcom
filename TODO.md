@@ -256,15 +256,15 @@ Planned work (not yet implemented):
       from black instead of cutting abruptly. Skip the overlay while `quitConfirm`.
 
 ## Phase 33: Additional Visual Polish (Tier 2/3 remainder)
-- [ ] Geoscape day/night terminator: draw a sweeping day/night boundary line across
+- [x] Geoscape day/night terminator: draw a sweeping day/night boundary line across
       the globe minimap that advances with GameTime; tint the night hemisphere darker.
-- [ ] Geoscape UFO/interceptor markers: pulsing radar-blip animation for active UFOs
+- [x] Geoscape UFO/interceptor markers: pulsing radar-blip animation for active UFOs
       and persistent trail lines tracing interceptor flight paths on the minimap.
-- [ ] Extra color themes: add amber and green CRT-phosphor palettes plus a "paper"
+- [x] Extra color themes: add amber and green CRT-phosphor palettes plus a "paper"
       palette, selectable in the Options menu (extend `ApplyTheme` / theme state).
-- [ ] Tile edge shading: apply light ambient-occlusion where wall meets floor and add
+- [x] Tile edge shading: apply light ambient-occlusion where wall meets floor and add
       subtle per-tile dither for depth in `RenderTile` (internal/battle/terrain.go).
-- [ ] Battlescape HUD bars: replace plain HP/TU text in the sidebar with clearer
+- [x] Battlescape HUD bars: replace plain HP/TU text in the sidebar with clearer
       graphical HP and TU bars (color-coded, proportionate to current/max).
 
 

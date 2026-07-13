@@ -1891,6 +1891,12 @@ func (gs *Geoscape) renderMinimap(ctx *engine.ScreenCtx, x, y, w, h int) {
 	worldW := 180
 	worldH := 90
 
+	// Day/night terminator calculation
+	totalMin := float64(gs.Game.GameTime.Hour())*60 + float64(gs.Game.GameTime.Minute())
+	dayFraction := totalMin / (24 * 60)
+	sunX := int(dayFraction * float64(worldW)) // sub-solar point in world coords
+	seasonOff := 10 * math.Sin(float64(gs.Game.GameTime.Month())*math.Pi/6)
+
 	// Draw World Map Background
 	for dy := 0; dy < innerH; dy++ {
 		for dx := 0; dx < innerW; dx++ {
@@ -1908,6 +1914,35 @@ func (gs *Geoscape) renderMinimap(ctx *engine.ScreenCtx, x, y, w, h int) {
 				ch = '░'
 				style = engine.StyleGray
 			}
+
+			// Night side: darken with a blue tint
+			relX := (worldX - sunX + worldW) % worldW
+			latRad := float64(worldY-45) / 45.0 * math.Pi / 2
+			wobble := int(seasonOff * math.Sin(latRad))
+			nightBoundary := 45 + wobble
+			if nightBoundary < 0 {
+				nightBoundary = 0
+			}
+			if nightBoundary > worldW/2 {
+				nightBoundary = worldW / 2
+			}
+			isNight := relX >= nightBoundary && relX <= worldW-nightBoundary
+			if isNight {
+				if tile == 1 {
+					style = tcell.StyleDefault.Background(tcell.NewRGBColor(0, 0, 10)).Foreground(tcell.NewRGBColor(0, 0, 10))
+				} else {
+					style = tcell.StyleDefault.Background(color.XTerm0).Foreground(tcell.NewRGBColor(0, 0, 25))
+				}
+			}
+
+			// Terminator line at the boundary
+			termWidth := 2
+			if !isNight && ((relX >= nightBoundary-termWidth && relX <= nightBoundary+termWidth) ||
+				(relX >= worldW-nightBoundary-termWidth && relX <= worldW-nightBoundary+termWidth)) {
+				ch = '·'
+				style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(200, 100, 0)).Background(color.XTerm0)
+			}
+
 			ctx.SetCell(x+1+dx, y+1+dy, ch, style)
 		}
 	}
@@ -1992,6 +2027,17 @@ func (gs *Geoscape) renderMinimap(ctx *engine.ScreenCtx, x, y, w, h int) {
 		ch := '!'
 		style := engine.StyleRedBold
 
+		// Pulsing radar blip (only when not in a dogfight)
+		if gs.DogfightVisual == nil || !gs.DogfightVisual.Active || gs.DogfightVisual.UFO != u {
+			if gs.TickCounter%24 < 12 {
+				ch = '!'
+				style = engine.StyleRed
+			} else {
+				ch = '◉'
+				style = engine.StyleRedBold
+			}
+		}
+
 		// Dogfight animation effects
 		if gs.DogfightVisual != nil && gs.DogfightVisual.Active && gs.DogfightVisual.UFO == u {
 			if gs.DogfightVisual.UFOHitFlash > 0 {
@@ -2014,6 +2060,24 @@ func (gs *Geoscape) renderMinimap(ctx *engine.ScreenCtx, x, y, w, h int) {
 			}
 		}
 		ctx.SetCell(sx, sy, ch, style)
+	}
+
+	// Draw interceptor trails
+	for _, in := range gs.Interceptors.Active() {
+		for ti, pt := range in.Trail {
+			tsx := x + 1 + int(pt.X*float64(innerW)/float64(worldW))
+			tsy := y + 1 + int(pt.Y*float64(innerH)/float64(worldH))
+			if tsx <= x || tsx >= x+w-1 || tsy <= y || tsy >= y+h-1 {
+				continue
+			}
+			// Fade: older trail points are dimmer
+			fade := float64(ti) / float64(len(in.Trail))
+			r := int32(0*fade + 30*(1-fade))
+			g := int32(80*fade + 180*(1-fade))
+			b := int32(80*fade + 180*(1-fade))
+			trailStyle := tcell.StyleDefault.Foreground(tcell.NewRGBColor(r, g, b))
+			ctx.SetCell(tsx, tsy, '·', trailStyle)
+		}
 	}
 
 	// Draw interceptors

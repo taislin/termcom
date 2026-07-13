@@ -655,6 +655,7 @@ func init() {
 		"OPTIONS_MOUSE":            "マウスサポート",
 		"OPTIONS_GRID":             "グリッド線",
 		"OPTIONS_HIGH_CONTRAST":    "ハイコントラスト",
+		"OPTIONS_THEME":            "テーマ",
 		"OPTIONS_CONFIRM":          "確認ダイアログ",
 		"OPTIONS_VOLUME":           "音量",
 		"OPTIONS_RESOLUTION_SPEED": "解像度速度",

@@ -202,8 +202,9 @@ var StyleCyanBold = StyleCyan.Bold(true)
 var StyleRedBold = StyleRed.Bold(true)
 var StyleHotkey = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.Orange)
 
-func ApplyTheme(hc bool) {
-	if hc {
+func ApplyTheme(theme string) {
+	switch theme {
+	case "high_contrast":
 		StyleDefault = tcell.StyleDefault.Background(color.Black).Foreground(color.White).Bold(true)
 		StyleHighlight = tcell.StyleDefault.Background(color.White).Foreground(color.Black).Bold(true)
 		StyleRed = tcell.StyleDefault.Background(color.Black).Foreground(color.Red).Bold(true)
@@ -217,7 +218,62 @@ func ApplyTheme(hc bool) {
 		StyleCyanBold = StyleCyan
 		StyleRedBold = StyleRed
 		StyleHotkey = tcell.StyleDefault.Background(color.Black).Foreground(color.Orange).Bold(true)
-	} else {
+
+	case "amber":
+		bg := tcell.NewRGBColor(12, 8, 0)
+		fg := tcell.NewRGBColor(255, 190, 0)
+		dim := tcell.NewRGBColor(120, 90, 0)
+		StyleDefault = tcell.StyleDefault.Background(bg).Foreground(fg)
+		StyleHighlight = tcell.StyleDefault.Background(fg).Foreground(bg)
+		StyleRed = tcell.StyleDefault.Background(bg).Foreground(tcell.NewRGBColor(255, 80, 0))
+		StyleGreen = tcell.StyleDefault.Background(bg).Foreground(tcell.NewRGBColor(180, 200, 0))
+		StyleBlue = tcell.StyleDefault.Background(bg).Foreground(tcell.NewRGBColor(160, 170, 120))
+		StyleYellow = tcell.StyleDefault.Background(bg).Foreground(fg)
+		StyleCyan = tcell.StyleDefault.Background(bg).Foreground(tcell.NewRGBColor(200, 180, 60))
+		StyleMagenta = tcell.StyleDefault.Background(bg).Foreground(tcell.NewRGBColor(200, 100, 60))
+		StyleGray = tcell.StyleDefault.Background(bg).Foreground(dim)
+		StyleOrange = tcell.StyleDefault.Background(bg).Foreground(tcell.NewRGBColor(255, 130, 0))
+		StyleCyanBold = StyleCyan.Bold(true)
+		StyleRedBold = StyleRed.Bold(true)
+		StyleHotkey = tcell.StyleDefault.Background(bg).Foreground(tcell.NewRGBColor(255, 210, 80)).Bold(true)
+
+	case "green":
+		bg := tcell.NewRGBColor(0, 12, 0)
+		fg := tcell.NewRGBColor(0, 220, 0)
+		dim := tcell.NewRGBColor(0, 90, 0)
+		StyleDefault = tcell.StyleDefault.Background(bg).Foreground(fg)
+		StyleHighlight = tcell.StyleDefault.Background(fg).Foreground(bg)
+		StyleRed = tcell.StyleDefault.Background(bg).Foreground(tcell.NewRGBColor(0, 255, 0))
+		StyleGreen = tcell.StyleDefault.Background(bg).Foreground(tcell.NewRGBColor(0, 200, 80))
+		StyleBlue = tcell.StyleDefault.Background(bg).Foreground(tcell.NewRGBColor(50, 180, 130))
+		StyleYellow = tcell.StyleDefault.Background(bg).Foreground(tcell.NewRGBColor(160, 240, 0))
+		StyleCyan = tcell.StyleDefault.Background(bg).Foreground(tcell.NewRGBColor(0, 200, 160))
+		StyleMagenta = tcell.StyleDefault.Background(bg).Foreground(tcell.NewRGBColor(0, 200, 100))
+		StyleGray = tcell.StyleDefault.Background(bg).Foreground(dim)
+		StyleOrange = tcell.StyleDefault.Background(bg).Foreground(tcell.NewRGBColor(100, 240, 0))
+		StyleCyanBold = StyleCyan.Bold(true)
+		StyleRedBold = StyleRed.Bold(true)
+		StyleHotkey = tcell.StyleDefault.Background(bg).Foreground(tcell.NewRGBColor(100, 255, 100)).Bold(true)
+
+	case "paper":
+		bg := tcell.NewRGBColor(200, 190, 170)
+		fg := tcell.NewRGBColor(10, 10, 10)
+		dim := tcell.NewRGBColor(120, 110, 100)
+		StyleDefault = tcell.StyleDefault.Background(bg).Foreground(fg)
+		StyleHighlight = tcell.StyleDefault.Background(fg).Foreground(bg)
+		StyleRed = tcell.StyleDefault.Background(bg).Foreground(tcell.NewRGBColor(160, 20, 20))
+		StyleGreen = tcell.StyleDefault.Background(bg).Foreground(tcell.NewRGBColor(30, 100, 30))
+		StyleBlue = tcell.StyleDefault.Background(bg).Foreground(tcell.NewRGBColor(20, 60, 140))
+		StyleYellow = tcell.StyleDefault.Background(bg).Foreground(tcell.NewRGBColor(140, 110, 0))
+		StyleCyan = tcell.StyleDefault.Background(bg).Foreground(tcell.NewRGBColor(30, 100, 120))
+		StyleMagenta = tcell.StyleDefault.Background(bg).Foreground(tcell.NewRGBColor(120, 40, 120))
+		StyleGray = tcell.StyleDefault.Background(bg).Foreground(dim)
+		StyleOrange = tcell.StyleDefault.Background(bg).Foreground(tcell.NewRGBColor(180, 80, 20))
+		StyleCyanBold = StyleCyan.Bold(true)
+		StyleRedBold = StyleRed.Bold(true)
+		StyleHotkey = tcell.StyleDefault.Background(bg).Foreground(tcell.NewRGBColor(180, 80, 20)).Bold(true)
+
+	default:
 		StyleDefault = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm15)
 		StyleHighlight = tcell.StyleDefault.Background(color.Blue).Foreground(color.XTerm15)
 		StyleRed = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm9)

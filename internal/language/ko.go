@@ -655,6 +655,7 @@ func init() {
 		"OPTIONS_MOUSE":            "마우스 지원",
 		"OPTIONS_GRID":             "격자선",
 		"OPTIONS_HIGH_CONTRAST":    "고대비",
+		"OPTIONS_THEME":            "테마",
 		"OPTIONS_CONFIRM":          "확인 대화상자",
 		"OPTIONS_VOLUME":           "SFX 볼륨",
 		"OPTIONS_RESOLUTION_SPEED": "Resolution Speed",

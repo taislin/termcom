@@ -17,7 +17,7 @@ type GlobalConfig struct {
 	ScreenShake     bool   `json:"screen_shake"`
 	MouseEnabled    bool   `json:"mouse_enabled"`
 	GridLines       bool   `json:"grid_lines"`
-	HighContrast    bool   `json:"high_contrast"`
+	Theme           string `json:"theme"`
 	ConfirmDialogs  bool   `json:"confirm_dialogs"`
 	ActionDelay     int    `json:"action_delay"`
 	SfxVolume       int    `json:"sfx_volume"`
@@ -32,7 +32,7 @@ var Config = GlobalConfig{
 	ScreenShake:     true,
 	MouseEnabled:    true,
 	GridLines:       false,
-	HighContrast:    false,
+	Theme:           "default",
 	ConfirmDialogs:  true,
 	ActionDelay:     8,
 	SfxVolume:       10,
@@ -55,7 +55,7 @@ func LoadConfig() {
 	}
 	audio.SetAudioEnabled(Config.SoundEnabled)
 	audio.SetSfxVolume(Config.SfxVolume)
-	ApplyTheme(Config.HighContrast)
+	ApplyTheme(Config.Theme)
 }
 
 func SaveConfig() {
