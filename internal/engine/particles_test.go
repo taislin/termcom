@@ -3,6 +3,7 @@ package engine
 import (
 	"testing"
 	"github.com/gdamore/tcell/v3"
+	"github.com/gdamore/tcell/v3/color"
 )
 
 func TestParticleSystem(t *testing.T) {

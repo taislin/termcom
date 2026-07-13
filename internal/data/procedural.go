@@ -159,8 +159,10 @@ var senseLoreSnippets = map[string]string{
 
 // Limb lore descriptions.
 func limbLore(m *Morphology) string {
-	armDesc := language.String("MORPH_ARMS_NONE")
+	var armDesc string
 	switch {
+	case m.Arms == 0:
+		armDesc = language.String("MORPH_ARMS_NONE")
 	case m.Arms == 1:
 		armDesc = language.String("MORPH_ARMS_1")
 	case m.Arms == 2:
