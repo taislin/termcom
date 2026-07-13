@@ -8,7 +8,6 @@ import (
 	"github.com/civ13/termcom/internal/language"
 	"github.com/civ13/termcom/internal/soldier"
 	"github.com/gdamore/tcell/v3"
-	"github.com/gdamore/tcell/v3/color"
 )
 
 type GameState int
@@ -221,7 +220,7 @@ func (g *Game) Run() {
 			g.renderQuitConfirm(ctx)
 		} else if g.transition > 0 {
 			w, h := ctx.Size()
-			DrawTransparentRect(ctx.ScreenRaw, ctx.FrameBuffer(), 0, 0, w, h, color.Black, g.transition)
+			DrawTransparentRect(ctx.ScreenRaw, ctx.FrameBuffer(), 0, 0, w, h, ColorBlack, g.transition)
 			g.transition *= 0.85
 			if g.transition < 0.03 {
 				g.transition = 0

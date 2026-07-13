@@ -3,7 +3,6 @@ package battle
 import (
 	"github.com/civ13/termcom/internal/engine"
 	"github.com/gdamore/tcell/v3"
-	"github.com/gdamore/tcell/v3/color"
 )
 
 // UFO hull geometry glyphs
@@ -184,12 +183,12 @@ func isOpaqueTile(t TileType) bool {
 // RenderTile produces the character and style for drawing a tile.
 func RenderTile(t Tile, ctx [3][3]TileType, visible, seen bool, frame int, tileX, tileY int) (rune, tcell.Style) {
 	if !visible && !seen {
-		return ' ', tcell.StyleDefault.Background(color.Black).Foreground(color.Black)
+		return ' ', engine.StyleDefault
 	}
 
 	baseCol := TileBaseColor(t)
 	fg := baseCol
-	bg := color.Black
+	bg := engine.StyleDefault.GetBackground()
 
 	// Make background a very dark version of the base color to add rich depth
 	bg = engine.DarkenColor(baseCol, 0.15)
