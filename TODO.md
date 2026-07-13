@@ -237,22 +237,34 @@ NOTE — verified already implemented (do NOT duplicate):
   via `MakeSoldierPortrait` + `ctx.DrawPixelImageFramed` at battlescape.go:2455-2458.
 
 Planned work (not yet implemented):
-- [ ] Enable the Lighting option (fix dead code): uncomment & gate the directional
+- [x] Enable the Lighting option (fix dead code): uncomment & gate the directional
       flashlight cone (`engine.ApplyDirectionalLight`) for the selected unit in
       `internal/battle/battlescape.go` (~line 2267); correct the `isVisible` closure
-      to use `bs.Map.Opaque(x+bs.ScrollX, y+bs.ScrollY)`. (Phase 8 marked directional
+      to use `bs.Map.Opaque(x+bs.ScrollX, y+bs.ScrollY-1)`. (Phase 8 marked directional
       lighting done, but the call is currently commented out — this is a fix.)
-- [ ] Floating combat text in battlescape: add a `FloatingText` slice on Battlescape;
+- [x] Floating combat text in battlescape: add a `FloatingText` slice on Battlescape;
       spawn rising/fading damage numbers, "MISS", and heal values above hit targets;
       update/draw in `Update()`/`Render()`; spawn at the damage sites
       (battlescape.go:761 and ~:1610). (Interceptor combat already has damage numbers
       per Phase 29; this adds battlescape-level floating text.)
-- [ ] Unit health/TU pips + selection shadow: for the selected/hovered unit draw a dim
+- [x] Unit health/TU pips + selection shadow: for the selected/hovered unit draw a dim
       selection shadow under the sprite and a 3-cell HP pip bar (green→yellow→red by
       HP ratio) on the tile above; keep TU in the sidebar.
-- [ ] Scene-transition fade: add a `transition` alpha field to `Game`; set to 1.0 on
+- [x] Scene-transition fade: add a `transition` alpha field to `Game`; set to 1.0 on
       `PushState`/`PopState`/`SetState` and ease to 0 each frame; draw a full-screen
       black overlay via `engine.DrawTransparentRect` in `Run()` so state changes fade
       from black instead of cutting abruptly. Skip the overlay while `quitConfirm`.
+
+## Phase 33: Additional Visual Polish (Tier 2/3 remainder)
+- [ ] Geoscape day/night terminator: draw a sweeping day/night boundary line across
+      the globe minimap that advances with GameTime; tint the night hemisphere darker.
+- [ ] Geoscape UFO/interceptor markers: pulsing radar-blip animation for active UFOs
+      and persistent trail lines tracing interceptor flight paths on the minimap.
+- [ ] Extra color themes: add amber and green CRT-phosphor palettes plus a "paper"
+      palette, selectable in the Options menu (extend `ApplyTheme` / theme state).
+- [ ] Tile edge shading: apply light ambient-occlusion where wall meets floor and add
+      subtle per-tile dither for depth in `RenderTile` (internal/battle/terrain.go).
+- [ ] Battlescape HUD bars: replace plain HP/TU text in the sidebar with clearer
+      graphical HP and TU bars (color-coded, proportionate to current/max).
 
 

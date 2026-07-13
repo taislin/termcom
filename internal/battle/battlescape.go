@@ -108,6 +108,7 @@ type Battlescape struct {
 	Camera         *engine.Camera
 	Particles      *engine.ParticleSystem
 	HoveredUnit    *Unit
+	floaters       []FloatingText
 	SidebarW       int
 	ReinforceTimer int
 	AbductionCivs  int
@@ -624,6 +625,7 @@ func (bs *Battlescape) Update() {
 	bs.FrameCount++
 	bs.Camera.UpdateShake(dt)
 	bs.Particles.Update(dt)
+	bs.updateFloaters(dt)
 
 	// Handle overwatch flash effect: when an alien is triggered, 
 	// they flash briefly before performing their action.
@@ -739,7 +741,8 @@ func (bs *Battlescape) executeAlienAction(action AlienAction) {
 			if engine.Config.ScreenShake {
 				bs.Camera.TriggerShake(0.5)
 			}
-			bs.SpawnBloodSplatter(action.Target)
+		bs.SpawnBloodSplatter(action.Target)
+		bs.spawnFloater(action.Target.X, action.Target.Y, fmt.Sprintf("-%d", damage), color.XTerm9)
 			name := action.Target.Name()
 			bs.AddMessage(fmt.Sprintf(language.String("MSG_ALIEN_HIT"), name, damage))
 			if !action.Target.Alive {
@@ -1608,9 +1611,11 @@ func (bs *Battlescape) FireWeapon() {
 			name = target.AlienType.Name
 		}
 		bs.AddMessage(fmt.Sprintf(language.String("MSG_HIT_TARGET"), damage, name, target.HP))
+		bs.spawnFloater(target.X, target.Y, fmt.Sprintf("-%d", damage), color.XTerm9)
 	} else {
 		audio.PlayMiss()
 		bs.AddMessage(language.String("MSG_MISSED"))
+		bs.spawnFloater(target.X, target.Y, "MISS", color.XTerm8)
 	}
 	bs.PlayerLock = bs.Game.ActionDelay / 2
 }
@@ -1998,6 +2003,7 @@ func (bs *Battlescape) UseMedikit() {
 
 	bs.Selected.TU -= 25
 	target.HP += healAmount
+	bs.spawnFloater(target.X, target.Y, fmt.Sprintf("+%d", healAmount), color.XTerm2)
 	if target.HP > target.MaxHP {
 		target.HP = target.MaxHP
 	}
@@ -2266,14 +2272,48 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 		}
 		if u == bs.Selected {
 			style = style.Reverse(true)
-			// if engine.Config.LightingEnabled {
-			// 	engine.ApplyDirectionalLight(ctx.ScreenRaw, ctx.FrameBuffer(), sx, sy, 0, -1, 5, tcell.NewRGBColor(200, 200, 150), func(x, y int) bool { return !bs.Map.Opaque(x+bs.ScrollX-1, y+bs.ScrollY-1) })
-			// }
+			if engine.Config.LightingEnabled {
+				engine.ApplyDirectionalLight(ctx.ScreenRaw, ctx.FrameBuffer(), sx, sy, 0, -1, 5, tcell.NewRGBColor(200, 200, 150), func(x, y int) bool {
+					return !bs.Map.Opaque(x+bs.ScrollX-1, y+bs.ScrollY-1)
+				})
+			}
 		}
 		if u.X == bs.CursorX && u.Y == bs.CursorY {
 			style = style.Reverse(true)
 		}
 		ctx.SetCell(sx, sy, ch, style)
+
+		if u == bs.Selected || u == bs.HoveredUnit {
+			// Ground the sprite with a dim selection shadow.
+			if sy+1 <= viewH {
+				ctx.SetCell(sx, sy+1, '▄', engine.StyleGray)
+			}
+			// Compact 3-cell HP pip bar on the tile above (green→yellow→red).
+			if sy-1 >= 1 {
+				ratio := float64(u.HP) / float64(u.MaxHP)
+				filled := int(ratio*3 + 0.5)
+				if filled > 3 {
+					filled = 3
+				}
+				if filled < 0 {
+					filled = 0
+				}
+				for i := 0; i < 3; i++ {
+					var pc tcell.Color
+					switch {
+					case i >= filled:
+						pc = color.XTerm8
+					case ratio < 0.5:
+						pc = color.XTerm9
+					case ratio < 0.75:
+						pc = color.XTerm3
+					default:
+						pc = color.XTerm2
+					}
+					ctx.SetCell(sx-1+i, sy-1, '▬', engine.StyleDefault.Background(tcell.ColorBlack).Foreground(pc))
+				}
+			}
+		}
 	}
 
 	// Draw projectile
@@ -2309,6 +2349,8 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 		}
 		engine.ApplyVisionFilter(ctx.ScreenRaw, bs.VisionMode, entities)
 	}
+
+	bs.drawFloaters(ctx)
 
 	// Draw sidebar border
 	sidebarX := viewW + 2
@@ -2551,6 +2593,55 @@ func (bs *Battlescape) phaseStr() string {
 
 func (bs *Battlescape) HandleKey(e *tcell.EventKey) {
 	bs.HandleEvent(e)
+}
+
+// FloatingText is a rising, fading combat label (damage numbers, MISS, heals).
+type FloatingText struct {
+	X, Y    float64
+	Text    string
+	Color   tcell.Color
+	Life    float64
+	MaxLife float64
+}
+
+func (bs *Battlescape) spawnFloater(mx, my int, text string, col tcell.Color) {
+	bs.floaters = append(bs.floaters, FloatingText{
+		X:       float64(mx - bs.ScrollX + 1),
+		Y:       float64(my - bs.ScrollY + 1),
+		Text:    text,
+		Color:   col,
+		Life:    1.2,
+		MaxLife: 1.2,
+	})
+}
+
+func (bs *Battlescape) updateFloaters(dt float64) {
+	n := 0
+	for i := range bs.floaters {
+		p := &bs.floaters[i]
+		p.Life -= dt
+		if p.Life <= 0 {
+			continue
+		}
+		p.Y -= 5 * dt // rise upward
+		bs.floaters[n] = bs.floaters[i]
+		n++
+	}
+	bs.floaters = bs.floaters[:n]
+}
+
+func (bs *Battlescape) drawFloaters(ctx *engine.ScreenCtx) {
+	for i := range bs.floaters {
+		p := &bs.floaters[i]
+		alpha := p.Life / p.MaxLife
+		cr, cg, cb := p.Color.RGB()
+		tr, tg, tb := 40.0, 40.0, 48.0
+		r := int32(float64(cr)*alpha + tr*(1-alpha))
+		g := int32(float64(cg)*alpha + tg*(1-alpha))
+		b := int32(float64(cb)*alpha + tb*(1-alpha))
+		style := tcell.StyleDefault.Foreground(tcell.NewRGBColor(r, g, b))
+		ctx.DrawString(int(p.X), int(p.Y), p.Text, style)
+	}
 }
 
 func (bs *Battlescape) SpawnBloodSplatter(target *Unit) {

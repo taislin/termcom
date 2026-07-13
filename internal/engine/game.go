@@ -8,6 +8,7 @@ import (
 	"github.com/civ13/termcom/internal/language"
 	"github.com/civ13/termcom/internal/soldier"
 	"github.com/gdamore/tcell/v3"
+	"github.com/gdamore/tcell/v3/color"
 )
 
 type GameState int
@@ -64,6 +65,7 @@ type Game struct {
 	stateStack []GameState
 	running    bool
 	quitConfirm bool
+	transition  float64 // 1.0 right after a state change, eases to 0 (fade-from-black)
 
 	GameTime  time.Time
 	TimeSpeed int
@@ -217,6 +219,13 @@ func (g *Game) Run() {
 
 		if g.quitConfirm {
 			g.renderQuitConfirm(ctx)
+		} else if g.transition > 0 {
+			w, h := ctx.Size()
+			DrawTransparentRect(ctx.ScreenRaw, ctx.FrameBuffer(), 0, 0, w, h, color.Black, g.transition)
+			g.transition *= 0.85
+			if g.transition < 0.03 {
+				g.transition = 0
+			}
 		}
 
 		g.screen.Flush()
@@ -281,6 +290,7 @@ func (g *Game) drainEvents() {
 func (g *Game) PushState(s GameState) {
 	g.stateStack = append(g.stateStack, g.state)
 	g.state = s
+	g.transition = 1.0
 }
 
 func (g *Game) InState(s GameState) bool {
@@ -294,12 +304,14 @@ func (g *Game) PushScreen(sc Screen) {
 
 func (g *Game) SetState(s GameState) {
 	g.state = s
+	g.transition = 1.0
 }
 
 func (g *Game) PopState() {
 	if len(g.stateStack) > 0 {
 		g.state = g.stateStack[len(g.stateStack)-1]
 		g.stateStack = g.stateStack[:len(g.stateStack)-1]
+		g.transition = 1.0
 	}
 }
 

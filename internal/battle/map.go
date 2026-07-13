@@ -15,23 +15,6 @@ func randn(n int) int {
 	return rand.Intn(n)
 }
 
-package battle
-
-import (
-	"math/rand"
-
-	"github.com/gdamore/tcell/v3"
-)
-
-// randn returns rand.Intn(n) but safely yields 0 when n <= 0, avoiding a panic
-// on degenerate (very small) map dimensions.
-func randn(n int) int {
-	if n <= 0 {
-		return 0
-	}
-	return rand.Intn(n)
-}
-
 // TileType defines the physical nature of a map cell, determining its
 // appearance, movement cost, and defensive value.
 type TileType int
@@ -885,11 +868,6 @@ func GenerateTerrorSite(w, h int) *BattleMap {
 			}
 		}
 
-			}
-			if overlap {
-				break
-			}
-		}
 		if overlap {
 			continue
 		}

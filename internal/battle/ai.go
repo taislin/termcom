@@ -8,16 +8,6 @@ import (
 	"github.com/civ13/termcom/internal/engine"
 )
 
-package battle
-
-import (
-	"math"
-	"math/rand"
-
-	"github.com/civ13/termcom/internal/data"
-	"github.com/civ13/termcom/internal/engine"
-)
-
 // AIState defines the current behavioral mode of an alien unit.
 type AIState int
 
@@ -287,7 +277,7 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList, pla
 			break
 		}
 		fx, fy := ai.findFlankPosition(nearest, nearest, m, humanUnits)
-		if (fx != ai,Unit.X || fy != ai.Unit.Y) && m.Passable(fx, fy) {
+		if (fx != ai.Unit.X || fy != ai.Unit.Y) && m.Passable(fx, fy) {
 			actions = append(actions, AlienAction{
 				Type: "move", Unit: ai.Unit,
 				FromX: ai.Unit.X, FromY: ai.Unit.Y,
