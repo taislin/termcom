@@ -27,7 +27,7 @@ var (
 		"Zr", "Xk", "Ql", "Jx", "Vh", "Ng", "Mk", "Nz", "Rq", "Wx",
 	}
 	midSyll = []string{
-		"ek", "or", "an",, "ul", "ix", "az", "en", "on", "ar", "al",
+		"ek", "or", "an", "ul", "ix", "az", "en", "on", "ar", "al",
 		"is", "us", "ox", "ir", "um", "ak", "el", "id", "os", "ym",
 		"iv", "un", "ag", "eb", "og", "iz", "ub", "am", "ol", "ed",
 		"ik", "av", "od", "ul", "er", "at", "op", "ev", "im", "yx",

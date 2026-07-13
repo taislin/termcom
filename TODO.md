@@ -227,3 +227,32 @@
 - [x] Display adjacency bonuses in base management UI (counts shown below facility list)
 - [x] Update `docs/manual.md` with adjacency bonus details
 
+## Phase 32: Battlescape Visual Polish (Visual Improvements — Tier 1)
+
+NOTE — verified already implemented (do NOT duplicate):
+- Hit feedback: muzzle flash (`engine.SpawnMuzzleFlash` at battlescape.go:736/:1594)
+  and blood spray (`bs.SpawnBloodSplatter` at :742/:765/:875/:939/:1601/:1936)
+  are already wired. See Phase 15.
+- Battlescape HUD portrait: selected soldier's half-block portrait is already drawn
+  via `MakeSoldierPortrait` + `ctx.DrawPixelImageFramed` at battlescape.go:2455-2458.
+
+Planned work (not yet implemented):
+- [ ] Enable the Lighting option (fix dead code): uncomment & gate the directional
+      flashlight cone (`engine.ApplyDirectionalLight`) for the selected unit in
+      `internal/battle/battlescape.go` (~line 2267); correct the `isVisible` closure
+      to use `bs.Map.Opaque(x+bs.ScrollX, y+bs.ScrollY)`. (Phase 8 marked directional
+      lighting done, but the call is currently commented out — this is a fix.)
+- [ ] Floating combat text in battlescape: add a `FloatingText` slice on Battlescape;
+      spawn rising/fading damage numbers, "MISS", and heal values above hit targets;
+      update/draw in `Update()`/`Render()`; spawn at the damage sites
+      (battlescape.go:761 and ~:1610). (Interceptor combat already has damage numbers
+      per Phase 29; this adds battlescape-level floating text.)
+- [ ] Unit health/TU pips + selection shadow: for the selected/hovered unit draw a dim
+      selection shadow under the sprite and a 3-cell HP pip bar (green→yellow→red by
+      HP ratio) on the tile above; keep TU in the sidebar.
+- [ ] Scene-transition fade: add a `transition` alpha field to `Game`; set to 1.0 on
+      `PushState`/`PopState`/`SetState` and ease to 0 each frame; draw a full-screen
+      black overlay via `engine.DrawTransparentRect` in `Run()` so state changes fade
+      from black instead of cutting abruptly. Skip the overlay while `quitConfirm`.
+
+
