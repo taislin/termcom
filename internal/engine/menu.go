@@ -249,6 +249,13 @@ func (ms *MenuScreen) Render(ctx *ScreenCtx) {
 		textLen := StringWidth(opt)
 		textX := w/2 - textLen/2
 
+		// Fix: Draw background for option row
+		for dx := -1-expansion; dx <= textLen+expansion; dx++ {
+			if textX+dx >= 0 && textX+dx < w {
+				ctx.SetCell(textX+dx, y, ' ', StyleDefault)
+			}
+		}
+
 		if i == ms.Selection {
 			// Brackets expand/contract symmetrically around the text
 			ctx.SetCell(textX-1-expansion, y, '[', bracketStyle)

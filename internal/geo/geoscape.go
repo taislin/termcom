@@ -1931,10 +1931,19 @@ func (gs *Geoscape) renderMinimap(ctx *engine.ScreenCtx, x, y, w, h int) {
 			}
 			isNight := relX >= nightBoundary && relX <= worldW-nightBoundary
 			if isNight {
-				if tile == 1 {
-					style = tcell.StyleDefault.Background(tcell.NewRGBColor(0, 0, 10)).Foreground(tcell.NewRGBColor(0, 0, 10))
+				if engine.Config.Theme == "paper" {
+					darkPaper := tcell.NewRGBColor(70, 66, 59)
+					if tile == 1 {
+						style = tcell.StyleDefault.Background(darkPaper).Foreground(darkPaper)
+					} else {
+						style = tcell.StyleDefault.Background(darkPaper).Foreground(tcell.NewRGBColor(30, 45, 60))
+					}
 				} else {
-					style = tcell.StyleDefault.Background(color.XTerm0).Foreground(tcell.NewRGBColor(0, 0, 25))
+					if tile == 1 {
+						style = engine.StyleDefault.Background(tcell.NewRGBColor(0, 0, 10)).Foreground(tcell.NewRGBColor(0, 0, 10))
+					} else {
+						style = engine.StyleDefault.Background(tcell.StyleDefault.GetBackground()).Foreground(tcell.NewRGBColor(0, 0, 25))
+					}
 				}
 			}
 
@@ -1943,7 +1952,7 @@ func (gs *Geoscape) renderMinimap(ctx *engine.ScreenCtx, x, y, w, h int) {
 			if !isNight && ((relX >= nightBoundary-termWidth && relX <= nightBoundary+termWidth) ||
 				(relX >= worldW-nightBoundary-termWidth && relX <= worldW-nightBoundary+termWidth)) {
 				ch = '·'
-				style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(200, 100, 0)).Background(color.XTerm0)
+				style = style.Foreground(tcell.NewRGBColor(200, 100, 0))
 			}
 
 			ctx.SetCell(x+1+dx, y+1+dy, ch, style)
@@ -2043,9 +2052,11 @@ func (gs *Geoscape) renderMinimap(ctx *engine.ScreenCtx, x, y, w, h int) {
 
 		// Dogfight animation effects
 		if gs.DogfightVisual != nil && gs.DogfightVisual.Active && gs.DogfightVisual.UFO == u {
+			_, prevStyle := ctx.Peek(sx, sy)
+			bg := prevStyle.GetBackground()
 			if gs.DogfightVisual.UFOHitFlash > 0 {
 				ch = '◉'
-				style = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm11).Bold(true)
+				style = tcell.StyleDefault.Background(bg).Foreground(color.XTerm11).Bold(true)
 			} else if gs.DogfightVisual.Timer%6 < 3 {
 				style = engine.StyleRed
 			} else {
@@ -2055,10 +2066,10 @@ func (gs *Geoscape) renderMinimap(ctx *engine.ScreenCtx, x, y, w, h int) {
 				// Destroyed / crashing
 				if gs.DogfightVisual.Timer%4 < 2 {
 					ch = '✕'
-					style = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm11).Bold(true)
+					style = tcell.StyleDefault.Background(bg).Foreground(color.XTerm11).Bold(true)
 				} else {
 					ch = '✕'
-					style = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm9).Bold(true)
+					style = tcell.StyleDefault.Background(bg).Foreground(color.XTerm9).Bold(true)
 				}
 			}
 		}
@@ -2101,10 +2112,12 @@ func (gs *Geoscape) renderMinimap(ctx *engine.ScreenCtx, x, y, w, h int) {
 
 		// Dogfight animation effects
 		if gs.DogfightVisual != nil && gs.DogfightVisual.Active && gs.DogfightVisual.Interceptor == i {
+			_, prevStyle := ctx.Peek(sx, sy)
+			bg := prevStyle.GetBackground()
 			if gs.DogfightVisual.HitFlash > 0 {
 				// Flashing red when taking damage
 				ch = '◄'
-				style = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm9).Bold(true)
+				style = tcell.StyleDefault.Background(bg).Foreground(color.XTerm9).Bold(true)
 			} else if gs.DogfightVisual.Timer%6 < 3 {
 				ch = '►'
 				style = engine.StyleCyan
@@ -2114,7 +2127,7 @@ func (gs *Geoscape) renderMinimap(ctx *engine.ScreenCtx, x, y, w, h int) {
 			}
 			if !gs.DogfightVisual.InterAlive {
 				ch = '✕'
-				style = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm9).Bold(true)
+				style = tcell.StyleDefault.Background(bg).Foreground(color.XTerm9).Bold(true)
 			}
 		}
 		ctx.SetCell(sx, sy, ch, style)
@@ -2208,15 +2221,15 @@ func (gs *Geoscape) renderMinimap(ctx *engine.ScreenCtx, x, y, w, h int) {
 
 func (gs *Geoscape) cityStyle(c *City) (rune, tcell.Style) {
 	if gs.HasBaseAt(c.ID) != nil {
-		return '\u25C6', tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm6).Bold(true)
+		return '\u25C6', engine.StyleCyanBold
 	}
 	if c.Threat > 50 {
-		return '\u25CF', tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm9)
+		return '\u25CF', engine.StyleRed
 	}
 	if c.Threat > 0 {
-		return '\u25CB', tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm11)
+		return '\u25CB', engine.StyleYellow
 	}
-	return '\u25CB', tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm2)
+	return '\u25CB', engine.StyleGreen
 }
 
 func (gs *Geoscape) HandleKey(e *tcell.EventKey) {

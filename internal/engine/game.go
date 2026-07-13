@@ -333,6 +333,12 @@ func (g *Game) renderQuitConfirm(ctx *ScreenCtx) {
 	boxH := 7
 	x := (w - boxW) / 2
 	y := (h - boxH) / 2
+	// Fill the box with an opaque background so the screen underneath doesn't show through.
+	for fy := y; fy < y+boxH; fy++ {
+		for fx := x; fx < x+boxW; fx++ {
+			ctx.SetCell(fx, fy, ' ', StyleGray)
+		}
+	}
 	ctx.DrawPanel(x, y, boxW, boxH, "", StyleGray)
 	msg := language.String("CONFIRM_QUIT")
 	ctx.DrawString(x+(boxW-StringWidth(msg))/2, y+2, msg, StyleDefault)

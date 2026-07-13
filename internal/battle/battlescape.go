@@ -2107,7 +2107,7 @@ func (bs *Battlescape) DrawCombatStatusBar(ctx *engine.ScreenCtx, w int) {
 		style = engine.StyleCyan.Bold(true)
 	case StatusAlienOverwatch:
 		label = language.String("STATUS_ALIEN_OVERWATCH")
-		style = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.Orange).Bold(true)
+		style = engine.StyleOrange.Bold(true)
 	}
 
 	for x := 0; x < w; x++ {
@@ -2159,7 +2159,7 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 		}
 	}
 
-	blackStyle := tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm0)
+	blackStyle := engine.StyleDefault
 
 	for y := 0; y < viewH; y++ {
 		for x := 0; x < viewW; x++ {
@@ -2193,7 +2193,7 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 	}
 
 	if engine.Config.GridLines {
-		gridStyle := tcell.StyleDefault.Foreground(color.Gray).Background(color.Black)
+		gridStyle := engine.StyleDefault.Foreground(color.Gray)
 		for y := 0; y < viewH; y++ {
 			for x := 0; x < viewW; x++ {
 				mx := x + bs.ScrollX

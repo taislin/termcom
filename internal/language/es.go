@@ -155,7 +155,7 @@ func init() {
 		"MSG_RESEARCH_LOOT":      "\u00a1Instalaci\u00f3n de investigaci\u00f3n alien\u00edgena capturada! Tecnolog\u00eda alien\u00edgena recuperada.",
 
 		// Mensajes de combate
-		"MSG_ALIEN_ATTACK":         "\u00a1Ataque alien\u00edgena sobre %s! \u00a1El p\u00e1nico se extiende!",
+		"MSG_ALIEN_ATTACK":         "\u00a1Ataque de %s en %s! \u00a1El p\u00e1nico se extiende!",
 		"MSG_RESEARCH_COMPLETE":    "Investigaci\u00f3n completada: %s",
 		"MSG_MANUFACTURE_COMPLETE": "Fabricaci\u00f3n completada: %s",
 		"MSG_HIT_UFO":              "\u00a1OVNI impactado por %d de da\u00f1o!",
@@ -174,7 +174,7 @@ func init() {
 		"MSG_INTERROGATE_NO_ALIEN": "No hay alien\u00edgenas capturados disponibles para interrogar.",
 		"MSG_INTERROGATE_NO_LABS":  "Se necesita un Laboratorio para interrogar a alien\u00edgenas.",
 		"MSG_DEFEAT_LOST":          "\u00a1Derrota! Perdido: %v",
-		"MSG_ATTACK_CITY":          "\u00a1Ataque alien\u00edgena sobre %s! \u00a1El p\u00e1nico se extiende!",
+		"MSG_ATTACK_CITY":          "\u00a1Ataque de %s en %s! \u00a1El p\u00e1nico se extiende!",
 
 		// ── Batalla ────────────────────────────────────
 		"BATTLESCAPE":      "CAMPO DE BATALLA",

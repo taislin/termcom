@@ -317,7 +317,7 @@ func (os *OptionsScreen) cycleTheme(dir int) {
 		idx = 0
 	}
 	Config.Theme = themes[idx]
-	ApplyTheme(Config.Theme)
+	os.Game.screen.SetTheme(Config.Theme)
 }
 
 func (os *OptionsScreen) HandleMouse(e *tcell.EventMouse) {
