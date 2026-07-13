@@ -599,7 +599,9 @@ func (gs *Geoscape) Update() {
 		gs.Game.Funds += int64(totalFunding - totalSalary)
 		gs.Message = fmt.Sprintf(language.String("MSG_MONTHLY_REPORT"), totalFunding/1000, totalSalary/1000)
 		gs.MessageTimer = time.Now()
-		gs.SaveGameAuto()
+		if engine.Config.AutosaveEnabled {
+			gs.SaveGameAuto()
+		}
 	}
 }
 
@@ -2343,6 +2345,9 @@ func (gs *Geoscape) sendTransportToNearest() {
 }
 
 func (gs *Geoscape) HandleMouse(e *tcell.EventMouse) {
+	if !engine.Config.MouseEnabled {
+		return
+	}
 	buttons := e.Buttons()
 	if buttons == 0 {
 		return

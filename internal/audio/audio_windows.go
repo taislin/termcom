@@ -60,8 +60,12 @@ func playNote(note byte, velocity byte, channel byte, duration time.Duration) {
 		return
 	}
 	ensureMIDI()
+	vol := byte(float64(velocity) * sfxVolume)
+	if vol < 10 {
+		vol = 10
+	}
 	// Note On
-	msgOn := uint32(0x90|channel) | (uint32(note) << 8) | (uint32(velocity) << 16)
+	msgOn := uint32(0x90|channel) | (uint32(note) << 8) | (uint32(vol) << 16)
 	sendMIDI(msgOn)
 
 	// Note Off

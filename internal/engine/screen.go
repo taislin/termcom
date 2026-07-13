@@ -201,3 +201,35 @@ var StyleOrange = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.O
 var StyleCyanBold = StyleCyan.Bold(true)
 var StyleRedBold = StyleRed.Bold(true)
 var StyleHotkey = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.Orange)
+
+func ApplyTheme(hc bool) {
+	if hc {
+		StyleDefault = tcell.StyleDefault.Background(color.Black).Foreground(color.White).Bold(true)
+		StyleHighlight = tcell.StyleDefault.Background(color.White).Foreground(color.Black).Bold(true)
+		StyleRed = tcell.StyleDefault.Background(color.Black).Foreground(color.Red).Bold(true)
+		StyleGreen = tcell.StyleDefault.Background(color.Black).Foreground(color.Lime).Bold(true)
+		StyleBlue = tcell.StyleDefault.Background(color.Black).Foreground(color.Navy).Bold(true)
+		StyleYellow = tcell.StyleDefault.Background(color.Black).Foreground(color.Yellow).Bold(true)
+		StyleCyan = tcell.StyleDefault.Background(color.Black).Foreground(color.Aqua).Bold(true)
+		StyleMagenta = tcell.StyleDefault.Background(color.Black).Foreground(color.Fuchsia).Bold(true)
+		StyleGray = tcell.StyleDefault.Background(color.Black).Foreground(color.Silver).Bold(true)
+		StyleOrange = tcell.StyleDefault.Background(color.Black).Foreground(color.Orange).Bold(true)
+		StyleCyanBold = StyleCyan
+		StyleRedBold = StyleRed
+		StyleHotkey = tcell.StyleDefault.Background(color.Black).Foreground(color.Orange).Bold(true)
+	} else {
+		StyleDefault = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm15)
+		StyleHighlight = tcell.StyleDefault.Background(color.DarkBlue).Foreground(color.XTerm15)
+		StyleRed = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm9)
+		StyleGreen = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm2)
+		StyleBlue = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm12)
+		StyleYellow = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm11)
+		StyleCyan = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm6)
+		StyleMagenta = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm13)
+		StyleGray = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm8)
+		StyleOrange = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.Orange)
+		StyleCyanBold = StyleCyan.Bold(true)
+		StyleRedBold = StyleRed.Bold(true)
+		StyleHotkey = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.Orange)
+	}
+}

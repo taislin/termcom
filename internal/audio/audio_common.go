@@ -1,6 +1,21 @@
 package audio
 
 var audioDisabled bool
+var sfxVolume float64 = 1.0
+
+func SetAudioEnabled(enabled bool) {
+	audioDisabled = !enabled
+}
+
+func SetSfxVolume(vol int) {
+	if vol < 0 {
+		vol = 0
+	}
+	if vol > 10 {
+		vol = 10
+	}
+	sfxVolume = float64(vol) / 10.0
+}
 
 func PlayWeaponFire(weapon string) {
 	if audioDisabled {

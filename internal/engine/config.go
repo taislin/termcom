@@ -5,21 +5,36 @@ import (
 	"log"
 	"os"
 
+	"github.com/civ13/termcom/internal/audio"
 	"github.com/civ13/termcom/internal/language"
 )
 
 type GlobalConfig struct {
-	BloomEnabled      bool   `json:"bloom_enabled"`
-	DistortionEnabled bool   `json:"distortion_enabled"`
-	LightingEnabled   bool   `json:"lighting_enabled"`
-	Language          string `json:"language"`
+	BloomEnabled    bool   `json:"bloom_enabled"`
+	LightingEnabled bool   `json:"lighting_enabled"`
+	SoundEnabled    bool   `json:"sound_enabled"`
+	AutosaveEnabled bool   `json:"autosave_enabled"`
+	ScreenShake     bool   `json:"screen_shake"`
+	MouseEnabled    bool   `json:"mouse_enabled"`
+	GridLines       bool   `json:"grid_lines"`
+	HighContrast    bool   `json:"high_contrast"`
+	ActionDelay     int    `json:"action_delay"`
+	SfxVolume       int    `json:"sfx_volume"`
+	Language        string `json:"language"`
 }
 
 var Config = GlobalConfig{
-	BloomEnabled:      true,
-	DistortionEnabled: false,
-	LightingEnabled:   true,
-	Language:          "en",
+	BloomEnabled:    true,
+	LightingEnabled: true,
+	SoundEnabled:    true,
+	AutosaveEnabled: true,
+	ScreenShake:     true,
+	MouseEnabled:    true,
+	GridLines:       false,
+	HighContrast:    false,
+	ActionDelay:     8,
+	SfxVolume:       10,
+	Language:        "en",
 }
 
 const ConfigFile = "config.json"
@@ -36,6 +51,9 @@ func LoadConfig() {
 	if Config.Language != "" {
 		language.SetLanguage(Config.Language)
 	}
+	audio.SetAudioEnabled(Config.SoundEnabled)
+	audio.SetSfxVolume(Config.SfxVolume)
+	ApplyTheme(Config.HighContrast)
 }
 
 func SaveConfig() {

@@ -115,7 +115,7 @@ func NewGame() (*Game, error) {
 		keyChan:        make(chan tcell.Event, 20),
 		eventDone:      make(chan struct{}),
 		AlienKnowledge: make(map[string]int),
-		ActionDelay:    8,
+		ActionDelay:    Config.ActionDelay,
 	}
 	g.initSpecies()
 	return g, nil
@@ -211,10 +211,6 @@ func (g *Game) Run() {
 		ctx := &ScreenCtx{g.screen}
 		if sc, ok := g.screens[g.state]; ok {
 			sc.Render(ctx)
-		}
-
-		if Config.DistortionEnabled {
-			ApplyDistortion(g.screen, g.screen.FrameBuffer(), float64(g.FrameCount))
 		}
 
 		g.screen.Flush()

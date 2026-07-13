@@ -9,18 +9,63 @@ import (
 	"github.com/gdamore/tcell/v3/color"
 )
 
-type flagGrid [3][3]color.Color
+type flagCell struct {
+	Ch   rune
+	Fg   color.Color
+	Bg   color.Color
+	BgOk bool
+}
+
+type flagGrid [3][6]flagCell
+
+func fc(fg color.Color) flagCell {
+	return flagCell{Ch: '█', Fg: fg}
+}
+
+func fcb(ch rune, fg, bg color.Color) flagCell {
+	return flagCell{Ch: ch, Fg: fg, Bg: bg, BgOk: true}
+}
 
 var langFlags = map[string]flagGrid{
 	"en": {
-		{color.XTerm9, color.XTerm15, color.XTerm9},
-		{color.XTerm15, color.XTerm9, color.XTerm15},
-		{color.XTerm9, color.XTerm15, color.XTerm9},
+		{fc(color.XTerm15), fc(color.XTerm15), fc(color.XTerm9), fc(color.XTerm9), fc(color.XTerm15), fc(color.XTerm15)},
+		{fc(color.XTerm9), fc(color.XTerm9), fc(color.XTerm9), fc(color.XTerm9), fc(color.XTerm9), fc(color.XTerm9)},
+		{fc(color.XTerm15), fc(color.XTerm15), fc(color.XTerm9), fc(color.XTerm9), fc(color.XTerm15), fc(color.XTerm15)},
 	},
 	"zh": {
-		{color.XTerm9, color.XTerm9, color.XTerm9},
-		{color.XTerm9, color.XTerm11, color.XTerm9},
-		{color.XTerm9, color.XTerm9, color.XTerm9},
+		{fc(color.XTerm9), fc(color.XTerm9), fc(color.XTerm9), fc(color.XTerm9), fc(color.XTerm9), fc(color.XTerm9)},
+		{fc(color.XTerm9), fc(color.XTerm9), fc(color.XTerm11), fc(color.XTerm9), fc(color.XTerm9), fc(color.XTerm9)},
+		{fc(color.XTerm9), fc(color.XTerm9), fc(color.XTerm9), fc(color.XTerm9), fc(color.XTerm9), fc(color.XTerm9)},
+	},
+	"es": {
+		{fc(color.XTerm9), fc(color.XTerm9), fc(color.XTerm9), fc(color.XTerm9), fc(color.XTerm9), fc(color.XTerm9)},
+		{fc(color.XTerm11), fc(color.XTerm11), fc(color.XTerm11), fc(color.XTerm11), fc(color.XTerm11), fc(color.XTerm11)},
+		{fc(color.XTerm9), fc(color.XTerm9), fc(color.XTerm9), fc(color.XTerm9), fc(color.XTerm9), fc(color.XTerm9)},
+	},
+	"fr": {
+		{fc(color.XTerm4), fc(color.XTerm4), fc(color.XTerm15), fc(color.XTerm15), fc(color.XTerm9), fc(color.XTerm9)},
+		{fc(color.XTerm4), fc(color.XTerm4), fc(color.XTerm15), fc(color.XTerm15), fc(color.XTerm9), fc(color.XTerm9)},
+		{fc(color.XTerm4), fc(color.XTerm4), fc(color.XTerm15), fc(color.XTerm15), fc(color.XTerm9), fc(color.XTerm9)},
+	},
+	"ru": {
+		{fc(color.XTerm15), fc(color.XTerm15), fc(color.XTerm15), fc(color.XTerm15), fc(color.XTerm15), fc(color.XTerm15)},
+		{fc(color.XTerm4), fc(color.XTerm4), fc(color.XTerm4), fc(color.XTerm4), fc(color.XTerm4), fc(color.XTerm4)},
+		{fc(color.XTerm9), fc(color.XTerm9), fc(color.XTerm9), fc(color.XTerm9), fc(color.XTerm9), fc(color.XTerm9)},
+	},
+	"pt": {
+		{fc(color.XTerm2), fc(color.XTerm2), fc(color.XTerm9), fc(color.XTerm9), fc(color.XTerm9), fc(color.XTerm9)},
+		{fc(color.XTerm2), fc(color.XTerm2), fc(color.XTerm11), fc(color.XTerm9), fc(color.XTerm9), fc(color.XTerm9)},
+		{fc(color.XTerm2), fc(color.XTerm2), fc(color.XTerm9), fc(color.XTerm9), fc(color.XTerm9), fc(color.XTerm9)},
+	},
+	"ja": {
+		{fcb('█', color.XTerm15, color.XTerm15), fcb('█', color.XTerm15, color.XTerm15), fcb('█', color.XTerm15, color.XTerm15), fcb('█', color.XTerm15, color.XTerm15), fcb('█', color.XTerm15, color.XTerm15), fcb('█', color.XTerm15, color.XTerm15)},
+		{fcb('█', color.XTerm15, color.XTerm15), fcb('█', color.XTerm15, color.XTerm15), fcb('●', color.XTerm9, color.XTerm15), fcb('█', color.XTerm15, color.XTerm15), fcb('█', color.XTerm15, color.XTerm15), fcb('█', color.XTerm15, color.XTerm15)},
+		{fcb('█', color.XTerm15, color.XTerm15), fcb('█', color.XTerm15, color.XTerm15), fcb('█', color.XTerm15, color.XTerm15), fcb('█', color.XTerm15, color.XTerm15), fcb('█', color.XTerm15, color.XTerm15), fcb('█', color.XTerm15, color.XTerm15)},
+	},
+	"ko": {
+		{fcb('█', color.XTerm15, color.XTerm15), fcb('/', color.XTerm0, color.XTerm15), fcb('█', color.XTerm15, color.XTerm15), fcb('█', color.XTerm15, color.XTerm15), fcb('\\', color.XTerm0, color.XTerm15), fcb('█', color.XTerm15, color.XTerm15)},
+		{fcb('█', color.XTerm15, color.XTerm15), fcb('█', color.XTerm15, color.XTerm15), fcb('▀', color.XTerm9, color.XTerm12), fcb('▄', color.XTerm9, color.XTerm12), fcb('█', color.XTerm15, color.XTerm15), fcb('█', color.XTerm15, color.XTerm15)},
+		{fcb('█', color.XTerm15, color.XTerm15), fcb('\\', color.XTerm0, color.XTerm15), fcb('█', color.XTerm15, color.XTerm15), fcb('█', color.XTerm15, color.XTerm15), fcb('/', color.XTerm0, color.XTerm15), fcb('█', color.XTerm15, color.XTerm15)},
 	},
 }
 
@@ -30,9 +75,13 @@ func drawFlag(ctx *ScreenCtx, x, y int, code string) {
 		return
 	}
 	for dy := 0; dy < 3; dy++ {
-		for dx := 0; dx < 3; dx++ {
-			style := tcell.StyleDefault.Foreground(f[dy][dx])
-			ctx.SetCell(x+dx, y+dy, '█', style)
+		for dx := 0; dx < 6; dx++ {
+			cell := f[dy][dx]
+			style := tcell.StyleDefault.Foreground(cell.Fg)
+			if cell.BgOk {
+				style = style.Background(cell.Bg)
+			}
+			ctx.SetCell(x+dx, y+dy, cell.Ch, style)
 		}
 	}
 }
@@ -50,67 +99,77 @@ func (os *OptionsScreen) Render(ctx *ScreenCtx) {
 	w, h := ctx.Size()
 	ctx.DrawPanel(0, 0, w, h, language.String("OPTIONS_TITLE"), StyleDefault)
 
+	const (
+		speedIdx = 8
+		volIdx   = 9
+		langIdx  = 10
+	)
+	startY := h/2 - 5
+	baseX := w/2 - 15
+
+	// Bool toggles
 	boolOpts := []struct {
 		Label string
 		Value *bool
 	}{
 		{language.String("OPTIONS_BLOOM"), &Config.BloomEnabled},
-		{language.String("OPTIONS_DISTORTION"), &Config.DistortionEnabled},
 		{language.String("OPTIONS_LIGHTING"), &Config.LightingEnabled},
+		{language.String("OPTIONS_SOUND"), &Config.SoundEnabled},
+		{language.String("OPTIONS_AUTOSAVE"), &Config.AutosaveEnabled},
+		{language.String("OPTIONS_SHAKE"), &Config.ScreenShake},
+		{language.String("OPTIONS_MOUSE"), &Config.MouseEnabled},
+		{language.String("OPTIONS_GRID"), &Config.GridLines},
+		{language.String("OPTIONS_HIGH_CONTRAST"), &Config.HighContrast},
 	}
-
 	for i, opt := range boolOpts {
 		style := StyleDefault
 		if i == os.Selection {
 			style = StyleHighlight
 		}
-
 		status := language.String("OPTIONS_OFF")
 		if *opt.Value {
 			status = language.String("OPTIONS_ON")
 		}
-
-		line := fmt.Sprintf("[%s] %s", status, opt.Label)
-		ctx.DrawString(w/2-15, h/2-4+i, line, style)
+		ctx.DrawString(baseX, startY+i, fmt.Sprintf("[%s] %s", status, opt.Label), style)
 	}
 
-	// Resolution speed option (int slider)
-	speedIdx := len(boolOpts)
+	// Speed slider
 	speedStyle := StyleDefault
 	if os.Selection == speedIdx {
 		speedStyle = StyleHighlight
 	}
-	speed := os.Game.ActionDelay
-	line := fmt.Sprintf("%s: %d", language.String("OPTIONS_RESOLUTION_SPEED"), speed)
-	ctx.DrawString(w/2-15, h/2-4+speedIdx, line, speedStyle)
+	ctx.DrawString(baseX, startY+speedIdx, fmt.Sprintf("%s: %d", language.String("OPTIONS_RESOLUTION_SPEED"), Config.ActionDelay), speedStyle)
 
-	// Language option
-	langY := h/2 - 4 + speedIdx + 1
+	// Volume slider
+	volStyle := StyleDefault
+	if os.Selection == volIdx {
+		volStyle = StyleHighlight
+	}
+	ctx.DrawString(baseX, startY+volIdx, fmt.Sprintf("%s: %d", language.String("OPTIONS_VOLUME"), Config.SfxVolume), volStyle)
+
+	// Language with flag
 	langStyle := StyleDefault
-	if os.Selection == speedIdx+1 {
+	if os.Selection == langIdx {
 		langStyle = StyleHighlight
 	}
 	langs := language.Available()
-	langIdx := 0
+	li := 0
 	for i, l := range langs {
 		if l == language.Current() {
-			langIdx = i
+			li = i
 			break
 		}
 	}
-	flagX := w/2 - 15
-	flagY := langY + 1
-	drawFlag(ctx, flagX, flagY, language.Current())
-	line = fmt.Sprintf("  %s: [%s]", language.String("OPTIONS_LANGUAGE"), langs[langIdx])
-	ctx.DrawString(flagX+4, flagY+1, line, langStyle)
+	flagY := startY + langIdx
+	drawFlag(ctx, baseX, flagY, language.Current())
+	ctx.DrawString(baseX+7, flagY+1, fmt.Sprintf("  %s: [%s]", language.String("OPTIONS_LANGUAGE"), langs[li]), langStyle)
 
 	ctx.DrawPanel(0, h-1, w, 1, "", StyleGray)
 	ctx.DrawMarkupString(1, h-1, "[\u2190]/[\u2192]=Adjust  [\u2191]/[\u2193]=Select  Enter=Toggle  [Esc]=Back", StyleGray, StyleHotkey)
 }
 
 func (os *OptionsScreen) HandleKey(e *tcell.EventKey) {
-	speedIdx := 3 // 3 bool toggles precede the speed option
-	totalOptions := 5
+	const totalOptions = 11
 	switch e.Key() {
 	case tcell.KeyUp:
 		audio.PlayMenuNav()
@@ -129,22 +188,38 @@ func (os *OptionsScreen) HandleKey(e *tcell.EventKey) {
 		os.toggle()
 	case tcell.KeyLeft:
 		audio.PlayMenuNav()
-		if os.Selection == speedIdx {
-			os.Game.ActionDelay--
-			if os.Game.ActionDelay < 1 {
-				os.Game.ActionDelay = 1
+		switch os.Selection {
+		case 8:
+			Config.ActionDelay--
+			if Config.ActionDelay < 1 {
+				Config.ActionDelay = 1
 			}
-		} else if os.Selection == speedIdx+1 {
+			os.Game.ActionDelay = Config.ActionDelay
+		case 9:
+			Config.SfxVolume--
+			if Config.SfxVolume < 0 {
+				Config.SfxVolume = 0
+			}
+			audio.SetSfxVolume(Config.SfxVolume)
+		case 10:
 			os.cycleLang(-1)
 		}
 	case tcell.KeyRight:
 		audio.PlayMenuNav()
-		if os.Selection == speedIdx {
-			os.Game.ActionDelay++
-			if os.Game.ActionDelay > 20 {
-				os.Game.ActionDelay = 20
+		switch os.Selection {
+		case 8:
+			Config.ActionDelay++
+			if Config.ActionDelay > 20 {
+				Config.ActionDelay = 20
 			}
-		} else if os.Selection == speedIdx+1 {
+			os.Game.ActionDelay = Config.ActionDelay
+		case 9:
+			Config.SfxVolume++
+			if Config.SfxVolume > 10 {
+				Config.SfxVolume = 10
+			}
+			audio.SetSfxVolume(Config.SfxVolume)
+		case 10:
 			os.cycleLang(1)
 		}
 	case tcell.KeyEsc:
@@ -158,11 +233,21 @@ func (os *OptionsScreen) toggle() {
 	case 0:
 		Config.BloomEnabled = !Config.BloomEnabled
 	case 1:
-		Config.DistortionEnabled = !Config.DistortionEnabled
-	case 2:
 		Config.LightingEnabled = !Config.LightingEnabled
+	case 2:
+		Config.SoundEnabled = !Config.SoundEnabled
+		audio.SetAudioEnabled(Config.SoundEnabled)
+	case 3:
+		Config.AutosaveEnabled = !Config.AutosaveEnabled
 	case 4:
-		os.cycleLang(1)
+		Config.ScreenShake = !Config.ScreenShake
+	case 5:
+		Config.MouseEnabled = !Config.MouseEnabled
+	case 6:
+		Config.GridLines = !Config.GridLines
+	case 7:
+		Config.HighContrast = !Config.HighContrast
+		ApplyTheme(Config.HighContrast)
 	}
 }
 

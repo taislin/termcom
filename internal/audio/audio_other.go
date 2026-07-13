@@ -106,8 +106,12 @@ func playPCM(samples []float32) {
 	if mixer == nil {
 		return
 	}
+	scaled := make([]float32, len(samples))
+	for i, s := range samples {
+		scaled[i] = s * float32(sfxVolume)
+	}
 	mixer.mu.Lock()
-	mixer.buffers = append(mixer.buffers, samples)
+	mixer.buffers = append(mixer.buffers, scaled)
 	mixer.mu.Unlock()
 }
 

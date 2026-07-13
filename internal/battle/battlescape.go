@@ -713,7 +713,9 @@ func (bs *Battlescape) executeAlienAction(action AlienAction) {
 		engine.SpawnMuzzleFlash(bs.Particles, action.Unit.X-bs.ScrollX+1, action.Unit.Y-bs.ScrollY+1)
 		if hit {
 			engine.SpawnExplosion(bs.Particles, action.Target.X-bs.ScrollX+1, action.Target.Y-bs.ScrollY+1, tcell.NewRGBColor(255, 80, 30), 8)
-			bs.Camera.TriggerShake(0.5)
+			if engine.Config.ScreenShake {
+				bs.Camera.TriggerShake(0.5)
+			}
 			bs.SpawnBloodSplatter(action.Target)
 			name := action.Target.Name()
 			bs.AddMessage(fmt.Sprintf(language.String("MSG_ALIEN_HIT"), name, damage))
@@ -762,7 +764,9 @@ func (bs *Battlescape) executeAlienAction(action AlienAction) {
 		}
 		audio.PlayLaserFire()
 		engine.SpawnExplosion(bs.Particles, action.Target.X-bs.ScrollX+1, action.Target.Y-bs.ScrollY+1, tcell.NewRGBColor(120, 0, 200), 12)
-		bs.Camera.TriggerShake(0.3)
+		if engine.Config.ScreenShake {
+			bs.Camera.TriggerShake(0.3)
+		}
 		attackerPsi := 0
 		if action.Unit.AlienType != nil {
 			attackerPsi = action.Unit.AlienType.Psi
@@ -842,7 +846,9 @@ func (bs *Battlescape) checkHumanReactionFire(movedAlien *Unit) {
 		}
 		if hit {
 			engine.SpawnExplosion(bs.Particles, movedAlien.X-bs.ScrollX+1, movedAlien.Y-bs.ScrollY+1, tcell.NewRGBColor(255, 80, 30), 8)
-			bs.Camera.TriggerShake(0.3)
+			if engine.Config.ScreenShake {
+				bs.Camera.TriggerShake(0.3)
+			}
 			bs.SpawnBloodSplatter(movedAlien)
 			bs.AddMessage(fmt.Sprintf(language.String("MSG_REACTION_HIT"), damage, movedAlien.Name(), movedAlien.HP))
 			if !movedAlien.Alive {
@@ -904,7 +910,9 @@ func (bs *Battlescape) checkAlienReactionFire(movedHuman *Unit) {
 		}
 		if hit {
 			engine.SpawnExplosion(bs.Particles, movedHuman.X-bs.ScrollX+1, movedHuman.Y-bs.ScrollY+1, tcell.NewRGBColor(255, 80, 30), 8)
-			bs.Camera.TriggerShake(0.3)
+			if engine.Config.ScreenShake {
+				bs.Camera.TriggerShake(0.3)
+			}
 			bs.SpawnBloodSplatter(movedHuman)
 			bs.AddMessage(fmt.Sprintf(language.String("MSG_REACTION_HIT"), damage, movedHuman.Name(), movedHuman.HP))
 			if !movedHuman.Alive {
@@ -1564,7 +1572,9 @@ func (bs *Battlescape) FireWeapon() {
 	if hit {
 		audio.PlayHit()
 		engine.SpawnExplosion(bs.Particles, target.X-bs.ScrollX+1, target.Y-bs.ScrollY+1, tcell.NewRGBColor(255, 80, 30), 8)
-		bs.Camera.TriggerShake(0.5)
+		if engine.Config.ScreenShake {
+			bs.Camera.TriggerShake(0.5)
+		}
 		bs.SpawnBloodSplatter(target)
 		w := data.RuleItems[bs.Selected.Weapon]
 		if w.Type == "plasma" || w.Type == "explosive" {
@@ -1933,7 +1943,9 @@ func (bs *Battlescape) Grenade() {
 	audio.PlayGrenade()
 	bs.AddMessage(fmt.Sprintf(language.String("MSG_GRENADE_DETONATED"), ax, ay))
 
-	bs.Camera.TriggerShake(3.0)
+	if engine.Config.ScreenShake {
+		bs.Camera.TriggerShake(3.0)
+	}
 	engine.SpawnExplosion(bs.Particles, ax-bs.ScrollX+1, ay-bs.ScrollY+1, tcell.NewRGBColor(255, 180, 50), 24)
 	engine.SpawnSmoke(bs.Particles, ax-bs.ScrollX+1, ay-bs.ScrollY+1, 8)
 }
@@ -2039,7 +2051,9 @@ func (bs *Battlescape) PsiAttack() {
 	success := rand.Intn(100) < successChance
 
 	if success {
-		bs.Camera.TriggerShake(0.3)
+		if engine.Config.ScreenShake {
+			bs.Camera.TriggerShake(0.3)
+		}
 		engine.SpawnExplosion(bs.Particles, target.X-bs.ScrollX+1, target.Y-bs.ScrollY+1, tcell.NewRGBColor(120, 0, 200), 12)
 		target.TU = 0
 		target.Panicked = true
@@ -2143,6 +2157,19 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 
 			style = bs.ApplyCursorStyles(mx, my, style)
 			ctx.SetCell(x+1, y+1, ch, style)
+		}
+	}
+
+	if engine.Config.GridLines {
+		gridStyle := tcell.StyleDefault.Foreground(color.Gray).Background(color.Black)
+		for y := 0; y < viewH; y++ {
+			for x := 0; x < viewW; x++ {
+				mx := x + bs.ScrollX
+				my := y + bs.ScrollY
+				if mx%4 == 0 && my%4 == 0 {
+					ctx.SetCell(x+1, y+1, '·', gridStyle)
+				}
+			}
 		}
 	}
 
@@ -2544,6 +2571,9 @@ func (bs *Battlescape) ToggleVision() {
 }
 
 func (bs *Battlescape) HandleMouse(e *tcell.EventMouse) {
+	if !engine.Config.MouseEnabled {
+		return
+	}
 	bs.HandleEvent(e)
 }
 
