@@ -4,7 +4,7 @@ func init() {
 	register("en", map[string]string{
 		// ── Menu ──────────────────────────────────────────
 		"MENU_TITLE":     "T U R N   B A S E D   T A C T I C S",
-		"MENU_SUBTITLE":  "v0.27",
+		"MENU_SUBTITLE":  "v0.33",
 		"MENU_NEW_GAME":  "New Game",
 		"MENU_CONTINUE":  "Continue",
 		"MENU_LOAD_GAME": "Load Game",
@@ -54,7 +54,7 @@ func init() {
 		"TRANSFER_SOLDIERS":             "SOLDIERS ([Space]=Move):",
 		"TRANSFER_ITEMS":                "ITEMS ([Enter]=Move):",
 		"HELP_TRANSFER":                 "[\u2191]/[\u2193]=Nav  [Tab]=Dest  [Space]=Soldier  [Enter]=Item  [Esc]=Back",
-		"GEO_HEADER_REGION":             " REGION          THREAT  RADAR  SQD  STATUS",
+		"GEO_HEADER_REGION":             " REGION             THREAT  RADAR  SQD  STATUS",
 		"GEO_RADAR_ON":                  " R ",
 		"GEO_RADAR_OFF":                 " - ",
 		"GEO_STATUS_MISSION":            "MISSION",
@@ -655,6 +655,7 @@ func init() {
 		"OPTIONS_HIGH_CONTRAST":    "High Contrast",
 		"OPTIONS_THEME":            "Theme",
 		"OPTIONS_CONFIRM":          "Confirm Dialogs",
+		"OPTIONS_PAUSE_ALIEN":      "Pause on Alien",
 		"OPTIONS_VOLUME":           "SFX Volume",
 		"OPTIONS_RESOLUTION_SPEED": "Resolution Speed",
 		"OPTIONS_ON":               "ON ",

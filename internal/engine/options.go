@@ -100,10 +100,10 @@ func (os *OptionsScreen) Render(ctx *ScreenCtx) {
 	ctx.DrawPanel(0, 0, w, h, language.String("OPTIONS_TITLE"), StyleDefault)
 
 	const (
-		themeIdx = 8
-		speedIdx = 9
-		volIdx   = 10
-		langIdx  = 11
+		themeIdx = 9
+		speedIdx = 10
+		volIdx   = 11
+		langIdx  = 12
 	)
 	startY := h/2 - 5
 	baseX := w/2 - 15
@@ -121,6 +121,7 @@ func (os *OptionsScreen) Render(ctx *ScreenCtx) {
 		{language.String("OPTIONS_MOUSE"), &Config.MouseEnabled},
 		{language.String("OPTIONS_GRID"), &Config.GridLines},
 		{language.String("OPTIONS_CONFIRM"), &Config.ConfirmDialogs},
+		{language.String("OPTIONS_PAUSE_ALIEN"), &Config.PauseOnAlienDetect},
 	}
 	for i, opt := range boolOpts {
 		style := StyleDefault
@@ -181,7 +182,7 @@ func (os *OptionsScreen) Render(ctx *ScreenCtx) {
 }
 
 func (os *OptionsScreen) HandleKey(e *tcell.EventKey) {
-	const totalOptions = 12
+	const totalOptions = 13
 	switch e.Key() {
 	case tcell.KeyUp:
 		audio.PlayMenuNav()
@@ -201,41 +202,41 @@ func (os *OptionsScreen) HandleKey(e *tcell.EventKey) {
 	case tcell.KeyLeft:
 		audio.PlayMenuNav()
 		switch os.Selection {
-		case 8:
-			os.cycleTheme(-1)
 		case 9:
+			os.cycleTheme(-1)
+		case 10:
 			Config.ActionDelay--
 			if Config.ActionDelay < 1 {
 				Config.ActionDelay = 1
 			}
 			os.Game.ActionDelay = Config.ActionDelay
-		case 10:
+		case 11:
 			Config.SfxVolume--
 			if Config.SfxVolume < 0 {
 				Config.SfxVolume = 0
 			}
 			audio.SetSfxVolume(Config.SfxVolume)
-		case 11:
+		case 12:
 			os.cycleLang(-1)
 		}
 	case tcell.KeyRight:
 		audio.PlayMenuNav()
 		switch os.Selection {
-		case 8:
-			os.cycleTheme(1)
 		case 9:
+			os.cycleTheme(1)
+		case 10:
 			Config.ActionDelay++
 			if Config.ActionDelay > 20 {
 				Config.ActionDelay = 20
 			}
 			os.Game.ActionDelay = Config.ActionDelay
-		case 10:
+		case 11:
 			Config.SfxVolume++
 			if Config.SfxVolume > 10 {
 				Config.SfxVolume = 10
 			}
 			audio.SetSfxVolume(Config.SfxVolume)
-		case 11:
+		case 12:
 			os.cycleLang(1)
 		}
 	case tcell.KeyEsc:
@@ -264,6 +265,8 @@ func (os *OptionsScreen) toggle() {
 	case 7:
 		Config.ConfirmDialogs = !Config.ConfirmDialogs
 	case 8:
+		Config.PauseOnAlienDetect = !Config.PauseOnAlienDetect
+	case 9:
 		os.cycleTheme(1)
 	}
 }

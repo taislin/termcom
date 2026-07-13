@@ -6,19 +6,19 @@ func init() {
 	register("pt", map[string]string{
 		// ── Menu ──────────────────────────────────────────
 		"MENU_TITLE":          "T \u00c1 C T I C A S   B A S E A D A S   E M   T U R N O S",
-		"MENU_SUBTITLE":       "v0.27",
+		"MENU_SUBTITLE":       "v0.33",
 		"MENU_NEW_GAME":       "Novo Jogo",
 		"MENU_CONTINUE":       "Continuar",
 		"MENU_LOAD_GAME":      "Carregar Jogo",
 		"MENU_QUIT":           "Sair",
 		"MENU_OPTIONS":        "Op\u00e7\u00f5es",
 		"MENU_CUSTOM_BATTLE":  "Batalha Personalizada",
-		"MENU_HELP":           "\u2191/\u2193=Selecionar  Enter=Confirmar  Q=Sair  F5=Guardar  F9=Carregar",
+		"MENU_HELP":      "[\u2191]/[\u2193]=Selecionar  [Enter]=Confirmar  [Q]=Sair  [F5]=Guardar  [F9]=Carregar",
 
 		// ── Difficulty ─────────────────────────────────────
 		"DIFFICULTY_TITLE":    "SELECIONAR DIFICULDADE",
 		"DIFFICULTY_PROMPT":   "Escolha o n\u00edvel de desafio:",
-		"HELP_DIFFICULTY":     "\u2191/\u2193=Selecionar  Enter=Confirmar",
+		"HELP_DIFFICULTY":     "[\u2191]/[\u2193]=Selecionar  [Enter]=Confirmar",
 
 		// ── Geoscape ──────────────────────────────────────
 		"GEOSCAPE":              "GEOSCAPETO",
@@ -29,8 +29,8 @@ func init() {
 		"GEOSCAPE_SQUAD":        "Esquadr\u00e3o: %d",
 		"GEOSCAPE_ACTIVITY":     "Atividade Aliens: %d%%",
 		"GEOSCAPE_MISSIONS":     "Miss\u00f5es: %d Ativas, %d Ganhas",
-		"GEOSCAPE_HELP":         "[B]ase  [L]an\u00e7ar  [A]utoresolver  [M]iss\u00e3o  [R]ecolher  Espa\u00e7o=Pausar  1-4=Velocidade  Q=Sair",
-		"GEOSCAPE_VICTORY":      "VIT\u00d3RIA ALCAN\u00c7ADA!  Q=Sair",
+		"GEOSCAPE_HELP":         "[B]ase  [L]an\u00e7ar  [A]utoresolver  [M]iss\u00e3o  [R]ecolher  [Espa\u00e7o]=Pausar  [1-4]=Velocidade  [Q]=Sair",
+		"GEOSCAPE_VICTORY":      "VIT\u00d3RIA ALCAN\u00c7ADA!  [Q]=Sair",
 		"GEOSCAPE_TIME_PAUSED":  "TEMPO PAUSADO",
 		"GEOSCAPE_TIME_RUNNING": "TEMPO EM EXECU\u00c7\u00c3O (Velocidade %dx)",
 		"GEOSCAPE_TIME_SPEED":   "Velocidade do tempo: %dx",
@@ -52,11 +52,11 @@ func init() {
 
 		"TRANSFER_TITLE":                "TRANSFER\u00caNCIA",
 		"TRANSFER_FROM":                 "DE: %s",
-		"TRANSFER_TO":                   "PARA: %s  [Cima/Baixo=Selecionar Destino]",
-		"TRANSFER_SOLDIERS":             "SOLDADOS (Espa\u00e7o=Mover):",
-		"TRANSFER_ITEMS":                "ITENS (Enter=Mover):",
-		"HELP_TRANSFER":                 "[\u2191]/[\u2193]=Navegar  [Tab]=Destino  Espa\u00e7o=Soldado  Enter=Item  [Esc]=Voltar",
-		"GEO_HEADER_REGION":             " REGI\u00c3O          AMEA\u00c7A  RADAR  ESQ  ESTADO",
+		"TRANSFER_TO":                   "PARA: %s  [[Cima]/[Baixo]=Selecionar Destino]",
+		"TRANSFER_SOLDIERS":             "SOLDADOS ([Espa\u00e7o]=Mover):",
+		"TRANSFER_ITEMS":                "ITENS ([Enter]=Mover):",
+		"HELP_TRANSFER":                 "[\u2191]/[\u2193]=Navegar  [Tab]=Destino  [Espa\u00e7o]=Soldado  [Enter]=Item  [Esc]=Voltar",
+		"GEO_HEADER_REGION":             " REGI\u00c3O             AMEA\u00c7A  RADAR  ESQ  ESTADO",
 		"GEO_RADAR_ON":                  " R ",
 		"GEO_RADAR_OFF":                 " - ",
 		"GEO_STATUS_MISSION":            "MISS\u00c3O",
@@ -190,7 +190,7 @@ func init() {
 		"SIDE_POS":         "[%d,%d]",
 		"SIDE_CROUCH":      "Agachado",
 		"SIDE_NONE":        "(nenhum)",
-		"BATTLE_HELP":      " Setas/WSAD=Mover Espa\u00e7o/Enter=Agir q=Circular f=Disparar r=Recarregar g=Granada m=Kit m\u00e9dico p=Psi e=Terminar c=Agachar",
+		"BATTLE_HELP":      " [Setas]/[WSAD]=Mover [Espa\u00e7o]/[Enter]=Agir [q]=Circular [f]=Disparar [r]=Recarregar [g]=Granada [m]=Kit m\u00e9dico [p]=Psi [e]=Terminar [c]=Agachar",
 
 		// Phases
 		"PHASE_YOUR_TURN":  "O SEU TURNO",
@@ -657,6 +657,7 @@ func init() {
 		"OPTIONS_HIGH_CONTRAST":    "Alto Contraste",
 		"OPTIONS_THEME":            "Tema",
 		"OPTIONS_CONFIRM":          "Caixas de Confirmação",
+		"OPTIONS_PAUSE_ALIEN":      "Pausar ao detectar",
 		"CONFIRM_QUIT":             "TEM A CERTEZA QUE QUER SAIR?",
 		"CONFIRM_QUIT_HINT":        "Y = Sim   N = Não",
 		"OPTIONS_VOLUME":           "Volume SFX",

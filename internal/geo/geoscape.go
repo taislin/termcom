@@ -408,6 +408,9 @@ func (gs *Geoscape) Update() {
 				gs.Message = fmt.Sprintf(language.String("MSG_UFO_DETECTED"), ufo.Type.Name, cityName)
 				gs.MessageTimer = time.Now()
 				audio.PlayAlert()
+				if engine.Config.PauseOnAlienDetect {
+					gs.Game.Paused = true
+				}
 			}
 		}
 
@@ -1912,7 +1915,7 @@ func (gs *Geoscape) renderMinimap(ctx *engine.ScreenCtx, x, y, w, h int) {
 				style = engine.StyleDefault
 			} else {
 				ch = '░'
-				style = engine.StyleGray
+				style = engine.StyleWater
 			}
 
 			// Night side: darken with a blue tint

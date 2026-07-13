@@ -197,6 +197,7 @@ var StyleCyan = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTe
 var StyleMagenta = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm13)
 var StyleGray = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm8)
 var StyleOrange = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.Orange)
+var StyleWater = tcell.StyleDefault.Background(color.XTerm0).Foreground(tcell.NewRGBColor(0, 40, 120))
 
 var StyleCyanBold = StyleCyan.Bold(true)
 var StyleRedBold = StyleRed.Bold(true)
@@ -215,6 +216,7 @@ func ApplyTheme(theme string) {
 		StyleMagenta = tcell.StyleDefault.Background(color.Black).Foreground(color.Fuchsia).Bold(true)
 		StyleGray = tcell.StyleDefault.Background(color.Black).Foreground(color.Silver).Bold(true)
 		StyleOrange = tcell.StyleDefault.Background(color.Black).Foreground(color.Orange).Bold(true)
+		StyleWater = tcell.StyleDefault.Background(color.Black).Foreground(tcell.NewRGBColor(0, 60, 180)).Bold(true)
 		StyleCyanBold = StyleCyan
 		StyleRedBold = StyleRed
 		StyleHotkey = tcell.StyleDefault.Background(color.Black).Foreground(color.Orange).Bold(true)
@@ -233,6 +235,7 @@ func ApplyTheme(theme string) {
 		StyleMagenta = tcell.StyleDefault.Background(bg).Foreground(tcell.NewRGBColor(200, 100, 60))
 		StyleGray = tcell.StyleDefault.Background(bg).Foreground(dim)
 		StyleOrange = tcell.StyleDefault.Background(bg).Foreground(tcell.NewRGBColor(255, 130, 0))
+		StyleWater = tcell.StyleDefault.Background(bg).Foreground(tcell.NewRGBColor(60, 40, 0))
 		StyleCyanBold = StyleCyan.Bold(true)
 		StyleRedBold = StyleRed.Bold(true)
 		StyleHotkey = tcell.StyleDefault.Background(bg).Foreground(tcell.NewRGBColor(255, 210, 80)).Bold(true)
@@ -251,6 +254,7 @@ func ApplyTheme(theme string) {
 		StyleMagenta = tcell.StyleDefault.Background(bg).Foreground(tcell.NewRGBColor(0, 200, 100))
 		StyleGray = tcell.StyleDefault.Background(bg).Foreground(dim)
 		StyleOrange = tcell.StyleDefault.Background(bg).Foreground(tcell.NewRGBColor(100, 240, 0))
+		StyleWater = tcell.StyleDefault.Background(bg).Foreground(tcell.NewRGBColor(0, 80, 40))
 		StyleCyanBold = StyleCyan.Bold(true)
 		StyleRedBold = StyleRed.Bold(true)
 		StyleHotkey = tcell.StyleDefault.Background(bg).Foreground(tcell.NewRGBColor(100, 255, 100)).Bold(true)
@@ -269,6 +273,7 @@ func ApplyTheme(theme string) {
 		StyleMagenta = tcell.StyleDefault.Background(bg).Foreground(tcell.NewRGBColor(120, 40, 120))
 		StyleGray = tcell.StyleDefault.Background(bg).Foreground(dim)
 		StyleOrange = tcell.StyleDefault.Background(bg).Foreground(tcell.NewRGBColor(180, 80, 20))
+		StyleWater = tcell.StyleDefault.Background(bg).Foreground(tcell.NewRGBColor(20, 60, 100))
 		StyleCyanBold = StyleCyan.Bold(true)
 		StyleRedBold = StyleRed.Bold(true)
 		StyleHotkey = tcell.StyleDefault.Background(bg).Foreground(tcell.NewRGBColor(180, 80, 20)).Bold(true)
@@ -284,6 +289,7 @@ func ApplyTheme(theme string) {
 		StyleMagenta = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm13)
 		StyleGray = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.XTerm8)
 		StyleOrange = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.Orange)
+		StyleWater = tcell.StyleDefault.Background(color.XTerm0).Foreground(tcell.NewRGBColor(0, 40, 120))
 		StyleCyanBold = StyleCyan.Bold(true)
 		StyleRedBold = StyleRed.Bold(true)
 		StyleHotkey = tcell.StyleDefault.Background(color.XTerm0).Foreground(color.Orange)

@@ -9,19 +9,22 @@ import (
 	"github.com/civ13/termcom/internal/language"
 )
 
+const GameVersion = "0.33"
+
 type GlobalConfig struct {
-	BloomEnabled    bool   `json:"bloom_enabled"`
-	LightingEnabled bool   `json:"lighting_enabled"`
-	SoundEnabled    bool   `json:"sound_enabled"`
-	AutosaveEnabled bool   `json:"autosave_enabled"`
-	ScreenShake     bool   `json:"screen_shake"`
-	MouseEnabled    bool   `json:"mouse_enabled"`
-	GridLines       bool   `json:"grid_lines"`
-	Theme           string `json:"theme"`
-	ConfirmDialogs  bool   `json:"confirm_dialogs"`
-	ActionDelay     int    `json:"action_delay"`
-	SfxVolume       int    `json:"sfx_volume"`
-	Language        string `json:"language"`
+	BloomEnabled       bool   `json:"bloom_enabled"`
+	LightingEnabled    bool   `json:"lighting_enabled"`
+	SoundEnabled       bool   `json:"sound_enabled"`
+	AutosaveEnabled    bool   `json:"autosave_enabled"`
+	ScreenShake        bool   `json:"screen_shake"`
+	MouseEnabled       bool   `json:"mouse_enabled"`
+	GridLines          bool   `json:"grid_lines"`
+	Theme              string `json:"theme"`
+	ConfirmDialogs     bool   `json:"confirm_dialogs"`
+	PauseOnAlienDetect bool   `json:"pause_on_alien_detect"`
+	ActionDelay        int    `json:"action_delay"`
+	SfxVolume          int    `json:"sfx_volume"`
+	Language           string `json:"language"`
 }
 
 var Config = GlobalConfig{
@@ -33,8 +36,9 @@ var Config = GlobalConfig{
 	MouseEnabled:    true,
 	GridLines:       false,
 	Theme:           "default",
-	ConfirmDialogs:  true,
-	ActionDelay:     8,
+	ConfirmDialogs:     true,
+	PauseOnAlienDetect: true,
+	ActionDelay:        8,
 	SfxVolume:       10,
 	Language:        "en",
 }

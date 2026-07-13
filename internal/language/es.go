@@ -6,19 +6,19 @@ func init() {
 	register("es", map[string]string{
 		// ── Menu ──────────────────────────────────────────
 		"MENU_TITLE":     "T A C T I C A S   P O R   T U R N O S",
-		"MENU_SUBTITLE":  "v0.27",
+		"MENU_SUBTITLE":  "v0.33",
 		"MENU_NEW_GAME":  "Nueva partida",
 		"MENU_CONTINUE":  "Continuar",
 		"MENU_LOAD_GAME": "Cargar partida",
 		"MENU_QUIT":      "Salir",
 		"MENU_OPTIONS":   "Opciones",
 		"MENU_CUSTOM_BATTLE": "Batalla personalizada",
-		"MENU_HELP":      "\u2191/\u2193=Seleccionar  Enter=Confirmar  Q=Salir  F5=Guardar  F9=Cargar",
+		"MENU_HELP":      "[\u2191]/[\u2193]=Seleccionar  [Enter]=Confirmar  [Q]=Salir  [F5]=Guardar  [F9]=Cargar",
 
 		// ── Dificultad ─────────────────────────────────────
 		"DIFFICULTY_TITLE":    "SELECCIONAR DIFICULTAD",
 		"DIFFICULTY_PROMPT":   "Elegid vuestro nivel de desaf\u00edo:",
-		"HELP_DIFFICULTY":     "\u2191/\u2193=Seleccionar  Enter=Confirmar",
+		"HELP_DIFFICULTY":     "[\u2191]/[\u2193]=Seleccionar  [Enter]=Confirmar",
 
 		// ── Geoscape ──────────────────────────────────────
 		"GEOSCAPE":              "GEOSCAPE",
@@ -29,8 +29,8 @@ func init() {
 		"GEOSCAPE_SQUAD":        "Escuadr\u00f3n: %d",
 		"GEOSCAPE_ACTIVITY":     "Actividad alien\u00edgena: %d%%",
 		"GEOSCAPE_MISSIONS":     "Misiones: %d activas, %d ganadas",
-		"GEOSCAPE_HELP":         "[B]ase  [L]anzar  [A]utoresolver  [M]isi\u00f3n  [R]ecuperar  Espacio=Pausar  1-4=Velocidad  Q=Salir",
-		"GEOSCAPE_VICTORY":      "\u00a1VICTORIA ALCANZADA!  Q=Salir",
+		"GEOSCAPE_HELP":         "[B]ase  [L]anzar  [A]utoresolver  [M]isi\u00f3n  [R]ecuperar  [Espacio]=Pausar  [1-4]=Velocidad  [Q]=Salir",
+		"GEOSCAPE_VICTORY":      "\u00a1VICTORIA ALCANZADA!  [Q]=Salir",
 		"GEOSCAPE_TIME_PAUSED":  "TIEMPO PAUSADO",
 		"GEOSCAPE_TIME_RUNNING": "TIEMPO EN MARCHA (Velocidad %dx)",
 		"GEOSCAPE_TIME_SPEED":   "Velocidad del tiempo: %dx",
@@ -52,11 +52,11 @@ func init() {
 
 		"TRANSFER_TITLE":                "TRANSFERENCIA",
 		"TRANSFER_FROM":                 "DESDE: %s",
-		"TRANSFER_TO":                   "HACIA: %s  [Arriba/Abajo=Seleccionar destino]",
-		"TRANSFER_SOLDIERS":             "SOLDADOS (Espacio=Mover):",
-		"TRANSFER_ITEMS":                "OBJETOS (Enter=Mover):",
-		"HELP_TRANSFER":                 "[\u2191]/[\u2193]=Navegar  [Tab]=Destino  Espacio=Soldado  Enter=Objeto  [Esc]=Volver",
-		"GEO_HEADER_REGION":             " REGI\u00d3N          AMENAZA  RADAR  ESCU  ESTADO",
+		"TRANSFER_TO":                   "HACIA: %s  [[Arriba]/[Abajo]=Seleccionar destino]",
+		"TRANSFER_SOLDIERS":             "SOLDADOS ([Espacio]=Mover):",
+		"TRANSFER_ITEMS":                "OBJETOS ([Enter]=Mover):",
+		"HELP_TRANSFER":                 "[\u2191]/[\u2193]=Navegar  [Tab]=Destino  [Espacio]=Soldado  [Enter]=Objeto  [Esc]=Volver",
+		"GEO_HEADER_REGION":             " REGI\u00d3N             AMENAZA  RADAR  ESCU  ESTADO",
 		"GEO_RADAR_ON":                  " R ",
 		"GEO_RADAR_OFF":                 " - ",
 		"GEO_STATUS_MISSION":            "MISI\u00d3N",
@@ -190,7 +190,7 @@ func init() {
 		"SIDE_POS":         "[%d,%d]",
 		"SIDE_CROUCH":      "Agachado",
 		"SIDE_NONE":        "(ninguno)",
-		"BATTLE_HELP":      " Flechas/WASD=Mover Espacio/Enter=Actuar q=Ciclo f=Disparar r=Recargar g=Granada m=Medipack p=Psi e=Terminar c=Agacharse",
+		"BATTLE_HELP":      " [Flechas]/[WASD]=Mover [Espacio]/[Enter]=Actuar [q]=Ciclo [f]=Disparar [r]=Recargar [g]=Granada [m]=Medipack [p]=Psi [e]=Terminar [c]=Agacharse",
 
 		// Fases
 		"PHASE_YOUR_TURN":  "VUESTRO TURNO",
@@ -320,7 +320,7 @@ func init() {
 		"BASE_PERSONNEL": "Cient\u00edficos: %d  Ingenieros: %d  %s",
 
 		// Barras de ayuda
-		"HELP_BASE":            "[B]Construir  [H]Contratar  1-5=Pesta\u00f1a  [\u2191]/[\u2193]=Navegar  [Esc]=Volver",
+		"HELP_BASE":            "[B]Construir  [H]Contratar  [1-5]=Pesta\u00f1a  [\u2191]/[\u2193]=Navegar  [Esc]=Volver",
 		"HELP_FACILITIES":      "[B]Construir  [V]ender  [\u2191]/[\u2193]=Navegar  [Esc]=Volver",
 		"HELP_SOLDIERS":        "[H]Contratar ($%dK)  [E]Equipar  [D]Descartar  [\u2191]/[\u2193]=Navegar  [Esc]=Volver",
 		"HELP_TAB_RESEARCH":    "[R]Investigar  [\u2191]/[\u2193]=Navegar  [Esc]=Volver",
@@ -384,8 +384,8 @@ func init() {
 		"LABEL_WEAPON":       "Arma:",
 		"LABEL_ARMOR":        "Armadura:",
 		"SECTION_AVAILABLE":  "DISPONIBLES EN ALMAC\u00c9N:",
-		"HELP_EQUIP":         "\u2191/\u2193=Soldado  1=Arma  2=Armadura  Espacio=Equipar  A=Auto  [Esc]=Volver",
-		"HELP_EQUIP_TAB":     "\u2191/\u2193=Soldado  Tab=Ciclo  1=Arma  2=Armad  Espacio=Equipar  A=Auto  [Esc]=Volver",
+		"HELP_EQUIP":         "[\u2191]/[\u2193]=Soldado  [1]=Arma  [2]=Armadura  [Espacio]=Equipar  [A]=Auto  [Esc]=Volver",
+		"HELP_EQUIP_TAB":     "[\u2191]/[\u2193]=Soldado  [Tab]=Ciclo  [1]=Arma  [2]=Armad  [Espacio]=Equipar  [A]=Auto  [Esc]=Volver",
 		"MSG_NO_ITEMS":       "\u00a1No hay objetos disponibles!",
 		"MSG_EQUIPPED":       "%s equipado.",
 		"MSG_EQUIPPED_DONE":  "Equipado.",
@@ -408,7 +408,7 @@ func init() {
 		"NO_TOPICS":            "No hay temas disponibles. Recogid m\u00e1s artefactos.",
 		"RESEARCH_CAPTURED":    "Alien\u00edgenas capturados: %d  [I]nterrogar",
 		"RESEARCH_INTERROGATE_PROMPT": "Pulsad Enter para interrogar al primer alien\u00edgena capturado.",
-		"HELP_RESEARCH":        "\u2191/\u2193=Seleccionar  Enter=Empezar  [Esc]=Volver  [T]\u00c1rbol  [I]nterrogar",
+		"HELP_RESEARCH":        "[\u2191]/[\u2193]=Seleccionar  [Enter]=Empezar  [Esc]=Volver  [T]\u00c1rbol  [I]nterrogar",
 		"RESEARCH_REQUIRES":    " [Requiere: %s]",
 		"RESEARCH_COST":        "[T%d] %-22s Coste: %4d%s",
 		"RESEARCH_DONE":        "\u2713",
@@ -429,7 +429,7 @@ func init() {
 		"MFG_DONE":           " [HECHO]",
 		"MFG_BUILDABLE":      "OBJETOS FABRICABLES:",
 		"MFG_NO_ITEMS":       "No hay objetos disponibles. Recogid m\u00e1s aleaciones/elerio.",
-		"HELP_MANUFACTURE":   "\u2191/\u2193=Seleccionar  Enter=Fabricar  [Esc]=Volver",
+		"HELP_MANUFACTURE":   "[\u2191]/[\u2193]=Seleccionar  [Enter]=Fabricar  [Esc]=Volver",
 		"MSG_MFG_STARTED":    "Fabricaci\u00f3n empezada: %s",
 		"MSG_CANNOT_MFG":     "\u00a1No se puede fabricar!",
 		"MFG_QUEUE_LINE":     "%s x%d (%d%%) Ing: %d [+/-] Asignar",
@@ -544,16 +544,16 @@ func init() {
 
 		// ── P\u00e1ginas de ayuda ────────────────────────────
 		"HELP_TITLE": "AYUDA",
-		"HELP_NAV":   "Izquierda/Derecha o Tab=P\u00e1gina  [Esc]=Volver",
+		"HELP_NAV":   "Izquierda/Derecha o [Tab]=P\u00e1gina  [Esc]=Volver",
 
 		// Ayuda de geoscape
 		"HELP_GEO_TITLE":    "GEOSCAPE",
 		"HELP_GEO_CONTROLS": "#Controles:",
-		"HELP_GEO_MOVE":     ">Teclas de direcci\u00f3n   Mover c\u00e1mara",
-		"HELP_GEO_PAUSE":    ">Espacio        Pausar/reanudar tiempo",
-		"HELP_GEO_SPEED":    ">1-4          Compresi\u00f3n de tiempo (1x/5x/20x/60x)",
-		"HELP_GEO_BASE":     ">B            Abrir gesti\u00f3n de base",
-		"HELP_GEO_LAUNCH":   ">L            Lanzar interceptor contra el OVNI m\u00e1s cercano",
+		"HELP_GEO_MOVE":     ">[Teclas de direcci\u00f3n]   Mover c\u00e1mara",
+		"HELP_GEO_PAUSE":    ">[Espacio]        Pausar/reanudar tiempo",
+		"HELP_GEO_SPEED":    ">[1-4]          Compresi\u00f3n de tiempo (1x/5x/20x/60x)",
+		"HELP_GEO_BASE":     ">[B]            Abrir gesti\u00f3n de base",
+		"HELP_GEO_LAUNCH":   ">[L]            Lanzar interceptor contra el OVNI m\u00e1s cercano",
 		"HELP_GEO_AUTO":     ">A            Autoresolver el OVNI m\u00e1s cercano",
 		"HELP_GEO_SAVE":     ">F5           Guardar partida",
 		"HELP_GEO_LOAD":     ">F9           Cargar partida",
@@ -657,6 +657,7 @@ func init() {
 		"OPTIONS_HIGH_CONTRAST":    "Alto Contraste",
 		"OPTIONS_THEME":            "Tema",
 		"OPTIONS_CONFIRM":          "Cuadros de Confirmación",
+		"OPTIONS_PAUSE_ALIEN":      "Pausa al detectar",
 		"CONFIRM_QUIT":             "¿ESTÁS SEGURO DE QUE QUIERES SALIR?",
 		"CONFIRM_QUIT_HINT":        "Y = Sí   N = No",
 		"OPTIONS_VOLUME":           "Volumen SFX",

@@ -43,7 +43,7 @@ func init() {
 	cities = []*City{
 		// North America
 		{ID: 0, Name: "New York", X: 48, Y: 31, Region: "NA East"},
-		{ID: 1, Name: "Los Angeles", X: 26, Y: 34, Region: "NA West"},
+		{ID: 1, Name: "Los Angeles", X: 28, Y: 34, Region: "NA West"},
 		{ID: 2, Name: "Chicago", X: 41, Y: 30, Region: "NA Central"},
 		{ID: 3, Name: "Mexico City", X: 35, Y: 41, Region: "Central Am"},
 		// South America
@@ -56,13 +56,13 @@ func init() {
 		{ID: 9, Name: "Berlin", X: 92, Y: 25, Region: "Europe C"},
 		{ID: 10, Name: "Moscow", X: 104, Y: 23, Region: "Europe E"},
 		// Africa
-		{ID: 11, Name: "Cairo", X: 101, Y: 36, Region: "Africa N"},
+		{ID: 11, Name: "Cairo", X: 102, Y: 36, Region: "Africa N"},
 		{ID: 12, Name: "Lagos", X: 87, Y: 48, Region: "Africa W"},
 		{ID: 13, Name: "Nairobi", X: 103, Y: 50, Region: "Africa E"},
 		// Asia
 		{ID: 14, Name: "Delhi", X: 124, Y: 37, Region: "South Asia"},
 		{ID: 15, Name: "Beijing", X: 143, Y: 31, Region: "East Asia"},
-		{ID: 16, Name: "Tokyo", X: 155, Y: 33, Region: "East Asia"},
+		{ID: 16, Name: "Tokyo", X: 154, Y: 33, Region: "East Asia"},
 		{ID: 17, Name: "Singapore", X: 137, Y: 50, Region: "SE Asia"},
 		// Australasia
 		{ID: 18, Name: "Sydney", X: 159, Y: 69, Region: "Oceania"},

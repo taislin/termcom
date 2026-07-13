@@ -6,19 +6,19 @@ func init() {
 	register("ja", map[string]string{
 		// ── Menu ──────────────────────────────────────────
 		"MENU_TITLE":     "T U R N   B A S E D   T A C T I C S",
-		"MENU_SUBTITLE":  "v0.27",
+		"MENU_SUBTITLE":  "v0.33",
 		"MENU_NEW_GAME":  "ニューゲーム",
 		"MENU_CONTINUE":  "コンティニュー",
 		"MENU_LOAD_GAME": "ロード",
 		"MENU_QUIT":      "終了",
 		"MENU_OPTIONS":   "オプション",
 		"MENU_CUSTOM_BATTLE": "カスタムバトル",
-		"MENU_HELP":      "\u2191/\u2193=選択  Enter=確定  Q=終了  F5=セーブ  F9=ロード",
+		"MENU_HELP":      "[\u2191]/[\u2193]=選択  [Enter]=確定  [Q]=終了  [F5]=セーブ  [F9]=ロード",
 
 		// ── Difficulty ─────────────────────────────────────
 		"DIFFICULTY_TITLE":    "難易度を選択",
 		"DIFFICULTY_PROMPT":   "難易度を選んでください：",
-		"HELP_DIFFICULTY":     "\u2191/\u2193=選択  Enter=確定",
+		"HELP_DIFFICULTY":     "[\u2191]/[\u2193]=選択  [Enter]=確定",
 
 		// ── Geoscape ──────────────────────────────────────
 		"GEOSCAPE":              "ジオスケープ",
@@ -29,8 +29,8 @@ func init() {
 		"GEOSCAPE_SQUAD":        "小隊: %d",
 		"GEOSCAPE_ACTIVITY":     "エイリアン活動: %d%%",
 		"GEOSCAPE_MISSIONS":     "ミッション: %d 進行中, %d 達成",
-		"GEOSCAPE_HELP":         "[B]基地  [L]発進  [A]自動解決  [M]ミッション  [R]回収  Space=一時停止  1-4=速度  Q=終了",
-		"GEOSCAPE_VICTORY":      "勝利を達成！  Q=終了",
+		"GEOSCAPE_HELP":         "[B]基地  [L]発進  [A]自動解決  [M]ミッション  [R]回収  [Space]=一時停止  [1-4]=速度  [Q]=終了",
+		"GEOSCAPE_VICTORY":      "勝利を達成！  [Q]=終了",
 		"GEOSCAPE_TIME_PAUSED":  "時間 停止中",
 		"GEOSCAPE_TIME_RUNNING": "時間 進行中 (速度 %dx)",
 		"GEOSCAPE_TIME_SPEED":   "時間速度: %dx",
@@ -52,11 +52,11 @@ func init() {
 
 		"TRANSFER_TITLE":                "移動",
 		"TRANSFER_FROM":                 "FROM: %s",
-		"TRANSFER_TO":                   "TO: %s  [↑/↓=目的地選択]",
-		"TRANSFER_SOLDIERS":             "兵士 (Space=移動):",
-		"TRANSFER_ITEMS":                "アイテム (Enter=移動):",
+		"TRANSFER_TO":                   "TO: %s  [[↑]/[↓]=目的地選択]",
+		"TRANSFER_SOLDIERS":             "兵士 ([Space]=移動):",
+		"TRANSFER_ITEMS":                "アイテム ([Enter]=移動):",
 		"HELP_TRANSFER":                 "[\u2191]/[\u2193]=移動  [Tab]=目的地  Space=兵士  Enter=アイテム  [Esc]=戻る",
-		"GEO_HEADER_REGION":             " 地域            脅威    レーダー  小隊  状態",
+		"GEO_HEADER_REGION":             " 地域             脅威    レーダー  小隊  状態",
 		"GEO_RADAR_ON":                  " R ",
 		"GEO_RADAR_OFF":                 " - ",
 		"GEO_STATUS_MISSION":            "ミッション",
