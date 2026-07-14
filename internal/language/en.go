@@ -930,5 +930,8 @@ func init() {
 		"FAC_ADJACENT_LABS":       "Adjacent Labs:",
 		"FAC_ADJACENT_WORKSHOPS":  "Adjacent Workshops:",
 		"FAC_ADJACENT_LIVING":     "Adjacent Living Qtrs:",
+		"SIDE_HP_UNKNOWN":   "HP: ???",
+		"SIDE_ACC_UNKNOWN":  "ACC: ???",
+		"SIDE_TU_UNKNOWN":   "TU: ???",
 	})
 }

@@ -903,5 +903,8 @@ func init() {
 		"FAC_ADJACENT_LABS":       "\uc5f0\uad6c\uc2e4 \uc778\uc811:",
 		"FAC_ADJACENT_WORKSHOPS":  "\uacf5\uc791\uc2e4 \uc778\uc811:",
 		"FAC_ADJACENT_LIVING":     "\uc8fc\uac70\uc2e4 \uc778\uc811:",
-	})
+		"SIDE_HP_UNKNOWN":   "HP: ???",
+		"SIDE_ACC_UNKNOWN":  "ACC: ???",
+		"SIDE_TU_UNKNOWN":   "TU: ???",
+		})
 }

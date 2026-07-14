@@ -899,5 +899,8 @@ func init() {
 		"FAC_ADJACENT_LABS":       "相邻实验室:",
 		"FAC_ADJACENT_WORKSHOPS":  "相邻车间:",
 		"FAC_ADJACENT_LIVING":     "相邻宿舍:",
-	})
+		"SIDE_HP_UNKNOWN":   "HP: ???",
+		"SIDE_ACC_UNKNOWN":  "ACC: ???",
+		"SIDE_TU_UNKNOWN":   "TU: ???",
+		})
 }

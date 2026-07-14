@@ -117,6 +117,15 @@ type DogfightAnim struct {
 	UFOHitFlash int // >0 = flash UFO (damage taken)
 }
 
+func (gs *Geoscape) FindBaseIndex(cityID int) int {
+	for i, b := range gs.Bases {
+		if b.CityID == cityID {
+			return i
+		}
+	}
+	return -1
+}
+
 func (gs *Geoscape) SelectedBase() *base.Base {
 	if gs.ActiveBase < 0 || gs.ActiveBase >= len(gs.Bases) {
 		return nil
@@ -2812,6 +2821,10 @@ func (gs *Geoscape) HandleMouse(e *tcell.EventMouse) {
 		}
 		if bestCity != nil {
 			gs.CursorNode = bestCity.ID
+			idx := gs.FindBaseIndex(bestCity.ID)
+			if idx != -1 {
+				gs.ActiveBase = idx
+			}
 			gs.Message = fmt.Sprintf(language.String("GEOSCAPE_NODE_SELECTED"), bestCity.LangName(), bestCity.LangRegion())
 			gs.MessageTimer = time.Now()
 		}

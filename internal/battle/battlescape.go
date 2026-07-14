@@ -1623,14 +1623,39 @@ func (bs *Battlescape) MoveSelected() {
 	if bs.Selected == nil || bs.Phase != PhasePlayerTurn {
 		return
 	}
-	if bs.Selected.MoveTo(bs.CursorX, bs.CursorY, bs.Map) {
-		audio.PlayMove()
-		bs.AddMessage(fmt.Sprintf(language.String("MSG_MOVED"), bs.Selected.Soldier.Name, bs.CursorX, bs.CursorY))
-		bs.ComputeFOVForTeam()
-		bs.checkAlienReactionFire(bs.Selected)
-	} else {
-		bs.AddMessage(language.String("MSG_CANNOT_MOVE"))
+	if bs.Selected.X == bs.CursorX && bs.Selected.Y == bs.CursorY {
+		return
 	}
+	path := bs.CalculatePath(bs.Selected.X, bs.Selected.Y, bs.CursorX, bs.CursorY)
+	if len(path) < 2 {
+		bs.AddMessage(language.String("MSG_CANNOT_MOVE"))
+		return
+	}
+	u := bs.Selected
+	crouchExtra := 0
+	if u.Crouching {
+		crouchExtra = 4
+	}
+	// Walk along the path, consuming TU, until we can't afford the next step.
+	best := 0
+	for i := 1; i < len(path); i++ {
+		if i*4+crouchExtra <= u.TU {
+			best = i
+		} else {
+			break
+		}
+	}
+	if best == 0 {
+		bs.AddMessage(language.String("MSG_CANNOT_MOVE"))
+		return
+	}
+	dest := path[best]
+	u.X, u.Y = dest[0], dest[1]
+	u.TU -= best*4 + crouchExtra
+	audio.PlayMove()
+	bs.AddMessage(fmt.Sprintf(language.String("MSG_MOVED"), u.Soldier.Name, u.X, u.Y))
+	bs.ComputeFOVForTeam()
+	bs.checkAlienReactionFire(u)
 }
 
 func (bs *Battlescape) FireWeapon() {
@@ -2601,6 +2626,13 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 				tuColor = engine.StyleYellow
 			}
 			ctx.DrawString(sidebarX, sy, language.Sprintf("SIDE_TU_BAR", barString(u.TU, u.MaxTU, 8), u.TU), tuColor)
+			sy++
+		} else {
+			ctx.DrawString(sidebarX, sy, language.String("SIDE_HP_UNKNOWN"), engine.StyleGray)
+			sy++
+			ctx.DrawString(sidebarX, sy, language.String("SIDE_ACC_UNKNOWN"), engine.StyleGray)
+			sy++
+			ctx.DrawString(sidebarX, sy, language.String("SIDE_TU_UNKNOWN"), engine.StyleGray)
 			sy++
 		}
 
