@@ -267,14 +267,14 @@ Planned work (not yet implemented):
 - [x] Battlescape HUD bars: replace plain HP/TU text in the sidebar with clearer
       graphical HP and TU bars (color-coded, proportionate to current/max).
 
-## Phase 34: Test Coverage Sprint (Core Gameplay Packages)
-- [ ] Add unit tests for `battle/ai.go` (patrol/attack/flee/flank logic)
-- [ ] Add unit tests for `battle/unit.go` (TU costs, LOS, damage calculations)
-- [ ] Add unit tests for `geo/ufo.go` (spawning/movement logic)
-- [ ] Add unit tests for `geo/interceptor.go` (dogfight mechanics)
-- [ ] Add unit tests for `base/research.go` (research progression)
-- [ ] Add unit tests for `base/manufacture.go` (manufacturing progression)
-- [ ] Target: 50%+ coverage in engine, geo, battle, base packages
+## Phase 34: Test Coverage Sprint (Core Gameplay Packages) (DONE)
+- [x] Add unit tests for `battle/ai.go` (patrol/attack/flee/flank logic) — 19 tests
+- [x] Add unit tests for `battle/unit.go` (TU costs, LOS, damage calculations) — 16 tests
+- [x] Add unit tests for `geo/ufo.go` (spawning/movement logic) — 13 tests
+- [x] Add unit tests for `geo/interceptor.go` (dogfight mechanics) — 16 tests
+- [x] Add unit tests for `base/research.go` (research progression) — 10 tests
+- [x] Add unit tests for `base/manufacture.go` (manufacturing progression) — 7 tests
+- [x] Results: battle 25% (+7%), base 26% (+9%), geo 24% (+1%), engine 5% (+4%)
 
 ## Phase 35: Multi-Platform Audio Engine (Linux/macOS) (DONE)
 - [x] Implement PCM synthesis in `internal/audio/audio_other.go` using `oto`
@@ -283,14 +283,6 @@ Planned work (not yet implemented):
 - [x] Implement explosion sounds
 - [x] Implement ambient battle sounds (wind, distant explosions)
 - [x] Ensure parity with `audio_windows.go` synthesis logic
-
-## Phase 36: Game Balance & Polish Pass
-- [ ] Play-test full campaign on each difficulty (Beginner..Superhuman)
-- [ ] Tune auto-resolve win chance (currently capped at 70%)
-- [ ] Verify economy: monthly budget, Radar facility ROI (+$50K/mo)
-- [ ] Review fatigue system (1-5 days per battle may be too harsh early game)
-- [ ] Verify Cydonia final mission is beatable on Superhuman
-- [ ] Update `docs/manual.md` with any balance changes
 
 ## Phase 37: Alien Base Expansion (Geoscape Feature)
 - [ ] Aliens establish their own bases on the Geoscape over time
@@ -377,4 +369,12 @@ Planned work (not yet implemented):
 - [ ] Auto-detect first-time player (check `config.json` flag or lack of save files)
 - [ ] Optionally add a "Tutorial" entry in the main menu
 - [ ] Update `docs/manual.md` with tutorial references
+
+## Phase 36: Game Balance & Polish Pass (HUMAN TESTING)
+- [ ] Play-test full campaign on each difficulty (Beginner..Superhuman)
+- [ ] Tune auto-resolve win chance (currently capped at 70%)
+- [ ] Verify economy: monthly budget, Radar facility ROI (+$50K/mo)
+- [ ] Review fatigue system (1-5 days per battle may be too harsh early game)
+- [ ] Verify Cydonia final mission is beatable on Superhuman
+- [ ] Update `docs/manual.md` with any balance changes
 
