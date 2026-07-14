@@ -84,11 +84,9 @@ jobs:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
         run: |
-          BINARY="termcom_${{ env.VERSION }}_${{ matrix.os }}_${{ matrix.arch }}${{ matrix.ext }}"
           DIR="termcom_${{ env.VERSION }}_${{ matrix.os }}_${{ matrix.arch }}"
-          go build -ldflags="-s -w" -trimpath -o "$BINARY" ./cmd/termcom
           mkdir -p "$DIR"
-          mv "$BINARY" "$DIR/"
+          go build -ldflags="-s -w" -trimpath -o "$DIR/termcom${{ matrix.ext }}" ./cmd/termcom
           cp -r maps "$DIR/"
 
       - name: Download and include PDFs
