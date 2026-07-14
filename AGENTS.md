@@ -25,11 +25,11 @@ make clean          # Remove binary and coverage
 
 ### Coverage
 - `internal/data` — 78%
-- `internal/soldier` — 61%
-- `internal/save` — 72%
+- `internal/soldier` — 65%
+- `internal/save` — 70%
 - `internal/geo` — 32%
 - `internal/battle` — 38%
-- `internal/base` — 26%
+- `internal/base` — 28%
 - `internal/audio` — 0% (platform-specific, no tests)
 - `internal/engine` — 5%
 

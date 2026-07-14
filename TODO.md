@@ -339,14 +339,22 @@ gaps (battle 25% -> 38.5%, +13.5%):
        (battlescape.go:1454 checkVictory).
 - [x] `TestReinforcementWaveSpawns` (battlescape.go:1355 spawnReinforcementWave).
 
-## Phase 41: Raise `base` Test Coverage (extends Phase 34)
-- [ ] `TestAdjacencyBonus`: `AdjacentResearchBonus` / `AdjacentManufactureBonus`
-      (facility.go:294+) scale with neighboring same-type facilities.
-- [ ] `TestAdvanceMonthSalaryDeduction` / `TestAdvanceMonthFunding` (facility.go:605).
-- [ ] `TestInterrogateUnknownAlien` / `TestInterrogateNoContainment` edge cases.
-- [ ] `TestEquipWeaponCapacityFull` / `TestEquipInvalidIndex` (equip.go).
-- [ ] `TestTransferItemsBetweenBases` (transfer.go).
-- [ ] `TestSellFacilityRefund` (refund on SellFacility).
+## Phase 41: Raise `base` Test Coverage (extends Phase 34) (DONE)
+NOTE: Most Phase 41 items (EquipWeapon/EquipArmor basics, SellFacility,
+InterrogateNoLabs, storage-cap overflow, research/manufacture screens) were
+already covered by the Phase 34 tests. The following NEW tests were added for
+the genuine gaps (base 26% -> 28%, +2%):
+- [x] `TestAdjacencyBonus`: `AdjacentResearchBonus` / `AdjacentManufactureBonus`
+       scale with neighbouring same-type facilities (facility.go:294+).
+- [x] `TestAdvanceMonthSalaryFunding` / `TestAdvanceMonthSalaryDeduction`:
+       `AdvanceMonth` salary + funding, radar bonus, alien-activity penalty.
+- [x] `TestInterrogateUnknownAlien`: interrogating a name not held fails.
+- [x] `TestEquipWeaponInvalidIndex` / `TestEquipWeaponCapacityFull`: bounds
+       check and storage-full rejection (facility.go:444).
+- [x] `TestSellFacilityRefund`: selling a built facility refunds half cost
+       (BaseScreen.SellFacility, base.go:47).
+- [x] `TestTransferItemsBetweenBases` / `TestTransferSoldierBetweenBases`
+       (geo/transfer.go:149 / :167 — real transfer logic; added to geo tests).
 
 
 ## Phase 42: Motion Scanner Mechanic (DONE)

@@ -746,3 +746,43 @@ func TestLoseConditionLastBase(t *testing.T) {
 		t.Error("expected GameOver when last base destroyed")
 	}
 }
+
+// --- Phase 41: transfer between bases (geo/transfer.go) ---
+
+func TestTransferItemsBetweenBases(t *testing.T) {
+	g := &engine.Game{Funds: 1000000, GameTime: time.Date(1999, time.March, 1, 0, 0, 0, 0, time.UTC)}
+	gs := NewGeoscape(g)
+	gs.CursorNode = 2
+	gs.BuildBase()
+	if len(gs.Bases) != 2 {
+		t.Fatal("expected 2 bases")
+	}
+	gs.Bases[0].AddItem("rifle", 1)
+	before0 := gs.Bases[0].CountItem("rifle")
+	before1 := gs.Bases[1].CountItem("rifle")
+	ts := &TransferScreen{Geo: gs, FromIdx: 0, ToIdx: 1, SelItem: 0, Tab: 1}
+	ts.transferItem()
+	if gs.Bases[0].CountItem("rifle") != before0-1 {
+		t.Errorf("source base should lose 1 rifle: before=%d after=%d", before0, gs.Bases[0].CountItem("rifle"))
+	}
+	if gs.Bases[1].CountItem("rifle") != before1+1 {
+		t.Errorf("dest base should gain 1 rifle: before=%d after=%d", before1, gs.Bases[1].CountItem("rifle"))
+	}
+}
+
+func TestTransferSoldierBetweenBases(t *testing.T) {
+	g := &engine.Game{Funds: 1000000, GameTime: time.Date(1999, time.March, 1, 0, 0, 0, 0, time.UTC)}
+	gs := NewGeoscape(g)
+	gs.CursorNode = 2
+	gs.BuildBase()
+	before0 := len(gs.Bases[0].Soldiers)
+	before1 := len(gs.Bases[1].Soldiers)
+	ts := &TransferScreen{Geo: gs, FromIdx: 0, ToIdx: 1, SelSoldier: 0, Tab: 0}
+	ts.transferSoldier()
+	if len(gs.Bases[0].Soldiers) != before0-1 {
+		t.Errorf("source base should lose 1 soldier: before=%d after=%d", before0, len(gs.Bases[0].Soldiers))
+	}
+	if len(gs.Bases[1].Soldiers) != before1+1 {
+		t.Errorf("dest base should gain 1 soldier: before=%d after=%d", before1, len(gs.Bases[1].Soldiers))
+	}
+}
