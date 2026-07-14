@@ -30,32 +30,32 @@ const (
 
 // TilePalette maps TileType to a curated true-color RGB value.
 var TilePalette = map[TileType]tcell.Color{
-	TileFloor:       tcell.NewRGBColor(60, 55, 50),
-	TileWall:        tcell.NewRGBColor(120, 115, 110),
-	TileDoor:        tcell.NewRGBColor(100, 60, 30),
-	TileWindow:      tcell.NewRGBColor(100, 150, 200),
-	TileGrass:       tcell.NewRGBColor(35, 75, 25),
-	TileTree:        tcell.NewRGBColor(20, 60, 15),
-	TileRock:        tcell.NewRGBColor(90, 85, 80),
-	TileWater:       tcell.NewRGBColor(25, 50, 140),
-	TileUFOFloor:    tcell.NewRGBColor(30, 50, 75),
-	TileUFOWall:     tcell.NewRGBColor(45, 70, 110),
-	TileStairs:      tcell.NewRGBColor(70, 65, 60),
-	TileStairsDown:  tcell.NewRGBColor(50, 45, 40),
-	TilePavement:    tcell.NewRGBColor(75, 75, 75),
-	TileSand:        tcell.NewRGBColor(170, 150, 95),
-	TileSnow:        tcell.NewRGBColor(220, 225, 235),
-	TileMarsh:       tcell.NewRGBColor(45, 75, 55),
-	TileBush:        tcell.NewRGBColor(30, 65, 20),
-	TileFence:       tcell.NewRGBColor(110, 85, 60),
-	TileRubble:      tcell.NewRGBColor(85, 80, 75),
-	TileObject:      tcell.NewRGBColor(130, 130, 130),
-	TileConsole:     tcell.NewRGBColor(50, 180, 100),
-	TileMachinery:   tcell.NewRGBColor(140, 140, 140),
-	TilePod:         tcell.NewRGBColor(100, 50, 150),
-	TilePowerSource: tcell.NewRGBColor(220, 180, 40),
-	TileStorage:     tcell.NewRGBColor(150, 110, 70),
-	TileAlienTech:   tcell.NewRGBColor(200, 50, 50),
+	TileFloor:       tcell.NewRGBColor(95, 90, 85),
+	TileWall:        tcell.NewRGBColor(160, 155, 150),
+	TileDoor:        tcell.NewRGBColor(140, 100, 50),
+	TileWindow:      tcell.NewRGBColor(120, 170, 220),
+	TileGrass:       tcell.NewRGBColor(50, 110, 40),
+	TileTree:        tcell.NewRGBColor(35, 90, 25),
+	TileRock:        tcell.NewRGBColor(130, 125, 120),
+	TileWater:       tcell.NewRGBColor(40, 80, 200),
+	TileUFOFloor:    tcell.NewRGBColor(50, 75, 110),
+	TileUFOWall:     tcell.NewRGBColor(70, 100, 150),
+	TileStairs:      tcell.NewRGBColor(110, 105, 100),
+	TileStairsDown:  tcell.NewRGBColor(80, 75, 70),
+	TilePavement:    tcell.NewRGBColor(120, 120, 120),
+	TileSand:        tcell.NewRGBColor(200, 180, 120),
+	TileSnow:        tcell.NewRGBColor(230, 235, 245),
+	TileMarsh:       tcell.NewRGBColor(60, 100, 70),
+	TileBush:        tcell.NewRGBColor(45, 100, 35),
+	TileFence:       tcell.NewRGBColor(145, 120, 80),
+	TileRubble:      tcell.NewRGBColor(120, 115, 110),
+	TileObject:      tcell.NewRGBColor(170, 170, 170),
+	TileConsole:     tcell.NewRGBColor(70, 210, 130),
+	TileMachinery:   tcell.NewRGBColor(180, 180, 180),
+	TilePod:         tcell.NewRGBColor(130, 70, 190),
+	TilePowerSource: tcell.NewRGBColor(240, 200, 60),
+	TileStorage:     tcell.NewRGBColor(180, 140, 90),
+	TileAlienTech:   tcell.NewRGBColor(230, 70, 70),
 }
 
 // TileBaseColor returns the resolved color for a tile.
@@ -189,8 +189,8 @@ func RenderTile(t Tile, ctx [3][3]TileType, visible, seen bool, frame int, tileX
 	baseCol := TileBaseColor(t)
 	fg := baseCol
 
-	// Make background a very dark version of the base color to add rich depth
-	bg := engine.DarkenColor(baseCol, 0.15)
+	// Make background a dark version of the base color for depth
+	bg := engine.DarkenColor(baseCol, 0.25)
 
 	// Ambient occlusion: darken floor tiles adjacent to opaque walls
 	if !isOpaqueTile(t.Type) {
@@ -212,9 +212,9 @@ func RenderTile(t Tile, ctx [3][3]TileType, visible, seen bool, frame int, tileX
 			aoCount++
 		}
 		if aoCount > 0 {
-			aoFactor := 1.0 - float64(aoCount)*0.12
-			if aoFactor < 0.5 {
-				aoFactor = 0.5
+			aoFactor := 1.0 - float64(aoCount)*0.08
+			if aoFactor < 0.6 {
+				aoFactor = 0.6
 			}
 			bg = engine.DarkenColor(bg, aoFactor)
 		}

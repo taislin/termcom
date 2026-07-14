@@ -2,6 +2,9 @@ package geo
 
 import (
 	"math/rand"
+	"strings"
+
+	"github.com/taislin/termcom/internal/language"
 )
 
 type UFOType struct {
@@ -12,6 +15,11 @@ type UFOType struct {
 	MaxHP      int // original HP
 	Weapon     string
 	Points     int
+}
+
+func (u *UFOType) DisplayName() string {
+	key := "UFO_" + strings.ToUpper(strings.ReplaceAll(u.Name, " ", "_"))
+	return language.String(key)
 }
 
 var UFOTypes = []UFOType{

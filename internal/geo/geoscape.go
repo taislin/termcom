@@ -186,7 +186,7 @@ func (gs *Geoscape) processBattleResult() {
 	if gs.ActiveFinalMission {
 		missionName = language.String("MSG_CYDONIA_ASSAULT")
 	} else if gs.ActiveCrashSite != nil {
-		missionName = fmt.Sprintf(language.String("GEO_MISSION_CRASH_SITE"), gs.ActiveCrashSite.UFOName)
+		missionName = fmt.Sprintf(language.String("GEO_MISSION_CRASH_SITE"), localizeUFOName(gs.ActiveCrashSite.UFOName))
 	} else if gs.ActiveBaseDefense != nil {
 		missionName = fmt.Sprintf(language.String("GEO_MISSION_BASE_DEFENSE"), defendingBase.Name)
 	} else if gs.ActiveMissionType != "" {
@@ -436,7 +436,7 @@ func (gs *Geoscape) Update() {
 				if city != nil {
 					cityName = city.LangName()
 				}
-				gs.Message = fmt.Sprintf(language.String("MSG_UFO_DETECTED"), ufo.Type.Name, cityName)
+				gs.Message = fmt.Sprintf(language.String("MSG_UFO_DETECTED"), ufo.Type.DisplayName(), cityName)
 				gs.MessageTimer = time.Now()
 				audio.PlayAlert()
 				if engine.Config.PauseOnAlienDetect {
@@ -563,13 +563,13 @@ func (gs *Geoscape) Update() {
 									if len(healthy) > 0 {
 										gs.Game.Paused = true
 										gs.ActiveCrashSite = cs
-										gs.Message = fmt.Sprintf(language.String("MSG_TRANSPORT_RETRIEVED"), cs.UFOName, 0)
+										gs.Message = fmt.Sprintf(language.String("MSG_TRANSPORT_RETRIEVED"), localizeUFOName(cs.UFOName), 0)
 										gs.MessageTimer = time.Now()
 										gs.PreBattleStats = make(map[string][6]int)
 										for _, s := range healthy {
 											gs.PreBattleStats[s.Name] = [6]int{s.HP, s.Accuracy, s.Reactions, s.Strength, s.Bravery, s.TU}
 										}
-										bs := battle.NewBattlescape(gs.Game, selectedBase, healthy, cs.UFOName)
+										bs := battle.NewBattlescape(gs.Game, selectedBase, healthy, localizeUFOName(cs.UFOName))
 										gs.Game.SetScreen(engine.StateBattlescape, bs)
 										gs.Game.PushState(engine.StateBattlescape)
 										return
@@ -836,9 +836,9 @@ func (gs *Geoscape) updateDogfightVisual() {
 	} else if !dv.UFOAlive {
 		city := gs.CityByID(ufo.CurrentNode())
 		if city != nil && GetTile(city.X, city.Y) == 0 {
-			gs.Message = fmt.Sprintf(language.String("MSG_UFO_LOST_AT_SEA"), ufo.Type.Name)
+			gs.Message = fmt.Sprintf(language.String("MSG_UFO_LOST_AT_SEA"), ufo.Type.DisplayName())
 		} else {
-			gs.Message = fmt.Sprintf(language.String("MSG_UFO_CRASHED"), ufo.Type.Name)
+			gs.Message = fmt.Sprintf(language.String("MSG_UFO_CRASHED"), ufo.Type.DisplayName())
 		}
 	} else {
 		gs.Message = fmt.Sprintf(language.String("MSG_HIT_UFO"), damage)
@@ -1609,7 +1609,7 @@ func (gs *Geoscape) Autoresolve() {
 	nearest.Active = false
 	if won {
 		gs.Game.Funds += int64(nearest.Type.Points * 1000)
-		gs.Message = fmt.Sprintf(language.String("MSG_AUTO_VICTORY"), nearest.Type.Name, nearest.Type.Points)
+			gs.Message = fmt.Sprintf(language.String("MSG_AUTO_VICTORY"), nearest.Type.DisplayName(), nearest.Type.Points)
 	} else {
 		if squadSize > 0 {
 			// build list of alive soldiers
@@ -1622,7 +1622,7 @@ func (gs *Geoscape) Autoresolve() {
 			idx := rand.Intn(len(alive))
 			alive[idx].HP = 0
 			gs.SelectedBase().RemoveDeadSoldiers()
-			gs.Message = fmt.Sprintf(language.String("MSG_AUTO_DEFEAT"), nearest.Type.Name)
+			gs.Message = fmt.Sprintf(language.String("MSG_AUTO_DEFEAT"), nearest.Type.DisplayName())
 		} else {
 			gs.Message = language.String("MSG_AUTO_NO_SOLDIERS")
 		}
@@ -1895,7 +1895,7 @@ func (gs *Geoscape) confirmLaunch(target interface{}) {
 		if gs.Game.TimeSpeed == 0 {
 			gs.Game.TimeSpeed = 1
 		}
-		gs.Message = fmt.Sprintf(language.String("MSG_INTERCEPTOR_LAUNCHED"), t.Type.Name)
+		gs.Message = fmt.Sprintf(language.String("MSG_INTERCEPTOR_LAUNCHED"), t.Type.DisplayName())
 	case *CrashSite:
 		gs.DispatchTransport(t)
 		gs.Message = fmt.Sprintf(language.String("MSG_TRANSPORT_DISPATCHED"), gs.CityByID(t.NodeID).LangName())
@@ -1963,8 +1963,47 @@ func (gs *Geoscape) Render(ctx *engine.ScreenCtx) {
 }
 
 func (gs *Geoscape) renderMissionSelect(ctx *engine.ScreenCtx, w, h int) {
-	overlayW := 50
-	overlayH := 12
+	missionFmt := language.String("GEO_MISSION_FMT")
+	oddsFmt := language.String("GEO_AUTORESOLVE_ODDS")
+	help := language.String("GEO_MISSION_HELP")
+	title := language.String("GEO_MISSION_RESPONSE")
+	opt1 := language.String("GEO_OPTION_TACTICAL")
+	opt2 := language.String("GEO_OPTION_AUTORESOLVE")
+	opt3 := language.String("GEO_OPTION_IGNORE")
+
+	idx := gs.missionIndexAtCursor()
+	cityName := "?"
+	missionType := ""
+	if idx >= 0 && idx < len(gs.Missions) {
+		mission := gs.Missions[idx]
+		city := gs.CityByID(mission.NodeID)
+		if city != nil {
+			cityName = city.LangName()
+		}
+		missionType = mission.Type
+	}
+
+	fmt1 := fmt.Sprintf(missionFmt, missionType, cityName)
+	fmt2 := fmt.Sprintf(oddsFmt, gs.MissionOdds)
+
+	// Compute required width from all text lines
+	minW := 30
+	neededW := minW
+	for _, s := range []string{fmt1, fmt2, opt1, opt2, opt3, help, title} {
+		sw := engine.StringWidth(s) + 8
+		if sw > neededW {
+			neededW = sw
+		}
+	}
+	// Cap at screen width minus 4, min 50
+	overlayW := neededW + 4
+	if overlayW < 50 {
+		overlayW = 50
+	}
+	if overlayW > w-4 {
+		overlayW = w - 4
+	}
+	overlayH := 14
 	ox := (w - overlayW) / 2
 	oy := (h - overlayH) / 2
 
@@ -1974,27 +2013,12 @@ func (gs *Geoscape) renderMissionSelect(ctx *engine.ScreenCtx, w, h int) {
 		}
 	}
 
-	ctx.DrawPanel(ox, oy, overlayW, overlayH, language.String("GEO_MISSION_RESPONSE"), engine.StyleCyanBold)
+	ctx.DrawPanel(ox, oy, overlayW, overlayH, title, engine.StyleCyanBold)
 
-	idx := gs.missionIndexAtCursor()
-	if idx < 0 || idx >= len(gs.Missions) {
-		return
-	}
-	mission := gs.Missions[idx]
-	city := gs.CityByID(mission.NodeID)
-	cityName := "?"
-	if city != nil {
-		cityName = city.LangName()
-	}
+	ctx.DrawString(ox+2, oy+2, fmt1, engine.StyleDefault)
+	ctx.DrawString(ox+2, oy+3, fmt2, engine.StyleYellow)
 
-	ctx.DrawString(ox+2, oy+2, fmt.Sprintf(language.String("GEO_MISSION_FMT"), mission.Type, cityName), engine.StyleDefault)
-	ctx.DrawString(ox+2, oy+3, fmt.Sprintf(language.String("GEO_AUTORESOLVE_ODDS"), gs.MissionOdds), engine.StyleYellow)
-
-	options := []string{
-		language.String("GEO_OPTION_TACTICAL"),
-		language.String("GEO_OPTION_AUTORESOLVE"),
-		language.String("GEO_OPTION_IGNORE"),
-	}
+	options := []string{opt1, opt2, opt3}
 	for i, opt := range options {
 		style := engine.StyleDefault
 		if i == gs.MissionSelectIdx {
@@ -2003,7 +2027,7 @@ func (gs *Geoscape) renderMissionSelect(ctx *engine.ScreenCtx, w, h int) {
 		ctx.DrawString(ox+2, oy+5+i, opt, style)
 	}
 
-	ctx.DrawString(ox+2, oy+9, language.String("GEO_MISSION_HELP"), engine.StyleGray)
+	ctx.DrawString(ox+2, oy+9, help, engine.StyleGray)
 }
 
 func (gs *Geoscape) getTargets() []interface{} {
@@ -2057,9 +2081,9 @@ func (gs *Geoscape) renderRegionTable(ctx *engine.ScreenCtx, x, y, w, h int) {
 			var name string
 			switch target := t.(type) {
 			case *UFO:
-				name = fmt.Sprintf(language.String("GEO_UFO_LABEL"), target.Type.Name)
+				name = fmt.Sprintf(language.String("GEO_UFO_LABEL"), target.Type.DisplayName())
 			case *CrashSite:
-				name = fmt.Sprintf(language.String("GEO_CRASH_LABEL"), target.UFOName)
+				name = fmt.Sprintf(language.String("GEO_CRASH_LABEL"), localizeUFOName(target.UFOName))
 			}
 
 			prefix := "  "
@@ -2794,6 +2818,11 @@ func (gs *Geoscape) HandleMouse(e *tcell.EventMouse) {
 	}
 }
 
+func localizeUFOName(englishName string) string {
+	key := "UFO_" + strings.ToUpper(strings.ReplaceAll(englishName, " ", "_"))
+	return language.String(key)
+}
+
 func generateUFOLoot(ufoName string) []string {
 	var loot []string
 	switch ufoName {
@@ -2858,6 +2887,6 @@ func (gs *Geoscape) DispatchTransport(cs *CrashSite) {
 	if gs.Game.TimeSpeed == 0 {
 		gs.Game.TimeSpeed = 1
 	}
-	gs.Message = fmt.Sprintf(language.String("MSG_TRANSPORT_DISPATCHED"), cs.UFOName)
+	gs.Message = fmt.Sprintf(language.String("MSG_TRANSPORT_DISPATCHED"), localizeUFOName(cs.UFOName))
 	gs.MessageTimer = time.Now()
 }

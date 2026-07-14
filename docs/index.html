@@ -48,43 +48,308 @@
       /* Grey */
       padding: 2em;
     }
+
+    /* ── Language toggle ───────────────────────────────── */
+    .lang-toggle {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4em;
+      margin-bottom: 1.5em;
+      padding-bottom: 1em;
+      border-bottom: 1px solid #444444;
+    }
+
+    .lang-toggle button {
+      background: #111111;
+      color: #aaaaaa;
+      border: 1px solid #444444;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.9em;
+      padding: 0.3em 0.7em;
+      cursor: pointer;
+    }
+
+    .lang-toggle button:hover {
+      color: #FF8C00;
+      border-color: #FF8C00;
+    }
+
+    .lang-toggle button.active {
+      color: #8A2BE2;
+      border-color: #8A2BE2;
+      background: #1a0a2a;
+    }
+
+    /* ── Translated content visibility ─────────────────── */
+    .i18n {
+      display: none;
+    }
+
+    body.lang-en .i18n.lang-en,
+    body.lang-zh .i18n.lang-zh,
+    body.lang-es .i18n.lang-es,
+    body.lang-fr .i18n.lang-fr,
+    body.lang-ru .i18n.lang-ru,
+    body.lang-pt .i18n.lang-pt,
+    body.lang-ja .i18n.lang-ja,
+    body.lang-ko .i18n.lang-ko {
+      display: revert;
+    }
   </style>
 </head>
 
-<body>
+<body class="lang-en">
   <div class="container">
+    <div class="lang-toggle" role="group" aria-label="Language">
+      <button type="button" data-lang="en">English</button>
+      <button type="button" data-lang="zh">中文</button>
+      <button type="button" data-lang="es">Español</button>
+      <button type="button" data-lang="fr">Français</button>
+      <button type="button" data-lang="ru">Русский</button>
+      <button type="button" data-lang="pt">Português</button>
+      <button type="button" data-lang="ja">日本語</button>
+      <button type="button" data-lang="ko">한국어</button>
+    </div>
+
     <h1>TERM=COM</h1>
-    <p>A roguelike-ified demake of <a href="https://en.wikipedia.org/wiki/XCOM">X-COM: UFO Defense</a> <i>(1994,
-        MicroProse)</i> rendered entirely in coloured
-      ASCII on a terminal. Written in <a href="https://go.dev/">Go</a> with <a
-        href="https://github.com/gdamore/tcell">Tcell</a>.</p>
 
-    <h2>Overview</h2>
-    <p><strong>TERM=COM</strong> brings the classic alien invasion strategy experience to your terminal. It features a
-      complete
-      implementation of all gameplay loops: the Geoscape (global strategy), Base management, and the tactical
-      Battlescape.</p>
+    <p class="i18n lang-en">A roguelike-ified demake of <a href="https://en.wikipedia.org/wiki/XCOM">X-COM: UFO
+        Defense</a> <i>(1994, MicroProse)</i> rendered entirely in coloured ASCII on a terminal. Written in <a
+        href="https://go.dev/">Go</a> with <a href="https://github.com/gdamore/tcell">Tcell</a>.</p>
+    <p class="i18n lang-zh">《X-COM：UFO 防御》(1994，MicroProse) 的 Roguelike 化重制版，完全以彩色 ASCII 字符在终端中呈现。使用
+      <a href="https://go.dev/">Go</a> 语言与 <a href="https://github.com/gdamore/tcell">Tcell</a> 库编写。</p>
+    <p class="i18n lang-es">Un remake tipo roguelike de <a href="https://en.wikipedia.org/wiki/XCOM">X-COM: UFO
+        Defense</a> (1994, MicroProse) renderizado enteramente en ASCII de colores en una terminal. Escrito en <a
+        href="https://go.dev/">Go</a> con <a href="https://github.com/gdamore/tcell">Tcell</a>.</p>
+    <p class="i18n lang-fr">Un remake de type roguelike de <a href="https://en.wikipedia.org/wiki/XCOM">X-COM: UFO
+        Defense</a> (1994, MicroProse) entièrement rendu en ASCII coloré dans un terminal. Écrit en <a
+        href="https://go.dev/">Go</a> avec <a href="https://github.com/gdamore/tcell">Tcell</a>.</p>
+    <p class="i18n lang-ru">Рогалик-ремейк <a href="https://en.wikipedia.org/wiki/XCOM">X-COM: UFO Defense</a> (1994,
+      MicroProse), полностью выполненный в цветном ASCII в терминале. Написан на <a href="https://go.dev/">Go</a> с
+      использованием <a href="https://github.com/gdamore/tcell">Tcell</a>.</p>
+    <p class="i18n lang-pt">Um remake estilo roguelike de <a href="https://en.wikipedia.org/wiki/XCOM">X-COM: UFO
+        Defense</a> (1994, MicroProse) renderizado inteiramente em ASCII colorido num terminal. Escrito em <a
+        href="https://go.dev/">Go</a> com <a href="https://github.com/gdamore/tcell">Tcell</a>.</p>
+    <p class="i18n lang-ja"><a href="https://en.wikipedia.org/wiki/XCOM">X-COM: UFO Defense</a> (1994, MicroProse) のローグライク風リメイクで、ターミナル上で完全にカラーASCIIで描画されます。<a href="https://go.dev/">Go</a> 言語と
+      <a href="https://github.com/gdamore/tcell">Tcell</a> で書かれています。</p>
+    <p class="i18n lang-ko"><a href="https://en.wikipedia.org/wiki/XCOM">X-COM: UFO Defense</a> (1994, MicroProse)의
+      로그라이크풍 리메이크로, 터미널에서 전부 컬러 ASCII로 렌더링됩니다. <a href="https://go.dev/">Go</a> 언어와 <a
+        href="https://github.com/gdamore/tcell">Tcell</a>로 작성되었습니다.</p>
 
-    <h2>Key Features</h2>
+    <h2 class="i18n lang-en">Overview</h2>
+    <h2 class="i18n lang-zh">概览</h2>
+    <h2 class="i18n lang-es">Vista general</h2>
+    <h2 class="i18n lang-fr">Aperçu</h2>
+    <h2 class="i18n lang-ru">Обзор</h2>
+    <h2 class="i18n lang-pt">Visão geral</h2>
+    <h2 class="i18n lang-ja">概要</h2>
+    <h2 class="i18n lang-ko">개요</h2>
+
+    <p class="i18n lang-en"><strong>TERM=COM</strong> brings the classic alien invasion strategy experience to your
+      terminal. It features a complete implementation of all gameplay loops: the Geoscape (global strategy), Base
+      management, and the tactical Battlescape.</p>
+    <p class="i18n lang-zh"><strong>TERM=COM</strong> 将经典的异形入侵策略体验带到了您的终端。它完整实现了所有游戏循环：地球战略层（Geoscape）、基地管理以及战术战斗层（Battlescape）。</p>
+    <p class="i18n lang-es"><strong>TERM=COM</strong> lleva la clásica experiencia de estrategia de invasión alienígena
+      a tu terminal. Implementa por completo todos los bucles de juego: el Geoscape (estrategia global), la gestión de
+      bases y el Battlescape táctico.</p>
+    <p class="i18n lang-fr"><strong>TERM=COM</strong> transpose l'expérience stratégique classique d'invasion alienne
+      dans votre terminal. Il implémente intégralement toutes les boucles de jeu : le Geoscape (stratégie globale), la
+      gestion de base et le Battlescape tactique.</p>
+    <p class="i18n lang-ru"><strong>TERM=COM</strong> переносит классический опыт стратегии вторжения пришельцев в ваш
+      терминал. В игре полностью реализованы все игровые циклы: Геоскоп (глобальная стратегия), управление базой и
+      тактический Бэттлскоп.</p>
+    <p class="i18n lang-pt"><strong>TERM=COM</strong> traz a clássica experiência de estratégia de invasão alienígena
+      para o seu terminal. Implementa de forma completa todos os ciclos de jogo: o Geoscape (estratégia global), a
+      gestão de base e o Battlescape táctico.</p>
+    <p class="i18n lang-ja"><strong>TERM=COM</strong> は、古典的なエイリアン侵略ストラテジーの体験をターミナルに届けます。すべてのゲームループ（地球戦略のジオスケープ、基地管理、そして戦術バトルのバトルスケープ）を完全に実装しています。</p>
+    <p class="i18n lang-ko"><strong>TERM=COM</strong>은 클래식한 외계인 침공 전략 경험을 터미널로 가져옵니다. 모든 게임 루프(지구 전략인 지오스케이프, 기지 관리, 그리고 전술 전투인 배틀스케이프)를 완전히 구현했습니다.</p>
+
+    <h2 class="i18n lang-en">Key Features</h2>
+    <h2 class="i18n lang-zh">主要特性</h2>
+    <h2 class="i18n lang-es">Características principales</h2>
+    <h2 class="i18n lang-fr">Caractéristiques principales</h2>
+    <h2 class="i18n lang-ru">Ключевые особенности</h2>
+    <h2 class="i18n lang-pt">Principais funcionalidades</h2>
+    <h2 class="i18n lang-ja">主な特徴</h2>
+    <h2 class="i18n lang-ko">주요 기능</h2>
+
     <ul>
-      <li><strong>Geoscape:</strong> Real-time global map with time compression and UFO tracking.</li>
-      <li><strong>Battlescape:</strong> Turn-based tactical combat with Time Units, destructible terrain, and
-        line-of-sight.</li>
-      <li><strong>Base Management:</strong> Build facilities, hire soldiers, and equip your squad.</li>
-      <li><strong>Deep Systems:</strong> Research alien technology, manage manufacturing, and track soldier progression.
-      </li>
-      <li><strong>Procedurally Generated Aliens:</strong> A roster of aliens is generated at the start of each campaign,
-        each with unique abilities, strengths, weaknesses, and weapons.
-      </li>
-      <li><strong>Advanced AI & VFX:</strong> Intelligent alien behavior, volumetric smoke, and dynamic particle
-        effects.</li>
+      <li class="i18n lang-en"><strong>Geoscape:</strong> Real-time global map with time compression and UFO tracking.</li>
+      <li class="i18n lang-zh"><strong>Geoscape:</strong> 实时全球地图，支持时间加速与 UFO 追踪。</li>
+      <li class="i18n lang-es"><strong>Geoscape:</strong> Mapa global en tiempo real con compresión de tiempo y
+        seguimiento de OVNI.</li>
+      <li class="i18n lang-fr"><strong>Geoscape:</strong> Carte mondiale en temps réel avec compression du temps et
+        suivi des OVNI.</li>
+      <li class="i18n lang-ru"><strong>Geoscape:</strong> Глобальная карта в реальном времени со сжатием времени и
+        отслеживанием НЛО.</li>
+      <li class="i18n lang-pt"><strong>Geoscape:</strong> Mapa global em tempo real com compressão de tempo e
+        rastreamento de OVNIs.</li>
+      <li class="i18n lang-ja"><strong>Geoscape:</strong> 時間圧縮とUFO追跡を備えたリアルタイムの世界地図。</li>
+      <li class="i18n lang-ko"><strong>Geoscape:</strong> 시간 압축과 UFO 추적을 갖춘 실시간 세계 지도.</li>
+
+      <li class="i18n lang-en"><strong>Battlescape:</strong> Turn-based tactical combat with Time Units, destructible
+        terrain, and line-of-sight.</li>
+      <li class="i18n lang-zh"><strong>Battlescape:</strong> 基于时间的回合制战术战斗，包含时间单位、可破坏地形与视线机制。</li>
+      <li class="i18n lang-es"><strong>Battlescape:</strong> Combate táctico por turnos con Unidades de Tiempo, terreno
+        destructible y línea de visión.</li>
+      <li class="i18n lang-fr"><strong>Battlescape:</strong> Combat tactique au tour par tour avec Unités de Temps,
+        terrain destructible et ligne de vue.</li>
+      <li class="i18n lang-ru"><strong>Battlescape:</strong> Пошаговые тактические бои с единицами времени, разрушаемым
+        ландшафтом и линией видимости.</li>
+      <li class="i18n lang-pt"><strong>Battlescape:</strong> Combate táctico por turnos com Unidades de Tempo, terreno
+        destrutível e linha de visão.</li>
+      <li class="i18n lang-ja"><strong>Battlescape:</strong> タイムユニット、破壊可能な地形、視線判定を備えたターン制タクティカル戦闘。</li>
+      <li class="i18n lang-ko"><strong>Battlescape:</strong> 타임 유닛, 파괴 가능한 지형, 시선 판정을 갖춘 턴제 전술 전투.</li>
+
+      <li class="i18n lang-en"><strong>Base Management:</strong> Build facilities, hire soldiers, and equip your
+        squad.</li>
+      <li class="i18n lang-zh"><strong>Base Management:</strong> 建造设施、招募士兵并装备你的小队。</li>
+      <li class="i18n lang-es"><strong>Base Management:</strong> Construye instalaciones, recluta soldados y equipa tu
+        escuadrón.</li>
+      <li class="i18n lang-fr"><strong>Base Management:</strong> Construisez des installations, recrutez des soldats et
+        équipez votre escouade.</li>
+      <li class="i18n lang-ru"><strong>Base Management:</strong> Стройте объекты, нанимайте солдат и экипируйте отряд.</li>
+      <li class="i18n lang-pt"><strong>Base Management:</strong> Construa instalações, recrute soldados e equipue o seu
+        esquadrão.</li>
+      <li class="i18n lang-ja"><strong>Base Management:</strong> 施設の建設、兵士の雇用、部隊の装備。</li>
+      <li class="i18n lang-ko"><strong>Base Management:</strong> 시설 건설, 병사 고용, 분대 장비.</li>
+
+      <li class="i18n lang-en"><strong>Deep Systems:</strong> Research alien technology, manage manufacturing, and track
+        soldier progression.</li>
+      <li class="i18n lang-zh"><strong>Deep Systems:</strong> 研究外星科技、管理生产线并追踪士兵成长。</li>
+      <li class="i18n lang-es"><strong>Deep Systems:</strong> Investiga tecnología alienígena, gestiona la fabricación y
+        sigue el progreso de los soldados.</li>
+      <li class="i18n lang-fr"><strong>Deep Systems:</strong> Recherchez la technologie alienne, gérez la fabrication et
+        suivez la progression des soldats.</li>
+      <li class="i18n lang-ru"><strong>Deep Systems:</strong> Исследуйте инопланетные технологии, управляйте
+        производством и отслеживайте прогресс солдат.</li>
+      <li class="i18n lang-pt"><strong>Deep Systems:</strong> Pesquise tecnologia alienígena, gerencie a fabricação e
+        acompanhe o progresso dos soldados.</li>
+      <li class="i18n lang-ja"><strong>Deep Systems:</strong> エイリアン技術の研究、生産管理、兵士の成長の追跡。</li>
+      <li class="i18n lang-ko"><strong>Deep Systems:</strong> 외계 기술 연구, 생산 관리, 병사 성장 추적.</li>
+
+      <li class="i18n lang-en"><strong>Procedurally Generated Aliens:</strong> A roster of aliens is generated at the
+        start of each campaign, each with unique abilities, strengths, weaknesses, and weapons.</li>
+      <li class="i18n lang-zh"><strong>Procedurally Generated Aliens:</strong> 每个战役开始时生成一套外星人名单，各自拥有独特的能力、优势、弱点与武器。</li>
+      <li class="i18n lang-es"><strong>Procedurally Generated Aliens:</strong> Se genera una lista de alienígenas al
+        inicio de cada campaña, cada uno con habilidades, fortalezas, debilidades y armas únicas.</li>
+      <li class="i18n lang-fr"><strong>Procedurally Generated Aliens:</strong> Un roster d'aliens est généré au début de
+        chaque campagne, chacun avec des capacités, forces, faiblesses et armes uniques.</li>
+      <li class="i18n lang-ru"><strong>Procedurally Generated Aliens:</strong> На старте каждой кампании генерируется
+        ростер пришельцев, каждый с уникальными способностями, сильными и слабыми сторонами и оружием.</li>
+      <li class="i18n lang-pt"><strong>Procedurally Generated Aliens:</strong> Um rol de aliens é gerado no início de
+        cada campanha, cada um com habilidades, pontos fortes, fraquezas e armas únicas.</li>
+      <li class="i18n lang-ja"><strong>Procedurally Generated Aliens:</strong> キャンペーン開始時にエイリアンの一覧が生成され、それぞれが独自の能力・長所・弱点・武器を持つ。</li>
+      <li class="i18n lang-ko"><strong>Procedurally Generated Aliens:</strong> 각 캠페인 시작 시 외계인 명단이 생성되며, 각자는 고유한 능력·강점·약점·무기를 가짐.</li>
+
+      <li class="i18n lang-en"><strong>Advanced AI &amp; VFX:</strong> Intelligent alien behavior, volumetric smoke, and
+        dynamic particle effects.</li>
+      <li class="i18n lang-zh"><strong>Advanced AI &amp; VFX:</strong> 智能的外星人行为、体积烟雾与动态粒子特效。</li>
+      <li class="i18n lang-es"><strong>Advanced AI &amp; VFX:</strong> Comportamiento alienígena inteligente, humo
+        volumétrico y efectos de partículas dinámicos.</li>
+      <li class="i18n lang-fr"><strong>Advanced AI &amp; VFX:</strong> Comportement alien intelligent, fumée volumétrique
+        et effets de particules dynamiques.</li>
+      <li class="i18n lang-ru"><strong>Advanced AI &amp; VFX:</strong> Умное поведение пришельцев, объёмный дым и
+        динамические частицы.</li>
+      <li class="i18n lang-pt"><strong>Advanced AI &amp; VFX:</strong> Comportamento alienígena inteligente, fumo
+        volumétrico e efeitos de partículas dinâmicos.</li>
+      <li class="i18n lang-ja"><strong>Advanced AI &amp; VFX:</strong> 知的なエイリアンの行動、体積霧、動的なパーティクル効果。</li>
+      <li class="i18n lang-ko"><strong>Advanced AI &amp; VFX:</strong> 지능적인 외계인 행동, 부피형 연기, 동적 파티클 효과.</li>
     </ul>
-    <h2>Minimum Requirements</h2>
-    <p>Something made in the last 25 years or so with a terminal, 10 MB of memory and 20 MB of RAM.</p>
-    <h2>Links</h2>
-    <p><a href="https://github.com/taislin/termcom">GitHub Repository</a></p>
-    <p><a href="https://github.com/taislin/termcom/releases">Download Latest Release</a></p>
+
+    <h2 class="i18n lang-en">Minimum Requirements</h2>
+    <h2 class="i18n lang-zh">最低配置</h2>
+    <h2 class="i18n lang-es">Requisitos mínimos</h2>
+    <h2 class="i18n lang-fr">Configuration minimale</h2>
+    <h2 class="i18n lang-ru">Минимальные требования</h2>
+    <h2 class="i18n lang-pt">Requisitos mínimos</h2>
+    <h2 class="i18n lang-ja">最小要件</h2>
+    <h2 class="i18n lang-ko">최소 사양</h2>
+
+    <p class="i18n lang-en">Something made in the last 25 years or so with a terminal, 10 MB of memory and 20 MB of
+      RAM.</p>
+    <p class="i18n lang-zh">近 25 年内制造的、带有终端的设备，10 MB 内存与 20 MB 运行内存即可。</p>
+    <p class="i18n lang-es">Cualquier cosa fabricada en los últimos 25 años más o menos con una terminal, 10 MB de
+      memoria y 20 MB de RAM.</p>
+    <p class="i18n lang-fr">Un appareil fabriqué il y a une vingtaine d'années avec un terminal, 10 Mo de mémoire et 20
+      Mo de RAM.</p>
+    <p class="i18n lang-ru">Любое устройство, выпущенное за последние 25 лет или около того, с терминалом, 10 МБ памяти
+      и 20 МБ ОЗУ.</p>
+    <p class="i18n lang-pt">Algo feito nos últimos 25 anos ou assim, com um terminal, 10 MB de memória e 20 MB de
+      RAM.</p>
+    <p class="i18n lang-ja">ここ25年ほどの間に作られ、ターミナルを備えたデバイスで、メモリ10 MB、RAM 20 MBがあれば動作します。</p>
+    <p class="i18n lang-ko">최근 25년 내외에 만들어진 터미널이 있는 기기, 메모리 10 MB와 RAM 20 MB면 충분합니다.</p>
+
+    <h2 class="i18n lang-en">Links</h2>
+    <h2 class="i18n lang-zh">相关链接</h2>
+    <h2 class="i18n lang-es">Enlaces</h2>
+    <h2 class="i18n lang-fr">Liens</h2>
+    <h2 class="i18n lang-ru">Ссылки</h2>
+    <h2 class="i18n lang-pt">Ligações</h2>
+    <h2 class="i18n lang-ja">リンク</h2>
+    <h2 class="i18n lang-ko">링크</h2>
+
+    <p class="i18n lang-en"><a href="https://github.com/taislin/termcom">GitHub Repository</a></p>
+    <p class="i18n lang-zh"><a href="https://github.com/taislin/termcom">GitHub 仓库</a></p>
+    <p class="i18n lang-es"><a href="https://github.com/taislin/termcom">Repositorio de GitHub</a></p>
+    <p class="i18n lang-fr"><a href="https://github.com/taislin/termcom">Dépôt GitHub</a></p>
+    <p class="i18n lang-ru"><a href="https://github.com/taislin/termcom">Репозиторий GitHub</a></p>
+    <p class="i18n lang-pt"><a href="https://github.com/taislin/termcom">Repositório no GitHub</a></p>
+    <p class="i18n lang-ja"><a href="https://github.com/taislin/termcom">GitHub リポジトリ</a></p>
+    <p class="i18n lang-ko"><a href="https://github.com/taislin/termcom">GitHub 저장소</a></p>
+
+    <p class="i18n lang-en"><a href="https://github.com/taislin/termcom/releases">Download Latest Release</a></p>
+    <p class="i18n lang-zh"><a href="https://github.com/taislin/termcom/releases">下载最新版本</a></p>
+    <p class="i18n lang-es"><a href="https://github.com/taislin/termcom/releases">Descargar la última versión</a></p>
+    <p class="i18n lang-fr"><a href="https://github.com/taislin/termcom/releases">Télécharger la dernière version</a></p>
+    <p class="i18n lang-ru"><a href="https://github.com/taislin/termcom/releases">Скачать последнюю версию</a></p>
+    <p class="i18n lang-pt"><a href="https://github.com/taislin/termcom/releases">Baixar a última versão</a></p>
+    <p class="i18n lang-ja"><a href="https://github.com/taislin/termcom/releases">最新リリースをダウンロード</a></p>
+    <p class="i18n lang-ko"><a href="https://github.com/taislin/termcom/releases">최신 릴리스 다운로드</a></p>
   </div>
+
+  <script>
+    (function () {
+      var LANGS = ['en', 'zh', 'es', 'fr', 'ru', 'pt', 'ja', 'ko'];
+      var TITLES = {
+        en: 'TERM=COM - ASCII X-COM Demake',
+        zh: 'TERM=COM - ASCII X-COM 重制版',
+        es: 'TERM=COM - Remake ASCII de X-COM',
+        fr: 'TERM=COM - Remake ASCII de X-COM',
+        ru: 'TERM=COM - ASCII-ремейк X-COM',
+        pt: 'TERM=COM - Remake ASCII de X-COM',
+        ja: 'TERM=COM - ASCII X-COM リメイク',
+        ko: 'TERM=COM - ASCII X-COM 리메이크'
+      };
+
+      function apply(lang) {
+        if (LANGS.indexOf(lang) < 0) lang = 'en';
+        document.body.className = 'lang-' + lang;
+        document.documentElement.lang = lang;
+        document.title = TITLES[lang] || TITLES.en;
+        var btns = document.querySelectorAll('.lang-toggle button');
+        for (var i = 0; i < btns.length; i++) {
+          btns[i].classList.toggle('active', btns[i].getAttribute('data-lang') === lang);
+        }
+        try { localStorage.setItem('termcom-lang', lang); } catch (e) { }
+      }
+
+      var saved = null;
+      try { saved = localStorage.getItem('termcom-lang'); } catch (e) { }
+      var nav = (navigator.language || 'en').slice(0, 2).toLowerCase();
+      var initial = (saved && LANGS.indexOf(saved) >= 0) ? saved
+        : (LANGS.indexOf(nav) >= 0 ? nav : 'en');
+
+      apply(initial);
+
+      var buttons = document.querySelectorAll('.lang-toggle button');
+      for (var i = 0; i < buttons.length; i++) {
+        buttons[i].addEventListener('click', function () {
+          apply(this.getAttribute('data-lang'));
+        });
+      }
+    })();
+  </script>
 </body>
 
 </html>

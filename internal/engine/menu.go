@@ -393,7 +393,7 @@ func (ms *MenuScreen) HandleMouse(e *tcell.EventMouse) {
 	w, _ := ms.Game.ScreenSize()
 
 	subY := 9
-	menuY := subY + 8
+	menuY := subY + 4
 	opts := ms.options()
 
 	for i := range opts {
