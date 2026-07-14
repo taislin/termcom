@@ -276,13 +276,13 @@ Planned work (not yet implemented):
 - [ ] Add unit tests for `base/manufacture.go` (manufacturing progression)
 - [ ] Target: 50%+ coverage in engine, geo, battle, base packages
 
-## Phase 35: Multi-Platform Audio Engine (Linux/macOS)
-- [ ] Implement PCM synthesis in `internal/audio/audio_other.go` using `oto`
-- [ ] Replace terminal BEL beeps with procedural sound generation
-- [ ] Implement weapon fire sounds (laser, plasma, ballistic, melee)
-- [ ] Implement explosion sounds
-- [ ] Implement ambient battle sounds (wind, distant explosions)
-- [ ] Ensure parity with `audio_windows.go` synthesis logic
+## Phase 35: Multi-Platform Audio Engine (Linux/macOS) (DONE)
+- [x] Implement PCM synthesis in `internal/audio/audio_other.go` using `oto`
+- [x] Replace terminal BEL beeps with procedural sound generation
+- [x] Implement weapon fire sounds (laser, plasma, ballistic, melee)
+- [x] Implement explosion sounds
+- [x] Implement ambient battle sounds (wind, distant explosions)
+- [x] Ensure parity with `audio_windows.go` synthesis logic
 
 ## Phase 36: Game Balance & Polish Pass
 - [ ] Play-test full campaign on each difficulty (Beginner..Superhuman)
@@ -349,26 +349,26 @@ Planned work (not yet implemented):
 - [ ] `TestSellFacilityRefund` (refund on SellFacility).
 
 
-## Phase 42: Motion Scanner Mechanic
-- [ ] Implement scan mechanic for `BT_SCANNER` item type in battlescape
-- [ ] When equipped and activated, reveal all alien positions within a radius (e.g. 12 tiles) for the current turn
-- [ ] Visual feedback: brief pulse overlay or highlighted tiles on the map
-- [ ] Cost: 10 TU per scan, limited uses (3-5 per mission) or item consumption
-- [ ] Update `docs/manual.md` with motion scanner details
+## Phase 42: Motion Scanner Mechanic (DONE)
+- [x] Implement scan mechanic for `BT_SCANNER` item type in battlescape
+- [x] When equipped and activated, reveal all alien positions within 15 tiles for the current turn
+- [x] Visual feedback: blinking '⚡' ping on revealed positions
+- [x] Cost: 10 TU per scan, unlimited uses while equipped
+- [x] Key: Y
 
-## Phase 43: Options Screen Mouse Handler
-- [ ] Implement mouse click/hover handling in `internal/engine/options.go` (currently a no-op stub at line ~324)
-- [ ] Map screen regions to toggle/adjust controls matching keyboard bindings
-- [ ] Hover highlight on interactive elements
-- [ ] Update `docs/manual.md` if mouse interaction details change
+## Phase 43: Options Screen Mouse Handler (DONE)
+- [x] Implement mouse click handling in `internal/engine/options.go` (replaced no-op stub)
+- [x] Left-click toggles booleans, advances cyclers; right-click reverses cyclers
+- [x] Hover highlight from existing keyboard selection logic
 
-## Phase 44: Proximity Mines
-- [ ] Implement `BT_PROXIMITYGRENADE` battle type (defined but unused)
-- [ ] Create proximity mine item in `internal/data/items.go`
-- [ ] Add mine placement mechanic (right-click to arm, detonates when enemy steps adjacent)
-- [ ] Wire into `Booby Trapped` mission modifier to place mines on the map
-- [ ] Visual: distinct tile rune for armed vs. disarmed mines
-- [ ] Update `docs/manual.md` with proximity mine details
+## Phase 44: Proximity Mines (DONE)
+- [x] Implement `BT_PROXIMITYGRENADE` battle type (was defined but unused)
+- [x] Create proximity mine item in `internal/data/items.go` (RuleItems + Items)
+- [x] Mine placement mechanic (press T on adjacent floor tile, costs 20 TU)
+- [x] Detonation when aliens step on or adjacent to mine
+- [x] Wired into `Booby Trapped` mission modifier: 3-5 random mines on map
+- [x] Visual: '◉' marker on placed mines
+- [x] Key: T
 
 ## Phase 45: In-Game Tutorial / Onboarding
 - [ ] Design tutorial flow (e.g. first Geoscape popup → first mission walkthrough → base tour)
