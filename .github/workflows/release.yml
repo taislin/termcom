@@ -43,16 +43,6 @@ jobs:
             goos: linux
             goarch: amd64
             ext: ""
-          - os: linux
-            arch: arm64
-            goos: linux
-            goarch: arm64
-            ext: ""
-          - os: linux
-            arch: arm
-            goos: linux
-            goarch: arm
-            ext: ""
           - os: macos
             arch: arm64
             goos: darwin
