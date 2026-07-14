@@ -890,5 +890,16 @@ func init() {
 		"WPN_INTERCEPTOR_AVALANCHE": "Установки «Аваланч»",
 		"WPN_INTERCEPTOR_STINGRAY":  "Ракеты «Стингрей»",
 		"WPN_INTERCEPTOR_CANNON":    "Пушка (DEF-7)",
+		"MSG_ALIEN_PSI_PANIC":     "%s применяет пси-атаку к %s — ПАНИКА!",
+		"MSG_ALIEN_PSI_RESIST":    "%s применяет пси-атаку к %s — сопротивление!",
+		"MSG_NO_PSI_TRAINING":     "Солдат не обучен пси-способностям.",
+		"HELP_RESEARCH_TREE":      "[\u2191]/[\u2193]=\u0412\u044b\u0431\u0440\u0430\u0442\u044c  Enter=\u041d\u0430\u0447\u0430\u0442\u044c  [Esc]=\u041d\u0430\u0437\u0430\u0434  [T]ree=\u0421\u043a\u0440\u044b\u0442\u044c",
+		"RESEARCH_UNLOCK_ITEM":    "\u041f\u0440\u0435\u0434\u043c\u0435\u0442:",
+		"RESEARCH_UNLOCK_WEAPON":  "\u041e\u0440\u0443\u0436\u0438\u0435:",
+		"RESEARCH_UNLOCK_ARMOR":   "\u0411\u0440\u043e\u043d\u044f:",
+		"RESEARCH_UNLOCK_ALIEN_LORE": "\u0417\u043d\u0430\u043d\u0438\u044f \u043e \u043f\u0440\u0438\u0448\u0435\u043b\u044c\u0446\u0430\u0445",
+		"FAC_ADJACENT_LABS":       "\u0421\u043e\u0441\u0435\u0434\u043d\u0438\u0435 \u043b\u0430\u0431\u043e\u0440\u0430\u0442\u043e\u0440\u0438\u0438:",
+		"FAC_ADJACENT_WORKSHOPS":  "\u0421\u043e\u0441\u0435\u0434\u043d\u0438\u0435 \u043c\u0430\u0441\u0442\u0435\u0440\u0441\u043a\u0438\u0435:",
+		"FAC_ADJACENT_LIVING":     "\u0421\u043e\u0441\u0435\u0434\u043d\u0438\u0435 \u0436\u0438\u043b\u044b\u0435 \u0431\u043b\u043e\u043a\u0438:",
 	})
 }

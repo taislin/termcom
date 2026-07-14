@@ -386,7 +386,7 @@ func (bs *BaseScreen) HandleKey(e *tcell.EventKey) {
 		audio.PlayMenuNav()
 		bs.Tab--
 		if bs.Tab < 0 {
-			bs.Tab = 4
+			bs.Tab = 5
 		}
 		bs.Selection = 0
 	case tcell.KeyRight:
@@ -497,7 +497,7 @@ func (bs *BaseScreen) HandleMouse(e *tcell.EventMouse) {
 					bs.Game.PushState(engine.StateManufacture)
 				}
 			},
-			func() { bs.Tab = (bs.Tab + 1) % 5; bs.Selection = 0 },
+			func() { bs.Tab = (bs.Tab + 1) % 6; bs.Selection = 0 },
 			nil,
 			func() { bs.Game.PopState() },
 		}
@@ -518,7 +518,7 @@ func (bs *BaseScreen) HandleMouse(e *tcell.EventMouse) {
 	}
 
 	if y == 1 {
-		tabs := []string{language.String("TAB_FACILITIES"), language.String("TAB_SOLDIERS"), language.String("TAB_RESEARCH"), language.String("TAB_MANUFACTURE"), language.String("TAB_TRANSFER")}
+		tabs := []string{language.String("TAB_FACILITIES"), language.String("TAB_SOLDIERS"), language.String("TAB_RESEARCH"), language.String("TAB_MANUFACTURE"), language.String("TAB_TRANSFER"), language.String("TAB_HANGARS")}
 		tabW := 0
 		for _, t := range tabs {
 			tw := engine.StringWidth(t) + 4
@@ -529,7 +529,7 @@ func (bs *BaseScreen) HandleMouse(e *tcell.EventMouse) {
 		if tabW < 12 {
 			tabW = 12
 		}
-		for i := 0; i < 5; i++ {
+		for i := 0; i < len(tabs); i++ {
 			tx := 2 + i*tabW
 			if x >= tx && x <= tx+engine.StringWidth(tabs[i])+2 {
 				bs.Tab = i

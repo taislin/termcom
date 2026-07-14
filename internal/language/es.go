@@ -921,5 +921,16 @@ func init() {
 		"WPN_INTERCEPTOR_AVALANCHE": "Lanzamisiles Avalancha",
 		"WPN_INTERCEPTOR_STINGRAY":  "Misiles Stingray",
 		"WPN_INTERCEPTOR_CANNON":    "Cañón (DEF-7)",
+		"MSG_ALIEN_PSI_PANIC":     "%s ataca psi a %s — ¡PÁNICO!",
+		"MSG_ALIEN_PSI_RESIST":    "%s ataca psi a %s — ¡resistido!",
+		"MSG_NO_PSI_TRAINING":     "El soldado no tiene entrenamiento psi.",
+		"HELP_RESEARCH_TREE":      "[\u2191]/[\u2193]=Seleccionar  Enter=Iniciar  [Esc]=Volver  [T]ree=Ocultar",
+		"RESEARCH_UNLOCK_ITEM":    "Objeto:",
+		"RESEARCH_UNLOCK_WEAPON":  "Arma:",
+		"RESEARCH_UNLOCK_ARMOR":   "Armadura:",
+		"RESEARCH_UNLOCK_ALIEN_LORE": "Conocimiento alienígena",
+		"FAC_ADJACENT_LABS":       "Laboratorios adyacentes:",
+		"FAC_ADJACENT_WORKSHOPS":  "Talleres adyacentes:",
+		"FAC_ADJACENT_LIVING":     "Viviendas adyacentes:",
 	})
 }

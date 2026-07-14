@@ -888,5 +888,16 @@ func init() {
 		"WPN_INTERCEPTOR_AVALANCHE": "雪崩发射器",
 		"WPN_INTERCEPTOR_STINGRAY":  "刺鳐导弹",
 		"WPN_INTERCEPTOR_CANNON":    "机炮 (DEF-7)",
+		"MSG_ALIEN_PSI_PANIC":     "%s 对 %s 使用心灵攻击——恐慌！",
+		"MSG_ALIEN_PSI_RESIST":    "%s 对 %s 使用心灵攻击——抵抗！",
+		"MSG_NO_PSI_TRAINING":     "士兵没有心灵训练。",
+		"HELP_RESEARCH_TREE":      "[↑]/[↓]=选择  Enter=开始  [Esc]=返回  [T]ree=隐藏",
+		"RESEARCH_UNLOCK_ITEM":    "物品:",
+		"RESEARCH_UNLOCK_WEAPON":  "武器:",
+		"RESEARCH_UNLOCK_ARMOR":   "装甲:",
+		"RESEARCH_UNLOCK_ALIEN_LORE": "外星人知识",
+		"FAC_ADJACENT_LABS":       "相邻实验室:",
+		"FAC_ADJACENT_WORKSHOPS":  "相邻车间:",
+		"FAC_ADJACENT_LIVING":     "相邻宿舍:",
 	})
 }

@@ -892,5 +892,16 @@ func init() {
 		"WPN_INTERCEPTOR_AVALANCHE": "\uc5b4\ubc14\ub780\uce58 \ubbf8\uc0ac\uc77c",
 		"WPN_INTERCEPTOR_STINGRAY":  "\uc2a4\ud303\ub808\uc774 \ubbf8\uc0ac\uc77c",
 		"WPN_INTERCEPTOR_CANNON":    "\ucee4\ub10c (DEF-7)",
+		"MSG_ALIEN_PSI_PANIC":     "%s\uac00 %s\uc5d0 \uc2dc\uac01 \uacf5\uaca9 \u2014 \ud655\ud0c0!",
+		"MSG_ALIEN_PSI_RESIST":    "%s\uac00 %s\uc5d0 \uc2dc\uac01 \uacf5\uaca9 \u2014 \uac10\uc5d0!",
+		"MSG_NO_PSI_TRAINING":     "\uc0ac\ub824\ub4dc\ub294 \uc2dc\uac01 \ud559\uc2b5\uc774 \uc5c6\uc2b5\ub2c8\ub2e4.",
+		"HELP_RESEARCH_TREE":      "[\u2191]/[\u2193]=\uc120\ud0dd  Enter=\uc2dc\uc791  [Esc]=\ub3cc\uc544\uac00\uae30  [T]ree=\uc228\uae30",
+		"RESEARCH_UNLOCK_ITEM":    "\ubb3c\ud488:",
+		"RESEARCH_UNLOCK_WEAPON":  "\ubb34\uae30:",
+		"RESEARCH_UNLOCK_ARMOR":   "\uc544\uba38:",
+		"RESEARCH_UNLOCK_ALIEN_LORE": "\uc678\uacc4\uc778 \uc9c0\uc2dd",
+		"FAC_ADJACENT_LABS":       "\uc5f0\uad6c\uc2e4 \uc778\uc811:",
+		"FAC_ADJACENT_WORKSHOPS":  "\uacf5\uc791\uc2e4 \uc778\uc811:",
+		"FAC_ADJACENT_LIVING":     "\uc8fc\uac70\uc2e4 \uc778\uc811:",
 	})
 }

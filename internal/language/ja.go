@@ -920,5 +920,16 @@ func init() {
 		"WPN_INTERCEPTOR_AVALANCHE": "\u30a2\u30d0\u30e9\u30f3\u30b7\u30e5\u30e9\u30f3\u30c1\u30e3\u30fc",
 		"WPN_INTERCEPTOR_STINGRAY":  "\u30b9\u30c6\u30a3\u30f3\u30b0\u30ec\u30a4\u30df\u30b5\u30a4\u30eb",
 		"WPN_INTERCEPTOR_CANNON":    "\u30ad\u30e3\u30ce\u30f3 (DEF-7)",
+		"MSG_ALIEN_PSI_PANIC":     "%s\u304c%s\u306b\u30b5\u30a4\u653b\u6483\u2014\u2014\u6050\u61fc\uff01",
+		"MSG_ALIEN_PSI_RESIST":    "%s\u304c%s\u306b\u30b5\u30a4\u653b\u6483\u2014\u2014\u62b5\u6297\uff01",
+		"MSG_NO_PSI_TRAINING":     "\u58eb\u5175\u306b\u30b5\u30a4\u8a13\u7df4\u304c\u3042\u308a\u307e\u305b\u3093\u3002",
+		"HELP_RESEARCH_TREE":      "[\u2191]/[\u2193]=\u9078\u629e  Enter=\u958b\u59cb  [Esc]=\u623b\u308b  [T]ree=\u96a0\u3059",
+		"RESEARCH_UNLOCK_ITEM":    "\u30a2\u30a4\u30c6\u30e0:",
+		"RESEARCH_UNLOCK_WEAPON":  "\u6b66\u5668:",
+		"RESEARCH_UNLOCK_ARMOR":   "\u30a2\u30fc\u30de\u30fc:",
+		"RESEARCH_UNLOCK_ALIEN_LORE": "\u5916\u661f\u4eba\u306e\u77e5\u8b58",
+		"FAC_ADJACENT_LABS":       "\u9688\u63a5\u30e9\u30dc:",
+		"FAC_ADJACENT_WORKSHOPS":  "\u9688\u63a5\u5de5\u5834:",
+		"FAC_ADJACENT_LIVING":     "\u9688\u63a5\u5bbf\u8217:",
 	})
 }

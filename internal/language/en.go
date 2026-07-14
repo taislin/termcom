@@ -919,5 +919,16 @@ func init() {
 		"WPN_INTERCEPTOR_AVALANCHE": "Avalanche Launchers",
 		"WPN_INTERCEPTOR_STINGRAY":  "Stingray Missiles",
 		"WPN_INTERCEPTOR_CANNON":    "Cannon (DEF-7)",
+		"MSG_ALIEN_PSI_PANIC":     "%s psi attacks %s — PANICKED!",
+		"MSG_ALIEN_PSI_RESIST":    "%s psi attacks %s — resisted!",
+		"MSG_NO_PSI_TRAINING":     "Soldier has no psi training.",
+		"HELP_RESEARCH_TREE":      "[↑]/[↓]=Select  Enter=Start  [Esc]=Back  [T]ree=Hide",
+		"RESEARCH_UNLOCK_ITEM":    "Item:",
+		"RESEARCH_UNLOCK_WEAPON":  "Weapon:",
+		"RESEARCH_UNLOCK_ARMOR":   "Armor:",
+		"RESEARCH_UNLOCK_ALIEN_LORE": "Alien Lore",
+		"FAC_ADJACENT_LABS":       "Adjacent Labs:",
+		"FAC_ADJACENT_WORKSHOPS":  "Adjacent Workshops:",
+		"FAC_ADJACENT_LIVING":     "Adjacent Living Qtrs:",
 	})
 }
