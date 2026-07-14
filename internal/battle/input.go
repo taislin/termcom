@@ -91,6 +91,8 @@ func (bs *Battlescape) handleKey(e *tcell.EventKey) {
 		bs.UseMedikit()
 	case "y", "Y": 
 		bs.UseMotionScanner()
+	case "t", "T": 
+		bs.PlaceMine()
 	case "o", "O": 
 		bs.Game.PushState(engine.StateOptions)
 	}

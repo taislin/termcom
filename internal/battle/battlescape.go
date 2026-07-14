@@ -15,6 +15,13 @@ import (
 	"github.com/gdamore/tcell/v3/color"
 )
 
+func abs(x int) int {
+	if x < 0 {
+		return -x
+	}
+	return x
+}
+
 // getAlienByRank returns the closest alien type at or above the given rank
 // from a custom list (procedural aliens).
 func getAlienByRank(types []*data.AlienType, minRank int) *data.AlienType {
@@ -132,6 +139,9 @@ type Battlescape struct {
 
 	// Mission Objectives
 	CustomVictory *CustomVictory
+
+	// Placed mines (proximity)
+	Mines []PlacedMine
 
 	// Environmental State
 	MissionModifiers []MissionModifier
@@ -342,6 +352,44 @@ func NewBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, ufoN
 	}
 	if HasModifier(mods, ModAlienAmbush) {
 		bs.AddMessage(language.String("BATTLE_MOD_ALIEN_AMBUSH"))
+	}
+	if HasModifier(mods, ModBoobyTrapped) {
+		bs.AddMessage(language.String("BATTLE_MOD_BOOBY_TRAPPED"))
+		// Place 3-5 random mines on floor tiles away from spawn
+		numMines := 3 + rng.Intn(3)
+		for placed := 0; placed < numMines; placed++ {
+			for attempt := 0; attempt < 20; attempt++ {
+				mx := 5 + rng.Intn(m.Width-10)
+				my := 5 + rng.Intn(m.Height-10)
+				if m.At(mx, my).Type != TileFloor {
+					continue
+				}
+				// Don't place near player spawn
+				nearSpawn := false
+				for _, s := range squad {
+					if abs(mx-s.PosX) < 8 && abs(my-s.PosY) < 8 {
+						nearSpawn = true
+						break
+					}
+				}
+				if nearSpawn {
+					continue
+				}
+				// Don't double-place
+				alreadyMined := false
+				for _, pm := range bs.Mines {
+					if pm.X == mx && pm.Y == my {
+						alreadyMined = true
+						break
+					}
+				}
+				if alreadyMined {
+					continue
+				}
+				bs.Mines = append(bs.Mines, PlacedMine{X: mx, Y: my})
+				break
+			}
+		}
 	}
 	if !weather.IsClear() {
 		bs.AddMessage(language.Sprintf("BATTLE_WEATHER", weather.Name()))
@@ -686,6 +734,7 @@ func (bs *Battlescape) Update() {
 			action := bs.AlienTurnQueue[bs.AlienTurnIdx]
 			bs.AlienTurnIdx++
 			bs.executeAlienAction(action)
+			bs.checkMineTriggers()
 			bs.ActionDelay = bs.Game.ActionDelay // Use configured action delay
 		} else {
 			// After all queued actions, process civilian behaviors and finish turn.
@@ -2070,6 +2119,106 @@ func (bs *Battlescape) UseMotionScanner() {
 	bs.AddMessage(fmt.Sprintf(language.String("MSG_SCANNER_RESULT"), len(bs.scannerPings)))
 }
 
+func (bs *Battlescape) PlaceMine() {
+	if bs.Selected == nil || bs.Phase != PhasePlayerTurn {
+		return
+	}
+	if bs.Selected.Soldier == nil || bs.Selected.Soldier.Weapon != "proximity_mine" {
+		bs.AddMessage(language.String("MSG_NEED_MINE"))
+		return
+	}
+	if bs.Selected.TU < 20 {
+		bs.AddMessage(language.String("MSG_NOT_ENOUGH_TU_MINE"))
+		return
+	}
+	mx := bs.CursorX
+	my := bs.CursorY
+	dx := mx - bs.Selected.X
+	dy := my - bs.Selected.Y
+	dist := dx*dx + dy*dy
+	if dist > 1 {
+		bs.AddMessage(language.String("MSG_MINE_TOO_FAR"))
+		return
+	}
+	if mx < 0 || mx >= bs.Map.Width || my < 0 || my >= bs.Map.Height || bs.Map.At(mx, my).Type != TileFloor {
+		bs.AddMessage(language.String("MSG_MINE_BAD_TILE"))
+		return
+	}
+	for _, m := range bs.Mines {
+		if m.X == mx && m.Y == my {
+			bs.AddMessage(language.String("MSG_MINE_EXISTS"))
+			return
+		}
+	}
+
+	bs.Selected.TU -= 20
+	bs.Mines = append(bs.Mines, PlacedMine{X: mx, Y: my})
+	bs.AddMessage(fmt.Sprintf(language.String("MSG_MINE_PLACED"), mx, my))
+	audio.PlayClick()
+}
+
+// checkMineTriggers checks if any alien unit triggered a mine.
+func (bs *Battlescape) checkMineTriggers() {
+	for _, u := range bs.Units {
+		if u.Faction != 1 || !u.Alive {
+			continue
+		}
+		for mi := 0; mi < len(bs.Mines); mi++ {
+			m := bs.Mines[mi]
+			dx := u.X - m.X
+			dy := u.Y - m.Y
+			if dx*dx+dy*dy <= 1 {
+				// Detonate mine
+				damage := 60 + rand.Intn(20)
+				u.HP -= damage
+				if u.HP <= 0 {
+					u.HP = 0
+					u.Alive = false
+					bs.AddMessage(fmt.Sprintf(language.String("MSG_MINE_KILL"), u.Name(), m.X, m.Y))
+				} else {
+					bs.AddMessage(fmt.Sprintf(language.String("MSG_MINE_HIT"), u.Name(), damage, m.X, m.Y))
+				}
+				audio.PlayExplosion()
+				engine.SpawnExplosion(bs.Particles, m.X-bs.ScrollX+1, m.Y-bs.ScrollY+1,
+					tcell.NewRGBColor(255, 180, 50), 20)
+				if engine.Config.ScreenShake {
+					bs.Camera.TriggerShake(3.0)
+				}
+				bs.spawnFloater(m.X, m.Y, fmt.Sprintf("%d!", damage), tcell.NewRGBColor(255, 80, 0))
+				// Remove the triggered mine
+				bs.Mines = append(bs.Mines[:mi], bs.Mines[mi+1:]...)
+				mi--
+			}
+		}
+	}
+}
+
+// detonateMineAt triggers a specific mine by position (used for booby trap clearance).
+func (bs *Battlescape) detonateMineAt(mx, my int) {
+	damage := 60 + rand.Intn(20)
+	for _, u := range bs.Units {
+		if !u.Alive {
+			continue
+		}
+		dx := u.X - mx
+		dy := u.Y - my
+		if dx*dx+dy*dy <= 4 {
+			splash := damage - (dx*dx+dy*dy)*5
+			if splash < 5 {
+				splash = 5
+			}
+			u.HP -= splash
+			if u.HP <= 0 {
+				u.HP = 0
+				u.Alive = false
+			}
+		}
+	}
+	audio.PlayExplosion()
+	engine.SpawnExplosion(bs.Particles, mx-bs.ScrollX+1, my-bs.ScrollY+1,
+		tcell.NewRGBColor(255, 180, 50), 20)
+}
+
 func (bs *Battlescape) PsiAttack() {
 	if bs.Selected == nil || bs.Phase != PhasePlayerTurn {
 		return
@@ -2382,6 +2531,16 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 		engine.ApplyVisionFilter(ctx.ScreenRaw, bs.VisionMode, entities)
 	}
 
+	// Draw placed mines
+	mineStyle := engine.StyleDefault.Foreground(tcell.NewRGBColor(255, 80, 80)).Bold(true)
+	for _, m := range bs.Mines {
+		sx := m.X - bs.ScrollX + 1
+		sy := m.Y - bs.ScrollY + 1
+		if sx >= 1 && sx < viewW+1 && sy >= 1 && sy < viewH+1 {
+			ctx.SetCell(sx, sy, '◉', mineStyle)
+		}
+	}
+
 	// Draw motion scanner pings
 	pingStyle := engine.StyleDefault.Foreground(tcell.NewRGBColor(0, 255, 100)).Bold(true)
 	for _, p := range bs.scannerPings {
@@ -2662,6 +2821,11 @@ func (bs *Battlescape) phaseStr() string {
 
 func (bs *Battlescape) HandleKey(e *tcell.EventKey) {
 	bs.HandleEvent(e)
+}
+
+// PlacedMine represents an armed proximity mine on the map.
+type PlacedMine struct {
+	X, Y int
 }
 
 // FloatingText is a rising, fading combat label (damage numbers, MISS, heals).
