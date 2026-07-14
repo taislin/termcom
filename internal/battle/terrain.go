@@ -188,10 +188,9 @@ func RenderTile(t Tile, ctx [3][3]TileType, visible, seen bool, frame int, tileX
 
 	baseCol := TileBaseColor(t)
 	fg := baseCol
-	bg := engine.StyleDefault.GetBackground()
 
 	// Make background a very dark version of the base color to add rich depth
-	bg = engine.DarkenColor(baseCol, 0.15)
+	bg := engine.DarkenColor(baseCol, 0.15)
 
 	// Ambient occlusion: darken floor tiles adjacent to opaque walls
 	if !isOpaqueTile(t.Type) {

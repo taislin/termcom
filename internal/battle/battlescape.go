@@ -2310,7 +2310,7 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 					default:
 						pc = color.XTerm2
 					}
-					ctx.SetCell(sx-1+i, sy-1, '▬', engine.StyleDefault.Background(tcell.ColorBlack).Foreground(pc))
+					ctx.SetCell(sx-1+i, sy-1, '▬', engine.StyleDefault.Background(color.Black).Foreground(pc))
 				}
 			}
 		}

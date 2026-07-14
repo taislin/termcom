@@ -1,4 +1,4 @@
-# termcom — ASCII X-COM Demake Manual
+# termcom — ASCII X-COM Roguelike-ified Demake Manual
 
 ## Table of Contents
 
@@ -22,9 +22,9 @@
 
 ## Overview
 
-**termcom** is a faithful ASCII demake of X-COM: UFO Defense (1994), rendered entirely
-in a terminal. You command the X-COM organization — an international effort to
-combat an alien invasion.
+**termcom** is a roguelike-ified ASCII demake of X-COM: UFO Defense (1994), rendered
+entirely in a terminal. You command the X-COM organization — an international
+effort to combat an alien invasion.
 
 **Your mission:** Research alien technology, manufacture advanced weapons and armour,
 and lead squads into tactical combat to eliminate the alien threat.
@@ -70,6 +70,10 @@ go run ./cmd/termcom
 # or
 make run
 ```
+
+**Game data:** The `maps/` folder (containing mission definitions) must be placed
+alongside the executable at the same directory level. When building from source
+with `go run`, it is resolved relative to the working directory.
 
 You begin on the **Geoscape** — the world map view. Time advances as you watch UFOs
 appear and move across the globe. Your radar detects them as they come into range.

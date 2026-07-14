@@ -7,7 +7,28 @@ permissions:
   contents: write
 
 jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Pandoc and LaTeX
+        run: sudo apt-get update && sudo apt-get install -y pandoc texlive-latex-base texlive-latex-recommended texlive-fonts-recommended
+
+      - name: Build PDFs
+        run: |
+          mkdir -p pdfs
+          pandoc docs/manual.md -o pdfs/manual.pdf
+          pandoc docs/quickstart.md -o pdfs/quickstart.pdf
+
+      - name: Upload PDFs
+        uses: actions/upload-artifact@v4
+        with:
+          name: pdfs
+          path: pdfs
+
   build:
+    needs: [docs]
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -60,13 +81,36 @@ jobs:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
         run: |
-          go build -ldflags="-s -w" -trimpath -o termcom_${{ env.VERSION }}_${{ matrix.os }}_${{ matrix.arch }}${{ matrix.ext }} ./cmd/termcom
+          BINARY="termcom_${{ env.VERSION }}_${{ matrix.os }}_${{ matrix.arch }}${{ matrix.ext }}"
+          DIR="termcom_${{ env.VERSION }}_${{ matrix.os }}_${{ matrix.arch }}"
+          go build -ldflags="-s -w" -trimpath -o "$BINARY" ./cmd/termcom
+          mkdir -p "$DIR"
+          mv "$BINARY" "$DIR/"
+          cp -r maps "$DIR/"
+
+      - name: Download and include PDFs
+        uses: actions/download-artifact@v4
+        with:
+          name: pdfs
+          path: termcom_${{ env.VERSION }}_${{ matrix.os }}_${{ matrix.arch }}
+
+      - name: Package (Windows)
+        if: matrix.os == 'windows'
+        run: |
+          DIR="termcom_${{ env.VERSION }}_${{ matrix.os }}_${{ matrix.arch }}"
+          zip -r "$DIR.zip" "$DIR"
+
+      - name: Package (Unix)
+        if: matrix.os != 'windows'
+        run: |
+          DIR="termcom_${{ env.VERSION }}_${{ matrix.os }}_${{ matrix.arch }}"
+          tar czf "$DIR.tar.gz" "$DIR"
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: termcom_${{ env.VERSION }}_${{ matrix.os }}_${{ matrix.arch }}
-          path: termcom_${{ env.VERSION }}_${{ matrix.os }}_${{ matrix.arch }}${{ matrix.ext }}
+          path: termcom_${{ env.VERSION }}_${{ matrix.os }}_${{ matrix.arch }}.*
 
   release:
     needs: build
