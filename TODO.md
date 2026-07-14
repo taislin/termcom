@@ -267,4 +267,114 @@ Planned work (not yet implemented):
 - [x] Battlescape HUD bars: replace plain HP/TU text in the sidebar with clearer
       graphical HP and TU bars (color-coded, proportionate to current/max).
 
+## Phase 34: Test Coverage Sprint (Core Gameplay Packages)
+- [ ] Add unit tests for `battle/ai.go` (patrol/attack/flee/flank logic)
+- [ ] Add unit tests for `battle/unit.go` (TU costs, LOS, damage calculations)
+- [ ] Add unit tests for `geo/ufo.go` (spawning/movement logic)
+- [ ] Add unit tests for `geo/interceptor.go` (dogfight mechanics)
+- [ ] Add unit tests for `base/research.go` (research progression)
+- [ ] Add unit tests for `base/manufacture.go` (manufacturing progression)
+- [ ] Target: 50%+ coverage in engine, geo, battle, base packages
+
+## Phase 35: Multi-Platform Audio Engine (Linux/macOS)
+- [ ] Implement PCM synthesis in `internal/audio/audio_other.go` using `oto`
+- [ ] Replace terminal BEL beeps with procedural sound generation
+- [ ] Implement weapon fire sounds (laser, plasma, ballistic, melee)
+- [ ] Implement explosion sounds
+- [ ] Implement ambient battle sounds (wind, distant explosions)
+- [ ] Ensure parity with `audio_windows.go` synthesis logic
+
+## Phase 36: Game Balance & Polish Pass
+- [ ] Play-test full campaign on each difficulty (Beginner..Superhuman)
+- [ ] Tune auto-resolve win chance (currently capped at 70%)
+- [ ] Verify economy: monthly budget, Radar facility ROI (+$50K/mo)
+- [ ] Review fatigue system (1-5 days per battle may be too harsh early game)
+- [ ] Verify Cydonia final mission is beatable on Superhuman
+- [ ] Update `docs/manual.md` with any balance changes
+
+## Phase 37: Alien Base Expansion (Geoscape Feature)
+- [ ] Aliens establish their own bases on the Geoscape over time
+- [ ] Alien bases spawn supply missions, research missions, and terror missions
+- [ ] Alien bases generate UFOs that defend the base and patrol nearby
+- [ ] X-COM can assault alien bases (existing Alien Base Assault mission type)
+ - [ ] Destroying an alien base reduces alien activity in the region
+ - [ ] Alien bases scale with campaign month (more bases, stronger defenses)
+ - [ ] Visual representation on minimap (distinct icon, radar detection)
+ - [ ] Update `docs/manual.md` with alien base mechanics
+
+## Phase 38: Fix Multi-Base R&D Stall (Correctness)
+- [ ] **Bug fix** in `internal/geo/geoscape.go:577-595`: research/manufacturing only
+      advances on `gs.SelectedBase()`. Replace the `if sb := gs.SelectedBase(); sb != nil`
+      block with a `for _, b := range gs.Bases` loop calling `b.AdvanceResearch()` and
+      `b.AdvanceManufacture()` for every base (collect messages/audio across all bases).
+- [ ] Add `TestMultiBaseResearchAdvancesAllBases` (geo_test.go): build 2 bases, start
+      research in both, select base 0, advance ticks, assert BOTH `CompletedResearch` grow.
+- [ ] Add `TestMultiBaseManufactureAdvancesAllBases`: same pattern for `ManufactureQueue`.
+- [ ] Add `TestSelectedBaseResearchCompletesUnselected`: regression guard for the bug.
+
+## Phase 39: Raise `geo` Test Coverage (extends Phase 34)
+- [ ] `TestInterceptorDestroysUFO` / `TestUFODestroysInterceptor` (dogfight:
+      geoscape.go:820, updateDogfightVisual:768, UFO.FireAtInterceptor:ufo.go:207).
+- [ ] `TestRespondToMission` / `TestAutoresolveMission` outcome branches
+      (geoscape.go:1011 / :1093) — win/lose, loot, casualties.
+- [ ] `TestTransportArrivalStartsBattle` (geoscape.go:496-563).
+- [ ] `TestBuildBaseInsufficientFunds` (geoscape.go:687 cost check).
+- [ ] `TestTimeSpeedPauseGate`: `Update` does not advance GameTime when Paused / TimeSpeed==0.
+- [ ] `TestGameOverOnFundsExhausted` / `TestLoseCondition` (geoscape.go:354-371).
+
+## Phase 40: Raise `battle` Test Coverage (extends Phase 34)
+- [ ] LOS/FOV: `TestLOSWallBlocks`, `TestLOSThroughWindow`, `TestFOVRadius`
+      (map.go:443 ComputeFOV, :472 hasLOS, :381 cover-along-line).
+- [ ] Cover system: `TestCoverDamageReduction` (walls 80%, rocks 70%, trees 60%, bushes 40%).
+- [ ] Unit TU: `TestFireConsumesTU`, `TestMoveConsumesTU`, `TestInsufficientTUBlocksAction`
+      (unit.go:124 FireAt, :222 MoveTo).
+- [ ] `TestGrenadeDamage` / `TestMedikitHeals` / `TestPsiAttack`
+      (battlescape.go:1900 / :1981 / :2041).
+- [ ] `TestReactionFireTriggers` (battlescape.go:823 / :890).
+- [ ] Alien AI: `TestAIPatrol`, `TestAISeekAndAttack`, `TestAIFlank` (ai.go:506
+      findFlankPosition), `TestAIRetreat` (ai.go:579 retreatTarget), `TestAICanSense`
+      (ai.go:399).
+- [ ] Map generators: parametrized test over all 8 generators (map.go:769-1321) asserting
+      non-nil map of expected dimensions with valid spawns.
+- [ ] `TestSmokeBlocksLOS` / `TestGasDiffusionSpreads` (gas.go).
+- [ ] `TestCustomVictoryCondition` + `TestReinforcementWaveSpawns` (battlescape.go:1304).
+
+## Phase 41: Raise `base` Test Coverage (extends Phase 34)
+- [ ] `TestAdjacencyBonus`: `AdjacentResearchBonus` / `AdjacentManufactureBonus`
+      (facility.go:294+) scale with neighboring same-type facilities.
+- [ ] `TestAdvanceMonthSalaryDeduction` / `TestAdvanceMonthFunding` (facility.go:605).
+- [ ] `TestInterrogateUnknownAlien` / `TestInterrogateNoContainment` edge cases.
+- [ ] `TestEquipWeaponCapacityFull` / `TestEquipInvalidIndex` (equip.go).
+- [ ] `TestTransferItemsBetweenBases` (transfer.go).
+- [ ] `TestSellFacilityRefund` (refund on SellFacility).
+
+
+## Phase 42: Motion Scanner Mechanic
+- [ ] Implement scan mechanic for `BT_SCANNER` item type in battlescape
+- [ ] When equipped and activated, reveal all alien positions within a radius (e.g. 12 tiles) for the current turn
+- [ ] Visual feedback: brief pulse overlay or highlighted tiles on the map
+- [ ] Cost: 10 TU per scan, limited uses (3-5 per mission) or item consumption
+- [ ] Update `docs/manual.md` with motion scanner details
+
+## Phase 43: Options Screen Mouse Handler
+- [ ] Implement mouse click/hover handling in `internal/engine/options.go` (currently a no-op stub at line ~324)
+- [ ] Map screen regions to toggle/adjust controls matching keyboard bindings
+- [ ] Hover highlight on interactive elements
+- [ ] Update `docs/manual.md` if mouse interaction details change
+
+## Phase 44: Proximity Mines
+- [ ] Implement `BT_PROXIMITYGRENADE` battle type (defined but unused)
+- [ ] Create proximity mine item in `internal/data/items.go`
+- [ ] Add mine placement mechanic (right-click to arm, detonates when enemy steps adjacent)
+- [ ] Wire into `Booby Trapped` mission modifier to place mines on the map
+- [ ] Visual: distinct tile rune for armed vs. disarmed mines
+- [ ] Update `docs/manual.md` with proximity mine details
+
+## Phase 45: In-Game Tutorial / Onboarding
+- [ ] Design tutorial flow (e.g. first Geoscape popup → first mission walkthrough → base tour)
+- [ ] Implement modal popup system (full-screen or panel overlay with dismiss)
+- [ ] Tutorial steps: "Press Space to pause", "Press M to respond to mission", "Press B to open base", etc.
+- [ ] Auto-detect first-time player (check `config.json` flag or lack of save files)
+- [ ] Optionally add a "Tutorial" entry in the main menu
+- [ ] Update `docs/manual.md` with tutorial references
 
