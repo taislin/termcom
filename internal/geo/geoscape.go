@@ -616,24 +616,24 @@ func (gs *Geoscape) Update() {
 			}
 		}
 
-		// Advance research and manufacturing
+		// Advance research and manufacturing for ALL bases (not just the selected one)
 		if gs.TickCounter%30 == 0 {
-			if sb := gs.SelectedBase(); sb != nil {
-				var msgs []string
-				done := sb.AdvanceResearch()
+			var msgs []string
+			for _, b := range gs.Bases {
+				done := b.AdvanceResearch()
 				for _, name := range done {
 					audio.PlayResearchComplete()
 					msgs = append(msgs, fmt.Sprintf(language.String("MSG_RESEARCH_COMPLETE"), name))
 				}
-				crafted := sb.AdvanceManufacture()
+				crafted := b.AdvanceManufacture()
 				for _, item := range crafted {
 					audio.PlayManufactureComplete()
 					msgs = append(msgs, fmt.Sprintf(language.String("MSG_MANUFACTURE_COMPLETE"), item))
 				}
-				if len(msgs) > 0 {
-					gs.Message = msgs[0]
-					gs.MessageTimer = time.Now()
-				}
+			}
+			if len(msgs) > 0 {
+				gs.Message = msgs[0]
+				gs.MessageTimer = time.Now()
 			}
 		}
 	}

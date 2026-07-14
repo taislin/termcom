@@ -4,7 +4,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/taislin/termcom/internal/base"
 	"github.com/taislin/termcom/internal/battle"
+	"github.com/taislin/termcom/internal/data"
 	"github.com/taislin/termcom/internal/engine"
 	"github.com/taislin/termcom/internal/language"
 )
@@ -410,6 +412,131 @@ func TestCydoniaTriggersOnce(t *testing.T) {
 	}
 	if !gs.CydoniaTriggered {
 		t.Error("CydoniaTriggered should be set after triggerCydonia")
+	}
+}
+
+func TestMultiBaseResearchAdvancesAllBases(t *testing.T) {
+	g := &engine.Game{Funds: 1000000, GameTime: time.Date(1999, time.March, 1, 0, 0, 0, 0, time.UTC)}
+	gs := NewGeoscape(g)
+
+	// Build a second base at city 2
+	gs.CursorNode = 2
+	gs.BuildBase()
+	if len(gs.Bases) != 2 {
+		t.Fatalf("expected 2 bases, got %d", len(gs.Bases))
+	}
+
+	// Add labs to both bases (base0 already has one from NewGeoscape)
+	gs.Bases[0].Facilities = append(gs.Bases[0].Facilities, &base.Facility{Type: base.FacLab})
+	gs.Bases[1].Facilities = append(gs.Bases[1].Facilities, &base.Facility{Type: base.FacLab})
+
+	// Set up research directly on both bases (bypass StartResearch for determinism)
+	gs.Bases[0].ActiveResearch = &base.ResearchProject{
+		TopicID: "alien_alloys", Cost: 100, Scientists: 5,
+	}
+	gs.Bases[1].ActiveResearch = &base.ResearchProject{
+		TopicID: "alien_alloys", Cost: 100, Scientists: 5,
+	}
+	// Ensure enough unassigned scientists to match
+	gs.Bases[0].UnassignedScientists = 10
+	gs.Bases[1].UnassignedScientists = 10
+
+	initial0 := gs.Bases[0].ActiveResearch.Progress
+	initial1 := gs.Bases[1].ActiveResearch.Progress
+
+	// Switch to base 0
+	gs.ActiveBase = 0
+
+	// Advance research on both bases (simulating what the Update loop does for all bases)
+	_ = gs.Bases[0].AdvanceResearch()
+	_ = gs.Bases[1].AdvanceResearch()
+
+	if gs.Bases[0].ActiveResearch.Progress <= initial0 {
+		t.Error("base 0 research should have progressed")
+	}
+	if gs.Bases[1].ActiveResearch.Progress <= initial1 {
+		t.Error("base 1 research should have progressed (bug: only selected base advances)")
+	}
+}
+
+func TestMultiBaseManufactureAdvancesAllBases(t *testing.T) {
+	species, _ := data.GenerateSpecies(42)
+	data.InitResearchTree(42, species)
+
+	g := &engine.Game{Funds: 1000000, GameTime: time.Date(1999, time.March, 1, 0, 0, 0, 0, time.UTC)}
+	gs := NewGeoscape(g)
+
+	// Build a second base at city 2
+	gs.CursorNode = 2
+	gs.BuildBase()
+	if len(gs.Bases) != 2 {
+		t.Fatalf("expected 2 bases, got %d", len(gs.Bases))
+	}
+
+	// Add workshop to base1 (base0 already has one from NewGeoscape) and storage/materials to both
+	gs.Bases[1].Facilities = append(gs.Bases[1].Facilities, &base.Facility{Type: base.FacWorkshop})
+	for i := 0; i < 2; i++ {
+		gs.Bases[i].Facilities = append(gs.Bases[i].Facilities, &base.Facility{Type: base.FacStorage})
+		gs.Bases[i].AddItem("alloys", 10)
+	}
+
+	// Start manufacture at both bases
+	if !gs.Bases[0].StartManufacture("pistol", 1, map[string]int{"alloys": 1}) {
+		t.Fatal("base0 could not start manufacture")
+	}
+	if !gs.Bases[1].StartManufacture("pistol", 1, map[string]int{"alloys": 1}) {
+		t.Fatal("base1 could not start manufacture")
+	}
+
+	// Assign engineers to both
+	gs.Bases[0].AssignEngineers(0, 3)
+	gs.Bases[1].AssignEngineers(0, 3)
+
+	initial0 := gs.Bases[0].ManufactureQueue[0].Progress
+	initial1 := gs.Bases[1].ManufactureQueue[0].Progress
+
+	// Switch to base 0
+	gs.ActiveBase = 0
+
+	// Advance manufacture
+	_ = gs.Bases[0].AdvanceManufacture()
+	_ = gs.Bases[1].AdvanceManufacture()
+
+	if gs.Bases[0].ManufactureQueue[0].Progress <= initial0 {
+		t.Error("base 0 manufacture should have progressed")
+	}
+	if gs.Bases[1].ManufactureQueue[0].Progress <= initial1 {
+		t.Error("base 1 manufacture should have progressed (bug: only selected base advances)")
+	}
+}
+
+func TestSelectedBaseResearchCompletesUnselected(t *testing.T) {
+	g := &engine.Game{Funds: 1000000, GameTime: time.Date(1999, time.March, 1, 0, 0, 0, 0, time.UTC)}
+	gs := NewGeoscape(g)
+
+	// Build a second base at city 2
+	gs.CursorNode = 2
+	gs.BuildBase()
+	if len(gs.Bases) != 2 {
+		t.Fatalf("expected 2 bases, got %d", len(gs.Bases))
+	}
+
+	// Set up cheap research on base 1
+	gs.Bases[1].ActiveResearch = &base.ResearchProject{
+		TopicID: "alien_alloys", Cost: 5, Scientists: 10,
+	}
+	gs.Bases[1].UnassignedScientists = 0
+
+	// Switch to base 0
+	gs.ActiveBase = 0
+
+	// Advance the unselected base 1 research until it completes
+	for i := 0; i < 5; i++ {
+		gs.Bases[1].AdvanceResearch()
+	}
+
+	if !gs.Bases[1].HasResearch("alien_alloys") {
+		t.Error("unselected base 1 should have completed research when advanced directly")
 	}
 }
 
