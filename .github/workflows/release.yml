@@ -29,7 +29,7 @@ jobs:
 
   build:
     needs: [docs]
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
     strategy:
       matrix:
         include:
@@ -38,21 +38,31 @@ jobs:
             goos: windows
             goarch: amd64
             ext: .exe
+            runner: ubuntu-latest
           - os: linux
             arch: amd64
             goos: linux
             goarch: amd64
             ext: ""
+            runner: ubuntu-latest
+          - os: linux
+            arch: arm64
+            goos: linux
+            goarch: arm64
+            ext: ""
+            runner: ubuntu-24.04-arm
           - os: macos
             arch: arm64
             goos: darwin
             goarch: arm64
             ext: ""
+            runner: ubuntu-latest
           - os: macos
             arch: amd64
             goos: darwin
             goarch: amd64
             ext: ""
+            runner: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
