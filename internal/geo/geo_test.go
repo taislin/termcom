@@ -1,6 +1,7 @@
 package geo
 
 import (
+	"math/rand"
 	"testing"
 	"time"
 
@@ -556,5 +557,192 @@ func TestCydoniaVictory(t *testing.T) {
 	}
 	if !gs.Game.InState(engine.StateGameOver) {
 		t.Error("expected GameOver state after victory")
+	}
+}
+
+// --- Phase 39: geo test coverage ---
+
+func TestInterceptorDestroysUFO(t *testing.T) {
+	inter := NewInterceptor(48, 31)
+	// Guarantee a hit: max accuracy so rand.Intn(100) >= 100 is never true.
+	inter.Weapon.Accuracy = 100
+	inter.PilotSkill = 50
+	ufo := &UFO{
+		Type:   UFOType{Name: "Small Scout", Toughness: 1, MaxHP: 1},
+		X:      inter.X,
+		Y:      inter.Y,
+		Active: true,
+	}
+	dmg := inter.FireAt(ufo)
+	if dmg != -1 {
+		t.Errorf("expected UFO destroyed (return -1), got %d", dmg)
+	}
+	if ufo.Active {
+		t.Error("expected UFO to be inactive after destruction")
+	}
+}
+
+func TestUFODestroysInterceptor(t *testing.T) {
+	cities := GetCities()
+	ufo := SpawnUFOOnCities(cities, 0)
+	inter := NewInterceptor(48, 31)
+	ufo.X, ufo.Y = inter.X, inter.Y
+	inter.HP = 1
+	destroyed := false
+	for i := 0; i < 1000; i++ {
+		if inter.HP <= 0 {
+			destroyed = true
+			break
+		}
+		ufo.FireAtInterceptor(inter)
+	}
+	if !destroyed {
+		t.Error("UFO should be able to destroy a 1-HP interceptor")
+	}
+}
+
+func TestRespondToMission(t *testing.T) {
+	g := &engine.Game{Funds: 1000000, GameTime: time.Date(1999, time.March, 1, 0, 0, 0, 0, time.UTC)}
+	gs := NewGeoscape(g)
+	gs.Missions = append(gs.Missions, &AlienMission{
+		Type:      "MISSION_TERROR",
+		NodeID:    2,
+		HoursLeft: 24,
+	})
+	if gs.SelectedBase() == nil {
+		t.Fatal("expected a selected base")
+	}
+	if len(gs.SelectedBase().HealthySoldiers()) == 0 {
+		t.Fatal("expected healthy soldiers to respond with")
+	}
+	gs.RespondToMission(0)
+	if len(gs.Missions) != 0 {
+		t.Errorf("expected mission to be consumed, %d remain", len(gs.Missions))
+	}
+	if !gs.Game.Paused {
+		t.Error("expected game to pause when squad deployed")
+	}
+	if !gs.Game.InState(engine.StateBattlescape) {
+		t.Error("expected battlescape state after responding to mission")
+	}
+}
+
+func TestAutoresolveMissionBranches(t *testing.T) {
+	sawWin, sawLoss := false, false
+	for seed := int64(0); seed < 120; seed++ {
+		rand.Seed(seed)
+		g := &engine.Game{Funds: 1000000, GameTime: time.Date(1999, time.March, 1, 0, 0, 0, 0, time.UTC), AlienKnowledge: make(map[string]int)}
+		gs := NewGeoscape(g)
+		gs.Missions = append(gs.Missions, &AlienMission{
+			Type:      "MISSION_TERROR",
+			NodeID:    2,
+			HoursLeft: 24,
+		})
+		beforeFunds := g.Funds
+		beforeWon := gs.MissionsWon
+		beforeSoldiers := len(gs.SelectedBase().Soldiers)
+		gs.AutoresolveMission(0)
+		if g.Funds > beforeFunds && gs.MissionsWon > beforeWon {
+			sawWin = true
+		} else if len(gs.SelectedBase().Soldiers) < beforeSoldiers {
+			sawLoss = true
+		}
+	}
+	if !sawWin {
+		t.Error("never observed an autoresolve win across seeds")
+	}
+	if !sawLoss {
+		t.Error("never observed an autoresolve loss across seeds")
+	}
+}
+
+func TestTransportArrivalStartsBattle(t *testing.T) {
+	g := &engine.Game{Funds: 1000000, GameTime: time.Date(1999, time.March, 1, 0, 0, 0, 0, time.UTC)}
+	gs := NewGeoscape(g)
+	cs := &CrashSite{UFOName: "Test UFO", NodeID: 2}
+	gs.DispatchTransport(cs)
+	if gs.Transport == nil {
+		t.Fatal("expected transport to be dispatched")
+	}
+	started := false
+	for i := 0; i < 300; i++ {
+		gs.Update()
+		if gs.Transport == nil && gs.Game.InState(engine.StateBattlescape) {
+			started = true
+			break
+		}
+	}
+	if !started {
+		t.Error("transport arrival should start a battlescape")
+	}
+}
+
+func TestBuildBaseInsufficientFunds(t *testing.T) {
+	g := &engine.Game{Funds: 0, GameTime: time.Date(1999, time.March, 1, 0, 0, 0, 0, time.UTC)}
+	gs := NewGeoscape(g)
+	gs.CursorNode = 2
+	basesBefore := len(gs.Bases)
+	gs.BuildBase()
+	if len(gs.Bases) != basesBefore {
+		t.Error("base should not be built without funds")
+	}
+	if g.Funds != 0 {
+		t.Error("funds should remain 0")
+	}
+	if gs.Message != language.String("MSG_INSUFFICIENT_FUNDS") {
+		t.Errorf("expected insufficient-funds message, got %q", gs.Message)
+	}
+}
+
+func TestTimeSpeedPauseGate(t *testing.T) {
+	g := &engine.Game{Funds: 1000000, GameTime: time.Date(1999, time.March, 1, 12, 0, 0, 0, time.UTC)}
+	gs := NewGeoscape(g)
+
+	// Paused: time must not advance
+	gs.Game.Paused = true
+	t0 := gs.Game.GameTime
+	gs.Update()
+	if !gs.Game.GameTime.Equal(t0) {
+		t.Error("GameTime advanced while paused")
+	}
+
+	// TimeSpeed == 0: time must not advance
+	gs.Game.Paused = false
+	gs.Game.TimeSpeed = 0
+	t1 := gs.Game.GameTime
+	gs.Update()
+	if !gs.Game.GameTime.Equal(t1) {
+		t.Error("GameTime advanced with TimeSpeed 0")
+	}
+
+	// TimeSpeed > 0: time must advance
+	gs.Game.TimeSpeed = 1
+	t2 := gs.Game.GameTime
+	gs.Update()
+	if gs.Game.GameTime.Equal(t2) {
+		t.Error("GameTime did not advance with TimeSpeed > 0")
+	}
+}
+
+func TestLoseConditionAlienActivity(t *testing.T) {
+	g := &engine.Game{Funds: 1000000, GameTime: time.Date(1999, time.March, 1, 0, 0, 0, 0, time.UTC)}
+	gs := NewGeoscape(g)
+	gs.AlienActivity = 100
+	gs.Update()
+	if !gs.Game.InState(engine.StateGameOver) {
+		t.Error("expected GameOver when AlienActivity >= 100")
+	}
+	if !gs.Victory {
+		t.Error("expected Victory flag set (defeat latch) on alien victory")
+	}
+}
+
+func TestLoseConditionLastBase(t *testing.T) {
+	g := &engine.Game{Funds: 1000000, GameTime: time.Date(1999, time.March, 1, 0, 0, 0, 0, time.UTC)}
+	gs := NewGeoscape(g)
+	// Only a single base exists; destroying it ends the game.
+	gs.destroyBase(gs.Bases[0])
+	if !gs.Game.InState(engine.StateGameOver) {
+		t.Error("expected GameOver when last base destroyed")
 	}
 }

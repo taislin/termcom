@@ -306,15 +306,18 @@ Planned work (not yet implemented):
 - [ ] Add `TestMultiBaseManufactureAdvancesAllBases`: same pattern for `ManufactureQueue`.
 - [ ] Add `TestSelectedBaseResearchCompletesUnselected`: regression guard for the bug.
 
-## Phase 39: Raise `geo` Test Coverage (extends Phase 34)
-- [ ] `TestInterceptorDestroysUFO` / `TestUFODestroysInterceptor` (dogfight:
+## Phase 39: Raise `geo` Test Coverage (extends Phase 34) (DONE)
+- [x] `TestInterceptorDestroysUFO` / `TestUFODestroysInterceptor` (dogfight:
       geoscape.go:820, updateDogfightVisual:768, UFO.FireAtInterceptor:ufo.go:207).
-- [ ] `TestRespondToMission` / `TestAutoresolveMission` outcome branches
+- [x] `TestRespondToMission` / `TestAutoresolveMission` outcome branches
       (geoscape.go:1011 / :1093) — win/lose, loot, casualties.
-- [ ] `TestTransportArrivalStartsBattle` (geoscape.go:496-563).
-- [ ] `TestBuildBaseInsufficientFunds` (geoscape.go:687 cost check).
-- [ ] `TestTimeSpeedPauseGate`: `Update` does not advance GameTime when Paused / TimeSpeed==0.
-- [ ] `TestGameOverOnFundsExhausted` / `TestLoseCondition` (geoscape.go:354-371).
+- [x] `TestTransportArrivalStartsBattle` (geoscape.go:496-563).
+- [x] `TestBuildBaseInsufficientFunds` (geoscape.go:687 cost check).
+- [x] `TestTimeSpeedPauseGate`: `Update` does not advance GameTime when Paused / TimeSpeed==0.
+- [x] `TestLoseCondition` (AlienActivity>=100 and last-base-destroyed at geoscape.go:384 / :672).
+      NOTE: `TestGameOverOnFundsExhausted` was listed but no funds-exhausted game-over
+      exists in the code (only AlienActivity>=100 and last-base-destroyed end the game),
+      so it is intentionally omitted.
 
 ## Phase 40: Raise `battle` Test Coverage (extends Phase 34)
 - [ ] LOS/FOV: `TestLOSWallBlocks`, `TestLOSThroughWindow`, `TestFOVRadius`
