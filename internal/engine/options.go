@@ -105,7 +105,7 @@ func (os *OptionsScreen) Render(ctx *ScreenCtx) {
 		volIdx   = 11
 		langIdx  = 12
 	)
-	startY := h/2 - 8
+	startY := h/2 - 10
 	baseX := w/2 - 15
 
 	// Bool toggles
@@ -327,7 +327,7 @@ func (os *OptionsScreen) HandleMouse(e *tcell.EventMouse) {
 	x, y := e.Position()
 	w, h := os.Game.ScreenSize()
 	baseX := w/2 - 15
-	startY := h/2 - 8
+	startY := h/2 - 10
 
 	buttons := e.Buttons()
 	if buttons&tcell.Button1 == 0 && buttons&tcell.Button2 == 0 {
