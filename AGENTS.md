@@ -24,14 +24,14 @@ make clean          # Remove binary and coverage
 ```
 
 ### Coverage
-- `internal/data` — 87%
-- `internal/soldier` — 78%
-- `internal/save` — 70%
-- `internal/geo` — 23%
-- `internal/battle` — 18%
-- `internal/base` — 17%
+- `internal/data` — 78%
+- `internal/soldier` — 61%
+- `internal/save` — 72%
+- `internal/geo` — 24%
+- `internal/battle` — 25%
+- `internal/base` — 26%
 - `internal/audio` — 0% (platform-specific, no tests)
-- `internal/engine` — 0.4%
+- `internal/engine` — 5%
 
 ### Dependencies
 - `github.com/gdamore/tcell/v3` — Terminal rendering, input, colors
