@@ -321,7 +321,90 @@ func (os *OptionsScreen) cycleTheme(dir int) {
 }
 
 func (os *OptionsScreen) HandleMouse(e *tcell.EventMouse) {
-	// Not implemented for options yet, just return
+	if !Config.MouseEnabled {
+		return
+	}
+	x, y := e.Position()
+	w, h := os.Game.ScreenSize()
+	baseX := w/2 - 15
+	startY := h/2 - 8
+
+	buttons := e.Buttons()
+	if buttons&tcell.Button1 == 0 && buttons&tcell.Button2 == 0 {
+		return
+	}
+
+	// Determine which option row was clicked, accounting for non-sequential spacing
+	optIndex := -1
+	for i := 0; i < 9; i++ {
+		if y == startY+i && x >= baseX && x < baseX+30 {
+			optIndex = i
+			break
+		}
+	}
+	if optIndex < 0 {
+		if y == startY+10 && x >= baseX && x < baseX+30 {
+			optIndex = 9 // theme
+		} else if y == startY+11 && x >= baseX && x < baseX+30 {
+			optIndex = 10 // speed
+		} else if y == startY+12 && x >= baseX && x < baseX+30 {
+			optIndex = 11 // volume
+		} else if y == startY+15 && x >= baseX+7 && x < baseX+35 {
+			optIndex = 12 // language
+		}
+	}
+	if optIndex < 0 {
+		return
+	}
+	os.Selection = optIndex
+	audio.PlayMenuNav()
+
+	if buttons&tcell.Button2 != 0 {
+		// Right click = decrease/previous
+		switch optIndex {
+		case 0, 1, 2, 3, 4, 5, 6, 7, 8:
+			os.toggle()
+		case 9:
+			os.cycleTheme(-1)
+		case 10:
+			Config.ActionDelay--
+			if Config.ActionDelay < 1 {
+				Config.ActionDelay = 1
+			}
+			os.Game.ActionDelay = Config.ActionDelay
+		case 11:
+			Config.SfxVolume--
+			if Config.SfxVolume < 0 {
+				Config.SfxVolume = 0
+			}
+			audio.SetSfxVolume(Config.SfxVolume)
+		case 12:
+			os.cycleLang(-1)
+		}
+		return
+	}
+
+	// Left click = toggle/increase
+	switch optIndex {
+	case 0, 1, 2, 3, 4, 5, 6, 7, 8:
+		os.toggle()
+	case 9:
+		os.cycleTheme(1)
+	case 10:
+		Config.ActionDelay++
+		if Config.ActionDelay > 20 {
+			Config.ActionDelay = 20
+		}
+		os.Game.ActionDelay = Config.ActionDelay
+	case 11:
+		Config.SfxVolume++
+		if Config.SfxVolume > 10 {
+			Config.SfxVolume = 10
+		}
+		audio.SetSfxVolume(Config.SfxVolume)
+	case 12:
+		os.cycleLang(1)
+	}
 }
 
 func (os *OptionsScreen) Update() {
