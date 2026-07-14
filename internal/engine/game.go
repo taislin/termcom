@@ -124,6 +124,61 @@ func NewGame() (*Game, error) {
 	return g, nil
 }
 
+// NewGameWeb creates a Game backed by an in-memory virtual screen (no real TTY).
+// cols and rows specify the initial terminal dimensions for the browser client.
+// The returned *nullScreen can be used to inject events and read back the frame.
+func NewGameWeb(cols, rows int) (*Game, *nullScreen, error) {
+	LoadConfig()
+	scr, ns, err := NewScreenRawWeb(cols, rows)
+	if err != nil {
+		return nil, nil, err
+	}
+	audio.Init()
+
+	g := &Game{
+		screen:         scr,
+		state:          StateMenu,
+		running:        true,
+		GameTime:       time.Date(1999, time.March, 1, 0, 0, 0, 0, time.UTC),
+		TimeSpeed:      0,
+		Paused:         true,
+		Funds:          500000,
+		screens:        make(map[GameState]Screen),
+		keyChan:        make(chan tcell.Event, 20),
+		eventDone:      make(chan struct{}),
+		AlienKnowledge: make(map[string]int),
+		ActionDelay:    Config.ActionDelay,
+	}
+	g.initSpecies()
+	return g, ns, nil
+}
+
+// InjectKey posts a synthetic key event into the game loop.
+func (g *Game) InjectKey(ev *tcell.EventKey) {
+	select {
+	case g.keyChan <- ev:
+	default:
+	}
+}
+
+// InjectResize posts a synthetic resize event and updates the screen dimensions.
+func (g *Game) InjectResize(cols, rows int) {
+	if ns, ok := g.screen.screen.(*nullScreen); ok {
+		ns.SetSize(cols, rows)
+	}
+	g.screen.UpdateSize()
+	ev := tcell.NewEventResize(cols, rows)
+	select {
+	case g.keyChan <- ev:
+	default:
+	}
+}
+
+// ScreenRaw returns the underlying ScreenRaw so the webserver can render it.
+func (g *Game) WebScreen() *ScreenRaw {
+	return g.screen
+}
+
 func (g *Game) initSpecies() {
 	g.SpeciesSeed = time.Now().UnixNano()
 	g.AlienSpecies, g.AlienTypes = data.GenerateSpecies(g.SpeciesSeed)
@@ -206,6 +261,11 @@ func (g *Game) Run() {
 
 	for g.running {
 		g.screen.Clear()
+		// Guarantee the background is always themed and refreshes
+		// instantly when the theme changes (some screens rely on the
+		// cleared background rather than painting it explicitly).
+		w, h := g.screen.Size()
+		g.screen.DrawRect(0, 0, w, h, ' ', StyleDefault)
 		g.drainEvents()
 
 		if sc, ok := g.screens[g.state]; ok {

@@ -137,11 +137,11 @@ func NewAlienSpriteRegistry() *SpriteRegistry {
 
 var headRound = []string{
 	"....................",
-	"......XXXXXX......",
+	".......XXXXXX.......",
 	".....XXXXXXXXXX.....",
 	"....XXXXXXXXXXXX....",
-	"....XXXXXXXXXXX....",
-	"....XXXXXXXXXXX....",
+	"....XXXXXXXXXXXX....",
+	"....XXXXXXXXXXXX....",
 	"....XXXmmXXXmXXX....",
 	".....XXXXXXXXXX.....",
 	"......XXXXXXXX......",
@@ -152,7 +152,7 @@ var headSquare = []string{
 	"....................",
 	"....XXXXXXXXXXXX....",
 	"...XXXXXXXXXXXXXXX..",
-	"...XXXXXXXXXXXXXXX...",
+	"...XXXXXXXXXXXXXXX..",
 	"...XXXXXXXXXXXXXXX..",
 	"...XXXXXXXXXXXXXXX..",
 	"...XXmmmmmmmmmmXX...",
@@ -166,7 +166,7 @@ var headTall = []string{
 	"......XXXXXX........",
 	"......XXXXXX........",
 	".....XXXXXXXX.......",
-	".....XXXXXXXXX.......",
+	".....XXXXXXXXX......",
 	".....XXXXXXXX.......",
 	".....XXmmmmXX.......",
 	".....XXXXXXXX.......",
@@ -176,7 +176,7 @@ var headTall = []string{
 
 var headSkull = []string{
 	"....................",
-	"......XXXXXX......",
+	"......XXXXXXXX......",
 	".....XXXXXXXXXX.....",
 	"....XXdXXXXXdXXX....",
 	"....XdXXXdXXXXdX....",
@@ -192,12 +192,12 @@ var headWide = []string{
 	"XX................XX",
 	"XXX..............XXX",
 	"XXXX............XXXX",
-	"XXXXXXXXXXXXXXXXXXXX.",
-	"XXXXXXXXXXXXXXXXXX.",
-	"XXXXXXmmmmmmXXXXXX.",
-	"XXXXXXXXXXXXXXXXXX.",
-	".XXXXXXXXXXXXXXXXXX",
-	"..XXXXXXXXXXXXXXX..",
+	"XXXXXXXXXXXXXXXXXXXX",
+	".XXXXXXXXXXXXXXXXXX.",
+	".XXXXXXmmmmmmXXXXXX.",
+	".XXXXXXXXXXXXXXXXXX.",
+	".XXXXXXXXXXXXXXXXXX.",
+	"..XXXXXXXXXXXXXXX...",
 }
 
 var headAntennae = []string{
@@ -215,12 +215,12 @@ var headAntennae = []string{
 
 var headVisor = []string{
 	"....................",
-	"......XXXXXX......",
+	"......XXXXXX........",
 	".....XXXXXXXXXX.....",
 	"....dddXXXXXXddd....",
-	"....dXXXXXXXXdX....",
+	"....dXXXXXXXXdX.....",
 	"....XXXXXXXXXXXX....",
-	"....XXXmmmmXXX.....",
+	"....XXXmmmmXXXX.....",
 	".....XXXXXXXXXX.....",
 	"......XXXXXXXX......",
 	".......XXXXXX.......",
@@ -233,7 +233,7 @@ var headCone = []string{
 	"......XXXXXXXX......",
 	"......XXeXXeXX......",
 	".....XXXXXXXXXX.....",
-	".....XXmmmmXXX.....",
+	".....XXXmmmmXXX.....",
 	"....XXXXXXXXXXXX....",
 	"....XXXXXXXXXXXX....",
 	".....XXXXXXXXXX.....",
@@ -247,10 +247,10 @@ var eyeClassic = []string{
 	"....................",
 	"....................",
 	"....................",
-	".....XXX...XXX.....",
-	"....XXXXX.XXXX....",
-	"...XXXXX...XXXXX..",
-	"....XX.....XX.....",
+	".....XXX...XXX......",
+	"....XXXX...XXXX.....",
+	"....XXXX...XXXX.....",
+	".....XX.....XX......",
 	"....................",
 	"....................",
 	"....................",
@@ -260,9 +260,9 @@ var eyeCyclops = []string{
 	"....................",
 	"....................",
 	"....................",
-	"......XXXXX.......",
-	"......XXXXX.......",
-	"......XXXXX.......",
+	".......XXXXX........",
+	".......XXXXX........",
+	".......XXXXX........",
 	"....................",
 	"....................",
 	"....................",
@@ -271,13 +271,13 @@ var eyeCyclops = []string{
 
 var eyeArachnid = []string{
 	"....................",
-	"......X...X........",
+	"........X...X.......",
 	"....................",
-	"..X...X.X...X......",
+	".....X...X.X...X....",
 	"....................",
-	"..X...X.X...X......",
+	".....X...X.X...X....",
 	"....................",
-	"......X...X........",
+	"........X...X.......",
 	"....................",
 	"....................",
 }
@@ -312,25 +312,25 @@ var eyeNone = []string{
 // 'X' = body, 'W' = weapon, 'a' = accent, 'h' = highlight, 'd' = dark
 
 var torsoSlim = []string{
-	".......XXXXXXXX.....",
-	".......XXXXXXXX.....",
-	"......XXXXXXXXXX....",
-	"......XX.XX.XXXX....",
-	".......XX.XX........",
-	"........XX.XX.WWWW..",
-	"........XX..WWWW....",
-	"........WWWWWWW.....",
+	".......XXXXXX.......",
+	".......XXXXXX.......",
+	"......XXXXXXXX......",
+	".....XXXXXXXXXX.....",
+	".......XXXXXX.WWWWWW",
+	".......XXXXWWWWWWW..",
+	".......XXXXX........",
+	".......XXXXXX.......",
 }
 
 var torsoWide = []string{
 	".....XXXXXXXXXX.....",
+	".....XXXXXXXXXX.....",
 	"....XXXXXXXXXXXX....",
-	"...XXXXXXXXXXXXXX...",
-	"...XXXX.XX.XXXXXX...",
-	"..XXXXX.XX.XXXXXX...",
-	".........XX.WWWWW...",
-	".........XX.WWWW....",
-	".........WWWWWWW....",
+	"....XXXXXXXXXXXX....",
+	".....XXXXXXXXXWWWWWW",
+	".....XXXXXXWWWWWWW..",
+	".....XXXXXXXXXX.....",
+	".....XXXXXXXXXX.....",
 }
 
 var torsoArmored = []string{
@@ -338,10 +338,10 @@ var torsoArmored = []string{
 	"....dXXXXXXXXXXd....",
 	"...XXdXXXXXXXXdXX...",
 	 "...XX.XX.XX.XXXX...",
-	 "..XXXX.XX.XXXXXXX..",
-	 ".........XX.WWWWW..",
-	 ".........XX.WWWW...",
-	 ".........WWWWWWW...",
+	 "..XXXX.XX.XXXXWWWWW",
+	 "..XXXX.XXWWWWWWWW..",
+	 "..XXXX.WWWWWWWWW...",
+	 "...XXX.XXXX.XXX....",
 }
 
 var torsoTentacle = []string{
@@ -349,19 +349,19 @@ var torsoTentacle = []string{
 	"......XXXXXXXX......",
 	"......XXXXXXXX......",
 	"......XXXXXXXX......",
+	"X......XXXXXX......X",
+	"XX..XXXXXXXXXXXX..XX",
+	".XXXX..XXXXXX..XXXX.",
 	".......XXXXXX.......",
-	"......XX.XXXX.......",
-	".....XX...XXXX......",
-	"....XX.....XXX......",
 }
 
 var torsoMultiArmed = []string{
-	".XXXX.XXXXXXXX.XXXX.",
-	".XXXX.XXXXXXXX.XXXX.",
+	".XXXXXXXXXXXXXXXXXX.",
+	".XXX..XXXXXXXX..XXX.",
 	"..XX...XXXXXX...XX..",
 	".......XXXXXX.......",
-	".XXXX..XXXXXX..XXXX.",
-	".XXXX..XXXXXX..XXXX.",
+	".XXXXXXXXXXXXXXXXXX.",
+	".XXX...XXXXXX...XXX.",
 	"..XX...XXXXXX...XX..",
 	".......XXXXXX.......",
 }
@@ -369,9 +369,9 @@ var torsoMultiArmed = []string{
 var torsoHollow = []string{
 	"......XXXXXXXX......",
 	".....XXXXXXXXXX.....",
-	"....XXX....XXXX....",
-	"....XX......XXX....",
-	"....XXX....XXXX....",
+	"....XXX....XXXX.....",
+	"....XX......XXX.....",
+	"....XXX....XXXX.....",
 	".....XXXXXXXXXX.....",
 	"......XXXX.WWW......",
 	"..........WWWWW......",
@@ -394,7 +394,7 @@ var torsoBladed = []string{
 	"....XXXX.XX.XXXX....",
 	"..WWXXXX.XX.XXXXWW..",
 	"..WWXXXXXXXXXXXXWW..",
-	"......XX.XX.WWW....",
+	"......XX.XX.WWW.....",
 	".......XX...WW......",
 	"..............WW....",
 }
@@ -438,12 +438,12 @@ var legsArachnid = []string{
 }
 
 var legsTentacle = []string{
-	".......XXXXXX.......",
-	".......XXXXXX.......",
-	"......XX.XXXX.......",
-	".....XX...XXX.......",
-	"....XX.....XX.......",
-	"....X.......X.......",
+	".......XXXXX........",
+	".......X..XX........",
+	"......XX..XX........",
+	"XX...XX...XX...XX...",
+	".XX.XX.....XX.XX....",
+	".XXXX.......XXX.....",
 }
 
 var legsPillar = []string{
@@ -456,12 +456,12 @@ var legsPillar = []string{
 }
 
 var legsSerpentine = []string{
-	".......XXXXXX.......",
-	"......XXXX.XXX......",
-	".....XXXX...XXX.....",
-	"....XXXX.....XXX....",
-	"...XXXX.......XXX...",
-	"..XXXX........XXX...",
+	".........XXXXXXXX...",
+	".........XXXXXXXX...",
+	"........XXXXXXXX....",
+	"......XXXXXXXXX.....",
+	"..XXXXXXXXXX........",
+	"XXXXXXXXXX..........",
 }
 
 func SenseFromMorphology(m *Morphology) Sense {
@@ -601,6 +601,9 @@ func GenerateAlienPixels(seed int64, m *Morphology) AlienPixels {
 	}
 
 	legsOffset := centerOffset(legs[0], 20)
+	if legsOffset < 0 {
+		legsOffset = 0
+	}
 	for y, row := range legs {
 		ly := 18 + y
 		if ly >= 24 {

@@ -91,6 +91,13 @@ func (s *Server) HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 	go client.readPump(s)
 }
 
+// notifyConnect is called after a client sends its initial resize message.
+func notifyConnect(cols, rows int) {
+	if ConnectHandler != nil {
+		ConnectHandler(cols, rows)
+	}
+}
+
 func (c *Client) readPump(s *Server) {
 	defer func() {
 		s.unregister <- c
@@ -111,15 +118,14 @@ func (c *Client) readPump(s *Server) {
 		// Handle different message types
 		switch msg.Type {
 		case "input":
-			// Forward input to game
 			if InputHandler != nil {
 				InputHandler(msg.Data)
 			}
 		case "resize":
-			// Handle resize
 			if ResizeHandler != nil {
 				ResizeHandler(msg.Cols, msg.Rows)
 			}
+			notifyConnect(msg.Cols, msg.Rows)
 		}
 	}
 }
@@ -134,9 +140,10 @@ func (c *Client) writePump() {
 	}
 }
 
-// Game handlers - will be set by game
+// Game handlers - will be set by the webserver main.
 var InputHandler func(input string)
 var ResizeHandler func(cols, rows int)
+var ConnectHandler func(cols, rows int)
 
 func (s *Server) SendOutput(output string) {
 	msg := Message{

@@ -51,7 +51,7 @@ func ApplyNightVision(s *ScreenRaw) {
 				}
 			}
 
-			style := tcell.StyleDefault.Foreground(newFg).Background(color.XTerm0)
+			style := tcell.StyleDefault.Foreground(newFg).Background(DarkenColor(StyleDefault.GetBackground(), 0.25))
 			s.SetCell(x, y, cell.ch, style)
 		}
 	}

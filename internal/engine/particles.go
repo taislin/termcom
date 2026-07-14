@@ -150,7 +150,7 @@ func SpawnExplosion(ps *ParticleSystem, x, y int, color tcell.Color, count int) 
 			ch = '+'
 		}
 
-		style := tcell.StyleDefault.Foreground(fg)
+		style := StyleDefault.Foreground(fg)
 		ps.Spawn(float64(x), float64(y), vx, vy, ch, style, 0.4+rand.Float64()*0.6, 0.8)
 	}
 }
@@ -159,7 +159,7 @@ func SpawnRain(ps *ParticleSystem, x, y int, w, h int) {
 	for i := 0; i < 3; i++ {
 		rx := float64(x + rand.Intn(w))
 		ry := float64(y - 1)
-		style := tcell.StyleDefault.Foreground(tcell.NewRGBColor(100, 150, 255))
+		style := StyleDefault.Foreground(tcell.NewRGBColor(100, 150, 255))
 		ps.Spawn(rx, ry, -0.5, 12, '|', style, 1.5, 0.1)
 	}
 }
@@ -172,7 +172,7 @@ func SpawnSmoke(ps *ParticleSystem, x, y int, count int) {
 		if rand.Intn(3) == 0 {
 			ch = ':'
 		}
-		style := tcell.StyleDefault.Foreground(tcell.NewRGBColor(128, 128, 128))
+		style := StyleDefault.Foreground(tcell.NewRGBColor(128, 128, 128))
 		ps.Spawn(float64(x)+rand.Float64()*2-1, float64(y), vx, vy, ch, style, 0.8+rand.Float64()*1.2, 0.5)
 	}
 }
@@ -188,7 +188,7 @@ func SpawnMenuDrift(ps *ParticleSystem, x, y, side int) {
 	col := driftColors[pick]
 	ch := driftRunes[rand.Intn(len(driftRunes))]
 	fg := tcell.NewRGBColor(col[0], col[1], col[2])
-	style := tcell.StyleDefault.Foreground(fg)
+	style := StyleDefault.Foreground(fg)
 	vx := float64(side) * (0.5 + rand.Float64()*1.0)
 	vy := -(6.0 + rand.Float64()*4.0)
 	life := 1.0 + rand.Float64()*1.0
@@ -205,7 +205,7 @@ func SpawnMuzzleFlash(ps *ParticleSystem, x, y int) {
 		ch := flashRunes[rand.Intn(len(flashRunes))]
 		brightness := 200 + rand.Intn(55)
 		fg := tcell.NewRGBColor(int32(brightness), int32(brightness-30), int32(50+rand.Intn(80)))
-		style := tcell.StyleDefault.Foreground(fg)
+		style := StyleDefault.Foreground(fg)
 		ps.Spawn(float64(x), float64(y), vx, vy, ch, style, 0.15+rand.Float64()*0.2, 2.0)
 	}
 }
@@ -218,7 +218,7 @@ func SpawnSnow(ps *ParticleSystem, x, y int, w, h int) {
 		if rand.Intn(3) == 0 {
 			ch = '.'
 		}
-		style := tcell.StyleDefault.Foreground(tcell.NewRGBColor(200, 210, 255))
+		style := StyleDefault.Foreground(tcell.NewRGBColor(200, 210, 255))
 		ps.Spawn(rx, ry, (rand.Float64()-0.5)*0.8, 2+rand.Float64()*2, ch, style, 2.0+rand.Float64()*1.0, 0.1)
 	}
 }
@@ -231,7 +231,7 @@ func SpawnDust(ps *ParticleSystem, x, y int, w, h int) {
 		if rand.Intn(3) == 0 {
 			ch = '~'
 		}
-		style := tcell.StyleDefault.Foreground(tcell.NewRGBColor(180, 160, 120))
+		style := StyleDefault.Foreground(tcell.NewRGBColor(180, 160, 120))
 		ps.Spawn(rx, ry, 1+rand.Float64()*2, (rand.Float64()-0.5)*0.5, ch, style, 1.5+rand.Float64()*1.0, 0.3)
 	}
 }
@@ -246,7 +246,7 @@ func SpawnEmbers(ps *ParticleSystem, x, y int, w, h int) {
 		}
 		r := 200 + rand.Intn(55)
 		g := 80 + rand.Intn(100)
-		style := tcell.StyleDefault.Foreground(tcell.NewRGBColor(int32(r), int32(g), 20))
+		style := StyleDefault.Foreground(tcell.NewRGBColor(int32(r), int32(g), 20))
 		ps.Spawn(rx, ry, (rand.Float64()-0.5)*1.5, -1.5-rand.Float64()*2, ch, style, 1.0+rand.Float64()*1.0, 0.8)
 	}
 }

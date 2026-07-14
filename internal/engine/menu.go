@@ -117,8 +117,8 @@ func (ms *MenuScreen) Update() {
 			// menuY = startY(2) + titleLines(6) + gap(1) + subOffset(8) = 17
 			const menuY = 17
 			optY := menuY + ms.Selection*2
-			textX := w/2 - 8
 			textLen := StringWidth(opts[ms.Selection])
+			textX := w/2 - textLen/2
 			SpawnMenuDrift(ms.menuParticles, textX, optY, -1)
 			SpawnMenuDrift(ms.menuParticles, textX+textLen-1, optY, 1)
 		}

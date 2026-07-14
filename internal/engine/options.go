@@ -105,7 +105,7 @@ func (os *OptionsScreen) Render(ctx *ScreenCtx) {
 		volIdx   = 11
 		langIdx  = 12
 	)
-	startY := h/2 - 5
+	startY := h/2 - 8
 	baseX := w/2 - 15
 
 	// Bool toggles
@@ -144,21 +144,21 @@ func (os *OptionsScreen) Render(ctx *ScreenCtx) {
 	if tn, ok := themeDisplayNames[Config.Theme]; ok {
 		themeName = tn
 	}
-	ctx.DrawString(baseX, startY+themeIdx, fmt.Sprintf("%s: [%s]", language.String("OPTIONS_THEME"), themeName), themeStyle)
+	ctx.DrawString(baseX, startY+themeIdx+1, fmt.Sprintf("%s: [%s]", language.String("OPTIONS_THEME"), themeName), themeStyle)
 
 	// Speed slider
 	speedStyle := StyleDefault
 	if os.Selection == speedIdx {
 		speedStyle = StyleHighlight
 	}
-	ctx.DrawString(baseX, startY+speedIdx, fmt.Sprintf("%s: %d", language.String("OPTIONS_RESOLUTION_SPEED"), Config.ActionDelay), speedStyle)
+	ctx.DrawString(baseX, startY+speedIdx+1, fmt.Sprintf("%s: %d", language.String("OPTIONS_RESOLUTION_SPEED"), Config.ActionDelay), speedStyle)
 
 	// Volume slider
 	volStyle := StyleDefault
 	if os.Selection == volIdx {
 		volStyle = StyleHighlight
 	}
-	ctx.DrawString(baseX, startY+volIdx, fmt.Sprintf("%s: %d", language.String("OPTIONS_VOLUME"), Config.SfxVolume), volStyle)
+	ctx.DrawString(baseX, startY+volIdx+1, fmt.Sprintf("%s: %d", language.String("OPTIONS_VOLUME"), Config.SfxVolume), volStyle)
 
 	// Language with flag
 	langStyle := StyleDefault
@@ -173,7 +173,7 @@ func (os *OptionsScreen) Render(ctx *ScreenCtx) {
 			break
 		}
 	}
-	flagY := startY + langIdx
+		flagY := startY + langIdx + 2
 	drawFlag(ctx, baseX, flagY, language.Current())
 	ctx.DrawString(baseX+7, flagY+1, fmt.Sprintf("  %s: [%s]", language.String("OPTIONS_LANGUAGE"), langs[li]), langStyle)
 

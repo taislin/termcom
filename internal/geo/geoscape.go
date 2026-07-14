@@ -1623,6 +1623,11 @@ func (gs *Geoscape) confirmLaunch(target interface{}) {
 		inter := NewInterceptorFromState(interState, baseCity.X, baseCity.Y)
 		inter.LaunchAtUFO(t)
 		gs.Interceptors = append(gs.Interceptors, inter)
+		// Resume real-time simulation so the interceptor actually flies to the UFO.
+		gs.Game.Paused = false
+		if gs.Game.TimeSpeed == 0 {
+			gs.Game.TimeSpeed = 1
+		}
 		gs.Message = fmt.Sprintf(language.String("MSG_INTERCEPTOR_LAUNCHED"), t.Type.Name)
 	case *CrashSite:
 		gs.DispatchTransport(t)
@@ -1940,7 +1945,7 @@ func (gs *Geoscape) renderMinimap(ctx *engine.ScreenCtx, x, y, w, h int) {
 					}
 				} else {
 					if tile == 1 {
-						style = engine.StyleDefault.Background(tcell.NewRGBColor(0, 0, 10)).Foreground(tcell.NewRGBColor(0, 0, 10))
+						style = engine.StyleDefault.Background(engine.DarkenColor(engine.StyleDefault.GetBackground(), 0.35)).Foreground(engine.DarkenColor(engine.StyleDefault.GetBackground(), 0.35))
 					} else {
 						style = engine.StyleDefault.Background(tcell.StyleDefault.GetBackground()).Foreground(tcell.NewRGBColor(0, 0, 25))
 					}
@@ -2573,6 +2578,11 @@ func (gs *Geoscape) DispatchTransport(cs *CrashSite) {
 		ToNode:    cs.NodeID,
 		Progress:  0,
 		CrashSite: cs,
+	}
+	// Resume real-time simulation so the transport actually travels to the site.
+	gs.Game.Paused = false
+	if gs.Game.TimeSpeed == 0 {
+		gs.Game.TimeSpeed = 1
 	}
 	gs.Message = fmt.Sprintf(language.String("MSG_TRANSPORT_DISPATCHED"), cs.UFOName)
 	gs.MessageTimer = time.Now()

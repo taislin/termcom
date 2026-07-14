@@ -2819,7 +2819,7 @@ func (bs *Battlescape) ApplyCursorStyles(x, y int, style tcell.Style) tcell.Styl
 	if x == bs.CursorX && y == bs.CursorY {
 		switch bs.State.CursorState {
 		case StateInspect:
-			return style.Background(color.White).Foreground(color.Black)
+			return engine.StyleHighlight
 		case StateTargeting:
 			return style.Background(color.Red).Blink(true)
 		}
