@@ -4,7 +4,6 @@ func init() {
 	register("en", map[string]string{
 		// ── Menu ──────────────────────────────────────────
 		"MENU_TITLE":         "T U R N   B A S E D   T A C T I C S",
-		"MENU_SUBTITLE":      "v0.45",
 		"MENU_NEW_GAME":      "New Game",
 		"MENU_CONTINUE":      "Continue",
 		"MENU_LOAD_GAME":     "Load Game",
@@ -724,6 +723,7 @@ func init() {
 		"OPTIONS_RESOLUTION_SPEED": "Resolution Speed",
 		"OPTIONS_ON":               "ON ",
 		"OPTIONS_OFF":              "OFF",
+		"OPTIONS_HELP":            "[\u2190]/[\u2192]=Adjust  [\u2191]/[\u2193]=Select  [Enter]=Toggle  [Esc]=Back",
 		"CONFIRM_QUIT":             "ARE YOU SURE YOU WANT TO QUIT?",
 		"CONFIRM_QUIT_HINT":        "[Y] = Yes   [N] = No",
 

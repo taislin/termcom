@@ -6,7 +6,6 @@ func init() {
 	register("ru", map[string]string{
 		// ── Menu ──────────────────────────────────────────
 		"MENU_TITLE":         "П О Х О Д Н А Я   Т А К Т И К А",
-		"MENU_SUBTITLE":      "v0.45",
 		"MENU_NEW_GAME":      "Новая игра",
 		"MENU_CONTINUE":      "Продолжить",
 		"MENU_LOAD_GAME":     "Загрузить игру",
@@ -728,6 +727,7 @@ func init() {
 		"OPTIONS_RESOLUTION_SPEED": "Скорость разрешения",
 		"OPTIONS_ON":               "ВКЛ",
 		"OPTIONS_OFF":              "ВЫКЛ",
+		"OPTIONS_HELP":            "[\u2190]/[\u2192]=Изменить  [\u2191]/[\u2193]=Выбрать  Enter=Переключить  [Esc]=Назад",
 
 		"CUSTOM_AUTHOR":                "Автор:  %s",
 		"CUSTOM_DATE":                  "Дата:    %s",

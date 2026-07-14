@@ -117,8 +117,8 @@ func (ms *MenuScreen) Update() {
 		w, _ := ms.Game.ScreenSize()
 		opts := ms.options()
 		if ms.Selection >= 0 && ms.Selection < len(opts) {
-			// menuY = startY(2) + titleLines(6) + gap(1) + subOffset(8) = 17
-			const menuY = 17
+			// menuY = startY(2) + titleLines(6) + gap(1) + subOffset(4) = 13
+			const menuY = 13
 			optY := menuY + ms.Selection*2
 			textLen := StringWidth(opts[ms.Selection])
 			textX := w/2 - textLen/2
@@ -198,7 +198,7 @@ func (ms *MenuScreen) Render(ctx *ScreenCtx) {
 
 	// ── 4. Version ────────────────────────────────────────────────────────────
 	verStr := "v" + GameVersion
-	ctx.DrawString(w-len([]rune(verStr))-2, 1, verStr, StyleGray)
+	ctx.DrawString(w-len([]rune(verStr))-2, 0, verStr, StyleGray)
 
 	// ── 5. Subtitle + decorations ─────────────────────────────────────────────
 	subY := startY + len(title) + 1
@@ -217,14 +217,8 @@ func (ms *MenuScreen) Render(ctx *ScreenCtx) {
 	ctx.DrawString(decX, subY-1, deco, StyleGray)
 	ctx.DrawString(decX, subY+1, deco, StyleGray)
 
-	verX := (w - 5) / 2
-	if verX < 0 {
-		verX = 0
-	}
-	ctx.DrawString(verX, subY+3, language.String("MENU_SUBTITLE"), StyleGray)
-
 	// ── 5. Menu items ─────────────────────────────────────────────────────────
-	menuY := subY + 8
+	menuY := subY + 4
 	options := ms.options()
 
 	// Bracket width: 0..2 extra spaces per side, driven by a 3 Hz sine
@@ -249,7 +243,7 @@ func (ms *MenuScreen) Render(ctx *ScreenCtx) {
 		)).Bold(true)
 
 	// Unselected: dim gray-purple so selected item pops
-	dimStyle := StyleDefault.Foreground(tcell.NewRGBColor(0x38, 0x38, 0x48))
+	dimStyle := StyleDefault.Foreground(tcell.NewRGBColor(0x58, 0x58, 0x68))
 
 	for i, opt := range options {
 		y := menuY + i*2

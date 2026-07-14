@@ -5,9 +5,8 @@ package language
 func init() {
 	register("ko", map[string]string{
 		// ── Menu ──────────────────────────────────────────
-		"MENU_TITLE": "T U R N   B A S E D   T A C T I C S",
-"MENU_SUBTITLE":      "v0.45",
-		"MENU_NEW_GAME": "새 게임",
+		"MENU_TITLE":         "T U R N   B A S E D   T A C T I C S",
+		"MENU_NEW_GAME":      "새 게임",
 		"MENU_CONTINUE": "계속하기",
 		"MENU_LOAD_GAME": "게임 불러오기",
 		"MENU_QUIT": "종료",
@@ -726,6 +725,7 @@ func init() {
 		"OPTIONS_RESOLUTION_SPEED": "해상도 속도",
 		"OPTIONS_ON": "켜짐",
 		"OPTIONS_OFF": "끄짐",
+		"OPTIONS_HELP":            "[\u2190]/[\u2192]=\uc870\uc815  [\u2191]/[\u2193]=\uc120\ud0dd  Enter=\uc804\ud658  [Esc]=\ub3cc\uc544\uac00\uae30",
 		"CONFIRM_QUIT":             "종료하시겠습니까?",
 		"CONFIRM_QUIT_HINT":        "[Y] = 예   [N] = 아니오",
 

@@ -5,8 +5,7 @@ package language
 func init() {
 	register("pt", map[string]string{
 		// ── Menu ──────────────────────────────────────────
-		"MENU_TITLE":         "T \u00c1 C T I C A S   B A S E A D A S   E M   T U R N O S",
-		"MENU_SUBTITLE":      "v0.45",
+		"MENU_TITLE":         "E S T R A T É G I A   P O R   T U R N O S",
 		"MENU_NEW_GAME":      "Novo Jogo",
 		"MENU_CONTINUE":      "Continuar",
 		"MENU_LOAD_GAME":     "Carregar Jogo",
@@ -21,7 +20,7 @@ func init() {
 		"HELP_DIFFICULTY":   "[\u2191]/[\u2193]=Selecionar  [Enter]=Confirmar",
 
 		// ── Geoscape ──────────────────────────────────────
-		"GEOSCAPE":              "GEOSCAPETO",
+		"GEOSCAPE":              "GEOMAPA",
 		"GEOSCAPE_FUNDS":        "Fundos: $%dK",
 		"GEOSCAPE_TIME":         "Hora: %s",
 		"GEOSCAPE_RUNNING":      "EM EXECU\u00c7\u00c3O",
@@ -121,18 +120,18 @@ func init() {
 		"ENCYCLO_ALIEN_STATS_3":     "DMG:%s WPN:%s",
 		"ENCYCLO_NOT_DISCOVERED":    "Ainda n\u00e3o descoberto.",
 		"MSG_SAVE_FAILED":           "Falha ao guardar: ",
-		"MSG_GAME_SAVED":            "Jogo guardado na slot %d",
-		"MSG_GAME_SAVED_AUTO":       "Guardado automaticamente!",
+		"MSG_GAME_SAVED":            "Jogo gravado na slot %d",
+		"MSG_GAME_SAVED_AUTO":       "Gravado automaticamente!",
 		"MSG_LOAD_FAILED":           "Falha ao carregar: ",
 		"MSG_MONTHLY_REPORT":        "RELAT\u00d3RIO MENSAL: Financiamento +$%dK  Sal\u00e1rios -$%dK",
 
 		// ── Slot Picker ──────────────────────────────────────
 		"SLOT_PICKER_SAVE":     "GUARDAR JOGO",
 		"SLOT_PICKER_LOAD":     "CARREGAR JOGO",
-		"SLOT_PICKER_NO_SAVES": "Nenhum jogo guardado encontrado.",
+		"SLOT_PICKER_NO_SAVES": "Nenhum jogo gravado encontrado.",
 		"SLOT_PICKER_HELP":     "Selecione uma slot e prima Enter. [Esc]=Cancelar",
 		"SLOT_PICKER_FULL":     "Todas as 10 slots de save est\u00e3o cheias!",
-		"SLOT_PICKER_SAVED":    "Jogo guardado na Slot %d.",
+		"SLOT_PICKER_SAVED":    "Jogo gravado na Slot %d.",
 
 		// Mission types
 		"MISSION_CRASH_SITE":     "Local de Acidente",
@@ -559,7 +558,7 @@ func init() {
 		"HELP_NAV":   "[Esquerda]/[Direita] ou [Tab]=P\u00e1gina  [Esc]=Voltar",
 
 		// Geoscape help
-		"HELP_GEO_TITLE":    "GEOSCAPETO",
+		"HELP_GEO_TITLE":    "GEOMAPA",
 		"HELP_GEO_CONTROLS": "#Controlos:",
 		"HELP_GEO_MOVE":     ">[Setas de dire\u00e7\u00e3o]   Mover c\u00e2mara",
 		"HELP_GEO_PAUSE":    ">[Espa\u00e7o]        Pausar/despausar tempo",
@@ -584,7 +583,7 @@ func init() {
 		"HELP_BASE_CONTROLS": "#Controlos:",
 		"HELP_BASE_TABS":     ">[1-5] ou [Esquerda]/[Direita]   Mudar de aba",
 		"HELP_BASE_NAV":      ">[\u2191]/[\u2193] ou [Cima]/[Baixo]      Navegar",
-		"HELP_BASE_BACK":     ">[Esc]                 Voltar ao geoscapeto",
+		"HELP_BASE_BACK":     ">[Esc]                 Voltar ao geomapa",
 		"HELP_BASE_NAMES":    "#Abas:",
 		"HELP_BASE_FAC":      ">Instala\u00e7\u00f5es  Construir/vender instala\u00e7\u00f5es da base",
 		"HELP_BASE_SOLD":     ">Soldados    Recrutar/dispensar, ver registo",
@@ -714,7 +713,7 @@ func init() {
 		"OPTIONS_SOUND":            "Som",
 		"OPTIONS_LIGHTING":         "Ilumina\u00e7\u00e3o Direcional",
 		"OPTIONS_LANGUAGE":         "Idioma",
-		"OPTIONS_AUTOSAVE":         "Guardado Autom\u00e1tico",
+		"OPTIONS_AUTOSAVE":         "Gravar Autom\u00e1ticamente",
 		"OPTIONS_SHAKE":            "Tremor de Ecr\u00e3",
 		"OPTIONS_MOUSE":            "Suporte para Rato",
 		"OPTIONS_GRID":             "Linhas de Grelha",
@@ -728,6 +727,7 @@ func init() {
 		"OPTIONS_RESOLUTION_SPEED": "Velocidade de Resolu\u00e7\u00e3o",
 		"OPTIONS_ON":               "LIG ",
 		"OPTIONS_OFF":              "DESL",
+		"OPTIONS_HELP":            "[\u2190]/[\u2192]=Ajustar  [\u2191]/[\u2193]=Selecionar  Enter=Alternar  [Esc]=Voltar",
 
 		// ── Weather ───────────────────────────────────────
 		"BATTLE_MOD_ALIEN_AMBUSH":   "MODIFICADOR DE MISS\u00c3O: Emboscada Alien - aliens em vigil\u00e2ncia",

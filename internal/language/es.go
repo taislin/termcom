@@ -6,9 +6,7 @@ func init() {
 	register("es", map[string]string{
 		// ── Menu ──────────────────────────────────────────
 		"MENU_TITLE":         "T A C T I C A S   P O R   T U R N O S",
-		"MENU_SUBTITLE":      "v0.45",
 		"MENU_NEW_GAME":      "Nueva partida",
-		"MENU_CONTINUE":      "Continuar",
 		"MENU_LOAD_GAME":     "Cargar partida",
 		"MENU_QUIT":          "Salir",
 		"MENU_OPTIONS":       "Opciones",
@@ -728,6 +726,7 @@ func init() {
 		"OPTIONS_RESOLUTION_SPEED": "Velocidad de resoluci\u00f3n",
 		"OPTIONS_ON":               "S\u00cd ",
 		"OPTIONS_OFF":              "NO",
+		"OPTIONS_HELP":            "[\u2190]/[\u2192]=Ajustar  [\u2191]/[\u2193]=Seleccionar  Enter=Alternar  [Esc]=Volver",
 
 		// ── Batalla ──────────────────────────────────────
 		"BATTLE_COVER_FMT":          " (◈ %d%%)",

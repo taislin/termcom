@@ -4,12 +4,24 @@ import (
 	"encoding/json"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/taislin/termcom/internal/audio"
 	"github.com/taislin/termcom/internal/language"
 )
 
 var GameVersion = "dev"
+
+func init() {
+	if GameVersion != "dev" {
+		return
+	}
+	data, err := os.ReadFile("VERSION")
+	if err != nil {
+		return
+	}
+	GameVersion = strings.TrimSpace(string(data))
+}
 
 type GlobalConfig struct {
 	BloomEnabled       bool   `json:"bloom_enabled"`

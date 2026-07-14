@@ -6,7 +6,6 @@ func init() {
 	register("ja", map[string]string{
 		// ── Menu ──────────────────────────────────────────
 		"MENU_TITLE":         "T U R N   B A S E D   T A C T I C S",
-		"MENU_SUBTITLE":      "v0.45",
 		"MENU_NEW_GAME":      "ニューゲーム",
 		"MENU_CONTINUE":      "コンティニュー",
 		"MENU_LOAD_GAME":     "ロード",
@@ -726,6 +725,7 @@ func init() {
 		"OPTIONS_RESOLUTION_SPEED": "解像度速度",
 		"OPTIONS_ON":               "ON ",
 		"OPTIONS_OFF":              "OFF",
+		"OPTIONS_HELP":            "[\u2190]/[\u2192]=\u8abf\u6574  [\u2191]/[\u2193]=\u9078\u629e  Enter=\u5207\u308a\u66ff\u3048  [Esc]=\u623b\u308b",
 		"CONFIRM_QUIT":             "終了してもよろしいですか？",
 		"CONFIRM_QUIT_HINT":        "[Y] = はい   [N] = いいえ",
 

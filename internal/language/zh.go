@@ -4,9 +4,7 @@ func init() {
 	register("zh", map[string]string{
 		// ── 菜单 ──────────────────────────────────────────
 		"MENU_TITLE":         "\u8f6e\u56de\u6218\u6597\u672f",
-		"MENU_SUBTITLE":      "v0.45",
 		"MENU_NEW_GAME":      "\u65b0\u6e38\u620f",
-		"MENU_CONTINUE":      "\u7ee7\u7eed",
 		"MENU_LOAD_GAME":     "\u8bfb\u53d6\u5b58\u6863",
 		"MENU_QUIT":          "\u9000\u51fa",
 		"MENU_OPTIONS":       "\u9009\u9879",
@@ -726,6 +724,7 @@ func init() {
 		"OPTIONS_RESOLUTION_SPEED": "\u5206\u8fa8\u7387\u901f\u5ea6",
 		"OPTIONS_ON":               "\u5f00 ",
 		"OPTIONS_OFF":              "\u5173",
+		"OPTIONS_HELP":            "[\u2190]/[\u2192]=\u8c03\u6574  [\u2191]/[\u2193]=\u9009\u62e9  Enter=\u5207\u6362  [Esc]=\u8fd4\u56de",
 
 		"BATTLE_COVER_FMT":          " (\u25C8 %d%%)",
 		"BATTLE_LEVEL_FMT":          " [L%d]",

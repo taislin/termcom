@@ -106,6 +106,7 @@ internal/
 - **NO EMOJIS**: Never use emoji characters (U+1F300-U+1F9FF, U+FE00-U+FE0F, U+200D, etc.) in tileChars or anywhere in game code. Use Unicode symbols from BMP only (U+0000-U+FFFF) — box drawing, technical symbols, miscellaneous symbols (⚙, ⌁, etc.) are fine.
 - Always update `docs/manual.md` whenever game data, balance, or mechanics change.
 - **Translations**: Every language file in `internal/language/` must be kept in sync. When adding or changing a string key, add/change it in ALL language files (en, zh, es, fr, ru, pt, ja, ko). The language files are: `en.go`, `zh.go`, `es.go`, `fr.go`, `ru.go`, `pt.go`, `ja.go`, `ko.go`. Never add a key to only one file.
+- **Version bumps**: Before every push (unless told otherwise), increment `VERSION` by +0.0.1 (e.g. 0.45 → 0.45.1). Only change the middle field when explicitly told. `GameVersion` in `internal/engine/config.go` reads from the `VERSION` file at startup via `init()`; the menu displays it as the centered subtitle. There is no per-language version string to update.
 
 ### Game Conventions (faithful to original X-COM)
 - Time Units (TU) for all actions in Battlescape

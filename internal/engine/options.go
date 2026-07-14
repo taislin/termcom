@@ -178,7 +178,7 @@ func (os *OptionsScreen) Render(ctx *ScreenCtx) {
 	ctx.DrawString(baseX+7, flagY+1, fmt.Sprintf("  %s: [%s]", language.String("OPTIONS_LANGUAGE"), langs[li]), langStyle)
 
 	ctx.DrawPanel(0, h-1, w, 1, "", StyleGray)
-	ctx.DrawMarkupString(1, h-1, "[\u2190]/[\u2192]=Adjust  [\u2191]/[\u2193]=Select  Enter=Toggle  [Esc]=Back", StyleGray, StyleHotkey)
+	ctx.DrawMarkupString(1, h-1, language.String("OPTIONS_HELP"), StyleGray, StyleHotkey)
 }
 
 func (os *OptionsScreen) HandleKey(e *tcell.EventKey) {
