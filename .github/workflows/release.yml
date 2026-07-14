@@ -13,13 +13,13 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install Pandoc and LaTeX
-        run: sudo apt-get update && sudo apt-get install -y pandoc texlive-latex-base texlive-latex-recommended texlive-fonts-recommended
+        run: sudo apt-get update && sudo apt-get install -y pandoc texlive-xetex texlive-fonts-recommended
 
       - name: Build PDFs
         run: |
           mkdir -p pdfs
-          pandoc docs/manual.md -o pdfs/manual.pdf
-          pandoc docs/quickstart.md -o pdfs/quickstart.pdf
+          pandoc docs/manual.md -o pdfs/manual.pdf --pdf-engine=xelatex -V mainfont="DejaVu Sans Mono"
+          pandoc docs/quickstart.md -o pdfs/quickstart.pdf --pdf-engine=xelatex -V mainfont="DejaVu Sans Mono"
 
       - name: Upload PDFs
         uses: actions/upload-artifact@v4
