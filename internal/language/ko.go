@@ -102,6 +102,7 @@ func init() {
 		"LEGEND_CRASH": "추락 지점",
 		"LEGEND_TRANSPORT": "수송선",
 		"GEOSCAPE_NODE_SELECTED": "%s [%s]",
+		"GEOSCAPE_UFO_SELECTED":  "UFO \uc120\ud0dd\ub428: %s",
 		"MSG_INTERCEPTOR_PATROL": "%s을(를) 순찰 중인 요격기",
 		"MSG_UFO_DETECTED": "%s이(가) %s 근처에서 탐지되었습니다!",
 		"ENCYCLOPEDIA": "백과사전",

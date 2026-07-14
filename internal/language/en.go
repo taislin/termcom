@@ -100,6 +100,7 @@ func init() {
 		"LEGEND_CRASH":              "Crash Site",
 		"LEGEND_TRANSPORT":          "Transport",
 		"GEOSCAPE_NODE_SELECTED":    "%s [%s]",
+		"GEOSCAPE_UFO_SELECTED":     "UFO selected: %s",
 		"MSG_INTERCEPTOR_PATROL":    "Interceptor patrolling %s",
 		"MSG_UFO_DETECTED":          "%s detected near %s!",
 		"ENCYCLOPEDIA":              "ENCYCLOPEDIA",

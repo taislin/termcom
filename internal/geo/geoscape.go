@@ -2807,9 +2807,9 @@ func (gs *Geoscape) HandleMouse(e *tcell.EventMouse) {
 		worldH := 90
 		worldX := (x - mapX - 1) * worldW / innerW
 		worldY := (y - 2) * worldH / innerH
-		// Find nearest city to clicked position
+		// Find nearest city, UFO, or CrashSite
 		var bestCity *City
-		bestDist := 999999
+		bestDist := 25 // Click radius
 		for _, c := range gs.Cities {
 			dx := c.X - worldX
 			dy := c.Y - worldY
@@ -2819,6 +2819,7 @@ func (gs *Geoscape) HandleMouse(e *tcell.EventMouse) {
 				bestCity = c
 			}
 		}
+
 		if bestCity != nil {
 			gs.CursorNode = bestCity.ID
 			idx := gs.FindBaseIndex(bestCity.ID)
@@ -2827,6 +2828,17 @@ func (gs *Geoscape) HandleMouse(e *tcell.EventMouse) {
 			}
 			gs.Message = fmt.Sprintf(language.String("GEOSCAPE_NODE_SELECTED"), bestCity.LangName(), bestCity.LangRegion())
 			gs.MessageTimer = time.Now()
+		} else {
+			// Check for UFOs
+			for _, u := range gs.UFOs.Active() {
+				dx := int(u.X) - worldX
+				dy := int(u.Y) - worldY
+				if dx*dx+dy*dy < 25 {
+					gs.Message = fmt.Sprintf(language.String("GEOSCAPE_UFO_SELECTED"), localizeUFOName(u.Type.Name))
+					gs.MessageTimer = time.Now()
+					break
+				}
+			}
 		}
 	}
 }
