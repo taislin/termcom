@@ -630,6 +630,7 @@ func TestRespondToMission(t *testing.T) {
 func TestAutoresolveMissionBranches(t *testing.T) {
 	sawWin, sawLoss := false, false
 	for seed := int64(0); seed < 120; seed++ {
+		//lint:ignore SA1019 rand.Seed intentionally seeds the global RNG for deterministic test runs.
 		rand.Seed(seed)
 		g := &engine.Game{Funds: 1000000, GameTime: time.Date(1999, time.March, 1, 0, 0, 0, 0, time.UTC), AlienKnowledge: make(map[string]int)}
 		gs := NewGeoscape(g)

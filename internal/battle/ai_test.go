@@ -303,7 +303,7 @@ func TestAISearchStateMoveTowardLastSeen(t *testing.T) {
 	}
 	// After many turns without finding, should return to patrol
 	ai.TurnsSince = 7
-	actions = ai.Update(UnitList{alien}, m, UnitList{}, nil, nil)
+	ai.Update(UnitList{alien}, m, UnitList{}, nil, nil)
 	if ai.State != AIPatrol {
 		t.Errorf("expected AIPatrol after search timeout, got %d", ai.State)
 	}

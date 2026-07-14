@@ -861,9 +861,9 @@ func (bs *Battlescape) executeAlienAction(action AlienAction) {
 		if success {
 			action.Target.TU = 0
 			action.Target.Panicked = true
-			bs.AddMessage(fmt.Sprintf("%s psi attacks %s — PANICKED!", action.Unit.AlienType.Name, action.Target.Name()))
+			bs.AddMessage(fmt.Sprintf(language.String("MSG_ALIEN_PSI_PANIC"), action.Unit.AlienType.Name, action.Target.Name()))
 		} else {
-			bs.AddMessage(fmt.Sprintf("%s psi attacks %s — resisted!", action.Unit.AlienType.Name, action.Target.Name()))
+			bs.AddMessage(fmt.Sprintf(language.String("MSG_ALIEN_PSI_RESIST"), action.Unit.AlienType.Name, action.Target.Name()))
 		}
 		bs.ComputeFOVForTeam()
 		bs.checkHumanReactionFire(action.Unit)
@@ -2193,38 +2193,12 @@ func (bs *Battlescape) checkMineTriggers() {
 	}
 }
 
-// detonateMineAt triggers a specific mine by position (used for booby trap clearance).
-func (bs *Battlescape) detonateMineAt(mx, my int) {
-	damage := 60 + rand.Intn(20)
-	for _, u := range bs.Units {
-		if !u.Alive {
-			continue
-		}
-		dx := u.X - mx
-		dy := u.Y - my
-		if dx*dx+dy*dy <= 4 {
-			splash := damage - (dx*dx+dy*dy)*5
-			if splash < 5 {
-				splash = 5
-			}
-			u.HP -= splash
-			if u.HP <= 0 {
-				u.HP = 0
-				u.Alive = false
-			}
-		}
-	}
-	audio.PlayExplosion()
-	engine.SpawnExplosion(bs.Particles, mx-bs.ScrollX+1, my-bs.ScrollY+1,
-		tcell.NewRGBColor(255, 180, 50), 20)
-}
-
 func (bs *Battlescape) PsiAttack() {
 	if bs.Selected == nil || bs.Phase != PhasePlayerTurn {
 		return
 	}
 	if bs.Selected.Soldier.Weapon != "psi_amp" {
-		bs.AddMessage("Need Psi-Amplifier to use Psi.")
+		bs.AddMessage(language.String("MSG_NEED_PSI_AMP"))
 		return
 	}
 
@@ -2235,7 +2209,7 @@ func (bs *Battlescape) PsiAttack() {
 
 	target := bs.Units.At(bs.CursorX, bs.CursorY)
 	if target == nil || target.Faction != 1 || !target.Alive {
-		bs.AddMessage("Select an alien target.")
+		bs.AddMessage(language.String("MSG_SELECT_ALIEN_TARGET"))
 		return
 	}
 
@@ -2250,7 +2224,7 @@ func (bs *Battlescape) PsiAttack() {
 
 	attackerSkill := bs.Selected.Soldier.PsiSkill
 	if attackerSkill < 1 {
-		bs.AddMessage("Soldier has no psi training.")
+		bs.AddMessage(language.String("MSG_NO_PSI_TRAINING"))
 		return
 	}
 
