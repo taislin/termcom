@@ -262,6 +262,17 @@ var RuleItems = map[string]RuleItem{
 		AmmoMax:    10,
 		Strength:   5,
 	},
+	"motion_scanner": {
+		Type:       "STR_MOTION_SCANNER",
+		Name:       "Motion Scanner",
+		ShortName:  "MSC",
+		Weight:     3,
+		CostBuy:    5000,
+		CostSell:   3750,
+		BattleType: BT_SCANNER,
+		TU:         10,
+		Range:      15,
+	},
 	"psi_amp": {
 		Type:       "STR_PSI_AMP",
 		Name:       "Psi-Amplifier",

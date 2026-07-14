@@ -109,6 +109,7 @@ type Battlescape struct {
 	Particles      *engine.ParticleSystem
 	HoveredUnit    *Unit
 	floaters       []FloatingText
+	scannerPings   [][2]int // positions revealed by motion scanner this turn
 	SidebarW       int
 	ReinforceTimer int
 	AbductionCivs  int
@@ -1129,6 +1130,7 @@ func (bs *Battlescape) finishAlienTurn() {
 	bs.restorePlayerTU()
 	bs.ComputeFOVForTeam()
 	bs.Turn++
+	bs.scannerPings = nil
 	bs.learnFromKills()
 	bs.Gas.Diffuse()
 	bs.Map.SpreadFire()
@@ -2038,6 +2040,36 @@ func SpawnRubble(ps *engine.ParticleSystem, x, y int) {
 	}
 }
 
+func (bs *Battlescape) UseMotionScanner() {
+	if bs.Selected == nil || bs.Phase != PhasePlayerTurn {
+		return
+	}
+	if bs.Selected.Soldier == nil || bs.Selected.Soldier.Weapon != "motion_scanner" {
+		bs.AddMessage(language.String("MSG_NEED_SCANNER"))
+		return
+	}
+	if bs.Selected.TU < 10 {
+		bs.AddMessage(language.String("MSG_NOT_ENOUGH_TU_SCANNER"))
+		return
+	}
+	bs.Selected.TU -= 10
+	scanRange := 15
+	bs.scannerPings = nil
+
+	for _, u := range bs.Units {
+		if u.Faction == 1 && u.Alive {
+			dx := u.X - bs.Selected.X
+			dy := u.Y - bs.Selected.Y
+			dist := int(math.Sqrt(float64(dx*dx + dy*dy)))
+			if dist <= scanRange {
+				bs.scannerPings = append(bs.scannerPings, [2]int{u.X, u.Y})
+			}
+		}
+	}
+	audio.PlayClick()
+	bs.AddMessage(fmt.Sprintf(language.String("MSG_SCANNER_RESULT"), len(bs.scannerPings)))
+}
+
 func (bs *Battlescape) PsiAttack() {
 	if bs.Selected == nil || bs.Phase != PhasePlayerTurn {
 		return
@@ -2348,6 +2380,19 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 			}
 		}
 		engine.ApplyVisionFilter(ctx.ScreenRaw, bs.VisionMode, entities)
+	}
+
+	// Draw motion scanner pings
+	pingStyle := engine.StyleDefault.Foreground(tcell.NewRGBColor(0, 255, 100)).Bold(true)
+	for _, p := range bs.scannerPings {
+		sx := p[0] - bs.ScrollX + 1
+		sy := p[1] - bs.ScrollY + 1
+		if sx >= 1 && sx < viewW+1 && sy >= 1 && sy < viewH+1 {
+			blink := (bs.FrameCount / 6) % 2
+			if blink == 0 {
+				ctx.SetCell(sx, sy, '⚡', pingStyle)
+			}
+		}
 	}
 
 	bs.drawFloaters(ctx)
