@@ -6,7 +6,7 @@ func init() {
 	register("fr", map[string]string{
 		// ── Menu ──────────────────────────────────────────
 		"MENU_TITLE":         "T U R N   B A S E D   T A C T I C S",
-		"MENU_SUBTITLE":      "v0.33",
+		"MENU_SUBTITLE":      "v0.45",
 		"MENU_NEW_GAME":      "Nouvelle Partie",
 		"MENU_CONTINUE":      "Continuer",
 		"MENU_LOAD_GAME":     "Charger Partie",
@@ -854,5 +854,19 @@ func init() {
 		// ── Common ─────────────────────────────────────────
 		"NONE":    "Aucun",
 		"UNKNOWN": "Inconnu",
+
+		// ── Tutorial ──────────────────────────────────────
+		"TUTORIAL_TITLE":          "BRIEFING DU COMMANDEUR",
+		"TUTORIAL_WELCOME":        "Bienvenue, Commandant! Vous avez \u00e9t\u00e9 choisi pour diriger X-COM, une force internationale d\u00e9di\u00e9e \u00e0 stopper l'invasion alien.",
+		"TUTORIAL_TIME":           "Ceci est le G\u00e9oscope, votre vue de commande mondiale. Le temps avance automatiquement. Appuyez sur [Space] pour pause. Utilisez [1]-[4] pour la compression temporelle.",
+		"TUTORIAL_UFO":            "Les ovnis appara\u00eetront sur la carte. Les marqueurs rouges '!' indiquent des navires hostiles dans votre port\u00e9e radar.",
+		"TUTORIAL_INTERCEPT":      "Appuyez sur [L] pour lancer un intercepteur contre un ovni. Il poursuivra et engagera automatiquement la cible.",
+		"TUTORIAL_MISSION":        "Quand les aliens lancent une mission, appuyez sur [M] pour r\u00e9pondre. Vous pouvez d\u00e9ployer votre escouade, r\u00e9soudre automatiquement ou ignorer.",
+		"TUTORIAL_BASE":           "Appuyez sur [B] pour ouvrir votre base. Construisez des installations, engagez des soldats, \u00e9quipez votre escouade et g\u00e9rez la recherche.",
+		"TUTORIAL_BATTLE":         "En combat tactique, vos soldats utilisent les Unit\u00e9s Temps (TU) pour chaque action. D\u00e9placez, tirez, accroupissez, lancez des grenades \u2014 planifiez soigneusement!",
+		"TUTORIAL_COMPLETE":       "Briefing termin\u00e9. Appuyez sur [?] \u00e0 tout moment pour le manuel complet. Bonne chance, Commandant \u2014 la Terre compte sur vous!",
+		"TUTORIAL_SKIP":           "[S] Passer le Tutoriel",
+		"TUTORIAL_NEXT":           "[Enter]=Suivant  [S]=Passer",
+		"TUTORIAL_DISMISS":        "[Enter]=Fermer",
 	})
 }

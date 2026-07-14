@@ -4,7 +4,7 @@ func init() {
 	register("en", map[string]string{
 		// ── Menu ──────────────────────────────────────────
 		"MENU_TITLE":         "T U R N   B A S E D   T A C T I C S",
-		"MENU_SUBTITLE":      "v0.33",
+		"MENU_SUBTITLE":      "v0.45",
 		"MENU_NEW_GAME":      "New Game",
 		"MENU_CONTINUE":      "Continue",
 		"MENU_LOAD_GAME":     "Load Game",
@@ -881,5 +881,19 @@ func init() {
 		// ── Common ─────────────────────────────────────────
 		"NONE":    "None",
 		"UNKNOWN": "Unknown",
+
+		// ── Tutorial ──────────────────────────────────────
+		"TUTORIAL_TITLE":          "COMMANDER BRIEFING",
+		"TUTORIAL_WELCOME":        "Welcome, Commander! You have been selected to lead X-COM, an international task force dedicated to stopping the alien invasion.",
+		"TUTORIAL_TIME":           "This is the Geoscape — your global command view. Time advances automatically. Press [Space] to pause and unpause. Use [1]-[4] to set time compression.",
+		"TUTORIAL_UFO":            "UFOs will appear on the map as they are detected by your radar. Red '!' markers indicate hostile craft in your radar range.",
+		"TUTORIAL_INTERCEPT":      "Press [L] to launch an interceptor at a UFO. Your interceptor will pursue and engage the target automatically.",
+		"TUTORIAL_MISSION":        "When aliens launch a mission, press [M] to respond. You can deploy your squad, auto-resolve, or ignore the mission.",
+		"TUTORIAL_BASE":           "Press [B] to open your base. Build facilities, hire soldiers, equip your squad, and manage research from here.",
+		"TUTORIAL_BATTLE":         "In tactical combat, your soldiers use Time Units (TU) for every action. Move, fire, crouch, throw grenades — plan carefully!",
+		"TUTORIAL_COMPLETE":       "Briefing complete. Press [?] at any time for the full manual. Good luck, Commander — Earth is counting on you!",
+		"TUTORIAL_SKIP":           "[S] Skip Tutorial",
+		"TUTORIAL_NEXT":           "[Enter]=Next  [S]=Skip",
+		"TUTORIAL_DISMISS":        "[Enter]=Dismiss",
 	})
 }

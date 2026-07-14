@@ -28,6 +28,7 @@ const (
 	StateGameOver
 	StateDebrief
 	StateQuit
+	StateTutorial
 )
 
 type Screen interface {

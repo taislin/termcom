@@ -25,6 +25,7 @@ type GlobalConfig struct {
 	ActionDelay        int    `json:"action_delay"`
 	SfxVolume          int    `json:"sfx_volume"`
 	Language           string `json:"language"`
+	TutorialShown      bool   `json:"tutorial_shown"`
 }
 
 var Config = GlobalConfig{

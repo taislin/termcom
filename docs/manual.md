@@ -1,4 +1,4 @@
-# termcom — ASCII X-COM Roguelike-ified Demake Manual
+# termcom — ASCII X-COM Roguelike-ified Demake Manual (v0.45)
 
 ## Table of Contents
 
@@ -17,6 +17,7 @@
 13. [Save/Load](#saveload)
 14. [Key Bindings Reference](#key-bindings-reference)
 15. [Tips & Strategy](#tips--strategy)
+16. [Tutorial / Onboarding](#tutorial--onboarding)
 
 ---
 
@@ -1047,3 +1048,31 @@ a captured alien:
 - Monthly salary costs add up — balance soldiers vs. income.
 - $50K reward per battle win helps offset expenses.
 - Early game is tight on funds — manufacture and sell items for profit.
+
+---
+
+## Tutorial / Onboarding
+
+On your first playthrough (no save files detected), the game automatically presents
+a step-by-step **Commander Briefing** after you select your difficulty. The tutorial
+covers:
+
+1. **Welcome** — Introduction to X-COM and your role as Commander
+2. **Geoscape & Time Controls** — Pause (`Space`), time compression (`1`–`4`)
+3. **UFO Detection** — How radar and UFO markers work
+4. **Interceptor Launch** — Press `L` to engage hostile craft
+5. **Mission Response** — Press `M` to deploy, auto-resolve, or ignore
+6. **Base Management** — Press `B` to manage facilities and soldiers
+7. **Battlescape** — Time Units, movement, and combat basics
+8. **Completion** — Reminder that `?` opens the full manual at any time
+
+### Controls
+
+| Key | Action |
+|-----|--------|
+| Enter | Advance to next step |
+| S | Skip tutorial |
+| Esc | Dismiss tutorial |
+
+The tutorial only appears once. You can replay it by resetting your config
+(delete `config.json`) or by removing the `"tutorial_shown"` flag.

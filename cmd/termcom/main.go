@@ -31,6 +31,10 @@ func main() {
 			g.RegisterScreen(engine.StateResearch, base.NewResearchScreen(g, gs.SelectedBase()))
 			g.RegisterScreen(engine.StateManufacture, base.NewManufactureScreen(g, gs.SelectedBase()))
 			g.SetState(engine.StateGeoscape)
+			if !engine.Config.TutorialShown && !engine.HasSave() {
+				g.RegisterScreen(engine.StateTutorial, engine.NewTutorialScreen(g, nil))
+				g.PushState(engine.StateTutorial)
+			}
 		})
 		g.PushScreen(picker)
 	}

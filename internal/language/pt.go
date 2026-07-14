@@ -6,7 +6,7 @@ func init() {
 	register("pt", map[string]string{
 		// ── Menu ──────────────────────────────────────────
 		"MENU_TITLE":         "T \u00c1 C T I C A S   B A S E A D A S   E M   T U R N O S",
-		"MENU_SUBTITLE":      "v0.33",
+		"MENU_SUBTITLE":      "v0.45",
 		"MENU_NEW_GAME":      "Novo Jogo",
 		"MENU_CONTINUE":      "Continuar",
 		"MENU_LOAD_GAME":     "Carregar Jogo",
@@ -854,5 +854,19 @@ func init() {
 		// ── Common ─────────────────────────────────────────
 		"NONE":    "Nenhum",
 		"UNKNOWN": "Desconhecido",
+
+		// ── Tutorial ──────────────────────────────────────
+		"TUTORIAL_TITLE":          "BRIEFING DO COMANDANTE",
+		"TUTORIAL_WELCOME":        "Bem-vindo, Comandante! Voc\u00ea foi selecionado para liderar a X-COM, uma for\u00e7a internacional dedicada a parar a invas\u00e3o alien\u00edgena.",
+		"TUTORIAL_TIME":           "Este \u00e9 o Geoscape, sua vis\u00e3o de comando global. O tempo avan\u00e7a automaticamente. Pressione [Space] para pausar e retomar. Use [1]-[4] para compress\u00e3o de tempo.",
+		"TUTORIAL_UFO":            "OVNIs aparecer\u00e3o no mapa. Marcadores vermelhos '!' indicam naves hostis em seu alcance de radar.",
+		"TUTORIAL_INTERCEPT":      "Pressione [L] para lan\u00e7ar um interceptador contra um OVNI. Ele perseguir\u00e1 e entrar\u00e1 em combate automaticamente.",
+		"TUTORIAL_MISSION":        "Quando alienigenas lan\u00e7arem uma miss\u00e3o, pressione [M] para responder. Voc\u00ea pode implantar seu esquadr\u00e3o, resolver automaticamente ou ignorar.",
+		"TUTORIAL_BASE":           "Pressione [B] para abrir sua base. Construa instala\u00e7\u00f5es, contrate soldados, equipe seu esquadr\u00e3o e gerencie a pesquisa.",
+		"TUTORIAL_BATTLE":         "Em combate t\u00e1tico, seus soldados usam Unidades de Tempo (TU) para cada a\u00e7\u00e3o. Mova, atire, agache, lan\u00e7e granadas \u2014 planeje cuidadosamente!",
+		"TUTORIAL_COMPLETE":       "Briefing completo. Pressione [?] a qualquer momento para o manual completo. Boa sorte, Comandante \u2014 a Terra conta com voc\u00ea!",
+		"TUTORIAL_SKIP":           "[S] Pular Tutorial",
+		"TUTORIAL_NEXT":           "[Enter]=Pr\u00f3ximo  [S]=Pular",
+		"TUTORIAL_DISMISS":        "[Enter]=Fechar",
 	})
 }

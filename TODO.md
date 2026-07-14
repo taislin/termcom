@@ -378,13 +378,15 @@ the genuine gaps (base 26% -> 28%, +2%):
 - [x] Visual: '◉' marker on placed mines
 - [x] Key: T
 
-## Phase 45: In-Game Tutorial / Onboarding
-- [ ] Design tutorial flow (e.g. first Geoscape popup → first mission walkthrough → base tour)
-- [ ] Implement modal popup system (full-screen or panel overlay with dismiss)
-- [ ] Tutorial steps: "Press Space to pause", "Press M to respond to mission", "Press B to open base", etc.
-- [ ] Auto-detect first-time player (check `config.json` flag or lack of save files)
-- [ ] Optionally add a "Tutorial" entry in the main menu
-- [ ] Update `docs/manual.md` with tutorial references
+## Phase 45: In-Game Tutorial / Onboarding (DONE)
+- [x] Design tutorial flow (8-step Commander Briefing: welcome, time, UFOs, intercept, missions, base, battle, complete)
+- [x] Implement modal popup system (`internal/engine/tutorial.go`: overlay with word-wrap, step counter, dismiss)
+- [x] Tutorial steps: "Press Space to pause", "Press L to launch interceptor", "Press M to respond", "Press B to open base", etc.
+- [x] Auto-detect first-time player (`!Config.TutorialShown && !HasSave()` in OnNewGame callback)
+- [x] Skip button (S key) and progress bar indicator
+- [x] Language support: tutorial strings in all 8 languages (en, zh, es, fr, ru, pt, ja, ko)
+- [x] Config persistence: `TutorialShown bool` in GlobalConfig, saved to config.json
+- [x] Update `docs/manual.md` with tutorial section
 
 ## Phase 36: Game Balance & Polish Pass (HUMAN TESTING)
 - [ ] Play-test full campaign on each difficulty (Beginner..Superhuman)

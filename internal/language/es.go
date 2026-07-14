@@ -6,7 +6,7 @@ func init() {
 	register("es", map[string]string{
 		// ── Menu ──────────────────────────────────────────
 		"MENU_TITLE":         "T A C T I C A S   P O R   T U R N O S",
-		"MENU_SUBTITLE":      "v0.33",
+		"MENU_SUBTITLE":      "v0.45",
 		"MENU_NEW_GAME":      "Nueva partida",
 		"MENU_CONTINUE":      "Continuar",
 		"MENU_LOAD_GAME":     "Cargar partida",
@@ -883,5 +883,19 @@ func init() {
 		// ── Com\u00fan ─────────────────────────────────────────
 		"NONE":    "Ninguno",
 		"UNKNOWN": "Desconocido",
+
+		// ── Tutorial ──────────────────────────────────────
+		"TUTORIAL_TITLE":          "BRIEFING DEL COMANDANTE",
+		"TUTORIAL_WELCOME":        "\u00a1Bienvenido, Comandante! Ha sido seleccionado para liderar X-COM, una fuerza internacional dedicada a detener la invasi\u00f3n alien\u00edgena.",
+		"TUTORIAL_TIME":           "Este es el Geoscape, su vista de comando global. El tiempo avanza autom\u00e1ticamente. Presione [Space] para pausar y reanudar. Use [1]-[4] para compresi\u00f3n de tiempo.",
+		"TUTORIAL_UFO":            "Los OVNIs aparecer\u00e1n en el mapa. Los marcadores rojos '!' indican naves hostiles en su rango de radar.",
+		"TUTORIAL_INTERCEPT":      "Presione [L] para lanzar un interceptor contra un OVNI. Perseguir\u00e1 y entrar\u00e1 en combate autom\u00e1ticamente.",
+		"TUTORIAL_MISSION":        "Cuando los alien\u00edgenas lancen una misi\u00f3n, presione [M] para responder. Puede desplegar su escuadr\u00f3n, resolver autom\u00e1ticamente o ignorar.",
+		"TUTORIAL_BASE":           "Presione [B] para abrir su base. Construya instalaciones, contrate soldados, equipe su escuadr\u00f3n y gestione la investigaci\u00f3n.",
+		"TUTORIAL_BATTLE":         "En combate t\u00e1ctico, sus soldados usan Unidades de Tiempo (TU) para cada acci\u00f3n. Mu\u00e9vase, dispare, ag\u00e1chese, lance granadas \u2014 planifique con cuidado.",
+		"TUTORIAL_COMPLETE":       "Briefing completo. Presione [?] en cualquier momento para el manual completo. \u00a1Buena suerte, Comandante, la Tierra cuenta con usted!",
+		"TUTORIAL_SKIP":           "[S] Saltar Tutorial",
+		"TUTORIAL_NEXT":           "[Enter]=Siguiente  [S]=Saltar",
+		"TUTORIAL_DISMISS":        "[Enter]=Cerrar",
 	})
 }
