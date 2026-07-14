@@ -244,6 +244,7 @@ func (g *Game) Run() {
 	defer g.screen.Close()
 	defer audio.Close()
 	defer close(g.eventDone)
+	defer SaveConfig()
 
 	go func() {
 		for {

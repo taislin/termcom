@@ -61,6 +61,9 @@ func HasSave() bool {
 			return true
 		}
 	}
+	if _, err := os.Stat("autosave.json"); err == nil {
+		return true
+	}
 	return false
 }
 
