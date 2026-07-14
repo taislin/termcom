@@ -278,9 +278,9 @@ func (ms *MenuScreen) Render(ctx *ScreenCtx) {
 
 func (ms *MenuScreen) options() []string {
 	if HasSave() {
-		return []string{language.String("MENU_NEW_GAME"), language.String("MENU_CONTINUE"), language.String("MENU_LOAD_GAME"), language.String("MENU_CUSTOM_BATTLE"), language.String("MENU_OPTIONS"), language.String("MENU_QUIT"), language.String("MENU_WEBSITE")}
+		return []string{language.String("MENU_NEW_GAME"), language.String("MENU_CONTINUE"), language.String("MENU_LOAD_GAME"), language.String("MENU_CUSTOM_BATTLE"), language.String("MENU_OPTIONS"), language.String("MENU_WEBSITE"), language.String("MENU_QUIT")}
 	}
-	return []string{language.String("MENU_NEW_GAME"), language.String("MENU_CUSTOM_BATTLE"), language.String("MENU_OPTIONS"), language.String("MENU_QUIT"), language.String("MENU_WEBSITE")}
+	return []string{language.String("MENU_NEW_GAME"), language.String("MENU_CUSTOM_BATTLE"), language.String("MENU_OPTIONS"), language.String("MENU_WEBSITE"), language.String("MENU_QUIT")}
 }
 
 func (ms *MenuScreen) HandleKey(e *tcell.EventKey) {
