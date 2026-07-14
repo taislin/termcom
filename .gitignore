@@ -39,4 +39,5 @@ termcom_battle.exe
 _assets/
 termcom
 autosave.json
+config.json
 /scenario_creator
