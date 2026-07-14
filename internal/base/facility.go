@@ -1,7 +1,10 @@
 package base
 
 import (
+	"fmt"
+
 	"github.com/taislin/termcom/internal/data"
+	"github.com/taislin/termcom/internal/language"
 	"github.com/taislin/termcom/internal/soldier"
 )
 
@@ -37,6 +40,24 @@ var FacilityDefs = map[FacilityType]FacilityInfo{
 	FacHangar:         {Name: "Hangar", Short: "HNG", Cost: 120000, Size: 1, BuildDays: 8},
 }
 
+var facilityNameKeys = map[FacilityType]string{
+	FacLivingQuarters: "FAC_LIVING_QUARTERS",
+	FacLab:            "FAC_LABORATORY",
+	FacWorkshop:       "FAC_WORKSHOP",
+	FacStorage:        "FAC_STORAGE",
+	FacRadar:          "FAC_RADAR",
+	FacContainment:    "FAC_ALIEN_CONTAINMENT",
+	FacPsiLab:         "FAC_PSI_LAB",
+	FacHangar:         "FAC_HANGAR",
+}
+
+func FacilityDisplayName(ft FacilityType) string {
+	if key, ok := facilityNameKeys[ft]; ok {
+		return language.String(key)
+	}
+	return FacilityDefs[ft].Name
+}
+
 type Facility struct {
 	Type     FacilityType
 	Building bool
@@ -63,6 +84,16 @@ type ManufactureJob struct {
 	Materials map[string]int
 	Engineers int
 	Completed bool
+}
+
+func (j *ManufactureJob) DisplayName() string {
+	if r, ok := data.RuleItems[j.ItemKey]; ok {
+		return r.DisplayName()
+	}
+	if a, ok := data.Armors[j.ItemKey]; ok {
+		return a.DisplayNameByKey(j.ItemKey)
+	}
+	return j.ItemKey
 }
 
 type Base struct {
@@ -234,11 +265,11 @@ func (b *Base) HealthySoldiers() []*soldier.Soldier {
 func (b *Base) HireSoldier() (bool, string) {
 	cap := b.LivingCapacity()
 	if len(b.Soldiers) >= cap {
-		return false, "No room! Build more Living Quarters."
+		return false, language.String("MSG_NO_ROOM")
 	}
 	s := soldier.NewSoldier(soldier.RandomName())
 	b.Soldiers = append(b.Soldiers, s)
-	return true, s.Name + " hired."
+	return true, fmt.Sprintf(language.String("MSG_HIRED"), s.Name)
 }
 
 func (b *Base) DismissSoldier(idx int) bool {

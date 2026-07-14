@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/taislin/termcom/internal/data"
 	"github.com/taislin/termcom/internal/engine"
 	"github.com/taislin/termcom/internal/language"
 	"github.com/gdamore/tcell/v3"
@@ -14,6 +15,16 @@ type ManufacturePlan struct {
 	ItemKey   string
 	Days      int
 	Materials map[string]int
+}
+
+func (p *ManufacturePlan) DisplayName() string {
+	if r, ok := data.RuleItems[p.ItemKey]; ok {
+		return r.DisplayName()
+	}
+	if a, ok := data.Armors[p.ItemKey]; ok {
+		return a.DisplayNameByKey(p.ItemKey)
+	}
+	return p.Name
 }
 
 var ManufacturePlans = []ManufacturePlan{
@@ -74,7 +85,7 @@ func (ms *ManufactureScreen) Render(ctx *engine.ScreenCtx) {
 			if job.CostDays > 0 {
 				pct = job.Progress * 100 / job.CostDays
 			}
-			status := fmt.Sprintf(language.String("MFG_QUEUE_LINE"), job.ItemKey, job.Count, pct, job.Engineers)
+			status := fmt.Sprintf(language.String("MFG_QUEUE_LINE"), job.DisplayName(), job.Count, pct, job.Engineers)
 			if job.Completed {
 				status += language.String("MFG_DONE")
 			}
@@ -113,7 +124,7 @@ func (ms *ManufactureScreen) Render(ctx *engine.ScreenCtx) {
 			have := ms.Base.CountItem(mat)
 			matStr += fmt.Sprintf(language.String("MFG_MATERIAL_COUNT"), mat, have, qty)
 		}
-		line := fmt.Sprintf(language.String("MFG_BUILDABLE_LINE"), plan.Name, plan.Days, matStr)
+		line := fmt.Sprintf(language.String("MFG_BUILDABLE_LINE"), plan.DisplayName(), plan.Days, matStr)
 		ctx.DrawString(2, startY+i, line, style)
 	}
 

@@ -640,6 +640,14 @@ func NewCustomBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier
 		bs.AddMessage(fmt.Sprintf(language.String("MSG_MISSION_START"), ufoName))
 	}
 
+	for _, u := range bs.Units {
+		if u.Faction == 0 && u.Alive {
+			bs.CursorX = u.X
+			bs.CursorY = u.Y
+			bs.Camera.SetTarget(u.X, u.Y)
+			break
+		}
+	}
 	bs.ComputeFOVForTeam()
 	return bs
 }
@@ -1706,7 +1714,7 @@ func (bs *Battlescape) Reload() {
 	bs.Selected.TU -= 8
 	bs.Selected.WeaponAmmo = w.AmmoMax
 	audio.PlayReload()
-	bs.AddMessage(fmt.Sprintf(language.String("MSG_RELOADED"), w.Name, bs.Selected.WeaponAmmo, w.AmmoMax))
+	bs.AddMessage(fmt.Sprintf(language.String("MSG_RELOADED"), w.DisplayName(), bs.Selected.WeaponAmmo, w.AmmoMax))
 }
 
 func (bs *Battlescape) EndTurn() {
@@ -2671,7 +2679,7 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 			ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_ACC"), bs.Selected.Accuracy), engine.StyleDefault)
 			sy++
 
-			weaponName := data.RuleItems[bs.Selected.Weapon].Name
+			weaponName := data.RuleItems[bs.Selected.Weapon].DisplayName()
 			if engine.StringWidth(weaponName) > bs.SidebarW-4 {
 				runes := []rune(weaponName)
 				for len(runes) > 0 && engine.StringWidth(string(runes)) > bs.SidebarW-4 {
@@ -2690,7 +2698,7 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 			if bs.Selected.Armour > 0 {
 				for k, v := range data.Armors {
 					if v.Undersuit == bs.Selected.Armour {
-						armourName = k
+						armourName = v.DisplayNameByKey(k)
 						break
 					}
 				}

@@ -200,7 +200,7 @@ func (bs *BaseScreen) renderFacilities(ctx *engine.ScreenCtx, x, y, w, h int) {
 				break
 			}
 		}
-		line := fmt.Sprintf("%-20s x%d $%dK%s", def.Name, count, def.Cost/1000, building)
+		line := fmt.Sprintf("%-20s x%d $%dK%s", FacilityDisplayName(ft), count, def.Cost/1000, building)
 		ctx.DrawString(x, y+2+i, line, style)
 	}
 
@@ -212,9 +212,9 @@ func (bs *BaseScreen) renderFacilities(ctx *engine.ScreenCtx, x, y, w, h int) {
 		fac2  FacilityType
 		bonus string
 	}{
-		{"Adjacent Labs:", FacLab, FacLab, "+10% research each (max +30%)"},
-		{"Adjacent Workshops:", FacWorkshop, FacWorkshop, "+10% manufacture each (max +30%)"},
-		{"Adjacent Living Qtrs:", FacLivingQuarters, FacLivingQuarters, "+1 HP/day each (max +3)"},
+		{language.String("FAC_ADJACENT_LABS"), FacLab, FacLab, language.String("FAC_BONUS_RESEARCH")},
+		{language.String("FAC_ADJACENT_WORKSHOPS"), FacWorkshop, FacWorkshop, language.String("FAC_BONUS_MANUFACTURE")},
+		{language.String("FAC_ADJACENT_LIVING"), FacLivingQuarters, FacLivingQuarters, language.String("FAC_BONUS_HP")},
 	}
 	for _, a := range adj {
 		n := bs.Base.AdjacentCount(a.fac1, a.fac2)
@@ -328,6 +328,7 @@ func (bs *BaseScreen) renderHangars(ctx *engine.ScreenCtx, x, y, w, h int) {
 	y += 2
 	idx := 0
 	for _, hg := range bs.Base.Hangars {
+		statusKey := "INTERCEPTOR_STATUS_" + strings.ToUpper(hg.Status)
 		if hg.Status == "Destroyed" {
 			continue
 		}
@@ -336,7 +337,7 @@ func (bs *BaseScreen) renderHangars(ctx *engine.ScreenCtx, x, y, w, h int) {
 			style = engine.StyleHighlight
 		}
 		wpn := data.InterceptorWeapons[hg.WeaponKey]
-		line := fmt.Sprintf(language.String("LINE_HANGAR_INFO"), idx+1, hg.Status, hg.HP, hg.MaxHP, wpn.Name, hg.Ammo)
+		line := fmt.Sprintf(language.String("LINE_HANGAR_INFO"), idx+1, language.String(statusKey), hg.HP, hg.MaxHP, wpn.DisplayName(hg.WeaponKey), hg.Ammo)
 		ctx.DrawString(x, y+idx, line, style)
 		idx++
 	}

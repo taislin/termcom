@@ -74,13 +74,13 @@ func (es *EquipScreen) Render(ctx *engine.ScreenCtx) {
 	wName := "---"
 	if s.Weapon != "" {
 		if w, ok := data.RuleItems[s.Weapon]; ok {
-			wName = fmt.Sprintf(language.String("EQUIP_WEAPON_INFO"), w.Name, w.Damage, w.Accuracy, w.TU)
+			wName = fmt.Sprintf(language.String("EQUIP_WEAPON_INFO"), w.DisplayName(), w.Damage, w.Accuracy, w.TU)
 		}
 	}
 	aName := "---"
 	if s.Armor != "" {
 		if a, ok := data.Armors[s.Armor]; ok {
-			aName = fmt.Sprintf(language.String("EQUIP_ARMOR_INFO"), a.Name, a.Undersuit)
+			aName = fmt.Sprintf(language.String("EQUIP_ARMOR_INFO"), a.DisplayNameByKey(s.Armor), a.Undersuit)
 		}
 	}
 
@@ -104,9 +104,9 @@ func (es *EquipScreen) Render(ctx *engine.ScreenCtx) {
 		qty := es.Base.CountItem(item)
 		var info string
 		if w, ok := data.RuleItems[item]; ok {
-			info = fmt.Sprintf(language.String("EQUIP_ITEM_WEAPON"), w.Name, qty, w.Damage, w.Accuracy)
+			info = fmt.Sprintf(language.String("EQUIP_ITEM_WEAPON"), w.DisplayName(), qty, w.Damage, w.Accuracy)
 		} else if a, ok := data.Armors[item]; ok {
-			info = fmt.Sprintf(language.String("EQUIP_ITEM_ARMOR"), a.Name, qty, a.Undersuit)
+			info = fmt.Sprintf(language.String("EQUIP_ITEM_ARMOR"), a.DisplayNameByKey(item), qty, a.Undersuit)
 		} else {
 			info = fmt.Sprintf(language.String("EQUIP_ITEM_GENERIC"), item, qty)
 		}

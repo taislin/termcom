@@ -469,6 +469,21 @@ func init() {
 		"WPN_PLASMA_PISTOL":   "Plasma Pistol",
 		"WPN_STUN_ROD":        "Stun Rod",
 		"WPN_MEDI_KIT":        "Medi-Kit",
+		"WPN_HEAVY_PLASMA":    "Heavy Plasma",
+		"WPN_CHRYSSALID_CLAW": "Chryssalid Claw",
+		"WPN_REAPER_CLAW":     "Reaper Claw",
+		"WPN_MOTION_SCANNER":  "Motion Scanner",
+		"WPN_PROXIMITY_MINE":  "Proximity Mine",
+		"WPN_PSI_AMP":         "Psi-Amplifier",
+		"WPN_ALIEN_CLAW":      "Alien Claw",
+		"WPN_ALIEN_FANG":      "Alien Fang",
+		"WPN_ALIEN_BLASTER":   "Alien Blaster",
+		"WPN_ALIEN_CANNON":    "Alien Cannon",
+		"WPN_ALIEN_LASER":     "Alien Laser",
+		"WPN_ALIEN_HEAVY_LASER": "Alien Heavy Laser",
+		"WPN_ALIEN_GRENADE":   "Alien Grenade",
+		"WPN_ALIEN_ROCKET":    "Alien Rocket",
+		"WPN_ALIEN_PSI_BOLT":  "Psionic Bolt",
 
 		// ── Armor ──────────────────────────────────────────
 		"ARMOR_NONE":     "None",
@@ -512,6 +527,11 @@ func init() {
 		"ITEM_MEDI_KIT":          "Medi-Kit",
 		"ITEM_MOTION_SCANNER":    "Motion Scanner",
 		"ITEM_PSI_AMPLIFIER":     "Psi-Amplifier",
+		"ITEM_PROXIMITY_MINE":    "Proximity Mine",
+		"ITEM_UFO_NAV":           "UFO Navigation",
+		"ITEM_UFO_POWER":         "UFO Power Source",
+		"ITEM_UFO_WEAPON":        "UFO Weapon System",
+		"ITEM_UFO_ARMOR":         "UFO Hull Plating",
 
 		// ── Research topics ────────────────────────────────
 		"RES_ALIEN_ALLOYS":     "Alien Alloys",
@@ -896,5 +916,8 @@ func init() {
 		"TUTORIAL_SKIP":           "[S] Skip Tutorial",
 		"TUTORIAL_NEXT":           "[Enter]=Next  [S]=Skip",
 		"TUTORIAL_DISMISS":        "[Enter]=Dismiss",
+		"WPN_INTERCEPTOR_AVALANCHE": "Avalanche Launchers",
+		"WPN_INTERCEPTOR_STINGRAY":  "Stingray Missiles",
+		"WPN_INTERCEPTOR_CANNON":    "Cannon (DEF-7)",
 	})
 }

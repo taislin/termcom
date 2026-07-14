@@ -1,5 +1,11 @@
 package data
 
+import (
+	"strings"
+
+	"github.com/taislin/termcom/internal/language"
+)
+
 // Battle types corresponding to OpenXcom definitions.
 const (
 	BT_NONE = iota
@@ -516,6 +522,21 @@ type InterceptorWeapon struct {
 	RearmCost  int
 }
 
+var interceptorWeaponKeys = map[string]string{
+	"avalanche": "WPN_INTERCEPTOR_AVALANCHE",
+	"stingray":  "WPN_INTERCEPTOR_STINGRAY",
+	"cannon":    "WPN_INTERCEPTOR_CANNON",
+}
+
+func (w InterceptorWeapon) DisplayName(key string) string {
+	if langKey, ok := interceptorWeaponKeys[key]; ok {
+		if s := language.String(langKey); s != langKey {
+			return s
+		}
+	}
+	return w.Name
+}
+
 var InterceptorWeapons = map[string]InterceptorWeapon{
 	"avalanche": {
 		Name:       "Avalanche Launchers",
@@ -579,6 +600,64 @@ type InterceptorState struct {
 	Status    string // "Available", "Active", "Rearming", "Damaged"
 }
 
+
+var armorNameKeys = map[string]string{
+	"none":        "ARMOR_NONE",
+	"personal":    "ARMOR_PERSONAL",
+	"light":       "ARMOR_LIGHT",
+	"medium":      "ARMOR_MEDIUM",
+	"heavy":       "ARMOR_HEAVY",
+	"power_suit":  "ARMOR_POWER",
+	"flight_suit": "ARMOR_FLIGHT",
+}
+
+var itemNameKeys = map[string]string{
+	"alloys":          "ITEM_ALLOYS",
+	"elerium":         "ITEM_ELERIUM",
+	"alien_corpse":    "ITEM_ALIEN_CORPSE",
+	"corpse_sect":     "ITEM_SECTOID_CORPSE",
+	"corpse_float":    "ITEM_FLOATER_CORPSE",
+	"corpse_muton":    "ITEM_MUTON_CORPSE",
+	"corpse_ether":    "ITEM_ETHEREAL_CORPSE",
+	"alien_grenade":   "ITEM_ALIEN_GRENADE",
+	"medikit":         "ITEM_MEDI_KIT",
+	"motion_scanner":  "ITEM_MOTION_SCANNER",
+	"proximity_mine":  "ITEM_PROXIMITY_MINE",
+	"psi_amplifier":   "ITEM_PSI_AMPLIFIER",
+	"ufo_nav":         "ITEM_UFO_NAV",
+	"ufo_power":       "ITEM_UFO_POWER",
+	"ufo_weapon":      "ITEM_UFO_WEAPON",
+	"ufo_armor":       "ITEM_UFO_ARMOR",
+}
+
+func (r RuleItem) DisplayName() string {
+	key := "WPN_" + strings.TrimPrefix(r.Type, "STR_")
+	if s := language.String(key); s != key {
+		return s
+	}
+	return r.Name
+}
+
+func (a Armor) DisplayNameByKey(key string) string {
+	if langKey, ok := armorNameKeys[key]; ok {
+		if s := language.String(langKey); s != langKey {
+			return s
+		}
+	}
+	return a.Name
+}
+
+func ItemDisplayName(key string) string {
+	if langKey, ok := itemNameKeys[key]; ok {
+		if s := language.String(langKey); s != langKey {
+			return s
+		}
+	}
+	if item, ok := Items[key]; ok {
+		return item.Name
+	}
+	return key
+}
 
 func init() {
 	for k, v := range RuleItems {

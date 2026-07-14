@@ -156,7 +156,7 @@ func (rs *ResearchScreen) Render(ctx *engine.ScreenCtx) {
 	ctx.DrawPanel(0, h-1, w, 1, "", engine.StyleGray)
 	help := language.String("HELP_RESEARCH")
 	if rs.ShowTree {
-		help = "\u2191/\u2193=Select  Enter=Start  [Esc]=Back  [T]ree=Hide"
+		help = language.String("HELP_RESEARCH_TREE")
 	}
 	ctx.DrawMarkupString(1, h-1, help, engine.StyleGray, engine.StyleHotkey)
 
@@ -182,7 +182,7 @@ func (rs *ResearchScreen) renderTree(ctx *engine.ScreenCtx, x, y, maxW, maxH int
 	ctx.DrawString(x, y, language.String("RESEARCH_PREREQS"), engine.StyleYellow)
 	y++
 	if len(t.Requires) == 0 {
-		ctx.DrawString(x+2, y, "(none)", engine.StyleGray)
+		ctx.DrawString(x+2, y, language.String("SIDE_NONE"), engine.StyleGray)
 		y++
 	} else {
 		for _, reqID := range t.Requires {
@@ -212,7 +212,7 @@ func (rs *ResearchScreen) renderTree(ctx *engine.ScreenCtx, x, y, maxW, maxH int
 
 	unlocks := rs.getUnlocks(t)
 	if len(unlocks) == 0 {
-		ctx.DrawString(x+2, y, "(none)", engine.StyleGray)
+		ctx.DrawString(x+2, y, language.String("SIDE_NONE"), engine.StyleGray)
 		y++
 	} else {
 		for _, u := range unlocks {
@@ -253,16 +253,16 @@ func (rs *ResearchScreen) renderTree(ctx *engine.ScreenCtx, x, y, maxW, maxH int
 func (rs *ResearchScreen) getUnlocks(t *data.ResearchTopic) []string {
 	var unlocks []string
 	for _, item := range t.UnlockItems {
-		unlocks = append(unlocks, "Item: "+item)
+		unlocks = append(unlocks, language.String("RESEARCH_UNLOCK_ITEM")+" "+item)
 	}
 	for _, weap := range t.UnlockWeap {
-		unlocks = append(unlocks, "Weapon: "+weap)
+		unlocks = append(unlocks, language.String("RESEARCH_UNLOCK_WEAPON")+" "+weap)
 	}
 	for _, arm := range t.UnlockArmor {
-		unlocks = append(unlocks, "Armor: "+arm)
+		unlocks = append(unlocks, language.String("RESEARCH_UNLOCK_ARMOR")+" "+arm)
 	}
 	if t.AlienLore {
-		unlocks = append(unlocks, "Alien Lore")
+		unlocks = append(unlocks, language.String("RESEARCH_UNLOCK_ALIEN_LORE"))
 	}
 	return unlocks
 }
