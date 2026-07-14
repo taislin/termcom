@@ -11,7 +11,16 @@ import (
 	"github.com/taislin/termcom/internal/soldier"
 )
 
-const CurrentVersion = 3
+const CurrentVersion = 4
+
+type AlienBaseSave struct {
+	CityID          int
+	Threat          int
+	TurnsAlive      int
+	LastMissionTick int
+	DefendingUFOID  int
+	Name            string
+}
 
 type SaveData struct {
 	Version        int
@@ -28,6 +37,7 @@ type SaveData struct {
 	UFOs           []*UFOSave
 	Missions       []*MissionSave
 	MissionsWon    int
+	AlienBases     []*AlienBaseSave
 }
 
 type BaseSave struct {
@@ -167,7 +177,17 @@ func migrateSave(data *SaveData) error {
 	if data.Version == 2 {
 		migrateV2toV3(data)
 	}
+	if data.Version == 3 {
+		migrateV3toV4(data)
+	}
 	return nil
+}
+
+func migrateV3toV4(data *SaveData) {
+	if data.AlienBases == nil {
+		data.AlienBases = make([]*AlienBaseSave, 0)
+	}
+	data.Version = 4
 }
 
 func migrateV2toV3(data *SaveData) {

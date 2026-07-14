@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
+	"sort"
 	"strings"
 	"time"
 
@@ -24,6 +25,16 @@ type AlienMission struct {
 	Type      string
 	NodeID    int     // target node ID on the world map
 	HoursLeft float64 // hours remaining to respond before the UFO departs
+}
+
+// AlienBase represents a persistent alien stronghold on the Geoscape.
+type AlienBase struct {
+	CityID            int
+	Threat            int    // 0-100, defense level
+	TurnsAlive        int    // ticks since establishment (scales defenses)
+	LastMissionTick   int    // last tick a mission was spawned from here
+	DefendingUFOID    int    // UFO ID of the defensive craft (-1 = none)
+	Name              string // e.g. "Alien Base #1"
 }
 
 // CrashSite represents a landed UFO that can be explored for loot/tech.
@@ -59,6 +70,7 @@ type Geoscape struct {
 	LastMonth           int
 	LastDay             int
 	Missions            []*AlienMission
+	AlienBases          []*AlienBase
 	AlienActivity       int
 	MissionsWon         int
 	Victory             bool
@@ -77,6 +89,7 @@ type Geoscape struct {
 	MissionSelectMode bool
 	MissionSelectIdx  int
 	MissionOdds       int
+	respondedAlienBase *AlienBase // non-nil when responding to an alien base assault
 
 	// Visual Effects
 	DogfightVisual *DogfightAnim
@@ -206,6 +219,24 @@ func (gs *Geoscape) processBattleResult() {
 		}
 		if gs.ActiveMissionType != "" {
 			gs.applyMissionRewards(defendingBase)
+		}
+		// Alien Base Assault victory: destroy the alien base
+		if gs.ActiveMissionType == language.String("MISSION_ALIEN_BASE") {
+			cityNode := -1
+			// Find which city this was at from the crash site or cursor
+			if gs.ActiveCrashSite != nil {
+				cityNode = gs.ActiveCrashSite.NodeID
+			}
+			if ab := gs.respondedAlienBase; ab != nil {
+				gs.destroyAlienBase(ab)
+				gs.respondedAlienBase = nil
+				gs.Message = fmt.Sprintf("Alien base at %s destroyed! Regional threat reduced.", gs.CityByID(ab.CityID).LangName())
+				gs.MessageTimer = time.Now()
+			} else if cityNode >= 0 {
+				if ab := gs.alienBaseAt(cityNode); ab != nil {
+					gs.destroyAlienBase(ab)
+				}
+			}
 		}
 
 		dd := &engine.DebriefData{
@@ -427,6 +458,18 @@ func (gs *Geoscape) Update() {
 		if gs.TickCounter%7200 == 0 { // ~2 hours at speed 1
 			gs.AlienActivity++
 		}
+
+		// Alien Base Establishment: attempt to build new bases periodically.
+		baseSpawnRate := 3600 - gameMonth*60
+		if baseSpawnRate < 1200 {
+			baseSpawnRate = 1200
+		}
+		if gs.TickCounter%baseSpawnRate == 0 {
+			gs.tryEstablishBase(gameMonth)
+		}
+
+		// Alien Base Ticking: missions, defenders, threat escalation.
+		gs.tickAlienBases(gameMonth)
 
 		// Mission Timer Update: decrease remaining time and trigger consequences if expired.
 		remaining := make([]*AlienMission, 0, len(gs.Missions))
@@ -952,24 +995,33 @@ func (gs *Geoscape) spawnMission() {
 		pick -= w.weight
 	}
 
-	// Build candidate list. If the player has multiple bases, aliens may
-	// directly assault a base (base defense scenario).
-	var candidates []*City
-	for _, c := range gs.Cities {
-		if c.ID == gs.SelectedBase().CityID {
-			// Only allow the home (selected) base as a target occasionally,
-			// so base defense missions can occur.
-			if len(gs.Bases) > 1 && rand.Intn(100) < 25 {
-				candidates = append(candidates, c)
+	var target *City
+
+	if chosen == language.String("MISSION_ALIEN_BASE") && len(gs.AlienBases) > 0 {
+		// Target an actual alien base, not a random city
+		ab := gs.AlienBases[rand.Intn(len(gs.AlienBases))]
+		target = gs.CityByID(ab.CityID)
+	} else {
+		// Build candidate list. If the player has multiple bases, aliens may
+		// directly assault a base (base defense scenario).
+		var candidates []*City
+		for _, c := range gs.Cities {
+			if c.ID == gs.SelectedBase().CityID {
+				if len(gs.Bases) > 1 && rand.Intn(100) < 25 {
+					candidates = append(candidates, c)
+				}
+				continue
 			}
-			continue
+			candidates = append(candidates, c)
 		}
-		candidates = append(candidates, c)
+		if len(candidates) == 0 {
+			return
+		}
+		target = candidates[rand.Intn(len(candidates))]
 	}
-	if len(candidates) == 0 {
+	if target == nil {
 		return
 	}
-	target := candidates[rand.Intn(len(candidates))]
 
 	turnsLeft := 24.0 // 24 game hours to respond
 	if chosen == language.String("MISSION_ALIEN_BASE") {
@@ -988,6 +1040,196 @@ func (gs *Geoscape) spawnMission() {
 	gs.MessageTimer = time.Now()
 	gs.Game.Bell()
 	audio.PlayAlert()
+}
+
+// tryEstablishBase attempts to create a new alien base at a suitable city.
+// Bases become more frequent and tougher as the campaign progresses.
+func (gs *Geoscape) tryEstablishBase(gameMonth int) {
+	maxBases := 1 + gameMonth/2
+	if maxBases > 10 {
+		maxBases = 10
+	}
+	if len(gs.AlienBases) >= maxBases {
+		return
+	}
+	// Find cities without an existing alien base
+	var candidates []*City
+	for _, c := range gs.Cities {
+		if gs.hasAlienBaseAt(c.ID) {
+			continue
+		}
+		candidates = append(candidates, c)
+	}
+	if len(candidates) == 0 {
+		return
+	}
+	// Prefer higher-threat cities
+	sort.Slice(candidates, func(i, j int) bool {
+		return candidates[i].Threat > candidates[j].Threat
+	})
+	maxIdx := len(candidates) / 3
+	if maxIdx < 1 {
+		maxIdx = 1
+	}
+	target := candidates[rand.Intn(maxIdx)]
+	baseThreat := 20 + gameMonth*5
+	if baseThreat > 80 {
+		baseThreat = 80
+	}
+	ab := &AlienBase{
+		CityID:          target.ID,
+		Threat:          baseThreat,
+		TurnsAlive:      0,
+		LastMissionTick: gs.TickCounter,
+		DefendingUFOID:  -1,
+		Name:            fmt.Sprintf("Alien Base #%d", len(gs.AlienBases)+1),
+	}
+	gs.AlienBases = append(gs.AlienBases, ab)
+	target.Threat += 15
+	if target.Threat > 100 {
+		target.Threat = 100
+	}
+	gs.Message = fmt.Sprintf("ALERT: %s established! Threat rising in %s.", ab.Name, target.LangName())
+	gs.MessageTimer = time.Now()
+	audio.PlayAlert()
+
+	// Spawn a defending UFO for the new base
+	gs.spawnBaseDefender(ab)
+}
+
+// tickAlienBases processes per-tick alien base actions: mission spawning and defender UFOs.
+func (gs *Geoscape) tickAlienBases(gameMonth int) {
+	for _, ab := range gs.AlienBases {
+		if ab == nil {
+			continue
+		}
+		ab.TurnsAlive++
+
+		// Periodically escalate base threat
+		if ab.TurnsAlive%2400 == 0 && ab.Threat < 100 {
+			ab.Threat += 5
+		}
+
+		// Spawn missions from this base
+		missionInterval := 1800 - gameMonth*30
+		if missionInterval < 600 {
+			missionInterval = 600
+		}
+		if gs.TickCounter-ab.LastMissionTick >= missionInterval {
+			gs.spawnMissionFromBase(ab)
+			ab.LastMissionTick = gs.TickCounter
+		}
+
+		// Maintain a defending UFO near the base
+		if ab.DefendingUFOID >= 0 {
+			ufo := gs.findUFOByID(ab.DefendingUFOID)
+			if ufo == nil || !ufo.Active {
+				ab.DefendingUFOID = -1
+			}
+		}
+		if ab.DefendingUFOID < 0 && gs.UFOs.Count() < 12 {
+			gs.spawnBaseDefender(ab)
+		}
+	}
+}
+
+// spawnBaseDefender creates a UFO that patrols near the alien base.
+func (gs *Geoscape) spawnBaseDefender(ab *AlienBase) {
+	city := gs.CityByID(ab.CityID)
+	if city == nil {
+		return
+	}
+	diff := gs.Game.Difficulty
+	if diff < 0 {
+		diff = 0
+	}
+	ufo := SpawnUFOAtCity(city, gs.Cities, diff)
+	if ufo == nil {
+		return
+	}
+	ufo.TurnsLeft = 9999 // indefinite patrol
+	gs.UFOs = append(gs.UFOs, ufo)
+	ab.DefendingUFOID = ufo.ID
+}
+
+// spawnMissionFromBase creates a mission originating from this alien base.
+func (gs *Geoscape) spawnMissionFromBase(ab *AlienBase) {
+	missionTypes := []string{
+		language.String("MISSION_SUPPLY"),
+		language.String("MISSION_TERROR"),
+		language.String("MISSION_ABDUCTION"),
+		language.String("MISSION_RESEARCH"),
+	}
+	chosen := missionTypes[rand.Intn(len(missionTypes))]
+	// Target a different city from the base city (or a random one)
+	var candidates []*City
+	for _, c := range gs.Cities {
+		if c.ID != ab.CityID {
+			candidates = append(candidates, c)
+		}
+	}
+	if len(candidates) == 0 {
+		return
+	}
+	target := candidates[rand.Intn(len(candidates))]
+	mission := &AlienMission{
+		Type:      chosen,
+		NodeID:    target.ID,
+		HoursLeft: 24.0,
+	}
+	gs.Missions = append(gs.Missions, mission)
+	target.MissionHere = true
+	gs.Message = fmt.Sprintf("%s launching %s from %s to %s.",
+		ab.Name, chosen, gs.CityByID(ab.CityID).LangName(), target.LangName())
+	gs.MessageTimer = time.Now()
+}
+
+// hasAlienBaseAt checks if an alien base exists at the given city node.
+func (gs *Geoscape) hasAlienBaseAt(cityID int) bool {
+	for _, ab := range gs.AlienBases {
+		if ab.CityID == cityID {
+			return true
+		}
+	}
+	return false
+}
+
+// alienBaseAt returns the alien base at a city, or nil.
+func (gs *Geoscape) alienBaseAt(cityID int) *AlienBase {
+	for _, ab := range gs.AlienBases {
+		if ab.CityID == cityID {
+			return ab
+		}
+	}
+	return nil
+}
+
+// destroyAlienBase removes an alien base and reduces regional threat.
+func (gs *Geoscape) destroyAlienBase(ab *AlienBase) {
+	city := gs.CityByID(ab.CityID)
+	if city != nil {
+		city.Threat -= 20
+		if city.Threat < 0 {
+			city.Threat = 0
+		}
+	}
+	// Find and remove from slice
+	for i, b := range gs.AlienBases {
+		if b == ab {
+			gs.AlienBases = append(gs.AlienBases[:i], gs.AlienBases[i+1:]...)
+			break
+		}
+	}
+}
+
+// findUFOByID returns a UFO with the given ID, or nil.
+func (gs *Geoscape) findUFOByID(id int) *UFO {
+	for _, u := range gs.UFOs {
+		if u.ID == id {
+			return u
+		}
+	}
+	return nil
 }
 
 func (gs *Geoscape) triggerCydonia() {
@@ -1070,6 +1312,7 @@ func (gs *Geoscape) RespondToMission(idx int) {
 		ufoName = language.String("MISSION_TYPE_SUPPLY")
 	case language.String("MISSION_ALIEN_BASE"):
 		ufoName = language.String("MISSION_TYPE_BASE")
+		gs.respondedAlienBase = gs.alienBaseAt(mission.NodeID)
 	case language.String("MISSION_ABDUCTION"):
 		ufoName = language.String("MISSION_TYPE_ABDUCTION")
 	case language.String("MISSION_RESEARCH"):
@@ -1414,6 +1657,17 @@ func (gs *Geoscape) buildSaveData() *save.SaveData {
 	for _, b := range gs.Bases {
 		baseSaves = append(baseSaves, save.FromBase(b))
 	}
+	alienBaseSaves := make([]*save.AlienBaseSave, 0)
+	for _, ab := range gs.AlienBases {
+		alienBaseSaves = append(alienBaseSaves, &save.AlienBaseSave{
+			CityID:          ab.CityID,
+			Threat:          ab.Threat,
+			TurnsAlive:      ab.TurnsAlive,
+			LastMissionTick: ab.LastMissionTick,
+			DefendingUFOID:  ab.DefendingUFOID,
+			Name:            ab.Name,
+		})
+	}
 	return &save.SaveData{
 		GameTime:       gs.Game.GameTime,
 		Funds:          gs.Game.Funds,
@@ -1427,6 +1681,7 @@ func (gs *Geoscape) buildSaveData() *save.SaveData {
 		UFOs:           ufoSaves,
 		Missions:       missionSaves,
 		MissionsWon:    gs.MissionsWon,
+		AlienBases:     alienBaseSaves,
 	}
 }
 
@@ -1533,6 +1788,18 @@ func (gs *Geoscape) loadFromSaveData(sd *save.SaveData) {
 		if m.NodeID == 0 {
 			gs.CydoniaTriggered = true
 		}
+	}
+	// Restore alien bases
+	gs.AlienBases = nil
+	for _, abs := range sd.AlienBases {
+		gs.AlienBases = append(gs.AlienBases, &AlienBase{
+			CityID:          abs.CityID,
+			Threat:          abs.Threat,
+			TurnsAlive:      abs.TurnsAlive,
+			LastMissionTick: abs.LastMissionTick,
+			DefendingUFOID:  abs.DefendingUFOID,
+			Name:            abs.Name,
+		})
 	}
 	gs.Message = language.String("MSG_GAME_LOADED")
 	gs.MessageTimer = time.Now()
@@ -2227,6 +2494,9 @@ func (gs *Geoscape) renderMinimap(ctx *engine.ScreenCtx, x, y, w, h int) {
 func (gs *Geoscape) cityStyle(c *City) (rune, tcell.Style) {
 	if gs.HasBaseAt(c.ID) != nil {
 		return '\u25C6', engine.StyleCyanBold
+	}
+	if gs.hasAlienBaseAt(c.ID) {
+		return '\u25B2', engine.StyleRed // ▲ = alien base
 	}
 	if c.Threat > 50 {
 		return '\u25CF', engine.StyleRed

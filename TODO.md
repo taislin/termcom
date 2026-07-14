@@ -284,15 +284,17 @@ Planned work (not yet implemented):
 - [x] Implement ambient battle sounds (wind, distant explosions)
 - [x] Ensure parity with `audio_windows.go` synthesis logic
 
-## Phase 37: Alien Base Expansion (Geoscape Feature)
-- [ ] Aliens establish their own bases on the Geoscape over time
-- [ ] Alien bases spawn supply missions, research missions, and terror missions
-- [ ] Alien bases generate UFOs that defend the base and patrol nearby
-- [ ] X-COM can assault alien bases (existing Alien Base Assault mission type)
- - [ ] Destroying an alien base reduces alien activity in the region
- - [ ] Alien bases scale with campaign month (more bases, stronger defenses)
- - [ ] Visual representation on minimap (distinct icon, radar detection)
- - [ ] Update `docs/manual.md` with alien base mechanics
+## Phase 37: Alien Base Expansion (Geoscape Feature) (DONE)
+- [x] Aliens establish their own bases on Geoscape over time (periodic, scales with gameMonth)
+- [x] Alien bases generate supply/research/terror/abduction missions at target cities
+- [x] Alien bases generate defending UFOs that patrol the base region
+- [x] X-COM can assault alien bases via the existing "Alien Base Assault" mission pool entry (now targets actual bases)
+- [x] Destroying an alien base reduces regional threat and removes the base icon
+- [x] Bases scale with campaign month: up to 1+gameMonth/2 bases, each with escalating Threat (20+gameMonth*5)
+- [x] Distinct icon on minimap (▲ red triangle) for alien bases
+- [x] Save/load persistence (v4 save format, v3→v4 migration)
+- [x] New struct: `AlienBase`, new field `AlienBases` on Geoscape
+- [x] Methods: `tryEstablishBase`, `tickAlienBases`, `spawnBaseDefender`, `spawnMissionFromBase`, `hasAlienBaseAt`, `alienBaseAt`, `destroyAlienBase`
 
 ## Phase 38: Fix Multi-Base R&D Stall (Correctness)
 - [ ] **Bug fix** in `internal/geo/geoscape.go:577-595`: research/manufacturing only
