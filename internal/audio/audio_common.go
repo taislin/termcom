@@ -23,14 +23,41 @@ func PlayWeaponFire(weapon string) {
 	}
 	switch weapon {
 	case "laser_pistol", "laser_rifle":
-		PlayLaserFire()
+		play(SoundLaserFire)
 	case "plasma_pistol", "plasma_rifle", "heavy_plasma", "alien_grenade":
-		PlayPlasmaFire()
+		play(SoundPlasmaFire)
 	case "rocket":
-		PlayExplosion()
+		play(SoundExplosion)
 	case "chryssalid_claw", "reaper_claw", "stun_rod":
-		PlayMeleeFire()
+		play(SoundMeleeFire)
 	default:
-		PlayShoot()
+		play(SoundShoot)
 	}
 }
+
+func PlayClick()               { play(SoundClick) }
+func PlaySelect()              { play(SoundSelect) }
+func PlayMove()                { play(SoundMove) }
+func PlayMenuNav()             { play(SoundMenuNav) }
+func PlayChime()               { play(SoundChime) }
+func PlayReload()              { play(SoundReload) }
+func PlayShoot()               { play(SoundShoot) }
+func PlayBallisticFire()       { play(SoundBallisticFire) }
+func PlayLaserFire()           { play(SoundLaserFire) }
+func PlayPlasmaFire()          { play(SoundPlasmaFire) }
+func PlayMeleeFire()           { play(SoundMeleeFire) }
+func PlayHit()                 { play(SoundHit) }
+func PlayMiss()                { play(SoundMiss) }
+func PlayExplosion()           { play(SoundExplosion) }
+func PlayGrenade()             { play(SoundGrenade) }
+func PlayDistantExplosion()    { play(SoundDistantExplosion) }
+func PlayAlert()               { play(SoundAlert) }
+func PlayAlienTurn()           { play(SoundAlienTurn) }
+func PlayVictory()             { play(SoundVictory) }
+func PlayDefeat()              { play(SoundDefeat) }
+func PlayMedikit()             { play(SoundMedikit) }
+func PlayResearchComplete()    { play(SoundResearchComplete) }
+func PlayManufactureComplete() { play(SoundManufactureComplete) }
+func PlayUFODetected()         { play(SoundUFODetected) }
+func PlayMissionWarning()      { play(SoundMissionWarning) }
+func PlayWind()                { play(SoundWind) }

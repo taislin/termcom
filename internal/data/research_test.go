@@ -172,6 +172,33 @@ func TestUnlockFieldsPopulated(t *testing.T) {
 	}
 }
 
+func TestTechTreeNoDeadEnds(t *testing.T) {
+	const seeds = 200
+	for s := 0; s < seeds; s++ {
+		species, _ := GenerateSpecies(int64(s))
+		tree := GenerateTechTree(int64(s), species)
+		if err := checkTechTreeValidity(tree); err != nil {
+			t.Fatalf("seed %d: invalid tech tree: %v", s, err)
+		}
+	}
+}
+
+func TestTechTreeHasRoots(t *testing.T) {
+	initTree()
+	rootCount := 0
+	for _, topic := range ResearchTree {
+		if len(topic.Requires) == 0 {
+			rootCount++
+			if topic.Tier > 1 {
+				t.Errorf("root topic %s should be Tier 1, got Tier %d", topic.ID, topic.Tier)
+			}
+		}
+	}
+	if rootCount == 0 {
+		t.Fatal("tech tree has no root topics (everything requires something)")
+	}
+}
+
 func TestTierReachability(t *testing.T) {
 	initTree()
 	byID := make(map[string]*ResearchTopic)

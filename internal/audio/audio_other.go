@@ -147,252 +147,166 @@ func freqSweep(startFreq, endFreq float64, t, dur float64) float64 {
 	return startFreq + (endFreq-startFreq)*progress
 }
 
-func Init() { ensureOto() }
-func Close() {}
+type pcmBackend struct{}
 
-// ── Short UI sounds ──────────────────────────────────
+var _ Backend = (*pcmBackend)(nil)
 
-func PlayClick() {
-	playPCM(generateTone(midiToFreq(70), 50*time.Millisecond, sine, 0.3))
+func init() { RegisterBackend(&pcmBackend{}) }
+
+func (b *pcmBackend) Init() { ensureOto() }
+func (b *pcmBackend) Close() {}
+
+func (b *pcmBackend) Play(s Sound) {
+	switch s {
+	case SoundClick:
+		playPCM(generateTone(midiToFreq(70), 50*time.Millisecond, sine, 0.3))
+	case SoundSelect:
+		playPCM(generateTone(midiToFreq(65), 30*time.Millisecond, sine, 0.25))
+	case SoundMove:
+		playPCM(generateTone(midiToFreq(60), 20*time.Millisecond, sine, 0.15))
+	case SoundMenuNav:
+		playPCM(generateTone(midiToFreq(72), 20*time.Millisecond, sine, 0.15))
+	case SoundChime:
+		playPCM(generateTone(midiToFreq(72), 200*time.Millisecond, sine, 0.3))
+	case SoundReload:
+		s1 := generateTone(midiToFreq(55), 30*time.Millisecond, sine, 0.25)
+		s2 := generateTone(midiToFreq(60), 30*time.Millisecond, sine, 0.25)
+		pad := make([]float32, samplesFor(0.01))
+		s1 = append(s1, pad...)
+		s1 = append(s1, s2...)
+		playPCM(s1)
+	case SoundShoot:
+		b.noiseBurst(0.1, 0.4, 250)
+	case SoundBallisticFire:
+		b.noiseBurst(0.1, 0.4, 250)
+	case SoundLaserFire:
+		samples := samplesFor(0.1)
+		out := make([]float32, samples)
+		for i := range out {
+			t := float64(i) / float64(sampleRate)
+			freq := freqSweep(2000, 800, t, 0.1)
+			vol := envDecay(t, 0.1) * 0.3
+			out[i] = float32(sine(t*freq*2*math.Pi) * vol)
+		}
+		playPCM(out)
+	case SoundPlasmaFire:
+		samples := samplesFor(0.14)
+		out := make([]float32, samples)
+		for i := range out {
+			t := float64(i) / float64(sampleRate)
+			freq := freqSweep(150, 60, t, 0.14)
+			vol := envDecay(t, 0.14) * 0.4
+			out[i] = float32((noise()*0.5 + square(t*freq*2*math.Pi)*0.5) * vol)
+		}
+		playPCM(out)
+	case SoundMeleeFire:
+		samples := samplesFor(0.09)
+		out := make([]float32, samples)
+		for i := range out {
+			t := float64(i) / float64(sampleRate)
+			vol := envDecay(t, 0.09) * 0.35
+			out[i] = float32((noise()*0.4 + saw(t*200*2*math.Pi)*0.6) * vol)
+		}
+		playPCM(out)
+	case SoundHit:
+		s1 := generateTone(midiToFreq(50), 50*time.Millisecond, square, 0.3)
+		pad := make([]float32, samplesFor(0.01))
+		s1 = append(s1, pad...)
+		s2 := generateTone(midiToFreq(55), 50*time.Millisecond, square, 0.3)
+		s1 = append(s1, s2...)
+		playPCM(s1)
+	case SoundMiss:
+		b.noiseBurst(0.08, 0.2, 0)
+	case SoundExplosion:
+		b.noiseBurst(0.35, 0.5, 40)
+	case SoundGrenade:
+		samples := samplesFor(0.35)
+		out := make([]float32, samples)
+		for i := range out {
+			t := float64(i) / float64(sampleRate)
+			freq := freqSweep(120, 30, t, 0.35)
+			vol := envDecay(t, 0.35) * 0.5
+			out[i] = float32((noise()*0.6 + square(t*freq*2*math.Pi)*0.4) * vol)
+		}
+		playPCM(out)
+	case SoundDistantExplosion:
+		samples := samplesFor(0.5)
+		out := make([]float32, samples)
+		for i := range out {
+			t := float64(i) / float64(sampleRate)
+			vol := envDecay(t, 0.5) * 0.2
+			out[i] = float32((noise()*0.8 + sine(t*30*2*math.Pi)*0.2) * vol)
+		}
+		playPCM(out)
+	case SoundAlert:
+		b.sequence([]byte{72, 60, 72, 60}, 250*time.Millisecond, sine, 0.3)
+	case SoundAlienTurn:
+		s1 := generateTone(midiToFreq(45), 100*time.Millisecond, sine, 0.3)
+		pad := make([]float32, samplesFor(0.02))
+		s1 = append(s1, pad...)
+		s2 := generateTone(midiToFreq(40), 100*time.Millisecond, sine, 0.3)
+		s1 = append(s1, s2...)
+		playPCM(s1)
+	case SoundVictory:
+		b.sequence([]byte{60, 64, 67, 72}, 200*time.Millisecond, sine, 0.3)
+	case SoundDefeat:
+		b.sequence([]byte{60, 55, 50, 45}, 250*time.Millisecond, sine, 0.3)
+	case SoundMedikit:
+		s1 := generateTone(midiToFreq(67), 100*time.Millisecond, sine, 0.3)
+		pad := make([]float32, samplesFor(0.02))
+		s1 = append(s1, pad...)
+		s2 := generateTone(midiToFreq(72), 100*time.Millisecond, sine, 0.3)
+		s1 = append(s1, s2...)
+		playPCM(s1)
+	case SoundResearchComplete:
+		b.sequence([]byte{60, 64, 67, 72, 76}, 150*time.Millisecond, sine, 0.25)
+	case SoundManufactureComplete:
+		s1 := generateTone(midiToFreq(69), 80*time.Millisecond, sine, 0.3)
+		pad := make([]float32, samplesFor(0.02))
+		s1 = append(s1, pad...)
+		s2 := generateTone(midiToFreq(76), 120*time.Millisecond, sine, 0.3)
+		s1 = append(s1, s2...)
+		playPCM(s1)
+	case SoundUFODetected:
+		b.sequence([]byte{72, 69, 72, 69}, 200*time.Millisecond, sine, 0.35)
+	case SoundMissionWarning:
+		b.sequence([]byte{74, 72, 74, 72}, 150*time.Millisecond, square, 0.3)
+	case SoundWind:
+		samples := samplesFor(0.6)
+		out := make([]float32, samples)
+		for i := range out {
+			t := float64(i) / float64(sampleRate)
+			vol := 0.08 * (1.0 - t/0.6)
+			out[i] = float32(noise() * vol)
+		}
+		playPCM(out)
+	}
 }
 
-func PlaySelect() {
-	playPCM(generateTone(midiToFreq(65), 30*time.Millisecond, sine, 0.25))
-}
-
-func PlayMove() {
-	playPCM(generateTone(midiToFreq(60), 20*time.Millisecond, sine, 0.15))
-}
-
-func PlayMenuNav() {
-	playPCM(generateTone(midiToFreq(72), 20*time.Millisecond, sine, 0.15))
-}
-
-func PlayChime() {
-	playPCM(generateTone(midiToFreq(72), 200*time.Millisecond, sine, 0.3))
-}
-
-func PlayReload() {
-	s1 := generateTone(midiToFreq(55), 30*time.Millisecond, sine, 0.25)
-	s2 := generateTone(midiToFreq(60), 30*time.Millisecond, sine, 0.25)
-	pad := make([]float32, samplesFor(0.01))
-	s1 = append(s1, pad...)
-	s1 = append(s1, s2...)
-	playPCM(s1)
-}
-
-// ── Weapon fire ──────────────────────────────────────
-
-func PlayShoot() {
-	samples := samplesFor(0.1)
+// noiseBurst synthesizes a short percussive noise hit with optional low tone.
+func (b *pcmBackend) noiseBurst(dur float64, vol, lowHz float64) {
+	samples := samplesFor(dur)
 	out := make([]float32, samples)
 	for i := range out {
 		t := float64(i) / float64(sampleRate)
-		vol := envDecay(t, 0.1) * 0.4
-		out[i] = float32((noise()*0.6 + square(t*250*2*math.Pi)*0.4) * vol)
+		v := envDecay(t, dur) * vol
+		n := noise() * 0.7
+		if lowHz > 0 {
+			n += square(t*lowHz*2*math.Pi) * 0.3
+		}
+		out[i] = float32(n * v)
 	}
 	playPCM(out)
 }
 
-func PlayBallisticFire() {
-	PlayShoot()
-}
-
-func PlayLaserFire() {
-	samples := samplesFor(0.1)
-	out := make([]float32, samples)
-	for i := range out {
-		t := float64(i) / float64(sampleRate)
-		freq := freqSweep(2000, 800, t, 0.1)
-		vol := envDecay(t, 0.1) * 0.3
-		out[i] = float32(sine(t*freq*2*math.Pi) * vol)
-	}
-	playPCM(out)
-}
-
-func PlayPlasmaFire() {
-	samples := samplesFor(0.14)
-	out := make([]float32, samples)
-	for i := range out {
-		t := float64(i) / float64(sampleRate)
-		freq := freqSweep(150, 60, t, 0.14)
-		vol := envDecay(t, 0.14) * 0.4
-		out[i] = float32((noise()*0.5 + square(t*freq*2*math.Pi)*0.5) * vol)
-	}
-	playPCM(out)
-}
-
-func PlayMeleeFire() {
-	samples := samplesFor(0.09)
-	out := make([]float32, samples)
-	for i := range out {
-		t := float64(i) / float64(sampleRate)
-		vol := envDecay(t, 0.09) * 0.35
-		out[i] = float32((noise()*0.4 + saw(t*200*2*math.Pi)*0.6) * vol)
-	}
-	playPCM(out)
-}
-
-// ── Impact / miss ────────────────────────────────────
-
-func PlayHit() {
-	s1 := generateTone(midiToFreq(50), 50*time.Millisecond, square, 0.3)
-	pad := make([]float32, samplesFor(0.01))
-	s1 = append(s1, pad...)
-	s2 := generateTone(midiToFreq(55), 50*time.Millisecond, square, 0.3)
-	s1 = append(s1, s2...)
-	playPCM(s1)
-}
-
-func PlayMiss() {
-	samples := samplesFor(0.08)
-	out := make([]float32, samples)
-	for i := range out {
-		t := float64(i) / float64(sampleRate)
-		vol := envDecay(t, 0.08) * 0.2
-		out[i] = float32(noise() * vol)
-	}
-	playPCM(out)
-}
-
-// ── Explosions ───────────────────────────────────────
-
-func PlayExplosion() {
-	samples := samplesFor(0.35)
-	out := make([]float32, samples)
-	for i := range out {
-		t := float64(i) / float64(sampleRate)
-		vol := envDecay(t, 0.35) * 0.5
-		out[i] = float32((noise()*0.7 + square(t*40*2*math.Pi)*0.3) * vol)
-	}
-	playPCM(out)
-}
-
-func PlayGrenade() {
-	samples := samplesFor(0.35)
-	out := make([]float32, samples)
-	for i := range out {
-		t := float64(i) / float64(sampleRate)
-		freq := freqSweep(120, 30, t, 0.35)
-		vol := envDecay(t, 0.35) * 0.5
-		out[i] = float32((noise()*0.6 + square(t*freq*2*math.Pi)*0.4) * vol)
-	}
-	playPCM(out)
-}
-
-func PlayDistantExplosion() {
-	samples := samplesFor(0.5)
-	out := make([]float32, samples)
-	for i := range out {
-		t := float64(i) / float64(sampleRate)
-		vol := envDecay(t, 0.5) * 0.2
-		out[i] = float32((noise()*0.8 + sine(t*30*2*math.Pi)*0.2) * vol)
-	}
-	playPCM(out)
-}
-
-// ── Multi-note sequences ─────────────────────────────
-
-func PlayAlert() {
-	notes := []byte{72, 60, 72, 60}
-	for i, note := range notes {
-		go func(n byte, delay int) {
-			time.Sleep(time.Duration(delay) * 250 * time.Millisecond)
-			playPCM(generateTone(midiToFreq(n), 250*time.Millisecond, sine, 0.3))
-		}(note, i)
-	}
-}
-
-func PlayAlienTurn() {
-	s1 := generateTone(midiToFreq(45), 100*time.Millisecond, sine, 0.3)
-	pad := make([]float32, samplesFor(0.02))
-	s1 = append(s1, pad...)
-	s2 := generateTone(midiToFreq(40), 100*time.Millisecond, sine, 0.3)
-	s1 = append(s1, s2...)
-	playPCM(s1)
-}
-
-func PlayVictory() {
-	notes := []byte{60, 64, 67, 72}
+// sequence plays a series of tones spaced by the given gap.
+func (b *pcmBackend) sequence(notes []byte, gap time.Duration, wave func(float64) float64, vol float64) {
 	var combined []float32
-	pad := make([]float32, samplesFor(0.05))
+	pad := make([]float32, samplesFor(gap.Seconds()*0.2))
 	for _, n := range notes {
-		tone := generateTone(midiToFreq(n), 200*time.Millisecond, sine, 0.3)
+		tone := generateTone(midiToFreq(n), gap, wave, vol)
 		combined = append(combined, tone...)
 		combined = append(combined, pad...)
 	}
 	playPCM(combined)
-}
-
-func PlayDefeat() {
-	notes := []byte{60, 55, 50, 45}
-	var combined []float32
-	pad := make([]float32, samplesFor(0.05))
-	for _, n := range notes {
-		tone := generateTone(midiToFreq(n), 250*time.Millisecond, sine, 0.3)
-		combined = append(combined, tone...)
-		combined = append(combined, pad...)
-	}
-	playPCM(combined)
-}
-
-func PlayMedikit() {
-	s1 := generateTone(midiToFreq(67), 100*time.Millisecond, sine, 0.3)
-	pad := make([]float32, samplesFor(0.02))
-	s1 = append(s1, pad...)
-	s2 := generateTone(midiToFreq(72), 100*time.Millisecond, sine, 0.3)
-	s1 = append(s1, s2...)
-	playPCM(s1)
-}
-
-func PlayResearchComplete() {
-	notes := []byte{60, 64, 67, 72, 76}
-	var combined []float32
-	pad := make([]float32, samplesFor(0.02))
-	for _, n := range notes {
-		tone := generateTone(midiToFreq(n), 150*time.Millisecond, sine, 0.25)
-		combined = append(combined, tone...)
-		combined = append(combined, pad...)
-	}
-	playPCM(combined)
-}
-
-func PlayManufactureComplete() {
-	s1 := generateTone(midiToFreq(69), 80*time.Millisecond, sine, 0.3)
-	pad := make([]float32, samplesFor(0.02))
-	s1 = append(s1, pad...)
-	s2 := generateTone(midiToFreq(76), 120*time.Millisecond, sine, 0.3)
-	s1 = append(s1, s2...)
-	playPCM(s1)
-}
-
-func PlayUFODetected() {
-	notes := []byte{72, 69, 72, 69}
-	for i, note := range notes {
-		go func(n byte, delay int) {
-			time.Sleep(time.Duration(delay) * 200 * time.Millisecond)
-			playPCM(generateTone(midiToFreq(n), 200*time.Millisecond, sine, 0.35))
-		}(note, i)
-	}
-}
-
-func PlayMissionWarning() {
-	notes := []byte{74, 72, 74, 72}
-	for i, note := range notes {
-		go func(n byte, delay int) {
-			time.Sleep(time.Duration(delay) * 150 * time.Millisecond)
-			playPCM(generateTone(midiToFreq(n), 150*time.Millisecond, square, 0.3))
-		}(note, i)
-	}
-}
-
-func PlayWind() {
-	samples := samplesFor(0.6)
-	out := make([]float32, samples)
-	for i := range out {
-		t := float64(i) / float64(sampleRate)
-		vol := 0.08 * (1.0 - t/0.6)
-		out[i] = float32(noise() * vol)
-	}
-	playPCM(out)
 }

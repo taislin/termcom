@@ -190,42 +190,96 @@ func isWeaponTech(id string) bool {
 	return false
 }
 
-func validateDAG(topics []ResearchTopic) {
-	byID := make(map[string]*ResearchTopic)
-	for i := range topics {
-		byID[topics[i].ID] = &topics[i]
+// checkTechTreeValidity verifies the generated tech DAG has no dangling
+// edges, no cycles, strict tier ordering, and that every topic is reachable
+// from a root (a topic with no prerequisites). A "dead-end" tree is one in
+// which some topic can never be researched because its prerequisites form an
+// isolated or cyclic component.
+func checkTechTreeValidity(topics []ResearchTopic) error {
+	byID := make(map[string]ResearchTopic, len(topics))
+	for _, t := range topics {
+		byID[t.ID] = t
 	}
 
 	visited := make(map[string]bool)
 	inStack := make(map[string]bool)
 
-	var visit func(id string) bool
-	visit = func(id string) bool {
+	var visit func(id string) error
+	visit = func(id string) error {
 		if visited[id] {
-			return false
+			return nil
 		}
 		if inStack[id] {
-			return true
+			return fmt.Errorf("circular dependency involving %s", id)
+		}
+		t, ok := byID[id]
+		if !ok {
+			return fmt.Errorf("dangling prerequisite %q in tech tree", id)
 		}
 		inStack[id] = true
-		t := byID[id]
-		if t == nil {
-			panic(fmt.Sprintf("dangling prerequisite %q in tech tree", id))
-		}
 		for _, req := range t.Requires {
-			if visit(req) {
-				return true
+			if rt, ok := byID[req]; ok {
+				if rt.Tier >= t.Tier {
+					return fmt.Errorf("tier violation: %s (tier %d) requires %s (tier %d)",
+						t.ID, t.Tier, req, rt.Tier)
+				}
+			}
+			if err := visit(req); err != nil {
+				return err
 			}
 		}
 		inStack[id] = false
 		visited[id] = true
-		return false
+		return nil
 	}
 
 	for _, t := range topics {
-		if visit(t.ID) {
-			panic(fmt.Sprintf("circular dependency detected involving %s", t.ID))
+		if err := visit(t.ID); err != nil {
+			return err
 		}
+	}
+
+	reachable := make(map[string]bool)
+	for _, t := range topics {
+		if len(t.Requires) == 0 {
+			reachable[t.ID] = true
+		}
+	}
+	changed := true
+	for changed {
+		changed = false
+		for _, t := range topics {
+			if reachable[t.ID] {
+				continue
+			}
+			allMet := true
+			for _, r := range t.Requires {
+				if !reachable[r] {
+					allMet = false
+					break
+				}
+			}
+			if allMet {
+				reachable[t.ID] = true
+				changed = true
+			}
+		}
+	}
+
+	for _, t := range topics {
+		if !reachable[t.ID] {
+			return fmt.Errorf("dead-end topic %s: unreachable from any root", t.ID)
+		}
+	}
+
+	return nil
+}
+
+// validateDAG is a fail-fast runtime guard that panics if the generated tech
+// tree is not a valid, fully-reachable DAG.
+func validateDAG(topics []ResearchTopic) {
+	if err := checkTechTreeValidity(topics); err != nil {
+		panic(err)
 	}
 }
 
