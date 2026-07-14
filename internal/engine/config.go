@@ -10,7 +10,7 @@ import (
 	"github.com/taislin/termcom/internal/language"
 )
 
-const WebsiteURL = "https://termcom.example.com"
+const WebsiteURL = "https://taislin.github.io/termcom/"
 
 var GameVersion = "dev"
 
