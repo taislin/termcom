@@ -12,6 +12,7 @@ func init() {
 		"MENU_QUIT":          "Sair",
 		"MENU_OPTIONS":       "Op\u00e7\u00f5es",
 		"MENU_CUSTOM_BATTLE": "Batalha Personalizada",
+		"MENU_WEBSITE":       "Site",
 		"MENU_HELP":          "[\u2191]/[\u2193]=Selecionar  [Enter]=Confirmar  [Q]=Sair  [F5]=Guardar  [F9]=Carregar",
 
 		// ── Difficulty ─────────────────────────────────────
@@ -727,7 +728,7 @@ func init() {
 		"OPTIONS_RESOLUTION_SPEED": "Velocidade de Resolu\u00e7\u00e3o",
 		"OPTIONS_ON":               "LIG ",
 		"OPTIONS_OFF":              "DESL",
-		"OPTIONS_HELP":            "[\u2190]/[\u2192]=Ajustar  [\u2191]/[\u2193]=Selecionar  Enter=Alternar  [Esc]=Voltar",
+		"OPTIONS_HELP":            "[\u2190]/[\u2192]=Ajustar  [\u2191]/[\u2193]=Selecionar  [Enter]=Alternar  [Esc]=Voltar",
 
 		// ── Weather ───────────────────────────────────────
 		"BATTLE_MOD_ALIEN_AMBUSH":   "MODIFICADOR DE MISS\u00c3O: Emboscada Alien - aliens em vigil\u00e2ncia",
@@ -753,7 +754,7 @@ func init() {
 		"CUSTOM_DATE":                  "Data:    %s",
 		"CUSTOM_DESC":                  "Desc:",
 		"CUSTOM_FILE":                  "Ficheiro:    %s",
-		"CUSTOM_HELP":                  "[j]/[k]=Selecionar  Enter=Confirmar  [Esc]=Cancelar",
+		"CUSTOM_HELP":                  "[j]/[k]=Selecionar  [Enter]=Confirmar  [Esc]=Cancelar",
 		"CUSTOM_MISSION_SELECT":        "Selecionar Missão",
 		"CUSTOM_NO_BATTLES":            "Nenhuma batalha personalizada encontrada.",
 		"CUSTOM_PLACE_JSON":            "Coloque ficheiros .json na pasta maps/.",

@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"os"
 	"time"
 
 	"github.com/taislin/termcom/internal/audio"
@@ -29,6 +30,7 @@ const (
 	StateDebrief
 	StateQuit
 	StateTutorial
+	StateLanguageSelect
 )
 
 type Screen interface {
@@ -92,6 +94,8 @@ type Game struct {
 	OnContinue     func()
 	OnLoadGame     func()
 	OnCustomBattle func()
+
+	WebNotice string
 }
 
 func (g *Game) GameOver(won bool, stats string) {
@@ -107,9 +111,14 @@ func NewGame() (*Game, error) {
 	}
 	audio.Init()
 
+	initialState := StateMenu
+	if _, err := os.Stat(ConfigFile); os.IsNotExist(err) {
+		initialState = StateLanguageSelect
+	}
+
 	g := &Game{
 		screen:         scr,
-		state:          StateMenu,
+		state:          initialState,
 		running:        true,
 		GameTime:       time.Date(1999, time.March, 1, 0, 0, 0, 0, time.UTC),
 		TimeSpeed:      0,
@@ -136,9 +145,14 @@ func NewGameWeb(cols, rows int) (*Game, *nullScreen, error) {
 	}
 	audio.Init()
 
+	initialState := StateMenu
+	if _, err := os.Stat(ConfigFile); os.IsNotExist(err) {
+		initialState = StateLanguageSelect
+	}
+
 	g := &Game{
 		screen:         scr,
-		state:          StateMenu,
+		state:          initialState,
 		running:        true,
 		GameTime:       time.Date(1999, time.March, 1, 0, 0, 0, 0, time.UTC),
 		TimeSpeed:      0,
@@ -411,4 +425,9 @@ func (g *Game) Bell() {
 	if g.screen != nil && g.screen.screen != nil {
 		g.screen.screen.Beep()
 	}
+}
+
+func (g *Game) IsWeb() bool {
+	_, ok := g.screen.screen.(*nullScreen)
+	return ok
 }

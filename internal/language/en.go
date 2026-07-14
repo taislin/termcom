@@ -10,6 +10,7 @@ func init() {
 		"MENU_QUIT":          "Quit",
 		"MENU_OPTIONS":       "Options",
 		"MENU_CUSTOM_BATTLE": "Custom Battle",
+		"MENU_WEBSITE":       "Website",
 		"MENU_HELP":          "[\u2191]/[\u2193]=Select  [Enter]=Confirm  [Q]=Quit  [F5]=Save  [F9]=Load",
 
 		// ── Difficulty ─────────────────────────────────────
@@ -745,7 +746,7 @@ func init() {
 		"CUSTOM_DATE":           "Date:    %s",
 		"CUSTOM_DESC":           "Desc:",
 		"CUSTOM_FILE":           "File:    %s",
-		"CUSTOM_HELP":           "[j]/[k]=Select  Enter=Confirm  [Esc]=Cancel",
+		"CUSTOM_HELP":           "[j]/[k]=Select  [Enter]=Confirm  [Esc]=Cancel",
 		"CUSTOM_MISSION_SELECT": "Mission Select",
 		"CUSTOM_NO_BATTLES":     "No custom battles found.",
 		"CUSTOM_PLACE_JSON":     "Place .json files in the maps/ folder.",

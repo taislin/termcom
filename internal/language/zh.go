@@ -9,6 +9,7 @@ func init() {
 		"MENU_QUIT":          "\u9000\u51fa",
 		"MENU_OPTIONS":       "\u9009\u9879",
 		"MENU_CUSTOM_BATTLE": "\u81ea\u5b9a\u4e49\u6218\u6597",
+		"MENU_WEBSITE":       "\u7f51\u7ad9",
 		"MENU_HELP":          "[\u2191]/[\u2193]=\u9009\u62e9  [Enter]=\u786e\u8ba4  [Q]=\u9000\u51fa  [F5]=\u5b58\u6863  [F9]=\u8bfb\u53d6",
 
 		// ── \u96be\u5ea6 ─────────────────────────────────────
@@ -724,7 +725,7 @@ func init() {
 		"OPTIONS_RESOLUTION_SPEED": "\u5206\u8fa8\u7387\u901f\u5ea6",
 		"OPTIONS_ON":               "\u5f00 ",
 		"OPTIONS_OFF":              "\u5173",
-		"OPTIONS_HELP":            "[\u2190]/[\u2192]=\u8c03\u6574  [\u2191]/[\u2193]=\u9009\u62e9  Enter=\u5207\u6362  [Esc]=\u8fd4\u56de",
+		"OPTIONS_HELP":            "[\u2190]/[\u2192]=\u8c03\u6574  [\u2191]/[\u2193]=\u9009\u62e9  [Enter]=\u5207\u6362  [Esc]=\u8fd4\u56de",
 
 		"BATTLE_COVER_FMT":          " (\u25C8 %d%%)",
 		"BATTLE_LEVEL_FMT":          " [L%d]",
@@ -749,7 +750,7 @@ func init() {
 		"CUSTOM_DATE":                  "日期：    %s",
 		"CUSTOM_DESC":                  "描述：",
 		"CUSTOM_FILE":                  "文件：    %s",
-		"CUSTOM_HELP":                  "[j]/[k]=选择  Enter=确认  [Esc]=取消",
+		"CUSTOM_HELP":                  "[j]/[k]=选择  [Enter]=确认  [Esc]=取消",
 		"CUSTOM_MISSION_SELECT":        "任务选择",
 		"CUSTOM_NO_BATTLES":            "未找到自定义战斗。",
 		"CUSTOM_PLACE_JSON":            "将 .json 文件放入 maps/ 文件夹。",

@@ -12,6 +12,7 @@ func init() {
 		"MENU_QUIT":          "Quitter",
 		"MENU_OPTIONS":       "Options",
 		"MENU_CUSTOM_BATTLE": "Bataille Personnalisée",
+		"MENU_WEBSITE":       "Site Web",
 		"MENU_HELP":          "[\u2191]/[\u2193]=Sélectionner  [Entrée]=Confirmer  [Q]=Quitter  [F5]=Sauver  [F9]=Charger",
 
 		// ── Difficulty ─────────────────────────────────────
@@ -727,7 +728,7 @@ func init() {
 		"OPTIONS_RESOLUTION_SPEED": "Vitesse de Résolution",
 		"OPTIONS_ON":               "ACT ",
 		"OPTIONS_OFF":              "ÉTE",
-		"OPTIONS_HELP":            "[\u2190]/[\u2192]=R\u00e9gler  [\u2191]/[\u2193]=S\u00e9lectionner  Enter=Basculer  [Esc]=Retour",
+		"OPTIONS_HELP":            "[\u2190]/[\u2192]=R\u00e9gler  [\u2191]/[\u2193]=S\u00e9lectionner  [Enter]=Basculer  [Esc]=Retour",
 
 		"BATTLE_COVER_FMT":          " (\u25C8 %d%%)",
 		"BATTLE_LEVEL_FMT":          " [N%d]",
@@ -754,7 +755,7 @@ func init() {
 		"CUSTOM_DATE":                  "Date :    %s",
 		"CUSTOM_DESC":                  "Desc :",
 		"CUSTOM_FILE":                  "Fichier :    %s",
-		"CUSTOM_HELP":                  "[j]/[k]=Sélectionner  Entrée=Confirmer  [Esc]=Annuler",
+		"CUSTOM_HELP":                  "[j]/[k]=Sélectionner  [Entrée]=Confirmer  [Esc]=Annuler",
 		"CUSTOM_MISSION_SELECT":        "Sélection de Mission",
 		"CUSTOM_NO_BATTLES":            "Aucune bataille personnalisée trouvée.",
 		"CUSTOM_PLACE_JSON":            "Placez les fichiers .json dans le dossier maps/.",

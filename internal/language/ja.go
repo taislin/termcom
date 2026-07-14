@@ -12,6 +12,7 @@ func init() {
 		"MENU_QUIT":          "終了",
 		"MENU_OPTIONS":       "オプション",
 		"MENU_CUSTOM_BATTLE": "カスタムバトル",
+		"MENU_WEBSITE":       "ウェブサイト",
 		"MENU_HELP":          "[\u2191]/[\u2193]=選択  [Enter]=確定  [Q]=終了  [F5]=セーブ  [F9]=ロード",
 
 		// ── Difficulty ─────────────────────────────────────
@@ -725,7 +726,7 @@ func init() {
 		"OPTIONS_RESOLUTION_SPEED": "解像度速度",
 		"OPTIONS_ON":               "ON ",
 		"OPTIONS_OFF":              "OFF",
-		"OPTIONS_HELP":            "[\u2190]/[\u2192]=\u8abf\u6574  [\u2191]/[\u2193]=\u9078\u629e  Enter=\u5207\u308a\u66ff\u3048  [Esc]=\u623b\u308b",
+		"OPTIONS_HELP":            "[\u2190]/[\u2192]=\u8abf\u6574  [\u2191]/[\u2193]=\u9078\u629e  [Enter]=\u5207\u308a\u66ff\u3048  [Esc]=\u623b\u308b",
 		"CONFIRM_QUIT":             "終了してもよろしいですか？",
 		"CONFIRM_QUIT_HINT":        "[Y] = はい   [N] = いいえ",
 
@@ -746,7 +747,7 @@ func init() {
 		"CUSTOM_DATE":           "日付:  %s",
 		"CUSTOM_DESC":           "説明:",
 		"CUSTOM_FILE":           "ファイル:  %s",
-		"CUSTOM_HELP":           "[j]/[k]=選択  Enter=確定  [Esc]=キャンセル",
+		"CUSTOM_HELP":           "[j]/[k]=選択  [Enter]=確定  [Esc]=キャンセル",
 		"CUSTOM_MISSION_SELECT": "ミッション選択",
 		"CUSTOM_NO_BATTLES":     "カスタムバトルが見つかりません。",
 		"CUSTOM_PLACE_JSON":     "maps/ フォルダに .json ファイルを配置してください。",

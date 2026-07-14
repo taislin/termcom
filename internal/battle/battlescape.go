@@ -2578,8 +2578,12 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 		} else if u.Faction == 2 {
 			name = u.CivName
 		}
-		if len(name) > halfSide-1 {
-			name = name[:halfSide-1]
+		if engine.StringWidth(name) > halfSide-1 {
+			runes := []rune(name)
+			for len(runes) > 0 && engine.StringWidth(string(runes)) > halfSide-1 {
+				runes = runes[:len(runes)-1]
+			}
+			name = string(runes)
 		}
 		ctx.DrawString(sidebarX, sy, name, engine.StyleDefault.Bold(true))
 		sy++
@@ -2662,8 +2666,12 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 			sy++
 
 			name := bs.Selected.Soldier.Name
-			if len(name) > halfSide-1 {
-				name = name[:halfSide-1]
+			if engine.StringWidth(name) > halfSide-1 {
+				runes := []rune(name)
+				for len(runes) > 0 && engine.StringWidth(string(runes)) > halfSide-1 {
+					runes = runes[:len(runes)-1]
+				}
+				name = string(runes)
 			}
 			ctx.DrawString(sidebarX, sy, name, engine.StyleDefault.Bold(true))
 			sy++
@@ -2690,8 +2698,12 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 			sy++
 
 			weaponName := data.RuleItems[bs.Selected.Weapon].Name
-			if len(weaponName) > bs.SidebarW-4 {
-				weaponName = weaponName[:bs.SidebarW-4]
+			if engine.StringWidth(weaponName) > bs.SidebarW-4 {
+				runes := []rune(weaponName)
+				for len(runes) > 0 && engine.StringWidth(string(runes)) > bs.SidebarW-4 {
+					runes = runes[:len(runes)-1]
+				}
+				weaponName = string(runes)
 			}
 			ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_WEAPON"), weaponName), engine.StyleDefault)
 			sy++

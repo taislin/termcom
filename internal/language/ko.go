@@ -12,6 +12,7 @@ func init() {
 		"MENU_QUIT": "종료",
 		"MENU_OPTIONS": "설정",
 		"MENU_CUSTOM_BATTLE": "사용자 정의 전투",
+		"MENU_WEBSITE":       "웹사이트",
 		"MENU_HELP": "[\\u2191]/[\\u2193]=Select  [Enter]=Confirm  [Q]=Quit  [F5]=Save  [F9]=Load",
 
 		// ── Difficulty ─────────────────────────────────────
@@ -725,7 +726,7 @@ func init() {
 		"OPTIONS_RESOLUTION_SPEED": "해상도 속도",
 		"OPTIONS_ON": "켜짐",
 		"OPTIONS_OFF": "끄짐",
-		"OPTIONS_HELP":            "[\u2190]/[\u2192]=\uc870\uc815  [\u2191]/[\u2193]=\uc120\ud0dd  Enter=\uc804\ud658  [Esc]=\ub3cc\uc544\uac00\uae30",
+		"OPTIONS_HELP":            "[\u2190]/[\u2192]=\uc870\uc815  [\u2191]/[\u2193]=\uc120\ud0dd  [Enter]=\uc804\ud658  [Esc]=\ub3cc\uc544\uac00\uae30",
 		"CONFIRM_QUIT":             "종료하시겠습니까?",
 		"CONFIRM_QUIT_HINT":        "[Y] = 예   [N] = 아니오",
 
@@ -746,7 +747,7 @@ func init() {
 		"CUSTOM_DATE":                  "날짜:    %s",
 		"CUSTOM_DESC":                  "설명:",
 		"CUSTOM_FILE":                  "파일:    %s",
-		"CUSTOM_HELP":                  "[j]/[k]=선택  Enter=확인  [Esc]=취소",
+		"CUSTOM_HELP":                  "[j]/[k]=선택  [Enter]=확인  [Esc]=취소",
 		"CUSTOM_MISSION_SELECT":        "미션 선택",
 		"CUSTOM_NO_BATTLES":            "사용자 정의 전투를 찾을 수 없습니다.",
 		"CUSTOM_PLACE_JSON":            "maps/ 폴더에 .json 파일을 넣으세요.",

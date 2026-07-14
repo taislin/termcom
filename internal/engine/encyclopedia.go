@@ -134,7 +134,7 @@ func (es *EncyclopediaScreen) Render(ctx *ScreenCtx) {
 			style = StyleHighlight
 		}
 		ctx.DrawString(tx, tabY, tab, style)
-		tx += len(tab) + 3
+		tx += StringWidth(tab) + 3
 	}
 
 	listX := 1
@@ -165,8 +165,12 @@ func (es *EncyclopediaScreen) Render(ctx *ScreenCtx) {
 			style = StyleHighlight
 		}
 		name := e.Name
-		if len(name) > listW-2 {
-			name = name[:listW-2]
+		if StringWidth(name) > listW-2 {
+			runes := []rune(name)
+			for len(runes) > 0 && StringWidth(string(runes)) > listW-2 {
+				runes = runes[:len(runes)-1]
+			}
+			name = string(runes)
 		}
 		ctx.DrawString(listX, y, name, style)
 	}

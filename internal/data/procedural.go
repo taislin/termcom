@@ -21,6 +21,7 @@ type AlienSpecies struct {
 }
 
 // Syllable pools for generating exotic-sounding alien names.
+// Latin-based (used for en, es, fr, pt)
 var (
 	prefixSyll = []string{
 		"Vr", "Za", "Xo", "Kr", "Th", "Qu", "Sh", "Bl", "Dr", "Gh",
@@ -39,6 +40,87 @@ var (
 		"ix", "um", "ak", "oi", "esh", "urr", "oth", "agh", "unn", "izz",
 		"eon", "aux", "yne", "oph", "ule", "urg", "ash", "isk", "orn", "uum",
 		"exx", "ylt", "oph", "uun", "eir", "aq", "iim", "oxx", "uum", "aaz",
+	}
+)
+
+// Cyrillic syllable pools for Russian
+var (
+	ruPrefixSyll = []string{
+		"Бра", "Кро", "Хра", "Гро", "Вра", "Ска", "Тра", "Зра", "Дра", "Шра",
+		"Пра", "Фра", "Ква", "Кша", "Рта", "Жра", "Цра", "Чра", "Щра", "Хва",
+		"Гла", "Бло", "Вло", "Кла", "Пла", "Хла", "Сна", "Бна", "Кна", "Тна",
+	}
+	ruMidSyll = []string{
+		"ек", "ор", "ан", "ул", "ир", "аз", "ен", "он", "ар", "ал",
+		"ис", "ус", "окс", "ир", "ум", "ак", "ел", "ид", "ос", "ыл",
+		"ив", "ун", "аг", "ев", "ог", "из", "уб", "ам", "ол", "ед",
+		"ик", "ав", "од", "ут", "ер", "ат", "оп", "ем", "им", "ых",
+	}
+	ruEndSyll = []string{
+		"ид", "он", "ар", "екс", "ус", "иф", "акс", "ор", "ен", "ал",
+		"икс", "ум", "ок", "ой", "еш", "урр", "оф", "аг", "ун", "из",
+		"еон", "аус", "ин", "оф", "ул", "ург", "аш", "иск", "орн", "уум",
+		"екс", "илт", "оф", "уун", "ейр", "ак", "иим", "окс", "уум", "аз",
+	}
+)
+
+// Katakana syllable pools for Japanese.
+// Uses voiced consonants (Dakuten: Ga, Za, Da, Ba) for alien/threatening feel, per sci-fi convention.
+var (
+	jaPrefixSyll = []string{
+		"ガ", "ゾ", "ヴァ", "ギ", "ザ", "ゼ", "ド", "バ", "ベ", "ボ",
+		"グ", "ズ", "ヅ", "ヂ", "ヴィ", "ヴ", "ゴ", "ダ", "デ", "ブ",
+		"グラ", "ズラ", "ブラ", "ドラ", "グレ", "ズレ", "ブレ", "ドレ", "ガル", "ギル",
+	}
+	jaMidSyll = []string{
+		"ル", "ン", "ッ", "ー", "リ", "ラ", "ロ", "レ", "ル", "ン",
+		"ル", "ン", "ッ", "ー", "リ", "ラ", "ロ", "レ", "ル", "ン",
+		"ズ", "グ", "ザ", "ガ", "バ", "ド", "ブ", "ダ", "ヴ", "ゾ",
+	}
+	jaEndSyll = []string{
+		"ス", "ト", "ク", "ズ", "クス", "グ", "ツ", "ド", "ル", "ン",
+		"スク", "スト", "クト", "ズク", "ルク", "ング", "グス", "ドス", "ルト", "ンズ",
+		"イクス", "オクス", "アクス", "ウス", "エクス", "ーク", "ート", "ール", "ック", "ーン",
+	}
+)
+
+// Hangul syllable pools for Korean.
+// Uses aspirated (ㅋ/ㅌ/ㅍ/ㅊ) and tense (ㄲ/ㄸ/ㅃ/ㅆ/ㅉ) consonants for alien sound, per sci-fi convention.
+var (
+	koPrefixSyll = []string{
+		"카", "크", "제", "트", "블", "벡", "캬", "터", "포", "프",
+		"쵸", "추", "키", "코", "쿠", "타", "토", "투", "파", "페",
+		"크라", "트라", "프라", "블라", "그로", "즈로", "크로", "트로", "쁘", "쯔",
+	}
+	koMidSyll = []string{
+		"락", "르", "나", "멘", "로", "란", "른", "넨", "론", "린",
+		"락", "르", "나", "멘", "로", "란", "른", "넨", "론", "린",
+		"타", "카", "파", "차", "크", "트", "프", "츠", "캬", "터",
+	}
+	koEndSyll = []string{
+		"스", "론", "트", "스크", "즈", "크", "스", "론", "트", "스크",
+		"르스", "론트", "크스", "스트", "트론", "크론", "스크", "른", "틀", "즌",
+		"이스", "오스", "우스", "아스", "에스", "크스", "트스", "프스", "츠", "크",
+	}
+)
+
+// Chinese character pools for Chinese — uses only phonetic transliteration characters (no semantic Hanzi).
+// This signals "alien entity" to a Chinese reader, per sci-fi convention (Three-Body Problem style).
+var (
+	zhPrefixSyll = []string{
+		"萨", "泽", "克", "尔", "斯", "达", "诺", "塔", "德", "加",
+		"卡", "拉", "托", "尼", "罗", "基", "纳", "科", "米", "帕",
+		"索", "奇", "迪", "伽", "雷", "法", "曼", "坦", "戈", "伦",
+	}
+	zhMidSyll = []string{
+		"萨", "泽", "克", "尔", "斯", "达", "诺", "塔", "德", "加",
+		"卡", "拉", "托", "尼", "罗", "基", "纳", "科", "米", "帕",
+		"索", "奇", "迪", "伽", "雷", "法", "曼", "坦", "戈", "伦",
+	}
+	zhEndSyll = []string{
+		"斯", "德", "克", "姆", "恩", "尔", "亚", "安", "乌", "兹",
+		"格", "顿", "特", "金", "丁", "普", "兰", "森", "廷", "什",
+		"伯", "奇", "弗", "达", "伦", "曼", "特", "斯", "克", "德",
 	}
 )
 
@@ -218,7 +300,8 @@ func generateOneSpecies(rng *rand.Rand, idx int, usedNames map[string]bool, used
 		}
 	}
 
-	prefix := strings.ToUpper(name[:min(3, len(name))])
+	runes := []rune(name)
+	prefix := strings.ToUpper(string(runes[:min(3, len(runes))]))
 
 	primaryDMG := rng.Intn(6) // DMG_PLASMA..DMG_PSIONIC
 
@@ -252,10 +335,26 @@ func generateOneSpecies(rng *rand.Rand, idx int, usedNames map[string]bool, used
 }
 
 func generateName(rng *rand.Rand) string {
-	p := prefixSyll[midSyllIdx(rng, len(prefixSyll))]
-	m := midSyll[rng.Intn(len(midSyll))]
-	e := endSyll[rng.Intn(len(endSyll))]
-	return p + m + e
+	p, m, e := poolsForLang(language.Current())
+	pi := p[midSyllIdx(rng, len(p))]
+	mi := m[rng.Intn(len(m))]
+	ei := e[rng.Intn(len(e))]
+	return pi + mi + ei
+}
+
+func poolsForLang(lang string) (prefix, mid, end []string) {
+	switch lang {
+	case "ru":
+		return ruPrefixSyll, ruMidSyll, ruEndSyll
+	case "ja":
+		return jaPrefixSyll, jaMidSyll, jaEndSyll
+	case "ko":
+		return koPrefixSyll, koMidSyll, koEndSyll
+	case "zh":
+		return zhPrefixSyll, zhMidSyll, zhEndSyll
+	default:
+		return prefixSyll, midSyll, endSyll
+	}
 }
 
 func midSyllIdx(rng *rand.Rand, max int) int {

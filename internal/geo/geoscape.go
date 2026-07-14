@@ -2085,8 +2085,12 @@ func (gs *Geoscape) renderRegionTable(ctx *engine.ScreenCtx, x, y, w, h int) {
 
 			// City name (truncated)
 			name := c.LangName()
-			if len(name) > 14 {
-				name = name[:14]
+			if engine.StringWidth(name) > 14 {
+				runes := []rune(name)
+				for len(runes) > 0 && engine.StringWidth(string(runes)) > 14 {
+					runes = runes[:len(runes)-1]
+				}
+				name = string(runes)
 			}
 			prefix := "  "
 			if sel {

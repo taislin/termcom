@@ -88,6 +88,7 @@ func main() {
 
 	g.RegisterScreen(engine.StateHelp, engine.NewHelpScreen(g))
 	g.RegisterScreen(engine.StateMenu, engine.NewMenuScreen(g))
+	g.RegisterScreen(engine.StateLanguageSelect, engine.NewLanguageSelectScreen(g))
 
 	g.Run()
 }

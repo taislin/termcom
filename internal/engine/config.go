@@ -10,6 +10,8 @@ import (
 	"github.com/taislin/termcom/internal/language"
 )
 
+const WebsiteURL = "https://termcom.example.com"
+
 var GameVersion = "dev"
 
 func init() {

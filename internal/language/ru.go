@@ -12,6 +12,7 @@ func init() {
 		"MENU_QUIT":          "Выход",
 		"MENU_OPTIONS":       "Настройки",
 		"MENU_CUSTOM_BATTLE": "Произвольный бой",
+		"MENU_WEBSITE":       "Веб-сайт",
 		"MENU_HELP":          "[\u2191]/[\u2193]=Выбор  [Enter]=Подтвердить  [Q]=Выход  [F5]=Сохранить  [F9]=Загрузить",
 
 		// ── Difficulty ─────────────────────────────────────
@@ -727,13 +728,13 @@ func init() {
 		"OPTIONS_RESOLUTION_SPEED": "Скорость разрешения",
 		"OPTIONS_ON":               "ВКЛ",
 		"OPTIONS_OFF":              "ВЫКЛ",
-		"OPTIONS_HELP":            "[\u2190]/[\u2192]=Изменить  [\u2191]/[\u2193]=Выбрать  Enter=Переключить  [Esc]=Назад",
+		"OPTIONS_HELP":            "[\u2190]/[\u2192]=Изменить  [\u2191]/[\u2193]=Выбрать  [Enter]=Переключить  [Esc]=Назад",
 
 		"CUSTOM_AUTHOR":                "Автор:  %s",
 		"CUSTOM_DATE":                  "Дата:    %s",
 		"CUSTOM_DESC":                  "Описание:",
 		"CUSTOM_FILE":                  "Файл:    %s",
-		"CUSTOM_HELP":                  "[j]/[k]=Выбрать  Enter=Подтвердить  [Esc]=Отмена",
+		"CUSTOM_HELP":                  "[j]/[k]=Выбрать  [Enter]=Подтвердить  [Esc]=Отмена",
 		"CUSTOM_MISSION_SELECT":        "Выбор миссии",
 		"CUSTOM_NO_BATTLES":            "Пользовательские бои не найдены.",
 		"CUSTOM_PLACE_JSON":            "Поместите .json файлы в папку maps/.",

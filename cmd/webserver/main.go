@@ -148,6 +148,7 @@ func wireGame(g *engine.Game) {
 
 	g.RegisterScreen(engine.StateHelp, engine.NewHelpScreen(g))
 	g.RegisterScreen(engine.StateMenu, engine.NewMenuScreen(g))
+	g.RegisterScreen(engine.StateLanguageSelect, engine.NewLanguageSelectScreen(g))
 }
 
 // parseKeyEvent converts an xterm.js key string into a tcell.EventKey.

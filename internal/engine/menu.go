@@ -269,17 +269,22 @@ func (ms *MenuScreen) Render(ctx *ScreenCtx) {
 
 	// ── 6. Status bar ─────────────────────────────────────────────────────────
 	ctx.DrawPanel(0, h-3, w, 3, "", StyleGray)
-	ctx.DrawMarkupString(1, h-2, language.String("MENU_HELP"), StyleGray, StyleHotkey)
+	if ms.Game.WebNotice != "" {
+		ctx.DrawMarkupString(1, h-2, ms.Game.WebNotice, StyleCyanBold, StyleHotkey)
+	} else {
+		ctx.DrawMarkupString(1, h-2, language.String("MENU_HELP"), StyleGray, StyleHotkey)
+	}
 }
 
 func (ms *MenuScreen) options() []string {
 	if HasSave() {
-		return []string{language.String("MENU_NEW_GAME"), language.String("MENU_CONTINUE"), language.String("MENU_LOAD_GAME"), language.String("MENU_CUSTOM_BATTLE"), language.String("MENU_OPTIONS"), language.String("MENU_QUIT")}
+		return []string{language.String("MENU_NEW_GAME"), language.String("MENU_CONTINUE"), language.String("MENU_LOAD_GAME"), language.String("MENU_CUSTOM_BATTLE"), language.String("MENU_OPTIONS"), language.String("MENU_QUIT"), language.String("MENU_WEBSITE")}
 	}
-	return []string{language.String("MENU_NEW_GAME"), language.String("MENU_CUSTOM_BATTLE"), language.String("MENU_OPTIONS"), language.String("MENU_QUIT")}
+	return []string{language.String("MENU_NEW_GAME"), language.String("MENU_CUSTOM_BATTLE"), language.String("MENU_OPTIONS"), language.String("MENU_QUIT"), language.String("MENU_WEBSITE")}
 }
 
 func (ms *MenuScreen) HandleKey(e *tcell.EventKey) {
+	ms.Game.WebNotice = ""
 	opts := ms.options()
 	maxSel := len(opts) - 1
 
@@ -333,6 +338,11 @@ func (ms *MenuScreen) HandleKey(e *tcell.EventKey) {
 		if ms.Selection < len(opts) {
 			ms.confirm()
 		}
+	case "6":
+		ms.Selection = 5
+		if ms.Selection < len(opts) {
+			ms.confirm()
+		}
 	}
 }
 
@@ -365,6 +375,12 @@ func (ms *MenuScreen) confirm() {
 		}
 	case language.String("MENU_QUIT"):
 		ms.Game.Quit()
+	case language.String("MENU_WEBSITE"):
+		if ms.Game.IsWeb() {
+			ms.Game.WebNotice = WebsiteURL
+		} else {
+			openBrowser(WebsiteURL)
+		}
 	}
 }
 
