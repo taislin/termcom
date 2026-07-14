@@ -87,7 +87,7 @@ jobs:
           BINARY="termcom${{ matrix.ext }}"
           DIR="termcom_${{ env.VERSION }}_${{ matrix.os }}_${{ matrix.arch }}"
           mkdir -p "$DIR"
-          go build -ldflags="-s -w" -trimpath -o "$DIR/$BINARY" ./cmd/termcom
+          go build -ldflags="-s -w -X github.com/taislin/termcom/internal/engine.GameVersion=${{ env.VERSION }}" -trimpath -o "$DIR/$BINARY" ./cmd/termcom
           cp -r maps "$DIR/"
 
       - name: Download and include PDFs

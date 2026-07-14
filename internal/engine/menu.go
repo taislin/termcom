@@ -193,7 +193,11 @@ func (ms *MenuScreen) Render(ctx *ScreenCtx) {
 		}
 	}
 
-	// ── 4. Subtitle + decorations ─────────────────────────────────────────────
+	// ── 4. Version ────────────────────────────────────────────────────────────
+	verStr := "v" + GameVersion
+	ctx.DrawString(w-len([]rune(verStr))-2, 1, verStr, StyleGray)
+
+	// ── 5. Subtitle + decorations ─────────────────────────────────────────────
 	subY := startY + len(title) + 1
 	subtitle := language.String("MENU_TITLE")
 	subX := (w - StringWidth(subtitle)) / 2

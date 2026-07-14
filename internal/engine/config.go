@@ -9,7 +9,7 @@ import (
 	"github.com/taislin/termcom/internal/language"
 )
 
-const GameVersion = "0.34"
+var GameVersion = "dev"
 
 type GlobalConfig struct {
 	BloomEnabled       bool   `json:"bloom_enabled"`

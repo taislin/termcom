@@ -3,11 +3,13 @@
 export PATH := /home/taislin/go/bin:$(PATH)
 export GOPATH := /home/taislin/gopath
 
+LDFLAGS := -ldflags="-X github.com/taislin/termcom/internal/engine.GameVersion=$(shell cat VERSION)"
+
 run:
-	go run ./cmd/termcom
+	go run $(LDFLAGS) ./cmd/termcom
 
 build:
-	go build -o termcom ./cmd/termcom
+	go build $(LDFLAGS) -o termcom ./cmd/termcom
 
 test:
 	go test ./... -v
