@@ -3,7 +3,7 @@
 A roguelike-ified demake of **X-COM: UFO Defense** *(1994, MicroProse)* rendered entirely in coloured ASCII on a terminal. Written in Go with [tcell](https://github.com/gdamore/tcell). It brings the classic alien invasion strategy experience to your terminal. It features a complete implementation of all gameplay loops: the Geoscape (global strategy), Base management, and the tactical Battlescape.
 
 > [!NOTE]
-> Download the latest version [here](https://github.com/taislin/termcom/releases/).
+> Download the latest version [here](https://github.com/taislin/termcom/releases/latest).
 
 ## Features
 
@@ -18,7 +18,7 @@ A roguelike-ified demake of **X-COM: UFO Defense** *(1994, MicroProse)* rendered
 
 ## Requirements
 > [!TIP]
-> The below is for building from the source code. If you just want to play, you can download the game binaries from [here](https://github.com/taislin/termcom/releases/).
+> The below is for building from the source code. If you just want to play, you can download the game binaries from [here](https://github.com/taislin/termcom/releases/latest).
 
 - Go 1.25+
 - Terminal with Unicode support (for box-drawing characters)
