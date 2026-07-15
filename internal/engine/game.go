@@ -386,6 +386,8 @@ func (g *Game) drainEvents() {
 				}
 				// Let control menu consume the event first
 				if Config.TouchMode && !HideTouchOverlay {
+					w, h := g.ScreenSize()
+					Menu.SetScreenSize(w, h)
 					x, y := e.Position()
 					if Menu.HamburgerHit(x, y) {
 						Menu.Toggle()
@@ -507,8 +509,11 @@ func (g *Game) setupControlMenu() {
 		})
 	case StateBattlescape:
 		Menu.SetButtons([]ControlButton{
+			{Label: "↑", Hotkey: "Up", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyUp, "", tcell.ModNone)) }},
+			{Label: "↓", Hotkey: "Down", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyDown, "", tcell.ModNone)) }},
+			{Label: "←", Hotkey: "Left", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyLeft, "", tcell.ModNone)) }},
+			{Label: "→", Hotkey: "Right", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRight, "", tcell.ModNone)) }},
 			{Label: language.String("CTRL_SELECT"), Hotkey: "Enter", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyEnter, "", tcell.ModNone)) }},
-			{Label: language.String("CTRL_MOVE"), Hotkey: "Space", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, " ", tcell.ModNone)) }},
 			{Label: language.String("CTRL_FIRE"), Hotkey: "f", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "f", tcell.ModNone)) }},
 			{Label: language.String("CTRL_RELOAD"), Hotkey: "r", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "r", tcell.ModNone)) }},
 			{Label: language.String("CTRL_END_TURN"), Hotkey: "e", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "e", tcell.ModNone)) }},
