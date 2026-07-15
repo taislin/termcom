@@ -2,7 +2,8 @@
 
 A roguelike-ified demake of **X-COM: UFO Defense** *(1994, MicroProse)* rendered entirely in coloured ASCII on a terminal. Written in Go with [tcell](https://github.com/gdamore/tcell). It brings the classic alien invasion strategy experience to your terminal. It features a complete implementation of all gameplay loops: the Geoscape (global strategy), Base management, and the tactical Battlescape.
 
-**Download the latest version [here](https://github.com/taislin/termcom/releases/).**
+> [!NOTE]
+> Download the latest version [here](https://github.com/taislin/termcom/releases/).
 
 ## Features
 
@@ -16,7 +17,8 @@ A roguelike-ified demake of **X-COM: UFO Defense** *(1994, MicroProse)* rendered
 - **Dynamic VFX** - Particle explosions, screen shake, rubble physics, night lighting.
 
 ## Requirements
-If can download the game binaries from [here](https://github.com/taislin/termcom/releases/). If you want to download the source code, you will need the following:
+> [!TIP]
+> The below is for building from the source code. If you just want to play, you can download the game binaries from [here](https://github.com/taislin/termcom/releases/).
 
 - Go 1.25+
 - Terminal with Unicode support (for box-drawing characters)
@@ -38,6 +40,9 @@ go build -o termcom ./cmd/termcom
 
 ### Browser Version (Experimental)
 
+> [!CAUTION]
+> The browser version is experimental and may have limited functionality compared to the terminal version.
+ 
 The browser version allows you to play termcom in a web browser using xterm.js.
 
 1. Start the web server:
@@ -59,9 +64,10 @@ The browser version supports:
 - All game features (Geoscape, Battlescape, Base Management)
 - **Mobile touch play** — tap to click, long-press for right-click, drag to scroll, on-screen control menu with context-sensitive buttons
 
-**Note:** The browser version is experimental and may have limited functionality compared to the terminal version.
-
 ### Android Native (Experimental)
+
+> [!CAUTION]
+> The Android version is experimental and may have limited functionality compared to the terminal version.
 
 The Android port compiles the Go game core into a native `.aar` library via [gomobile](https://pkg.go.dev/golang.org/x/mobile/cmd/gomobile), rendered as a character grid on a `SurfaceView` with full touch input and audio.
 
@@ -117,4 +123,5 @@ See the [AGENTS file](AGENTS.md) for architecture details.
 
 MIT, see [LICENSE](LICENSE) file.
 
-***AI Usage Disclaimer***: AI was used in this project to generate and update the translations to French, Spanish, Russian, Korean, Chinese and Japanese. No audio or images were generated via AI (the game does not use any, anyway - its all terminal based!)
+> [!NOTE]
+> ***AI Usage Disclaimer***: AI was used in this project to generate and update the translations to French, Spanish, Russian, Korean, Chinese and Japanese. No audio or images were generated via AI (the game does not use any, anyway - its all terminal based!)
