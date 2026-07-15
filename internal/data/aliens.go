@@ -2,6 +2,7 @@ package data
 
 import (
 	"math/rand"
+	"strings"
 
 	"github.com/gdamore/tcell/v3"
 	"github.com/taislin/termcom/internal/language"
@@ -177,6 +178,16 @@ type AlienType struct {
 	Morphology *Morphology // physical form (nil for hardcoded aliens)
 	Style      tcell.Style // Visual style on battlescape map
 	FgColor    tcell.Color // Foreground color for bloom / VFX (mirrors Style fg)
+}
+
+// LangName returns the localized alien name, falling back to the English Name
+// when no translation key is registered (e.g. procedurally generated aliens).
+func (a *AlienType) LangName() string {
+	key := "ALIEN_" + strings.ToUpper(strings.ReplaceAll(a.Name, " ", "_"))
+	if s := language.String(key); s != key {
+		return s
+	}
+	return a.Name
 }
 
 var AlienTypes = []AlienType{
@@ -453,14 +464,14 @@ func DetermineProceduralIconAndStyle(m *Morphology, rng *rand.Rand, usedIcons ma
 	// Categorize based on arms & legs
 	if m.Legs >= 4 {
 		// Category E. Arachnid / Swarm (Many Legs, 4–8 Legs)
-		categoryRunes = []rune{'ᛤ', 'ሐ', 'ሗ', 'Ж','ዷ', '✲'}
+		categoryRunes = []rune{'ᛤ', 'ሐ', 'ሗ', 'Ж', 'ዷ', '✲'}
 	} else if m.Legs > 2 {
 		if m.Arms >= 4 {
 			// Category D. Multi-Armed (4–6 Arms, 2 Legs)
 			categoryRunes = []rune{'ቿ', 'ቿ', 'ቹ', 'ᚼ'}
 		} else if m.Arms == 3 {
 			// Category F. 3 Arms, 2 Legs
-			categoryRunes = []rune{'ቱ','ቲ','ቴ', 'պ'}
+			categoryRunes = []rune{'ቱ', 'ቲ', 'ቴ', 'պ'}
 		} else if m.Arms == 2 {
 			// Category C. 2 Arms, 2 Legs (Standard Bipedal)
 			categoryRunes = []rune{'ቆ', '☥', 'ቋ', '፹', 'ቐ', 'ቀ', 'ፗ'}
@@ -474,7 +485,7 @@ func DetermineProceduralIconAndStyle(m *Morphology, rng *rand.Rand, usedIcons ma
 	} else { // m.Legs == 0
 		if m.Arms >= 2 {
 			// Category B. 2 Arms, 0 Legs (Hovering or Slithering)
-			categoryRunes = []rune{'ϯ', 'ቻ','ቓ','ዎ'}
+			categoryRunes = []rune{'ϯ', 'ቻ', 'ቓ', 'ዎ'}
 		} else {
 			// Category A. 0 Arms, 0 Legs (Floating, Slithering, or Blob)
 			categoryRunes = []rune{'Ѿ', 'Ω', 'Ѻ', 'ዋ'}
@@ -568,7 +579,7 @@ func DetermineProceduralIconAndStyle(m *Morphology, rng *rand.Rand, usedIcons ma
 		}
 
 		// Override Rune
-		runePool = []rune{'፨', '⠪', '✜', '⛬','⡳'}
+		runePool = []rune{'፨', '⠪', '✜', '⛬', '⡳'}
 
 	default:
 		fgColor = tcell.Color(9)

@@ -862,7 +862,7 @@ func (bs *Battlescape) executeAlienAction(action AlienAction) {
 			Style:  engine.StyleRedBold,
 		}
 		name := action.Target.Name()
-		bs.AddMessage(fmt.Sprintf(language.String("MSG_ALIEN_MELEE"), action.Unit.AlienType.Name, name, damage))
+		bs.AddMessage(fmt.Sprintf(language.String("MSG_ALIEN_MELEE"), action.Unit.AlienType.LangName(), name, damage))
 		if !action.Target.Alive {
 			bs.AddMessage(fmt.Sprintf(language.String("MSG_ALIEN_KILL"), name))
 		}
@@ -899,9 +899,9 @@ func (bs *Battlescape) executeAlienAction(action AlienAction) {
 		if success {
 			action.Target.TU = 0
 			action.Target.Panicked = true
-			bs.AddMessage(fmt.Sprintf(language.String("MSG_ALIEN_PSI_PANIC"), action.Unit.AlienType.Name, action.Target.Name()))
+			bs.AddMessage(fmt.Sprintf(language.String("MSG_ALIEN_PSI_PANIC"), action.Unit.AlienType.LangName(), action.Target.Name()))
 		} else {
-			bs.AddMessage(fmt.Sprintf(language.String("MSG_ALIEN_PSI_RESIST"), action.Unit.AlienType.Name, action.Target.Name()))
+			bs.AddMessage(fmt.Sprintf(language.String("MSG_ALIEN_PSI_RESIST"), action.Unit.AlienType.LangName(), action.Target.Name()))
 		}
 		bs.ComputeFOVForTeam()
 		bs.checkHumanReactionFire(action.Unit)
@@ -1787,7 +1787,7 @@ func (bs *Battlescape) FireWeapon() {
 		}
 		name := "alien"
 		if target.AlienType != nil {
-			name = target.AlienType.Name
+			name = target.AlienType.LangName()
 		}
 		bs.AddMessage(fmt.Sprintf(language.String("MSG_HIT_TARGET"), damage, name, target.HP))
 		bs.spawnFloater(target.X, target.Y, fmt.Sprintf("-%d", damage), color.XTerm9)
@@ -2694,7 +2694,7 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 			sy++
 			name := ""
 			if u.Faction == 1 && u.AlienType != nil {
-				name = u.AlienType.Name
+				name = u.AlienType.LangName()
 			} else if u.Faction == 0 && u.Soldier != nil {
 				name = u.Soldier.Name
 			} else if u.Faction == 2 {

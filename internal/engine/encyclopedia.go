@@ -55,7 +55,7 @@ func (es *EncyclopediaScreen) buildEntries(g *Game, completed []string, weapons 
 		es.Entries = append(es.Entries, EncycloEntry{
 			Category:   language.String("ENCYCLO_CAT_ALIENS"),
 			ID:         at.ShortName,
-			Name:       at.Name,
+			Name:       at.LangName(),
 			Desc:       at.Lore,
 			Discovered: discovered,
 			AlienType:  at,
@@ -67,7 +67,7 @@ func (es *EncyclopediaScreen) buildEntries(g *Game, completed []string, weapons 
 			es.Entries = append(es.Entries, EncycloEntry{
 				Category:   language.String("ENCYCLO_CAT_WEAPONS"),
 				ID:         key,
-				Name:       item.Name,
+				Name:       item.DisplayName(),
 				Desc:       fmt.Sprintf(language.String("ENCYCLO_WEAPON_STATS"), item.Damage, item.Accuracy, item.TU, item.Range),
 				Discovered: weaponMap[key],
 			})
@@ -81,17 +81,17 @@ func (es *EncyclopediaScreen) buildEntries(g *Game, completed []string, weapons 
 		es.Entries = append(es.Entries, EncycloEntry{
 			Category:   language.String("ENCYCLO_CAT_ARMOR"),
 			ID:         key,
-			Name:       arm.Name,
+			Name:       arm.DisplayNameByKey(key),
 			Desc:       fmt.Sprintf(language.String("ENCYCLO_ARMOR_PROTECTION"), arm.Undersuit),
 			Discovered: armorMap[key],
 		})
 	}
 
-	for _, item := range data.Items {
+	for key, item := range data.Items {
 		es.Entries = append(es.Entries, EncycloEntry{
 			Category:   language.String("ENCYCLO_CAT_ITEMS"),
 			ID:         item.ShortName,
-			Name:       item.Name,
+			Name:       data.ItemDisplayName(key),
 			Desc:       fmt.Sprintf(language.String("ENCYCLO_ITEM_STATS"), item.Weight, item.Value),
 			Discovered: item.Alien,
 		})
@@ -101,7 +101,7 @@ func (es *EncyclopediaScreen) buildEntries(g *Game, completed []string, weapons 
 		es.Entries = append(es.Entries, EncycloEntry{
 			Category:   language.String("ENCYCLO_CAT_RESEARCH"),
 			ID:         topic.ID,
-			Name:       topic.Name,
+			Name:       topic.DisplayName(),
 			Desc:       fmt.Sprintf(language.String("ENCYCLO_RESEARCH_COST"), topic.Cost),
 			Discovered: completedMap[topic.ID],
 		})
@@ -198,10 +198,10 @@ func (es *EncyclopediaScreen) Render(ctx *ScreenCtx) {
 				ctx.DrawPixelImageFramed(pX, pY, alienImg, StyleRed)
 
 				statY := pY + alienImg.Height/2 + 1
-				ctx.DrawString(infoX+1, pY-1, at.Name, StyleRedBold)
+				ctx.DrawString(infoX+1, pY-1, at.LangName(), StyleRedBold)
 				ctx.DrawString(infoX+1, statY, fmt.Sprintf(language.String("ENCYCLO_ALIEN_STATS_1"), at.HP, at.TU, at.Accuracy), StyleGray)
 				ctx.DrawString(infoX+1, statY+1, fmt.Sprintf(language.String("ENCYCLO_ALIEN_STATS_2"), at.Strength, at.Psi, at.Bravery), StyleGray)
-				ctx.DrawString(infoX+1, statY+2, fmt.Sprintf(language.String("ENCYCLO_ALIEN_STATS_3"), data.DamageTypeStr(at.DamageType), data.RuleItems[at.Weapon].Name), StyleGray)
+				ctx.DrawString(infoX+1, statY+2, fmt.Sprintf(language.String("ENCYCLO_ALIEN_STATS_3"), data.DamageTypeStr(at.DamageType), data.RuleItems[at.Weapon].DisplayName()), StyleGray)
 
 				if m := at.Morphology; m != nil {
 					ctx.DrawString(infoX+1, statY+4, language.Sprintf("ENCYCLO_MORPH_BODY", m.BodyType, m.BodySubtype, m.Arms, m.Legs), StyleGray)

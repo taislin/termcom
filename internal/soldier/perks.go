@@ -3,6 +3,7 @@ package soldier
 import (
 	"fmt"
 	"math/rand"
+	"strings"
 
 	"github.com/taislin/termcom/internal/language"
 )
@@ -162,12 +163,32 @@ func (s *Soldier) HasBattleMod(mod BattleModifier) bool {
 	return false
 }
 
+// LangName returns the localized perk name, falling back to the English Name
+// when no translation key is registered.
+func (p *Perk) LangName() string {
+	key := "PERK_" + strings.ToUpper(strings.ReplaceAll(p.ID, "_", " "))
+	if s := language.String(key); s != key {
+		return s
+	}
+	return p.Name
+}
+
+// LangDesc returns the localized perk description, falling back to the English
+// Description when no translation key is registered.
+func (p *Perk) LangDesc() string {
+	key := "PERK_" + strings.ToUpper(strings.ReplaceAll(p.ID, "_", " ")) + "_DESC"
+	if s := language.String(key); s != key {
+		return s
+	}
+	return p.Description
+}
+
 func (s *Soldier) PerkNames() []string {
 	var names []string
 	for _, pID := range s.Perks {
 		for _, p := range AllPerks {
 			if p.ID == pID {
-				names = append(names, p.Name)
+				names = append(names, p.LangName())
 			}
 		}
 	}
@@ -182,7 +203,7 @@ func FormatPerks(perks []string) string {
 	for _, pID := range perks {
 		for _, p := range AllPerks {
 			if p.ID == pID {
-				names = append(names, p.Name)
+				names = append(names, p.LangName())
 			}
 		}
 	}

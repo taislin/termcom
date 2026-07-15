@@ -122,7 +122,7 @@ func (u *Unit) Name() string {
 		return u.Soldier.Name
 	}
 	if u.AlienType != nil {
-		return u.AlienType.Name
+		return u.AlienType.LangName()
 	}
 	if u.CivName != "" {
 		return u.CivName
