@@ -309,6 +309,9 @@ func init() {
 		// \u7075\u80fd
 		"MSG_NEED_PSI_AMP":        "\u9700\u8981\u7075\u80fd\u653e\u5927\u5668\u624d\u80fd\u4f7f\u7528\u7075\u80fd\u3002",
 		"MSG_SELECT_ALIEN_TARGET": "\u8bf7\u9009\u62e9\u5916\u661f\u4eba\u76ee\u6807\u3002",
+		"MSG_PSI_NO_TRAINING":     "士兵没有灵能训练。",
+		"MSG_MISSION_TIME_LIMIT":  "时间到！任务失败 - 超过时间限制。",
+		"MSG_EXTRACTION_COMPLETE": "%d名士兵到达撤离点！任务完成。",
 
 		// \u89c6\u89c9\u6a21\u5f0f
 		"MSG_VISION_NIGHT":   "\u591c\u89c6\u5df2\u5f00\u542f",
@@ -933,5 +936,36 @@ func init() {
 		"SIDE_HP_UNKNOWN":   "HP: ???",
 		"SIDE_ACC_UNKNOWN":  "ACC: ???",
 		"SIDE_TU_UNKNOWN":   "TU: ???",
-		})
+
+		// ── Slot Picker ──────────────────────────────────
+		"SLOT_PICKER_NEW":    "> [新存档]",
+		"SLOT_PICKER_BAR":    "[↑]/[↓]=选择  Enter=确认  [Esc]=取消",
+
+		// ── Language Select ──────────────────────────────
+		"LANGUAGE_SELECT_TITLE": "选择语言",
+		"LANGUAGE_SELECT_HELP":  "[↑]/[↓]=选择  [Enter]=确认  [Esc]=返回",
+
+		// ── Interceptor Status ───────────────────────────
+		"INTERCEPTOR_STATUS_ACTIVE": "活跃",
+
+		// ── Alien Base ────────────────────────────────────
+		"GEO_ALIEN_BASE_DESTROYED":  "%s的外星人基地被摧毁！地区威胁降低。",
+		"GEO_LAST_BASE_DESTROYED":   "最后一个基地被摧毁！",
+		"GEO_INTERCEPTOR_DESTROYED": " | 拦截机被摧毁！",
+		"GEO_ALIEN_BASE_NAME":       "外星人基地 #%d",
+		"GEO_ALIEN_BASE_ALERT":      "警报：%s已建立！%s的威胁正在上升。",
+		"GEO_ALIEN_BASE_LAUNCH":     "%s从%s向%s发射%s。",
+		"GEO_CYDONIA_DETECTED":      "赛多尼亚位置已探测到！最终任务准备就绪。",
+		"GEO_CYDONIA":               "赛多尼亚",
+		"GEO_NO_MISSION_HERE":       "此处没有任务。",
+		"GEO_SELECT_TARGET":         "选择目标（UFO或坠毁地点）。",
+		"GEO_LAUNCH_CANCELLED":      "发射已取消。",
+		"GEO_HEADER_TARGET":         " 选择目标",
+
+		// ── Debrief ───────────────────────────────────────
+		"DEBRIEF_CYDONIA_VICTORY": "赛多尼亚突击成功！",
+
+		// ── Messages ──────────────────────────────────────
+		"MSG_CIVILIAN": "平民",
+	})
 }

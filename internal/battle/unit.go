@@ -6,6 +6,7 @@ import (
 	"math/rand"
 
 	"github.com/taislin/termcom/internal/data"
+	"github.com/taislin/termcom/internal/language"
 	"github.com/taislin/termcom/internal/soldier"
 )
 
@@ -118,7 +119,7 @@ func (u *Unit) Name() string {
 	if u.CivName != "" {
 		return u.CivName
 	}
-	return "Civilian"
+	return language.String("MSG_CIVILIAN")
 }
 
 func (u *Unit) FireAt(target *Unit, m *BattleMap, weather *Weather) (int, bool, error) {

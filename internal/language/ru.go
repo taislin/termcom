@@ -311,6 +311,9 @@ func init() {
 		// Psi
 		"MSG_NEED_PSI_AMP":        "Для пси-атаки нужен пси-усилитель.",
 		"MSG_SELECT_ALIEN_TARGET": "Выберите цель среди пришельцев.",
+		"MSG_PSI_NO_TRAINING":     "Солдат не обучен пси-способностям.",
+		"MSG_MISSION_TIME_LIMIT":  "ВРЕМЯ ВЫШЛО! Миссия провалена - превышен лимит времени.",
+		"MSG_EXTRACTION_COMPLETE": "%d солдат(ов) достигли эвакуации! Миссия выполнена.",
 
 		// Vision modes
 		"MSG_VISION_NIGHT":   "НОЧНОЕ ВИДЕНИЕ ВКЛЮЧЕНО",
@@ -935,5 +938,36 @@ func init() {
 		"SIDE_HP_UNKNOWN":   "HP: ???",
 		"SIDE_ACC_UNKNOWN":  "ACC: ???",
 		"SIDE_TU_UNKNOWN":   "TU: ???",
-		})
+
+		// ── Slot Picker ──────────────────────────────────
+		"SLOT_PICKER_NEW":    "> [Новый слот]",
+		"SLOT_PICKER_BAR":    "[↑]/[↓]=Выбор  Enter=Подтвердить  [Esc]=Отмена",
+
+		// ── Language Select ──────────────────────────────
+		"LANGUAGE_SELECT_TITLE": "ВЫБЕРИТЕ ЯЗЫК",
+		"LANGUAGE_SELECT_HELP":  "[↑]/[↓]=Выбор  [Enter]=Подтвердить  [Esc]=Назад",
+
+		// ── Interceptor Status ───────────────────────────
+		"INTERCEPTOR_STATUS_ACTIVE": "Активен",
+
+		// ── Alien Base ────────────────────────────────────
+		"GEO_ALIEN_BASE_DESTROYED":  "База пришельцев в %s уничтожена! Региональная угроза снижена.",
+		"GEO_LAST_BASE_DESTROYED":   "Последняя база уничтожена!",
+		"GEO_INTERCEPTOR_DESTROYED": " | ПЕРЕХВАТЧИК УНИЧТОЖЕН!",
+		"GEO_ALIEN_BASE_NAME":       "База пришельцев #%d",
+		"GEO_ALIEN_BASE_ALERT":      "ТРЕВОГА: %s создана! Угроза растёт в %s.",
+		"GEO_ALIEN_BASE_LAUNCH":     "%s запускает %s из %s в %s.",
+		"GEO_CYDONIA_DETECTED":      "Местоположение Сидонии обнаружено! Финальная миссия готова.",
+		"GEO_CYDONIA":               "Сидония",
+		"GEO_NO_MISSION_HERE":       "Нет миссии в этом месте.",
+		"GEO_SELECT_TARGET":         "Выберите цель (НЛО или место крушения).",
+		"GEO_LAUNCH_CANCELLED":      "Запуск отменён.",
+		"GEO_HEADER_TARGET":         " ВЫБРАТЬ ЦЕЛЬ",
+
+		// ── Debrief ───────────────────────────────────────
+		"DEBRIEF_CYDONIA_VICTORY": "Штурм Сидонии удался!",
+
+		// ── Messages ──────────────────────────────────────
+		"MSG_CIVILIAN": "Гражданский",
+	})
 }

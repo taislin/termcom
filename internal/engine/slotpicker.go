@@ -67,7 +67,7 @@ func (sp *SlotPickerScreen) Render(ctx *ScreenCtx) {
 
 	if sp.Mode == SlotPickerSave {
 		if sp.Selection >= len(sp.Slots) {
-			ctx.DrawString(2, startY+len(sp.Slots), "> [New Slot]", StyleHighlight)
+			ctx.DrawString(2, startY+len(sp.Slots), language.String("SLOT_PICKER_NEW"), StyleHighlight)
 		}
 	}
 
@@ -76,7 +76,7 @@ func (sp *SlotPickerScreen) Render(ctx *ScreenCtx) {
 	}
 
 	ctx.DrawPanel(0, h-1, w, 1, "", StyleGray)
-	ctx.DrawString(1, h-1, "[\u2191]/[\u2193]=Select  Enter=Confirm  [Esc]=Cancel", StyleGray)
+	ctx.DrawString(1, h-1, language.String("SLOT_PICKER_BAR"), StyleGray)
 }
 
 func (sp *SlotPickerScreen) HandleKey(e *tcell.EventKey) {

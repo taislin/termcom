@@ -311,6 +311,9 @@ func init() {
 		// Psi
 		"MSG_NEED_PSI_AMP":        "サイ能力を使用するにはサイ増幅器が必要です。",
 		"MSG_SELECT_ALIEN_TARGET": "エイリアンのターゲットを選択してください。",
+		"MSG_PSI_NO_TRAINING":     "兵士はサイ能力の訓練を受けていません。",
+		"MSG_MISSION_TIME_LIMIT":  "時間切れ！ミッション失敗 - 制限時間を超過。",
+		"MSG_EXTRACTION_COMPLETE": "%d名の兵士が脱出地点に到達しました！ミッション完了。",
 
 		// Vision modes
 		"MSG_VISION_NIGHT":   "暗視モード ON",
@@ -965,5 +968,36 @@ func init() {
 		"SIDE_HP_UNKNOWN":   "HP: ???",
 		"SIDE_ACC_UNKNOWN":  "ACC: ???",
 		"SIDE_TU_UNKNOWN":   "TU: ???",
-		})
+
+		// ── Slot Picker ──────────────────────────────────
+		"SLOT_PICKER_NEW":    "> [新しいスロット]",
+		"SLOT_PICKER_BAR":    "[↑]/[↓]=選択  Enter=確認  [Esc]=キャンセル",
+
+		// ── Language Select ──────────────────────────────
+		"LANGUAGE_SELECT_TITLE": "言語を選択",
+		"LANGUAGE_SELECT_HELP":  "[↑]/[↓]=選択  [Enter]=確認  [Esc]=戻る",
+
+		// ── Interceptor Status ───────────────────────────
+		"INTERCEPTOR_STATUS_ACTIVE": "稼働中",
+
+		// ── Alien Base ────────────────────────────────────
+		"GEO_ALIEN_BASE_DESTROYED":  "%sのエイリアン基地が破壊されました！地域の脅威が減少。",
+		"GEO_LAST_BASE_DESTROYED":   "最後の基地が破壊されました！",
+		"GEO_INTERCEPTOR_DESTROYED": " | インターセプター撃破！",
+		"GEO_ALIEN_BASE_NAME":       "エイリアン基地 #%d",
+		"GEO_ALIEN_BASE_ALERT":      "警報：%sが設立されました！%sの脅威が上昇中。",
+		"GEO_ALIEN_BASE_LAUNCH":     "%sが%sから%sへ%sを発射。",
+		"GEO_CYDONIA_DETECTED":      "サイドニアの位置を検出！最終ミッションの準備完了。",
+		"GEO_CYDONIA":               "サイドニア",
+		"GEO_NO_MISSION_HERE":       "この場所にミッションはありません。",
+		"GEO_SELECT_TARGET":         "ターゲットを選択（UFOまたは墜落地点）。",
+		"GEO_LAUNCH_CANCELLED":      "発射がキャンセルされました。",
+		"GEO_HEADER_TARGET":         " ターゲットを選択",
+
+		// ── Debrief ───────────────────────────────────────
+		"DEBRIEF_CYDONIA_VICTORY": "サイドニア突撃成功！",
+
+		// ── Messages ──────────────────────────────────────
+		"MSG_CIVILIAN": "民間人",
+	})
 }

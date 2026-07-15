@@ -76,7 +76,7 @@ func (ls *LanguageSelectScreen) Render(ctx *ScreenCtx) {
 	ctx.DrawString(w-len([]rune(verStr))-2, 0, verStr, StyleGray)
 
 	// ── 3. Prompt ────────────────────────────────────────────────────────
-	prompt := "SELECT LANGUAGE"
+	prompt := language.String("LANGUAGE_SELECT_TITLE")
 	px := (w - StringWidth(prompt)) / 2
 	ctx.DrawString(px, 9, prompt, StyleCyanBold)
 
@@ -137,7 +137,7 @@ func (ls *LanguageSelectScreen) Render(ctx *ScreenCtx) {
 
 	// ── 5. Help bar ──────────────────────────────────────────────────────
 	ctx.DrawPanel(0, h-3, w, 3, "", StyleGray)
-	ctx.DrawMarkupString(1, h-2, "[↑]/[↓]=Select  [Enter]=Confirm  [Esc]=Back", StyleGray, StyleHotkey)
+	ctx.DrawMarkupString(1, h-2, language.String("LANGUAGE_SELECT_HELP"), StyleGray, StyleHotkey)
 }
 
 func (ls *LanguageSelectScreen) HandleKey(e *tcell.EventKey) {

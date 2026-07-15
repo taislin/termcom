@@ -63,7 +63,7 @@ func (ds *DebriefScreen) HandleKey(e *tcell.EventKey) {
 
 func (ds *DebriefScreen) dismiss() {
 	if ds.data.CydoniaVictory {
-		ds.game.GameOver(true, "Cydonia assault successful!")
+		ds.game.GameOver(true, language.String("DEBRIEF_CYDONIA_VICTORY"))
 		return
 	}
 	if ds.data.BaseDestroyed {

@@ -1517,8 +1517,9 @@ func (bs *Battlescape) checkVictory() {
 			if safe >= minReq {
 				bs.Phase = PhaseVictory
 				audio.PlayVictory()
-				bs.AddMessage(fmt.Sprintf(language.String("MSG_MISSION_EXTRACT"), safe))
+				bs.AddMessage(language.Sprintf("MSG_MISSION_EXTRACT", safe))
 			} else if len(humans) == 0 {
+
 				bs.Phase = PhaseDefeat
 				audio.PlayDefeat()
 				bs.AddMessage(language.String("MSG_MISSION_FAILED"))
@@ -1545,6 +1546,7 @@ func (bs *Battlescape) checkVictory() {
 		bs.AddMessage(language.String("MSG_TIME_LIMIT_EXCEEDED"))
 		return
 	}
+
 
 	if len(aliens) == 0 {
 		bs.Phase = PhaseVictory
@@ -2272,6 +2274,7 @@ func (bs *Battlescape) PsiAttack() {
 		return
 	}
 
+
 	if bs.Selected.TU < 20 {
 		bs.AddMessage(language.String("MSG_NOT_ENOUGH_TU_PSI"))
 		return
@@ -2282,6 +2285,7 @@ func (bs *Battlescape) PsiAttack() {
 		bs.AddMessage(language.String("MSG_SELECT_ALIEN_TARGET"))
 		return
 	}
+
 
 	bs.Selected.TU -= 20
 
@@ -2297,6 +2301,7 @@ func (bs *Battlescape) PsiAttack() {
 		bs.AddMessage(language.String("MSG_NO_PSI_TRAINING"))
 		return
 	}
+
 
 	successChance := attackerSkill - targetPsi/3
 	if successChance < 5 {

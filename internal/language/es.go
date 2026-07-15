@@ -311,6 +311,9 @@ func init() {
 		// Psi
 		"MSG_NEED_PSI_AMP":        "Se necesita Amplificador Psi para usar Psi.",
 		"MSG_SELECT_ALIEN_TARGET": "Selecciona un objetivo alien\u00edgena.",
+		"MSG_PSI_NO_TRAINING":     "El soldado no tiene entrenamiento psi.",
+		"MSG_MISSION_TIME_LIMIT":  "¡TIEMPO AGOTADO! Misión fallida - límite de tiempo excedido.",
+		"MSG_EXTRACTION_COMPLETE": "%d soldado(s) alcanzaron la extracción. Misión completa.",
 
 		// Modos de visi\u00f3n
 		"MSG_VISION_NIGHT":   "VISI\u00d3N NOCTURNA ACTIVADA",
@@ -966,5 +969,36 @@ func init() {
 		"SIDE_HP_UNKNOWN":   "HP: ???",
 		"SIDE_ACC_UNKNOWN":  "ACC: ???",
 		"SIDE_TU_UNKNOWN":   "TU: ???",
-		})
+
+		// ── Slot Picker ──────────────────────────────────
+		"SLOT_PICKER_NEW":    "> [Nueva partida]",
+		"SLOT_PICKER_BAR":    "[↑]/[↓]=Seleccionar  Enter=Confirmar  [Esc]=Cancelar",
+
+		// ── Language Select ──────────────────────────────
+		"LANGUAGE_SELECT_TITLE": "SELECCIONAR IDIOMA",
+		"LANGUAGE_SELECT_HELP":  "[↑]/[↓]=Seleccionar  [Enter]=Confirmar  [Esc]=Volver",
+
+		// ── Interceptor Status ───────────────────────────
+		"INTERCEPTOR_STATUS_ACTIVE": "Activo",
+
+		// ── Alien Base ────────────────────────────────────
+		"GEO_ALIEN_BASE_DESTROYED":  "¡Base alienígena en %s destruida! Amenaza regional reducida.",
+		"GEO_LAST_BASE_DESTROYED":   "¡Última base destruida!",
+		"GEO_INTERCEPTOR_DESTROYED": " | ¡INTERCEPTOR DESTRUIDO!",
+		"GEO_ALIEN_BASE_NAME":       "Base Alienígena #%d",
+		"GEO_ALIEN_BASE_ALERT":      "ALERTA: ¡%s establecida! Amenaza creciente en %s.",
+		"GEO_ALIEN_BASE_LAUNCH":     "%s lanzando %s desde %s hacia %s.",
+		"GEO_CYDONIA_DETECTED":      "¡Ubicación de Cydonia detectada! Misión final lista.",
+		"GEO_CYDONIA":               "Cydonia",
+		"GEO_NO_MISSION_HERE":       "No hay misión en este lugar.",
+		"GEO_SELECT_TARGET":         "Seleccionar objetivo (UFO o Sitio de impacto).",
+		"GEO_LAUNCH_CANCELLED":      "Lanzamiento cancelado.",
+		"GEO_HEADER_TARGET":         " SELECCIONAR OBJETIVO",
+
+		// ── Debrief ───────────────────────────────────────
+		"DEBRIEF_CYDONIA_VICTORY": "¡Asalto a Cydonia exitoso!",
+
+		// ── Messages ──────────────────────────────────────
+		"MSG_CIVILIAN": "Civil",
+	})
 }

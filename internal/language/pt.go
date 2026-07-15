@@ -311,6 +311,9 @@ func init() {
 		// Psi
 		"MSG_NEED_PSI_AMP":        "Precisa de Amplificador Psi para usar Psi.",
 		"MSG_SELECT_ALIEN_TARGET": "Selecione um alvo alien.",
+		"MSG_PSI_NO_TRAINING":     "O soldado não tem treinamento psi.",
+		"MSG_MISSION_TIME_LIMIT":  "TEMPO ESGOTADO! Missão falhou - limite de tempo excedido.",
+		"MSG_EXTRACTION_COMPLETE": "%d soldado(s) alcançaram a extração! Missão completa.",
 
 		// Vision modes
 		"MSG_VISION_NIGHT":   "VIS\u00c3O NOTURNA ATIVADA",
@@ -937,5 +940,36 @@ func init() {
 		"SIDE_HP_UNKNOWN":   "HP: ???",
 		"SIDE_ACC_UNKNOWN":  "ACC: ???",
 		"SIDE_TU_UNKNOWN":   "TU: ???",
-		})
+
+		// ── Slot Picker ──────────────────────────────────
+		"SLOT_PICKER_NEW":    "> [Novo slot]",
+		"SLOT_PICKER_BAR":    "[↑]/[↓]=Selecionar  Enter=Confirmar  [Esc]=Cancelar",
+
+		// ── Language Select ──────────────────────────────
+		"LANGUAGE_SELECT_TITLE": "SELECIONAR IDIOMA",
+		"LANGUAGE_SELECT_HELP":  "[↑]/[↓]=Selecionar  [Enter]=Confirmar  [Esc]=Voltar",
+
+		// ── Interceptor Status ───────────────────────────
+		"INTERCEPTOR_STATUS_ACTIVE": "Ativo",
+
+		// ── Alien Base ────────────────────────────────────
+		"GEO_ALIEN_BASE_DESTROYED":  "Base alienígena em %s destruída! Ameaça regional reduzida.",
+		"GEO_LAST_BASE_DESTROYED":   "Última base destruída!",
+		"GEO_INTERCEPTOR_DESTROYED": " | INTERCEPTOR DESTRUÍDO!",
+		"GEO_ALIEN_BASE_NAME":       "Base Alienígena #%d",
+		"GEO_ALIEN_BASE_ALERT":      "ALERTA: %s estabelecida! Ameaça crescente em %s.",
+		"GEO_ALIEN_BASE_LAUNCH":     "%s lançando %s de %s para %s.",
+		"GEO_CYDONIA_DETECTED":      "Localização de Cydonia detectada! Missão final pronta.",
+		"GEO_CYDONIA":               "Cydonia",
+		"GEO_NO_MISSION_HERE":       "Nenhuma missão neste local.",
+		"GEO_SELECT_TARGET":         "Selecionar alvo (UFO ou Local de impacto).",
+		"GEO_LAUNCH_CANCELLED":      "Lançamento cancelado.",
+		"GEO_HEADER_TARGET":         " SELECIONAR ALVO",
+
+		// ── Debrief ───────────────────────────────────────
+		"DEBRIEF_CYDONIA_VICTORY": "Assalto a Cydonia bem-sucedido!",
+
+		// ── Messages ──────────────────────────────────────
+		"MSG_CIVILIAN": "Civil",
+	})
 }

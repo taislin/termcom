@@ -239,7 +239,7 @@ func (gs *Geoscape) processBattleResult() {
 			if ab := gs.respondedAlienBase; ab != nil {
 				gs.destroyAlienBase(ab)
 				gs.respondedAlienBase = nil
-				gs.Message = fmt.Sprintf("Alien base at %s destroyed! Regional threat reduced.", gs.CityByID(ab.CityID).LangName())
+				gs.Message = fmt.Sprintf(language.String("GEO_ALIEN_BASE_DESTROYED"), gs.CityByID(ab.CityID).LangName())
 				gs.MessageTimer = time.Now()
 			} else if cityNode >= 0 {
 				if ab := gs.alienBaseAt(cityNode); ab != nil {
@@ -680,7 +680,7 @@ func (gs *Geoscape) destroyBase(b *base.Base) {
 	}
 	if len(gs.Bases) <= 1 {
 		gs.Message = fmt.Sprintf(language.String("MSG_BASE_DESTROYED"), b.Name)
-		gs.Game.GameOver(false, "Last base destroyed!")
+		gs.Game.GameOver(false, language.String("GEO_LAST_BASE_DESTROYED"))
 		gs.Victory = true
 		gs.Game.Paused = true
 		return
@@ -856,7 +856,7 @@ func (gs *Geoscape) updateDogfightVisual() {
 		gs.Message += fmt.Sprintf(language.String("MSG_UFO_HIT_INTERCEPTOR"), dv.UFODamage, inter.HP, inter.MaxHP)
 	}
 	if dv.InterDestroyed {
-		gs.Message += " | INTERCEPTOR DESTROYED!"
+		gs.Message += language.String("GEO_INTERCEPTOR_DESTROYED")
 	}
 
 	gs.MessageTimer = time.Now()
@@ -910,7 +910,7 @@ func (gs *Geoscape) dogfight(inter *Interceptor) {
 			})
 		}
 		if inter.State != nil {
-			inter.State.Status = "Available"
+			inter.State.Status = language.String("INTERCEPTOR_STATUS_AVAILABLE")
 			inter.State.HP = inter.HP
 		}
 	}
@@ -927,7 +927,7 @@ func (gs *Geoscape) dogfight(inter *Interceptor) {
 		interDestroyed = true
 		if inter.State != nil {
 			inter.State.HP = 0
-			inter.State.Status = "Destroyed"
+			inter.State.Status = language.String("INTERCEPTOR_STATUS_DESTROYED")
 		}
 	}
 
@@ -1091,14 +1091,14 @@ func (gs *Geoscape) tryEstablishBase(gameMonth int) {
 		TurnsAlive:      0,
 		LastMissionTick: gs.TickCounter,
 		DefendingUFOID:  -1,
-		Name:            fmt.Sprintf("Alien Base #%d", len(gs.AlienBases)+1),
+		Name:            fmt.Sprintf(language.String("GEO_ALIEN_BASE_NAME"), len(gs.AlienBases)+1),
 	}
 	gs.AlienBases = append(gs.AlienBases, ab)
 	target.Threat += 15
 	if target.Threat > 100 {
 		target.Threat = 100
 	}
-	gs.Message = fmt.Sprintf("ALERT: %s established! Threat rising in %s.", ab.Name, target.LangName())
+	gs.Message = fmt.Sprintf(language.String("GEO_ALIEN_BASE_ALERT"), ab.Name, target.LangName())
 	gs.MessageTimer = time.Now()
 	audio.PlayAlert()
 
@@ -1188,7 +1188,7 @@ func (gs *Geoscape) spawnMissionFromBase(ab *AlienBase) {
 	}
 	gs.Missions = append(gs.Missions, mission)
 	target.MissionHere = true
-	gs.Message = fmt.Sprintf("%s launching %s from %s to %s.",
+	gs.Message = fmt.Sprintf(language.String("GEO_ALIEN_BASE_LAUNCH"),
 		ab.Name, chosen, gs.CityByID(ab.CityID).LangName(), target.LangName())
 	gs.MessageTimer = time.Now()
 }
@@ -1246,12 +1246,12 @@ func (gs *Geoscape) triggerCydonia() {
 		return
 	}
 	gs.CydoniaTriggered = true
-	gs.Message = "Cydonia location detected! Final mission ready."
+	gs.Message = language.String("GEO_CYDONIA_DETECTED")
 	gs.MessageTimer = time.Now()
 
 	// Add Cydonia as a special mission
 	mission := &AlienMission{
-		Type:      "Alien Base Assault", // Reuse for Cydonia
+		Type:      language.String("GEO_CYDONIA"), // Reuse for Cydonia
 		NodeID:    0,                    // Special node for Cydonia
 		HoursLeft: 9999.0,               // Indefinite
 	}
@@ -1330,7 +1330,7 @@ func (gs *Geoscape) RespondToMission(idx int) {
 		ufoName = language.String("MISSION_TYPE_COUNCIL")
 	}
 	if mission.NodeID == 0 {
-		ufoName = "Cydonia"
+		ufoName = language.String("GEO_CYDONIA")
 		gs.ActiveFinalMission = true
 	}
 	if gs.ActiveBaseDefense != nil {
@@ -1502,7 +1502,7 @@ func min(a, b int) int {
 func (gs *Geoscape) enterMissionSelectMode() {
 	idx := gs.missionIndexAtCursor()
 	if idx < 0 {
-		gs.Message = "No mission at this location."
+		gs.Message = language.String("GEO_NO_MISSION_HERE")
 		gs.MessageTimer = time.Now()
 		return
 	}
@@ -1871,9 +1871,9 @@ func (gs *Geoscape) SetSpeed(s int) {
 func (gs *Geoscape) LaunchInterceptor() {
 	gs.TargetSelectionMode = !gs.TargetSelectionMode
 	if gs.TargetSelectionMode {
-		gs.Message = "Select target (UFO or Crash Site)."
+		gs.Message = language.String("GEO_SELECT_TARGET")
 	} else {
-		gs.Message = "Launch cancelled."
+		gs.Message = language.String("GEO_LAUNCH_CANCELLED")
 	}
 	gs.MessageTimer = time.Now()
 }
@@ -1895,7 +1895,7 @@ func (gs *Geoscape) confirmLaunch(target interface{}) {
 		}
 		baseCity := gs.CityByID(gs.SelectedBase().CityID)
 		interState := available[0]
-		interState.Status = "Active"
+		interState.Status = language.String("INTERCEPTOR_STATUS_ACTIVE")
 		inter := NewInterceptorFromState(interState, baseCity.X, baseCity.Y)
 		inter.LaunchAtUFO(t)
 		gs.Interceptors = append(gs.Interceptors, inter)
@@ -2056,7 +2056,7 @@ func (gs *Geoscape) renderRegionTable(ctx *engine.ScreenCtx, x, y, w, h int) {
 	// Header
 	var hdr string
 	if gs.TargetSelectionMode {
-		hdr = " SELECT TARGET"
+		hdr = language.String("GEO_HEADER_TARGET")
 	} else {
 		hdr = language.String("GEO_HEADER_REGION")
 	}

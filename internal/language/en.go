@@ -309,6 +309,9 @@ func init() {
 		// Psi
 		"MSG_NEED_PSI_AMP":        "Need Psi-Amplifier to use Psi.",
 		"MSG_SELECT_ALIEN_TARGET": "Select an alien target.",
+		"MSG_PSI_NO_TRAINING":     "Soldier has no psi training.",
+		"MSG_MISSION_TIME_LIMIT":  "TIME'S UP! Mission failed - exceeded time limit.",
+		"MSG_EXTRACTION_COMPLETE": "%d soldier(s) reached extraction! Mission complete.",
 
 		// Vision modes
 		"MSG_VISION_NIGHT":   "NIGHT VISION ON",
@@ -823,6 +826,7 @@ func init() {
 		"DEBRIEF_TITLE":              "AFTER ACTION REPORT",
 		"DEBRIEF_VICTORY":            "VICTORY",
 		"DEBRIEF_VICTORY_PROMPT":     "Press Enter, Space, or Esc to see victory screen",
+		"DEBRIEF_CYDONIA_VICTORY":    "Cydonia assault successful!",
 
 		// ── Dogfight ──────────────────────────────────────
 		"DOGFIGHT_HIT":           "HIT -%d!",
@@ -837,6 +841,10 @@ func init() {
 		"DTYPE_MELEE":     "Melee",
 		"DTYPE_PLASMA":    "Plasma",
 		"DTYPE_PSIONIC":   "Psionic",
+
+		// ── Language Select ──────────────────────────────
+		"LANGUAGE_SELECT_TITLE": "SELECT LANGUAGE",
+		"LANGUAGE_SELECT_HELP":  "[\u2191]/[\u2193]=Select  [Enter]=Confirm  [Esc]=Back",
 
 		// ── Encyclopedia ──────────────────────────────────
 		"ENCYCLO_MORPH_BODY":   "Body: %s %s | Arms: %d | Legs: %d",
@@ -872,8 +880,23 @@ func init() {
 
 		// ── Interceptor ───────────────────────────────────
 		"INTERCEPTOR_DEFAULT_NAME":     "Interceptor",
+		"INTERCEPTOR_STATUS_ACTIVE":    "Active",
 		"INTERCEPTOR_STATUS_AVAILABLE": "Available",
 		"INTERCEPTOR_STATUS_DESTROYED": "Destroyed",
+
+		// ── Alien Base ────────────────────────────────────
+		"GEO_ALIEN_BASE_DESTROYED": "Alien base at %s destroyed! Regional threat reduced.",
+		"GEO_LAST_BASE_DESTROYED":  "Last base destroyed!",
+		"GEO_INTERCEPTOR_DESTROYED": " | INTERCEPTOR DESTROYED!",
+		"GEO_ALIEN_BASE_NAME":      "Alien Base #%d",
+		"GEO_ALIEN_BASE_ALERT":     "ALERT: %s established! Threat rising in %s.",
+		"GEO_ALIEN_BASE_LAUNCH":    "%s launching %s from %s to %s.",
+		"GEO_CYDONIA_DETECTED":     "Cydonia location detected! Final mission ready.",
+		"GEO_CYDONIA":              "Cydonia",
+		"GEO_NO_MISSION_HERE":      "No mission at this location.",
+		"GEO_SELECT_TARGET":        "Select target (UFO or Crash Site).",
+		"GEO_LAUNCH_CANCELLED":     "Launch cancelled.",
+		"GEO_HEADER_TARGET":        " SELECT TARGET",
 
 		// ── Modifier Descriptions ─────────────────────────
 		"MODDESC_ALIEN_AMBUSH":   "Aliens start in overwatch positions.",
@@ -916,7 +939,9 @@ func init() {
 		"SIDE_TU_BAR_FULL": "TU %s %d/%d",
 
 		// ── Slot ──────────────────────────────────────────
-		"SLOT_FORMAT": "Slot %d: %s - $%dK",
+		"SLOT_FORMAT":        "Slot %d: %s - $%dK",
+		"SLOT_PICKER_NEW":    "> [New Slot]",
+		"SLOT_PICKER_BAR":    "[\u2191]/[\u2193]=Select  Enter=Confirm  [Esc]=Cancel",
 
 		// ── Weather ───────────────────────────────────────
 		"WEATHER_CLEAR": "Clear",
@@ -950,6 +975,7 @@ func init() {
 		"MSG_ALIEN_PSI_PANIC":     "%s psi attacks %s — PANICKED!",
 		"MSG_ALIEN_PSI_RESIST":    "%s psi attacks %s — resisted!",
 		"MSG_NO_PSI_TRAINING":     "Soldier has no psi training.",
+		"MSG_CIVILIAN":            "Civilian",
 		"HELP_RESEARCH_TREE":      "[↑]/[↓]=Select  Enter=Start  [Esc]=Back  [T]ree=Hide",
 		"RESEARCH_UNLOCK_ITEM":    "Item:",
 		"RESEARCH_UNLOCK_WEAPON":  "Weapon:",

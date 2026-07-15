@@ -311,6 +311,9 @@ func init() {
 		// Psi
 		"MSG_NEED_PSI_AMP": "초감각을 쓰려면 초감각 증폭기가 필요합니다.",
 		"MSG_SELECT_ALIEN_TARGET": "외계인 표적을 선택하십시오.",
+		"MSG_PSI_NO_TRAINING":     "병사가 사이킥 훈련을 받지 않았습니다.",
+		"MSG_MISSION_TIME_LIMIT":  "시간 초과! 미션 실패 - 제한 시간 초과.",
+		"MSG_EXTRACTION_COMPLETE": "%d명의 병사가 탈출 지점에 도달했습니다! 미션 완료.",
 
 		// Vision modes
 		"MSG_VISION_NIGHT": "야간 투시 켜짐",
@@ -937,5 +940,36 @@ func init() {
 		"SIDE_HP_UNKNOWN":   "HP: ???",
 		"SIDE_ACC_UNKNOWN":  "ACC: ???",
 		"SIDE_TU_UNKNOWN":   "TU: ???",
-		})
+
+		// ── Slot Picker ──────────────────────────────────
+		"SLOT_PICKER_NEW":    "> [새 슬롯]",
+		"SLOT_PICKER_BAR":    "[↑]/[↓]=선택  Enter=확인  [Esc]=취소",
+
+		// ── Language Select ──────────────────────────────
+		"LANGUAGE_SELECT_TITLE": "언어 선택",
+		"LANGUAGE_SELECT_HELP":  "[↑]/[↓]=선택  [Enter]=확인  [Esc]=뒤로",
+
+		// ── Interceptor Status ───────────────────────────
+		"INTERCEPTOR_STATUS_ACTIVE": "활성",
+
+		// ── Alien Base ────────────────────────────────────
+		"GEO_ALIEN_BASE_DESTROYED":  "%s의 외계 기지가 파괴되었습니다! 지역 위협 감소.",
+		"GEO_LAST_BASE_DESTROYED":   "마지막 기지가 파괴되었습니다!",
+		"GEO_INTERCEPTOR_DESTROYED": " | 요격기 격추!",
+		"GEO_ALIEN_BASE_NAME":       "외계 기지 #%d",
+		"GEO_ALIEN_BASE_ALERT":      "경보: %s 설치됨! %s에서 위협 증가 중.",
+		"GEO_ALIEN_BASE_LAUNCH":     "%s이(가) %s에서 %s(으)로 %s 발사.",
+		"GEO_CYDONIA_DETECTED":      "사이도니아 위치 감지! 최종 미션 준비 완료.",
+		"GEO_CYDONIA":               "사이도니아",
+		"GEO_NO_MISSION_HERE":       "이 위치에 미션이 없습니다.",
+		"GEO_SELECT_TARGET":         "목표 선택 (UFO 또는 추락 지점).",
+		"GEO_LAUNCH_CANCELLED":      "발사 취소됨.",
+		"GEO_HEADER_TARGET":         " 목표 선택",
+
+		// ── Debrief ───────────────────────────────────────
+		"DEBRIEF_CYDONIA_VICTORY": "사이도니아 공격 성공!",
+
+		// ── Messages ──────────────────────────────────────
+		"MSG_CIVILIAN": "민간인",
+	})
 }
