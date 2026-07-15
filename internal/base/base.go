@@ -5,19 +5,19 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/gdamore/tcell/v3"
 	"github.com/taislin/termcom/internal/audio"
 	"github.com/taislin/termcom/internal/data"
 	"github.com/taislin/termcom/internal/engine"
 	"github.com/taislin/termcom/internal/language"
-	"github.com/gdamore/tcell/v3"
 )
 
 type BaseScreen struct {
-	Game       *engine.Game
-	Base       *Base
-	Tab        int
-	Selection  int
-	Message    string
+	Game        *engine.Game
+	Base        *Base
+	Tab         int
+	Selection   int
+	Message     string
 	storesItems []string
 }
 
@@ -73,7 +73,7 @@ func (bs *BaseScreen) HireSoldier() {
 	ok, msg := bs.Base.HireSoldier()
 	if ok {
 		bs.Game.Funds -= int64(HireCost)
-		bs.Message = msg + fmt.Sprintf(" ($%dK)", HireCost/1000)
+		bs.Message = msg + fmt.Sprintf(language.String("MSG_HIRE_COST_SUFFIX"), HireCost/1000)
 	} else {
 		bs.Message = msg
 	}

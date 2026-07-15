@@ -116,6 +116,17 @@ func NewGame() (*Game, error) {
 		initialState = StateLanguageSelect
 	}
 
+	return newGameWithScreen(scr, initialState), nil
+}
+
+// NewGameWithScreen creates a Game with a pre-built ScreenRaw.
+// Used by the Android port where the screen is an androidScreen.
+func NewGameWithScreen(scr *ScreenRaw, initialState GameState) *Game {
+	audio.Init()
+	return newGameWithScreen(scr, initialState)
+}
+
+func newGameWithScreen(scr *ScreenRaw, initialState GameState) *Game {
 	g := &Game{
 		screen:         scr,
 		state:          initialState,
@@ -131,7 +142,7 @@ func NewGame() (*Game, error) {
 		ActionDelay:    Config.ActionDelay,
 	}
 	g.initSpecies()
-	return g, nil
+	return g
 }
 
 // NewGameWeb creates a Game backed by an in-memory virtual screen (no real TTY).
@@ -431,6 +442,12 @@ func (g *Game) PopState() {
 
 func (g *Game) ScreenSize() (int, int) {
 	return g.screen.Size()
+}
+
+// Stop signals the game loop to exit on its next iteration.
+// Used by the Android port to cleanly shut down the background goroutine.
+func (g *Game) Stop() {
+	g.running = false
 }
 
 func (g *Game) Quit() {
