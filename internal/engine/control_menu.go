@@ -22,6 +22,8 @@ type ControlMenu struct {
 	screenH    int
 }
 
+var HideTouchOverlay = false
+
 var Menu = &ControlMenu{}
 
 func (cm *ControlMenu) Toggle() {
@@ -93,7 +95,7 @@ func (cm *ControlMenu) buttonRects() []Rect {
 }
 
 func (cm *ControlMenu) Render(s *ScreenRaw) {
-	if !cm.Visible || !Config.TouchMode {
+	if HideTouchOverlay || !cm.Visible || !Config.TouchMode {
 		return
 	}
 	w, h := s.Size()
@@ -191,5 +193,5 @@ func (cm *ControlMenu) HandleMouse(ev *tcell.EventMouse) bool {
 }
 
 func (cm *ControlMenu) HamburgerHit(x, y int) bool {
-	return cm.Visible && Config.TouchMode && x >= cm.screenW-4 && x <= cm.screenW-1 && y == 0
+	return !HideTouchOverlay && cm.Visible && Config.TouchMode && x >= cm.screenW-4 && x <= cm.screenW-1 && y == 0
 }

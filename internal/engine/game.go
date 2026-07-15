@@ -313,7 +313,7 @@ func (g *Game) Run() {
 		}
 
 		// Render control menu overlay (hamburger always visible in touch mode)
-		if Config.TouchMode {
+		if Config.TouchMode && !HideTouchOverlay {
 			w, h := g.screen.Size()
 			Menu.SetScreenSize(w, h)
 			if !Menu.Visible {
@@ -385,7 +385,7 @@ func (g *Game) drainEvents() {
 					continue
 				}
 				// Let control menu consume the event first
-				if Config.TouchMode {
+				if Config.TouchMode && !HideTouchOverlay {
 					x, y := e.Position()
 					if Menu.HamburgerHit(x, y) {
 						Menu.Toggle()

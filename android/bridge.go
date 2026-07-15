@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/gdamore/tcell/v3"
-	"github.com/taislin/termcom/internal/audio"
 	"github.com/taislin/termcom/internal/base"
 	"github.com/taislin/termcom/internal/battle"
 	"github.com/taislin/termcom/internal/data"
@@ -18,6 +17,58 @@ import (
 	"github.com/taislin/termcom/internal/save"
 	"github.com/taislin/termcom/internal/soldier"
 )
+
+type customBattleDef struct {
+	Name      string `json:"name"`
+	Night     bool   `json:"night"`
+	Map       struct {
+		Generator string `json:"generator"`
+		Width     int    `json:"width"`
+		Height    int    `json:"height"`
+	} `json:"map"`
+	Soldiers  []struct {
+		Name      string `json:"name"`
+		Rank      int    `json:"rank"`
+		HP        int    `json:"hp"`
+		TU        int    `json:"tu"`
+		Accuracy  int    `json:"accuracy"`
+		Reactions int    `json:"reactions"`
+		Strength  int    `json:"strength"`
+		Weapon    string `json:"weapon"`
+		Armor     string `json:"armor"`
+		X         int    `json:"x"`
+		Y         int    `json:"y"`
+	} `json:"soldiers"`
+	Aliens    []struct {
+		Name       string `json:"name"`
+		HP         int    `json:"hp"`
+		TU         int    `json:"tu"`
+		Accuracy   int    `json:"accuracy"`
+		Bravery    int    `json:"bravery"`
+		Reactions  int    `json:"reactions"`
+		Strength   int    `json:"strength"`
+		Psi        int    `json:"psi"`
+		Armour     int    `json:"armour"`
+		Weapon     string `json:"weapon"`
+		Rank       int    `json:"rank"`
+		DamageType int    `json:"damage_type"`
+		Aggression int    `json:"aggression"`
+		X          int    `json:"x"`
+		Y          int    `json:"y"`
+	} `json:"aliens"`
+	Civilians []struct {
+		Name string `json:"name"`
+		X    int    `json:"x"`
+		Y    int    `json:"y"`
+	} `json:"civilians"`
+	Victory struct {
+		Condition   string `json:"condition"`
+		Turns       int    `json:"turns"`
+		TargetX     int    `json:"target_x"`
+		TargetY     int    `json:"target_y"`
+		MinSoldiers int    `json:"min_soldiers"`
+	} `json:"victory"`
+}
 
 // GameBridge is the exported interface for gomobile bind.
 // Java calls these methods after loading the shared library.
@@ -41,6 +92,7 @@ func NewGame(dataDir string, cols, rows int) *GameBridge {
 
 	engine.LoadConfig()
 	engine.Config.TouchMode = true
+	engine.HideTouchOverlay = true
 
 	as := newAndroidScreen(cols, rows)
 	scr := engine.NewScreenRawWithScreen(as, cols, rows)
@@ -274,6 +326,54 @@ func (b *GameBridge) FrameData() []byte {
 func (b *GameBridge) SetLanguage(lang string) {
 	language.SetLanguage(lang)
 	engine.Config.Language = lang
+}
+
+// FrameListener is called when a new frame is ready to be drawn.
+type FrameListener interface {
+	OnFrameReady()
+}
+
+// SetFrameListener registers a callback to be invoked on every frame flush.
+func (b *GameBridge) SetFrameListener(l FrameListener) {
+	if b.as != nil {
+		b.as.onShow = func() {
+			if l != nil {
+				l.OnFrameReady()
+			}
+		}
+	}
+}
+
+// GetButtonsJSON returns the current active control buttons as a JSON string.
+func (b *GameBridge) GetButtonsJSON() string {
+	type JavaButton struct {
+		Label   string `json:"label"`
+		Enabled bool   `json:"enabled"`
+		Index   int    `json:"index"`
+	}
+	var res []JavaButton
+	for i, btn := range engine.Menu.Buttons {
+		res = append(res, JavaButton{
+			Label:   btn.Label,
+			Enabled: btn.Enabled,
+			Index:   i,
+		})
+	}
+	data, err := json.Marshal(res)
+	if err != nil {
+		return "[]"
+	}
+	return string(data)
+}
+
+// ClickButton triggers the action of the button at the specified index.
+func (b *GameBridge) ClickButton(index int) {
+	if index >= 0 && index < len(engine.Menu.Buttons) {
+		btn := engine.Menu.Buttons[index]
+		if btn.Enabled && btn.Action != nil {
+			btn.Action()
+		}
+	}
 }
 
 func (b *GameBridge) launchCustomBattle(path string) {

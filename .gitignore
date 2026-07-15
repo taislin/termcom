@@ -41,3 +41,4 @@ _assets/
 autosave.json
 config.json
 /scenario_creator
+/build_android.ps1

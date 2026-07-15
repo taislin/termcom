@@ -21,6 +21,10 @@ type ScreenRaw struct {
 	fb     *FrameBuffer
 }
 
+func NewScreenRawWithScreen(s tcell.Screen, w, h int) *ScreenRaw {
+	return &ScreenRaw{screen: s, width: w, height: h, fb: NewFrameBuffer(w, h)}
+}
+
 func NewScreenRaw() (*ScreenRaw, error) {
 	s, err := tcell.NewScreen()
 	if err != nil {

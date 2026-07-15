@@ -10,8 +10,12 @@ android {
         applicationId = "com.taislin.termcom"
         minSdk = 21
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 469
+        versionName = "0.46.9"
+
+        ndk {
+            abiFilters += listOf("arm64-v8a")
+        }
     }
 
     buildTypes {

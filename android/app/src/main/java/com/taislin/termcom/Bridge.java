@@ -1,17 +1,20 @@
 package com.taislin.termcom;
 
+import android.GameBridge;
+import android.Android;
+
 /**
  * Bridge wraps the gomobile-generated GameBridge class with a clean static API.
- * The Go package "android" produces termcom.termcom.android.Android (static factory)
- * and termcom.termcom.android.GameBridge (instance).
+ * The Go package "android" produces android.Android (static factory)
+ * and android.GameBridge (instance).
  */
 public class Bridge {
 
-    private static termcom.termcom.android.GameBridge bridge;
+    private static GameBridge bridge;
 
     public static void init(String dataDir, int cols, int rows) {
         if (bridge == null) {
-            bridge = termcom.termcom.android.Android.newGame(dataDir, cols, rows);
+            bridge = Android.newGame(dataDir, cols, rows);
         }
     }
 
@@ -44,16 +47,29 @@ public class Bridge {
     }
 
     public static int frameWidth() {
-        if (bridge != null) return bridge.frameWidth();
+        if (bridge != null) return (int)bridge.frameWidth();
         return 0;
     }
 
     public static int frameHeight() {
-        if (bridge != null) return bridge.frameHeight();
+        if (bridge != null) return (int)bridge.frameHeight();
         return 0;
     }
 
     public static void setLanguage(String lang) {
         if (bridge != null) bridge.setLanguage(lang);
+    }
+
+    public static void setFrameListener(android.FrameListener listener) {
+        if (bridge != null) bridge.setFrameListener(listener);
+    }
+
+    public static String getButtonsJSON() {
+        if (bridge != null) return bridge.getButtonsJSON();
+        return "[]";
+    }
+
+    public static void clickButton(int index) {
+        if (bridge != null) bridge.clickButton(index);
     }
 }

@@ -70,15 +70,15 @@ func (fb *FrameBuffer) Height() int {
 	return fb.h
 }
 
-// MarshalBinary encodes the framebuffer as 8 bytes per cell:
-// [rune_lo, rune_hi, fg_r, fg_g, fg_b, bg_r, bg_g, attr].
+// MarshalBinary encodes the framebuffer as 9 bytes per cell:
+// [rune_lo, rune_hi, fg_r, fg_g, fg_b, bg_r, bg_g, bg_b, attr].
 // Runes are limited to BMP (U+0000-U+FFFF) per project convention.
 // Color components are 0-255. Attr is tcell.AttrMask as a byte.
 func (fb *FrameBuffer) MarshalBinary() []byte {
 	n := len(fb.cells)
-	data := make([]byte, n*8)
+	data := make([]byte, n*9)
 	for i, cd := range fb.cells {
-		off := i * 8
+		off := i * 9
 		r := uint16(cd.Ch)
 		data[off+0] = byte(r)
 		data[off+1] = byte(r >> 8)
@@ -86,10 +86,11 @@ func (fb *FrameBuffer) MarshalBinary() []byte {
 		data[off+2] = byte(fr)
 		data[off+3] = byte(fg)
 		data[off+4] = byte(fbCol)
-		br, bg, _ := cd.Bg.RGB()
+		br, bg, bb := cd.Bg.RGB()
 		data[off+5] = byte(br)
 		data[off+6] = byte(bg)
-		data[off+7] = byte(cd.Attr)
+		data[off+7] = byte(bb)
+		data[off+8] = byte(cd.Attr)
 	}
 	return data
 }
