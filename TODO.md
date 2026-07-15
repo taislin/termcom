@@ -141,3 +141,55 @@ Ref: `Soldier.cpp:1374-1409`
 - Phase 6.1 (`HasBattleMod` wiring) is recommended to make the already-shipped Perk
   system actually matter in combat.
 - Phase 6.3 (Mana) is the highest-effort item; treat as optional.
+
+---
+
+# Mobile-Friendly Port
+
+Scope: enable playable mobile experience in the browser via touch, collapsible sidebars,
+and an expandable on-screen control menu. Everything lives in the Go engine (shared
+between terminal + web); mobile-only behaviour activates when `cols < 100` (auto-detected
+on web connect). The control menu only appears when the user taps the hamburger `☰` toggle.
+
+---
+
+## Phase 1 — Touch input pipeline
+| # | Task | File(s) | Detail |
+|---|------|---------|--------|
+| 1 | Config: `TouchMode bool`, `TouchButtonSize int` | `internal/engine/config.go` | New JSON fields; default button size 4. `TouchMode` set automatically on web connect when `cols < 100`, also toggleable in Options. |
+| 2 | `Game.InjectMouse(ev)` method | `internal/engine/game.go` | Matches existing `InjectKey`/`InjectResize`; posts `*tcell.EventMouse` to `g.keyChan`. |
+| 3 | WebSocket message type `"mouse"` | `cmd/webserver/main.go`, `web/server.go` | New `MouseHandler func(x, y int, button string)`; creates `tcell.NewEventMouse` and calls `g.InjectMouse`. |
+| 4 | Browser touch → cell coords | `web/index.html` | `touchstart`/`touchend` listeners → `cellX = floor(touchX / (elW / cols))`, `cellY = floor(touchY / (elH / rows))` → send `{"type":"mouse","cols":x,"rows":y,"data":"left"}`. |
+| 5 | Smaller default web terminal | `cmd/webserver/main.go` | Initialize at 80×40 on mobile connect instead of 220×50. |
+
+## Phase 2 — Responsive collapsible layouts
+| # | Task | File(s) | Detail |
+|---|------|---------|--------|
+| 6 | `LayoutManager` helper | `internal/engine/layout.go` (new) | Modes: `full`, `sidebar-collapsed`, `mobile`; holds `SidebarVisible bool`, `ToggleSidebar()`; provides viewport/sidebar/control-area dimensions per mode. |
+| 7 | **Battlescape**: collapsible sidebar | `internal/battle/battlescape.go` | Collapsed: viewport full-width, unit info → 2-line top banner. Uses `LayoutManager.ViewportSize()`. |
+| 8 | **Geoscape**: hide minimap | `internal/geo/geoscape.go` | Table full-width; minimap collapsed → mini status bar showing only ufo/event count. |
+| 9 | **Equip/Research/Manufacture**: single-column | `internal/base/equip.go`, `research.go`, `manufacture.go` | Scrollable vertical layout instead of left/right split; selected item shows detail popup. |
+| 10 | **Encyclopedia**: stack panels | `internal/engine/encyclopedia.go` | List top, detail bottom (or full-screen detail). |
+| 11 | **CustomBattle**: stack panels | `internal/engine/custom_battle.go` | Mission list top, detail bottom. |
+| 12 | Help bar: enlarged touch zones | All screens with help bar | In `mobile` mode, each `[hotkey]` segment gets min 3-cell-wide hit area. |
+
+## Phase 3 — Expandable control menu
+| # | Task | File(s) | Detail |
+|---|------|---------|--------|
+| 13 | `ControlMenu` struct + rendering | `internal/engine/control_menu.go` (new) | Button array; each button = `label, actionKey, enabled bool`; renders as white-on-black rectangles with 1-cell gap; grid-aligns at bottom-right; scrollable if many buttons. |
+| 14 | Control menu lifecycle | `internal/engine/control_menu.go` | Toggle visible/hidden via hamburger `☰` at `(w-4, 0)`; in `TouchMode` the hamburger is always visible. |
+| 15 | Hook into game loop | `internal/engine/game.go` | Render control menu after screen `Render()` but before `Flush()`; touch events consumed by menu first, fall through to screen if missed. |
+| 16 | **Battlescape** buttons | `internal/battle/battlescape.go` | `[Select] [Move] [Fire] [Reload] [End Turn] [Grenade] [Medikit] [Crouch] [Cycle] [Cancel]` |
+| 17 | **Geoscape** buttons | `internal/geo/geoscape.go` | `[Pause] [1×] [2×] [3×] [4×] [Base] [Launch] [Save] [Load]` |
+| 18 | **Base/Equip/Research/Manufacture** buttons | `internal/base/*.go` | `[Facilities] [Soldiers] [Research] [Manufacture] [Transfer] [Hangars] [Back]` |
+| 19 | **Menu/Options/Difficulty/etc** buttons | `internal/engine/*.go` | Help bar hotkeys, option toggles, selection confirm. |
+| 20 | Auto-show on first touch | `internal/engine/control_menu.go` | In `TouchMode`, first touch on a screen reveals the control menu automatically (dismiss with `☰` or tap outside). |
+
+## Phase 4 — Polish & mobile ergonomics
+| # | Task | Detail |
+|---|------|--------|
+| 21 | Default mobile terminal size | Init web terminal at portrait-friendly 50×120 on narrow connect. |
+| 22 | Tap debounce | 250ms window to suppress double-tap; long-press (≥500ms) → right-click. |
+| 23 | Touch scrolling | List areas scroll on vertical drag in `mobile` mode. |
+| 24 | CSS viewport tuning | Remove `user-scalable=no`; ensure xterm.js scales to mobile viewport. |
+| 25 | Document mobile key bindings | Add to `AGENTS.md` and `docs/manual.md`.
