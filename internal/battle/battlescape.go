@@ -1710,6 +1710,8 @@ func (bs *Battlescape) FireWeapon() {
 			msg = language.String("MSG_NOT_ENOUGH_TU")
 		case strings.Contains(msg, "out of ammo"):
 			msg = language.String("MSG_OUT_OF_AMMO")
+		default:
+			msg = language.String("MSG_WEAPON_ERROR")
 		}
 		bs.AddMessage(msg)
 		return

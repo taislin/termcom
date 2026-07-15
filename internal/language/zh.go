@@ -967,6 +967,7 @@ func init() {
 
 		// ── Messages ──────────────────────────────────────
 		"MSG_CIVILIAN":         "平民",
+		"MSG_WEAPON_ERROR":        "Cannot fire weapon.",
 		"MSG_HIRE_COST_SUFFIX": " ($%dK)",
 		// ── Geoscape Messages ──
 		"MSG_MISSION_IGNORED":          "Mission ignored.",

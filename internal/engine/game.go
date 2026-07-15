@@ -539,8 +539,8 @@ func (g *Game) setupControlMenu() {
 		})
 	default:
 		Menu.SetButtons([]ControlButton{
-			{Label: "Back", Hotkey: "Esc", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyEscape, "", tcell.ModNone)) }},
-			{Label: "Help", Hotkey: "?", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "?", tcell.ModNone)) }},
+			{Label: language.String("CTRL_BACK"), Hotkey: "Esc", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyEscape, "", tcell.ModNone)) }},
+			{Label: language.String("CTRL_HELP"), Hotkey: "?", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "?", tcell.ModNone)) }},
 		})
 	}
 }
