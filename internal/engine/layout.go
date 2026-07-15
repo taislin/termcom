@@ -42,7 +42,10 @@ func (lm *LayoutManager) ToggleGeoMinimap() {
 }
 
 func (lm *LayoutManager) BattleSidebarWidth(w int) int {
-	if !lm.BattleSidebarOpen || lm.IsMobile() {
+	if lm.IsMobile() {
+		return w - 2
+	}
+	if !lm.BattleSidebarOpen {
 		return 0
 	}
 	sw := w / 3
@@ -52,7 +55,24 @@ func (lm *LayoutManager) BattleSidebarWidth(w int) int {
 	return sw
 }
 
+// BattleSidebarY returns the screen row where the sidebar begins. On mobile the
+// sidebar is stacked underneath the (top) battle view; on desktop it sits beside
+// the view at the top.
+func (lm *LayoutManager) BattleSidebarY(h int) int {
+	if lm.IsMobile() {
+		return lm.BattleViewHeight(h) + 3
+	}
+	return 1
+}
+
 func (lm *LayoutManager) BattleViewWidth(w int) int {
+	if lm.IsMobile() {
+		vw := 10
+		if vw > w-2 {
+			vw = w - 2
+		}
+		return vw
+	}
 	sw := lm.BattleSidebarWidth(w)
 	if sw == 0 {
 		return w - 2
@@ -65,6 +85,9 @@ func (lm *LayoutManager) BattleViewWidth(w int) int {
 }
 
 func (lm *LayoutManager) BattleViewHeight(h int) int {
+	if lm.IsMobile() {
+		return 10
+	}
 	return h - 5
 }
 
@@ -74,7 +97,10 @@ func (lm *LayoutManager) BattleSidebarX(w int) int {
 }
 
 func (lm *LayoutManager) GeoTableWidth(w int) int {
-	if lm.IsMobile() || !lm.GeoMinimapOpen {
+	if lm.IsMobile() {
+		return w - 2
+	}
+	if !lm.GeoMinimapOpen {
 		return w - 2
 	}
 	tw := w * 60 / 100
@@ -85,7 +111,10 @@ func (lm *LayoutManager) GeoTableWidth(w int) int {
 }
 
 func (lm *LayoutManager) GeoMapWidth(w int) int {
-	if lm.IsMobile() || !lm.GeoMinimapOpen {
+	if lm.IsMobile() {
+		return w - 2
+	}
+	if !lm.GeoMinimapOpen {
 		return 0
 	}
 	tw := lm.GeoTableWidth(w)
@@ -93,6 +122,9 @@ func (lm *LayoutManager) GeoMapWidth(w int) int {
 }
 
 func (lm *LayoutManager) GeoMapX(w int) int {
+	if lm.IsMobile() {
+		return 1
+	}
 	tw := lm.GeoTableWidth(w)
 	return tw + 2
 }

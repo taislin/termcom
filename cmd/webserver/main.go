@@ -54,6 +54,10 @@ func main() {
 		}
 	}
 
+	// Force a full repaint whenever the game switches screens so stale cells
+	// from the previous screen don't linger as artifacts on the web client.
+	g.OnScreenChange = wr.ForceRepaint
+
 	// Forward keyboard input from browser to the game.
 	web.InputHandler = func(input string) {
 		ev := parseKeyEvent(input)

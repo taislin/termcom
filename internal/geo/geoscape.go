@@ -138,6 +138,15 @@ func (gs *Geoscape) UFOCount() int        { return len(gs.UFOs) }
 func (gs *Geoscape) MissionCount() int     { return len(gs.Missions) }
 func (gs *Geoscape) HasSelectedBase() bool { return gs.SelectedBase() != nil }
 
+// CanConfirm reports whether the Enter key currently performs a meaningful
+// action (i.e. confirming an interceptor launch at a selected target).
+func (gs *Geoscape) CanConfirm() bool {
+	if gs.TargetSelectionMode {
+		return len(gs.getTargets()) > 0
+	}
+	return false
+}
+
 // processBattleResult handles battle resolution and pushes the debrief screen.
 func (gs *Geoscape) processBattleResult() {
 	r := gs.Game.ActiveBattle
@@ -1926,6 +1935,18 @@ func (gs *Geoscape) Render(ctx *engine.ScreenCtx) {
 	mapW := engine.Layout.GeoMapWidth(w)
 	mapX := engine.Layout.GeoMapX(w)
 
+	mobile := engine.Layout.IsMobile()
+	tableX, tableY, tableH := 1, 1, h-7
+	miniX, miniY, miniH := mapX, 1, h-7
+	if mobile {
+		// Stack vertically: region table on top, world map below it.
+		half := (h - 7) / 2
+		tableX, tableY, tableH = 1, 1, half
+		miniX, miniY, miniH = 1, half+2, (h-7)-half-1
+		mapW = w - 2
+		mapX = 1
+	}
+
 	// Clear
 	for y := 1; y < h-5; y++ {
 		for x := 1; x < w-1; x++ {
@@ -1933,9 +1954,9 @@ func (gs *Geoscape) Render(ctx *engine.ScreenCtx) {
 		}
 	}
 
-	gs.renderRegionTable(ctx, 1, 1, tableW-1, h-7)
+	gs.renderRegionTable(ctx, tableX, tableY, tableW-1, tableH)
 	if mapW > 0 {
-		gs.renderMinimap(ctx, mapX, 1, mapW-1, h-7)
+		gs.renderMinimap(ctx, miniX, miniY, mapW-1, miniH)
 	}
 
 	// Bottom status

@@ -50,6 +50,7 @@ type geoView interface {
 	UFOCount() int
 	MissionCount() int
 	HasSelectedBase() bool
+	CanConfirm() bool
 }
 type battleView interface {
 	HasSelectedUnit() bool
@@ -77,8 +78,10 @@ type Game struct {
 	state       GameState
 	stateStack  []GameState
 	running     bool
-	quitConfirm bool
-	transition  float64 // 1.0 right after a state change, eases to 0 (fade-from-black)
+	quitConfirm    bool
+	confirmYesRect Rect
+	confirmNoRect  Rect
+	transition     float64 // 1.0 right after a state change, eases to 0 (fade-from-black)
 
 	GameTime   time.Time
 	TimeSpeed  int
@@ -108,6 +111,16 @@ type Game struct {
 	OnContinue     func()
 	OnLoadGame     func()
 	OnCustomBattle func()
+
+	// OnScreenChange is invoked by the main loop whenever the active game
+	// state changes (e.g. menu -> geoscape -> battlescape). Frontends that use
+	// a differential renderer (web, android) hook this to force a full repaint
+	// so stale cells from the previous screen don't linger as artifacts.
+	OnScreenChange func()
+
+	// lastState tracks the previously rendered state so the loop can detect
+	// transitions and fire OnScreenChange exactly once per switch.
+	lastState GameState
 
 	WebNotice string
 }
@@ -317,6 +330,16 @@ func (g *Game) Run() {
 		g.screen.DrawRect(0, 0, w, h, ' ', StyleDefault)
 		g.drainEvents()
 
+		// On a screen/state transition, ask the frontend to do a full
+		// repaint so differential renderers (web, android) don't leave
+		// cells from the previous screen behind as artifacts.
+		if g.state != g.lastState {
+			g.lastState = g.state
+			if g.OnScreenChange != nil {
+				g.OnScreenChange()
+			}
+		}
+
 		if sc, ok := g.screens[g.state]; ok {
 			sc.Update()
 		}
@@ -394,6 +417,16 @@ func (g *Game) drainEvents() {
 				}
 			case *tcell.EventMouse:
 				if g.quitConfirm {
+					if e.Buttons() != tcell.ButtonNone {
+						x, y := e.Position()
+						if inRect(x, y, g.confirmYesRect) {
+							g.running = false
+							return
+						}
+						if inRect(x, y, g.confirmNoRect) {
+							g.quitConfirm = false
+						}
+					}
 					continue
 				}
 				// Let control menu consume the event first
@@ -485,6 +518,30 @@ func (g *Game) renderQuitConfirm(ctx *ScreenCtx) {
 	ctx.DrawString(x+(boxW-StringWidth(msg))/2, y+2, msg, StyleDefault)
 	hint := language.String("CONFIRM_QUIT_HINT")
 	ctx.DrawString(x+(boxW-StringWidth(hint))/2, y+4, hint, StyleGray)
+
+	if Config.TouchMode {
+		yesLabel := language.String("CTRL_YES")
+		noLabel := language.String("CTRL_NO")
+		btnW := 16
+		gap := 4
+		totalW := btnW*2 + gap
+		by := y + boxH - 2
+		bx := x + (boxW-totalW)/2
+		yesRect := Rect{bx, by, btnW, 1}
+		noRect := Rect{bx + btnW + gap, by, btnW, 1}
+		g.confirmYesRect = yesRect
+		g.confirmNoRect = noRect
+		for _, r := range []Rect{yesRect, noRect} {
+			for dy := 0; dy < r.H; dy++ {
+				for dx := 0; dx < r.W; dx++ {
+					ctx.SetCell(r.X+dx, r.Y+dy, ' ', StyleDefault)
+				}
+			}
+			ctx.DrawBorder(r.X, r.Y, r.W, r.H, StyleDefault)
+		}
+		ctx.DrawString(yesRect.X+(yesRect.W-StringWidth(yesLabel))/2, yesRect.Y, yesLabel, StyleDefault)
+		ctx.DrawString(noRect.X+(noRect.W-StringWidth(noLabel))/2, noRect.Y, noLabel, StyleDefault)
+	}
 }
 
 func (g *Game) Bell() {
@@ -506,6 +563,7 @@ func (g *Game) setupControlMenu() {
 		gs, _ := g.screens[StateGeoscape].(geoView)
 		menu := func() []ControlButton {
 			btns := []ControlButton{
+				{Label: language.String("CTRL_CONFIRM"), Hotkey: "Enter", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyEnter, "", tcell.ModNone)) }},
 				{Label: language.String("CTRL_PAUSE"), Hotkey: "Space", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, " ", tcell.ModNone)) }},
 				{Label: language.String("CTRL_SPEED_1"), Hotkey: "1", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "1", tcell.ModNone)) }},
 				{Label: language.String("CTRL_SPEED_2"), Hotkey: "2", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "2", tcell.ModNone)) }},
@@ -526,10 +584,11 @@ func (g *Game) setupControlMenu() {
 				btns[i].Enabled = true
 			}
 			if gs != nil {
-				btns[7].Enabled = gs.UFOCount() > 0     // Autoresolve needs a UFO
-				btns[9].Enabled = gs.MissionCount() > 0 // Dispatch needs a mission
-				btns[10].Enabled = gs.HasSelectedBase() // Encyclopedia needs a base
-				btns[5].Enabled = gs.HasSelectedBase()  // Base needs a base
+				btns[0].Enabled = gs.CanConfirm()        // Confirm launch at target
+				btns[8].Enabled = gs.UFOCount() > 0      // Autoresolve needs a UFO
+				btns[10].Enabled = gs.MissionCount() > 0 // Dispatch needs a mission
+				btns[11].Enabled = gs.HasSelectedBase()  // Encyclopedia needs a base
+				btns[6].Enabled = gs.HasSelectedBase()   // Base needs a base
 			}
 			return btns
 		}
@@ -639,4 +698,8 @@ func (g *Game) setupControlMenu() {
 		})
 		g.controlMenuEval = nil
 	}
+}
+
+func inRect(x, y int, r Rect) bool {
+	return x >= r.X && x < r.X+r.W && y >= r.Y && y < r.Y+r.H
 }

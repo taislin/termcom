@@ -1025,6 +1025,9 @@ func init() {
 		"CTRL_TRANSFER":    "Transfer",
 		"CTRL_HANGARS":     "Hangars",
 		"CTRL_BACK":        "Back",
+		"CTRL_CONFIRM":     "确认",
+		"CTRL_YES":         "是",
+		"CTRL_NO":          "否",
 
 		"CTRL_AUTORESOLVE": "自动解决",
 		"CTRL_RESPOND":     "响应",

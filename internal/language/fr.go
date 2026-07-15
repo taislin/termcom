@@ -1030,6 +1030,9 @@ func init() {
 		"CTRL_TRANSFER":    "Transfer",
 		"CTRL_HANGARS":     "Hangars",
 		"CTRL_BACK":        "Back",
+		"CTRL_CONFIRM":     "Confirmer",
+		"CTRL_YES":         "Oui",
+		"CTRL_NO":          "Non",
 
 		"CTRL_AUTORESOLVE": "Auto-Rés",
 		"CTRL_RESPOND":     "Répondre",

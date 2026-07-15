@@ -1028,6 +1028,9 @@ func init() {
 		"CTRL_TRANSFER":    "Transfer",
 		"CTRL_HANGARS":     "Hangars",
 		"CTRL_BACK":        "Back",
+		"CTRL_CONFIRM":     "Подтвердить",
+		"CTRL_YES":         "Да",
+		"CTRL_NO":          "Нет",
 
 		"CTRL_AUTORESOLVE": "Авто-Бой",
 		"CTRL_RESPOND":     "Ответ",

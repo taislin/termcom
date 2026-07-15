@@ -1030,6 +1030,9 @@ func init() {
 		"CTRL_TRANSFER":    "Transfer",
 		"CTRL_HANGARS":     "Hangars",
 		"CTRL_BACK":        "Back",
+		"CTRL_CONFIRM":     "확인",
+		"CTRL_YES":         "예",
+		"CTRL_NO":          "아니오",
 
 		"CTRL_AUTORESOLVE": "자동전투",
 		"CTRL_RESPOND":     "대응",

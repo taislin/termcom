@@ -755,17 +755,19 @@ func (bs *Battlescape) Update() {
 		}
 	*/
 
+	// If a projectile is mid-flight, advance it every frame regardless of phase
+	// (alien reaction fire is spawned during the player's own turn, so gating this
+	// on PhaseAlienTurn would leave the tracer frozen on the map).
+	if bs.Projectile != nil {
+		bs.Projectile.Progress++
+		if bs.Projectile.Progress >= bs.Projectile.Length {
+			bs.Projectile = nil
+		}
+		return
+	}
+
 	// Process Alien Turn: execute actions from the queue with a delay between them.
 	if bs.Phase == PhaseAlienTurn {
-		// If a projectile is mid-flight, block other actions until it hits.
-		if bs.Projectile != nil {
-			bs.Projectile.Progress++
-			if bs.Projectile.Progress >= bs.Projectile.Length {
-				bs.Projectile = nil
-			}
-			return
-		}
-
 		// Delay between individual alien actions for visual pacing.
 		if bs.ActionDelay > 0 {
 			bs.ActionDelay--
@@ -2562,6 +2564,12 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 			style = engine.StyleRedBold
 			if u.AlienType != nil {
 				style = u.AlienType.Style
+				// A transparent/default foreground renders black on most
+				// terminals; fall back to the red alien style so the unit
+				// stays visible.
+				if style.GetForeground() == tcell.ColorDefault {
+					style = engine.StyleRedBold
+				}
 			}
 			if engine.Config.BloomEnabled {
 				bloomColor := tcell.NewRGBColor(255, 50, 50)
@@ -2683,19 +2691,37 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 	bs.drawFloaters(ctx)
 
 	if bs.SidebarW > 0 {
-		// Draw sidebar border
-		sidebarX := viewW + 2
-		for y := 0; y < viewH; y++ {
-			ctx.SetCell(sidebarX-1, y+1, '|', engine.StyleGray)
+		mobile := engine.Layout.IsMobile()
+		// On mobile the sidebar is stacked underneath the (top) battle view;
+		// on desktop it is a column to the right of the view.
+		sideX := viewW + 2
+		sideY0 := 1
+		sideH := viewH
+		if mobile {
+			sideX = 1
+			sideY0 = engine.Layout.BattleSidebarY(h)
+			sideH = h - sideY0 - 5
+			if sideH < 3 {
+				sideH = 3
+			}
+			// Horizontal divider between the view and the sidebar.
+			for x := 0; x < w; x++ {
+				ctx.SetCell(x, sideY0-1, '─', engine.StyleGray)
+			}
+		} else {
+			// Vertical divider between the view and the sidebar.
+			for y := 0; y < viewH; y++ {
+				ctx.SetCell(sideX-1, y+1, '|', engine.StyleGray)
+			}
 		}
 
 		// If hovering an enemy, show target info in sidebar
 		if bs.HoveredUnit != nil && bs.HoveredUnit != bs.Selected {
-			sy := 1
+			sy := sideY0
 			u := bs.HoveredUnit
 			halfSide := bs.SidebarW / 2
 
-			ctx.DrawString(sidebarX, sy, language.String("SIDE_TARGET_INFO"), engine.StyleRedBold)
+			ctx.DrawString(sideX, sy, language.String("SIDE_TARGET_INFO"), engine.StyleRedBold)
 			sy++
 			name := ""
 			if u.Faction == 1 && u.AlienType != nil {
@@ -2712,10 +2738,10 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 				}
 				name = string(runes)
 			}
-			ctx.DrawString(sidebarX, sy, name, engine.StyleDefault.Bold(true))
+			ctx.DrawString(sideX, sy, name, engine.StyleDefault.Bold(true))
 			sy++
 			weaponName := data.RuleItems[u.Weapon].ShortName
-			ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_WPN_TARGET"), weaponName), engine.StyleDefault)
+			ctx.DrawString(sideX, sy, fmt.Sprintf(language.String("SIDE_WPN_TARGET"), weaponName), engine.StyleDefault)
 			sy++
 
 			hasAutopsy := u.Faction != 1 || u.AlienType == nil
@@ -2735,9 +2761,9 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 				} else if u.HP*2 < u.MaxHP {
 					hpColor = engine.StyleYellow
 				}
-				ctx.DrawString(sidebarX, sy, language.Sprintf("SIDE_HP_BAR", barString(u.HP, u.MaxHP, 8), u.HP, u.MaxHP), hpColor)
+				ctx.DrawString(sideX, sy, language.Sprintf("SIDE_HP_BAR", barString(u.HP, u.MaxHP, 8), u.HP, u.MaxHP), hpColor)
 				sy++
-				ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_ACC"), u.Accuracy), engine.StyleDefault)
+				ctx.DrawString(sideX, sy, fmt.Sprintf(language.String("SIDE_ACC"), u.Accuracy), engine.StyleDefault)
 				sy++
 				tuColor := engine.StyleCyan
 				if u.TU < u.MaxTU/3 {
@@ -2745,14 +2771,14 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 				} else if u.TU < u.MaxTU/2 {
 					tuColor = engine.StyleYellow
 				}
-				ctx.DrawString(sidebarX, sy, language.Sprintf("SIDE_TU_BAR", barString(u.TU, u.MaxTU, 8), u.TU), tuColor)
+				ctx.DrawString(sideX, sy, language.Sprintf("SIDE_TU_BAR", barString(u.TU, u.MaxTU, 8), u.TU), tuColor)
 				sy++
 			} else {
-				ctx.DrawString(sidebarX, sy, language.String("SIDE_HP_UNKNOWN"), engine.StyleGray)
+				ctx.DrawString(sideX, sy, language.String("SIDE_HP_UNKNOWN"), engine.StyleGray)
 				sy++
-				ctx.DrawString(sidebarX, sy, language.String("SIDE_ACC_UNKNOWN"), engine.StyleGray)
+				ctx.DrawString(sideX, sy, language.String("SIDE_ACC_UNKNOWN"), engine.StyleGray)
 				sy++
-				ctx.DrawString(sidebarX, sy, language.String("SIDE_TU_UNKNOWN"), engine.StyleGray)
+				ctx.DrawString(sideX, sy, language.String("SIDE_TU_UNKNOWN"), engine.StyleGray)
 				sy++
 			}
 
@@ -2761,8 +2787,8 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 				bgColor := tcell.NewRGBColor(20, 20, 28)
 				alienImg := engine.GenerateAlienSpriteFromSeed(int64(u.AlienType.Icon), u.AlienType.Morphology, bgColor)
 				portW := alienImg.Width + 2
-				portX := sidebarX + bs.SidebarW - portW
-				ctx.DrawPixelImageFramed(portX, 1, alienImg, engine.StyleRed)
+				portX := sideX + bs.SidebarW - portW
+				ctx.DrawPixelImageFramed(portX, sideY0, alienImg, engine.StyleRed)
 				if sy < 14 {
 					sy = 14
 				}
@@ -2772,10 +2798,10 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 			}
 			sy++
 			logTitle := language.String("BATTLE_LOG")
-			ctx.DrawString(sidebarX, sy, logTitle, engine.StyleCyanBold)
+			ctx.DrawString(sideX, sy, logTitle, engine.StyleCyanBold)
 			sy++
 
-			availableLines := viewH - sy
+			availableLines := sideH - (sy - sideY0)
 			logEntries := len(bs.Log)
 			startIdx := 0
 			if logEntries > availableLines {
@@ -2793,18 +2819,18 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 				if entry.Turn < bs.Turn {
 					style = engine.StyleGray
 				}
-				ctx.DrawString(sidebarX, sy+i, ">", engine.StyleHotkey)
-				ctx.DrawString(sidebarX+2, sy+i, text, style)
+				ctx.DrawString(sideX, sy+i, ">", engine.StyleHotkey)
+				ctx.DrawString(sideX+2, sy+i, text, style)
 			}
 		}
 
 		if bs.HoveredUnit == nil || bs.HoveredUnit == bs.Selected {
 			// Draw unit info in sidebar
-			sy := 1
+			sy := sideY0
 			halfSide := bs.SidebarW / 2
 
 			if bs.Selected != nil {
-				ctx.DrawString(sidebarX, sy, language.String("SIDE_UNIT_INFO"), engine.StyleCyanBold)
+				ctx.DrawString(sideX, sy, language.String("SIDE_UNIT_INFO"), engine.StyleCyanBold)
 				sy++
 
 				name := bs.Selected.Soldier.Name
@@ -2815,7 +2841,7 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 					}
 					name = string(runes)
 				}
-				ctx.DrawString(sidebarX, sy, name, engine.StyleDefault.Bold(true))
+				ctx.DrawString(sideX, sy, name, engine.StyleDefault.Bold(true))
 				sy++
 
 				hpColor := engine.StyleGreen
@@ -2824,7 +2850,7 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 				} else if bs.Selected.HP*2 < bs.Selected.MaxHP {
 					hpColor = engine.StyleYellow
 				}
-				ctx.DrawString(sidebarX, sy, language.Sprintf("SIDE_HP_BAR", barString(bs.Selected.HP, bs.Selected.MaxHP, 8), bs.Selected.HP, bs.Selected.MaxHP), hpColor)
+				ctx.DrawString(sideX, sy, language.Sprintf("SIDE_HP_BAR", barString(bs.Selected.HP, bs.Selected.MaxHP, 8), bs.Selected.HP, bs.Selected.MaxHP), hpColor)
 				sy++
 
 				tuColor := engine.StyleCyan
@@ -2833,10 +2859,10 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 				} else if bs.Selected.TU < bs.Selected.MaxTU/2 {
 					tuColor = engine.StyleYellow
 				}
-				ctx.DrawString(sidebarX, sy, language.Sprintf("SIDE_TU_BAR_FULL", barString(bs.Selected.TU, bs.Selected.MaxTU, 8), bs.Selected.TU, bs.Selected.MaxTU), tuColor)
+				ctx.DrawString(sideX, sy, language.Sprintf("SIDE_TU_BAR_FULL", barString(bs.Selected.TU, bs.Selected.MaxTU, 8), bs.Selected.TU, bs.Selected.MaxTU), tuColor)
 				sy++
 
-				ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_ACC"), bs.Selected.Accuracy), engine.StyleDefault)
+				ctx.DrawString(sideX, sy, fmt.Sprintf(language.String("SIDE_ACC"), bs.Selected.Accuracy), engine.StyleDefault)
 				sy++
 
 				weaponName := data.RuleItems[bs.Selected.Weapon].DisplayName()
@@ -2847,11 +2873,11 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 					}
 					weaponName = string(runes)
 				}
-				ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_WEAPON"), weaponName), engine.StyleDefault)
+				ctx.DrawString(sideX, sy, fmt.Sprintf(language.String("SIDE_WEAPON"), weaponName), engine.StyleDefault)
 				sy++
 
 				w := data.RuleItems[bs.Selected.Weapon]
-				ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_AMMO"), bs.Selected.WeaponAmmo, w.AmmoMax), engine.StyleDefault)
+				ctx.DrawString(sideX, sy, fmt.Sprintf(language.String("SIDE_AMMO"), bs.Selected.WeaponAmmo, w.AmmoMax), engine.StyleDefault)
 				sy++
 
 				armourName := language.String("NONE")
@@ -2863,14 +2889,14 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 						}
 					}
 				}
-				ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_ARMOR"), armourName), engine.StyleDefault)
+				ctx.DrawString(sideX, sy, fmt.Sprintf(language.String("SIDE_ARMOR"), armourName), engine.StyleDefault)
 				sy++
 
-				ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_POS"), bs.Selected.X, bs.Selected.Y), engine.StyleGray)
+				ctx.DrawString(sideX, sy, fmt.Sprintf(language.String("SIDE_POS"), bs.Selected.X, bs.Selected.Y), engine.StyleGray)
 				sy++
 
 				if bs.Selected.Crouching {
-					ctx.DrawString(sidebarX, sy, language.String("SIDE_CROUCH"), engine.StyleYellow)
+					ctx.DrawString(sideX, sy, language.String("SIDE_CROUCH"), engine.StyleYellow)
 					sy++
 				}
 				sy++
@@ -2878,17 +2904,17 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 				// Draw portrait aligned right at top of sidebar
 				portraitImg := engine.MakeSoldierPortrait(bs.Selected.Soldier.Name, bs.Selected.Soldier.Armor, 20, 24)
 				portW := portraitImg.Width + 2
-				portX := sidebarX + bs.SidebarW - portW
-				ctx.DrawPixelImageFramed(portX, 1, portraitImg, engine.StyleCyan)
+				portX := sideX + bs.SidebarW - portW
+				ctx.DrawPixelImageFramed(portX, sideY0, portraitImg, engine.StyleCyan)
 				sy = 1 + portraitImg.Height/2 + 2
 			}
 
 			// Draw log in sidebar
 			logTitle := language.String("BATTLE_LOG")
-			ctx.DrawString(sidebarX, sy, logTitle, engine.StyleCyanBold)
+			ctx.DrawString(sideX, sy, logTitle, engine.StyleCyanBold)
 			sy++
 
-			availableLines := viewH - sy
+			availableLines := sideH - (sy - sideY0)
 			logEntries := len(bs.Log)
 			startIdx := 0
 			if logEntries > availableLines {
@@ -2906,8 +2932,8 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 				if entry.Turn < bs.Turn {
 					style = engine.StyleGray
 				}
-				ctx.DrawString(sidebarX, sy+i, ">", engine.StyleHotkey)
-				ctx.DrawString(sidebarX+2, sy+i, text, style)
+				ctx.DrawString(sideX, sy+i, ">", engine.StyleHotkey)
+				ctx.DrawString(sideX+2, sy+i, text, style)
 			}
 		}
 	} else {

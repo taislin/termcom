@@ -1055,6 +1055,9 @@ func init() {
 		"CTRL_TRANSFER":    "Transfer",
 		"CTRL_HANGARS":     "Hangars",
 		"CTRL_BACK":        "Back",
+		"CTRL_CONFIRM":     "Confirm",
+		"CTRL_YES":         "Yes",
+		"CTRL_NO":          "No",
 
 		// ── Extended Touch Controls ───────────────────────
 		"CTRL_AUTORESOLVE": "Auto-Resolve",
