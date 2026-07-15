@@ -8,7 +8,7 @@ type Rect struct {
 
 type ControlButton struct {
 	Label   string
-	Action  func() // called when tapped
+	Action  func() // called when tapped (may be nil for disabled buttons)
 	Enabled bool
 	Hotkey  string // keyboard equivalent (displayed on button)
 }
@@ -18,6 +18,7 @@ type ControlMenu struct {
 	Buttons    []ControlButton
 	ScrollOff  int
 	TouchFirst bool // auto-showed on first touch
+	AlwaysShow bool // pin bar to bottom edge in touch mode
 	screenW    int
 	screenH    int
 }
@@ -40,11 +41,6 @@ func (cm *ControlMenu) Hide() {
 
 func (cm *ControlMenu) SetButtons(btns []ControlButton) {
 	cm.Buttons = btns
-	for i := range cm.Buttons {
-		if cm.Buttons[i].Action != nil {
-			cm.Buttons[i].Enabled = true
-		}
-	}
 }
 
 func (cm *ControlMenu) SetScreenSize(w, h int) {
@@ -95,14 +91,19 @@ func (cm *ControlMenu) buttonRects() []Rect {
 }
 
 func (cm *ControlMenu) Render(s *ScreenRaw) {
-	if HideTouchOverlay || !cm.Visible || !Config.TouchMode {
+	if HideTouchOverlay || !Config.TouchMode {
+		return
+	}
+	if !cm.AlwaysShow && !cm.Visible {
 		return
 	}
 	w, h := s.Size()
 	cm.SetScreenSize(w, h)
 
-	// Hamburger button (always visible in touch mode)
-	s.DrawString(w-4, 0, "[=]", StyleHighlight)
+	// Hamburger button (only when the bar is not pinned to the bottom).
+	if !cm.AlwaysShow {
+		s.DrawString(w-4, 0, "[=]", StyleHighlight)
+	}
 
 	// Draw panel background
 	btns := cm.Buttons
@@ -165,7 +166,7 @@ func (cm *ControlMenu) Render(s *ScreenRaw) {
 }
 
 func (cm *ControlMenu) HandleMouse(ev *tcell.EventMouse) bool {
-	if !cm.Visible || !Config.TouchMode {
+	if !Config.TouchMode {
 		return false
 	}
 	if ev.Buttons() == tcell.ButtonNone {
@@ -173,10 +174,20 @@ func (cm *ControlMenu) HandleMouse(ev *tcell.EventMouse) bool {
 	}
 	x, y := ev.Position()
 
-	// Check hamburger
-	if x >= cm.screenW-4 && x <= cm.screenW-1 && y == 0 {
-		cm.Toggle()
-		return true
+	// Hamburger toggles the bar only when it is not pinned (always-show mode
+	// keeps the bar permanently visible at the bottom).
+	if !cm.AlwaysShow {
+		if x >= cm.screenW-4 && x <= cm.screenW-1 && y == 0 {
+			cm.Toggle()
+			return true
+		}
+	}
+
+	if HideTouchOverlay {
+		return false
+	}
+	if !cm.AlwaysShow && !cm.Visible {
+		return false
 	}
 
 	// Check buttons
@@ -193,5 +204,5 @@ func (cm *ControlMenu) HandleMouse(ev *tcell.EventMouse) bool {
 }
 
 func (cm *ControlMenu) HamburgerHit(x, y int) bool {
-	return !HideTouchOverlay && cm.Visible && Config.TouchMode && x >= cm.screenW-4 && x <= cm.screenW-1 && y == 0
+	return !HideTouchOverlay && !cm.AlwaysShow && Config.TouchMode && x >= cm.screenW-4 && x <= cm.screenW-1 && y == 0
 }

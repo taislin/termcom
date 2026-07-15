@@ -133,6 +133,11 @@ func (gs *Geoscape) SelectedBase() *base.Base {
 	return gs.Bases[gs.ActiveBase]
 }
 
+// Touch-control view helpers (engine defines the geoView interface).
+func (gs *Geoscape) UFOCount() int        { return len(gs.UFOs) }
+func (gs *Geoscape) MissionCount() int     { return len(gs.Missions) }
+func (gs *Geoscape) HasSelectedBase() bool { return gs.SelectedBase() != nil }
+
 // processBattleResult handles battle resolution and pushes the debrief screen.
 func (gs *Geoscape) processBattleResult() {
 	r := gs.Game.ActiveBattle

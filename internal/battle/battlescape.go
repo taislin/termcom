@@ -170,6 +170,11 @@ type CustomVictory struct {
 	MinSoldiers int    // for reach_point: min soldiers that must reach the point
 }
 
+// Touch-control view helper (engine defines the battleView interface).
+func (bs *Battlescape) HasSelectedUnit() bool {
+	return bs.Selected != nil && bs.Selected.Alive
+}
+
 func (bs *Battlescape) AddMessage(msg string) {
 	bs.Message = msg
 	bs.Log = append(bs.Log, LogEntry{Text: msg, Turn: bs.Turn})
@@ -2968,12 +2973,14 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 	}
 
 	// Draw help bar
-	ctx.DrawPanel(0, h-1, w, 1, "", engine.StyleGray)
-	help := language.String("HELP_BATTLESCAPE")
-	if bs.Map.NumLevels > 1 {
-		help += language.String("HELP_STAIRS_SUFFIX")
+	if !engine.Config.TouchMode {
+		ctx.DrawPanel(0, h-1, w, 1, "", engine.StyleGray)
+		help := language.String("HELP_BATTLESCAPE")
+		if bs.Map.NumLevels > 1 {
+			help += language.String("HELP_STAIRS_SUFFIX")
+		}
+		ctx.DrawMarkupString(1, h-1, help, engine.StyleGray, engine.StyleHotkey)
 	}
-	ctx.DrawMarkupString(1, h-1, help, engine.StyleGray, engine.StyleHotkey)
 }
 
 func (bs *Battlescape) phaseStr() string {
