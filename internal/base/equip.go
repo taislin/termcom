@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/gdamore/tcell/v3"
 	"github.com/taislin/termcom/internal/data"
 	"github.com/taislin/termcom/internal/engine"
 	"github.com/taislin/termcom/internal/language"
-	"github.com/gdamore/tcell/v3"
 )
 
 type EquipScreen struct {
@@ -42,7 +42,7 @@ func (es *EquipScreen) Render(ctx *engine.ScreenCtx) {
 		es.SelectedSol = len(es.Base.Soldiers) - 1
 	}
 
-	rightX := w / 2
+	rightX := engine.Layout.EquipSplitX(w)
 
 	ctx.DrawString(2, 2, language.String("SECTION_SOLDIER"), engine.StyleCyanBold)
 	for i, s := range es.Base.Soldiers {

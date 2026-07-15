@@ -4,11 +4,11 @@ import (
 	"os"
 	"time"
 
+	"github.com/gdamore/tcell/v3"
 	"github.com/taislin/termcom/internal/audio"
 	"github.com/taislin/termcom/internal/data"
 	"github.com/taislin/termcom/internal/language"
 	"github.com/taislin/termcom/internal/soldier"
-	"github.com/gdamore/tcell/v3"
 )
 
 type GameState int
@@ -62,17 +62,17 @@ type PlayerTactics struct {
 }
 
 type Game struct {
-	screen     *ScreenRaw
-	state      GameState
-	stateStack []GameState
-	running    bool
+	screen      *ScreenRaw
+	state       GameState
+	stateStack  []GameState
+	running     bool
 	quitConfirm bool
 	transition  float64 // 1.0 right after a state change, eases to 0 (fade-from-black)
 
-	GameTime  time.Time
-	TimeSpeed int
-	Paused    bool
-	Funds     int64
+	GameTime   time.Time
+	TimeSpeed  int
+	Paused     bool
+	Funds      int64
 	Difficulty int // 0=Beginner, 1=Experienced, 2=Veteran, 3=Genius, 4=Superhuman
 
 	screens      map[GameState]Screen
@@ -170,6 +170,14 @@ func NewGameWeb(cols, rows int) (*Game, *nullScreen, error) {
 
 // InjectKey posts a synthetic key event into the game loop.
 func (g *Game) InjectKey(ev *tcell.EventKey) {
+	select {
+	case g.keyChan <- ev:
+	default:
+	}
+}
+
+// InjectMouse posts a synthetic mouse event into the game loop.
+func (g *Game) InjectMouse(ev *tcell.EventMouse) {
 	select {
 	case g.keyChan <- ev:
 	default:
@@ -292,6 +300,17 @@ func (g *Game) Run() {
 			sc.Render(ctx)
 		}
 
+		// Render control menu overlay (hamburger always visible in touch mode)
+		if Config.TouchMode {
+			w, h := g.screen.Size()
+			Menu.SetScreenSize(w, h)
+			if !Menu.Visible {
+				g.screen.DrawString(w-4, 0, "[=]", StyleHighlight)
+			} else {
+				Menu.Render(g.screen)
+			}
+		}
+
 		if g.quitConfirm {
 			g.renderQuitConfirm(ctx)
 		} else if g.transition > 0 {
@@ -317,16 +336,16 @@ func (g *Game) drainEvents() {
 			case *tcell.EventResize:
 				g.screen.UpdateSize()
 			case *tcell.EventKey:
-			if g.quitConfirm {
-				switch {
-				case e.Str() == "y" || e.Str() == "Y" || e.Key() == tcell.KeyEnter:
-					g.running = false
-					return
-				case e.Str() == "n" || e.Str() == "N" || e.Key() == tcell.KeyEscape || e.Str() == "\x1b":
-					g.quitConfirm = false
+				if g.quitConfirm {
+					switch {
+					case e.Str() == "y" || e.Str() == "Y" || e.Key() == tcell.KeyEnter:
+						g.running = false
+						return
+					case e.Str() == "n" || e.Str() == "N" || e.Key() == tcell.KeyEscape || e.Str() == "\x1b":
+						g.quitConfirm = false
+					}
+					continue
 				}
-				continue
-			}
 				if e.Key() == tcell.KeyEscape || e.Str() == "\x1b" {
 					switch g.state {
 					case StateGeoscape, StateMenu:
@@ -353,6 +372,22 @@ func (g *Game) drainEvents() {
 				if g.quitConfirm {
 					continue
 				}
+				// Let control menu consume the event first
+				if Config.TouchMode {
+					x, y := e.Position()
+					if Menu.HamburgerHit(x, y) {
+						Menu.Toggle()
+						continue
+					}
+					if Menu.HandleMouse(e) {
+						continue
+					}
+					// Auto-show control menu on first touch
+					if !Menu.TouchFirst && !Menu.Visible {
+						Menu.Show()
+						Menu.TouchFirst = true
+					}
+				}
 				if sc, ok := g.screens[g.state]; ok {
 					sc.HandleMouse(e)
 				}
@@ -367,6 +402,7 @@ func (g *Game) PushState(s GameState) {
 	g.stateStack = append(g.stateStack, g.state)
 	g.state = s
 	g.transition = 1.0
+	g.setupControlMenu()
 }
 
 func (g *Game) InState(s GameState) bool {
@@ -381,6 +417,7 @@ func (g *Game) PushScreen(sc Screen) {
 func (g *Game) SetState(s GameState) {
 	g.state = s
 	g.transition = 1.0
+	g.setupControlMenu()
 }
 
 func (g *Game) PopState() {
@@ -388,6 +425,7 @@ func (g *Game) PopState() {
 		g.state = g.stateStack[len(g.stateStack)-1]
 		g.stateStack = g.stateStack[:len(g.stateStack)-1]
 		g.transition = 1.0
+		g.setupControlMenu()
 	}
 }
 
@@ -431,4 +469,61 @@ func (g *Game) Bell() {
 func (g *Game) IsWeb() bool {
 	_, ok := g.screen.screen.(*nullScreen)
 	return ok
+}
+
+func (g *Game) setupControlMenu() {
+	Menu.TouchFirst = false
+	switch g.state {
+	case StateGeoscape:
+		Menu.SetButtons([]ControlButton{
+			{Label: "Pause", Hotkey: "Space", Action: func() { g.Paused = !g.Paused }},
+			{Label: "Speed 1", Hotkey: "1", Action: func() { g.TimeSpeed = 1 }},
+			{Label: "Speed 2", Hotkey: "2", Action: func() { g.TimeSpeed = 2 }},
+			{Label: "Speed 3", Hotkey: "3", Action: func() { g.TimeSpeed = 3 }},
+			{Label: "Speed 4", Hotkey: "4", Action: func() { g.TimeSpeed = 4 }},
+			{Label: "Base", Hotkey: "B", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "b", tcell.ModNone)) }},
+			{Label: "Launch", Hotkey: "L", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "l", tcell.ModNone)) }},
+			{Label: "Save", Hotkey: "F5", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyF5, "", tcell.ModNone)) }},
+			{Label: "Load", Hotkey: "F9", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyF9, "", tcell.ModNone)) }},
+			{Label: "Help", Hotkey: "?", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "?", tcell.ModNone)) }},
+		})
+	case StateBattlescape:
+		Menu.SetButtons([]ControlButton{
+			{Label: "Select", Hotkey: "Enter", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyEnter, "", tcell.ModNone)) }},
+			{Label: "Move", Hotkey: "Space", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, " ", tcell.ModNone)) }},
+			{Label: "Fire", Hotkey: "f", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "f", tcell.ModNone)) }},
+			{Label: "Reload", Hotkey: "r", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "r", tcell.ModNone)) }},
+			{Label: "End Turn", Hotkey: "e", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "e", tcell.ModNone)) }},
+			{Label: "Grenade", Hotkey: "g", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "g", tcell.ModNone)) }},
+			{Label: "Medikit", Hotkey: "m", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "m", tcell.ModNone)) }},
+			{Label: "Crouch", Hotkey: "c", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "c", tcell.ModNone)) }},
+			{Label: "Cycle", Hotkey: "q", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "q", tcell.ModNone)) }},
+			{Label: "Help", Hotkey: "?", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "?", tcell.ModNone)) }},
+		})
+	case StateBase:
+		Menu.SetButtons([]ControlButton{
+			{Label: "Facilities", Hotkey: "1", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "1", tcell.ModNone)) }},
+			{Label: "Soldiers", Hotkey: "2", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "2", tcell.ModNone)) }},
+			{Label: "Research", Hotkey: "3", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "3", tcell.ModNone)) }},
+			{Label: "Manufacture", Hotkey: "4", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "4", tcell.ModNone)) }},
+			{Label: "Transfer", Hotkey: "5", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "5", tcell.ModNone)) }},
+			{Label: "Hangars", Hotkey: "6", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "6", tcell.ModNone)) }},
+			{Label: "Back", Hotkey: "Esc", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyEscape, "", tcell.ModNone)) }},
+			{Label: "Help", Hotkey: "?", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "?", tcell.ModNone)) }},
+		})
+	case StateEquip, StateResearch, StateManufacture:
+		Menu.SetButtons([]ControlButton{
+			{Label: "Back", Hotkey: "Esc", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyEscape, "", tcell.ModNone)) }},
+			{Label: "Help", Hotkey: "?", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "?", tcell.ModNone)) }},
+		})
+	case StateMenu:
+		Menu.SetButtons([]ControlButton{
+			{Label: "Help", Hotkey: "?", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "?", tcell.ModNone)) }},
+		})
+	default:
+		Menu.SetButtons([]ControlButton{
+			{Label: "Back", Hotkey: "Esc", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyEscape, "", tcell.ModNone)) }},
+			{Label: "Help", Hotkey: "?", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "?", tcell.ModNone)) }},
+		})
+	}
 }

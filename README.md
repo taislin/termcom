@@ -57,6 +57,7 @@ The browser version supports:
 - WebSocket-based real-time communication
 - Responsive terminal resizing
 - All game features (Geoscape, Battlescape, Base Management)
+- **Mobile touch play** — tap to click, long-press for right-click, drag to scroll, on-screen control menu with context-sensitive buttons
 
 **Note:** The browser version is experimental and may have limited functionality compared to the terminal version.
 

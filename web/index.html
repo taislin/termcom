@@ -5,6 +5,7 @@
     <meta charset="utf-8">
     <title>termcom - ASCII X-COM Demake</title>
     <meta name="description" content="termcom: ASCII X-COM demake running in the browser">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css">
     <style>
         * {
@@ -198,6 +199,79 @@
                 ws.send(JSON.stringify({ type: 'input', data: data }));
             }
         });
+
+        // Touch → mouse event conversion for mobile play.
+        function touchToCell(touch) {
+            const el = document.getElementById('terminal');
+            const rect = el.getBoundingClientRect();
+            const px = touch.clientX - rect.left;
+            const py = touch.clientY - rect.top;
+            const cellW = rect.width / terminal.cols;
+            const cellH = rect.height / terminal.rows;
+            return {
+                x: Math.floor(px / cellW),
+                y: Math.floor(py / cellH)
+            };
+        }
+
+        function sendMouse(x, y, button) {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ type: 'mouse', x: x, y: y, data: button }));
+            }
+        }
+
+        let lastTapTime = 0;
+        const tapCooldown = 150;
+        let longPressTimer = null;
+        let touchStartCell = null;
+        const longPressDelay = 500;
+
+        const termEl = document.getElementById('terminal');
+        termEl.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const cell = touchToCell(touch);
+            touchStartCell = cell;
+            const now = Date.now();
+            if (now - lastTapTime < tapCooldown) {
+                return;
+            }
+            lastTapTime = now;
+            longPressTimer = setTimeout(() => {
+                sendMouse(cell.x, cell.y, 'right');
+                longPressTimer = null;
+            }, longPressDelay);
+            sendMouse(cell.x, cell.y, 'left');
+        }, { passive: false });
+
+        termEl.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (longPressTimer) {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+            }
+            // Convert vertical drag to scroll events
+            if (touchStartCell && e.touches.length > 0) {
+                const cur = touchToCell(e.touches[0]);
+                const dy = cur.y - touchStartCell.y;
+                if (Math.abs(dy) >= 2) {
+                    if (dy > 0) {
+                        sendMouse(0, 0, 'scroll_down');
+                    } else {
+                        sendMouse(0, 0, 'scroll_up');
+                    }
+                    touchStartCell = cur;
+                }
+            }
+        }, { passive: false });
+
+        termEl.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            if (longPressTimer) {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+            }
+        }, { passive: false });
 
         // Notify server on resize.
         terminal.onResize(({ cols, rows }) => {

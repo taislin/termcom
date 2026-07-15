@@ -3,9 +3,9 @@ package engine
 import (
 	"fmt"
 
+	"github.com/gdamore/tcell/v3"
 	"github.com/taislin/termcom/internal/data"
 	"github.com/taislin/termcom/internal/language"
-	"github.com/gdamore/tcell/v3"
 )
 
 type EncycloEntry struct {
@@ -139,14 +139,11 @@ func (es *EncyclopediaScreen) Render(ctx *ScreenCtx) {
 
 	listX := 1
 	listY := 5
-	listW := w / 3
-	if listW < 20 {
-		listW = 20
-	}
+	listW := Layout.EncyclopediaListWidth(w)
 	listH := h - 8
 
-	infoX := listW + 3
-	infoW := w - infoX - 2
+	infoX := Layout.EncyclopediaInfoX(w)
+	infoW := Layout.EncyclopediaInfoWidth(w)
 
 	tabEntries := es.filteredEntries()
 

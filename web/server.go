@@ -19,6 +19,8 @@ type Message struct {
 	Data string `json:"data,omitempty"`
 	Cols int    `json:"cols,omitempty"`
 	Rows int    `json:"rows,omitempty"`
+	X    int    `json:"x,omitempty"`
+	Y    int    `json:"y,omitempty"`
 }
 
 type Client struct {
@@ -126,6 +128,10 @@ func (c *Client) readPump(s *Server) {
 				ResizeHandler(msg.Cols, msg.Rows)
 			}
 			notifyConnect(msg.Cols, msg.Rows)
+		case "mouse":
+			if MouseHandler != nil {
+				MouseHandler(msg.X, msg.Y, msg.Data)
+			}
 		}
 	}
 }
@@ -144,6 +150,7 @@ func (c *Client) writePump() {
 var InputHandler func(input string)
 var ResizeHandler func(cols, rows int)
 var ConnectHandler func(cols, rows int)
+var MouseHandler func(x, y int, button string)
 
 func (s *Server) SendOutput(output string) {
 	msg := Message{

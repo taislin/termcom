@@ -40,22 +40,25 @@ type GlobalConfig struct {
 	SfxVolume          int    `json:"sfx_volume"`
 	Language           string `json:"language"`
 	TutorialShown      bool   `json:"tutorial_shown"`
+	TouchMode          bool   `json:"touch_mode"`
+	TouchButtonSize    int    `json:"touch_button_size"`
 }
 
 var Config = GlobalConfig{
-	BloomEnabled:    true,
-	LightingEnabled: true,
-	SoundEnabled:    true,
-	AutosaveEnabled: true,
-	ScreenShake:     true,
-	MouseEnabled:    true,
-	GridLines:       false,
-	Theme:           "default",
+	BloomEnabled:       true,
+	LightingEnabled:    true,
+	SoundEnabled:       true,
+	AutosaveEnabled:    true,
+	ScreenShake:        true,
+	MouseEnabled:       true,
+	GridLines:          false,
+	Theme:              "default",
 	ConfirmDialogs:     true,
 	PauseOnAlienDetect: true,
 	ActionDelay:        8,
-	SfxVolume:       10,
-	Language:        "en",
+	SfxVolume:          10,
+	Language:           "en",
+	TouchButtonSize:    4,
 }
 
 const ConfigFile = "config.json"

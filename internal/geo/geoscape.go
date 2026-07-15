@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gdamore/tcell/v3"
+	"github.com/gdamore/tcell/v3/color"
 	"github.com/taislin/termcom/internal/audio"
 	"github.com/taislin/termcom/internal/base"
 	"github.com/taislin/termcom/internal/battle"
@@ -16,8 +18,6 @@ import (
 	"github.com/taislin/termcom/internal/language"
 	"github.com/taislin/termcom/internal/save"
 	"github.com/taislin/termcom/internal/soldier"
-	"github.com/gdamore/tcell/v3"
-	"github.com/gdamore/tcell/v3/color"
 )
 
 // AlienMission describes an active UFO threat that must be responded to.
@@ -29,12 +29,12 @@ type AlienMission struct {
 
 // AlienBase represents a persistent alien stronghold on the Geoscape.
 type AlienBase struct {
-	CityID            int
-	Threat            int    // 0-100, defense level
-	TurnsAlive        int    // ticks since establishment (scales defenses)
-	LastMissionTick   int    // last tick a mission was spawned from here
-	DefendingUFOID    int    // UFO ID of the defensive craft (-1 = none)
-	Name              string // e.g. "Alien Base #1"
+	CityID          int
+	Threat          int    // 0-100, defense level
+	TurnsAlive      int    // ticks since establishment (scales defenses)
+	LastMissionTick int    // last tick a mission was spawned from here
+	DefendingUFOID  int    // UFO ID of the defensive craft (-1 = none)
+	Name            string // e.g. "Alien Base #1"
 }
 
 // CrashSite represents a landed UFO that can be explored for loot/tech.
@@ -86,9 +86,9 @@ type Geoscape struct {
 	ShowRadarOverlay    bool       // toggle radar coverage circles on minimap
 
 	// Interaction State
-	MissionSelectMode bool
-	MissionSelectIdx  int
-	MissionOdds       int
+	MissionSelectMode  bool
+	MissionSelectIdx   int
+	MissionOdds        int
 	respondedAlienBase *AlienBase // non-nil when responding to an alien base assault
 
 	// Visual Effects
@@ -249,15 +249,15 @@ func (gs *Geoscape) processBattleResult() {
 		}
 
 		dd := &engine.DebriefData{
-			Won:           true,
-			MissionName:   missionName,
-			BaseName:      defendingBase.Name,
-			Kills:         r.Kills,
-			Casualties:    dead,
-			LootItems:     r.LootItems,
-			StunnedCount:  stunnedCount,
-			FundsEarned:   50000,
-			Soldiers:      soldiers,
+			Won:            true,
+			MissionName:    missionName,
+			BaseName:       defendingBase.Name,
+			Kills:          r.Kills,
+			Casualties:     dead,
+			LootItems:      r.LootItems,
+			StunnedCount:   stunnedCount,
+			FundsEarned:    50000,
+			Soldiers:       soldiers,
 			CydoniaVictory: gs.ActiveFinalMission,
 		}
 		gs.Game.SetScreen(engine.StateDebrief, engine.NewDebriefScreen(gs.Game, dd))
@@ -1252,8 +1252,8 @@ func (gs *Geoscape) triggerCydonia() {
 	// Add Cydonia as a special mission
 	mission := &AlienMission{
 		Type:      language.String("GEO_CYDONIA"), // Reuse for Cydonia
-		NodeID:    0,                    // Special node for Cydonia
-		HoursLeft: 9999.0,               // Indefinite
+		NodeID:    0,                              // Special node for Cydonia
+		HoursLeft: 9999.0,                         // Indefinite
 	}
 	gs.Missions = append(gs.Missions, mission)
 	gs.Game.Bell()
@@ -1618,7 +1618,7 @@ func (gs *Geoscape) Autoresolve() {
 	nearest.Active = false
 	if won {
 		gs.Game.Funds += int64(nearest.Type.Points * 1000)
-			gs.Message = fmt.Sprintf(language.String("MSG_AUTO_VICTORY"), nearest.Type.DisplayName(), nearest.Type.Points)
+		gs.Message = fmt.Sprintf(language.String("MSG_AUTO_VICTORY"), nearest.Type.DisplayName(), nearest.Type.Points)
 	} else {
 		if squadSize > 0 {
 			// build list of alive soldiers
@@ -1916,12 +1916,10 @@ func (gs *Geoscape) Render(ctx *engine.ScreenCtx) {
 	w, h := ctx.Size()
 
 	// Layout: left=region table, right=minimap
-	tableW := w * 60 / 100
-	if tableW < 30 {
-		tableW = 30
-	}
-	mapW := w - tableW - 2
-	mapX := tableW + 2
+	engine.Layout.UpdateMode(w, h)
+	tableW := engine.Layout.GeoTableWidth(w)
+	mapW := engine.Layout.GeoMapWidth(w)
+	mapX := engine.Layout.GeoMapX(w)
 
 	// Clear
 	for y := 1; y < h-5; y++ {
@@ -1931,7 +1929,9 @@ func (gs *Geoscape) Render(ctx *engine.ScreenCtx) {
 	}
 
 	gs.renderRegionTable(ctx, 1, 1, tableW-1, h-7)
-	gs.renderMinimap(ctx, mapX, 1, mapW-1, h-7)
+	if mapW > 0 {
+		gs.renderMinimap(ctx, mapX, 1, mapW-1, h-7)
+	}
 
 	// Bottom status
 	ctx.DrawPanel(0, h-6, w, 5, language.String("GEOSCAPE"), engine.StyleDefault)
@@ -2779,7 +2779,7 @@ func (gs *Geoscape) HandleMouse(e *tcell.EventMouse) {
 	}
 
 	// Click in table region (left pane)
-	tableW := w * 60 / 100
+	tableW := engine.Layout.GeoTableWidth(w)
 	if x > 1 && x < tableW && y > 2 && y < h-7 {
 		row := y - 3
 		if row >= 0 && row < len(gs.Cities) {
@@ -2790,8 +2790,8 @@ func (gs *Geoscape) HandleMouse(e *tcell.EventMouse) {
 	}
 
 	// Click in minimap region (right pane)
-	mapX := tableW + 2
-	mWidth := w - tableW - 2
+	mapX := engine.Layout.GeoMapX(w)
+	mWidth := engine.Layout.GeoMapWidth(w)
 	innerW := mWidth - 3
 	innerH := h - 9
 	if innerW > 0 && innerH > 0 && x >= mapX+1 && x < mapX+1+innerW && y >= 2 && y < 2+innerH {

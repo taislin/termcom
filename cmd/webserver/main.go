@@ -21,6 +21,9 @@ import (
 const (
 	defaultCols = 220
 	defaultRows = 50
+	mobileCols  = 80
+	mobileRows  = 40
+	mobileWidth = 100
 )
 
 func main() {
@@ -67,6 +70,25 @@ func main() {
 		}
 	}
 
+	// Forward mouse/touch events from browser to the game.
+	web.MouseHandler = func(x, y int, button string) {
+		var btn tcell.ButtonMask
+		switch button {
+		case "right":
+			btn = tcell.Button2
+		case "scroll_up":
+			btn = tcell.WheelUp
+		case "scroll_down":
+			btn = tcell.WheelDown
+		case "move":
+			btn = tcell.ButtonNone
+		default:
+			btn = tcell.Button1
+		}
+		ev := tcell.NewEventMouse(x, y, btn, tcell.ModNone)
+		g.InjectMouse(ev)
+	}
+
 	// Run the game loop in a goroutine (it blocks until quit).
 	go g.Run()
 
@@ -75,6 +97,9 @@ func main() {
 		wr.ForceRepaint()
 		if cols > 0 && rows > 0 {
 			g.InjectResize(cols, rows)
+			if cols < mobileWidth {
+				engine.Config.TouchMode = true
+			}
 		} else {
 			g.InjectResize(defaultCols, defaultRows)
 		}
@@ -297,16 +322,16 @@ type customVictoryDef struct {
 }
 
 type customBattleDef struct {
-	Name        string             `json:"name"`
-	Author      string             `json:"author"`
-	Date        string             `json:"date"`
-	Description string             `json:"description"`
-	Night       bool               `json:"night"`
-	Map         customMapDef       `json:"map"`
-	Soldiers    []customSoldierDef `json:"soldiers"`
-	Aliens      []customAlienDef   `json:"aliens"`
+	Name        string              `json:"name"`
+	Author      string              `json:"author"`
+	Date        string              `json:"date"`
+	Description string              `json:"description"`
+	Night       bool                `json:"night"`
+	Map         customMapDef        `json:"map"`
+	Soldiers    []customSoldierDef  `json:"soldiers"`
+	Aliens      []customAlienDef    `json:"aliens"`
 	Civilians   []customCivilianDef `json:"civilians"`
-	Victory     customVictoryDef   `json:"victory"`
+	Victory     customVictoryDef    `json:"victory"`
 }
 
 func launchCustomBattle(g *engine.Game, path string) {
