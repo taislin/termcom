@@ -11,33 +11,38 @@ import (
 )
 
 type Unit struct {
-	Type       int
-	Soldier    *soldier.Soldier
-	AlienType  *data.AlienType
-	CivName    string
-	X, Y       int
-	Level      int
-	HP         int
-	MaxHP      int
-	TU         int
-	MaxTU      int
-	Accuracy   int
-	Bravery    int
-	Reactions  int
-	Strength   int
-	PsiSkill   int
-	PsiStr     int
-	Armour     int
-	Weapon     string
-	WeaponAmmo int
-	Alive      bool
-	Stunned    bool
-	StunPoints int
-	Crouching  bool
-	Panicked   bool
-	Faction    int
-	IsNight    bool
-	ReservedTU int
+	Type        int
+	Soldier     *soldier.Soldier
+	AlienType   *data.AlienType
+	CivName     string
+	X, Y        int
+	Level       int
+	HP          int
+	MaxHP       int
+	TU          int
+	MaxTU       int
+	Accuracy    int
+	Bravery     int
+	Reactions   int
+	Strength    int
+	PsiSkill    int
+	PsiStr      int
+	Armour      int
+	Weapon      string
+	WeaponAmmo  int
+	Alive       bool
+	Stunned     bool
+	StunPoints  int
+	Crouching   bool
+	Panicked    bool
+	Faction     int
+	IsNight     bool
+	ReservedTU  int
+	FatalWounds int
+	BleedRate   int
+	Morale      int
+	HasMoved    bool
+	InOverwatch bool
 }
 
 func NewSoldierUnit(s *soldier.Soldier) *Unit {
@@ -59,6 +64,7 @@ func NewSoldierUnit(s *soldier.Soldier) *Unit {
 		WeaponAmmo: s.WeaponAmmo,
 		Alive:      true,
 		Faction:    0,
+		Morale:     100,
 	}
 }
 
@@ -81,6 +87,7 @@ func NewAlienUnit(at *data.AlienType) *Unit {
 		WeaponAmmo: data.RuleItems[at.Weapon].AmmoMax,
 		Alive:      true,
 		Faction:    1,
+		Morale:     100,
 	}
 }
 
@@ -92,20 +99,21 @@ var civNames = []string{
 
 func NewCivilianUnit(name string) *Unit {
 	return &Unit{
-		Type:     2,
-		CivName:  name,
-		HP:       5,
-		MaxHP:    5,
-		TU:       20,
-		MaxTU:    20,
-		Accuracy: 0,
-		Bravery:  30,
+		Type:      2,
+		CivName:   name,
+		HP:        5,
+		MaxHP:     5,
+		TU:        20,
+		MaxTU:     20,
+		Accuracy:  0,
+		Bravery:   30,
 		Reactions: 0,
-		Strength: 5,
-		Armour:   0,
-		Weapon:   "",
-		Alive:    true,
-		Faction:  2,
+		Strength:  5,
+		Armour:    0,
+		Weapon:    "",
+		Alive:     true,
+		Faction:   2,
+		Morale:    100,
 	}
 }
 
@@ -154,20 +162,38 @@ func (u *Unit) FireAt(target *Unit, m *BattleMap, weather *Weather) (int, bool, 
 		hitChance -= weather.AccuracyPenalty()
 	}
 
+	if u.Soldier != nil {
+		if dist > 8 && u.Soldier.HasBattleMod(soldier.BModMarksman) {
+			hitChance = hitChance * 115 / 100
+		}
+		if dist <= 4 && u.Soldier.HasBattleMod(soldier.BModCloseCombat) {
+			hitChance = hitChance * 115 / 100
+		}
+		if !u.HasMoved && u.Soldier.HasBattleMod(soldier.BModSteadyAim) {
+			hitChance = hitChance * 110 / 100
+		}
+		if u.InOverwatch && u.Soldier.HasBattleMod(soldier.BModOverwatch) {
+			hitChance = hitChance * 120 / 100
+		}
+	}
+
 	if rand.Intn(100) >= hitChance {
 		return 0, false, nil
 	}
 
 	damage := w.Damage + rand.Intn(w.Damage/3+1)
-	
+
 	if u.Weapon == "stun_rod" {
 		target.StunPoints += damage
 		if target.StunPoints >= target.MaxHP {
 			target.Stunned = true
 		}
+		if u.Soldier != nil {
+			u.Soldier.AddMeleeExp()
+		}
 		return damage, true, nil
 	}
-	
+
 	damage -= target.Armour
 	if target.Crouching {
 		damage = damage * 7 / 10
@@ -196,8 +222,26 @@ func (u *Unit) FireAt(target *Unit, m *BattleMap, weather *Weather) (int, bool, 
 		damage = 1
 	}
 	target.HP -= damage
+
+	if u.Soldier != nil {
+		switch weapDMG {
+		case data.DMG_MELEE:
+			u.Soldier.AddMeleeExp()
+		case data.DMG_EXPLOSIVE:
+			u.Soldier.AddThrowingExp()
+		default:
+			u.Soldier.AddFiringExp()
+		}
+	}
+
 	if target.HP <= 0 {
 		target.Alive = false
+	} else if rand.Intn(100) < 15 {
+		target.FatalWounds++
+		target.BleedRate += damage / 4
+		if target.BleedRate > 5 {
+			target.BleedRate = 5
+		}
 	}
 	return damage, true, nil
 }
@@ -235,6 +279,7 @@ func (u *Unit) MoveTo(x, y int, m *BattleMap) bool {
 	u.X = x
 	u.Y = y
 	u.TU -= tuCost
+	u.HasMoved = true
 	return true
 }
 

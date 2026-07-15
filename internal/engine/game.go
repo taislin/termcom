@@ -79,6 +79,7 @@ type Game struct {
 	keyChan      chan tcell.Event
 	eventDone    chan struct{}
 	ActiveBattle *BattleResult
+	Memorial     []*soldier.Soldier
 
 	SpeciesSeed    int64
 	AlienSpecies   []*data.AlienSpecies

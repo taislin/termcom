@@ -1431,12 +1431,12 @@ func (gs *Geoscape) AutoresolveMission(idx int) {
 		gs.Game.Funds += reward
 		gs.MissionsWon++
 
-		xp := alienCount * 2
 		for _, s := range healthy {
-			s.GainXP(xp)
+			s.PostMission()
 			s.Missions++
 			s.Fatigue += 2
 		}
+		soldier.HandlePromotions(defBase.Soldiers)
 
 		weaponDrops := make(map[string]bool)
 		deadAliens := make(map[string]bool)

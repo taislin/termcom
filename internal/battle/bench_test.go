@@ -125,10 +125,8 @@ func BenchmarkRankProgression(b *testing.B) {
 	s := soldier.NewSoldier("Bench")
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		s.Kills = 0
-		s.Rank = soldier.Rookie
-		s.MaxHP = 20
-		s.HP = 20
-		s.GainXP(5)
+		s.ExpFiring = 5
+		s.GainedXP = true
+		s.PostMission()
 	}
 }

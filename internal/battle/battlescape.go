@@ -950,8 +950,13 @@ func (bs *Battlescape) checkHumanReactionFire(movedAlien *Unit) {
 		bs.Status = StatusPlayerOverwatch
 		bs.OverwatchFlash = 30
 		bs.Camera.SetTarget(u.X, u.Y)
+		u.InOverwatch = true
 		damage, hit, _ := u.FireAt(movedAlien, bs.Map, &bs.Weather)
+		u.InOverwatch = false
 		bs.recordPlayerShot(u, movedAlien)
+		if hit && u.Soldier != nil {
+			u.Soldier.AddReactionsExp()
+		}
 		bs.Projectile = &Projectile{
 			FromX: u.X, FromY: u.Y,
 			ToX: movedAlien.X, ToY: movedAlien.Y,
@@ -1015,7 +1020,12 @@ func (bs *Battlescape) checkAlienReactionFire(movedHuman *Unit) {
 		bs.Status = StatusAlienOverwatch
 		bs.OverwatchFlash = 30
 		bs.Camera.SetTarget(u.X, u.Y)
+		u.InOverwatch = true
 		damage, hit, _ := u.FireAt(movedHuman, bs.Map, &bs.Weather)
+		u.InOverwatch = false
+		if hit && u.Soldier != nil {
+			u.Soldier.AddReactionsExp()
+		}
 		bs.Projectile = &Projectile{
 			FromX: u.X, FromY: u.Y,
 			ToX: movedHuman.X, ToY: movedHuman.Y,
@@ -1049,12 +1059,26 @@ func (bs *Battlescape) finishBattle() {
 			if u.HP <= 0 {
 				u.Soldier.HP = 0
 				u.Soldier.Wounds = 30
-			} else if u.HP < u.MaxHP {
-				dmg := u.MaxHP - u.HP
-				u.Soldier.Wounds = dmg * 3
-				if u.Soldier.Wounds > 30 {
-					u.Soldier.Wounds = 30
+				alreadyMemorial := false
+				for _, m := range bs.Game.Memorial {
+					if m == u.Soldier {
+						alreadyMemorial = true
+						break
+					}
 				}
+				if !alreadyMemorial {
+					bs.Game.Memorial = append(bs.Game.Memorial, u.Soldier)
+				}
+			} else {
+				dmg := u.MaxHP - u.HP
+				if dmg < 0 {
+					dmg = 0
+				}
+				wounds := dmg*3 + u.FatalWounds*2
+				if wounds > 30 {
+					wounds = 30
+				}
+				u.Soldier.Wounds = wounds
 			}
 			// Fatigue: survivors need rest
 			if u.HP > 0 {
@@ -1077,14 +1101,15 @@ func (bs *Battlescape) finishBattle() {
 
 	// Award XP to surviving soldiers
 	for _, u := range bs.Units {
-		if u.Faction == 0 && u.Alive && u.Soldier != nil {
-			xp := alienKills * 5
-			if won {
-				xp += 10
-			}
-			u.Soldier.GainXP(xp)
+		if u.Faction == 0 && u.Soldier != nil {
+			u.Soldier.Kills += alienKills
+			u.Soldier.PostMission()
 			u.Soldier.Missions++
 		}
+	}
+
+	if bs.Base != nil {
+		soldier.HandlePromotions(bs.Base.Soldiers)
 	}
 
 	// Collect loot — type-specific corpses + weapon drops
@@ -1236,6 +1261,35 @@ func (bs *Battlescape) finishAlienTurn() {
 			u.StunPoints -= 2
 			if u.StunPoints < 0 {
 				u.StunPoints = 0
+			}
+		}
+	}
+
+	// Bleed tick, morale recovery and panic checks for the new player turn.
+	for _, u := range bs.Units {
+		if !u.Alive {
+			continue
+		}
+		if u.BleedRate > 0 {
+			u.HP -= u.BleedRate
+			if u.HP <= 0 {
+				u.HP = 0
+				u.Alive = false
+			}
+		}
+		if u.Faction == 0 && u.HP > 0 {
+			if u.Morale < 100 {
+				u.Morale += 10
+				if u.Morale > 100 {
+					u.Morale = 100
+				}
+			}
+			if u.HP < u.MaxHP {
+				if rand.Intn(100) < 100-2*u.Morale {
+					u.Panicked = true
+				} else if u.Soldier != nil {
+					u.Soldier.AddBraveryExp()
+				}
 			}
 		}
 	}
@@ -1475,6 +1529,7 @@ func (bs *Battlescape) learnFromKills() {
 func (bs *Battlescape) restorePlayerTU() {
 	for _, u := range bs.Units {
 		if u.Faction == 0 && u.Alive {
+			u.HasMoved = false
 			if u.Panicked {
 				u.Panicked = false
 				continue
@@ -1805,6 +1860,7 @@ func (bs *Battlescape) EndTurn() {
 			continue
 		}
 		ai.Unit.TU = ai.Unit.MaxTU
+		ai.Unit.HasMoved = false
 		humanUnits := bs.Units.Faction(0)
 		actions := ai.Update(bs.Units, bs.Map, humanUnits, bs.AlienSquadPlan, &bs.Game.Tactics)
 		bs.AlienTurnQueue = append(bs.AlienTurnQueue, actions...)
@@ -2032,6 +2088,9 @@ func (bs *Battlescape) Grenade() {
 
 	grenadeRange := 6
 	damage := 40 + bs.Selected.Strength*2
+	if bs.Selected.Soldier != nil && bs.Selected.Soldier.HasBattleMod(soldier.BModDemolitions) {
+		damage = damage * 3 / 2
+	}
 	ax := bs.CursorX
 	ay := bs.CursorY
 	dx := ax - bs.Selected.X
@@ -2067,6 +2126,9 @@ func (bs *Battlescape) Grenade() {
 	}
 
 	splashRadius := 2
+	if bs.Selected.Soldier != nil && bs.Selected.Soldier.HasBattleMod(soldier.BModGrenadier) {
+		splashRadius += 2
+	}
 	for dy := -splashRadius; dy <= splashRadius; dy++ {
 		for dx := -splashRadius; dx <= splashRadius; dx++ {
 			if dx*dx+dy*dy > splashRadius*splashRadius {
@@ -2112,6 +2174,9 @@ func (bs *Battlescape) UseMedikit() {
 	}
 
 	healAmount := 10
+	if bs.Selected.Soldier != nil && bs.Selected.Soldier.HasBattleMod(soldier.BModFieldMedic) {
+		healAmount = 15
+	}
 	mx := bs.CursorX
 	my := bs.CursorY
 
@@ -2314,6 +2379,9 @@ func (bs *Battlescape) PsiAttack() {
 		engine.SpawnExplosion(bs.Particles, target.X-bs.ScrollX+1, target.Y-bs.ScrollY+1, tcell.NewRGBColor(120, 0, 200), 12)
 		target.TU = 0
 		target.Panicked = true
+		if bs.Selected.Soldier != nil {
+			bs.Selected.Soldier.AddPsiSkillExp()
+		}
 		bs.AddMessage(fmt.Sprintf(language.String("MSG_PSI_SUCCESS"), target.Name()))
 	} else {
 		bs.AddMessage(language.String("MSG_PSI_FAIL"))

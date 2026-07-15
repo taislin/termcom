@@ -2,6 +2,7 @@ package base
 
 import (
 	"fmt"
+	"math/rand"
 
 	"github.com/taislin/termcom/internal/data"
 	"github.com/taislin/termcom/internal/language"
@@ -385,8 +386,10 @@ func (b *Base) AdvanceDay() {
 		if s.Fatigue > 0 {
 			s.Fatigue--
 		}
-		if hasPsiLab && s.Wounds <= 0 && s.PsiSkill < 80 {
-			s.PsiSkill++
+		if hasPsiLab && s.Wounds <= 0 && s.PsiSkill > 0 && s.PsiSkill < 80 {
+			if rand.Intn(100) < 8*100/50 {
+				s.PsiSkill++
+			}
 		}
 	}
 }
