@@ -23,6 +23,42 @@ A roguelike-ified demake of **X-COM: UFO Defense** *(1994, MicroProse)* rendered
 - Go 1.25+
 - Terminal with Unicode support (for box-drawing characters)
 
+### Terminal Font Troubleshooting
+
+**Termcom** makes heavy use of extended Unicode characters (Runes, Geometrics, and Ethiopic symbols) to render aliens and tactical maps. Most devices should support the characters we use, but if you launch the game natively in your terminal and see overlapping characters, weird spacing, or empty boxes (▯) instead of aliens, your OS is missing the required fallback fonts.
+
+#### 🐧 Linux
+To fix this on **Ubuntu/Debian**, install the Noto Fonts and Unifont fallback packages:
+```bash
+sudo apt update
+sudo apt install fonts-noto fonts-unifont
+```
+For **Arch Linux** users:
+```bash
+sudo pacman -S noto-fonts unifont
+```
+For **Fedora** users:
+```bash
+sudo dnf install google-noto-sans-fonts unifont-fonts
+```
+
+#### 🍏 macOS
+The default `Terminal.app` on macOS can sometimes struggle with grid alignment or incorrectly render symbols as double-width emojis. 
+
+For the best experience, we highly recommend using **[iTerm2](https://iterm2.com/)**. If you are missing characters, you can install GNU Unifont via Homebrew:
+```bash
+brew install --cask font-gnu-unifont
+```
+* **To fix alignment in iTerm2:** Go to **Settings > Profiles > Text**, check the box for *"Use a different font for non-ASCII text"*, and set that secondary font to `Unifont`.
+
+#### 🪟 Windows
+Do not use the legacy command prompt (`cmd.exe`) or the old blue PowerShell window, as their Unicode and color support is extremely limited.
+
+1. Use **[Windows Terminal](https://apps.microsoft.com/store/detail/windows-terminal/9N0DX20HK701)** (Included by default in Windows 11, available in the Microsoft Store for Windows 10).
+2. If you see empty boxes `▯`, your system's default font lacks the required symbols. 
+3. Download and install a robust, high-compatibility font like **[GNU Unifont](http://unifoundry.com/unifont/)** or **[Noto Sans Mono](https://fonts.google.com/noto/specimen/Noto+Sans+Mono)**.
+4. Open Windows Terminal settings (`Ctrl + ,`), go to **Profiles > Defaults > Appearance**, and change the **Font face** to your newly installed font.
+
 ## Build & Run
 
 ### Terminal Version

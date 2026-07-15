@@ -2547,7 +2547,7 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 		if u.Faction == 1 && !bs.Map.IsVisible(u.X, u.Y) {
 			continue
 		}
-		ch := '\u263B' // ☻ human face
+		ch := '\u127E' // human
 		style := engine.StyleCyanBold
 		if u.Faction == 1 {
 			ch = '\u03A9' // Ω alien (default)
@@ -2559,7 +2559,7 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 				engine.ApplyBloom(ctx.ScreenRaw, ctx.FrameBuffer(), sx, sy, tcell.NewRGBColor(255, 50, 50))
 			}
 		} else if u.Faction == 2 {
-			ch = 'c'
+			ch = '\u1276' // civilian
 			style = engine.StyleGreen
 		}
 		if u == bs.Selected {
