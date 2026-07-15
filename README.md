@@ -61,6 +61,37 @@ The browser version supports:
 
 **Note:** The browser version is experimental and may have limited functionality compared to the terminal version.
 
+### Android Native (Experimental)
+
+The Android port compiles the Go game core into a native `.aar` library via [gomobile](https://pkg.go.dev/golang.org/x/mobile/cmd/gomobile), rendered as a character grid on a `SurfaceView` with full touch input.
+
+**Prerequisites:**
+
+- Go 1.25+
+- Android SDK + NDK (API 21+)
+- `gomobile`:
+  ```bash
+  go install golang.org/x/mobile/cmd/gomobile@latest
+  gomobile init
+  ```
+
+**Build:**
+
+```bash
+# 1. Build the Go .aar library
+make android-aar
+
+# 2. Open android/ in Android Studio, sync Gradle, and run on device
+```
+
+The `.aar` is written to `android/app/libs/termcom.aar`. Open `android/` as an existing project in Android Studio, then build and deploy to a device or emulator running Android 5.0+.
+
+**Controls:**
+- Tap to click / select / move
+- Long-press (500ms) for right-click / cancel
+- Drag to scroll
+- Hardware keyboard (DPAD, Enter, Escape, F-keys) supported
+
 ## Project Structure
 
 See the [AGENTS file](AGENTS.md) for architecture details.

@@ -97,23 +97,23 @@ func attrMaskFromStyle(style tcell.Style) tcell.AttrMask {
 }
 
 func styleFromCell(cd cellData) tcell.Style {
-	st := tcell.StyleDefault.Foreground(cd.fg).Background(cd.bg)
-	if cd.attr&tcell.AttrBold != 0 {
+	st := tcell.StyleDefault.Foreground(cd.Fg).Background(cd.Bg)
+	if cd.Attr&tcell.AttrBold != 0 {
 		st = st.Bold(true)
 	}
-	if cd.attr&tcell.AttrBlink != 0 {
+	if cd.Attr&tcell.AttrBlink != 0 {
 		st = st.Blink(true)
 	}
-	if cd.attr&tcell.AttrReverse != 0 {
+	if cd.Attr&tcell.AttrReverse != 0 {
 		st = st.Reverse(true)
 	}
-	if cd.attr&tcell.AttrDim != 0 {
+	if cd.Attr&tcell.AttrDim != 0 {
 		st = st.Dim(true)
 	}
-	if cd.attr&tcell.AttrItalic != 0 {
+	if cd.Attr&tcell.AttrItalic != 0 {
 		st = st.Italic(true)
 	}
-	if cd.attr&tcell.AttrStrikeThrough != 0 {
+	if cd.Attr&tcell.AttrStrikeThrough != 0 {
 		st = st.StrikeThrough(true)
 	}
 	return st
@@ -121,7 +121,7 @@ func styleFromCell(cd cellData) tcell.Style {
 
 func (s *ScreenRaw) Peek(x, y int) (rune, tcell.Style) {
 	cd := s.fb.Get(x, y)
-	return cd.ch, styleFromCell(cd)
+	return cd.Ch, styleFromCell(cd)
 }
 
 func (s *ScreenRaw) FrameBuffer() *FrameBuffer {

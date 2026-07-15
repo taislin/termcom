@@ -26,11 +26,11 @@ func ApplyNightVision(s *ScreenRaw) {
 	for y := 0; y < scrH; y++ {
 		for x := 0; x < scrW; x++ {
 			cell := fb.Get(x, y)
-			if cell.ch == 0 {
+			if cell.Ch == 0 {
 				continue
 			}
 
-			fgR, fgG, fgB := colorRGB(cell.fg)
+			fgR, fgG, fgB := colorRGB(cell.Fg)
 			lum := luminance(fgR, fgG, fgB)
 
 			var newFg tcell.Color
@@ -52,7 +52,7 @@ func ApplyNightVision(s *ScreenRaw) {
 			}
 
 			style := tcell.StyleDefault.Foreground(newFg).Background(DarkenColor(StyleDefault.GetBackground(), 0.25))
-			s.SetCell(x, y, cell.ch, style)
+			s.SetCell(x, y, cell.Ch, style)
 		}
 	}
 }
@@ -73,7 +73,7 @@ func ApplyThermalVision(s *ScreenRaw, entities []ThermalEntity) {
 	for y := 0; y < scrH; y++ {
 		for x := 0; x < scrW; x++ {
 			cell := fb.Get(x, y)
-			if cell.ch == 0 {
+			if cell.Ch == 0 {
 				continue
 			}
 
@@ -81,7 +81,7 @@ func ApplyThermalVision(s *ScreenRaw, entities []ThermalEntity) {
 
 			var newFg, newBg tcell.Color
 			if isEntity {
-				fgR, fgG, fgB := colorRGB(cell.fg)
+				fgR, fgG, fgB := colorRGB(cell.Fg)
 				lum := luminance(fgR, fgG, fgB)
 				if lum > 128 {
 					newFg = color.XTerm11
@@ -94,7 +94,7 @@ func ApplyThermalVision(s *ScreenRaw, entities []ThermalEntity) {
 					newBg = tcell.NewRGBColor(30, 5, 0)
 				}
 			} else {
-				fgR, fgG, fgB := colorRGB(cell.fg)
+				fgR, fgG, fgB := colorRGB(cell.Fg)
 				lum := luminance(fgR, fgG, fgB)
 				cold := lum * 0.15
 				newFg = tcell.NewRGBColor(int32(cold*0.3), int32(cold*0.4), int32(cold))
@@ -102,7 +102,7 @@ func ApplyThermalVision(s *ScreenRaw, entities []ThermalEntity) {
 			}
 
 			style := tcell.StyleDefault.Foreground(newFg).Background(newBg)
-			s.SetCell(x, y, cell.ch, style)
+			s.SetCell(x, y, cell.Ch, style)
 		}
 	}
 }

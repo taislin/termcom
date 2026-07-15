@@ -7,10 +7,10 @@ import (
 )
 
 type cellData struct {
-	ch   rune
-	fg   tcell.Color
-	bg   tcell.Color
-	attr tcell.AttrMask
+	Ch   rune
+	Fg   tcell.Color
+	Bg   tcell.Color
+	Attr tcell.AttrMask
 }
 
 type FrameBuffer struct {
@@ -43,7 +43,7 @@ func (fb *FrameBuffer) Resize(w, h int) {
 
 func (fb *FrameBuffer) Set(x, y int, ch rune, fg, bg tcell.Color, attr tcell.AttrMask) {
 	if x >= 0 && x < fb.w && y >= 0 && y < fb.h {
-		fb.cells[y*fb.w+x] = cellData{ch: ch, fg: fg, bg: bg, attr: attr}
+		fb.cells[y*fb.w+x] = cellData{Ch: ch, Fg: fg, Bg: bg, Attr: attr}
 	}
 }
 
@@ -58,6 +58,40 @@ func (fb *FrameBuffer) Clear() {
 	for i := range fb.cells {
 		fb.cells[i] = cellData{}
 	}
+}
+
+// Width returns the framebuffer width in cells.
+func (fb *FrameBuffer) Width() int {
+	return fb.w
+}
+
+// Height returns the framebuffer height in cells.
+func (fb *FrameBuffer) Height() int {
+	return fb.h
+}
+
+// MarshalBinary encodes the framebuffer as 8 bytes per cell:
+// [rune_lo, rune_hi, fg_r, fg_g, fg_b, bg_r, bg_g, attr].
+// Runes are limited to BMP (U+0000-U+FFFF) per project convention.
+// Color components are 0-255. Attr is tcell.AttrMask as a byte.
+func (fb *FrameBuffer) MarshalBinary() []byte {
+	n := len(fb.cells)
+	data := make([]byte, n*8)
+	for i, cd := range fb.cells {
+		off := i * 8
+		r := uint16(cd.Ch)
+		data[off+0] = byte(r)
+		data[off+1] = byte(r >> 8)
+		fr, fg, fbCol := cd.Fg.RGB()
+		data[off+2] = byte(fr)
+		data[off+3] = byte(fg)
+		data[off+4] = byte(fbCol)
+		br, bg, _ := cd.Bg.RGB()
+		data[off+5] = byte(br)
+		data[off+6] = byte(bg)
+		data[off+7] = byte(cd.Attr)
+	}
+	return data
 }
 
 func colorRGB(c tcell.Color) (float64, float64, float64) {
@@ -114,14 +148,14 @@ func ApplyLightSource(s *ScreenRaw, fb *FrameBuffer, sourceX, sourceY int, radiu
 			}
 			falloff := smoothstep(1 - dist/radius)
 			cell := fb.Get(x, y)
-			bgR, bgG, bgB := colorRGB(cell.bg)
+			bgR, bgG, bgB := colorRGB(cell.Bg)
 			blended := lerpColor([3]float64{bgR, bgG, bgB}, [3]float64{lR, lG, lB}, falloff)
 			newBg := tcell.NewRGBColor(int32(blended[0]), int32(blended[1]), int32(blended[2]))
-			fgR, fgG, fgB := colorRGB(cell.fg)
+			fgR, fgG, fgB := colorRGB(cell.Fg)
 			fgBlend := lerpColor([3]float64{fgR, fgG, fgB}, [3]float64{lR, lG, lB}, falloff*0.5)
 			newFg := tcell.NewRGBColor(int32(fgBlend[0]), int32(fgBlend[1]), int32(fgBlend[2]))
 			style := tcell.StyleDefault.Foreground(newFg).Background(newBg)
-			s.SetCell(x, y, cell.ch, style)
+			s.SetCell(x, y, cell.Ch, style)
 		}
 	}
 }
@@ -145,7 +179,7 @@ func ApplyBloom(s *ScreenRaw, fb *FrameBuffer, centerX, centerY int, bloomColor 
 			// Gentle falloff for bloom
 			falloff := 0.3 * (1 - dist/radius)
 			cell := fb.Get(x, y)
-			bgR, bgG, bgB := colorRGB(cell.bg)
+			bgR, bgG, bgB := colorRGB(cell.Bg)
 			blended := [3]float64{
 				bgR + (lR-bgR)*falloff,
 				bgG + (lG-bgG)*falloff,
@@ -154,8 +188,8 @@ func ApplyBloom(s *ScreenRaw, fb *FrameBuffer, centerX, centerY int, bloomColor 
 			newBg := tcell.NewRGBColor(int32(blended[0]), int32(blended[1]), int32(blended[2]))
 			
 			// Maintain existing foreground, just blend background
-			style := tcell.StyleDefault.Foreground(cell.fg).Background(newBg)
-			s.SetCell(x, y, cell.ch, style)
+			style := tcell.StyleDefault.Foreground(cell.Fg).Background(newBg)
+			s.SetCell(x, y, cell.Ch, style)
 		}
 	}
 }
@@ -185,7 +219,7 @@ func ApplyDistortion(s *ScreenRaw, fb *FrameBuffer, timeVal float64) {
 	for y := 0; y < scrH; y++ {
 		for x := 0; x < scrW; x++ {
 			cell := tmp.cells[y*scrW+x]
-			s.SetCell(x, y, cell.ch, tcell.StyleDefault.Foreground(cell.fg).Background(cell.bg))
+			s.SetCell(x, y, cell.Ch, tcell.StyleDefault.Foreground(cell.Fg).Background(cell.Bg))
 		}
 	}
 }
@@ -231,11 +265,11 @@ func ApplyDirectionalLight(s *ScreenRaw, fb *FrameBuffer, sourceX, sourceY int, 
 
 			falloff := smoothstep(1 - dist/radius)
 			cell := fb.Get(x, y)
-			bgR, bgG, bgB := colorRGB(cell.bg)
+			bgR, bgG, bgB := colorRGB(cell.Bg)
 			blended := lerpColor([3]float64{bgR, bgG, bgB}, [3]float64{lR, lG, lB}, falloff*0.4)
 			newBg := tcell.NewRGBColor(int32(blended[0]), int32(blended[1]), int32(blended[2]))
-			style := tcell.StyleDefault.Foreground(cell.fg).Background(newBg)
-			s.SetCell(x, y, cell.ch, style)
+			style := tcell.StyleDefault.Foreground(cell.Fg).Background(newBg)
+			s.SetCell(x, y, cell.Ch, style)
 		}
 	}
 }
@@ -325,15 +359,15 @@ func DrawTransparentRect(s *ScreenRaw, fb *FrameBuffer, x, y, width, height int,
 				continue
 			}
 			cell := fb.Get(cx, cy)
-			bgR, bgG, bgB := colorRGB(cell.bg)
+			bgR, bgG, bgB := colorRGB(cell.Bg)
 			blended := [3]float64{
 				oR*alpha + bgR*invAlpha,
 				oG*alpha + bgG*invAlpha,
 				oB*alpha + bgB*invAlpha,
 			}
 			newBg := tcell.NewRGBColor(int32(blended[0]), int32(blended[1]), int32(blended[2]))
-			style := tcell.StyleDefault.Foreground(cell.fg).Background(newBg)
-			s.screen.SetContent(cx, cy, cell.ch, nil, style)
+			style := tcell.StyleDefault.Foreground(cell.Fg).Background(newBg)
+			s.screen.SetContent(cx, cy, cell.Ch, nil, style)
 		}
 	}
 }

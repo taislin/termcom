@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Terminal prompt character > with blinking cursor -->
+    <group
+        android:translateX="24"
+        android:translateY="28">
+        <!-- Green prompt ">" -->
+        <path
+            android:fillColor="#00FF41"
+            android:pathData="M0,10 L20,26 L0,42 Z" />
+        <!-- Blinking cursor block -->
+        <path
+            android:fillColor="#00FF41"
+            android:pathData="M26,8 L40,8 L40,44 L26,44 Z"
+            android:alpha="0.8" />
+    </group>
+</vector>

@@ -163,13 +163,13 @@ func (wr *WebRenderer) Render(scr *ScreenRaw) string {
 				if col < w && row < h && col+row*w < len(wr.prev) {
 					wr.prev[row*w+col] = cd
 				}
-				ch := cd.ch
+				ch := cd.Ch
 				if ch == 0 {
 					ch = ' '
 				}
-				if first || cd.fg != prevFg || cd.bg != prevBg || cd.attr != prevAttr {
-					sb.WriteString(sgrCode(cd.fg, cd.bg, cd.attr))
-					prevFg, prevBg, prevAttr = cd.fg, cd.bg, cd.attr
+				if first || cd.Fg != prevFg || cd.Bg != prevBg || cd.Attr != prevAttr {
+					sb.WriteString(sgrCode(cd.Fg, cd.Bg, cd.Attr))
+					prevFg, prevBg, prevAttr = cd.Fg, cd.Bg, cd.Attr
 					first = false
 				}
 				sb.WriteRune(ch)
@@ -201,7 +201,7 @@ func (wr *WebRenderer) Render(scr *ScreenRaw) string {
 				}
 				wr.prev[idx] = cd
 
-				ch := cd.ch
+				ch := cd.Ch
 				if ch == 0 {
 					ch = ' '
 				}
@@ -213,9 +213,9 @@ func (wr *WebRenderer) Render(scr *ScreenRaw) string {
 				}
 
 				// Emit SGR only when style changes.
-				if !sgrSet || cd.fg != prevFg || cd.bg != prevBg || cd.attr != prevAttr {
-					sb.WriteString(sgrCode(cd.fg, cd.bg, cd.attr))
-					prevFg, prevBg, prevAttr = cd.fg, cd.bg, cd.attr
+				if !sgrSet || cd.Fg != prevFg || cd.Bg != prevBg || cd.Attr != prevAttr {
+					sb.WriteString(sgrCode(cd.Fg, cd.Bg, cd.Attr))
+					prevFg, prevBg, prevAttr = cd.Fg, cd.Bg, cd.Attr
 					sgrSet = true
 				}
 

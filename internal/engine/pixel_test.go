@@ -23,8 +23,8 @@ func TestDrawPixelImageOddHeight(t *testing.T) {
 	if !ok {
 		t.Fatalf("Expected cell at 0,0 to be drawn")
 	}
-	if cell1.ch != '▀' {
-		t.Errorf("Expected '▀', got %c", cell1.ch)
+	if cell1.Ch != '▀' {
+		t.Errorf("Expected '▀', got %c", cell1.Ch)
 	}
 	fg := cell1.style.GetForeground()
 	bg := cell1.style.GetBackground()
@@ -37,8 +37,8 @@ func TestDrawPixelImageOddHeight(t *testing.T) {
 	if !ok {
 		t.Fatalf("Expected cell at 0,1 to be drawn")
 	}
-	if cell2.ch != '▀' {
-		t.Errorf("Expected '▀', got %c", cell2.ch)
+	if cell2.Ch != '▀' {
+		t.Errorf("Expected '▀', got %c", cell2.Ch)
 	}
 	fg2 := cell2.style.GetForeground()
 	bg2 := cell2.style.GetBackground()
