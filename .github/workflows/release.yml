@@ -68,7 +68,17 @@ jobs:
       - uses: actions/checkout@v7
 
       - name: Install ALSA dev headers
-        run: sudo apt-get update && sudo apt-get install -y libasound2-dev
+        run: |
+          for i in 1 2 3 4 5; do
+            if sudo apt-get update && sudo apt-get install -y --fix-missing libasound2-dev; then
+              echo "libasound2-dev installed on attempt $i"
+              break
+            fi
+            echo "apt attempt $i failed, retrying in $((i * 5))s..."
+            sleep $((i * 5))
+          done
+          # Verify the headers are present so a silent failure doesn't break the build later.
+          pkg-config --exists alsa || sudo apt-get install -y --fix-missing libasound2-dev
 
       - name: Set up Go
         uses: actions/setup-go@v6
