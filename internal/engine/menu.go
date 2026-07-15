@@ -390,7 +390,47 @@ func (ms *MenuScreen) HandleMouse(e *tcell.EventMouse) {
 		return
 	}
 	x, y := e.Position()
-	w, _ := ms.Game.ScreenSize()
+	w, h := ms.Game.ScreenSize()
+
+	// Help bar clicks (y = h-2)
+	if y == h-2 {
+		help := language.String("MENU_HELP")
+		col := 1
+		runes := []rune(help)
+		for i := 0; i < len(runes); {
+			if runes[i] != '[' {
+				col += StringWidth(string(runes[i]))
+				i++
+				continue
+			}
+			segStart := col
+			end := i + 1
+			for end < len(runes) && runes[end] != ']' {
+				end++
+			}
+			if end >= len(runes) {
+				break
+			}
+			segEnd := col + StringWidth(string(runes[i:end+1]))
+			if x >= segStart && x <= segEnd {
+				key := string(runes[i+1 : end])
+				switch key {
+				case "Q", "q":
+					ms.Game.Quit()
+				case "F5":
+					ms.Game.PushState(StateSlotPicker)
+				case "F9":
+					ms.Game.PushState(StateSlotPicker)
+				case "Enter":
+					ms.confirm()
+				}
+				return
+			}
+			col = segEnd
+			i = end + 1
+		}
+		return
+	}
 
 	subY := 9
 	menuY := subY + 4

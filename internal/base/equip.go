@@ -108,7 +108,7 @@ func (es *EquipScreen) Render(ctx *engine.ScreenCtx) {
 		} else if a, ok := data.Armors[item]; ok {
 			info = fmt.Sprintf(language.String("EQUIP_ITEM_ARMOR"), a.DisplayNameByKey(item), qty, a.Undersuit)
 		} else {
-			info = fmt.Sprintf(language.String("EQUIP_ITEM_GENERIC"), item, qty)
+			info = fmt.Sprintf(language.String("EQUIP_ITEM_GENERIC"), data.ItemDisplayName(item), qty)
 		}
 		ctx.DrawString(rightX, y, info, style)
 		y++
@@ -123,7 +123,7 @@ func (es *EquipScreen) Render(ctx *engine.ScreenCtx) {
 	if len(available) > 0 {
 		help = language.String("HELP_EQUIP_TAB")
 	}
-	ctx.DrawString(1, h-1, help, engine.StyleGray)
+	ctx.DrawMarkupString(1, h-1, help, engine.StyleGray, engine.StyleHotkey)
 
 	if es.Message != "" {
 		ctx.DrawString(2, h-2, es.Message, engine.StyleYellow)

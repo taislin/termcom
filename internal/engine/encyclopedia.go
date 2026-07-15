@@ -268,15 +268,15 @@ func (es *EncyclopediaScreen) HandleMouse(e *tcell.EventMouse) {
 
 	// Handle help bar clicks (bottom bar)
 	if y == h-1 {
-		// Help bar: "h/l=Tab  [j]/[k]=Navigate  [Esc]=Back"
+		// Help bar: "[←]/[→]=Tab  [↑]/[↓]=Navigate  [Esc]=Back"
 		switch {
-		case x >= 1 && x <= 3: // h/l=Tab
+		case x >= 1 && x <= 3: // [←]/[→]=Tab
 			// Previous tab
 			if es.Tab > 0 {
 				es.Tab--
 				es.Selection = 0
 			}
-		case x >= 5 && x <= 10: // [j]/[k]=Navigate
+		case x >= 5 && x <= 10: // [↑]/[↓]=Navigate
 			// Scroll down
 			if es.Selection < len(es.Entries)-1 {
 				es.Selection++

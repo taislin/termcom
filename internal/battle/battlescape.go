@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
+	"strings"
 
 	"github.com/taislin/termcom/internal/audio"
 	"github.com/taislin/termcom/internal/base"
@@ -75,6 +76,12 @@ type AlienAction struct {
 	ToX, ToY     int
 }
 
+// LogEntry stores a single message with the turn it was created on.
+type LogEntry struct {
+	Text string
+	Turn int
+}
+
 type Battlescape struct {
 	// Game Engine and World State
 	Game           *engine.Game
@@ -89,7 +96,7 @@ type Battlescape struct {
 	CursorY        int
 	Selected       *Unit
 	Message        string
-	Log            []string
+	Log            []LogEntry
 	ScrollX        int
 	ScrollY        int
 	Squad          []*soldier.Soldier
@@ -149,7 +156,10 @@ type Battlescape struct {
 	ReinforcementsSpawned bool
 
 	// Input State
-	State BattleState
+	State          BattleState
+	viewW, viewH   int // cached viewport dimensions (set each Render)
+	mouseX, mouseY int // last mouse position for edge-scrolling
+	mouseActive    bool
 }
 
 type CustomVictory struct {
@@ -162,7 +172,7 @@ type CustomVictory struct {
 
 func (bs *Battlescape) AddMessage(msg string) {
 	bs.Message = msg
-	bs.Log = append(bs.Log, msg)
+	bs.Log = append(bs.Log, LogEntry{Text: msg, Turn: bs.Turn})
 	if len(bs.Log) > 50 {
 		bs.Log = bs.Log[len(bs.Log)-50:]
 	}
@@ -700,6 +710,26 @@ func (bs *Battlescape) Update() {
 	// Handle input locking (e.g., during animations or dialogs)
 	if bs.PlayerLock > 0 {
 		bs.PlayerLock--
+	}
+
+	// Edge-scrolling: auto-pan when mouse is near screen borders
+	const edgeMargin = 3
+	if bs.mouseActive && bs.Phase == PhasePlayerTurn && bs.PlayerLock == 0 && bs.FrameCount%2 == 0 {
+		w, h := bs.Game.ScreenSize()
+		dx, dy := 0, 0
+		if bs.mouseX <= edgeMargin {
+			dx = -2
+		} else if bs.mouseX >= w-1-edgeMargin {
+			dx = 2
+		}
+		if bs.mouseY <= edgeMargin {
+			dy = -2
+		} else if bs.mouseY >= h-1-edgeMargin {
+			dy = 2
+		}
+		if dx != 0 || dy != 0 {
+			bs.Camera.Pan(dx, dy)
+		}
 	}
 
 	// Periodic ambient sound effects
@@ -1487,7 +1517,7 @@ func (bs *Battlescape) checkVictory() {
 			if safe >= minReq {
 				bs.Phase = PhaseVictory
 				audio.PlayVictory()
-				bs.AddMessage(fmt.Sprintf("%d soldier(s) reached extraction! Mission complete.", safe))
+				bs.AddMessage(fmt.Sprintf(language.String("MSG_MISSION_EXTRACT"), safe))
 			} else if len(humans) == 0 {
 				bs.Phase = PhaseDefeat
 				audio.PlayDefeat()
@@ -1512,7 +1542,7 @@ func (bs *Battlescape) checkVictory() {
 	if HasModifier(bs.MissionModifiers, ModTimeLimit) && bs.Turn > 15 && len(aliens) > 0 {
 		bs.Phase = PhaseDefeat
 		audio.PlayDefeat()
-		bs.AddMessage("TIME'S UP! Mission failed - exceeded time limit.")
+		bs.AddMessage(language.String("MSG_TIME_LIMIT_EXCEEDED"))
 		return
 	}
 
@@ -1673,7 +1703,14 @@ func (bs *Battlescape) FireWeapon() {
 	}
 	damage, hit, err := bs.Selected.FireAt(target, bs.Map, &bs.Weather)
 	if err != nil {
-		bs.AddMessage(err.Error())
+		msg := err.Error()
+		switch {
+		case strings.Contains(msg, "not enough TU"):
+			msg = language.String("MSG_NOT_ENOUGH_TU")
+		case strings.Contains(msg, "out of ammo"):
+			msg = language.String("MSG_OUT_OF_AMMO")
+		}
+		bs.AddMessage(msg)
 		return
 	}
 	bs.recordPlayerShot(bs.Selected, target)
@@ -1941,7 +1978,7 @@ func (bs *Battlescape) UseStairs() {
 		return
 	}
 	if bs.Map.NumLevels <= 1 {
-		bs.AddMessage("No stairs on this map.")
+		bs.AddMessage(language.String("MSG_NO_STAIRS_MAP"))
 		return
 	}
 	tile := bs.Map.At(bs.CursorX, bs.CursorY)
@@ -1951,7 +1988,7 @@ func (bs *Battlescape) UseStairs() {
 			tile = bs.Map.At(bs.Selected.X, bs.Selected.Y)
 		}
 		if tile.Type != TileStairs && tile.Type != TileStairsDown {
-			bs.AddMessage("Move to stairs first.")
+			bs.AddMessage(language.String("MSG_MOVE_TO_STAIRS"))
 			return
 		}
 	}
@@ -2327,6 +2364,7 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 		viewW = 10
 	}
 	viewH := h - 5
+	bs.viewW, bs.viewH = viewW, viewH
 
 	// 2. Top-level UI elements
 	bs.DrawCombatStatusBar(ctx, w)
@@ -2662,11 +2700,19 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 			startIdx = logEntries - availableLines
 		}
 		for i := 0; i < availableLines && startIdx+i < logEntries; i++ {
-			msg := bs.Log[startIdx+i]
-			if len(msg) > bs.SidebarW-1 {
-				msg = msg[:bs.SidebarW-1]
+			entry := bs.Log[startIdx+i]
+			text := entry.Text
+			runes := []rune(text)
+			for len(runes) > 0 && engine.StringWidth(string(runes)) > bs.SidebarW-3 {
+				runes = runes[:len(runes)-1]
 			}
-			ctx.DrawString(sidebarX, sy+i, msg, engine.StyleDefault)
+			text = string(runes)
+			style := engine.StyleDefault
+			if entry.Turn < bs.Turn {
+				style = engine.StyleGray
+			}
+			ctx.DrawString(sidebarX, sy+i, ">", engine.StyleHotkey)
+			ctx.DrawString(sidebarX+2, sy+i, text, style)
 		}
 	}
 
@@ -2767,11 +2813,19 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 			startIdx = logEntries - availableLines
 		}
 		for i := 0; i < availableLines && startIdx+i < logEntries; i++ {
-			msg := bs.Log[startIdx+i]
-			if len(msg) > bs.SidebarW-1 {
-				msg = msg[:bs.SidebarW-1]
+			entry := bs.Log[startIdx+i]
+			text := entry.Text
+			runes := []rune(text)
+			for len(runes) > 0 && engine.StringWidth(string(runes)) > bs.SidebarW-3 {
+				runes = runes[:len(runes)-1]
 			}
-			ctx.DrawString(sidebarX, sy+i, msg, engine.StyleDefault)
+			text = string(runes)
+			style := engine.StyleDefault
+			if entry.Turn < bs.Turn {
+				style = engine.StyleGray
+			}
+			ctx.DrawString(sidebarX, sy+i, ">", engine.StyleHotkey)
+			ctx.DrawString(sidebarX+2, sy+i, text, style)
 		}
 	}
 
@@ -2936,13 +2990,13 @@ func (bs *Battlescape) ToggleVision() {
 	switch bs.VisionMode {
 	case engine.VisionNormal:
 		bs.VisionMode = engine.VisionNight
-		bs.AddMessage("NIGHT VISION ON")
+		bs.AddMessage(language.String("MSG_VISION_NIGHT"))
 	case engine.VisionNight:
 		bs.VisionMode = engine.VisionThermal
-		bs.AddMessage("THERMAL VISION ON")
+		bs.AddMessage(language.String("MSG_VISION_THERMAL"))
 	case engine.VisionThermal:
 		bs.VisionMode = engine.VisionNormal
-		bs.AddMessage("NORMAL VISION")
+		bs.AddMessage(language.String("MSG_VISION_NORMAL"))
 	}
 }
 

@@ -6,12 +6,22 @@ import (
 )
 
 type HelpScreen struct {
-	Game *Game
-	Page int
+	Game      *Game
+	Page      int
+	prevState GameState
 }
 
-func NewHelpScreen(g *Game) *HelpScreen {
-	return &HelpScreen{Game: g, Page: 0}
+func NewHelpScreen(g *Game, prev GameState) *HelpScreen {
+	page := 0
+	switch prev {
+	case StateGeoscape:
+		page = 0
+	case StateBase, StateEquip, StateResearch, StateManufacture:
+		page = 1
+	case StateBattlescape:
+		page = 2
+	}
+	return &HelpScreen{Game: g, Page: page, prevState: prev}
 }
 
 func (hs *HelpScreen) Update() {}
@@ -65,6 +75,13 @@ func (hs *HelpScreen) getPages() []helpPage {
 				">" + language.String("HELP_GEO_BASE"),
 				">" + language.String("HELP_GEO_LAUNCH"),
 				">" + language.String("HELP_GEO_AUTO"),
+				">" + language.String("HELP_GEO_MISSION"),
+				">" + language.String("HELP_GEO_TRANSPORT"),
+				">" + language.String("HELP_GEO_CYCLE"),
+				">" + language.String("HELP_GEO_NEW"),
+				">" + language.String("HELP_GEO_TRANSFER"),
+				">" + language.String("HELP_GEO_ENCYCLOPEDIA"),
+				">" + language.String("HELP_GEO_RADAR"),
 				">" + language.String("HELP_GEO_SAVE"),
 				">" + language.String("HELP_GEO_LOAD"),
 				">" + language.String("HELP_GEO_QUIT"),
@@ -206,8 +223,50 @@ func (hs *HelpScreen) HandleMouse(e *tcell.EventMouse) {
 	if buttons == 0 {
 		return
 	}
-	x, _ := e.Position()
-	w, _ := hs.Game.ScreenSize()
+	x, y := e.Position()
+	w, h := hs.Game.ScreenSize()
+
+	// Help bar clicks
+	if y == h-1 {
+		nav := language.String("HELP_NAV")
+		col := 1
+		runes := []rune(nav)
+		for i := 0; i < len(runes); {
+			if runes[i] != '[' {
+				col += StringWidth(string(runes[i]))
+				i++
+				continue
+			}
+			segStart := col
+			end := i + 1
+			for end < len(runes) && runes[end] != ']' {
+				end++
+			}
+			if end >= len(runes) {
+				break
+			}
+			segEnd := col + StringWidth(string(runes[i:end+1]))
+			if x >= segStart && x <= segEnd {
+				key := string(runes[i+1 : end])
+				if key == "Esc" {
+					hs.Game.PopState()
+					return
+				}
+				if key == "Tab" {
+					pages := hs.getPages()
+					hs.Page++
+					if hs.Page >= len(pages) {
+						hs.Page = 0
+					}
+					return
+				}
+			}
+			col = segEnd
+			i = end + 1
+		}
+		return
+	}
+
 	if x < w/2 {
 		hs.Page--
 		if hs.Page < 0 {

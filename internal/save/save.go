@@ -8,6 +8,7 @@ import (
 
 	"github.com/taislin/termcom/internal/base"
 	"github.com/taislin/termcom/internal/data"
+	"github.com/taislin/termcom/internal/language"
 	"github.com/taislin/termcom/internal/soldier"
 )
 
@@ -223,7 +224,7 @@ func LoadSaveInfo(slot int) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("Slot %d: %s - $%dK", slot, sd.GameTime.Format("2006 Jan 02"), sd.Funds/1000), nil
+	return fmt.Sprintf(language.String("SLOT_FORMAT"), slot, sd.GameTime.Format("2006 Jan 02"), sd.Funds/1000), nil
 }
 
 func FromBase(b *base.Base) *BaseSave {

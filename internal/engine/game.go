@@ -339,6 +339,7 @@ func (g *Game) drainEvents() {
 						g.PopState()
 					}
 				} else if e.Str() == "?" {
+					g.SetScreen(StateHelp, NewHelpScreen(g, g.state))
 					g.PushState(StateHelp)
 				} else if e.Str() == "o" || e.Str() == "O" {
 					if _, ok := g.screens[StateOptions]; !ok {

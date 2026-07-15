@@ -597,12 +597,12 @@ func (b *Base) InterrogateAlien(alienName string) (string, bool) {
 		if b.ActiveResearch != nil && !b.ActiveResearch.Completed {
 			b.ActiveResearch.Progress += b.ActiveResearch.Cost / 4
 			benefit = true
-			topicName = topic.Name
+			topicName = topic.DisplayName()
 		}
 	} else if b.ActiveResearch != nil && b.ActiveResearch.TopicID == autopsyID && !b.ActiveResearch.Completed {
 		b.ActiveResearch.Progress = b.ActiveResearch.Cost
 		benefit = true
-		topicName = topic.Name
+		topicName = topic.DisplayName()
 	} else {
 		b.CompletedResearch = append(b.CompletedResearch, autopsyID)
 		b.UnlockedWeapons = append(b.UnlockedWeapons, topic.UnlockWeap...)
@@ -621,7 +621,7 @@ func (b *Base) InterrogateAlien(alienName string) (string, bool) {
 			}
 		}
 		benefit = true
-		topicName = topic.Name
+		topicName = topic.DisplayName()
 	}
 
 	if !benefit {
@@ -732,7 +732,7 @@ func (b *Base) AdvanceResearch() []string {
 					}
 				}
 			}
-			name = topic.Name
+			name = topic.DisplayName()
 		}
 		b.ActiveResearch = nil
 		return []string{name}

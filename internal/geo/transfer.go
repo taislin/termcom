@@ -112,7 +112,70 @@ func (ts *TransferScreen) HandleKey(e *tcell.EventKey) {
 	}
 }
 
-func (ts *TransferScreen) HandleMouse(e *tcell.EventMouse) {}
+func (ts *TransferScreen) HandleMouse(e *tcell.EventMouse) {
+	buttons := e.Buttons()
+	if buttons == 0 {
+		return
+	}
+	x, y := e.Position()
+	_, h := ts.Game.ScreenSize()
+
+	if y == h-1 {
+		ts.clickHelpBar(x)
+		return
+	}
+
+	// Click on item/soldier list area
+	if y >= 4 && buttons&tcell.Button1 != 0 {
+		ts.moveSel(y - 4)
+	}
+}
+
+func (ts *TransferScreen) clickHelpBar(x int) {
+	help := language.String("HELP_TRANSFER")
+	col := 2
+	runes := []rune(help)
+	for i := 0; i < len(runes); {
+		if runes[i] != '[' {
+			col += engine.StringWidth(string(runes[i]))
+			i++
+			continue
+		}
+		segStart := col
+		end := i + 1
+		for end < len(runes) && runes[end] != ']' {
+			end++
+		}
+		if end >= len(runes) {
+			break
+		}
+		segEnd := col + engine.StringWidth(string(runes[i:end+1]))
+		if x >= segStart && x <= segEnd {
+			key := string(runes[i+1 : end])
+			ts.dispatchHelpKey(key)
+			return
+		}
+		col = segEnd
+		i = end + 1
+	}
+}
+
+func (ts *TransferScreen) dispatchHelpKey(key string) {
+	switch key {
+	case "\u2191":
+		ts.moveSel(-1)
+	case "\u2193":
+		ts.moveSel(1)
+	case "Tab":
+		ts.cycleDest()
+	case "Space":
+		ts.transferSoldier()
+	case "Enter":
+		ts.transferItem()
+	case "Esc":
+		ts.Game.PopState()
+	}
+}
 
 func (ts *TransferScreen) cycleDest() {
 	if len(ts.Geo.Bases) < 2 {

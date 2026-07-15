@@ -44,7 +44,11 @@ func NewDebriefScreen(g *Game, d *DebriefData) *DebriefScreen {
 }
 
 func (ds *DebriefScreen) Update() {}
-func (ds *DebriefScreen) HandleMouse(_ *tcell.EventMouse) {}
+func (ds *DebriefScreen) HandleMouse(e *tcell.EventMouse) {
+	if e.Buttons()&tcell.Button1 != 0 {
+		ds.dismiss()
+	}
+}
 
 func (ds *DebriefScreen) HandleKey(e *tcell.EventKey) {
 	switch e.Key() {

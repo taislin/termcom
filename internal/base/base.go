@@ -99,7 +99,7 @@ func (bs *BaseScreen) SellSelectedItem() {
 		value := bs.Base.SellItem(item)
 		if value > 0 {
 			bs.Game.Funds += value
-			bs.Message = fmt.Sprintf(language.String("MSG_SOLD"), item, value/1000)
+			bs.Message = fmt.Sprintf(language.String("MSG_SOLD"), data.ItemDisplayName(item), value/1000)
 		}
 	}
 }
@@ -316,7 +316,7 @@ func (bs *BaseScreen) renderTransfer(ctx *engine.ScreenCtx, x, y, w, h int) {
 		if i == bs.Selection {
 			style = engine.StyleHighlight
 		}
-		ctx.DrawString(x, y+i, fmt.Sprintf("%-15s x%d", item, qty), style)
+		ctx.DrawString(x, y+i, fmt.Sprintf("%-15s x%d", data.ItemDisplayName(item), qty), style)
 	}
 	if len(items) == 0 {
 		ctx.DrawString(x, y, language.String("SECTION_NO_ITEMS"), engine.StyleGray)

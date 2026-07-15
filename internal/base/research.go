@@ -59,7 +59,7 @@ func (rs *ResearchScreen) Render(ctx *engine.ScreenCtx) {
 		if topic != nil {
 			pct := rs.Base.ActiveResearch.Progress * 100 / rs.Base.ActiveResearch.Cost
 			ctx.DrawString(2, 3, fmt.Sprintf(language.String("RESEARCH_IN_PROGRESS"),
-				topic.Name, pct, rs.Base.ActiveResearch.Scientists), engine.StyleGreen)
+				topic.DisplayName(), pct, rs.Base.ActiveResearch.Scientists), engine.StyleGreen)
 			ctx.DrawString(2, 4, fmt.Sprintf(language.String("RESEARCH_UNASSIGNED"), rs.Base.UnassignedScientists), engine.StyleYellow)
 		}
 	} else {
@@ -129,7 +129,7 @@ func (rs *ResearchScreen) Render(ctx *engine.ScreenCtx) {
 				}
 				rt := data.ResearchByID(r)
 				if rt != nil {
-					reqStr += rt.Name
+					reqStr += rt.DisplayName()
 				} else {
 					reqStr += r
 				}
@@ -137,7 +137,7 @@ func (rs *ResearchScreen) Render(ctx *engine.ScreenCtx) {
 			req = fmt.Sprintf(language.String("RESEARCH_REQUIRES"), reqStr)
 		}
 
-		line := fmt.Sprintf(language.String("RESEARCH_COST"), entry.topic.Tier, entry.topic.Name, entry.topic.Cost, req)
+		line := fmt.Sprintf(language.String("RESEARCH_COST"), entry.topic.Tier, entry.topic.DisplayName(), entry.topic.Cost, req)
 		displayLine := marker + line
 		if len(displayLine) > listW {
 			displayLine = displayLine[:listW]
@@ -192,7 +192,7 @@ func (rs *ResearchScreen) renderTree(ctx *engine.ScreenCtx, x, y, maxW, maxH int
 			rt := data.ResearchByID(reqID)
 			name := reqID
 			if rt != nil {
-				name = rt.Name
+				name = rt.DisplayName()
 			}
 			done := rs.Base.HasResearch(reqID)
 			prefix := "\u251C\u2500\u2500 "
@@ -239,7 +239,7 @@ func (rs *ResearchScreen) renderTree(ctx *engine.ScreenCtx, x, y, maxW, maxH int
 			}
 			done := rs.Base.HasResearch(child.ID)
 			prefix := "\u251C\u2500\u2500 "
-			childLine := fmt.Sprintf("[T%d] %s", child.Tier, child.Name)
+			childLine := fmt.Sprintf("[T%d] %s", child.Tier, child.DisplayName())
 			if done {
 				ctx.DrawString(x+2, y, prefix+language.String("RESEARCH_DONE")+" "+childLine, engine.StyleGreen)
 			} else {
@@ -346,7 +346,7 @@ func (rs *ResearchScreen) startResearch() {
 		return
 	}
 	if rs.Base.StartResearch(entry.topic.ID) {
-		rs.Message = fmt.Sprintf(language.String("MSG_RESEARCH_STARTED"), entry.topic.Name)
+		rs.Message = fmt.Sprintf(language.String("MSG_RESEARCH_STARTED"), entry.topic.DisplayName())
 	} else {
 		rs.Message = language.String("MSG_CANNOT_RESEARCH")
 	}

@@ -34,7 +34,7 @@ func init() {
 		"GEOSCAPE_TIME_SPEED":   "Time speed: %dx",
 		"GEOSCAPE_NO_UFO":       "No UFOs detected on radar.",
 		"GEOSCAPE_CURSOR":       "Cursor at [%d,%d]",
-		"HELP_GEOSCAPE":         "[j]/[k]=Select [L]=Launch [A]=Autoresolve [M]=Mission [B]=Base [R]=Transport [C]=Cycle [N]=New [T]=Transfer [Space]=Pause [Q]=Quit",
+		"HELP_GEOSCAPE":         "[\u2191\u2193\u2190\u2192]=Select [1-4]=Speed [Space]=Pause [L]=Launch [B]=Base [?]=Help",
 
 		// Multi-base
 		"MSG_ONLY_ONE_BASE":    "Only one base exists.",
@@ -233,6 +233,8 @@ func init() {
 		"MSG_MISSION_COMPLETE_CIV":  "MISSION COMPLETE! Rescued %d/%d civilians.",
 		"MSG_MISSION_FAILED_CIV":    "MISSION FAILED! All civilians killed!",
 		"MSG_MISSION_FAILED":        "MISSION FAILED! All soldiers KIA.",
+		"MSG_MISSION_EXTRACT":       "%d soldier(s) reached extraction! Mission complete.",
+		"MSG_TIME_LIMIT_EXCEEDED":   "TIME\u2019S UP! Mission failed - exceeded time limit.",
 		"MSG_UNIT_SELECTED":         "Selected %s (HP:%d TU:%d)",
 		"MSG_NO_SOLDIER_SELECTED":   "No soldier selected.",
 		"MSG_TARGET_NO_LOS":         "Target not in line of sight.",
@@ -241,6 +243,8 @@ func init() {
 		"MSG_MOVED":                 "Moved %s to [%d,%d]",
 		"MSG_CANNOT_MOVE":           "Cannot move there.",
 		"MSG_NO_TARGET":             "No target.",
+		"MSG_NOT_ENOUGH_TU":         "Not enough TU.",
+		"MSG_OUT_OF_AMMO":           "Out of ammo.",
 		"MSG_NOT_ENOUGH_TU_RELOAD":  "Not enough TU to reload.",
 		"MSG_ENERGY_WEAPON":         "Energy weapon -- no reload needed.",
 		"MSG_WEAPON_LOADED":         "Weapon already fully loaded.",
@@ -312,7 +316,7 @@ func init() {
 		"MSG_VISION_NORMAL":  "NORMAL VISION",
 
 		// Battlescape help bars
-		"HELP_BATTLESCAPE":   "[hjkl]/[WSAD]=Move [Enter]=Select [Space]=Plan/Move [q]=Cycle [f]=Fire [r]=Reload [g]=Grenade [m]=Medikit [e]=End [c]=Crouch",
+		"HELP_BATTLESCAPE":   "[↑↓←→]/[WASD]=Move [Enter]=Select [Space]=Plan/Move [q]=Cycle [f]=Fire [r]=Reload [g]=Grenade [m]=Medikit [e]=End [c]=Crouch",
 		"HELP_STAIRS_SUFFIX": " [<>]=Stairs",
 
 		// ── Base Management ───────────────────────────────
@@ -378,7 +382,7 @@ func init() {
 		"MSG_CANNOT_HIRE":            "Insufficient funds to hire!",
 		"MSG_DISMISSED":              " dismissed.",
 		"MSG_NO_ROOM":                "No room! Build more Living Quarters.",
-		"MSG_HIRED":                  " hired.",
+		"MSG_HIRED":                  "%s hired.",
 		"MSG_INTERCEPTOR_PURCHASED":  "Interceptor purchased.",
 		"MSG_CANNOT_BUY_INTERCEPTOR": "Cannot buy interceptor!",
 		"MSG_NO_INTERCEPTORS":        "No interceptors in hangars. Press [B] to buy.",
@@ -431,6 +435,22 @@ func init() {
 		"MSG_RESEARCH_STARTED":        "Research started: %s",
 		"MSG_CANNOT_RESEARCH":         "Cannot start research!",
 		"RESEARCH_UNASSIGNED":         "Unassigned Scientists: %d. [+/-] Assign/Unassign.",
+		"RESEARCH_ALIEN_ALLOYS":       "Alien Alloys",
+		"RESEARCH_ELERIUM":            "Elerium-115",
+		"RESEARCH_UFO_NAV":            "UFO Navigation",
+		"RESEARCH_UFO_POWER":          "UFO Power Source",
+		"RESEARCH_ALIEN_COMM":         "Alien Communications",
+		"RESEARCH_LASER_WEAPONS":      "Laser Weapons",
+		"RESEARCH_PERSONAL_ARMOUR":    "Personal Armour",
+		"RESEARCH_PLASMA_WEAPONS":     "Plasma Weapons",
+		"RESEARCH_LIGHT_SUIT":         "Light Suit",
+		"RESEARCH_UFO_PROPULSION":     "UFO Propulsion",
+		"RESEARCH_HEAVY_PLASMA":       "Heavy Plasma",
+		"RESEARCH_MEDIUM_SUIT":        "Medium Suit",
+		"RESEARCH_MIND_CONTROL":       "Mind Control",
+		"RESEARCH_HEAVY_SUIT":         "Heavy Suit",
+		"RESEARCH_POWER_SUIT":         "Power Suit",
+		"RESEARCH_FLIGHT_SUIT":        "Flying Suit",
 
 		// ── Manufacturing ─────────────────────────────────
 		"MANUFACTURE_TITLE":  "MANUFACTURING",
@@ -586,6 +606,13 @@ func init() {
 		"HELP_GEO_BASE":     ">[B]            Open base management",
 		"HELP_GEO_LAUNCH":   ">[L]            Launch interceptor at nearest UFO",
 		"HELP_GEO_AUTO":     ">[A]            Autoresolve nearest UFO",
+		"HELP_GEO_MISSION":     ">[M]            Respond to alien mission",
+		"HELP_GEO_TRANSPORT":  ">[R]            Dispatch transport to crash site",
+		"HELP_GEO_CYCLE":      ">[C]            Cycle active base",
+		"HELP_GEO_NEW":        ">[N]            Build new base",
+		"HELP_GEO_TRANSFER":   ">[T]            Transfer between bases",
+		"HELP_GEO_ENCYCLOPEDIA": ">[E]          Open encyclopedia",
+		"HELP_GEO_RADAR":      ">[V]            Toggle radar overlay",
 		"HELP_GEO_SAVE":     ">[F5]           Save game",
 		"HELP_GEO_LOAD":     ">[F9]           Load game",
 		"HELP_GEO_QUIT":     ">[Q]            Quit",
@@ -767,7 +794,7 @@ func init() {
 		"CUSTOM_DATE":           "Date:    %s",
 		"CUSTOM_DESC":           "Desc:",
 		"CUSTOM_FILE":           "File:    %s",
-		"CUSTOM_HELP":           "[j]/[k]=Select  [Enter]=Confirm  [Esc]=Cancel",
+		"CUSTOM_HELP":           "[↑]/[↓]=Select  [Enter]=Confirm  [Esc]=Cancel",
 		"CUSTOM_MISSION_SELECT": "Mission Select",
 		"CUSTOM_NO_BATTLES":     "No custom battles found.",
 		"CUSTOM_PLACE_JSON":     "Place .json files in the maps/ folder.",
@@ -889,7 +916,7 @@ func init() {
 		"SIDE_TU_BAR_FULL": "TU %s %d/%d",
 
 		// ── Slot ──────────────────────────────────────────
-		"SLOT_FORMAT": "Slot %d: %s  $%dK",
+		"SLOT_FORMAT": "Slot %d: %s - $%dK",
 
 		// ── Weather ───────────────────────────────────────
 		"WEATHER_CLEAR": "Clear",

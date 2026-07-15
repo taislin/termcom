@@ -1,5 +1,11 @@
 package data
 
+import (
+	"strings"
+
+	"github.com/taislin/termcom/internal/language"
+)
+
 type ResearchTopic struct {
 	ID          string
 	Name        string
@@ -10,6 +16,15 @@ type ResearchTopic struct {
 	UnlockWeap  []string
 	UnlockArmor []string
 	AlienLore   bool
+}
+
+func (t *ResearchTopic) DisplayName() string {
+	key := "RESEARCH_" + strings.ToUpper(strings.ReplaceAll(t.ID, " ", "_"))
+	display := language.String(key)
+	if display == key {
+		return t.Name // fallback to English
+	}
+	return display
 }
 
 var ResearchTree []ResearchTopic

@@ -2751,37 +2751,29 @@ func (gs *Geoscape) HandleMouse(e *tcell.EventMouse) {
 
 	if y == h-1 {
 		help := language.String("HELP_GEOSCAPE")
-		helpActions := []string{"=Select", "=Launch", "=Autoresolve", "=Mission", "=Base", "=Transport", "=Pause", "=Quit"}
-		helpFuncs := []func(){
-			func() { gs.moveCursor(0, 1) },
-			func() { gs.LaunchInterceptor() },
-			func() { gs.Autoresolve() },
-			func() { gs.RespondToSelectedMission() },
-			func() {
-				if sb := gs.SelectedBase(); sb != nil {
-					gs.Game.SetScreen(engine.StateBase, base.NewBaseScreen(gs.Game, sb))
-					gs.Game.SetScreen(engine.StateEquip, base.NewEquipScreen(gs.Game, sb))
-					gs.Game.SetScreen(engine.StateResearch, base.NewResearchScreen(gs.Game, sb))
-					gs.Game.SetScreen(engine.StateManufacture, base.NewManufactureScreen(gs.Game, sb))
-					gs.Game.PushState(engine.StateBase)
-				}
-			},
-			func() { gs.sendTransportToNearest() },
-			func() { gs.TogglePause() },
-			func() { gs.Game.Quit() },
-		}
-		off := 1
-		for i, action := range helpActions {
-			pos := strings.Index(help, action)
-			if pos < 0 {
+		col := 1
+		runes := []rune(help)
+		for i := 0; i < len(runes); {
+			if runes[i] != '[' {
+				col += engine.StringWidth(string(runes[i]))
+				i++
 				continue
 			}
-			start := off + pos
-			end := off + pos + len(action)
-			if x >= start && x <= end {
-				helpFuncs[i]()
+			segStart := col
+			end := i + 1
+			for end < len(runes) && runes[end] != ']' {
+				end++
+			}
+			if end >= len(runes) {
+				break
+			}
+			segEnd := col + engine.StringWidth(string(runes[i:end+1]))
+			if x >= segStart && x <= segEnd {
+				gs.clickHelpKey(string(runes[i+1 : end]))
 				return
 			}
+			col = segEnd
+			i = end + 1
 		}
 		return
 	}
@@ -2890,6 +2882,48 @@ func generateUFOLoot(ufoName string) []string {
 		loot = append(loot, "alloys", "alloys")
 	}
 	return loot
+}
+
+func (gs *Geoscape) clickHelpKey(key string) {
+	switch {
+	case key == "L" || key == "\u041f":
+		if !gs.Game.Paused {
+			gs.Game.Paused = true
+			gs.Message = language.String("GEOSCAPE_TIME_PAUSED")
+			gs.MessageTimer = time.Now()
+		}
+		gs.LaunchInterceptor()
+	case key == "B" || key == "\u0411":
+		if sb := gs.SelectedBase(); sb != nil {
+			gs.Game.SetScreen(engine.StateBase, base.NewBaseScreen(gs.Game, sb))
+			gs.Game.SetScreen(engine.StateEquip, base.NewEquipScreen(gs.Game, sb))
+			gs.Game.SetScreen(engine.StateResearch, base.NewResearchScreen(gs.Game, sb))
+			gs.Game.SetScreen(engine.StateManufacture, base.NewManufactureScreen(gs.Game, sb))
+			gs.Game.PushState(engine.StateBase)
+		}
+	case key == "?":
+		gs.Game.PushState(engine.StateHelp)
+	case isPauseKeyLabel(key):
+		gs.TogglePause()
+	case key == "1-4":
+		nxt := gs.Game.TimeSpeed + 1
+		if nxt > 4 {
+			nxt = 1
+		}
+		gs.SetSpeed(nxt)
+	default:
+		if strings.ContainsAny(key, "\u2190\u2191\u2192\u2193") {
+			gs.moveCursor(0, 1)
+		}
+	}
+}
+
+func isPauseKeyLabel(key string) bool {
+	switch key {
+	case "Space", "Espace", "Espacio", "Espa\u00e7o", "\u041f\u0440\u043e\u0431\u0435\u043b", "\u7a7a\u683c":
+		return true
+	}
+	return false
 }
 
 func (gs *Geoscape) DispatchTransport(cs *CrashSite) {

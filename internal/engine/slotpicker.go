@@ -76,7 +76,7 @@ func (sp *SlotPickerScreen) Render(ctx *ScreenCtx) {
 	}
 
 	ctx.DrawPanel(0, h-1, w, 1, "", StyleGray)
-	ctx.DrawString(1, h-1, "[j]/[k]=Select  Enter=Confirm  [Esc]=Cancel", StyleGray)
+	ctx.DrawString(1, h-1, "[\u2191]/[\u2193]=Select  Enter=Confirm  [Esc]=Cancel", StyleGray)
 }
 
 func (sp *SlotPickerScreen) HandleKey(e *tcell.EventKey) {

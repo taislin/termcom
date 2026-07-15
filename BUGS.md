@@ -1,10 +1,12 @@
 # termcom Bug list
-- [x] Weapon names seem hardcoded to english, localise
-- [ ] feature, not bug: When viewing the alien details in battlescape, the hidden values should still show but as ???, like "HP: ???" instead of just ommiting when unknown.
-- [x] unlocalised text: "XXX psi attacks YYY - resisted!" probably more related to psi abilities
-- [ ] feature, not bug: when moving in battlescape, if you try to move out of range, it should let you move along that pathfinding until running out of TU, not just block altogether.
-- [ ] Missing mouse controls in the geoscape, cant enter base? there should we a way to play it fully with mouse the same way you can with keyboard, for the whole game.
-- [x] unlocalised text: Facilities and the bonus research info beneath it on base view are unstranslated
-- [x] unlocalised text: hangar submenu is untranslated. Also unclickable with the mouse, other tabs work.
-- [x] unlocalised text: research is untranslated.
-- [x] custom battles should centre on one of the units, now it starts in the middle of the map where the screen is black and I have to press Q to find my units.
+- [x] when recruiting, it shows at the bottom: recruited %! (EXTRA string=name)
+- [x] titles of researches are not translated
+- [x] on soldier equip screen on base, bottom help bar does not paint the keys orange.
+- [x] on the battlescape, the log on the right gets truncated, maybe we can do multiline? also add a coloured ">" before the text so we know what each individual line is, and give the messages from the current turn a different colour?
+- [x] on battlescape, it should show teh arrow chars instead of hjkl, on the bottom helper
+- [x] on battlescape, the help screen should be about the battlescape, not showing the geoscape one
+- [x] "Not enough TU" is not localised
+- [x] in the warehouse, it displays alien_corpse for rxample, not a string
+- [x] Make sure there's no hardcoded strings that are not localised
+- [x] make sure game is fully playable with mouse; either by clicking in the game screen or the help bar at the bottom.
+- [x] in battlescape, there should be a way to move the map without moving a character (needs investigating first)
