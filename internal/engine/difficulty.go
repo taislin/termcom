@@ -70,7 +70,7 @@ func (ds *DifficultyScreen) Render(ctx *ScreenCtx) {
 		if i == ds.Selection {
 			style = StyleHighlight
 		}
-		line := fmt.Sprintf("%-14s %s", d.LangName(), d.LangDesc())
+		line := fmt.Sprintf(language.String("DIFFICULTY_LINE_FORMAT"), d.LangName(), d.LangDesc())
 		ctx.DrawString(2, 4+i, line, style)
 	}
 

@@ -2828,7 +2828,7 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 	} else {
 		// Compact banner when sidebar is hidden (mobile mode)
 		if bs.Selected != nil {
-			banner := fmt.Sprintf("%s  HP:%d/%d  TU:%d/%d  %s",
+			banner := fmt.Sprintf(language.String("BATTLE_COMPACT_BANNER"),
 				bs.Selected.Soldier.Name, bs.Selected.HP, bs.Selected.MaxHP,
 				bs.Selected.TU, bs.Selected.MaxTU, data.RuleItems[bs.Selected.Weapon].ShortName)
 			runes := []rune(banner)

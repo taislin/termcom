@@ -239,7 +239,7 @@ func (rs *ResearchScreen) renderTree(ctx *engine.ScreenCtx, x, y, maxW, maxH int
 			}
 			done := rs.Base.HasResearch(child.ID)
 			prefix := "\u251C\u2500\u2500 "
-			childLine := fmt.Sprintf("[T%d] %s", child.Tier, child.DisplayName())
+			childLine := fmt.Sprintf(language.String("RESEARCH_TREE_CHILD_FMT"), child.Tier, child.DisplayName())
 			if done {
 				ctx.DrawString(x+2, y, prefix+language.String("RESEARCH_DONE")+" "+childLine, engine.StyleGreen)
 			} else {

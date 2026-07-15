@@ -248,7 +248,7 @@ func RandomName() string {
 }
 
 func FormatSoldier(s *Soldier) string {
-	return fmt.Sprintf("%-12s %s  HP:%d/%d TU:%d ACC:%d BRA:%d STR:%d W:%s A:%s Kills:%d",
+	return fmt.Sprintf(language.String("SOLDIER_FORMAT"),
 		s.Name, s.Rank, s.HP, s.MaxHP, s.TU, s.Accuracy, s.Bravery, s.Strength,
 		data.RuleItems[s.Weapon].ShortName, data.Armors[s.Armor].ShortName, s.Kills)
 }

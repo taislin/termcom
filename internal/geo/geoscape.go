@@ -148,7 +148,7 @@ func (gs *Geoscape) processBattleResult() {
 	dead := defendingBase.RemoveDeadSoldiers()
 
 	// Build per-soldier report from PreBattleStats
-	statNames := []string{"HP", "ACC", "REA", "STR", "BRA", "TU"}
+	statNames := []string{language.String("STAT_HP"), language.String("STAT_ACC"), language.String("STAT_REA"), language.String("STAT_STR"), language.String("STAT_BRA"), language.String("STAT_TU")}
 	var soldiers []engine.DebriefSoldier
 	if gs.PreBattleStats != nil {
 		// Include dead soldiers from the map not in defendingBase.Soldiers
@@ -174,7 +174,7 @@ func (gs *Geoscape) processBattleResult() {
 				gainParts := []string{}
 				for i := 0; i < 6; i++ {
 					if newStats[i] > old[i] {
-						gainParts = append(gainParts, fmt.Sprintf("%s+%d", statNames[i], newStats[i]-old[i]))
+						gainParts = append(gainParts, fmt.Sprintf(language.String("STAT_GAIN_FORMAT"), statNames[i], newStats[i]-old[i]))
 					}
 				}
 				gains = strings.Join(gainParts, " ")
@@ -1937,7 +1937,7 @@ func (gs *Geoscape) Render(ctx *engine.ScreenCtx) {
 	ctx.DrawPanel(0, h-6, w, 5, language.String("GEOSCAPE"), engine.StyleDefault)
 	fundsStr := fmt.Sprintf(language.String("GEOSCAPE_FUNDS"), gs.Game.Funds/1000)
 	if gs.Game.Difficulty > 0 && gs.Game.Difficulty < len(engine.Difficulties) {
-		fundsStr += fmt.Sprintf("  [%s]", engine.Difficulties[gs.Game.Difficulty].LangName())
+		fundsStr += fmt.Sprintf(language.String("GEOSCAPE_DIFF_SUFFIX"), engine.Difficulties[gs.Game.Difficulty].LangName())
 	}
 	timeStr := fmt.Sprintf(language.String("GEOSCAPE_TIME"), gs.Game.GameTime.Format("02/01/2006 15:04"))
 	pauseStr := language.String("GEOSCAPE_RUNNING")
@@ -2489,7 +2489,7 @@ func (gs *Geoscape) renderMinimap(ctx *engine.ScreenCtx, x, y, w, h int) {
 			} else if interPct < 0.6 {
 				barColor = engine.StyleYellow
 			}
-			ctx.DrawString(pX+1, pY, fmt.Sprintf("> %s %d/%d", barStr, dv.InterHP, dv.InterMaxHP), barColor)
+			ctx.DrawString(pX+1, pY, fmt.Sprintf(language.String("DOGFIGHT_INTER_BAR"), barStr, dv.InterHP, dv.InterMaxHP), barColor)
 
 			ufoPct := float64(dv.UFOHP) / float64(dv.UFOMaxHP)
 			if ufoPct < 0 {
@@ -2504,7 +2504,7 @@ func (gs *Geoscape) renderMinimap(ctx *engine.ScreenCtx, x, y, w, h int) {
 					barStr += "░"
 				}
 			}
-			ctx.DrawString(pX+1, pY+1, fmt.Sprintf("! %s %d/%d", barStr, dv.UFOHP, dv.UFOMaxHP), engine.StyleRed)
+			ctx.DrawString(pX+1, pY+1, fmt.Sprintf(language.String("DOGFIGHT_UFO_BAR"), barStr, dv.UFOHP, dv.UFOMaxHP), engine.StyleRed)
 
 			dmgStr := ""
 			if dv.InterDamage > 0 {
@@ -2571,12 +2571,12 @@ func (gs *Geoscape) HandleKey(e *tcell.EventKey) {
 				gs.AutoresolveMission(idx)
 			case 2:
 				gs.MissionSelectMode = false
-				gs.Message = "Mission ignored."
+				gs.Message = language.String("MSG_MISSION_IGNORED")
 				gs.MessageTimer = time.Now()
 			}
 		case tcell.KeyEscape:
 			gs.MissionSelectMode = false
-			gs.Message = "Mission select cancelled."
+			gs.Message = language.String("MSG_MISSION_SELECT_CANCELLED")
 			gs.MessageTimer = time.Now()
 		}
 		return
@@ -2636,7 +2636,7 @@ func (gs *Geoscape) HandleKey(e *tcell.EventKey) {
 				gs.AutoresolveMission(idx)
 			case 2:
 				gs.MissionSelectMode = false
-				gs.Message = "Mission ignored."
+				gs.Message = language.String("MSG_MISSION_IGNORED")
 				gs.MessageTimer = time.Now()
 			}
 		} else {
@@ -2679,9 +2679,9 @@ func (gs *Geoscape) HandleKey(e *tcell.EventKey) {
 	case "v", "V":
 		gs.ShowRadarOverlay = !gs.ShowRadarOverlay
 		if gs.ShowRadarOverlay {
-			gs.Message = "RADAR OVERLAY: ON"
+			gs.Message = language.String("MSG_RADAR_ON")
 		} else {
-			gs.Message = "RADAR OVERLAY: OFF"
+			gs.Message = language.String("MSG_RADAR_OFF")
 		}
 		gs.MessageTimer = time.Now()
 	}

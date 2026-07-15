@@ -476,49 +476,49 @@ func (g *Game) setupControlMenu() {
 	switch g.state {
 	case StateGeoscape:
 		Menu.SetButtons([]ControlButton{
-			{Label: "Pause", Hotkey: "Space", Action: func() { g.Paused = !g.Paused }},
-			{Label: "Speed 1", Hotkey: "1", Action: func() { g.TimeSpeed = 1 }},
-			{Label: "Speed 2", Hotkey: "2", Action: func() { g.TimeSpeed = 2 }},
-			{Label: "Speed 3", Hotkey: "3", Action: func() { g.TimeSpeed = 3 }},
-			{Label: "Speed 4", Hotkey: "4", Action: func() { g.TimeSpeed = 4 }},
-			{Label: "Base", Hotkey: "B", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "b", tcell.ModNone)) }},
-			{Label: "Launch", Hotkey: "L", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "l", tcell.ModNone)) }},
-			{Label: "Save", Hotkey: "F5", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyF5, "", tcell.ModNone)) }},
-			{Label: "Load", Hotkey: "F9", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyF9, "", tcell.ModNone)) }},
-			{Label: "Help", Hotkey: "?", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "?", tcell.ModNone)) }},
+			{Label: language.String("CTRL_PAUSE"), Hotkey: "Space", Action: func() { g.Paused = !g.Paused }},
+			{Label: language.String("CTRL_SPEED_1"), Hotkey: "1", Action: func() { g.TimeSpeed = 1 }},
+			{Label: language.String("CTRL_SPEED_2"), Hotkey: "2", Action: func() { g.TimeSpeed = 2 }},
+			{Label: language.String("CTRL_SPEED_3"), Hotkey: "3", Action: func() { g.TimeSpeed = 3 }},
+			{Label: language.String("CTRL_SPEED_4"), Hotkey: "4", Action: func() { g.TimeSpeed = 4 }},
+			{Label: language.String("CTRL_BASE"), Hotkey: "B", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "b", tcell.ModNone)) }},
+			{Label: language.String("CTRL_LAUNCH"), Hotkey: "L", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "l", tcell.ModNone)) }},
+			{Label: language.String("CTRL_SAVE"), Hotkey: "F5", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyF5, "", tcell.ModNone)) }},
+			{Label: language.String("CTRL_LOAD"), Hotkey: "F9", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyF9, "", tcell.ModNone)) }},
+			{Label: language.String("CTRL_HELP"), Hotkey: "?", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "?", tcell.ModNone)) }},
 		})
 	case StateBattlescape:
 		Menu.SetButtons([]ControlButton{
-			{Label: "Select", Hotkey: "Enter", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyEnter, "", tcell.ModNone)) }},
-			{Label: "Move", Hotkey: "Space", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, " ", tcell.ModNone)) }},
-			{Label: "Fire", Hotkey: "f", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "f", tcell.ModNone)) }},
-			{Label: "Reload", Hotkey: "r", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "r", tcell.ModNone)) }},
-			{Label: "End Turn", Hotkey: "e", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "e", tcell.ModNone)) }},
-			{Label: "Grenade", Hotkey: "g", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "g", tcell.ModNone)) }},
-			{Label: "Medikit", Hotkey: "m", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "m", tcell.ModNone)) }},
-			{Label: "Crouch", Hotkey: "c", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "c", tcell.ModNone)) }},
-			{Label: "Cycle", Hotkey: "q", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "q", tcell.ModNone)) }},
-			{Label: "Help", Hotkey: "?", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "?", tcell.ModNone)) }},
+			{Label: language.String("CTRL_SELECT"), Hotkey: "Enter", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyEnter, "", tcell.ModNone)) }},
+			{Label: language.String("CTRL_MOVE"), Hotkey: "Space", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, " ", tcell.ModNone)) }},
+			{Label: language.String("CTRL_FIRE"), Hotkey: "f", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "f", tcell.ModNone)) }},
+			{Label: language.String("CTRL_RELOAD"), Hotkey: "r", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "r", tcell.ModNone)) }},
+			{Label: language.String("CTRL_END_TURN"), Hotkey: "e", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "e", tcell.ModNone)) }},
+			{Label: language.String("CTRL_GRENADE"), Hotkey: "g", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "g", tcell.ModNone)) }},
+			{Label: language.String("CTRL_MEDIKIT"), Hotkey: "m", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "m", tcell.ModNone)) }},
+			{Label: language.String("CTRL_CROUCH"), Hotkey: "c", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "c", tcell.ModNone)) }},
+			{Label: language.String("CTRL_CYCLE"), Hotkey: "q", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "q", tcell.ModNone)) }},
+			{Label: language.String("CTRL_HELP"), Hotkey: "?", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "?", tcell.ModNone)) }},
 		})
 	case StateBase:
 		Menu.SetButtons([]ControlButton{
-			{Label: "Facilities", Hotkey: "1", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "1", tcell.ModNone)) }},
-			{Label: "Soldiers", Hotkey: "2", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "2", tcell.ModNone)) }},
-			{Label: "Research", Hotkey: "3", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "3", tcell.ModNone)) }},
-			{Label: "Manufacture", Hotkey: "4", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "4", tcell.ModNone)) }},
-			{Label: "Transfer", Hotkey: "5", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "5", tcell.ModNone)) }},
-			{Label: "Hangars", Hotkey: "6", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "6", tcell.ModNone)) }},
-			{Label: "Back", Hotkey: "Esc", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyEscape, "", tcell.ModNone)) }},
-			{Label: "Help", Hotkey: "?", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "?", tcell.ModNone)) }},
+			{Label: language.String("CTRL_FACILITIES"), Hotkey: "1", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "1", tcell.ModNone)) }},
+			{Label: language.String("CTRL_SOLDIERS"), Hotkey: "2", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "2", tcell.ModNone)) }},
+			{Label: language.String("CTRL_RESEARCH"), Hotkey: "3", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "3", tcell.ModNone)) }},
+			{Label: language.String("CTRL_MANUFACTURE"), Hotkey: "4", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "4", tcell.ModNone)) }},
+			{Label: language.String("CTRL_TRANSFER"), Hotkey: "5", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "5", tcell.ModNone)) }},
+			{Label: language.String("CTRL_HANGARS"), Hotkey: "6", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "6", tcell.ModNone)) }},
+			{Label: language.String("CTRL_BACK"), Hotkey: "Esc", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyEscape, "", tcell.ModNone)) }},
+			{Label: language.String("CTRL_HELP"), Hotkey: "?", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "?", tcell.ModNone)) }},
 		})
 	case StateEquip, StateResearch, StateManufacture:
 		Menu.SetButtons([]ControlButton{
-			{Label: "Back", Hotkey: "Esc", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyEscape, "", tcell.ModNone)) }},
-			{Label: "Help", Hotkey: "?", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "?", tcell.ModNone)) }},
+			{Label: language.String("CTRL_BACK"), Hotkey: "Esc", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyEscape, "", tcell.ModNone)) }},
+			{Label: language.String("CTRL_HELP"), Hotkey: "?", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "?", tcell.ModNone)) }},
 		})
 	case StateMenu:
 		Menu.SetButtons([]ControlButton{
-			{Label: "Help", Hotkey: "?", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "?", tcell.ModNone)) }},
+			{Label: language.String("CTRL_HELP"), Hotkey: "?", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "?", tcell.ModNone)) }},
 		})
 	default:
 		Menu.SetButtons([]ControlButton{
