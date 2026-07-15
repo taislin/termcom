@@ -1,4 +1,4 @@
-# termcom — ASCII X-COM Roguelike-ified Demake Manual (v0.45)
+# termcom — ASCII X-COM Roguelike-ified Demake Manual (v0.46)
 
 ## Table of Contents
 
@@ -275,7 +275,7 @@ Navigate with `j`/`k` or arrow keys. Use `Enter` to select.
 | Storage | $40K | 3 days | +50 item storage |
 | Radar | $80K | 5 days | +$50K monthly funding |
 | Alien Containment | $100K | 10 days | Live alien capture (capacity: 10 per facility) |
-| Psi-Lab | $150K | 14 days | Trains psi skill (+1/day, max 80) |
+| Psi-Lab | $150K | 14 days | Trains psi skill (probabilistic, only once a soldier has psi skill > 0, max 80) |
 | Hangar | $120K | 8 days | Houses interceptors |
 
 **Facility adjacency bonuses:** Placing same-type facilities next to each
@@ -459,9 +459,32 @@ Weather conditions affect combat based on the mission location:
 
 ### Victory & Defeat
 
-- **Victory:** All aliens eliminated. Soldiers earn XP, you recover loot, and
-  receive $50,000.
-- **Defeat:** All soldiers killed. Soldiers are lost. Time limit exceeded (if applicable).
+ - **Victory:** All aliens eliminated. Soldiers earn XP, you recover loot, and
+   receive $50,000.
+ - **Defeat:** All soldiers killed. Soldiers are lost. Time limit exceeded (if applicable).
+
+### Soldier Progression
+
+Soldiers improve through **per-action experience** earned during battle
+(firing, throwing, melee, reactions, bravery, psi skill, psi strength). At
+mission end `PostMission()` converts accumulated XP into stat gains (capped at
+TU 80, HP 60, ACC 120, Reactions 100, Bravery 100, Strength 70, Psi 100) and
+applies **halo growth**: any soldier who gained XP auto-promotes
+Rookie→Squaddie and grows TU/HP/Strength toward their caps.
+
+**Ranks** are awarded by total roster size (Corporal opens at 4 soldiers,
+Sergeant at 8, Lieutenant 14, Captain 22, Major 30, Colonel 40). Each promotion
+rolls a perk. Perks are wired into combat: Marksman (+15% acc at range >8),
+Close Combat (+15% at range ≤4), Overwatch (+20% reaction-fire acc), Steady Aim
+(+10% when unmoved), Grenadier (+2 grenade splash), Demolitions (+50% grenade
+damage), Field Medic (15 HP heal).
+
+**Fatal wounds & bleeding:** hits have a chance to cause fatal wounds and a
+bleed rate; bleeding drains HP each turn. Surviving wounds become recovery days
+(Wounds) on the soldier.
+
+**Morale:** wounded soldiers recover morale each turn and may panic (or gain
+bravery XP by holding). Fallen soldiers are recorded in the in-game Memorial.
 
 ### After-Action Report
 
@@ -984,6 +1007,33 @@ The sidebar also contains the battle log (attack results, damage, kills).
 | v | Toggle vision mode (Normal / Night / Thermal) |
 | o | Options |
 | ? | Help |
+
+### Mobile Touch Controls
+
+Mobile layout activates automatically when the browser connects with `cols < 100`.
+`TouchMode` can also be set manually in config.json (`"touch_mode": true`).
+
+**Touch gestures:**
+
+| Gesture | Action |
+|---------|--------|
+| Tap | Left click (select, move, fire) |
+| Long press (500ms) | Right click (cancel) |
+| Vertical drag | Scroll (mouse wheel) |
+
+**On-screen control menu:**
+The `[=]` hamburger button in the top-right corner opens a touch-friendly button overlay.
+The menu auto-shows on first touch of each screen. Context-sensitive buttons per screen:
+
+- **Geoscape:** Pause, Speed 1-4, Base, Launch, Save, Load, Help
+- **Battlescape:** Select, Move, Fire, Reload, End Turn, Grenade, Medikit, Crouch, Cycle, Help
+- **Base:** Facilities, Soldiers, Research, Manufacture, Transfer, Hangars, Back, Help
+- **Other screens:** Back, Help
+
+**Responsive layouts (cols < 100):**
+- Battlescape: sidebar collapses, full-width viewport with compact unit banner
+- Geoscape: minimap hidden, region table full-width
+- Encyclopedia/CustomBattle: panels stacked vertically
 
 ---
 

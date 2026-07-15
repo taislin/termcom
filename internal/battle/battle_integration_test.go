@@ -309,16 +309,15 @@ func TestAlienAIRetreat(t *testing.T) {
 }
 
 func TestSoldierRankProgression(t *testing.T) {
-	s := soldier.NewSoldier("Test")
-	if s.Rank != soldier.Rookie {
-		t.Error("should start as Rookie")
+	roster := make([]*soldier.Soldier, 4)
+	for i := range roster {
+		roster[i] = soldier.NewSoldier("Test")
 	}
-	s.GainXP(30)
-	if s.Rank < soldier.Squaddie {
-		t.Error("should promote with enough XP")
-	}
-	if s.MaxHP <= 20 {
-		t.Error("MaxHP should increase on promotion")
+	roster[0].Rank = soldier.Squaddie
+	roster[0].Kills = 10
+	soldier.HandlePromotions(roster)
+	if roster[0].Rank < soldier.Corporal {
+		t.Error("should promote to Corporal when roster is large enough")
 	}
 }
 

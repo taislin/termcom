@@ -137,7 +137,7 @@ func (ds *DebriefScreen) Render(ctx *ScreenCtx) {
 	if len(d.Soldiers) > 0 {
 		ctx.DrawString(4, yOff, language.String("DEBRIEF_SQUAD"), StyleCyanBold)
 		yOff++
-		header := fmt.Sprintf("  %-16s %-10s %s", language.String("DEBRIEF_HEADER_NAME"), language.String("DEBRIEF_HEADER_RANK"), language.String("DEBRIEF_HEADER_CHANGES"))
+		header := fmt.Sprintf(language.String("DEBRIEF_HEADER_FORMAT"), language.String("DEBRIEF_HEADER_NAME"), language.String("DEBRIEF_HEADER_RANK"), language.String("DEBRIEF_HEADER_CHANGES"))
 		ctx.DrawString(4, yOff, header, StyleGray)
 		yOff++
 		for _, s := range d.Soldiers {
@@ -153,7 +153,7 @@ func (ds *DebriefScreen) Render(ctx *ScreenCtx) {
 					gains = language.String("DEBRIEF_NO_CHANGE")
 				}
 			}
-			ctx.DrawString(4, yOff, fmt.Sprintf("  %-16s %-10s %s", s.Name, s.Rank, gains), nameStyle)
+			ctx.DrawString(4, yOff, fmt.Sprintf(language.String("DEBRIEF_SOLDIER_FORMAT"), s.Name, s.Rank, gains), nameStyle)
 			yOff++
 			if yOff >= h-4 {
 				break

@@ -57,8 +57,57 @@ The browser version supports:
 - WebSocket-based real-time communication
 - Responsive terminal resizing
 - All game features (Geoscape, Battlescape, Base Management)
+- **Mobile touch play** — tap to click, long-press for right-click, drag to scroll, on-screen control menu with context-sensitive buttons
 
 **Note:** The browser version is experimental and may have limited functionality compared to the terminal version.
+
+### Android Native (Experimental)
+
+The Android port compiles the Go game core into a native `.aar` library via [gomobile](https://pkg.go.dev/golang.org/x/mobile/cmd/gomobile), rendered as a character grid on a `SurfaceView` with full touch input and audio.
+
+**Prerequisites:**
+
+- Go 1.25+
+- Android SDK + NDK (API 21+)
+- Gradle 8.2 (for local APK builds)
+- `gomobile`:
+  ```bash
+  go install golang.org/x/mobile/cmd/gomobile@latest
+  gomobile init
+  ```
+
+**Build the game library:**
+
+```bash
+make android-aar
+```
+
+This writes `android/app/libs/termcom.aar`.
+
+**Build an APK (CI / GitHub Actions):**
+
+A `.github/workflows/android-release.yml` workflow automatically builds a signed
+release APK (or debug APK) on push to `mobile`/`main`/`master` and on `v*` tags.
+Debug APKs are produced from any push; tag a release (`v*`) to publish a signed
+APK as a GitHub Release. Set these repository secrets for signed releases:
+`ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`,
+`ANDROID_KEY_PASSWORD`.
+
+**Build an APK locally:**
+
+```bash
+make android-aar                                  # step 1: Go .aar
+cd android && gradle assembleDebug               # step 2: APK → app/build/outputs/apk/debug/
+# or open android/ in Android Studio and Run
+```
+
+Install with `adb install android/app/build/outputs/apk/debug/app-debug.apk`.
+
+**Controls:**
+- Tap to click / select / move
+- Long-press (500ms) for right-click / cancel; vibration on long-press
+- Drag to scroll
+- Hardware keyboard (DPAD, Enter, Escape, F-keys) supported
 
 ## Project Structure
 

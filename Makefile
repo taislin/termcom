@@ -1,4 +1,4 @@
-.PHONY: build test lint coverage clean run
+.PHONY: build test lint coverage clean run android-aar android-apk android-install
 
 export PATH := /home/taislin/go/bin:$(PATH)
 export GOPATH := /home/taislin/gopath
@@ -27,3 +27,13 @@ lint:
 
 clean:
 	rm -f termcom coverage.out
+	rm -rf android/app/build android/app/libs
+
+android-aar:
+	gomobile bind -target=android -androidapi 21 -o android/app/libs/termcom.aar -ldflags="-X github.com/taislin/termcom/internal/engine.GameVersion=$(shell cat VERSION)" ./android/
+
+android-apk: android-aar
+	cd android && gradle assembleDebug
+
+android-install: android-apk
+	cd android && gradle installDebug

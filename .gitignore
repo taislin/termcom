@@ -37,7 +37,8 @@ termcom.code-workspace
 termcom.exe
 termcom_battle.exe
 _assets/
-termcom
+/termcom
 autosave.json
 config.json
 /scenario_creator
+/build_android.ps1

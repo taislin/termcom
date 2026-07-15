@@ -579,13 +579,13 @@ const (
 func (cm CombatMode) String() string {
 	switch cm {
 	case CombatAttack:
-		return "ATTACK"
+		return language.String("COMBAT_MODE_ATTACK")
 	case CombatCautious:
-		return "CAUTIOUS"
+		return language.String("COMBAT_MODE_CAUTIOUS")
 	case CombatBreakoff:
-		return "BREAK OFF"
+		return language.String("COMBAT_MODE_BREAKOFF")
 	default:
-		return "UNKNOWN"
+		return language.String("UNKNOWN")
 	}
 }
 

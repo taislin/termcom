@@ -5,16 +5,16 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/gdamore/tcell/v3"
 	"github.com/taislin/termcom/internal/data"
 	"github.com/taislin/termcom/internal/engine"
 	"github.com/taislin/termcom/internal/language"
-	"github.com/gdamore/tcell/v3"
 )
 
 type topicStatus int
 
 const (
-	topicDone     topicStatus = iota
+	topicDone topicStatus = iota
 	topicAvailable
 	topicLocked
 )
@@ -87,7 +87,7 @@ func (rs *ResearchScreen) Render(ctx *engine.ScreenCtx) {
 	}
 
 	listW := w - 2
-	if rs.ShowTree {
+	if rs.ShowTree && !engine.Layout.IsMobile() {
 		listW = w/2 - 2
 	}
 
@@ -145,7 +145,7 @@ func (rs *ResearchScreen) Render(ctx *engine.ScreenCtx) {
 		ctx.DrawString(2, 7+i, displayLine, style)
 	}
 
-	if rs.ShowTree {
+	if rs.ShowTree && !engine.Layout.IsMobile() {
 		selEntry := &topicEntry{}
 		if rs.Selection >= 0 && rs.Selection < len(entries) {
 			selEntry = &entries[rs.Selection]
@@ -155,7 +155,7 @@ func (rs *ResearchScreen) Render(ctx *engine.ScreenCtx) {
 
 	ctx.DrawPanel(0, h-1, w, 1, "", engine.StyleGray)
 	help := language.String("HELP_RESEARCH")
-	if rs.ShowTree {
+	if rs.ShowTree && !engine.Layout.IsMobile() {
 		help = language.String("HELP_RESEARCH_TREE")
 	}
 	ctx.DrawMarkupString(1, h-1, help, engine.StyleGray, engine.StyleHotkey)
@@ -239,7 +239,7 @@ func (rs *ResearchScreen) renderTree(ctx *engine.ScreenCtx, x, y, maxW, maxH int
 			}
 			done := rs.Base.HasResearch(child.ID)
 			prefix := "\u251C\u2500\u2500 "
-			childLine := fmt.Sprintf("[T%d] %s", child.Tier, child.DisplayName())
+			childLine := fmt.Sprintf(language.String("RESEARCH_TREE_CHILD_FMT"), child.Tier, child.DisplayName())
 			if done {
 				ctx.DrawString(x+2, y, prefix+language.String("RESEARCH_DONE")+" "+childLine, engine.StyleGreen)
 			} else {

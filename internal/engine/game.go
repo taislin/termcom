@@ -4,11 +4,11 @@ import (
 	"os"
 	"time"
 
+	"github.com/gdamore/tcell/v3"
 	"github.com/taislin/termcom/internal/audio"
 	"github.com/taislin/termcom/internal/data"
 	"github.com/taislin/termcom/internal/language"
 	"github.com/taislin/termcom/internal/soldier"
-	"github.com/gdamore/tcell/v3"
 )
 
 type GameState int
@@ -62,23 +62,24 @@ type PlayerTactics struct {
 }
 
 type Game struct {
-	screen     *ScreenRaw
-	state      GameState
-	stateStack []GameState
-	running    bool
+	screen      *ScreenRaw
+	state       GameState
+	stateStack  []GameState
+	running     bool
 	quitConfirm bool
 	transition  float64 // 1.0 right after a state change, eases to 0 (fade-from-black)
 
-	GameTime  time.Time
-	TimeSpeed int
-	Paused    bool
-	Funds     int64
+	GameTime   time.Time
+	TimeSpeed  int
+	Paused     bool
+	Funds      int64
 	Difficulty int // 0=Beginner, 1=Experienced, 2=Veteran, 3=Genius, 4=Superhuman
 
 	screens      map[GameState]Screen
 	keyChan      chan tcell.Event
 	eventDone    chan struct{}
 	ActiveBattle *BattleResult
+	Memorial     []*soldier.Soldier
 
 	SpeciesSeed    int64
 	AlienSpecies   []*data.AlienSpecies
@@ -116,6 +117,17 @@ func NewGame() (*Game, error) {
 		initialState = StateLanguageSelect
 	}
 
+	return newGameWithScreen(scr, initialState), nil
+}
+
+// NewGameWithScreen creates a Game with a pre-built ScreenRaw.
+// Used by the Android port where the screen is an androidScreen.
+func NewGameWithScreen(scr *ScreenRaw, initialState GameState) *Game {
+	audio.Init()
+	return newGameWithScreen(scr, initialState)
+}
+
+func newGameWithScreen(scr *ScreenRaw, initialState GameState) *Game {
 	g := &Game{
 		screen:         scr,
 		state:          initialState,
@@ -131,7 +143,7 @@ func NewGame() (*Game, error) {
 		ActionDelay:    Config.ActionDelay,
 	}
 	g.initSpecies()
-	return g, nil
+	return g
 }
 
 // NewGameWeb creates a Game backed by an in-memory virtual screen (no real TTY).
@@ -170,6 +182,14 @@ func NewGameWeb(cols, rows int) (*Game, *nullScreen, error) {
 
 // InjectKey posts a synthetic key event into the game loop.
 func (g *Game) InjectKey(ev *tcell.EventKey) {
+	select {
+	case g.keyChan <- ev:
+	default:
+	}
+}
+
+// InjectMouse posts a synthetic mouse event into the game loop.
+func (g *Game) InjectMouse(ev *tcell.EventMouse) {
 	select {
 	case g.keyChan <- ev:
 	default:
@@ -292,6 +312,17 @@ func (g *Game) Run() {
 			sc.Render(ctx)
 		}
 
+		// Render control menu overlay (hamburger always visible in touch mode)
+		if Config.TouchMode && !HideTouchOverlay {
+			w, h := g.screen.Size()
+			Menu.SetScreenSize(w, h)
+			if !Menu.Visible {
+				g.screen.DrawString(w-4, 0, "[=]", StyleHighlight)
+			} else {
+				Menu.Render(g.screen)
+			}
+		}
+
 		if g.quitConfirm {
 			g.renderQuitConfirm(ctx)
 		} else if g.transition > 0 {
@@ -317,16 +348,16 @@ func (g *Game) drainEvents() {
 			case *tcell.EventResize:
 				g.screen.UpdateSize()
 			case *tcell.EventKey:
-			if g.quitConfirm {
-				switch {
-				case e.Str() == "y" || e.Str() == "Y" || e.Key() == tcell.KeyEnter:
-					g.running = false
-					return
-				case e.Str() == "n" || e.Str() == "N" || e.Key() == tcell.KeyEscape || e.Str() == "\x1b":
-					g.quitConfirm = false
+				if g.quitConfirm {
+					switch {
+					case e.Str() == "y" || e.Str() == "Y" || e.Key() == tcell.KeyEnter:
+						g.running = false
+						return
+					case e.Str() == "n" || e.Str() == "N" || e.Key() == tcell.KeyEscape || e.Str() == "\x1b":
+						g.quitConfirm = false
+					}
+					continue
 				}
-				continue
-			}
 				if e.Key() == tcell.KeyEscape || e.Str() == "\x1b" {
 					switch g.state {
 					case StateGeoscape, StateMenu:
@@ -353,6 +384,22 @@ func (g *Game) drainEvents() {
 				if g.quitConfirm {
 					continue
 				}
+				// Let control menu consume the event first
+				if Config.TouchMode && !HideTouchOverlay {
+					x, y := e.Position()
+					if Menu.HamburgerHit(x, y) {
+						Menu.Toggle()
+						continue
+					}
+					if Menu.HandleMouse(e) {
+						continue
+					}
+					// Auto-show control menu on first touch
+					if !Menu.TouchFirst && !Menu.Visible {
+						Menu.Show()
+						Menu.TouchFirst = true
+					}
+				}
 				if sc, ok := g.screens[g.state]; ok {
 					sc.HandleMouse(e)
 				}
@@ -367,6 +414,7 @@ func (g *Game) PushState(s GameState) {
 	g.stateStack = append(g.stateStack, g.state)
 	g.state = s
 	g.transition = 1.0
+	g.setupControlMenu()
 }
 
 func (g *Game) InState(s GameState) bool {
@@ -381,6 +429,7 @@ func (g *Game) PushScreen(sc Screen) {
 func (g *Game) SetState(s GameState) {
 	g.state = s
 	g.transition = 1.0
+	g.setupControlMenu()
 }
 
 func (g *Game) PopState() {
@@ -388,11 +437,18 @@ func (g *Game) PopState() {
 		g.state = g.stateStack[len(g.stateStack)-1]
 		g.stateStack = g.stateStack[:len(g.stateStack)-1]
 		g.transition = 1.0
+		g.setupControlMenu()
 	}
 }
 
 func (g *Game) ScreenSize() (int, int) {
 	return g.screen.Size()
+}
+
+// Stop signals the game loop to exit on its next iteration.
+// Used by the Android port to cleanly shut down the background goroutine.
+func (g *Game) Stop() {
+	g.running = false
 }
 
 func (g *Game) Quit() {
@@ -431,4 +487,61 @@ func (g *Game) Bell() {
 func (g *Game) IsWeb() bool {
 	_, ok := g.screen.screen.(*nullScreen)
 	return ok
+}
+
+func (g *Game) setupControlMenu() {
+	Menu.TouchFirst = false
+	switch g.state {
+	case StateGeoscape:
+		Menu.SetButtons([]ControlButton{
+			{Label: language.String("CTRL_PAUSE"), Hotkey: "Space", Action: func() { g.Paused = !g.Paused }},
+			{Label: language.String("CTRL_SPEED_1"), Hotkey: "1", Action: func() { g.TimeSpeed = 1 }},
+			{Label: language.String("CTRL_SPEED_2"), Hotkey: "2", Action: func() { g.TimeSpeed = 2 }},
+			{Label: language.String("CTRL_SPEED_3"), Hotkey: "3", Action: func() { g.TimeSpeed = 3 }},
+			{Label: language.String("CTRL_SPEED_4"), Hotkey: "4", Action: func() { g.TimeSpeed = 4 }},
+			{Label: language.String("CTRL_BASE"), Hotkey: "B", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "b", tcell.ModNone)) }},
+			{Label: language.String("CTRL_LAUNCH"), Hotkey: "L", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "l", tcell.ModNone)) }},
+			{Label: language.String("CTRL_SAVE"), Hotkey: "F5", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyF5, "", tcell.ModNone)) }},
+			{Label: language.String("CTRL_LOAD"), Hotkey: "F9", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyF9, "", tcell.ModNone)) }},
+			{Label: language.String("CTRL_HELP"), Hotkey: "?", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "?", tcell.ModNone)) }},
+		})
+	case StateBattlescape:
+		Menu.SetButtons([]ControlButton{
+			{Label: language.String("CTRL_SELECT"), Hotkey: "Enter", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyEnter, "", tcell.ModNone)) }},
+			{Label: language.String("CTRL_MOVE"), Hotkey: "Space", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, " ", tcell.ModNone)) }},
+			{Label: language.String("CTRL_FIRE"), Hotkey: "f", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "f", tcell.ModNone)) }},
+			{Label: language.String("CTRL_RELOAD"), Hotkey: "r", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "r", tcell.ModNone)) }},
+			{Label: language.String("CTRL_END_TURN"), Hotkey: "e", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "e", tcell.ModNone)) }},
+			{Label: language.String("CTRL_GRENADE"), Hotkey: "g", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "g", tcell.ModNone)) }},
+			{Label: language.String("CTRL_MEDIKIT"), Hotkey: "m", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "m", tcell.ModNone)) }},
+			{Label: language.String("CTRL_CROUCH"), Hotkey: "c", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "c", tcell.ModNone)) }},
+			{Label: language.String("CTRL_CYCLE"), Hotkey: "q", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "q", tcell.ModNone)) }},
+			{Label: language.String("CTRL_HELP"), Hotkey: "?", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "?", tcell.ModNone)) }},
+		})
+	case StateBase:
+		Menu.SetButtons([]ControlButton{
+			{Label: language.String("CTRL_FACILITIES"), Hotkey: "1", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "1", tcell.ModNone)) }},
+			{Label: language.String("CTRL_SOLDIERS"), Hotkey: "2", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "2", tcell.ModNone)) }},
+			{Label: language.String("CTRL_RESEARCH"), Hotkey: "3", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "3", tcell.ModNone)) }},
+			{Label: language.String("CTRL_MANUFACTURE"), Hotkey: "4", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "4", tcell.ModNone)) }},
+			{Label: language.String("CTRL_TRANSFER"), Hotkey: "5", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "5", tcell.ModNone)) }},
+			{Label: language.String("CTRL_HANGARS"), Hotkey: "6", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "6", tcell.ModNone)) }},
+			{Label: language.String("CTRL_BACK"), Hotkey: "Esc", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyEscape, "", tcell.ModNone)) }},
+			{Label: language.String("CTRL_HELP"), Hotkey: "?", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "?", tcell.ModNone)) }},
+		})
+	case StateEquip, StateResearch, StateManufacture:
+		Menu.SetButtons([]ControlButton{
+			{Label: language.String("CTRL_BACK"), Hotkey: "Esc", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyEscape, "", tcell.ModNone)) }},
+			{Label: language.String("CTRL_HELP"), Hotkey: "?", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "?", tcell.ModNone)) }},
+		})
+	case StateMenu:
+		Menu.SetButtons([]ControlButton{
+			{Label: language.String("CTRL_HELP"), Hotkey: "?", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "?", tcell.ModNone)) }},
+		})
+	default:
+		Menu.SetButtons([]ControlButton{
+			{Label: language.String("CTRL_BACK"), Hotkey: "Esc", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyEscape, "", tcell.ModNone)) }},
+			{Label: language.String("CTRL_HELP"), Hotkey: "?", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "?", tcell.ModNone)) }},
+		})
+	}
 }

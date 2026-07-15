@@ -171,3 +171,28 @@ internal/
 | Target/Attack | Left click on enemy |
 | Cancel | Right click |
 | Scroll | Mouse wheel |
+
+### Mobile Touch Controls
+Mobile layout activates automatically when the browser connects with `cols < 100`.
+`TouchMode` can also be set manually in config.json (`"touch_mode": true`).
+
+**Touch gestures:**
+| Gesture | Action |
+|---------|--------|
+| Tap | Left click (select, move, fire) |
+| Long press (500ms) | Right click (cancel) |
+| Vertical drag | Scroll (mouse wheel) |
+
+**On-screen control menu:**
+The `[=]` hamburger button in the top-right corner opens a touch-friendly button overlay.
+The menu auto-shows on first touch of each screen. Context-sensitive buttons per screen:
+
+- **Geoscape**: Pause, Speed 1-4, Base, Launch, Save, Load, Help
+- **Battlescape**: Select, Move, Fire, Reload, End Turn, Grenade, Medikit, Crouch, Cycle, Help
+- **Base**: Facilities, Soldiers, Research, Manufacture, Transfer, Hangars, Back, Help
+- **Other screens**: Back, Help
+
+**Responsive layouts (cols < 100):**
+- Battlescape: sidebar collapses, full-width viewport with compact unit banner
+- Geoscape: minimap hidden, region table full-width
+- Encyclopedia/CustomBattle: panels stacked vertically

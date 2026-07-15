@@ -59,7 +59,7 @@ func (ts *TransferScreen) Render(ctx *engine.ScreenCtx) {
 			if i == ts.SelSoldier {
 				style = engine.StyleHighlight
 			}
-			line := fmt.Sprintf("%-12s %-10s HP:%d", s.Name, s.Rank, s.HP)
+			line := fmt.Sprintf(language.String("TRANSFER_SOLDIER_LINE"), s.Name, s.Rank, s.HP)
 			ctx.DrawString(4, 5+i, line, style)
 		}
 	} else {
@@ -77,7 +77,7 @@ func (ts *TransferScreen) Render(ctx *engine.ScreenCtx) {
 				style = engine.StyleHighlight
 			}
 			qty := from.CountItem(item)
-			line := fmt.Sprintf("%-18s x%d", item, qty)
+			line := fmt.Sprintf(language.String("TRANSFER_ITEM_LINE"), item, qty)
 			ctx.DrawString(4, 5+i, line, style)
 		}
 	}

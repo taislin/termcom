@@ -2,6 +2,7 @@ package base
 
 import (
 	"fmt"
+	"math/rand"
 
 	"github.com/taislin/termcom/internal/data"
 	"github.com/taislin/termcom/internal/language"
@@ -140,12 +141,12 @@ func NewBase(name string, cityID int) *Base {
 	w := data.InterceptorWeapons["avalanche"]
 	b.Hangars = append(b.Hangars, &data.InterceptorState{
 		ID:        0,
-		Name:      "Interceptor",
+		Name:      language.String("INTERCEPTOR_DEFAULT_NAME"),
 		WeaponKey: "avalanche",
 		HP:        60,
 		MaxHP:     60,
 		Ammo:      w.FireRate * 4,
-		Status:    "Available",
+		Status:    language.String("INTERCEPTOR_STATUS_AVAILABLE"),
 	})
 	return b
 }
@@ -168,15 +169,15 @@ func (b *Base) BuyInterceptor(weaponKey string, funds *int64) bool {
 	w := data.InterceptorWeapons[weaponKey]
 	// Replace a destroyed interceptor first
 	for i, h := range b.Hangars {
-		if h.Status == "Destroyed" {
+		if h.Status == language.String("INTERCEPTOR_STATUS_DESTROYED") {
 			b.Hangars[i] = &data.InterceptorState{
 				ID:        h.ID,
-				Name:      "Interceptor",
+				Name:      language.String("INTERCEPTOR_DEFAULT_NAME"),
 				WeaponKey: weaponKey,
 				HP:        60,
 				MaxHP:     60,
 				Ammo:      w.FireRate * 4,
-				Status:    "Available",
+				Status:    language.String("INTERCEPTOR_STATUS_AVAILABLE"),
 			}
 			*funds -= cost
 			return true
@@ -189,12 +190,12 @@ func (b *Base) BuyInterceptor(weaponKey string, funds *int64) bool {
 	*funds -= cost
 	b.Hangars = append(b.Hangars, &data.InterceptorState{
 		ID:        len(b.Hangars),
-		Name:      "Interceptor",
+		Name:      language.String("INTERCEPTOR_DEFAULT_NAME"),
 		WeaponKey: weaponKey,
 		HP:        60,
 		MaxHP:     60,
 		Ammo:      w.FireRate * 4,
-		Status:    "Available",
+		Status:    language.String("INTERCEPTOR_STATUS_AVAILABLE"),
 	})
 	return true
 }
@@ -202,7 +203,7 @@ func (b *Base) BuyInterceptor(weaponKey string, funds *int64) bool {
 func (b *Base) GetAvailableInterceptors() []*data.InterceptorState {
 	var available []*data.InterceptorState
 	for _, h := range b.Hangars {
-		if h.Status == "Available" {
+		if h.Status == language.String("INTERCEPTOR_STATUS_AVAILABLE") {
 			available = append(available, h)
 		}
 	}
@@ -216,7 +217,7 @@ func (b *Base) ChangeInterceptorWeapon(idx int) string {
 		return ""
 	}
 	hg := b.Hangars[idx]
-	if hg.Status != "Available" {
+	if hg.Status != language.String("INTERCEPTOR_STATUS_AVAILABLE") {
 		return ""
 	}
 	curIdx := -1
@@ -385,8 +386,10 @@ func (b *Base) AdvanceDay() {
 		if s.Fatigue > 0 {
 			s.Fatigue--
 		}
-		if hasPsiLab && s.Wounds <= 0 && s.PsiSkill < 80 {
-			s.PsiSkill++
+		if hasPsiLab && s.Wounds <= 0 && s.PsiSkill > 0 && s.PsiSkill < 80 {
+			if rand.Intn(100) < 8*100/50 {
+				s.PsiSkill++
+			}
 		}
 	}
 }

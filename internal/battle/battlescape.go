@@ -6,14 +6,14 @@ import (
 	"math/rand"
 	"strings"
 
+	"github.com/gdamore/tcell/v3"
+	"github.com/gdamore/tcell/v3/color"
 	"github.com/taislin/termcom/internal/audio"
 	"github.com/taislin/termcom/internal/base"
 	"github.com/taislin/termcom/internal/data"
 	"github.com/taislin/termcom/internal/engine"
 	"github.com/taislin/termcom/internal/language"
 	"github.com/taislin/termcom/internal/soldier"
-	"github.com/gdamore/tcell/v3"
-	"github.com/gdamore/tcell/v3/color"
 )
 
 func abs(x int) int {
@@ -43,8 +43,8 @@ type BattlePhase int
 const (
 	PhasePlayerTurn BattlePhase = iota // Player is actively controlling units
 	PhaseAlienTurn                     // AI is executing queued actions
-	PhaseVictory                      // Mission objectives achieved
-	PhaseDefeat                       // Squad wiped or objective lost
+	PhaseVictory                       // Mission objectives achieved
+	PhaseDefeat                        // Squad wiped or objective lost
 )
 
 // CombatStatus tracks the specific sub-state of a turn.
@@ -151,8 +151,8 @@ type Battlescape struct {
 	Mines []PlacedMine
 
 	// Environmental State
-	MissionModifiers []MissionModifier
-	Weather          Weather
+	MissionModifiers      []MissionModifier
+	Weather               Weather
 	ReinforcementsSpawned bool
 
 	// Input State
@@ -163,11 +163,11 @@ type Battlescape struct {
 }
 
 type CustomVictory struct {
-	Condition  string // "eliminate_all", "survive_turns", "reach_point"
-	Turns      int    // for survive_turns
-	TargetX    int    // for reach_point
-	TargetY    int    // for reach_point
-	MinSoldiers int   // for reach_point: min soldiers that must reach the point
+	Condition   string // "eliminate_all", "survive_turns", "reach_point"
+	Turns       int    // for survive_turns
+	TargetX     int    // for reach_point
+	TargetY     int    // for reach_point
+	MinSoldiers int    // for reach_point: min soldiers that must reach the point
 }
 
 func (bs *Battlescape) AddMessage(msg string) {
@@ -550,22 +550,22 @@ type CustomUnitDef struct {
 // NewCustomBattlescape creates a battlescape with explicit unit placements for custom battles.
 func NewCustomBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, m *BattleMap, units []CustomUnitDef, cv *CustomVictory, ufoName string) *Battlescape {
 	bs := &Battlescape{
-		Game:           g,
-		Base:           b,
-		Map:            m,
-		Phase:          PhasePlayerTurn,
-		Status:         StatusPlayerTurn,
-		Turn:           1,
-		CursorX:        3,
-		CursorY:        m.Height - 3,
-		Squad:          squad,
-		UFOName:        ufoName,
-		IsNight:        g.GameTime.Hour() < 6 || g.GameTime.Hour() > 18,
-		Camera:         engine.NewCamera(3, m.Height-3),
-		Particles:      engine.NewParticleSystem(512),
-		ActionDelay:    g.ActionDelay,
-		Gas:            NewGasGrid(m.Width, m.Height),
-		CustomVictory:  cv,
+		Game:          g,
+		Base:          b,
+		Map:           m,
+		Phase:         PhasePlayerTurn,
+		Status:        StatusPlayerTurn,
+		Turn:          1,
+		CursorX:       3,
+		CursorY:       m.Height - 3,
+		Squad:         squad,
+		UFOName:       ufoName,
+		IsNight:       g.GameTime.Hour() < 6 || g.GameTime.Hour() > 18,
+		Camera:        engine.NewCamera(3, m.Height-3),
+		Particles:     engine.NewParticleSystem(512),
+		ActionDelay:   g.ActionDelay,
+		Gas:           NewGasGrid(m.Width, m.Height),
+		CustomVictory: cv,
 	}
 	m.Gas = bs.Gas
 
@@ -694,7 +694,7 @@ func (bs *Battlescape) Update() {
 	bs.Particles.Update(dt)
 	bs.updateFloaters(dt)
 
-	// Handle overwatch flash effect: when an alien is triggered, 
+	// Handle overwatch flash effect: when an alien is triggered,
 	// they flash briefly before performing their action.
 	if bs.OverwatchFlash > 0 {
 		bs.OverwatchFlash--
@@ -738,16 +738,16 @@ func (bs *Battlescape) Update() {
 	}
 
 	/*
-	if bs.FrameCount%12 == 0 && bs.Phase != PhaseVictory && bs.Phase != PhaseDefeat {
-		switch bs.UFOName {
-		case "Polar":
-			engine.SpawnSnow(bs.Particles, bs.ScrollX, bs.ScrollY, viewW, 1)
-		case "Desert":
-			engine.SpawnDust(bs.Particles, bs.ScrollX, bs.ScrollY, viewW, viewH)
-		case "Cydonia", "Alien Base Assault":
-			engine.SpawnEmbers(bs.Particles, bs.ScrollX, bs.ScrollY, viewW, viewH)
+		if bs.FrameCount%12 == 0 && bs.Phase != PhaseVictory && bs.Phase != PhaseDefeat {
+			switch bs.UFOName {
+			case "Polar":
+				engine.SpawnSnow(bs.Particles, bs.ScrollX, bs.ScrollY, viewW, 1)
+			case "Desert":
+				engine.SpawnDust(bs.Particles, bs.ScrollX, bs.ScrollY, viewW, viewH)
+			case "Cydonia", "Alien Base Assault":
+				engine.SpawnEmbers(bs.Particles, bs.ScrollX, bs.ScrollY, viewW, viewH)
+			}
 		}
-	}
 	*/
 
 	// Process Alien Turn: execute actions from the queue with a delay between them.
@@ -829,8 +829,8 @@ func (bs *Battlescape) executeAlienAction(action AlienAction) {
 			if engine.Config.ScreenShake {
 				bs.Camera.TriggerShake(0.5)
 			}
-		bs.SpawnBloodSplatter(action.Target)
-		bs.spawnFloater(action.Target.X, action.Target.Y, fmt.Sprintf("-%d", damage), color.XTerm9)
+			bs.SpawnBloodSplatter(action.Target)
+			bs.spawnFloater(action.Target.X, action.Target.Y, fmt.Sprintf("-%d", damage), color.XTerm9)
 			name := action.Target.Name()
 			bs.AddMessage(fmt.Sprintf(language.String("MSG_ALIEN_HIT"), name, damage))
 			if !action.Target.Alive {
@@ -950,8 +950,13 @@ func (bs *Battlescape) checkHumanReactionFire(movedAlien *Unit) {
 		bs.Status = StatusPlayerOverwatch
 		bs.OverwatchFlash = 30
 		bs.Camera.SetTarget(u.X, u.Y)
+		u.InOverwatch = true
 		damage, hit, _ := u.FireAt(movedAlien, bs.Map, &bs.Weather)
+		u.InOverwatch = false
 		bs.recordPlayerShot(u, movedAlien)
+		if hit && u.Soldier != nil {
+			u.Soldier.AddReactionsExp()
+		}
 		bs.Projectile = &Projectile{
 			FromX: u.X, FromY: u.Y,
 			ToX: movedAlien.X, ToY: movedAlien.Y,
@@ -1015,7 +1020,12 @@ func (bs *Battlescape) checkAlienReactionFire(movedHuman *Unit) {
 		bs.Status = StatusAlienOverwatch
 		bs.OverwatchFlash = 30
 		bs.Camera.SetTarget(u.X, u.Y)
+		u.InOverwatch = true
 		damage, hit, _ := u.FireAt(movedHuman, bs.Map, &bs.Weather)
+		u.InOverwatch = false
+		if hit && u.Soldier != nil {
+			u.Soldier.AddReactionsExp()
+		}
 		bs.Projectile = &Projectile{
 			FromX: u.X, FromY: u.Y,
 			ToX: movedHuman.X, ToY: movedHuman.Y,
@@ -1049,12 +1059,26 @@ func (bs *Battlescape) finishBattle() {
 			if u.HP <= 0 {
 				u.Soldier.HP = 0
 				u.Soldier.Wounds = 30
-			} else if u.HP < u.MaxHP {
-				dmg := u.MaxHP - u.HP
-				u.Soldier.Wounds = dmg * 3
-				if u.Soldier.Wounds > 30 {
-					u.Soldier.Wounds = 30
+				alreadyMemorial := false
+				for _, m := range bs.Game.Memorial {
+					if m == u.Soldier {
+						alreadyMemorial = true
+						break
+					}
 				}
+				if !alreadyMemorial {
+					bs.Game.Memorial = append(bs.Game.Memorial, u.Soldier)
+				}
+			} else {
+				dmg := u.MaxHP - u.HP
+				if dmg < 0 {
+					dmg = 0
+				}
+				wounds := dmg*3 + u.FatalWounds*2
+				if wounds > 30 {
+					wounds = 30
+				}
+				u.Soldier.Wounds = wounds
 			}
 			// Fatigue: survivors need rest
 			if u.HP > 0 {
@@ -1077,14 +1101,15 @@ func (bs *Battlescape) finishBattle() {
 
 	// Award XP to surviving soldiers
 	for _, u := range bs.Units {
-		if u.Faction == 0 && u.Alive && u.Soldier != nil {
-			xp := alienKills * 5
-			if won {
-				xp += 10
-			}
-			u.Soldier.GainXP(xp)
+		if u.Faction == 0 && u.Soldier != nil {
+			u.Soldier.Kills += alienKills
+			u.Soldier.PostMission()
 			u.Soldier.Missions++
 		}
+	}
+
+	if bs.Base != nil {
+		soldier.HandlePromotions(bs.Base.Soldiers)
 	}
 
 	// Collect loot — type-specific corpses + weapon drops
@@ -1236,6 +1261,35 @@ func (bs *Battlescape) finishAlienTurn() {
 			u.StunPoints -= 2
 			if u.StunPoints < 0 {
 				u.StunPoints = 0
+			}
+		}
+	}
+
+	// Bleed tick, morale recovery and panic checks for the new player turn.
+	for _, u := range bs.Units {
+		if !u.Alive {
+			continue
+		}
+		if u.BleedRate > 0 {
+			u.HP -= u.BleedRate
+			if u.HP <= 0 {
+				u.HP = 0
+				u.Alive = false
+			}
+		}
+		if u.Faction == 0 && u.HP > 0 {
+			if u.Morale < 100 {
+				u.Morale += 10
+				if u.Morale > 100 {
+					u.Morale = 100
+				}
+			}
+			if u.HP < u.MaxHP {
+				if rand.Intn(100) < 100-2*u.Morale {
+					u.Panicked = true
+				} else if u.Soldier != nil {
+					u.Soldier.AddBraveryExp()
+				}
 			}
 		}
 	}
@@ -1475,6 +1529,7 @@ func (bs *Battlescape) learnFromKills() {
 func (bs *Battlescape) restorePlayerTU() {
 	for _, u := range bs.Units {
 		if u.Faction == 0 && u.Alive {
+			u.HasMoved = false
 			if u.Panicked {
 				u.Panicked = false
 				continue
@@ -1546,7 +1601,6 @@ func (bs *Battlescape) checkVictory() {
 		bs.AddMessage(language.String("MSG_TIME_LIMIT_EXCEEDED"))
 		return
 	}
-
 
 	if len(aliens) == 0 {
 		bs.Phase = PhaseVictory
@@ -1711,6 +1765,8 @@ func (bs *Battlescape) FireWeapon() {
 			msg = language.String("MSG_NOT_ENOUGH_TU")
 		case strings.Contains(msg, "out of ammo"):
 			msg = language.String("MSG_OUT_OF_AMMO")
+		default:
+			msg = language.String("MSG_WEAPON_ERROR")
 		}
 		bs.AddMessage(msg)
 		return
@@ -1804,6 +1860,7 @@ func (bs *Battlescape) EndTurn() {
 			continue
 		}
 		ai.Unit.TU = ai.Unit.MaxTU
+		ai.Unit.HasMoved = false
 		humanUnits := bs.Units.Faction(0)
 		actions := ai.Update(bs.Units, bs.Map, humanUnits, bs.AlienSquadPlan, &bs.Game.Tactics)
 		bs.AlienTurnQueue = append(bs.AlienTurnQueue, actions...)
@@ -2031,6 +2088,9 @@ func (bs *Battlescape) Grenade() {
 
 	grenadeRange := 6
 	damage := 40 + bs.Selected.Strength*2
+	if bs.Selected.Soldier != nil && bs.Selected.Soldier.HasBattleMod(soldier.BModDemolitions) {
+		damage = damage * 3 / 2
+	}
 	ax := bs.CursorX
 	ay := bs.CursorY
 	dx := ax - bs.Selected.X
@@ -2066,6 +2126,9 @@ func (bs *Battlescape) Grenade() {
 	}
 
 	splashRadius := 2
+	if bs.Selected.Soldier != nil && bs.Selected.Soldier.HasBattleMod(soldier.BModGrenadier) {
+		splashRadius += 2
+	}
 	for dy := -splashRadius; dy <= splashRadius; dy++ {
 		for dx := -splashRadius; dx <= splashRadius; dx++ {
 			if dx*dx+dy*dy > splashRadius*splashRadius {
@@ -2111,6 +2174,9 @@ func (bs *Battlescape) UseMedikit() {
 	}
 
 	healAmount := 10
+	if bs.Selected.Soldier != nil && bs.Selected.Soldier.HasBattleMod(soldier.BModFieldMedic) {
+		healAmount = 15
+	}
 	mx := bs.CursorX
 	my := bs.CursorY
 
@@ -2274,7 +2340,6 @@ func (bs *Battlescape) PsiAttack() {
 		return
 	}
 
-
 	if bs.Selected.TU < 20 {
 		bs.AddMessage(language.String("MSG_NOT_ENOUGH_TU_PSI"))
 		return
@@ -2285,7 +2350,6 @@ func (bs *Battlescape) PsiAttack() {
 		bs.AddMessage(language.String("MSG_SELECT_ALIEN_TARGET"))
 		return
 	}
-
 
 	bs.Selected.TU -= 20
 
@@ -2302,7 +2366,6 @@ func (bs *Battlescape) PsiAttack() {
 		return
 	}
 
-
 	successChance := attackerSkill - targetPsi/3
 	if successChance < 5 {
 		successChance = 5
@@ -2316,6 +2379,9 @@ func (bs *Battlescape) PsiAttack() {
 		engine.SpawnExplosion(bs.Particles, target.X-bs.ScrollX+1, target.Y-bs.ScrollY+1, tcell.NewRGBColor(120, 0, 200), 12)
 		target.TU = 0
 		target.Panicked = true
+		if bs.Selected.Soldier != nil {
+			bs.Selected.Soldier.AddPsiSkillExp()
+		}
 		bs.AddMessage(fmt.Sprintf(language.String("MSG_PSI_SUCCESS"), target.Name()))
 	} else {
 		bs.AddMessage(language.String("MSG_PSI_FAIL"))
@@ -2360,15 +2426,10 @@ func (bs *Battlescape) DrawCombatStatusBar(ctx *engine.ScreenCtx, w int) {
 func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 	// 1. Calculate view dimensions and layout
 	w, h := ctx.Size()
-	bs.SidebarW = w / 3
-	if bs.SidebarW < 30 {
-		bs.SidebarW = 30
-	}
-	viewW := w - bs.SidebarW - 2
-	if viewW < 10 {
-		viewW = 10
-	}
-	viewH := h - 5
+	engine.Layout.UpdateMode(w, h)
+	bs.SidebarW = engine.Layout.BattleSidebarWidth(w)
+	viewW := engine.Layout.BattleViewWidth(w)
+	viewH := engine.Layout.BattleViewHeight(h)
 	bs.viewW, bs.viewH = viewW, viewH
 
 	// 2. Top-level UI elements
@@ -2606,131 +2667,29 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 
 	bs.drawFloaters(ctx)
 
-	// Draw sidebar border
-	sidebarX := viewW + 2
-	for y := 0; y < viewH; y++ {
-		ctx.SetCell(sidebarX-1, y+1, '|', engine.StyleGray)
-	}
-
-	// If hovering an enemy, show target info in sidebar
-	if bs.HoveredUnit != nil && bs.HoveredUnit != bs.Selected {
-		sy := 1
-		u := bs.HoveredUnit
-		halfSide := bs.SidebarW / 2
-
-		ctx.DrawString(sidebarX, sy, language.String("SIDE_TARGET_INFO"), engine.StyleRedBold)
-		sy++
-		name := ""
-		if u.Faction == 1 && u.AlienType != nil {
-			name = u.AlienType.Name
-		} else if u.Faction == 0 && u.Soldier != nil {
-			name = u.Soldier.Name
-		} else if u.Faction == 2 {
-			name = u.CivName
-		}
-		if engine.StringWidth(name) > halfSide-1 {
-			runes := []rune(name)
-			for len(runes) > 0 && engine.StringWidth(string(runes)) > halfSide-1 {
-				runes = runes[:len(runes)-1]
-			}
-			name = string(runes)
-		}
-		ctx.DrawString(sidebarX, sy, name, engine.StyleDefault.Bold(true))
-		sy++
-		weaponName := data.RuleItems[u.Weapon].ShortName
-		ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_WPN_TARGET"), weaponName), engine.StyleDefault)
-		sy++
-
-		hasAutopsy := u.Faction != 1 || u.AlienType == nil
-		if !hasAutopsy {
-			for _, id := range bs.Base.CompletedResearch {
-				if id == u.AlienType.AutopsyID {
-					hasAutopsy = true
-					break
-				}
-			}
+	if bs.SidebarW > 0 {
+		// Draw sidebar border
+		sidebarX := viewW + 2
+		for y := 0; y < viewH; y++ {
+			ctx.SetCell(sidebarX-1, y+1, '|', engine.StyleGray)
 		}
 
-		if hasAutopsy {
-			hpColor := engine.StyleGreen
-			if u.HP*3 < u.MaxHP {
-				hpColor = engine.StyleRed
-			} else if u.HP*2 < u.MaxHP {
-				hpColor = engine.StyleYellow
-			}
-			ctx.DrawString(sidebarX, sy, language.Sprintf("SIDE_HP_BAR", barString(u.HP, u.MaxHP, 8), u.HP, u.MaxHP), hpColor)
+		// If hovering an enemy, show target info in sidebar
+		if bs.HoveredUnit != nil && bs.HoveredUnit != bs.Selected {
+			sy := 1
+			u := bs.HoveredUnit
+			halfSide := bs.SidebarW / 2
+
+			ctx.DrawString(sidebarX, sy, language.String("SIDE_TARGET_INFO"), engine.StyleRedBold)
 			sy++
-			ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_ACC"), u.Accuracy), engine.StyleDefault)
-			sy++
-			tuColor := engine.StyleCyan
-			if u.TU < u.MaxTU/3 {
-				tuColor = engine.StyleRed
-			} else if u.TU < u.MaxTU/2 {
-				tuColor = engine.StyleYellow
+			name := ""
+			if u.Faction == 1 && u.AlienType != nil {
+				name = u.AlienType.Name
+			} else if u.Faction == 0 && u.Soldier != nil {
+				name = u.Soldier.Name
+			} else if u.Faction == 2 {
+				name = u.CivName
 			}
-			ctx.DrawString(sidebarX, sy, language.Sprintf("SIDE_TU_BAR", barString(u.TU, u.MaxTU, 8), u.TU), tuColor)
-			sy++
-		} else {
-			ctx.DrawString(sidebarX, sy, language.String("SIDE_HP_UNKNOWN"), engine.StyleGray)
-			sy++
-			ctx.DrawString(sidebarX, sy, language.String("SIDE_ACC_UNKNOWN"), engine.StyleGray)
-			sy++
-			ctx.DrawString(sidebarX, sy, language.String("SIDE_TU_UNKNOWN"), engine.StyleGray)
-			sy++
-		}
-
-		// Draw sprite aligned right at top of sidebar
-		if u.Faction == 1 && u.AlienType != nil {
-			bgColor := tcell.NewRGBColor(20, 20, 28)
-			alienImg := engine.GenerateAlienSpriteFromSeed(int64(u.AlienType.Icon), u.AlienType.Morphology, bgColor)
-			portW := alienImg.Width + 2
-			portX := sidebarX + bs.SidebarW - portW
-			ctx.DrawPixelImageFramed(portX, 1, alienImg, engine.StyleRed)
-			if sy < 14 {
-				sy = 14
-			}
-		}
-		if sy < 2 {
-			sy = 2
-		}
-		sy++
-		logTitle := language.String("BATTLE_LOG")
-		ctx.DrawString(sidebarX, sy, logTitle, engine.StyleCyanBold)
-		sy++
-
-		availableLines := viewH - sy
-		logEntries := len(bs.Log)
-		startIdx := 0
-		if logEntries > availableLines {
-			startIdx = logEntries - availableLines
-		}
-		for i := 0; i < availableLines && startIdx+i < logEntries; i++ {
-			entry := bs.Log[startIdx+i]
-			text := entry.Text
-			runes := []rune(text)
-			for len(runes) > 0 && engine.StringWidth(string(runes)) > bs.SidebarW-3 {
-				runes = runes[:len(runes)-1]
-			}
-			text = string(runes)
-			style := engine.StyleDefault
-			if entry.Turn < bs.Turn {
-				style = engine.StyleGray
-			}
-			ctx.DrawString(sidebarX, sy+i, ">", engine.StyleHotkey)
-			ctx.DrawString(sidebarX+2, sy+i, text, style)
-		}
-	}
-
-	if bs.HoveredUnit == nil || bs.HoveredUnit == bs.Selected {
-		// Draw unit info in sidebar
-		sy := 1
-		halfSide := bs.SidebarW / 2
-
-		if bs.Selected != nil {
-			ctx.DrawString(sidebarX, sy, language.String("SIDE_UNIT_INFO"), engine.StyleCyanBold)
-			sy++
-
-			name := bs.Selected.Soldier.Name
 			if engine.StringWidth(name) > halfSide-1 {
 				runes := []rune(name)
 				for len(runes) > 0 && engine.StringWidth(string(runes)) > halfSide-1 {
@@ -2740,97 +2699,214 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 			}
 			ctx.DrawString(sidebarX, sy, name, engine.StyleDefault.Bold(true))
 			sy++
-
-			hpColor := engine.StyleGreen
-			if bs.Selected.HP*3 < bs.Selected.MaxHP {
-				hpColor = engine.StyleRed
-			} else if bs.Selected.HP*2 < bs.Selected.MaxHP {
-				hpColor = engine.StyleYellow
-			}
-			ctx.DrawString(sidebarX, sy, language.Sprintf("SIDE_HP_BAR", barString(bs.Selected.HP, bs.Selected.MaxHP, 8), bs.Selected.HP, bs.Selected.MaxHP), hpColor)
+			weaponName := data.RuleItems[u.Weapon].ShortName
+			ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_WPN_TARGET"), weaponName), engine.StyleDefault)
 			sy++
 
-			tuColor := engine.StyleCyan
-			if bs.Selected.TU < bs.Selected.MaxTU/3 {
-				tuColor = engine.StyleRed
-			} else if bs.Selected.TU < bs.Selected.MaxTU/2 {
-				tuColor = engine.StyleYellow
-			}
-			ctx.DrawString(sidebarX, sy, language.Sprintf("SIDE_TU_BAR_FULL", barString(bs.Selected.TU, bs.Selected.MaxTU, 8), bs.Selected.TU, bs.Selected.MaxTU), tuColor)
-			sy++
-
-			ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_ACC"), bs.Selected.Accuracy), engine.StyleDefault)
-			sy++
-
-			weaponName := data.RuleItems[bs.Selected.Weapon].DisplayName()
-			if engine.StringWidth(weaponName) > bs.SidebarW-4 {
-				runes := []rune(weaponName)
-				for len(runes) > 0 && engine.StringWidth(string(runes)) > bs.SidebarW-4 {
-					runes = runes[:len(runes)-1]
-				}
-				weaponName = string(runes)
-			}
-			ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_WEAPON"), weaponName), engine.StyleDefault)
-			sy++
-
-			w := data.RuleItems[bs.Selected.Weapon]
-			ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_AMMO"), bs.Selected.WeaponAmmo, w.AmmoMax), engine.StyleDefault)
-			sy++
-
-			armourName := language.String("NONE")
-			if bs.Selected.Armour > 0 {
-				for k, v := range data.Armors {
-					if v.Undersuit == bs.Selected.Armour {
-						armourName = v.DisplayNameByKey(k)
+			hasAutopsy := u.Faction != 1 || u.AlienType == nil
+			if !hasAutopsy {
+				for _, id := range bs.Base.CompletedResearch {
+					if id == u.AlienType.AutopsyID {
+						hasAutopsy = true
 						break
 					}
 				}
 			}
-			ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_ARMOR"), armourName), engine.StyleDefault)
-			sy++
 
-			ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_POS"), bs.Selected.X, bs.Selected.Y), engine.StyleGray)
-			sy++
-
-			if bs.Selected.Crouching {
-				ctx.DrawString(sidebarX, sy, language.String("SIDE_CROUCH"), engine.StyleYellow)
+			if hasAutopsy {
+				hpColor := engine.StyleGreen
+				if u.HP*3 < u.MaxHP {
+					hpColor = engine.StyleRed
+				} else if u.HP*2 < u.MaxHP {
+					hpColor = engine.StyleYellow
+				}
+				ctx.DrawString(sidebarX, sy, language.Sprintf("SIDE_HP_BAR", barString(u.HP, u.MaxHP, 8), u.HP, u.MaxHP), hpColor)
+				sy++
+				ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_ACC"), u.Accuracy), engine.StyleDefault)
+				sy++
+				tuColor := engine.StyleCyan
+				if u.TU < u.MaxTU/3 {
+					tuColor = engine.StyleRed
+				} else if u.TU < u.MaxTU/2 {
+					tuColor = engine.StyleYellow
+				}
+				ctx.DrawString(sidebarX, sy, language.Sprintf("SIDE_TU_BAR", barString(u.TU, u.MaxTU, 8), u.TU), tuColor)
+				sy++
+			} else {
+				ctx.DrawString(sidebarX, sy, language.String("SIDE_HP_UNKNOWN"), engine.StyleGray)
+				sy++
+				ctx.DrawString(sidebarX, sy, language.String("SIDE_ACC_UNKNOWN"), engine.StyleGray)
+				sy++
+				ctx.DrawString(sidebarX, sy, language.String("SIDE_TU_UNKNOWN"), engine.StyleGray)
 				sy++
 			}
+
+			// Draw sprite aligned right at top of sidebar
+			if u.Faction == 1 && u.AlienType != nil {
+				bgColor := tcell.NewRGBColor(20, 20, 28)
+				alienImg := engine.GenerateAlienSpriteFromSeed(int64(u.AlienType.Icon), u.AlienType.Morphology, bgColor)
+				portW := alienImg.Width + 2
+				portX := sidebarX + bs.SidebarW - portW
+				ctx.DrawPixelImageFramed(portX, 1, alienImg, engine.StyleRed)
+				if sy < 14 {
+					sy = 14
+				}
+			}
+			if sy < 2 {
+				sy = 2
+			}
+			sy++
+			logTitle := language.String("BATTLE_LOG")
+			ctx.DrawString(sidebarX, sy, logTitle, engine.StyleCyanBold)
 			sy++
 
-			// Draw portrait aligned right at top of sidebar
-			portraitImg := engine.MakeSoldierPortrait(bs.Selected.Soldier.Name, bs.Selected.Soldier.Armor, 20, 24)
-			portW := portraitImg.Width + 2
-			portX := sidebarX + bs.SidebarW - portW
-			ctx.DrawPixelImageFramed(portX, 1, portraitImg, engine.StyleCyan)
-			sy = 1 + portraitImg.Height/2 + 2
+			availableLines := viewH - sy
+			logEntries := len(bs.Log)
+			startIdx := 0
+			if logEntries > availableLines {
+				startIdx = logEntries - availableLines
+			}
+			for i := 0; i < availableLines && startIdx+i < logEntries; i++ {
+				entry := bs.Log[startIdx+i]
+				text := entry.Text
+				runes := []rune(text)
+				for len(runes) > 0 && engine.StringWidth(string(runes)) > bs.SidebarW-3 {
+					runes = runes[:len(runes)-1]
+				}
+				text = string(runes)
+				style := engine.StyleDefault
+				if entry.Turn < bs.Turn {
+					style = engine.StyleGray
+				}
+				ctx.DrawString(sidebarX, sy+i, ">", engine.StyleHotkey)
+				ctx.DrawString(sidebarX+2, sy+i, text, style)
+			}
 		}
 
-		// Draw log in sidebar
-		logTitle := language.String("BATTLE_LOG")
-		ctx.DrawString(sidebarX, sy, logTitle, engine.StyleCyanBold)
-		sy++
+		if bs.HoveredUnit == nil || bs.HoveredUnit == bs.Selected {
+			// Draw unit info in sidebar
+			sy := 1
+			halfSide := bs.SidebarW / 2
 
-		availableLines := viewH - sy
-		logEntries := len(bs.Log)
-		startIdx := 0
-		if logEntries > availableLines {
-			startIdx = logEntries - availableLines
+			if bs.Selected != nil {
+				ctx.DrawString(sidebarX, sy, language.String("SIDE_UNIT_INFO"), engine.StyleCyanBold)
+				sy++
+
+				name := bs.Selected.Soldier.Name
+				if engine.StringWidth(name) > halfSide-1 {
+					runes := []rune(name)
+					for len(runes) > 0 && engine.StringWidth(string(runes)) > halfSide-1 {
+						runes = runes[:len(runes)-1]
+					}
+					name = string(runes)
+				}
+				ctx.DrawString(sidebarX, sy, name, engine.StyleDefault.Bold(true))
+				sy++
+
+				hpColor := engine.StyleGreen
+				if bs.Selected.HP*3 < bs.Selected.MaxHP {
+					hpColor = engine.StyleRed
+				} else if bs.Selected.HP*2 < bs.Selected.MaxHP {
+					hpColor = engine.StyleYellow
+				}
+				ctx.DrawString(sidebarX, sy, language.Sprintf("SIDE_HP_BAR", barString(bs.Selected.HP, bs.Selected.MaxHP, 8), bs.Selected.HP, bs.Selected.MaxHP), hpColor)
+				sy++
+
+				tuColor := engine.StyleCyan
+				if bs.Selected.TU < bs.Selected.MaxTU/3 {
+					tuColor = engine.StyleRed
+				} else if bs.Selected.TU < bs.Selected.MaxTU/2 {
+					tuColor = engine.StyleYellow
+				}
+				ctx.DrawString(sidebarX, sy, language.Sprintf("SIDE_TU_BAR_FULL", barString(bs.Selected.TU, bs.Selected.MaxTU, 8), bs.Selected.TU, bs.Selected.MaxTU), tuColor)
+				sy++
+
+				ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_ACC"), bs.Selected.Accuracy), engine.StyleDefault)
+				sy++
+
+				weaponName := data.RuleItems[bs.Selected.Weapon].DisplayName()
+				if engine.StringWidth(weaponName) > bs.SidebarW-4 {
+					runes := []rune(weaponName)
+					for len(runes) > 0 && engine.StringWidth(string(runes)) > bs.SidebarW-4 {
+						runes = runes[:len(runes)-1]
+					}
+					weaponName = string(runes)
+				}
+				ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_WEAPON"), weaponName), engine.StyleDefault)
+				sy++
+
+				w := data.RuleItems[bs.Selected.Weapon]
+				ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_AMMO"), bs.Selected.WeaponAmmo, w.AmmoMax), engine.StyleDefault)
+				sy++
+
+				armourName := language.String("NONE")
+				if bs.Selected.Armour > 0 {
+					for k, v := range data.Armors {
+						if v.Undersuit == bs.Selected.Armour {
+							armourName = v.DisplayNameByKey(k)
+							break
+						}
+					}
+				}
+				ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_ARMOR"), armourName), engine.StyleDefault)
+				sy++
+
+				ctx.DrawString(sidebarX, sy, fmt.Sprintf(language.String("SIDE_POS"), bs.Selected.X, bs.Selected.Y), engine.StyleGray)
+				sy++
+
+				if bs.Selected.Crouching {
+					ctx.DrawString(sidebarX, sy, language.String("SIDE_CROUCH"), engine.StyleYellow)
+					sy++
+				}
+				sy++
+
+				// Draw portrait aligned right at top of sidebar
+				portraitImg := engine.MakeSoldierPortrait(bs.Selected.Soldier.Name, bs.Selected.Soldier.Armor, 20, 24)
+				portW := portraitImg.Width + 2
+				portX := sidebarX + bs.SidebarW - portW
+				ctx.DrawPixelImageFramed(portX, 1, portraitImg, engine.StyleCyan)
+				sy = 1 + portraitImg.Height/2 + 2
+			}
+
+			// Draw log in sidebar
+			logTitle := language.String("BATTLE_LOG")
+			ctx.DrawString(sidebarX, sy, logTitle, engine.StyleCyanBold)
+			sy++
+
+			availableLines := viewH - sy
+			logEntries := len(bs.Log)
+			startIdx := 0
+			if logEntries > availableLines {
+				startIdx = logEntries - availableLines
+			}
+			for i := 0; i < availableLines && startIdx+i < logEntries; i++ {
+				entry := bs.Log[startIdx+i]
+				text := entry.Text
+				runes := []rune(text)
+				for len(runes) > 0 && engine.StringWidth(string(runes)) > bs.SidebarW-3 {
+					runes = runes[:len(runes)-1]
+				}
+				text = string(runes)
+				style := engine.StyleDefault
+				if entry.Turn < bs.Turn {
+					style = engine.StyleGray
+				}
+				ctx.DrawString(sidebarX, sy+i, ">", engine.StyleHotkey)
+				ctx.DrawString(sidebarX+2, sy+i, text, style)
+			}
 		}
-		for i := 0; i < availableLines && startIdx+i < logEntries; i++ {
-			entry := bs.Log[startIdx+i]
-			text := entry.Text
-			runes := []rune(text)
-			for len(runes) > 0 && engine.StringWidth(string(runes)) > bs.SidebarW-3 {
+	} else {
+		// Compact banner when sidebar is hidden (mobile mode)
+		if bs.Selected != nil {
+			banner := fmt.Sprintf(language.String("BATTLE_COMPACT_BANNER"),
+				bs.Selected.Soldier.Name, bs.Selected.HP, bs.Selected.MaxHP,
+				bs.Selected.TU, bs.Selected.MaxTU, data.RuleItems[bs.Selected.Weapon].ShortName)
+			runes := []rune(banner)
+			maxW := w - 2
+			for len(runes) > 0 && engine.StringWidth(string(runes)) > maxW {
 				runes = runes[:len(runes)-1]
 			}
-			text = string(runes)
-			style := engine.StyleDefault
-			if entry.Turn < bs.Turn {
-				style = engine.StyleGray
-			}
-			ctx.DrawString(sidebarX, sy+i, ">", engine.StyleHotkey)
-			ctx.DrawString(sidebarX+2, sy+i, text, style)
+			ctx.DrawString(1, 1, string(runes), engine.StyleCyan)
 		}
 	}
 

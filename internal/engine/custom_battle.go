@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/taislin/termcom/internal/language"
 	"github.com/gdamore/tcell/v3"
+	"github.com/taislin/termcom/internal/language"
 )
 
 type CustomBattleEntry struct {
@@ -84,8 +84,8 @@ func (cs *CustomBattleScreen) Render(ctx *ScreenCtx) {
 	}
 
 	// Split panel: left list, right details
-	leftW := w/2 - 1
-	rightX := leftW + 2
+	leftW := Layout.CustomBattleLeftWidth(w)
+	rightX := Layout.CustomBattleRightX(w)
 
 	ctx.DrawString(2, 2, language.String("CUSTOM_MISSION_SELECT"), StyleCyanBold)
 	// Vertical divider
@@ -224,7 +224,7 @@ func (cs *CustomBattleScreen) HandleMouse(e *tcell.EventMouse) {
 		return
 	}
 
-	leftW := w/2 - 1
+	leftW := Layout.CustomBattleLeftWidth(w)
 	if x < leftW {
 		// Click in left panel
 		clickIdx := y - 3

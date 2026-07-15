@@ -3,6 +3,7 @@ package soldier
 import (
 	"fmt"
 	"math/rand"
+	"sort"
 
 	"github.com/taislin/termcom/internal/data"
 	"github.com/taislin/termcom/internal/language"
@@ -50,29 +51,56 @@ func (r Rank) String() string {
 }
 
 type Soldier struct {
-	Name      string
-	Rank      Rank
-	HP        int
-	MaxHP     int
-	TU        int
-	MaxTU     int
-	Accuracy  int
-	Bravery   int
-	Reactions int
-	Strength  int
-	PsiSkill  int
-	PsiStr    int
-	PosX      int
-	PosY      int
-	Weapon    string
+	Name       string
+	Rank       Rank
+	HP         int
+	MaxHP      int
+	TU         int
+	MaxTU      int
+	Accuracy   int
+	Bravery    int
+	Reactions  int
+	Strength   int
+	PsiSkill   int
+	PsiStr     int
+	PosX       int
+	PosY       int
+	Weapon     string
 	WeaponAmmo int // Current ammo for the weapon
-	Armor     string
-	Kills     int
-	Missions  int
-	Wounds    int // days until healed
-	Fatigue   int // days until rested
-	Perks     []string
+	Armor      string
+	Kills      int
+	Missions   int
+	Wounds     int // days until healed
+	Fatigue    int // days until rested
+	Perks      []string
+
+	// Transient per-mission XP counters (reset by PostMission, not persisted)
+	ExpFiring    int
+	ExpThrowing  int
+	ExpReactions int
+	ExpBravery   int
+	ExpPsiSkill  int
+	ExpPsiStr    int
+	ExpMelee     int
+	GainedXP     bool
 }
+
+var StatCaps = struct {
+	TU, HP, Acc, React, Brave, Str, Psi, Melee int
+}{
+	TU:    80,
+	HP:    60,
+	Acc:   120,
+	React: 100,
+	Brave: 100,
+	Str:   70,
+	Psi:   100,
+	Melee: 120,
+}
+
+// RankOpenings: total roster size required before a rank (index) may exist.
+// Ranks 0 (Rookie) and 1 (Squaddie) are unlimited; Corporal opens at 4, etc.
+var RankOpenings = []int{0, 0, 4, 8, 14, 22, 30, 40}
 
 func (s *Soldier) CanDeploy() bool {
 	return s.HP > 0 && s.Wounds == 0 && s.Fatigue == 0
@@ -82,21 +110,21 @@ func NewSoldier(name string) *Soldier {
 	hp := 20 + rand.Intn(6)
 	tu := 45 + rand.Intn(11)
 	return &Soldier{
-		Name:      name,
-		Rank:      Rookie,
-		HP:        hp,
-		MaxHP:     hp,
-		TU:        tu,
-		MaxTU:     tu,
-		Accuracy:  40 + rand.Intn(21),
-		Bravery:   30 + rand.Intn(41),
-		Reactions: 30 + rand.Intn(21),
-		Strength:  10 + rand.Intn(11),
-		PsiSkill:  0,
-		PsiStr:    rand.Intn(40),
-		Weapon:    "rifle",
+		Name:       name,
+		Rank:       Rookie,
+		HP:         hp,
+		MaxHP:      hp,
+		TU:         tu,
+		MaxTU:      tu,
+		Accuracy:   40 + rand.Intn(21),
+		Bravery:    30 + rand.Intn(41),
+		Reactions:  30 + rand.Intn(21),
+		Strength:   10 + rand.Intn(11),
+		PsiSkill:   0,
+		PsiStr:     rand.Intn(40),
+		Weapon:     "rifle",
 		WeaponAmmo: data.RuleItems["rifle"].AmmoMax,
-		Armor:     "none",
+		Armor:      "none",
 	}
 }
 
@@ -124,28 +152,165 @@ func (s *Soldier) FireWeapon(target *Soldier) (int, bool) {
 	return dmg, true
 }
 
-func (s *Soldier) GainXP(kills int) *Perk {
-	s.Kills += kills
-	xpThreshold := []int{0, 10, 25, 50, 80, 120, 170, 230}
-	var awardedPerk *Perk
-	rng := rand.New(rand.NewSource(int64(s.Kills)))
-	for int(s.Rank) < len(xpThreshold)-1 && s.Kills >= xpThreshold[int(s.Rank)+1] {
-		s.Rank++
-		s.MaxHP += 2
-		s.HP += 2
-		s.MaxTU += 1
-		s.TU += 1
-		s.Accuracy += 2
-		s.Strength += 1
-		s.Reactions += 1
-		if awardedPerk == nil {
-			awardedPerk = RollPerk(rng, s.Perks)
-			if awardedPerk != nil {
-				s.ApplyPerk(*awardedPerk)
+func (s *Soldier) AddFiringExp() {
+	s.ExpFiring++
+	s.GainedXP = true
+}
+
+func (s *Soldier) AddThrowingExp() {
+	s.ExpThrowing++
+	s.GainedXP = true
+}
+
+func (s *Soldier) AddReactionsExp() {
+	s.ExpReactions++
+	s.GainedXP = true
+}
+
+func (s *Soldier) AddBraveryExp() {
+	s.ExpBravery++
+	s.GainedXP = true
+}
+
+func (s *Soldier) AddPsiSkillExp() {
+	s.ExpPsiSkill++
+	s.GainedXP = true
+}
+
+func (s *Soldier) AddPsiStrExp() {
+	s.ExpPsiStr++
+	s.GainedXP = true
+}
+
+func (s *Soldier) AddMeleeExp() {
+	s.ExpMelee++
+	s.GainedXP = true
+}
+
+func improveStat(exp int) int {
+	switch {
+	case exp > 10:
+		return 2 + rand.Intn(5)
+	case exp > 5:
+		return 1 + rand.Intn(4)
+	case exp > 2:
+		return 1 + rand.Intn(3)
+	case exp > 0:
+		return rand.Intn(2)
+	default:
+		return 0
+	}
+}
+
+func (s *Soldier) PostMission() {
+	if s.ExpFiring > 0 && s.Accuracy < StatCaps.Acc {
+		s.Accuracy += improveStat(s.ExpFiring)
+	}
+	if s.ExpThrowing > 0 && s.Strength < StatCaps.Str {
+		s.Strength += improveStat(s.ExpThrowing)
+	}
+	if s.ExpMelee > 0 && s.Strength < StatCaps.Str {
+		s.Strength += improveStat(s.ExpMelee)
+	}
+	if s.ExpReactions > 0 && s.Reactions < StatCaps.React {
+		s.Reactions += improveStat(s.ExpReactions)
+	}
+	if s.ExpPsiSkill > 0 && s.PsiSkill < StatCaps.Psi {
+		s.PsiSkill += improveStat(s.ExpPsiSkill)
+	}
+	if s.ExpPsiStr > 0 && s.PsiStr < StatCaps.Psi {
+		s.PsiStr += improveStat(s.ExpPsiStr)
+	}
+	if s.ExpBravery > rand.Intn(11) && s.Bravery < 100 {
+		s.Bravery += 10
+		if s.Bravery > 100 {
+			s.Bravery = 100
+		}
+	}
+	if s.GainedXP {
+		if s.Rank == Rookie {
+			s.Rank = Squaddie
+		}
+		if s.TU < StatCaps.TU {
+			s.TU += rand.Intn((StatCaps.TU-s.TU)/10 + 2)
+			if s.TU > StatCaps.TU {
+				s.TU = StatCaps.TU
+			}
+		}
+		if s.HP < StatCaps.HP {
+			s.HP += rand.Intn((StatCaps.HP-s.HP)/10 + 2)
+			if s.HP > StatCaps.HP {
+				s.HP = StatCaps.HP
+			}
+		}
+		if s.Strength < StatCaps.Str {
+			s.Strength += rand.Intn((StatCaps.Str-s.Strength)/10 + 2)
+			if s.Strength > StatCaps.Str {
+				s.Strength = StatCaps.Str
 			}
 		}
 	}
-	return awardedPerk
+	s.ExpFiring = 0
+	s.ExpThrowing = 0
+	s.ExpReactions = 0
+	s.ExpBravery = 0
+	s.ExpPsiSkill = 0
+	s.ExpPsiStr = 0
+	s.ExpMelee = 0
+	s.GainedXP = false
+}
+
+// HandlePromotions promotes soldiers up an 8-rank ladder based on total
+// roster size. Only one rank is gained per eligible soldier per call, and
+// each promotion rolls a perk (preserving rank-on-perk behaviour).
+func HandlePromotions(roster []*Soldier) {
+	total := len(roster)
+	if total == 0 {
+		return
+	}
+	maxRank := 0
+	for r := len(RankOpenings) - 1; r >= 0; r-- {
+		if total >= RankOpenings[r] {
+			maxRank = r
+			break
+		}
+	}
+	if maxRank < 1 {
+		return
+	}
+	rng := rand.New(rand.NewSource(int64(total)*131 + 7))
+	for target := 1; target <= maxRank; target++ {
+		capCount := RankOpenings[target]
+		atTarget := 0
+		for _, s := range roster {
+			if int(s.Rank) == target {
+				atTarget++
+			}
+		}
+		openings := capCount - atTarget
+		if openings <= 0 {
+			continue
+		}
+		var cands []*Soldier
+		for _, s := range roster {
+			if int(s.Rank) == target-1 {
+				cands = append(cands, s)
+			}
+		}
+		sort.Slice(cands, func(i, j int) bool {
+			if cands[i].Kills != cands[j].Kills {
+				return cands[i].Kills > cands[j].Kills
+			}
+			return cands[i].Missions > cands[j].Missions
+		})
+		for i := 0; i < openings && i < len(cands); i++ {
+			c := cands[i]
+			c.Rank++
+			if perk := RollPerk(rng, c.Perks); perk != nil {
+				c.ApplyPerk(*perk)
+			}
+		}
+	}
 }
 
 type Squad []*Soldier
@@ -248,7 +413,7 @@ func RandomName() string {
 }
 
 func FormatSoldier(s *Soldier) string {
-	return fmt.Sprintf("%-12s %s  HP:%d/%d TU:%d ACC:%d BRA:%d STR:%d W:%s A:%s Kills:%d",
+	return fmt.Sprintf(language.String("SOLDIER_FORMAT"),
 		s.Name, s.Rank, s.HP, s.MaxHP, s.TU, s.Accuracy, s.Bravery, s.Strength,
 		data.RuleItems[s.Weapon].ShortName, data.Armors[s.Armor].ShortName, s.Kills)
 }

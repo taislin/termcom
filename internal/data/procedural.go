@@ -127,12 +127,12 @@ var (
 // Rank title pools — each damage type gets its own themed set of titles.
 // Index 0 is empty for Rank 0 (Rookies).
 var rankTitlePools = map[int][]string{
-	DMG_PLASMA:    {"", "Navigator", "Commander", "Elite", "Overlord"},
-	DMG_LASER:     {"", "Sentinel", "Arbiter", "Warden", "Sovereign"},
-	DMG_EXPLOSIVE: {"", "Demolisher", "Vanguard", "Berserker", "Annihilator"},
-	DMG_MELEE:     {"", "Stalker", "Predator", "Reaper", "Apex"},
-	DMG_KINETIC:   {"", "Scout", "Striker", "Warlord", "Titan"},
-	DMG_PSIONIC:   {"", "Acolyte", "Hierophant", "Archon", "Nexus"},
+	DMG_PLASMA:    {"", language.String("RANK_TITLE_NAVIGATOR"), language.String("RANK_TITLE_COMMANDER"), language.String("RANK_TITLE_ELITE"), language.String("RANK_TITLE_OVERLORD")},
+	DMG_LASER:     {"", language.String("RANK_TITLE_SENTINEL"), language.String("RANK_TITLE_ARBITER"), language.String("RANK_TITLE_WARDEN"), language.String("RANK_TITLE_SOVEREIGN")},
+	DMG_EXPLOSIVE: {"", language.String("RANK_TITLE_DEMOLISHER"), language.String("RANK_TITLE_VANGUARD"), language.String("RANK_TITLE_BERSERKER"), language.String("RANK_TITLE_ANNIHILATOR")},
+	DMG_MELEE:     {"", language.String("RANK_TITLE_STALKER"), language.String("RANK_TITLE_PREDATOR"), language.String("RANK_TITLE_REAPER"), language.String("RANK_TITLE_APEX")},
+	DMG_KINETIC:   {"", language.String("RANK_TITLE_SCOUT"), language.String("RANK_TITLE_STRIKER"), language.String("RANK_TITLE_WARLORD"), language.String("RANK_TITLE_TITAN")},
+	DMG_PSIONIC:   {"", language.String("RANK_TITLE_ACOLYTE"), language.String("RANK_TITLE_HIEROPHANT"), language.String("RANK_TITLE_ARCHON"), language.String("RANK_TITLE_NEXUS")},
 }
 
 // rankTitle returns the appropriate rank title for a given damage type and rank.
@@ -200,43 +200,43 @@ var alienWeaponsByDmgType = map[int][][]string{
 
 // Lore templates filled with species name and traits.
 var loreTemplates = []string{
-	"A hive species from the outer void. Their %s affinity makes them dangerous at any range.",
-	"Bioengineered warriors with natural %s resistance. They adapt quickly to new threats.",
-	"Silent hunters who strike from the shadows. Their %s attacks leave no survivors.",
-	"An ancient race augmented by unknown technology. %s runs through their veins.",
-	"Parasitic organisms that absorb the traits of their prey. %s is their signature.",
-	"Nomadic scavengers who evolved in low gravity. %s is their primary mode of defense.",
-	"A splinter colony of a dying empire, desperate and ruthless. They wield %s with precision.",
-	"Deep-dwelling creatures from a world without sunlight. %s compensates for their blindness.",
-	"Engineered weapons of a long-dead civilization, still following ancient directives. %s is their charge.",
-	"Swarm intelligence embodied in chitinous shells. Each unit channels %s independently.",
-	"Crystalline entities that communicate through resonant frequencies. %s is both language and weapon.",
-	"Paradoxical beings that exist between dimensions. %s bleeds through when they manifest.",
-	"Territorial predators from a high-pressure ocean world. %s replaces their vestigial eyes.",
-	"Silk-weaving architects of vast underground networks. %s is used to subdue prey.",
-	"Phototrophic organisms that feed on energy discharges. %s is a byproduct of their metabolism.",
+	language.String("LORE_TEMPLATE_1"),
+	language.String("LORE_TEMPLATE_2"),
+	language.String("LORE_TEMPLATE_3"),
+	language.String("LORE_TEMPLATE_4"),
+	language.String("LORE_TEMPLATE_5"),
+	language.String("LORE_TEMPLATE_6"),
+	language.String("LORE_TEMPLATE_7"),
+	language.String("LORE_TEMPLATE_8"),
+	language.String("LORE_TEMPLATE_9"),
+	language.String("LORE_TEMPLATE_10"),
+	language.String("LORE_TEMPLATE_11"),
+	language.String("LORE_TEMPLATE_12"),
+	language.String("LORE_TEMPLATE_13"),
+	language.String("LORE_TEMPLATE_14"),
+	language.String("LORE_TEMPLATE_15"),
 }
 
 // Morphology lore snippets describing body subtypes.
 var morphLoreSnippets = map[string]string{
-	SubtypeCarbonFlesh:  "flesh and bone",
-	SubtypeSilicon:      "silicon-based crystalline tissue",
-	SubtypeGaseous:      "a semi-corporeal gaseous form",
-	SubtypeCrystalline:  "dense mineral crystalline structure",
-	SubtypeAmorphous:    "an ever-shifting amorphous body",
-	SubtypeMechanical:   "precision-forged mechanical components",
-	SubtypeBioSynthetic: "a fusion of organic tissue and synthetic armor",
-	SubtypeNanotech:     "a swarm of nanoscale machines",
+	SubtypeCarbonFlesh:  language.String("MORPH_LORE_CARBON"),
+	SubtypeSilicon:      language.String("MORPH_LORE_SILICON"),
+	SubtypeGaseous:      language.String("MORPH_LORE_GAS"),
+	SubtypeCrystalline:  language.String("MORPH_LORE_CRYSTAL"),
+	SubtypeAmorphous:    language.String("MORPH_LORE_AMORPHOUS"),
+	SubtypeMechanical:   language.String("MORPH_LORE_MECHANICAL"),
+	SubtypeBioSynthetic: language.String("MORPH_LORE_BIOSYNTH"),
+	SubtypeNanotech:     language.String("MORPH_LORE_NANOTECH"),
 }
 
 // Sense lore snippets for flavor text.
 var senseLoreSnippets = map[string]string{
-	SenseNone:      "completely blind",
-	SensePoor:      "nearsighted",
-	SenseNormal:    "of average perception",
-	SenseExcellent: "with preternaturally sharp senses",
-	SenseMultiSpec: "perceiving light far beyond the visible spectrum",
-	SenseEcholoc:   "navigating by sound alone",
+	SenseNone:      language.String("SENSE_LORE_NONE"),
+	SensePoor:      language.String("SENSE_LORE_POOR"),
+	SenseNormal:    language.String("SENSE_LORE_NORMAL"),
+	SenseExcellent: language.String("SENSE_LORE_EXCELLENT"),
+	SenseMultiSpec: language.String("SENSE_LORE_MULTISPEC"),
+	SenseEcholoc:   language.String("SENSE_LORE_ECHOLOC"),
 }
 
 // Limb lore descriptions.
@@ -1011,21 +1011,21 @@ func generateLore(name string, dmgType int, m *Morphology) string {
 
 	bodyDesc := morphLoreSnippets[m.BodySubtype]
 	if bodyDesc == "" {
-		bodyDesc = "an unknown biology"
+		bodyDesc = language.String("LORE_UNKNOWN_BIOLOGY")
 	}
 
 	limbDesc := limbLore(m)
 
 	senseDesc := ""
 	if m.Eyesight == SenseNone {
-		senseDesc = " It is " + senseLoreSnippets[SenseNone] + "."
+		senseDesc = language.String("LORE_SENSE_PREFIX") + senseLoreSnippets[SenseNone] + language.String("LORE_SENSE_SUFFIX")
 	} else if m.Eyesight == SenseMultiSpec {
-		senseDesc = " It is " + senseLoreSnippets[SenseMultiSpec] + "."
+		senseDesc = language.String("LORE_SENSE_PREFIX") + senseLoreSnippets[SenseMultiSpec] + language.String("LORE_SENSE_SUFFIX")
 	} else if m.Hearing == SenseEcholoc {
-		senseDesc = " It is " + senseLoreSnippets[SenseEcholoc] + "."
+		senseDesc = language.String("LORE_SENSE_PREFIX") + senseLoreSnippets[SenseEcholoc] + language.String("LORE_SENSE_SUFFIX")
 	}
 
-	return fmt.Sprintf("%s %s. Its body is composed of %s.%s", limbDesc, base, bodyDesc, senseDesc)
+	return fmt.Sprintf("%s %s. "+language.String("LORE_BODY_FORMAT")+"%s", limbDesc, base, bodyDesc, senseDesc)
 }
 
 func clamp(v, lo, hi int) int {

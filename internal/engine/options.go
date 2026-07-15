@@ -294,11 +294,11 @@ func (os *OptionsScreen) cycleLang(dir int) {
 var themes = []string{"default", "high_contrast", "amber", "green", "paper"}
 
 var themeDisplayNames = map[string]string{
-	"default":       "Default",
-	"high_contrast": "HighCon",
-	"amber":         "Amber",
-	"green":         "Green",
-	"paper":         "Paper",
+	"default":       language.String("THEME_DEFAULT"),
+	"high_contrast": language.String("THEME_HIGH_CONTRAST"),
+	"amber":         language.String("THEME_AMBER"),
+	"green":         language.String("THEME_GREEN"),
+	"paper":         language.String("THEME_PAPER"),
 }
 
 func (os *OptionsScreen) cycleTheme(dir int) {

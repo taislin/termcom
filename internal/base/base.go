@@ -5,19 +5,19 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/gdamore/tcell/v3"
 	"github.com/taislin/termcom/internal/audio"
 	"github.com/taislin/termcom/internal/data"
 	"github.com/taislin/termcom/internal/engine"
 	"github.com/taislin/termcom/internal/language"
-	"github.com/gdamore/tcell/v3"
 )
 
 type BaseScreen struct {
-	Game       *engine.Game
-	Base       *Base
-	Tab        int
-	Selection  int
-	Message    string
+	Game        *engine.Game
+	Base        *Base
+	Tab         int
+	Selection   int
+	Message     string
 	storesItems []string
 }
 
@@ -73,7 +73,7 @@ func (bs *BaseScreen) HireSoldier() {
 	ok, msg := bs.Base.HireSoldier()
 	if ok {
 		bs.Game.Funds -= int64(HireCost)
-		bs.Message = msg + fmt.Sprintf(" ($%dK)", HireCost/1000)
+		bs.Message = msg + fmt.Sprintf(language.String("MSG_HIRE_COST_SUFFIX"), HireCost/1000)
 	} else {
 		bs.Message = msg
 	}
@@ -200,7 +200,7 @@ func (bs *BaseScreen) renderFacilities(ctx *engine.ScreenCtx, x, y, w, h int) {
 				break
 			}
 		}
-		line := fmt.Sprintf("%-20s x%d $%dK%s", FacilityDisplayName(ft), count, def.Cost/1000, building)
+		line := fmt.Sprintf(language.String("FACILITY_LINE_FORMAT"), FacilityDisplayName(ft), count, def.Cost/1000, building)
 		ctx.DrawString(x, y+2+i, line, style)
 	}
 
@@ -218,7 +218,7 @@ func (bs *BaseScreen) renderFacilities(ctx *engine.ScreenCtx, x, y, w, h int) {
 	}
 	for _, a := range adj {
 		n := bs.Base.AdjacentCount(a.fac1, a.fac2)
-		ctx.DrawString(x, yOff, fmt.Sprintf("%-22s %d %s", a.label, n, a.bonus), engine.StyleGray)
+		ctx.DrawString(x, yOff, fmt.Sprintf(language.String("ADJACENCY_LINE_FORMAT"), a.label, n, a.bonus), engine.StyleGray)
 		yOff++
 	}
 }
@@ -232,7 +232,7 @@ func (bs *BaseScreen) renderSoldiers(ctx *engine.ScreenCtx, x, y, w, h int) {
 		return
 	}
 
-	header := fmt.Sprintf("%-12s %-10s %4s %4s %4s %4s %4s %4s %6s",
+	header := fmt.Sprintf(language.String("SOLDIER_HEADER_FORMAT"),
 		language.String("COL_NAME"), language.String("COL_RANK"), language.String("COL_HP"),
 		language.String("COL_TU"), language.String("COL_ACC"), language.String("COL_BRA"),
 		language.String("COL_STR"), language.String("COL_KILLS"), language.String("COL_WOUNDS"))
@@ -248,9 +248,9 @@ func (bs *BaseScreen) renderSoldiers(ctx *engine.ScreenCtx, x, y, w, h int) {
 		}
 		woundsStr := ""
 		if s.Wounds > 0 {
-			woundsStr = fmt.Sprintf("%dd", s.Wounds)
+			woundsStr = fmt.Sprintf(language.String("WOUNDS_FORMAT"), s.Wounds)
 		}
-		line := fmt.Sprintf("%-12s %-10s %4d %4d %4d %4d %4d %4d %6s",
+		line := fmt.Sprintf(language.String("SOLDIER_ROW_FORMAT"),
 			s.Name, s.Rank, s.HP, s.MaxTU, s.Accuracy, s.Bravery, s.Strength, s.Kills, woundsStr)
 		if s.Wounds > 0 {
 			ctx.DrawString(x, y+3+i, line, engine.StyleRed)
@@ -316,7 +316,7 @@ func (bs *BaseScreen) renderTransfer(ctx *engine.ScreenCtx, x, y, w, h int) {
 		if i == bs.Selection {
 			style = engine.StyleHighlight
 		}
-		ctx.DrawString(x, y+i, fmt.Sprintf("%-15s x%d", data.ItemDisplayName(item), qty), style)
+		ctx.DrawString(x, y+i, fmt.Sprintf(language.String("STORES_LINE_FORMAT"), data.ItemDisplayName(item), qty), style)
 	}
 	if len(items) == 0 {
 		ctx.DrawString(x, y, language.String("SECTION_NO_ITEMS"), engine.StyleGray)
@@ -329,7 +329,7 @@ func (bs *BaseScreen) renderHangars(ctx *engine.ScreenCtx, x, y, w, h int) {
 	idx := 0
 	for _, hg := range bs.Base.Hangars {
 		statusKey := "INTERCEPTOR_STATUS_" + strings.ToUpper(hg.Status)
-		if hg.Status == "Destroyed" {
+		if hg.Status == language.String("INTERCEPTOR_STATUS_DESTROYED") {
 			continue
 		}
 		style := engine.StyleDefault

@@ -50,17 +50,73 @@ func TestRankString(t *testing.T) {
 	}
 }
 
-func TestGainXP(t *testing.T) {
+func TestPostMission(t *testing.T) {
 	s := NewSoldier("Test")
-	if s.Rank != Rookie {
-		t.Fatal("should start as Rookie")
+	s.Accuracy = 40
+	s.ExpFiring = 15
+	s.GainedXP = true
+	s.Rank = Rookie
+	s.TU = 45
+	s.HP = 22
+	s.Strength = 15
+	s.PostMission()
+	if s.Accuracy < 42 || s.Accuracy > 46 {
+		t.Errorf("firing XP should raise Accuracy by 2..6, got %d", s.Accuracy)
 	}
-	s.GainXP(30)
-	if s.Rank <= Rookie {
-		t.Error("should have promoted after 30 kills")
+	if s.Rank != Squaddie {
+		t.Errorf("halo growth should promote Rookie to Squaddie, got %v", s.Rank)
 	}
-	if s.HP <= 20 {
-		t.Error("HP should have increased")
+	if s.TU < 45 || s.TU > 49 {
+		t.Errorf("halo TU growth should stay within cap, got %d", s.TU)
+	}
+	if s.HP < 22 || s.HP > 60 {
+		t.Errorf("halo HP growth should stay within cap, got %d", s.HP)
+	}
+	if s.Strength < 15 || s.Strength > 70 {
+		t.Errorf("halo Strength growth should stay within cap, got %d", s.Strength)
+	}
+	if s.ExpFiring != 0 || s.GainedXP {
+		t.Error("PostMission should reset transient XP counters")
+	}
+}
+
+func TestImproveStat(t *testing.T) {
+	if v := improveStat(11); v < 2 || v > 6 {
+		t.Errorf("exp>10 should yield 2..6, got %d", v)
+	}
+	if v := improveStat(6); v < 1 || v > 4 {
+		t.Errorf("exp>5 should yield 1..4, got %d", v)
+	}
+	if v := improveStat(3); v < 1 || v > 3 {
+		t.Errorf("exp>2 should yield 1..3, got %d", v)
+	}
+	if v := improveStat(1); v < 0 || v > 1 {
+		t.Errorf("exp>0 should yield 0..1, got %d", v)
+	}
+	if v := improveStat(0); v != 0 {
+		t.Errorf("exp=0 should yield 0, got %d", v)
+	}
+}
+
+func TestHandlePromotions(t *testing.T) {
+	roster := make([]*Soldier, 6)
+	for i := range roster {
+		roster[i] = NewSoldier("S")
+		roster[i].Rank = Rookie
+	}
+	roster[0].Rank = Squaddie
+	roster[0].Kills = 10
+	roster[1].Rank = Squaddie
+	roster[1].Kills = 5
+	HandlePromotions(roster)
+	if roster[0].Rank != Corporal {
+		t.Errorf("top-kill soldier should be Corporal, got %v", roster[0].Rank)
+	}
+	if roster[1].Rank != Corporal {
+		t.Errorf("second soldier should be Corporal, got %v", roster[1].Rank)
+	}
+	if roster[2].Rank != Rookie {
+		t.Errorf("low-rank soldier should stay Rookie, got %v", roster[2].Rank)
 	}
 }
 
