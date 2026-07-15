@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"strings"
 
+	"github.com/gdamore/tcell/v3"
 	"github.com/taislin/termcom/internal/language"
 )
 
@@ -14,6 +15,7 @@ type AlienSpecies struct {
 	Name       string       // The generated species name (e.g. "Vrekt")
 	Prefix     string       // Short prefix for rank variants (e.g. "VRK")
 	BaseIcon   rune         // shared icon across all variants
+	BaseStyle  tcell.Style  // shared style across all variants
 	PrimaryDMG int          // species-wide damage affinity
 	Lore       string       // species-wide lore
 	Morphology *Morphology  // shared physical form across all variants
@@ -305,16 +307,12 @@ func generateOneSpecies(rng *rand.Rand, idx int, usedNames map[string]bool, used
 
 	primaryDMG := rng.Intn(6) // DMG_PLASMA..DMG_PSIONIC
 
-	// Choose icon: draw a distinct glyph from the pool for this species' damage type.
-	icon := nextIcon(primaryDMG, usedIcons)
-
 	// Generate morphology
 	morph := generateMorphology(rng, primaryDMG)
 
 	sp := &AlienSpecies{
 		Name:       name,
 		Prefix:     prefix,
-		BaseIcon:   icon,
 		PrimaryDMG: primaryDMG,
 		Morphology: morph,
 	}
@@ -326,6 +324,11 @@ func generateOneSpecies(rng *rand.Rand, idx int, usedNames map[string]bool, used
 	for rank := 0; rank < maxRank; rank++ {
 		at := generateVariant(rng, sp, rank, usedIcons)
 		sp.Types = append(sp.Types, at)
+	}
+
+	if len(sp.Types) > 0 {
+		sp.BaseIcon = sp.Types[0].Icon
+		sp.BaseStyle = sp.Types[0].Style
 	}
 
 	// Generate species lore
@@ -942,8 +945,9 @@ func generateVariant(rng *rand.Rand, sp *AlienSpecies, rank int, usedIcons map[r
 		shortName += string(rune('A' + rank - 1))
 	}
 
-	// Icon: a distinct glyph from this species' damage-type pool.
-	icon := nextIcon(sp.PrimaryDMG, usedIcons)
+	// Icon and Style: selected based on morphology and biology.
+	// DetermineProceduralIconAndStyle marks the chosen rune in usedIcons internally.
+	icon, style, fgColor := DetermineProceduralIconAndStyle(m, rng, usedIcons)
 
 	// Lore per variant
 	variantLore := sp.Lore
@@ -955,6 +959,8 @@ func generateVariant(rng *rand.Rand, sp *AlienSpecies, rank int, usedIcons map[r
 		Name:       varName,
 		ShortName:  shortName,
 		Icon:       icon,
+		Style:      style,
+		FgColor:    fgColor,
 		HP:         hpBase,
 		TU:         tuBase,
 		Accuracy:   accBase,

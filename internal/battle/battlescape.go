@@ -2555,8 +2555,18 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 				ch = u.AlienType.Icon
 			}
 			style = engine.StyleRedBold
+			if u.AlienType != nil {
+				style = u.AlienType.Style
+			}
 			if engine.Config.BloomEnabled {
-				engine.ApplyBloom(ctx.ScreenRaw, ctx.FrameBuffer(), sx, sy, tcell.NewRGBColor(255, 50, 50))
+				bloomColor := tcell.NewRGBColor(255, 50, 50)
+				if u.AlienType != nil && u.AlienType.FgColor != tcell.ColorDefault {
+					r32, g32, b32 := u.AlienType.FgColor.RGB()
+					if r32 >= 0 && g32 >= 0 && b32 >= 0 {
+						bloomColor = tcell.NewRGBColor(r32, g32, b32)
+					}
+				}
+				engine.ApplyBloom(ctx.ScreenRaw, ctx.FrameBuffer(), sx, sy, bloomColor)
 			}
 		} else if u.Faction == 2 {
 			ch = '\u1276' // civilian

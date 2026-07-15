@@ -1,6 +1,11 @@
 package data
 
-import "github.com/taislin/termcom/internal/language"
+import (
+	"math/rand"
+
+	"github.com/gdamore/tcell/v3"
+	"github.com/taislin/termcom/internal/language"
+)
 
 // Damage types used by weapons and resisted/weak to by aliens.
 const (
@@ -170,6 +175,8 @@ type AlienType struct {
 	AutopsyID  string      // research ID that unlocks this alien's stats in battlescape sidebar
 	Lore       string      // autopsy flavor text
 	Morphology *Morphology // physical form (nil for hardcoded aliens)
+	Style      tcell.Style // Visual style on battlescape map
+	FgColor    tcell.Color // Foreground color for bloom / VFX (mirrors Style fg)
 }
 
 var AlienTypes = []AlienType{
@@ -421,4 +428,175 @@ func AlienTypesByRank(rank int) []*AlienType {
 		}
 	}
 	return result
+}
+
+func init() {
+	for i := range AlienTypes {
+		if AlienTypes[i].Style == tcell.StyleDefault {
+			AlienTypes[i].Style = tcell.StyleDefault.Foreground(tcell.Color(9)).Bold(true)
+			AlienTypes[i].FgColor = tcell.Color(9)
+		}
+	}
+}
+
+// DetermineProceduralIconAndStyle selects the custom Unicode character/rune, tcell.Style,
+// and foreground color based on the alien's morphology and body subtype.
+// The chosen rune is marked in usedIcons to guarantee uniqueness within a run.
+func DetermineProceduralIconAndStyle(m *Morphology, rng *rand.Rand, usedIcons map[rune]bool) (rune, tcell.Style, tcell.Color) {
+	if m == nil {
+		c := tcell.Color(9)
+		return '?', tcell.StyleDefault.Foreground(c).Bold(true), c
+	}
+
+	// 1. Determine base rune based purely on Limbs
+	var categoryRunes []rune
+	// Categorize based on arms & legs
+	if m.Legs >= 4 {
+		// Category E. Arachnid / Swarm (Many Legs, 4–8 Legs)
+		categoryRunes = []rune{'ᛤ', 'ሐ', 'ሗ', 'Ж','ዷ', '✲'}
+	} else if m.Legs > 2 {
+		if m.Arms >= 4 {
+			// Category D. Multi-Armed (4–6 Arms, 2 Legs)
+			categoryRunes = []rune{'ቿ', 'ቿ', 'ቹ', 'ᚼ'}
+		} else if m.Arms == 3 {
+			// Category F. 3 Arms, 2 Legs
+			categoryRunes = []rune{'ቱ','ቲ','ቴ', 'պ'}
+		} else if m.Arms == 2 {
+			// Category C. 2 Arms, 2 Legs (Standard Bipedal)
+			categoryRunes = []rune{'ቆ', '☥', 'ቋ', '፹', 'ቐ', 'ቀ', 'ፗ'}
+		} else if m.Arms == 1 {
+			// Category G. 1 Arm, 2 Legs
+			categoryRunes = []rune{'ቲ', 'ኟ', 'ዧ', 'ϝ'}
+		} else { // m.Arms == 0
+			// Category H. 0 Arms, 2 Legs (Bipedal but no manipulators)
+			categoryRunes = []rune{'ሸ', 'Ѿ', 'ኗ', 'ደ', '፬'}
+		}
+	} else { // m.Legs == 0
+		if m.Arms >= 2 {
+			// Category B. 2 Arms, 0 Legs (Hovering or Slithering)
+			categoryRunes = []rune{'ϯ', 'ቻ','ቓ','ዎ'}
+		} else {
+			// Category A. 0 Arms, 0 Legs (Floating, Slithering, or Blob)
+			categoryRunes = []rune{'Ѿ', 'Ω', 'Ѻ', 'ዋ'}
+		}
+	}
+
+	// 2. Biology & Composition (Material / Texture)
+	var fgColor tcell.Color
+	var style tcell.Style = tcell.StyleDefault.Bold(true)
+	var runePool []rune
+
+	switch m.BodySubtype {
+	case SubtypeCarbonFlesh:
+		// Color: Red, Dark Red, or Pink.
+		colors := []tcell.Color{tcell.GetColor("red"), tcell.GetColor("darkred"), tcell.GetColor("pink")}
+		fgColor = colors[rng.Intn(len(colors))]
+		style = style.Foreground(fgColor)
+		runePool = categoryRunes
+
+	case SubtypeSilicon:
+		// Color: Dark Grey, Brown, or Dark Orange.
+		colors := []tcell.Color{tcell.GetColor("darkgray"), tcell.GetColor("brown"), tcell.GetColor("darkorange")}
+		fgColor = colors[rng.Intn(len(colors))]
+		style = style.Foreground(fgColor)
+
+		// Override Rune: If it has low limbs (Arms + Legs <= 2), use ⬢ (Solid Hexagon)
+		if m.Arms+m.Legs <= 2 {
+			runePool = []rune{'⬢'}
+		} else {
+			runePool = categoryRunes
+		}
+
+	case SubtypeGaseous:
+		// Color: Magenta, Green, or Purple.
+		colors := []tcell.Color{tcell.GetColor("magenta"), tcell.GetColor("green"), tcell.GetColor("purple")}
+		fgColor = colors[rng.Intn(len(colors))]
+		style = style.Foreground(fgColor)
+
+		// Override Rune: Override the shape with a more ethereal glyph
+		runePool = []rune{'◍', '⁂', '⛆', '≋'}
+
+	case SubtypeCrystalline:
+		// Color: Bright Cyan, White, or Aqua.
+		colors := []tcell.Color{tcell.GetColor("cyan"), tcell.GetColor("white"), tcell.GetColor("aqua")}
+		fgColor = colors[rng.Intn(len(colors))]
+		style = style.Foreground(fgColor)
+
+		// Override Rune: Overwrite normal stick figures (Category C) with sharp geometry: ♦, ❖, ᛟ
+		isStickFigureCategory := m.Legs == 2 && m.Arms < 4
+		if isStickFigureCategory {
+			runePool = []rune{'♦', '❖', 'ᛟ', '⊻', '⊼', '⊽', 'ᛝ'}
+		} else {
+			runePool = categoryRunes
+		}
+
+	case SubtypeAmorphous:
+		// Color: Slime Green or Deep Purple.
+		colors := []tcell.Color{tcell.GetColor("lime"), tcell.GetColor("darkmagenta")}
+		fgColor = colors[rng.Intn(len(colors))]
+		style = style.Foreground(fgColor)
+
+		// Override Rune
+		runePool = []rune{'♨', '⚇', '◒', 'ꙮ'}
+
+	case SubtypeMechanical:
+		// Color: Silver, Steel Blue, or Yellow.
+		colors := []tcell.Color{tcell.GetColor("silver"), tcell.GetColor("steelblue"), tcell.GetColor("yellow")}
+		fgColor = colors[rng.Intn(len(colors))]
+		style = style.Foreground(fgColor)
+
+		// Override Rune: Use strict, boxy characters regardless of limbs: ⊞
+		runePool = []rune{'⊞', '⌺', '⌸'}
+
+	case SubtypeBioSynthetic:
+		// Color: Half-Flesh, Half-Neon (e.g., Dark Red with style.Blink(true)).
+		colors := []tcell.Color{tcell.GetColor("darkred"), tcell.GetColor("lime"), tcell.GetColor("pink")}
+		fgColor = colors[rng.Intn(len(colors))]
+		style = style.Foreground(fgColor).Blink(true)
+
+		// Override Rune: Φ or ⍾
+		runePool = []rune{'Φ', '⍾', '፸', '⍝'}
+
+	case SubtypeNanotech:
+		// Color: Matrix Green or Pitch Black on a Bright White background.
+		if rng.Intn(2) == 0 {
+			fgColor = tcell.GetColor("lime")
+			style = style.Foreground(fgColor)
+		} else {
+			fgColor = tcell.GetColor("black")
+			style = tcell.StyleDefault.Foreground(fgColor).Background(tcell.GetColor("white")).Bold(true)
+		}
+
+		// Override Rune
+		runePool = []rune{'፨', '⠪', '✜', '⛬','⡳'}
+
+	default:
+		fgColor = tcell.Color(9)
+		style = style.Foreground(fgColor)
+		runePool = categoryRunes
+	}
+
+	// Filter runePool to find unused ones. When the small morphology pool is
+	// exhausted (common for species with many rank-variants sharing one morphology),
+	// fall back to nextIcon which iterates the full damage-type pools and guarantees
+	// uniqueness across the entire run.  The biology-derived style is preserved.
+	var unused []rune
+	for _, r := range runePool {
+		if !usedIcons[r] {
+			unused = append(unused, r)
+		}
+	}
+
+	var r rune
+	if len(unused) > 0 {
+		r = unused[rng.Intn(len(unused))]
+	} else {
+		// All morphology-pool runes are taken; pick any still-unused glyph from the
+		// broader damage-type pools so the icon stays unique.
+		r = nextIcon(-1, usedIcons) // -1 → skip affinity pool, scan all pools
+	}
+
+	// Mark as used so subsequent calls within the same species don't re-pick it.
+	usedIcons[r] = true
+	return r, style, fgColor
 }
