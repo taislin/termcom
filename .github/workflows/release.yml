@@ -20,15 +20,15 @@ jobs:
           mkdir -p pdfs
           VER=$(cat VERSION)
           pandoc docs/manual.md -o "pdfs/termcom-manual-v${VER}.pdf" --pdf-engine=xelatex --number-sections \
-            -V mainfont="Nova Mono" \
+            -V mainfont="Space Grotesk" \
             -V monofont="Nova Mono" \
             -V geometry:margin=1in \
-            -V header-includes="\usepackage{sectsty}\allsectionsfont{\fontspec{Space Mono}\Large}\sectionrule"
+            -V header-includes="\usepackage{sectsty}\allsectionsfont{\fontspec{Nova Mono}\Large}\sectionrule"
           pandoc docs/quickstart.md -o "pdfs/termcom-quickstart-v${VER}.pdf" --pdf-engine=xelatex --number-sections \
-            -V mainfont="Nova Mono" \
+            -V mainfont="Space Grotesk" \
             -V monofont="Nova Mono" \
             -V geometry:margin=1in \
-            -V header-includes="\usepackage{sectsty}\allsectionsfont{\fontspec{Space Mono}\Large}\sectionrule"
+            -V header-includes="\usepackage{sectsty}\allsectionsfont{\fontspec{Nova Mono}\Large}\sectionrule"
 
       - name: Upload PDFs
         uses: actions/upload-artifact@v7
