@@ -242,6 +242,7 @@ func init() {
 		"MSG_TARGET_NO_LOS":         "ターゲットが視界内にいません。",
 		"MSG_HIT_TARGET":            "命中！%[2]s に %[1]d ダメージ (HP:%[3]d)",
 		"MSG_MISSED":                "外れた！",
+		"MSG_HIT_COVER":             "弾が遮蔽物に命中！",
 		"MSG_MOVED":                 "%s を [%d,%d] に移動",
 		"MSG_CANNOT_MOVE":           "そこには移動できません。",
 		"MSG_NO_TARGET":             "ターゲットがいません。",
@@ -400,19 +401,19 @@ func init() {
 		"PLANE_PREVIEW":         "PREVIEW",
 		"PLANE_STATS":           "STATS",
 		"PLANE_PARAMETERS":      "PARAMETERS",
-		"PLANE_PARAM_LENGTH":    "Length",
-		"PLANE_PARAM_WINGSPAN":  "Wingspan",
-		"PLANE_PARAM_ENGINES":   "Engines",
-		"PLANE_PARAM_FUEL":      "Fuel",
-		"PLANE_PARAM_WEAPON":    "Weapon",
-		"PLANE_PARAM_ARMOR":     "Armor",
-		"PLANE_STAT_SPEED":      "Speed",
-		"PLANE_STAT_FIREPOWER":  "Firepower",
-		"PLANE_STAT_HULL":       "Hull",
-		"PLANE_STAT_MASS":       "Mass",
-		"PLANE_STAT_THRUST":     "Thrust",
-		"PLANE_STAT_RANGE":      "Range",
-		"PLANE_MSG_RESET":       "Design reset to default.",
+		"PLANE_PARAM_LENGTH":    "全長",
+		"PLANE_PARAM_WINGSPAN":  "翼幅",
+		"PLANE_PARAM_ENGINES":   "エンジン",
+		"PLANE_PARAM_FUEL":      "燃料",
+		"PLANE_PARAM_WEAPON":    "武器",
+		"PLANE_PARAM_ARMOR":     "装甲",
+		"PLANE_STAT_SPEED":      "速度",
+		"PLANE_STAT_FIREPOWER":  "火力",
+		"PLANE_STAT_HULL":       "機体",
+		"PLANE_STAT_MASS":       "質量",
+		"PLANE_STAT_THRUST":     "推力",
+		"PLANE_STAT_RANGE":      "航続距離",
+		"PLANE_MSG_RESET":       "デザインを標準に戻しました。",
 
 		// ── Weapon Designer
 		"WEAPON_DESIGNER_TITLE":  "武器設計室",
@@ -873,6 +874,7 @@ func init() {
 
 		// ── Floater ───────────────────────────────────────
 		"FLOATER_MISS": "外れた",
+		"FLOATER_COVER": "遮蔽",
 
 		// ── Game Over ─────────────────────────────────────
 		"GAMEOVER_PROMPT":  "ESC で終了",

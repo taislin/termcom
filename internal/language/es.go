@@ -242,6 +242,7 @@ func init() {
 		"MSG_TARGET_NO_LOS":         "El objetivo no est\u00e1 en l\u00ednea de visi\u00f3n.",
 		"MSG_HIT_TARGET":            "\u00a1IMPACTO! %d de da\u00f1o a %s (HP:%d)",
 		"MSG_MISSED":                "\u00a1Fallado!",
+		"MSG_HIT_COVER":             "\u00a1El disparo dio en la cobertura!",
 		"MSG_MOVED":                 "%s movido a [%d,%d]",
 		"MSG_CANNOT_MOVE":           "No se puede mover ah\u00ed.",
 		"MSG_NO_TARGET":             "Sin objetivo.",
@@ -400,19 +401,19 @@ func init() {
 		"PLANE_PREVIEW":         "PREVIEW",
 		"PLANE_STATS":           "STATS",
 		"PLANE_PARAMETERS":      "PARAMETERS",
-		"PLANE_PARAM_LENGTH":    "Length",
-		"PLANE_PARAM_WINGSPAN":  "Wingspan",
-		"PLANE_PARAM_ENGINES":   "Engines",
-		"PLANE_PARAM_FUEL":      "Fuel",
-		"PLANE_PARAM_WEAPON":    "Weapon",
-		"PLANE_PARAM_ARMOR":     "Armor",
-		"PLANE_STAT_SPEED":      "Speed",
-		"PLANE_STAT_FIREPOWER":  "Firepower",
-		"PLANE_STAT_HULL":       "Hull",
-		"PLANE_STAT_MASS":       "Mass",
-		"PLANE_STAT_THRUST":     "Thrust",
-		"PLANE_STAT_RANGE":      "Range",
-		"PLANE_MSG_RESET":       "Design reset to default.",
+		"PLANE_PARAM_LENGTH":    "Longitud",
+		"PLANE_PARAM_WINGSPAN":  "Envergadura",
+		"PLANE_PARAM_ENGINES":   "Motores",
+		"PLANE_PARAM_FUEL":      "Combustible",
+		"PLANE_PARAM_WEAPON":    "Arma",
+		"PLANE_PARAM_ARMOR":     "Blindaje",
+		"PLANE_STAT_SPEED":      "Velocidad",
+		"PLANE_STAT_FIREPOWER":  "Fuego",
+		"PLANE_STAT_HULL":       "Casco",
+		"PLANE_STAT_MASS":       "Masa",
+		"PLANE_STAT_THRUST":     "Empuje",
+		"PLANE_STAT_RANGE":      "Alcance",
+		"PLANE_MSG_RESET":       "Diseño restablecido a defecto.",
 
 		// ── Weapon Designer
 		"WEAPON_DESIGNER_TITLE":  "DISEÑO DE ARMAS",
@@ -873,6 +874,7 @@ func init() {
 
 		// ── Varios ────────────────────────────────────────
 		"FLOATER_MISS": "FALLO",
+		"FLOATER_COVER": "COBERT",
 
 		// ── Fin del Juego ─────────────────────────────────
 		"GAMEOVER_PROMPT":  "Presiona ESC para Salir",

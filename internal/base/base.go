@@ -464,66 +464,92 @@ func (bs *BaseScreen) HandleMouse(e *tcell.EventMouse) {
 	x, y := e.Position()
 	_, h := bs.Game.ScreenSize()
 
-	// Handle help bar clicks (bottom bar)
-	if y == h-1 {
-		help := language.String("HELP_BASE")
-		if bs.Tab == 0 {
-			help = language.String("HELP_FACILITIES")
-		} else if bs.Tab == 1 {
-			help = language.String("HELP_SOLDIERS")
-		} else if bs.Tab == 2 {
-			help = language.String("HELP_TAB_RESEARCH")
-		} else if bs.Tab == 3 {
-			help = language.String("HELP_TAB_MANUFACTURE")
-		} else if bs.Tab == 4 {
-			help = language.String("HELP_TAB_TRANSFER")
-		}
-		helpActions := []string{"=Build", "=Sell", "=Hire", "=Equip", "=Dismiss", "=Research", "=Manufacture", "=Tab", "=Navigate", "=Back"}
-		helpFuncs := []func(){
-			func() { bs.Tab = 0; bs.BuildFacility() },
-			func() {
-				if bs.Tab == 4 {
-					bs.SellSelectedItem()
-				} else {
-					bs.SellFacility()
-				}
-			},
-			func() { bs.HireSoldier() },
-			func() {
-				if bs.Tab == 1 && len(bs.Base.Soldiers) > 0 {
-					bs.Game.PushState(engine.StateEquip)
-				}
-			},
-			func() { bs.DismissSoldier() },
-			func() {
-				if bs.Tab == 2 {
-					bs.Game.PushState(engine.StateResearch)
-				}
-			},
-			func() {
-				if bs.Tab == 3 {
-					bs.Game.PushState(engine.StateManufacture)
-				}
-			},
-			func() { bs.Tab = (bs.Tab + 1) % 6; bs.Selection = 0 },
-			nil,
-			func() { bs.Game.PopState() },
-		}
-		off := 2
-		for i, action := range helpActions {
-			pos := strings.Index(help, action)
-			if pos < 0 {
-				continue
+		// Handle help bar clicks (bottom bar). Match by hotkey token ([X])
+		// rather than by localized word, so clicks work in every language.
+		if y == h-1 {
+			help := language.String("HELP_BASE")
+			if bs.Tab == 0 {
+				help = language.String("HELP_FACILITIES")
+			} else if bs.Tab == 1 {
+				help = language.String("HELP_SOLDIERS")
+			} else if bs.Tab == 2 {
+				help = language.String("HELP_TAB_RESEARCH")
+			} else if bs.Tab == 3 {
+				help = language.String("HELP_TAB_MANUFACTURE")
+			} else if bs.Tab == 4 {
+				help = language.String("HELP_TAB_TRANSFER")
 			}
-			start := off + pos
-			end := off + pos + len(action)
-			if x >= start && x <= end && helpFuncs[i] != nil {
-				helpFuncs[i]()
-				return
+
+			runHotkey := func(r rune) {
+				switch r {
+				case 'b', 'B':
+					bs.Tab = 0
+					bs.BuildFacility()
+				case 's', 'S':
+					if bs.Tab == 4 {
+						bs.SellSelectedItem()
+					} else {
+						bs.SellFacility()
+					}
+				case 'h', 'H':
+					bs.HireSoldier()
+				case 'e', 'E':
+					if bs.Tab == 1 && len(bs.Base.Soldiers) > 0 {
+						bs.Game.PushState(engine.StateEquip)
+					}
+				case 'd', 'D':
+					bs.DismissSoldier()
+				case 'r', 'R':
+					if bs.Tab == 2 {
+						bs.Game.PushState(engine.StateResearch)
+					}
+				case 'm', 'M':
+					if bs.Tab == 3 {
+						bs.Game.PushState(engine.StateManufacture)
+					}
+				case '1', '2', '3', '4', '5':
+					bs.Tab = int(r-'1') % 6
+					bs.Selection = 0
+				case 'g', 'G':
+					if bs.Tab == 0 {
+						bs.Game.PushState(engine.StatePlaneDesigner)
+					}
+				case 'w', 'W':
+					if bs.Tab == 5 {
+						bs.Game.PushState(engine.StatePlaneDesigner)
+					}
+				case 'c', 'C':
+					if bs.Tab == 5 {
+						bs.Game.PushState(engine.StateWeaponDesigner)
+					}
+				case '\u2190', '\u2192', '\u2191', '\u2193', 'n', 'N', 'p', 'P', 'l', 'L', 'q', 'Q', '\u001b':
+					if r == 'q' || r == 'Q' || r == '\u001b' {
+						bs.Game.PopState()
+					}
+				}
 			}
+
+			// Scan the help bar for a clicked [X] hotkey token.
+			off := 2
+			for i := 0; i+2 <= len(help); i++ {
+				if help[i] == '[' {
+					j := strings.IndexByte(help[i:], ']')
+					if j < 0 {
+						break
+					}
+					token := help[i+1 : i+j]
+					start := off + i
+					end := off + i + j + 1
+					if x >= start && x <= end && len(token) > 0 {
+						for _, r := range token {
+							runHotkey(r)
+						}
+						return
+					}
+				}
+			}
+			return
 		}
-		return
-	}
 
 	if y == 1 {
 		tabs := []string{language.String("TAB_FACILITIES"), language.String("TAB_SOLDIERS"), language.String("TAB_RESEARCH"), language.String("TAB_MANUFACTURE"), language.String("TAB_TRANSFER"), language.String("TAB_HANGARS")}
