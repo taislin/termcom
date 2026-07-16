@@ -187,8 +187,14 @@ func init() {
 		"SIDE_ACC":         "PREC: %d",
 		"SIDE_WEAPON":      "A: %s",
 		"SIDE_AMMO":        "Munici\u00f3n: %d/%d",
+		"SIDE_FIRE_MODE":   "Modo: %s",
+		"FIRE_MODE_AIMED":  "Apuntado",
+		"FIRE_MODE_BURST":  "Ráfaga",
+		"FIRE_MODE_AUTO":   "Auto",
+		"MSG_FIRE_MODE":    "Modo de fuego: %s",
 		"SIDE_ARMOR":       "Ar: %s",
 		"SIDE_POS":         "[%d,%d]",
+		"SIDE_INVENTORY":    "Objetos:",
 		"SIDE_CROUCH":      "Agachado",
 		"SIDE_NONE":        "(ninguno)",
 		"BATTLE_HELP":      " [Flechas]=Mover [Espacio]/[Enter]=Actuar [q]=Ciclo [f]=Disparar [r]=Recargar [g]=Granada [m]=Move [h]=Medipack [p]=Psi [e]=Terminar [c]=Agacharse",
@@ -329,7 +335,7 @@ func init() {
 		"MSG_VISION_NORMAL":  "VISI\u00d3N NORMAL",
 
 		// Barras de ayuda de batalla
-		"HELP_BATTLESCAPE":   "[↑↓←→]=Mover [Enter]=Seleccionar [Espacio]=Planear/Mover [q]=Ciclo [f]=Disparar [r]=Recargar [g]=Granada [m]=Move [h]=Medipack [e]=Terminar [c]=Agacharse",
+		"HELP_BATTLESCAPE":   "[↑↓←→]=Mover [Enter]=Seleccionar [Espacio]=Planear/Mover [q]=Ciclo [f]=Disparar [Tab]=Modo [r]=Recargar [g]=Granada [m]=Move [h]=Medipack [e]=Terminar [c]=Agacharse",
 		"HELP_STAIRS_SUFFIX": " [<>]=Escaleras",
 
 		// ── Gesti\u00f3n de base ───────────────────────────────
@@ -1246,6 +1252,9 @@ func init() {
 		"PERK_TOUGH_DESC":               "+5 HP Máximo",
 		"PERK_QUICK_LEARNER":            "Aprendiz Rápido",
 		"PERK_QUICK_LEARNER_DESC":       "+50% XP de batallas",
+		"LABEL_INVENTORY":     "Inventario:",
+		"SIDE_ENCUMBRANCE":    "Enc: %d (TU -%d)",
+		"MSG_ADDED_INVENTORY": "%s añadido al inventario.",
 
 	})
 }

@@ -206,6 +206,7 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList, pla
 		target := ai.selectTarget(nearest, humanUnits, plan, m)
 
 		if target != nil && ai.canFireAt(target) {
+			ai.selectFireMode(int(dist))
 			// 1. Suppress: If specialized role and in cover, maintain suppressive fire.
 			if role == RoleSuppressor && ai.InCover {
 				actions = append(actions, AlienAction{
@@ -296,6 +297,7 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList, pla
 			}
 		} else if ai.Unit.TU >= 20 && ai.Unit.TU < ai.Unit.MaxTU && target != nil && ai.canFireAt(target) {
 			// Last-resort fire if enough TU remains.
+			ai.selectFireMode(int(dist))
 			actions = append(actions, AlienAction{
 				Type: "fire", Unit: ai.Unit, Target: target,
 				FromX: ai.Unit.X, FromY: ai.Unit.Y,
@@ -311,6 +313,7 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList, pla
 		}
 		target := ai.selectTarget(nearest, humanUnits, plan, m)
 		if target != nil && ai.canFireAt(target) {
+			ai.selectFireMode(int(dist))
 			actions = append(actions, AlienAction{
 				Type: "fire", Unit: ai.Unit, Target: target,
 				FromX: ai.Unit.X, FromY: ai.Unit.Y,
@@ -1023,4 +1026,37 @@ func (cai *CivilianAI) GenerateActions(units UnitList, m *BattleMap) []AlienActi
 		FromX: cai.Unit.X, FromY: cai.Unit.Y,
 		ToX: fx, ToY: fy,
 	}}
+}
+
+func (ai *AlienAI) selectFireMode(dist int) {
+	w, ok := data.RuleItems[ai.Unit.Weapon]
+	if !ok {
+		return
+	}
+	modes := w.Modes()
+	if len(modes) <= 1 {
+		return
+	}
+	if dist <= 4 {
+		for _, m := range modes {
+			if m == data.FireModeAuto {
+				ai.Unit.FireMode = data.FireModeAuto
+				return
+			}
+		}
+		for _, m := range modes {
+			if m == data.FireModeBurst {
+				ai.Unit.FireMode = data.FireModeBurst
+				return
+			}
+		}
+	} else if dist <= 8 {
+		for _, m := range modes {
+			if m == data.FireModeBurst {
+				ai.Unit.FireMode = data.FireModeBurst
+				return
+			}
+		}
+	}
+	ai.Unit.FireMode = data.FireModeAimed
 }

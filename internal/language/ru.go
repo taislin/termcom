@@ -187,8 +187,14 @@ func init() {
 		"SIDE_ACC":         "ТОЧ: %d",
 		"SIDE_WEAPON":      "О: %s",
 		"SIDE_AMMO":        "Патроны: %d/%d",
+		"SIDE_FIRE_MODE":   "Режим: %s",
+		"FIRE_MODE_AIMED":  "Прицельный",
+		"FIRE_MODE_BURST":  "Очередь",
+		"FIRE_MODE_AUTO":   "Авто",
+		"MSG_FIRE_MODE":    "Режим огня: %s",
 		"SIDE_ARMOR":       "Б: %s",
 		"SIDE_POS":         "[%d,%d]",
+		"SIDE_INVENTORY":    "Предм.:",
 		"SIDE_CROUCH":      "Присел",
 		"SIDE_NONE":        "(нет)",
 		"BATTLE_HELP":      " [Стрелки]=Движение [Пробел]/[Enter]=Действие [q]=Смена [f]=Огонь [r]=Перезарядка [g]=Граната [m]=Move [h]=Медицинский [p]=Пси [e]=Конец хода [c]=Присесть",
@@ -329,7 +335,7 @@ func init() {
 		"MSG_VISION_NORMAL":  "ОБЫЧНОЕ ВИДЕНИЕ",
 
 		// Battlescape help bars
-		"HELP_BATTLESCAPE":   "[↑↓←→]=Движение [Enter]=Выбор [Space]=План/Движение [q]=Смена [f]=Огонь [r]=Перезарядка [g]=Граната [m]=Move [h]=Медикит [e]=Конец хода [c]=Присесть",
+		"HELP_BATTLESCAPE":   "[↑↓←→]=Движение [Enter]=Выбор [Space]=План/Движение [q]=Смена [f]=Огонь [Tab]=Режим [r]=Перезарядка [g]=Граната [m]=Move [h]=Медикит [e]=Конец хода [c]=Присесть",
 		"HELP_STAIRS_SUFFIX": " [<>]=Лестница",
 
 		// ── Base Management ───────────────────────────────
@@ -1216,6 +1222,9 @@ func init() {
 		"PERK_TOUGH_DESC":               "+5 Макс. ОЗ",
 		"PERK_QUICK_LEARNER":            "Быстрый Ученик",
 		"PERK_QUICK_LEARNER_DESC":       "+50% Опыт из сражений",
+		"LABEL_INVENTORY":     "Инвентарь:",
+		"SIDE_ENCUMBRANCE":    "Вес: %d (ОВ -%d)",
+		"MSG_ADDED_INVENTORY": "%s добавлено в инвентарь.",
 
 	})
 }

@@ -55,6 +55,8 @@ func (bs *Battlescape) handleKey(e *tcell.EventKey) {
 		bs.updateMovePath()
 	case tcell.KeyEnter: 
 		bs.LeftClick()
+	case tcell.KeyTab:
+		bs.CycleFireMode()
 	}
 	
 	switch e.Str() {

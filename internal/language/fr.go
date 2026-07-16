@@ -187,8 +187,14 @@ func init() {
 		"SIDE_ACC":         "PRT : %d",
 		"SIDE_WEAPON":      "A : %s",
 		"SIDE_AMMO":        "Munitions : %d/%d",
+		"SIDE_FIRE_MODE":   "Mode : %s",
+		"FIRE_MODE_AIMED":  "Visé",
+		"FIRE_MODE_BURST":  "Rafale",
+		"FIRE_MODE_AUTO":   "Auto",
+		"MSG_FIRE_MODE":    "Mode de tir : %s",
 		"SIDE_ARMOR":       "B : %s",
 		"SIDE_POS":         "[%d,%d]",
+		"SIDE_INVENTORY":    "Objets :",
 		"SIDE_CROUCH":      "Accroupi",
 		"SIDE_NONE":        "(aucun)",
 		"BATTLE_HELP":      " [Flèche]=Déplacer [Espace]/[Entrée]=Agir [q]=Cycle [f]=Tirer [r]=Recharger [g]=Grenade [m]=Move [h]=Médikit [p]=Psi [e]=Fin [c]=S'accroupir",
@@ -329,7 +335,7 @@ func init() {
 		"MSG_VISION_NORMAL":  "VISION NORMALE",
 
 		// Battlescape help bars
-		"HELP_BATTLESCAPE":   "[↑↓←→]=Déplacer [Entrée]=Sélectionner [Espace]=Planifier [q]=Cycle [f]=Tirer [r]=Recharger [g]=Grenade [m]=Move [h]=Médikit [e]=Fin [c]=S'accroupir",
+		"HELP_BATTLESCAPE":   "[↑↓←→]=Déplacer [Entrée]=Sélectionner [Espace]=Planifier [q]=Cycle [f]=Tirer [Tab]=Mode [r]=Recharger [g]=Grenade [m]=Move [h]=Médikit [e]=Fin [c]=S'accroupir",
 		"HELP_STAIRS_SUFFIX": " [<>]=Escalier",
 
 		// ── Base Management ───────────────────────────────
@@ -1218,6 +1224,9 @@ func init() {
 		"PERK_TOUGH_DESC":               "+5 PV Max",
 		"PERK_QUICK_LEARNER":            "Apprenant Rapide",
 		"PERK_QUICK_LEARNER_DESC":       "+50% XP des batailles",
+		"LABEL_INVENTORY":     "Inventaire :",
+		"SIDE_ENCUMBRANCE":    "Enc : %d (UT -%d)",
+		"MSG_ADDED_INVENTORY": "%s ajouté à l'inventaire.",
 
 	})
 }

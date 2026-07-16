@@ -43,6 +43,7 @@ type Unit struct {
 	Morale      int
 	HasMoved    bool
 	InOverwatch bool
+	FireMode    data.FireMode
 }
 
 func NewSoldierUnit(s *soldier.Soldier) *Unit {
@@ -65,6 +66,7 @@ func NewSoldierUnit(s *soldier.Soldier) *Unit {
 		Alive:      true,
 		Faction:    0,
 		Morale:     100,
+		FireMode:   data.FireModeAimed,
 	}
 }
 
@@ -135,16 +137,24 @@ func (u *Unit) FireAt(target *Unit, m *BattleMap, weather *Weather) (int, bool, 
 	if !ok {
 		return 0, false, false, fmt.Errorf("unknown weapon: %s", u.Weapon)
 	}
-	if u.TU < w.TU {
+	tuCost := w.ModeTU(u.FireMode)
+	if u.TU < tuCost {
 		return 0, false, false, fmt.Errorf("not enough TU")
 	}
-	if u.WeaponAmmo <= 0 && w.AmmoMax < 99 {
+	rounds := w.ModeRounds(u.FireMode)
+	if rounds < 0 {
+		rounds = u.WeaponAmmo
+	}
+	if rounds <= 0 {
+		rounds = 1
+	}
+	if w.AmmoMax < 99 && u.WeaponAmmo < rounds {
 		return 0, false, false, fmt.Errorf("out of ammo")
 	}
 	if w.AmmoMax < 99 {
-		u.WeaponAmmo--
+		u.WeaponAmmo -= rounds
 	}
-	u.TU -= w.TU
+	u.TU -= tuCost
 
 	dist := math.Sqrt(float64((target.X-u.X)*(target.X-u.X) + (target.Y-u.Y)*(target.Y-u.Y)))
 	accMod := 100 - int(dist*3)
@@ -152,6 +162,10 @@ func (u *Unit) FireAt(target *Unit, m *BattleMap, weather *Weather) (int, bool, 
 		accMod = 10
 	}
 	hitChance := u.Accuracy * accMod / 100
+	hitChance -= w.ModeAccuracy(u.FireMode)
+	if hitChance < 5 {
+		hitChance = 5
+	}
 	if u.Crouching {
 		hitChance = hitChance * 110 / 100
 	}
@@ -177,71 +191,75 @@ func (u *Unit) FireAt(target *Unit, m *BattleMap, weather *Weather) (int, bool, 
 		}
 	}
 
-	if rand.Intn(100) >= hitChance {
-		return 0, false, false, nil
-	}
-
-	// Adjacent cover check: when the target is within 1 tile and standing in
-	// partial cover, the cover value acts as a block chance rather than a
-	// silent damage reduction. A successful block stops the shot entirely.
-	if m != nil && dist <= 1.5 {
-		if tc := m.At(target.X, target.Y).Cover; tc > 0 {
-			if rand.Intn(100) < tc {
-				return 0, false, true, nil
+	totalDamage := 0
+	stunDamage := 0
+	anyHit := false
+	anyCover := false
+	for i := 0; i < rounds; i++ {
+		if rand.Intn(100) >= hitChance {
+			continue
+		}
+		if m != nil && dist <= 1.5 {
+			if tc := m.At(target.X, target.Y).Cover; tc > 0 {
+				if rand.Intn(100) < tc {
+					anyCover = true
+					continue
+				}
+			}
+		}
+		dmg := w.Damage + rand.Intn(w.Damage/3+1)
+		if u.Weapon == "stun_rod" {
+			target.StunPoints += dmg
+			if target.StunPoints >= target.MaxHP {
+				target.Stunned = true
+			}
+			stunDamage += dmg
+			anyHit = true
+			continue
+		}
+		cover := 0
+		if m != nil {
+			cover = m.CoverAlongLine(u.X, u.Y, target.X, target.Y)
+		}
+		if cover >= 100 {
+			anyCover = true
+			continue
+		}
+		if cover > 0 && rand.Intn(100) < cover/3 {
+			anyCover = true
+			continue
+		}
+		dmg -= target.Armour
+		if target.Crouching {
+			dmg = dmg * 7 / 10
+		}
+		weapDMG := WeaponDamageType(u.Weapon)
+		if target.AlienType != nil {
+			resist := target.AlienType.Resist(weapDMG)
+			if resist > 0 {
+				dmg = dmg * (100 - resist) / 100
+			} else if resist < 0 {
+				dmg = dmg * (100 - resist) / 100
+			}
+		}
+		if dmg < 1 {
+			dmg = 1
+		}
+		totalDamage += dmg
+		anyHit = true
+		if rand.Intn(100) < 15 {
+			target.FatalWounds++
+			target.BleedRate += dmg / 4
+			if target.BleedRate > 5 {
+				target.BleedRate = 5
 			}
 		}
 	}
-
-	damage := w.Damage + rand.Intn(w.Damage/3+1)
-
-	if u.Weapon == "stun_rod" {
-		target.StunPoints += damage
-		if target.StunPoints >= target.MaxHP {
-			target.Stunned = true
-		}
-		if u.Soldier != nil {
-			u.Soldier.AddMeleeExp()
-		}
-		return damage, true, false, nil
+	if totalDamage > 0 {
+		target.HP -= totalDamage
 	}
-
-	// Apply cover from intervening tiles. Cover acts as a block chance rather
-	// than a silent damage reduction: a 100% obstacle always blocks, while
-	// partial cover only has a 1/3 chance of stopping the shot (a 30% bush
-	// blocks ~10% of the time). A shot that gets through deals full damage.
-	cover := 0
-	if m != nil {
-		cover = m.CoverAlongLine(u.X, u.Y, target.X, target.Y)
-	}
-	if cover >= 100 {
-		return 0, false, true, nil
-	}
-	if cover > 0 && rand.Intn(100) < cover/3 {
-		return 0, false, true, nil
-	}
-
-	damage -= target.Armour
-	if target.Crouching {
-		damage = damage * 7 / 10
-	}
-
-	// Apply damage type resistance/weakness from target
-	weapDMG := WeaponDamageType(u.Weapon)
-	if target.AlienType != nil {
-		resist := target.AlienType.Resist(weapDMG)
-		if resist > 0 {
-			damage = damage * (100 - resist) / 100
-		} else if resist < 0 {
-			damage = damage * (100 - resist) / 100
-		}
-	}
-
-	if damage < 1 {
-		damage = 1
-	}
-	target.HP -= damage
-
-	if u.Soldier != nil {
+	if u.Soldier != nil && anyHit {
+		weapDMG := WeaponDamageType(u.Weapon)
 		switch weapDMG {
 		case data.DMG_MELEE:
 			u.Soldier.AddMeleeExp()
@@ -251,17 +269,11 @@ func (u *Unit) FireAt(target *Unit, m *BattleMap, weather *Weather) (int, bool, 
 			u.Soldier.AddFiringExp()
 		}
 	}
-
 	if target.HP <= 0 {
+		target.HP = 0
 		target.Alive = false
-	} else if rand.Intn(100) < 15 {
-		target.FatalWounds++
-		target.BleedRate += damage / 4
-		if target.BleedRate > 5 {
-			target.BleedRate = 5
-		}
 	}
-	return damage, true, false, nil
+	return totalDamage + stunDamage, anyHit, anyCover, nil
 }
 
 // WeaponDamageType returns the damage type for a given weapon ID.

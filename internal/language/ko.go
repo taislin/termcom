@@ -187,8 +187,14 @@ func init() {
 		"SIDE_ACC":         "명중: %d",
 		"SIDE_WEAPON":      "무:%s",
 		"SIDE_AMMO":        "탄약: %d/%d",
+		"SIDE_FIRE_MODE":   "사격 모드: %s",
+		"FIRE_MODE_AIMED":  "정밀사격",
+		"FIRE_MODE_BURST":  "연사",
+		"FIRE_MODE_AUTO":   "자동",
+		"MSG_FIRE_MODE":    "사격 모드: %s",
 		"SIDE_ARMOR":       "방:%s",
 		"SIDE_POS":         "[%d,%d]",
+		"SIDE_INVENTORY":    "아이템:",
 		"SIDE_CROUCH":      "엎드리는 중",
 		"SIDE_NONE":        "(없음)",
 		"BATTLE_HELP":      " 이동 [Arrow]  행동 [Space]/[Enter]  순환 [q]  사격 [f]  재장전 [r]  수류탄 [g]  이동 [m]  구급 [h]  초감각 [p]  턴종료 [e]  엎드리기 [c]",
@@ -329,7 +335,7 @@ func init() {
 		"MSG_VISION_NORMAL":  "일반 시야",
 
 		// Battlescape help bars
-		"HELP_BATTLESCAPE":   "이동 [↑↓←→]  선택 [Enter]  계획/이동 [Space]  순환 [q]  사격 [f]  재장전 [r]  수류탄 [g]  이동 [m]  구급 [h]  턴종료 [e]  엎드리기 [c]",
+		"HELP_BATTLESCAPE":   "이동 [↑↓←→]  선택 [Enter]  계획/이동 [Space]  순환 [q]  사격 [f]  모드 [Tab]  재장전 [r]  수류탄 [g]  이동 [m]  구급 [h]  턴종료 [e]  엎드리기 [c]",
 		"HELP_STAIRS_SUFFIX": "  [<>]=계단",
 
 		// ── Base Management ───────────────────────────────
@@ -1217,7 +1223,9 @@ func init() {
 		"PERK_TOUGH":                    "건강",
 		"PERK_TOUGH_DESC":               "+5 최대 HP",
 		"PERK_QUICK_LEARNER":            "빠른 학습자",
-		"PERK_QUICK_LEARNER_DESC":       "+50% 전투 경험치",
-
+		"PERK_QUICK_LEARNER_DESC":  "+50% 전투 경험치",
+		"LABEL_INVENTORY":     "인벤토리:",
+		"SIDE_ENCUMBRANCE":    "무게: %d (TU -%d)",
+		"MSG_ADDED_INVENTORY": "%s을(를) 인벤토리에 추가했습니다.",
 	})
 }

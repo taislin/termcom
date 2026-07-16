@@ -1961,6 +1961,30 @@ func (bs *Battlescape) Reload() {
 	bs.AddMessage(fmt.Sprintf(language.String("MSG_RELOADED"), w.DisplayName(), bs.Selected.WeaponAmmo, w.AmmoMax))
 }
 
+func (bs *Battlescape) CycleFireMode() {
+	if bs.Selected == nil || bs.Phase != PhasePlayerTurn {
+		return
+	}
+	w, ok := data.RuleItems[bs.Selected.Weapon]
+	if !ok {
+		return
+	}
+	modes := w.Modes()
+	if len(modes) <= 1 {
+		return
+	}
+	cur := -1
+	for i, m := range modes {
+		if m == bs.Selected.FireMode {
+			cur = i
+			break
+		}
+	}
+	next := (cur + 1) % len(modes)
+	bs.Selected.FireMode = modes[next]
+	bs.AddMessage(fmt.Sprintf(language.String("MSG_FIRE_MODE"), modes[next].String()))
+}
+
 func (bs *Battlescape) EndTurn() {
 	if bs.Phase != PhasePlayerTurn {
 		return
@@ -3088,6 +3112,11 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 				ctx.DrawString(sideX, sy, fmt.Sprintf(language.String("SIDE_AMMO"), bs.Selected.WeaponAmmo, w.AmmoMax), engine.StyleDefault)
 				sy++
 
+				if len(w.Modes()) > 1 {
+					ctx.DrawString(sideX, sy, fmt.Sprintf(language.String("SIDE_FIRE_MODE"), bs.Selected.FireMode.String()), engine.StyleYellow)
+					sy++
+				}
+
 				armourName := language.String("NONE")
 				if bs.Selected.Armour > 0 {
 					for k, v := range data.Armors {
@@ -3102,6 +3131,23 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 
 				ctx.DrawString(sideX, sy, fmt.Sprintf(language.String("SIDE_POS"), bs.Selected.X, bs.Selected.Y), engine.StyleGray)
 				sy++
+
+				if bs.Selected.Soldier != nil && len(bs.Selected.Soldier.Inventory) > 0 {
+					ctx.DrawString(sideX, sy, language.String("SIDE_INVENTORY"), engine.StyleDefault)
+					sy++
+					for _, item := range bs.Selected.Soldier.Inventory {
+						name := data.ItemDisplayName(item)
+						if engine.StringWidth(name) > bs.SidebarW-4 {
+							runes := []rune(name)
+							for len(runes) > 0 && engine.StringWidth(string(runes)) > bs.SidebarW-4 {
+								runes = runes[:len(runes)-1]
+							}
+							name = string(runes)
+						}
+						ctx.DrawString(sideX+2, sy, name, engine.StyleGray)
+						sy++
+					}
+				}
 
 				if bs.Selected.Crouching {
 					ctx.DrawString(sideX, sy, language.String("SIDE_CROUCH"), engine.StyleYellow)

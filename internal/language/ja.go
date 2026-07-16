@@ -187,8 +187,14 @@ func init() {
 		"SIDE_ACC":         "ACC: %d",
 		"SIDE_WEAPON":      "W: %s",
 		"SIDE_AMMO":        "弾薬: %d/%d",
+		"SIDE_FIRE_MODE":   "射撃モード: %s",
+		"FIRE_MODE_AIMED":  "狙い撃ち",
+		"FIRE_MODE_BURST":  "バースト",
+		"FIRE_MODE_AUTO":   "フルオート",
+		"MSG_FIRE_MODE":    "射撃モード: %s",
 		"SIDE_ARMOR":       "A: %s",
 		"SIDE_POS":         "[%d,%d]",
+		"SIDE_INVENTORY":    "アイテム:",
 		"SIDE_CROUCH":      "伏せ",
 		"SIDE_NONE":        "(なし)",
 		"BATTLE_HELP":      "  [矢印]=移動 [Space]/[Enter]=行動 [q]=切替 [f]=射撃 [r]=リロード [g]=手榴弾 [m]=Move [h]=メディキット [p]=サイ能力 [e]=終了 [c]=伏せ",
@@ -329,7 +335,7 @@ func init() {
 		"MSG_VISION_NORMAL":  "通常視覚",
 
 		// Battlescape help bars
-		"HELP_BATTLESCAPE":   "[↑↓←→]=移動 [Enter]=選択 [Space]=計画/移動 [q]=切替 [f]=射撃 [r]=リロード [g]=手榴弾 [m]=Move [h]=メディキット [e]=終了 [c]=伏せ",
+		"HELP_BATTLESCAPE":   "[↑↓←→]=移動 [Enter]=選択 [Space]=計画/移動 [q]=切替 [f]=射撃 [Tab]=モード [r]=リロード [g]=手榴弾 [m]=Move [h]=メディキット [e]=終了 [c]=伏せ",
 		"HELP_STAIRS_SUFFIX": " [<>]=階段",
 
 		// ── Base Management ───────────────────────────────
@@ -1246,6 +1252,9 @@ func init() {
 		"PERK_TOUGH_DESC":               "+5最大HP",
 		"PERK_QUICK_LEARNER":            "素早い学習者",
 		"PERK_QUICK_LEARNER_DESC":       "+50%戦闘経験値",
+		"LABEL_INVENTORY":     "インベントリ:",
+		"SIDE_ENCUMBRANCE":    "重量: %d (TU -%d)",
+		"MSG_ADDED_INVENTORY": "%s をインベントリに追加しました。",
 
 	})
 }

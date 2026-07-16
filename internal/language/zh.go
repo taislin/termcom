@@ -185,8 +185,14 @@ func init() {
 		"SIDE_ACC":         "\u547d\u4e2d: %d",
 		"SIDE_WEAPON":      "\u6b66\u5668: %s",
 		"SIDE_AMMO":        "\u5f39\u836f: %d/%d",
+		"SIDE_FIRE_MODE":   "\u5c04\u51fb\u6a21\u5f0f: %s",
+		"FIRE_MODE_AIMED":  "\u7cbe\u51c6",
+		"FIRE_MODE_BURST":  "\u7a81\u51fb",
+		"FIRE_MODE_AUTO":   "\u5168\u81ea\u52a8",
+		"MSG_FIRE_MODE":    "\u5c04\u51fb\u6a21\u5f0f: %s",
 		"SIDE_ARMOR":       "\u62a4\u7532: %s",
 		"SIDE_POS":         "[%d,%d]",
+		"SIDE_INVENTORY":    "\u9053\u5177:",
 		"SIDE_CROUCH":      "\u8e72\u4f0f\u4e2d",
 		"SIDE_NONE":        "(\u65e0)",
 		"BATTLE_HELP":      " [\u65b9\u5411\u952e]=\u79fb\u52a8 [\u7a7a\u683c]/[Enter]=\u884c\u52a8 [q]=\u5207\u6362 [f]=\u5f00\u706b [r]=\u6362\u5f39 [g]=\u624b\u69f2 [m]=Move [h]=\u533b\u7597 [p]=\u7075\u80fd [e]=\u7ed3\u675f [c]=\u8e72\u4f0f",
@@ -327,7 +333,7 @@ func init() {
 		"MSG_VISION_NORMAL":  "\u6b63\u5e38\u89c6\u89c9",
 
 		// \u6218\u573a\u5e2e\u52a9\u680f
-		"HELP_BATTLESCAPE":   "[↑↓←→]=\u79fb\u52a8 [Enter]=\u9009\u62e9 [\u7a7a\u683c]=\u89c4\u5212/\u79fb\u52a8 [q]=\u5207\u6362 [f]=\u5f00\u706b [r]=\u6362\u5f39 [g]=\u624b\u69f2 [m]=Move [h]=\u533b\u7597 [e]=\u7ed3\u675f [c]=\u8e72\u4f0f",
+		"HELP_BATTLESCAPE":   "[↑↓←→]=\u79fb\u52a8 [Enter]=\u9009\u62e9 [\u7a7a\u683c]=\u89c4\u5212/\u79fb\u52a8 [q]=\u5207\u6362 [f]=\u5f00\u706b [Tab]=\u6a21\u5f0f [r]=\u6362\u5f39 [g]=\u624b\u69f2 [m]=Move [h]=\u533b\u7597 [e]=\u7ed3\u675f [c]=\u8e72\u4f0f",
 		"HELP_STAIRS_SUFFIX": " [<>>]=\u697c\u68af",
 
 		// ── \u57fa\u5730\u7ba1\u7406 ───────────────────────────────
@@ -1213,6 +1219,8 @@ func init() {
 		"PERK_TOUGH_DESC":               "+5最大生命值",
 		"PERK_QUICK_LEARNER":            "快速学习者",
 		"PERK_QUICK_LEARNER_DESC":       "+50%战斗经验值",
-
+		"LABEL_INVENTORY":       "\u5e93\u5b58\uff1a",
+		"SIDE_ENCUMBRANCE":      "\u8d1f\u91cd: %d (TU -%d)",
+		"MSG_ADDED_INVENTORY":   "\u5df2\u5c06 %s \u52a0\u5165\u5e93\u5b58\u3002",
 	})
 }

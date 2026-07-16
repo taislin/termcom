@@ -22,6 +22,91 @@ const (
 	BT_CORPSE
 )
 
+// FireMode represents a weapon firing mode.
+type FireMode int
+
+const (
+	FireModeAimed FireMode = iota // single aimed shot
+	FireModeBurst                 // 3-round burst
+	FireModeAuto                  // full auto (all remaining ammo)
+)
+
+func (fm FireMode) String() string {
+	switch fm {
+	case FireModeAimed:
+		return language.String("FIRE_MODE_AIMED")
+	case FireModeBurst:
+		return language.String("FIRE_MODE_BURST")
+	case FireModeAuto:
+		return language.String("FIRE_MODE_AUTO")
+	default:
+		return "???"
+	}
+}
+
+// HasMode returns true if the weapon supports the given fire mode.
+func (r *RuleItem) HasMode(fm FireMode) bool {
+	switch fm {
+	case FireModeAimed:
+		return true
+	case FireModeBurst:
+		return r.BurstSize > 0
+	case FireModeAuto:
+		return r.Auto
+	default:
+		return false
+	}
+}
+
+// Modes returns the list of fire modes available for this weapon.
+func (r *RuleItem) Modes() []FireMode {
+	modes := []FireMode{FireModeAimed}
+	if r.BurstSize > 0 {
+		modes = append(modes, FireModeBurst)
+	}
+	if r.Auto {
+		modes = append(modes, FireModeAuto)
+	}
+	return modes
+}
+
+// ModeTU returns the TU cost for the given fire mode.
+func (r *RuleItem) ModeTU(fm FireMode) int {
+	switch fm {
+	case FireModeBurst:
+		return r.TU * 3 / 2
+	case FireModeAuto:
+		return r.TU * 2
+	default:
+		return r.TU
+	}
+}
+
+// ModeAccuracy returns the accuracy penalty for the given fire mode.
+func (r *RuleItem) ModeAccuracy(fm FireMode) int {
+	switch fm {
+	case FireModeBurst:
+		return 10
+	case FireModeAuto:
+		return 20
+	default:
+		return 0
+	}
+}
+
+// ModeRounds returns how many rounds are fired per shot in the given mode.
+// Returns -1 for auto (all remaining ammo).
+func (r *RuleItem) ModeRounds(fm FireMode) int {
+	switch fm {
+	case FireModeBurst:
+		return 3
+	case FireModeAuto:
+		return -1
+	default:
+		return 1
+	}
+}
+
 // RuleItem defines the attributes of an item based on the original OpenXcom definition.
 type RuleItem struct {
 	Type       string
@@ -35,12 +120,12 @@ type RuleItem struct {
 	// Weapon specific fields
 	Damage    int
 	Accuracy  int // base accuracy %
-	TU        int // time units to fire
+	TU        int // time units to fire (aimed)
 	Range     int
 	AmmoMax   int
 	AmmoCur   int
-	Auto      bool // can burst fire
-	BurstSize int
+	Auto      bool // can full-auto fire
+	BurstSize int  // rounds per burst (0 = no burst)
 	Strength  int // min strength to use
 	IsAmmo    bool
 	IsAlien   bool
@@ -80,6 +165,7 @@ var RuleItems = map[string]RuleItem{
 		TU:         20,
 		Range:      20,
 		AmmoMax:    20,
+		BurstSize:  3,
 		Strength:   10,
 	},
 	"heavy": {
@@ -158,6 +244,7 @@ var RuleItems = map[string]RuleItem{
 		TU:         18,
 		Range:      25,
 		AmmoMax:    99,
+		BurstSize:  3,
 		Strength:   12,
 	},
 	"plasma_rifle": {

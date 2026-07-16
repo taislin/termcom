@@ -73,6 +73,7 @@ type Soldier struct {
 	Wounds     int // days until healed
 	Fatigue    int // days until rested
 	Perks      []string
+	Inventory  []string // additional carried items
 
 	// Transient per-mission XP counters (reset by PostMission, not persisted)
 	ExpFiring    int
@@ -104,6 +105,56 @@ var RankOpenings = []int{0, 0, 4, 8, 14, 22, 30, 40}
 
 func (s *Soldier) CanDeploy() bool {
 	return s.HP > 0 && s.Wounds == 0 && s.Fatigue == 0
+}
+
+func (s *Soldier) Encumbrance() int {
+	w := 0
+	if item, ok := data.RuleItems[s.Weapon]; ok {
+		w += item.Weight
+	}
+	for _, item := range s.Inventory {
+		if it, ok := data.RuleItems[item]; ok {
+			w += it.Weight
+		}
+	}
+	return w
+}
+
+func (s *Soldier) TUPenalty() int {
+	return s.Encumbrance() / 5
+}
+
+func (s *Soldier) AddItem(item string) {
+	s.Inventory = append(s.Inventory, item)
+}
+
+func (s *Soldier) RemoveItem(item string) bool {
+	for i, it := range s.Inventory {
+		if it == item {
+			s.Inventory = append(s.Inventory[:i], s.Inventory[i+1:]...)
+			return true
+		}
+	}
+	return false
+}
+
+func (s *Soldier) HasItem(item string) bool {
+	for _, it := range s.Inventory {
+		if it == item {
+			return true
+		}
+	}
+	return false
+}
+
+func (s *Soldier) CountItem(item string) int {
+	n := 0
+	for _, it := range s.Inventory {
+		if it == item {
+			n++
+		}
+	}
+	return n
 }
 
 func NewSoldier(name string) *Soldier {

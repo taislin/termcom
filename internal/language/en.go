@@ -185,8 +185,14 @@ func init() {
 		"SIDE_ACC":         "ACC: %d",
 		"SIDE_WEAPON":      "W: %s",
 		"SIDE_AMMO":        "Ammo: %d/%d",
+		"SIDE_FIRE_MODE":   "Mode: %s",
+		"FIRE_MODE_AIMED":  "Aimed",
+		"FIRE_MODE_BURST":  "Burst",
+		"FIRE_MODE_AUTO":   "Auto",
+		"MSG_FIRE_MODE":    "Fire mode: %s",
 		"SIDE_ARMOR":       "A: %s",
 		"SIDE_POS":         "[%d,%d]",
+		"SIDE_INVENTORY":    "Items:",
 		"SIDE_CROUCH":      "Crouching",
 		"SIDE_NONE":        "(none)",
 		"BATTLE_HELP":      " [Arrow]=Move [Space]/[Enter]=Act [q]=Cycle [f]=Fire [r]=Reload [g]=Grenade [m]=Move [h]=Medikit [p]=Psi [e]=End [c]=Crouch",
@@ -327,7 +333,7 @@ func init() {
 		"MSG_VISION_NORMAL":  "NORMAL VISION",
 
 		// Battlescape help bars
-		"HELP_BATTLESCAPE":   "[↑↓←→]=Move [Enter]=Select [Space]=Plan/Move [q]=Cycle [f]=Fire [r]=Reload [g]=Grenade [m]=Move [h]=Medikit [e]=End [c]=Crouch",
+		"HELP_BATTLESCAPE":   "[↑↓←→]=Move [Enter]=Select [Space]=Plan/Move [q]=Cycle [f]=Fire [Tab]=Mode [r]=Reload [g]=Grenade [m]=Move [h]=Medikit [e]=End [c]=Crouch",
 		"HELP_STAIRS_SUFFIX": " [<>]=Stairs",
 
 		// ── Base Management ───────────────────────────────
@@ -1247,6 +1253,9 @@ func init() {
 		"PERK_TOUGH_DESC":  "+5 MaxHP",
 		"PERK_QUICK_LEARNER":            "Quick Learner",
 		"PERK_QUICK_LEARNER_DESC":  "+50% XP from battles",
+		"LABEL_INVENTORY":     "Inventory:",
+		"SIDE_ENCUMBRANCE":    "Enc: %d (TU -%d)",
+		"MSG_ADDED_INVENTORY": "Added %s to inventory.",
 
 	})
 }
