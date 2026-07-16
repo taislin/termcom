@@ -47,6 +47,13 @@ const (
 	TileStorage     // Storage containers, crates
 	TileAlienTech   // Alien technology, artifacts
 	TileStairsDown  // stairs leading to lower level
+	// Human furniture tiles
+	TileDesk     // Desk/workstation
+	TileChair    // Chair/seating
+	TileComputer // Computer terminal
+	TileBed      // Bed/cot
+	TileLocker   // Locker/storage
+	TileCabinet  // Cabinet/shelving
 )
 
 // Tile represents a single cell on the tactical map.
@@ -76,7 +83,8 @@ func TileCover(t TileType) int {
 		return 40
 	case TileFence:
 		return 30
-	case TileObject, TileConsole, TileMachinery, TilePod, TilePowerSource, TileStorage, TileAlienTech:
+	case TileObject, TileConsole, TileMachinery, TilePod, TilePowerSource, TileStorage, TileAlienTech,
+		TileDesk, TileChair, TileComputer, TileBed, TileLocker, TileCabinet:
 		return 50
 	case TileRubble:
 		return 20
@@ -197,6 +205,13 @@ var tileChars = map[TileType]rune{
 	TilePowerSource: '⌁', // Power source (U+2301 ELECTRICAL ARC)
 	TileStorage:     '▤', // Storage container
 	TileAlienTech:   '⊕', // Alien technology
+	// Human furniture characters
+	TileDesk:     '⎔', // Desk (U+2394)
+	TileChair:    '⊟', // Chair (U+229F)
+	TileComputer: '⌨', // Keyboard (U+2328)
+	TileBed:      '□', // Bed (U+25A1)
+	TileLocker:   '◫', // Locker (U+25EB)
+	TileCabinet:  '⊞', // Cabinet (U+229E)
 }
 
 func TileChar(t TileType) rune {
@@ -327,7 +342,8 @@ func (m *BattleMap) Passable(x, y int) bool {
 	t := m.At(x, y)
 	switch t.Type {
 	case TileFloor, TileDoor, TileGrass, TileUFOFloor, TileStairs, TileStairsDown, TilePavement, TileSand, TileSnow,
-		TileConsole, TileMachinery, TilePod, TilePowerSource, TileStorage, TileAlienTech:
+		TileConsole, TileMachinery, TilePod, TilePowerSource, TileStorage, TileAlienTech,
+		TileDesk, TileChair, TileComputer, TileBed, TileLocker, TileCabinet:
 		return true
 	}
 	return false
@@ -348,7 +364,8 @@ func (m *BattleMap) Opaque(x, y int) bool {
 func (m *BattleMap) IsDestructible(x, y int) bool {
 	t := m.At(x, y)
 	switch t.Type {
-	case TileWall, TileUFOWall, TileTree, TileRock, TileFence, TileDoor:
+	case TileWall, TileUFOWall, TileTree, TileRock, TileFence, TileDoor,
+		TileDesk, TileChair, TileComputer, TileBed, TileLocker, TileCabinet:
 		return true
 	}
 	return false
@@ -688,10 +705,37 @@ func (m *BattleMap) ApplyCommand(cmd MapCommand) {
 		}
 	case CmdPlaceBuilding:
 		m.placeBuilding(cmd.X, cmd.Y, cmd.W, cmd.H, cmd.DoorSide)
+		m.furnishBuilding(cmd.X, cmd.Y, cmd.W, cmd.H)
 	case CmdCorridor:
 		m.generateCorridor(cmd.X, cmd.Y, cmd.X2, cmd.Y2, max(1, cmd.W))
 	case CmdClearArea:
 		m.fillRect(cmd.X, cmd.Y, cmd.W, cmd.H, cmd.Tile)
+	}
+}
+
+func (m *BattleMap) furnishBuilding(bx, by, bw, bh int) {
+	var interior [][2]int
+	for y := by + 1; y < by+bh-1; y++ {
+		for x := bx + 1; x < bx+bw-1; x++ {
+			if m.At(x, y).Type == TileFloor {
+				interior = append(interior, [2]int{x, y})
+			}
+		}
+	}
+	if len(interior) == 0 {
+		return
+	}
+	numFurniture := 2 + rand.Intn(min(3, len(interior)))
+	if numFurniture > len(interior) {
+		numFurniture = len(interior)
+	}
+	furnitureTypes := []TileType{TileDesk, TileChair, TileComputer, TileBed, TileLocker, TileCabinet}
+	for i := 0; i < numFurniture; i++ {
+		idx := rand.Intn(len(interior))
+		x, y := interior[idx][0], interior[idx][1]
+		ft := furnitureTypes[rand.Intn(len(furnitureTypes))]
+		m.Set(x, y, ft)
+		interior = append(interior[:idx], interior[idx+1:]...)
 	}
 }
 

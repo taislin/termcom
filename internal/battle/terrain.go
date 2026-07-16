@@ -56,6 +56,12 @@ var TilePalette = map[TileType]tcell.Color{
 	TilePowerSource: tcell.NewRGBColor(240, 200, 60),
 	TileStorage:     tcell.NewRGBColor(180, 140, 90),
 	TileAlienTech:   tcell.NewRGBColor(230, 70, 70),
+	TileDesk:        tcell.NewRGBColor(160, 120, 80),
+	TileChair:       tcell.NewRGBColor(150, 100, 60),
+	TileComputer:    tcell.NewRGBColor(70, 180, 210),
+	TileBed:         tcell.NewRGBColor(200, 200, 200),
+	TileLocker:      tcell.NewRGBColor(140, 160, 180),
+	TileCabinet:     tcell.NewRGBColor(170, 130, 90),
 }
 
 // TileBaseColor returns the resolved color for a tile.

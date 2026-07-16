@@ -1,4 +1,4 @@
-# termcom — ASCII X-COM Roguelike-ified Demake Manual (v0.47)
+# termcom — ASCII X-COM Roguelike-ified Demake Manual (v0.48.9)
 
 ## Table of Contents
 
@@ -272,6 +272,7 @@ Press `B` from the Geoscape to open your base.
 | 3 | Research |
 | 4 | Manufacture |
 | 5 | Transfer |
+| 6 | Hangars |
 
 Navigate with `j`/`k` or arrow keys. Use `Enter` to select.
 
@@ -304,7 +305,19 @@ Hire soldiers at $50,000 each. Capacity limited by Living Quarters.
 
 - `H` — Hire soldier
 - `E` — Open equip screen
+- `G` — Open weapon designer
 - `D` — Dismiss soldier
+
+### Hangars
+
+Press `6` to view your interceptors. Each Hangar facility houses one interceptor.
+
+- `B` — Buy interceptor
+- `W` — Equip weapon
+- `G` — Open weapon designer
+- `D` — Open plane designer for selected interceptor
+- `↑`/`↓` — Navigate hangars
+- `Esc` — Back
 
 ---
 
@@ -411,6 +424,7 @@ From the Soldiers tab, press `E` to open the equip screen.
 | 1 | Select weapon slot |
 | 2 | Select armour slot |
 | Space | Equip selected item |
+| G | Open weapon designer |
 | A | Auto-equip all soldiers (best weapon + armour) |
 | Esc | Back |
 
@@ -966,13 +980,14 @@ The species seed ensures the same alien species are regenerated when loading a s
 
 | Key | Action |
 |-----|--------|
-| 1–5 | Switch tabs |
+| 1–6 | Switch tabs |
 | j/k | Navigate items |
 | B | Build facility |
 | S | Sell facility |
 | H | Hire soldier |
 | E | Equip screen |
-| D | Dismiss soldier |
+| G | Weapon designer |
+| D | Dismiss soldier / Plane designer (Hangars) |
 | Esc | Back to geoscape |
 
 ### Equip Screen
@@ -983,8 +998,40 @@ The species seed ensures the same alien species are regenerated when loading a s
 | 1 / 2 | Weapon / Armour slot |
 | Tab | Cycle available items |
 | Space | Equip selected item |
+| G | Open weapon designer |
 | A | Auto-equip all soldiers |
 | Esc | Back |
+
+### Weapon Designer
+
+Press `G` from the Base, Soldiers, or Equip screen to open the weapon designer.
+Design custom modular weapons for your soldiers. Each weapon has 5 parameters:
+
+| Parameter | Options | Effect |
+|-----------|---------|--------|
+| Barrel Length | Short / Medium / Long | Range +, Accuracy +, TU cost +, Weight + |
+| Optics | None / Iron / Scope / Advanced | Accuracy +, TU cost +, Weight + |
+| Fire Mode | Semi-Auto / Full-Auto | Burst capability |
+| Ammo | Standard / AP / Incendiary / Explosive | Damage type |
+| Stock | None / Light / Heavy | Accuracy +, Weight + |
+
+Custom weapons are automatically registered and available in the Equip screen.
+The weapon preview renders as colored ASCII art (muzzle, barrel, receiver, stock).
+
+### Plane Designer
+
+Press `D` from the Hangars tab to open the plane designer.
+Configure interceptors with 4 parameters:
+
+| Parameter | Options | Effect |
+|-----------|---------|--------|
+| Length | Short / Medium / Long | Hull +, Weight + |
+| Wingspan | Short / Medium / Long | Maneuverability + |
+| Engines | 1–3 | Speed +, Fuel + |
+| Weapon | Cannon / Stingray / Avalanche / Plasma | Firepower |
+| Armor | None / Light / Heavy / Alien | Hull +, Weight + |
+
+Plane stats are derived from mass/thrust/weight ratios. Design is saved on the interceptor.
 
 ### After-Action Report (Debrief)
 
@@ -1176,6 +1223,12 @@ a cover value, and optional flammability.
 | Power Source | `⌁` | 50% | No | UFO power source |
 | Storage | `▤` | 50% | No | UFO storage container |
 | Alien Tech | `⊕` | 50% | No | Alien technology |
+| Desk | `⎔` | 50% | No | Building furniture |
+| Chair | `⊟` | 50% | No | Building furniture |
+| Computer | `⌨` | 50% | No | Building furniture |
+| Bed | `□` | 50% | No | Building furniture |
+| Locker | `◫` | 50% | No | Building furniture |
+| Cabinet | `⊞` | 50% | No | Building furniture |
 
 ### Visual Effects
 

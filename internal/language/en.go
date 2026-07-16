@@ -225,6 +225,12 @@ func init() {
 		"TILE_PAVEMENT":     "Pavement",
 		"TILE_RUBBLE":       "Rubble",
 		"TILE_WINDOW":       "Window",
+		"TILE_DESK":         "Desk",
+		"TILE_CHAIR":        "Chair",
+		"TILE_COMPUTER":     "Computer",
+		"TILE_BED":          "Bed",
+		"TILE_LOCKER":       "Locker",
+		"TILE_CABINET":      "Cabinet",
 		"TILE_UNKNOWN":      "Unknown",
 
 		// Battle messages

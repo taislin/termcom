@@ -227,6 +227,12 @@ func init() {
 		"TILE_PAVEMENT":     "Pavimento",
 		"TILE_RUBBLE":       "Escombros",
 		"TILE_WINDOW":       "Ventana",
+		"TILE_DESK":         "Escritorio",
+		"TILE_CHAIR":        "Silla",
+		"TILE_COMPUTER":     "Computadora",
+		"TILE_BED":          "Cama",
+		"TILE_LOCKER":       "Casillero",
+		"TILE_CABINET":      "Armario",
 		"TILE_UNKNOWN":      "Desconocido",
 
 		// Mensajes de batalla

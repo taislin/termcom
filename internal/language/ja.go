@@ -227,6 +227,12 @@ func init() {
 		"TILE_PAVEMENT":     "舗装",
 		"TILE_RUBBLE":       "瓦礫",
 		"TILE_WINDOW":       "窓",
+		"TILE_DESK":         "机",
+		"TILE_CHAIR":        "椅子",
+		"TILE_COMPUTER":     "コンピュータ",
+		"TILE_BED":          "ベッド",
+		"TILE_LOCKER":       "ロッカー",
+		"TILE_CABINET":      "キャビネット",
 		"TILE_UNKNOWN":      "不明",
 
 		// Battle messages

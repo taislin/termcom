@@ -3351,6 +3351,18 @@ func tileTypeName(t TileType) string {
 		return language.String("TILE_RUBBLE")
 	case TileWindow:
 		return language.String("TILE_WINDOW")
+	case TileDesk:
+		return language.String("TILE_DESK")
+	case TileChair:
+		return language.String("TILE_CHAIR")
+	case TileComputer:
+		return language.String("TILE_COMPUTER")
+	case TileBed:
+		return language.String("TILE_BED")
+	case TileLocker:
+		return language.String("TILE_LOCKER")
+	case TileCabinet:
+		return language.String("TILE_CABINET")
 	}
 	return language.String("TILE_UNKNOWN")
 }

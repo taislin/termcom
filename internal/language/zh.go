@@ -225,6 +225,12 @@ func init() {
 		"TILE_PAVEMENT":     "\u9053\u8def",
 		"TILE_RUBBLE":       "\u788e\u7247",
 		"TILE_WINDOW":       "\u7a97\u6237",
+		"TILE_DESK":         "\u529e\u516c\u684c",
+		"TILE_CHAIR":        "\u6905\u5b50",
+		"TILE_COMPUTER":     "\u8ba1\u7b97\u673a",
+		"TILE_BED":          "\u5e8a",
+		"TILE_LOCKER":       "\u50a8\u7269\u67dc",
+		"TILE_CABINET":      "\u67dc\u5b50",
 		"TILE_UNKNOWN":      "\u672a\u77e5",
 
 		// \u6218\u573a\u6d88\u606f

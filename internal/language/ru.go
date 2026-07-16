@@ -227,6 +227,12 @@ func init() {
 		"TILE_PAVEMENT":     "Мощение",
 		"TILE_RUBBLE":       "Обломки",
 		"TILE_WINDOW":       "Окно",
+		"TILE_DESK":         "Письменный стол",
+		"TILE_CHAIR":        "Стул",
+		"TILE_COMPUTER":     "Компьютер",
+		"TILE_BED":          "Кровать",
+		"TILE_LOCKER":       "Шкафчик",
+		"TILE_CABINET":      "Шкаф",
 		"TILE_UNKNOWN":      "Неизвестно",
 
 		// Battle messages

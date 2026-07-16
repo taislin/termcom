@@ -227,6 +227,12 @@ func init() {
 		"TILE_PAVEMENT":     "포장도로",
 		"TILE_RUBBLE":       "잔해",
 		"TILE_WINDOW":       "창문",
+		"TILE_DESK":         "책상",
+		"TILE_CHAIR":        "의자",
+		"TILE_COMPUTER":     "컴퓨터",
+		"TILE_BED":          "침대",
+		"TILE_LOCKER":       "사물함",
+		"TILE_CABINET":      "캐비닛",
 		"TILE_UNKNOWN":      "알 수 없음",
 
 		// Battle messages
