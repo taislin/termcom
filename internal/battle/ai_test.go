@@ -158,7 +158,7 @@ func TestAIRetreatTarget(t *testing.T) {
 		}
 	}
 	ai := NewAlienAI(alien)
-	rx, _ := ai.retreatTarget(human, m)
+	rx, _ := ai.retreatTarget(human, m, UnitList{alien, human})
 	// Should retreat away from threat (threat is at x=10, we're at 15, so retreat should go x > 15)
 	if rx <= alien.X {
 		t.Errorf("retreat should move away from threat, rx=%d, alienX=%d, threatX=%d", rx, alien.X, human.X)

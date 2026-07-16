@@ -135,6 +135,7 @@ type Battlescape struct {
 
 	// Tactical Planning
 	AlienSquadPlan *SquadPlan
+	AlienMemory    *SquadMemory
 
 	// Combat Resources
 	PlayerGrenadeCount int
@@ -1876,6 +1877,16 @@ func (bs *Battlescape) EndTurn() {
 
 	bs.AlienSquadPlan = bs.planSquadActions()
 
+	if bs.AlienMemory == nil {
+		bs.AlienMemory = NewSquadMemory()
+	}
+	bs.AlienMemory.turn = bs.Turn
+	for _, h := range bs.Units.Faction(0) {
+		if !h.Alive {
+			bs.AlienMemory.Forget(h)
+		}
+	}
+
 	for _, ai := range bs.AlienAIs {
 		if !ai.Unit.Alive {
 			continue
@@ -1886,6 +1897,7 @@ func (bs *Battlescape) EndTurn() {
 		}
 		ai.Unit.TU = ai.Unit.MaxTU
 		ai.Unit.HasMoved = false
+		ai.Memory = bs.AlienMemory
 		humanUnits := bs.Units.Faction(0)
 		actions := ai.Update(bs.Units, bs.Map, humanUnits, bs.AlienSquadPlan, &bs.Game.Tactics)
 		bs.AlienTurnQueue = append(bs.AlienTurnQueue, actions...)
@@ -1986,14 +1998,17 @@ func (bs *Battlescape) planSquadActions() *SquadPlan {
 		suppressorCount = len(aliveAliens) / 4
 	}
 
-	suppressors := 0
-	flankers := 0
+	// Pre-classify aliens by suitability so roles can be reassigned dynamically.
+	type candidate struct {
+		u        *Unit
+		brave    int
+		aggro    int
+		hasLOS   bool
+		angle    int // approach angle quadrant toward primary target
+		role     SquadRole
+	}
+	var cands []candidate
 	for _, u := range aliveAliens {
-		ai := bs.findAIForUnit(u)
-		if ai == nil {
-			roles[u] = RoleNormal
-			continue
-		}
 		brave := 100
 		if u.AlienType != nil {
 			brave = u.AlienType.Bravery
@@ -2002,16 +2017,90 @@ func (bs *Battlescape) planSquadActions() *SquadPlan {
 		if u.AlienType != nil {
 			aggro = u.AlienType.Aggression
 		}
-
-		if suppressors < suppressorCount && brave > 60 && u.TU > 20 {
-			roles[u] = RoleSuppressor
-			suppressors++
-		} else if flankers < flankerCount && aggro > 6 && u.TU > 30 {
-			roles[u] = RoleFlanker
-			flankers++
-		} else {
-			roles[u] = RoleNormal
+		hasLOS := primary != nil && u.CanSee(primary.X, primary.Y, bs.Map)
+		angle := -1
+		if primary != nil {
+			dx := u.X - primary.X
+			dy := u.Y - primary.Y
+			// Quantize direction into 4 quadrants (N/E/S/W) for flank spread.
+			if dx >= 0 && dy < dx {
+				angle = 0
+			} else if dy >= 0 && dx <= dy {
+				angle = 1
+			} else if dx < 0 && dy >= dx {
+				angle = 2
+			} else {
+				angle = 3
+			}
 		}
+		cands = append(cands, candidate{u: u, brave: brave, aggro: aggro, hasLOS: hasLOS, angle: angle, role: RoleNormal})
+	}
+
+	suppressors := 0
+	flankers := 0
+	usedAngles := map[int]bool{}
+
+	// Pass 1: assign suppressors first (units with LOS make the best pinners).
+	for i := range cands {
+		if suppressors >= suppressorCount {
+			break
+		}
+		c := &cands[i]
+		if c.role != RoleNormal || !c.hasLOS || c.brave <= 60 || c.u.TU <= 20 {
+			continue
+		}
+		c.role = RoleSuppressor
+		suppressors++
+	}
+
+	// Pass 2: assign flankers, spreading them across distinct approach angles so
+	// they envelop the target instead of bunching up on one side.
+	for i := range cands {
+		if flankers >= flankerCount {
+			break
+		}
+		c := &cands[i]
+		if c.role != RoleNormal || c.aggro <= 6 || c.u.TU <= 30 {
+			continue
+		}
+		if c.angle >= 0 && usedAngles[c.angle] {
+			continue
+		}
+		c.role = RoleFlanker
+		flankers++
+		if c.angle >= 0 {
+			usedAngles[c.angle] = true
+		}
+	}
+
+	// Pass 3: dynamic reassignment. If a role quota is unfilled (e.g. no LOS
+	// unit was available for suppressor), promote a capable RoleNormal unit so
+	// the squad still fields that role. Prefer units that are healthy and mobile.
+	for i := range cands {
+		if suppressors >= suppressorCount {
+			break
+		}
+		c := &cands[i]
+		if c.role != RoleNormal || c.brave <= 60 || c.u.TU <= 20 {
+			continue
+		}
+		c.role = RoleSuppressor
+		suppressors++
+	}
+	for i := range cands {
+		if flankers >= flankerCount {
+			break
+		}
+		c := &cands[i]
+		if c.role != RoleNormal || c.aggro <= 6 || c.u.TU <= 30 {
+			continue
+		}
+		c.role = RoleFlanker
+		flankers++
+	}
+
+	for _, c := range cands {
+		roles[c.u] = c.role
 	}
 
 	retreat := false

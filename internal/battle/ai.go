@@ -3,6 +3,7 @@ package battle
 import (
 	"math"
 	"math/rand"
+	"sync"
 
 	"github.com/taislin/termcom/internal/data"
 	"github.com/taislin/termcom/internal/engine"
@@ -39,6 +40,67 @@ type SquadPlan struct {
 	Retreat         bool
 }
 
+// Sighting records the last confirmed or inferred position of an enemy unit.
+type Sighting struct {
+	X, Y  int
+	Turn  int
+	Alive bool
+}
+
+// SquadMemory is a shared belief map: every alien writes sightings it makes and
+// reads the most recent enemy positions reported by the squad, so a unit that
+// has lost direct LOS can still converge on where its allies last saw a target.
+type SquadMemory struct {
+	mu        sync.Mutex
+	sightings map[*Unit]Sighting
+	turn      int
+}
+
+func NewSquadMemory() *SquadMemory {
+	return &SquadMemory{sightings: make(map[*Unit]Sighting)}
+}
+
+// Report records a confirmed sighting of an enemy at (x, y) this turn.
+func (sm *SquadMemory) Report(target *Unit, x, y, turn int) {
+	if sm == nil || target == nil {
+		return
+	}
+	sm.mu.Lock()
+	defer sm.mu.Unlock()
+	if s, ok := sm.sightings[target]; !ok || turn >= s.Turn {
+		sm.sightings[target] = Sighting{X: x, Y: y, Turn: turn, Alive: true}
+	}
+}
+
+// Forget marks a target as no longer confirmed alive (e.g. killed).
+func (sm *SquadMemory) Forget(target *Unit) {
+	if sm == nil || target == nil {
+		return
+	}
+	sm.mu.Lock()
+	defer sm.mu.Unlock()
+	delete(sm.sightings, target)
+}
+
+// Latest returns the most recent sighting across all known enemies, preferring
+// the freshest report. Returns false if the squad has no belief state.
+func (sm *SquadMemory) Latest() (Sighting, bool) {
+	if sm == nil {
+		return Sighting{}, false
+	}
+	sm.mu.Lock()
+	defer sm.mu.Unlock()
+	best := Sighting{Turn: -1}
+	found := false
+	for _, s := range sm.sightings {
+		if s.Turn > best.Turn {
+			best = s
+			found = true
+		}
+	}
+	return best, found
+}
+
 // AlienAI manages the decision-making process for a single alien unit.
 type AlienAI struct {
 	Unit       *Unit
@@ -49,6 +111,7 @@ type AlienAI struct {
 	LastSeenY  int
 	TurnsSince int
 	InCover    bool
+	Memory     *SquadMemory // shared squad belief map (nil if not used)
 }
 
 func NewAlienAI(u *Unit) *AlienAI {
@@ -71,6 +134,12 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList, pla
 		if r, ok := plan.Roles[ai.Unit]; ok {
 			role = r
 		}
+	}
+
+	// Spatial memory: report any human we can currently sense so the squad can
+	// share target positions even after an individual alien loses line of sight.
+	if ai.Memory != nil && nearest != nil {
+		ai.Memory.Report(nearest, nearest.X, nearest.Y, ai.Memory.turn)
 	}
 
 	if ai.Unit.HP <= 0 {
@@ -255,7 +324,16 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList, pla
 			ai.State = AIAttack
 			ai.TurnsSince = 0
 		} else {
-			nx, ny := ai.moveTowardTargetCover(ai.LastSeenX, ai.LastSeenY, m, humanUnits)
+			// Prefer the freshest squad-shared sighting over our own stale memory.
+			sx, sy := ai.LastSeenX, ai.LastSeenY
+			if ai.Memory != nil {
+				if s, ok := ai.Memory.Latest(); ok {
+					if s.Turn >= ai.Memory.turn-3 {
+						sx, sy = s.X, s.Y
+					}
+				}
+			}
+			nx, ny := ai.moveTowardTargetCover(sx, sy, m, humanUnits)
 			if (nx != ai.Unit.X || ny != ai.Unit.Y) && m.Passable(nx, ny) {
 				actions = append(actions, AlienAction{
 					Type: "move", Unit: ai.Unit,
@@ -294,7 +372,7 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList, pla
 	case AIRetreat:
 		// Retreat: Move away from the nearest threat to safer ground.
 		if nearest != nil {
-			fx, fy := ai.retreatTarget(nearest, m)
+			fx, fy := ai.retreatTarget(nearest, m, units)
 			if m.Passable(fx, fy) {
 				actions = append(actions, AlienAction{
 					Type: "move", Unit: ai.Unit,
@@ -440,9 +518,57 @@ func (ai *AlienAI) canFireAt(target *Unit) bool {
 	return true
 }
 
+func humanFrom(units UnitList) UnitList {
+	var humans UnitList
+	for _, u := range units {
+		if u.Alive && u.Faction == 0 {
+			humans = append(humans, u)
+		}
+	}
+	return humans
+}
+
 func (ai *AlienAI) evaluateCover(x, y int, m *BattleMap) int {
 	t := m.At(x, y)
 	return t.Cover
+}
+
+// evaluateCoverVsThreats scores how well the tile (x, y) is protected against
+// incoming fire from visible human units. Unlike evaluateCover (which only
+// reports the tile's own cover value), this considers the geometry of cover
+// along the line of fire from each threat, rewarding positions that actually
+// block LOS to the units most likely to shoot back.
+func (ai *AlienAI) evaluateCoverVsThreats(x, y int, m *BattleMap, humanUnits UnitList) float64 {
+	var totalProtection float64
+	threatCount := 0
+	for _, h := range humanUnits {
+		if !h.Alive {
+			continue
+		}
+		// A threat only matters if it can currently see the candidate tile.
+		if !h.CanSee(x, y, m) {
+			// Full cover: this position is completely hidden from this threat.
+			totalProtection += 100
+			threatCount++
+			continue
+		}
+		// Cover value of the highest obstacle between the threat and the tile.
+		lineCover := m.CoverAlongLine(h.X, h.Y, x, y)
+		// Closer threats are more dangerous; weight their protection higher.
+		dx := float64(h.X - x)
+		dy := float64(h.Y - y)
+		dist := math.Sqrt(dx*dx + dy*dy)
+		weight := 1.0
+		if dist < 6 {
+			weight = 1.5
+		}
+		totalProtection += float64(lineCover) * weight
+		threatCount++
+	}
+	if threatCount == 0 {
+		return 0
+	}
+	return totalProtection / float64(threatCount)
 }
 
 func (ai *AlienAI) findCoverTowardTarget(tx, ty int, m *BattleMap, units UnitList) (int, int) {
@@ -486,6 +612,8 @@ func (ai *AlienAI) findCoverTowardTarget(tx, ty int, m *BattleMap, units UnitLis
 		moveDist := math.Abs(float64(d[0])) + math.Abs(float64(d[1]))
 
 		score := float64(cover)*3.0 - tDist*2.0 - moveDist*2.0
+		// Directional cover: reward positions that actually block LOS to threats.
+		score += ai.evaluateCoverVsThreats(nx, ny, m, humanFrom(units)) * 0.5
 		if cover > 0 {
 			score += 10
 		}
@@ -576,7 +704,7 @@ func (ai *AlienAI) findFlankPosition(target, nearest *Unit, m *BattleMap, units 
 	return bestX, bestY
 }
 
-func (ai *AlienAI) retreatTarget(threat *Unit, m *BattleMap) (int, int) {
+func (ai *AlienAI) retreatTarget(threat *Unit, m *BattleMap, units UnitList) (int, int) {
 	dx := ai.Unit.X - threat.X
 	dy := ai.Unit.Y - threat.Y
 
@@ -601,7 +729,7 @@ func (ai *AlienAI) retreatTarget(threat *Unit, m *BattleMap) (int, int) {
 	}
 
 	bestX, bestY := fx, fy
-	bestCover := 0
+	bestProtection := 0.0
 
 	for ox := -1; ox <= 1; ox++ {
 		for oy := -1; oy <= 1; oy++ {
@@ -614,11 +742,13 @@ func (ai *AlienAI) retreatTarget(threat *Unit, m *BattleMap) (int, int) {
 				continue
 			}
 			cover := ai.evaluateCover(cx, cy, m)
+			protection := ai.evaluateCoverVsThreats(cx, cy, m, humanFrom(units))
+			total := math.Max(protection, float64(cover))
 			tdx := threat.X - cx
 			tdy := threat.Y - cy
 			threatDist := math.Sqrt(float64(tdx*tdx + tdy*tdy))
-			if cover > bestCover && threatDist > 4 {
-				bestCover = cover
+			if total > bestProtection && threatDist > 4 {
+				bestProtection = total
 				bestX = cx
 				bestY = cy
 			}
@@ -629,45 +759,7 @@ func (ai *AlienAI) retreatTarget(threat *Unit, m *BattleMap) (int, int) {
 }
 
 func (ai *AlienAI) advanceToward(tx, ty int, m *BattleMap, units UnitList) (int, int) {
-	dx := tx - ai.Unit.X
-	dy := ty - ai.Unit.Y
-
-	var cands [][2]int
-	if dx > 0 {
-		cands = append(cands, [2]int{ai.Unit.X + 1, ai.Unit.Y})
-	}
-	if dx < 0 {
-		cands = append(cands, [2]int{ai.Unit.X - 1, ai.Unit.Y})
-	}
-	if dy > 0 {
-		cands = append(cands, [2]int{ai.Unit.X, ai.Unit.Y + 1})
-	}
-	if dy < 0 {
-		cands = append(cands, [2]int{ai.Unit.X, ai.Unit.Y - 1})
-	}
-
-	bestX, bestY := ai.Unit.X, ai.Unit.Y
-	bestDist := math.Sqrt(float64(dx*dx + dy*dy))
-	for _, c := range cands {
-		nx, ny := c[0], c[1]
-		if nx < 0 || nx >= m.Width || ny < 0 || ny >= m.LevelHeight {
-			continue
-		}
-		if !m.Passable(nx, ny) {
-			continue
-		}
-		if u := units.At(nx, ny); u != nil && u != ai.Unit {
-			continue
-		}
-		ndx := tx - nx
-		ndy := ty - ny
-		nd := math.Sqrt(float64(ndx*ndx + ndy*ndy))
-		if nd < bestDist {
-			bestDist = nd
-			bestX, bestY = nx, ny
-		}
-	}
-	return bestX, bestY
+	return ai.GetNextPathStep(tx, ty, m, units)
 }
 
 func (ai *AlienAI) nearestAlly(units UnitList) *Unit {
@@ -782,7 +874,7 @@ func (ai *AlienAI) moveTowardTargetCover(tx, ty int, m *BattleMap, units UnitLis
 		tdy := ty - ny
 		tDist := math.Sqrt(float64(tdx*tdx + tdy*tdy))
 
-		score := -tDist + float64(cover)*8
+		score := -tDist + float64(cover)*8 - ai.reactionFirePenalty(nx, ny, m, units) + ai.evaluateCoverVsThreats(nx, ny, m, humanFrom(units))*0.5
 
 		if score > bestScore {
 			bestScore = score
@@ -791,7 +883,7 @@ func (ai *AlienAI) moveTowardTargetCover(tx, ty int, m *BattleMap, units UnitLis
 		}
 	}
 
-	return bestX, bestY
+	return ai.GetNextPathStep(bestX, bestY, m, units)
 }
 
 func (ai *AlienAI) patrolTarget(m *BattleMap) (int, int) {
