@@ -414,6 +414,26 @@ func init() {
 		"PLANE_STAT_RANGE":      "Range",
 		"PLANE_MSG_RESET":       "Design reset to default.",
 
+		// ── Weapon Designer
+		"WEAPON_DESIGNER_TITLE":  "무기 설계기",
+		"WEAPON_PREVIEW":         "미리보기",
+		"WEAPON_STATS":           "능력",
+		"WEAPON_PARAMETERS":      "매개변수",
+		"WEAPON_PARAM_BARREL":    "총열",
+		"WEAPON_PARAM_OPTICS":    "광학",
+		"WEAPON_PARAM_FIREMODE":  "사격 모드",
+		"WEAPON_PARAM_AMMO":      "탄약",
+		"WEAPON_PARAM_STOCK":     "개머리판",
+		"WEAPON_STAT_DAMAGE":     "피해",
+		"WEAPON_STAT_ACCURACY":   "명중률",
+		"WEAPON_STAT_TU":         "TU 비용",
+		"WEAPON_STAT_RANGE":      "사거리",
+		"WEAPON_STAT_AMMO":       "탄약",
+		"WEAPON_STAT_WEIGHT":     "무게",
+		"WEAPON_STAT_STR":        "근력",
+		"WEAPON_MSG_BUILT":       "무기 제작 완료: %s",
+		"WEAPON_MSG_INSUFFICIENT_FUNDS": "자금이 부족합니다!",
+
 		// ── Equipment ──────────────────────────────────────
 		"EQUIP_TITLE":        "병사 장비",
 		"NO_SOLDIERS":        "명단에 병사가 없습니다.",

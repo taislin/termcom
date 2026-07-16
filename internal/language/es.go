@@ -414,6 +414,26 @@ func init() {
 		"PLANE_STAT_RANGE":      "Range",
 		"PLANE_MSG_RESET":       "Design reset to default.",
 
+		// ── Weapon Designer
+		"WEAPON_DESIGNER_TITLE":  "DISEÑO DE ARMAS",
+		"WEAPON_PREVIEW":         "VISTA PREVIA",
+		"WEAPON_STATS":           "ESTADÍSTICAS",
+		"WEAPON_PARAMETERS":      "PARÁMETROS",
+		"WEAPON_PARAM_BARREL":    "Cañón",
+		"WEAPON_PARAM_OPTICS":    "Óptica",
+		"WEAPON_PARAM_FIREMODE":  "Modo de disparo",
+		"WEAPON_PARAM_AMMO":      "Munición",
+		"WEAPON_PARAM_STOCK":     "Culata",
+		"WEAPON_STAT_DAMAGE":     "Daño",
+		"WEAPON_STAT_ACCURACY":   "Precisión",
+		"WEAPON_STAT_TU":         "Coste TU",
+		"WEAPON_STAT_RANGE":      "Alcance",
+		"WEAPON_STAT_AMMO":       "Munición",
+		"WEAPON_STAT_WEIGHT":     "Peso",
+		"WEAPON_STAT_STR":        "Fuerza",
+		"WEAPON_MSG_BUILT":       "Arma fabricada: %s",
+		"WEAPON_MSG_INSUFFICIENT_FUNDS": "¡Fondos insuficientes!",
+
 		// ── Equipamiento ──────────────────────────────────────
 		"EQUIP_TITLE":        "EQUIPAR SOLDADOS",
 		"NO_SOLDIERS":        "No hay soldados en la plantilla.",

@@ -450,6 +450,9 @@ func (bs *BaseScreen) HandleKey(e *tcell.EventKey) {
 		if bs.Tab == 3 {
 			bs.Game.PushState(engine.StateManufacture)
 		}
+	case "g", "G":
+		bs.Game.SetScreen(engine.StateWeaponDesigner, NewWeaponDesignerScreen(bs.Game, bs.Base))
+		bs.Game.PushState(engine.StateWeaponDesigner)
 	}
 }
 

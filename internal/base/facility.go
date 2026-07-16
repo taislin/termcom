@@ -115,6 +115,7 @@ type Base struct {
 	UnlockedWeapons      []string
 	UnlockedArmor        []string
 	Hangars              []*data.InterceptorState // Manage interceptors here
+	CustomWeapons        map[string]*data.WeaponDesign // player-designed weapons
 	LiveAliens           []string                 // Captured aliens
 	AlienActivity        int
 }
@@ -130,6 +131,7 @@ func NewBase(name string, cityID int) *Base {
 		MaxStorage:           50,
 		Stores:               make(map[string]int),
 		Hangars:              make([]*data.InterceptorState, 0),
+		CustomWeapons:        make(map[string]*data.WeaponDesign),
 		LiveAliens:           make([]string, 0),
 	}
 	for i := 0; i < 4; i++ {

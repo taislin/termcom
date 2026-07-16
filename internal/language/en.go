@@ -338,7 +338,7 @@ func init() {
 		"BASE_PERSONNEL": "Scientists: %d  Engineers: %d  %s",
 
 		// Help bars
-		"HELP_BASE":            "[B]uild  [H]ire  [1-5]=Tab  [\u2191]/[\u2193]=Navigate  [Esc]=Back",
+		"HELP_BASE":            "[B]uild  [H]ire  [G]=Design Weapon  [1-5]=Tab  [\u2191]/[\u2193]=Navigate  [Esc]=Back",
 		"HELP_FACILITIES":      "[B]uild  [S]ell  [\u2191]/[\u2193]=Navigate  [Esc]=Back",
 		"HELP_SOLDIERS":        "[H]ire ($%dK)  [E]quip  [D]ismiss  [\u2191]/[\u2193]=Navigate  [Esc]=Back",
 		"HELP_TAB_RESEARCH":    "[R]esearch  [\u2191]/[\u2193]=Navigate  [Esc]=Back",
@@ -411,6 +411,26 @@ func init() {
 		"PLANE_STAT_THRUST":     "Thrust",
 		"PLANE_STAT_RANGE":      "Range",
 		"PLANE_MSG_RESET":       "Design reset to default.",
+
+		// ── Weapon Designer ──────────────────────────────────
+		"WEAPON_DESIGNER_TITLE":  "WEAPON DESIGNER",
+		"WEAPON_PREVIEW":         "PREVIEW",
+		"WEAPON_STATS":           "STATS",
+		"WEAPON_PARAMETERS":      "PARAMETERS",
+		"WEAPON_PARAM_BARREL":    "Barrel",
+		"WEAPON_PARAM_OPTICS":    "Optics",
+		"WEAPON_PARAM_FIREMODE":  "Fire Mode",
+		"WEAPON_PARAM_AMMO":      "Ammo",
+		"WEAPON_PARAM_STOCK":     "Stock",
+		"WEAPON_STAT_DAMAGE":     "Damage",
+		"WEAPON_STAT_ACCURACY":   "Accuracy",
+		"WEAPON_STAT_TU":         "TU Cost",
+		"WEAPON_STAT_RANGE":      "Range",
+		"WEAPON_STAT_AMMO":       "Ammo",
+		"WEAPON_STAT_WEIGHT":     "Weight",
+		"WEAPON_STAT_STR":        "Strength",
+		"WEAPON_MSG_BUILT":       "Weapon built: %s",
+		"WEAPON_MSG_INSUFFICIENT_FUNDS": "Insufficient funds!",
 
 		// ── Equipment ──────────────────────────────────────
 		"EQUIP_TITLE":        "EQUIP SOLDIERS",

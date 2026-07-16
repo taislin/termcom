@@ -414,6 +414,26 @@ func init() {
 		"PLANE_STAT_RANGE":      "Range",
 		"PLANE_MSG_RESET":       "Design reset to default.",
 
+		// ── Weapon Designer
+		"WEAPON_DESIGNER_TITLE":  "武器設計室",
+		"WEAPON_PREVIEW":         "プレビュー",
+		"WEAPON_STATS":           "ステータス",
+		"WEAPON_PARAMETERS":      "パラメータ",
+		"WEAPON_PARAM_BARREL":    "銃身",
+		"WEAPON_PARAM_OPTICS":    "光学",
+		"WEAPON_PARAM_FIREMODE":  "射撃モード",
+		"WEAPON_PARAM_AMMO":      "弾薬",
+		"WEAPON_PARAM_STOCK":     "銃床",
+		"WEAPON_STAT_DAMAGE":     "ダメージ",
+		"WEAPON_STAT_ACCURACY":   "命中率",
+		"WEAPON_STAT_TU":         "TUコスト",
+		"WEAPON_STAT_RANGE":      "射程",
+		"WEAPON_STAT_AMMO":       "弾薬",
+		"WEAPON_STAT_WEIGHT":     "重量",
+		"WEAPON_STAT_STR":        "筋力",
+		"WEAPON_MSG_BUILT":       "武器を製造しました: %s",
+		"WEAPON_MSG_INSUFFICIENT_FUNDS": "資金が不足しています！",
+
 		// ── Equipment ──────────────────────────────────────
 		"EQUIP_TITLE":        "兵士装備",
 		"NO_SOLDIERS":        "兵士がいません。",

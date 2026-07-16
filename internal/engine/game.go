@@ -32,6 +32,7 @@ const (
 	StateTutorial
 	StateLanguageSelect
 	StatePlaneDesigner
+	StateWeaponDesigner
 )
 
 type Screen interface {

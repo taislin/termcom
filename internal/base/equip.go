@@ -138,6 +138,12 @@ func (es *EquipScreen) getAvailableItems() []string {
 				items = append(items, k)
 			}
 		}
+		// Also include custom-designed weapons
+		for k := range es.Base.CustomWeapons {
+			if es.Base.CountItem(k) > 0 {
+				items = append(items, k)
+			}
+		}
 	} else {
 		for k := range data.Armors {
 			if k == "none" {

@@ -412,6 +412,26 @@ func init() {
 		"PLANE_STAT_RANGE":      "Range",
 		"PLANE_MSG_RESET":       "Design reset to default.",
 
+		// ── Weapon Designer
+		"WEAPON_DESIGNER_TITLE":  "武器设计室",
+		"WEAPON_PREVIEW":         "预览",
+		"WEAPON_STATS":           "属性",
+		"WEAPON_PARAMETERS":      "参数",
+		"WEAPON_PARAM_BARREL":    "枪管",
+		"WEAPON_PARAM_OPTICS":    "光学",
+		"WEAPON_PARAM_FIREMODE":  "射击模式",
+		"WEAPON_PARAM_AMMO":      "弹药",
+		"WEAPON_PARAM_STOCK":     "枪托",
+		"WEAPON_STAT_DAMAGE":     "伤害",
+		"WEAPON_STAT_ACCURACY":   "命中率",
+		"WEAPON_STAT_TU":         "TU消耗",
+		"WEAPON_STAT_RANGE":      "射程",
+		"WEAPON_STAT_AMMO":       "弹药",
+		"WEAPON_STAT_WEIGHT":     "重量",
+		"WEAPON_STAT_STR":        "力量",
+		"WEAPON_MSG_BUILT":       "武器制造完成: %s",
+		"WEAPON_MSG_INSUFFICIENT_FUNDS": "资金不足！",
+
 		// ── \u88c5\u5907 ──────────────────────────────────────
 		"EQUIP_TITLE":        "\u88c5\u5907\u58eb\u5175",
 		"NO_SOLDIERS":        "\u540d\u5175\u51b8\u4e2d\u6ca1\u6709\u58eb\u5175\u3002",

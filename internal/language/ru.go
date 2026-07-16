@@ -414,6 +414,26 @@ func init() {
 		"PLANE_STAT_RANGE":      "Range",
 		"PLANE_MSG_RESET":       "Design reset to default.",
 
+		// ── Weapon Designer
+		"WEAPON_DESIGNER_TITLE":  "ПРОЕКТИРОВАНИЕ ОРУЖИЯ",
+		"WEAPON_PREVIEW":         "ПРЕДПРОСМОТР",
+		"WEAPON_STATS":           "ХАРАКТЕРИСТИКИ",
+		"WEAPON_PARAMETERS":      "ПАРАМЕТРЫ",
+		"WEAPON_PARAM_BARREL":    "Ствол",
+		"WEAPON_PARAM_OPTICS":    "Оптика",
+		"WEAPON_PARAM_FIREMODE":  "Режим огня",
+		"WEAPON_PARAM_AMMO":      "Патроны",
+		"WEAPON_PARAM_STOCK":     "Приклад",
+		"WEAPON_STAT_DAMAGE":     "Урон",
+		"WEAPON_STAT_ACCURACY":   "Точность",
+		"WEAPON_STAT_TU":         "Стоимость ОВ",
+		"WEAPON_STAT_RANGE":      "Дальность",
+		"WEAPON_STAT_AMMO":       "Патроны",
+		"WEAPON_STAT_WEIGHT":     "Вес",
+		"WEAPON_STAT_STR":        "Сила",
+		"WEAPON_MSG_BUILT":       "Оружие изготовлено: %s",
+		"WEAPON_MSG_INSUFFICIENT_FUNDS": "Недостаточно средств!",
+
 		// ── Equipment ──────────────────────────────────────
 		"EQUIP_TITLE":        "ЭКИПИРОВКА СОЛДАТ",
 		"NO_SOLDIERS":        "Нет солдат в отряде.",
