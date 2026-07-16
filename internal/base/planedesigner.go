@@ -48,10 +48,10 @@ func (pd *PlaneDesignerScreen) Render(ctx *engine.ScreenCtx) {
 	rightX := leftW + 4
 	rightW := w - rightX - 2
 
-	paramY := 6 + h/2
-	pd.renderPreview(ctx, 2, 3, leftW, paramY-6)
-	pd.renderStats(ctx, rightX, 3, rightW, paramY-6)
-	pd.renderParams(ctx, 2, paramY, w-4)
+	paramY := h - 8
+	pd.renderPreview(ctx, 2, 3, leftW, paramY-4)
+	pd.renderStats(ctx, rightX, 3, rightW, paramY-4)
+	pd.renderParams(ctx, 2, paramY, rightX)
 
 	fundsStr := fmt.Sprintf(language.String("GEOSCAPE_FUNDS"), pd.Game.Funds/1000)
 	ctx.DrawString(w/2, h-3, fundsStr, engine.StyleGreen)
@@ -66,44 +66,63 @@ func (pd *PlaneDesignerScreen) renderPreview(ctx *engine.ScreenCtx, px, py, pw, 
 	ctx.DrawString(px, py-1, language.String("PLANE_PREVIEW"), engine.StyleCyanBold)
 
 	cells := data.RenderPlanePreview(pd.Config)
-	maxX, minX := 0, 999
+	if len(cells) == 0 {
+		return
+	}
+
+	// Compute bounding box so we can centre both axes.
+	minX, maxX := cells[0].X, cells[0].X
+	minY, maxY := cells[0].Y, cells[0].Y
 	for _, c := range cells {
-		if c.X > maxX {
-			maxX = c.X
-		}
 		if c.X < minX {
 			minX = c.X
 		}
+		if c.X > maxX {
+			maxX = c.X
+		}
+		if c.Y < minY {
+			minY = c.Y
+		}
+		if c.Y > maxY {
+			maxY = c.Y
+		}
 	}
 	previewW := maxX - minX + 1
+	previewH := maxY - minY + 1
+
+	// Reserve one row at the bottom for labels.
+	drawH := ph - 1
+	if drawH < 1 {
+		drawH = 1
+	}
 	offsetX := px + (pw-previewW)/2
-	offsetY := py + ph/2
+	offsetY := py + (drawH-previewH)/2 - minY
 
 	for _, c := range cells {
 		sx := offsetX + c.X - minX
 		sy := offsetY + c.Y
-		if sx >= px && sx < px+pw && sy >= py && sy < py+ph {
+		if sx >= px && sx < px+pw && sy >= py && sy < py+drawH {
 			style := engine.StyleCyan
 			switch c.Rune {
-			case '\u25B6', '\u25BC', '\u25B2':
+			case '\u258C', '\u25A0', '\u25A3':
 				style = engine.StyleCyanBold
-			case '\u25CE':
-				style = engine.StyleGreen
-			case '\u25C6':
+			case '\u2501':
 				style = engine.StyleYellow
-			case '\u25E2', '\u25E3', '\u25E4', '\u25E5':
-				style = engine.StyleCyan
 			}
 			ctx.SetCell(sx, sy, c.Rune, style)
 		}
 	}
 
 	stats := data.CalcPlaneStats(pd.Config)
+	labelY := py + ph - 1
+	if labelY < py {
+		labelY = py
+	}
 	dimLabel := fmt.Sprintf(language.String("PLANE_LABEL_DIMS"), pd.Config.Length, pd.Config.Wingspan*2+1)
-	ctx.DrawString(px, py+ph, dimLabel, engine.StyleGray)
+	ctx.DrawString(px, labelY, dimLabel, engine.StyleGray)
 	speedLabel := fmt.Sprintf("%s %.1f", language.String("PLANE_LABEL_SPEED"), stats.Speed)
-	if len(speedLabel) < pw {
-		ctx.DrawString(px+pw-len(speedLabel), py+ph, speedLabel, engine.StyleGray)
+	if len(speedLabel) <= pw {
+		ctx.DrawString(px+pw-len(speedLabel), labelY, speedLabel, engine.StyleGray)
 	}
 }
 
@@ -127,8 +146,21 @@ func (pd *PlaneDesignerScreen) renderStats(ctx *engine.ScreenCtx, sx, sy, sw, sh
 		if sy+i >= sy+sh {
 			break
 		}
-		ctx.DrawString(sx, sy+i, r.label+": ", engine.StyleGray)
-		ctx.DrawString(sx+20, sy+i, r.val, r.style)
+		ctx.DrawString(sx, sy+i, r.label+":", engine.StyleGray)
+	}
+	// Find longest label for alignment.
+	maxLabel := 0
+	for _, r := range rows {
+		if len(r.label) > maxLabel {
+			maxLabel = len(r.label)
+		}
+	}
+	valCol := sx + maxLabel + 2
+	for i, r := range rows {
+		if sy+i >= sy+sh {
+			break
+		}
+		ctx.DrawString(valCol, sy+i, r.val, r.style)
 	}
 
 	yOff := sy + len(rows) + 1
@@ -145,15 +177,21 @@ func (pd *PlaneDesignerScreen) renderStats(ctx *engine.ScreenCtx, sx, sy, sw, sh
 	}
 }
 
-func (pd *PlaneDesignerScreen) renderParams(ctx *engine.ScreenCtx, px, py, pw int) {
+func (pd *PlaneDesignerScreen) renderParams(ctx *engine.ScreenCtx, px, py, cx int) {
 	ctx.DrawString(px, py-1, language.String("PLANE_PARAMETERS"), engine.StyleCyanBold)
 	params := pd.paramList()
 	for i, p := range params {
+		colX := px
+		colY := py + 1 + i
+		if i >= 3 {
+			colX = cx
+			colY = py + 1 + (i - 3)
+		}
 		style := engine.StyleDefault
 		if i == pd.Param {
 			style = engine.StyleHighlight
 		}
-		ctx.DrawString(px, py+1+i, fmt.Sprintf("%-14s %s", p.label, p.value), style)
+		ctx.DrawString(colX, colY, fmt.Sprintf("%-14s %s", p.label, p.value), style)
 	}
 }
 
@@ -317,12 +355,19 @@ func (pd *PlaneDesignerScreen) HandleMouse(e *tcell.EventMouse) {
 		return
 	}
 	x, y := e.Position()
-	_, h := pd.Game.ScreenSize()
+	w, h := pd.Game.ScreenSize()
 
-	paramY := 6 + h/2
+	leftW := w * 45 / 100
+	rightX := leftW + 4
+	paramY := h - 8
 
-	if y >= paramY+1 && y <= paramY+6 {
-		idx := y - (paramY + 1)
+	if y >= paramY+1 && y <= paramY+3 {
+		var idx int
+		if x < rightX {
+			idx = y - (paramY + 1)
+		} else {
+			idx = y - (paramY + 1) + 3
+		}
 		if idx >= 0 && idx < 6 {
 			pd.Param = idx
 			if x > 20 {

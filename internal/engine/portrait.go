@@ -1,13 +1,17 @@
 package engine
 
 import (
+	"math"
 	"sync"
 
-	"github.com/taislin/termcom/internal/data"
 	"github.com/gdamore/tcell/v3"
+	"github.com/taislin/termcom/internal/data"
 )
 
 var alienSpriteCache sync.Map
+
+// sqrt64 is a small helper to avoid importing math at every call site.
+func sqrt64(x float64) float64 { return math.Sqrt(x) }
 
 type spriteCacheKey struct {
 	seed          int64
@@ -113,13 +117,10 @@ func MakeSoldierPortrait(name, armor string, w, h int) *PixelImage {
 	if armor != "" && armor != "none" {
 		if armor == "personal_armor" {
 			armourColor = tcell.NewRGBColor(50, 120, 50)
-			helmetColor = tcell.NewRGBColor(50, 120, 50)
 		} else if armor == "power_suit" {
 			armourColor = tcell.NewRGBColor(120, 120, 120)
-			helmetColor = tcell.NewRGBColor(120, 120, 120)
 		} else {
 			armourColor = tcell.NewRGBColor(80, 80, 150)
-			helmetColor = tcell.NewRGBColor(80, 80, 150)
 		}
 	}
 
@@ -198,9 +199,9 @@ func applyPortraitDithering(img *PixelImage, spec PortraitSpec) {
 			if isSkin {
 				noise := rng.Intn(100)
 				if noise < 25 {
-					img.Pixels[y][x] = DarkenColor(c, 0.65)
+					img.Pixels[y][x] = DarkenColor(c, 0.72)
 				} else if noise < 35 {
-					img.Pixels[y][x] = LightenColor(c, 1.3)
+					img.Pixels[y][x] = LightenColor(c, 1.15)
 				}
 			}
 
@@ -208,10 +209,10 @@ func applyPortraitDithering(img *PixelImage, spec PortraitSpec) {
 				nx := float64(x-g.cx) / float64(g.rx)
 				ny := float64(y-g.cy) / float64(g.ry)
 				dist := nx*nx + ny*ny
-				if dist > 0.5 {
-					f := 1.0 - (dist-0.5)*0.9
-					if f < 0.4 {
-						f = 0.4
+				if dist > 0.7 {
+					f := 1.0 - (dist-0.7)*0.6
+					if f < 0.55 {
+						f = 0.55
 					}
 					img.Pixels[y][x] = DarkenColor(c, f)
 				}
@@ -229,7 +230,7 @@ func applyPortraitDithering(img *PixelImage, spec PortraitSpec) {
 			}
 
 			if isSkin && x == g.cx && y >= g.cy-g.ry/3 && y <= g.noseTipY {
-				img.Pixels[y][x] = LightenColor(c, 1.35)
+				img.Pixels[y][x] = LightenColor(c, 1.2)
 			}
 
 			if isSkin && (x+y)%2 == 0 {
@@ -239,50 +240,71 @@ func applyPortraitDithering(img *PixelImage, spec PortraitSpec) {
 			if isSkin {
 				wrinkleY := g.cy - g.ry/3
 				if y == wrinkleY && x >= g.cx-2 && x <= g.cx+2 {
-					img.Pixels[y][x] = DarkenColor(c, 0.55)
+					img.Pixels[y][x] = DarkenColor(c, 0.65)
 				}
 				wrinkleY2 := g.cy - g.ry/5
 				if y == wrinkleY2 && x >= g.cx-1 && x <= g.cx+1 {
-					img.Pixels[y][x] = DarkenColor(c, 0.6)
+					img.Pixels[y][x] = DarkenColor(c, 0.7)
 				}
 			}
 
 			if isSkin && y >= g.mouthY+2 && y <= g.mouthY+5 {
 				dx := x - g.cx
 				if dx >= -3 && dx <= 3 {
-					img.Pixels[y][x] = DarkenColor(c, 0.55)
+					img.Pixels[y][x] = DarkenColor(c, 0.65)
 				}
 			}
 
 			if isSkin && y >= g.eyeY-4 && y < g.eyeY-1 {
-				img.Pixels[y][x] = DarkenColor(c, 0.7)
+				img.Pixels[y][x] = DarkenColor(c, 0.78)
 			}
 
 			// --- HAIR EFFECTS ---
 			if isHair {
 				if (x+y)%3 == 0 {
-					img.Pixels[y][x] = DarkenColor(c, 0.5)
+					img.Pixels[y][x] = DarkenColor(c, 0.7)
 				} else if (x+y)%4 == 0 {
-					img.Pixels[y][x] = LightenColor(c, 1.25)
+					img.Pixels[y][x] = LightenColor(c, 1.12)
 				}
 			}
 
 			// --- HELMET EFFECTS ---
 			if isHelm {
 				if x%2 == 0 && y%2 == 0 {
-					img.Pixels[y][x] = DarkenColor(c, 0.65)
+					img.Pixels[y][x] = DarkenColor(c, 0.75)
 				} else {
-					img.Pixels[y][x] = LightenColor(c, 1.1)
+					img.Pixels[y][x] = LightenColor(c, 1.08)
 				}
 			}
 
 			// --- ARMOR EFFECTS ---
 			if isArm {
 				if (x+y)%3 == 0 {
-					img.Pixels[y][x] = DarkenColor(c, 0.65)
+					img.Pixels[y][x] = DarkenColor(c, 0.72)
 				} else if (x+y)%4 == 0 {
-					img.Pixels[y][x] = LightenColor(c, 1.1)
+					img.Pixels[y][x] = LightenColor(c, 1.08)
 				}
+			}
+		}
+	}
+
+	// Border darkening pass — darkens ALL non-background pixels near head edge
+	bg := tcell.NewRGBColor(20, 20, 28)
+	for y := 0; y < h; y++ {
+		for x := 0; x < w; x++ {
+			c := img.Pixels[y][x]
+			if c == tcell.ColorDefault || c == bg {
+				continue
+			}
+			nx := float64(x-g.cx) / float64(g.rx)
+			ny := float64(y-g.cy) / float64(g.ry)
+			dist := nx*nx + ny*ny
+			if dist > 0.65 {
+				f := 1.0 - (dist-0.65)*1.4
+				if f < 0.35 {
+					f = 0.35
+				}
+				img.Pixels[y][x] = DarkenColor(c, f)
 			}
 		}
 	}
@@ -678,15 +700,11 @@ func generateMouthLayer(w, h int, skinColor tcell.Color) *PixelImage {
 
 	my := g.mouthY
 
-	// Mouth line (dark crease) — curves up slightly at corners
+	// Mouth line (dark crease) — flat neutral expression
 	for dx := -mouthW; dx <= mouthW; dx++ {
 		px := g.cx + dx
-		lineY := my
-		if dx == -mouthW || dx == mouthW {
-			lineY = my - 1 // corners lift slightly
-		}
-		if px >= 0 && px < w && lineY >= 0 && lineY < h {
-			img.Pixels[lineY][px] = darkLine
+		if px >= 0 && px < w && my >= 0 && my < h {
+			img.Pixels[my][px] = darkLine
 		}
 	}
 
@@ -753,176 +771,296 @@ func generateHairLayer(w, h int, color tcell.Color, style int) *PixelImage {
 	img := NewPixelImage(w, h)
 	g := computeFaceGeom(w, h)
 
-	hairTop := g.cy - g.ry - 2
-	if hairTop < 0 {
-		hairTop = 0
+	darkHair := DarkenColor(color, 0.65)
+	midHair := DarkenColor(color, 0.82)
+	lightHair := LightenColor(color, 1.18)
+
+	// strandColor returns a per-pixel strand-varied shade to break up flat fills.
+	strandColor := func(x, y int) tcell.Color {
+		v := (x*3 + y*2) % 7
+		switch v {
+		case 0:
+			return darkHair
+		case 1, 2:
+			return lightHair
+		case 3:
+			return midHair
+		default:
+			return color
+		}
 	}
-	darkHair := DarkenColor(color, 0.7)
-	lightHair := LightenColor(color, 1.15)
+
+	// headTopY returns the topmost Y of the head ellipse at column x, or -1 if outside.
+	headTopY := func(x int) int {
+		dx := float64(x - g.cx)
+		if dx < 0 {
+			dx = -dx
+		}
+		rx := float64(g.rx)
+		if dx > rx {
+			return -1
+		}
+		t := 1.0 - (dx/rx)*(dx/rx)
+		if t < 0 {
+			t = 0
+		}
+		return int(float64(g.cy)-float64(g.ry)*sqrt64(t) + 0.5)
+	}
+
+	// setHairCol paints one vertical column of hair from topY downward, depth pixels.
+	setHairCol := func(x, topY, depth int) {
+		for dy := 0; dy < depth; dy++ {
+			py := topY + dy
+			if py < 0 || py >= h || x < 0 || x >= w {
+				continue
+			}
+			img.Pixels[py][x] = strandColor(x, py)
+		}
+	}
+
+	// sideHair paints a vertical strip on the sides of the head (for longer styles).
+	sideHair := func(thickness int) {
+		for side := -1; side <= 1; side += 2 {
+			for y := g.cy - g.ry/5; y <= g.cy+g.ry/4; y++ {
+				for d := 0; d < thickness; d++ {
+					sx := g.cx + side*(g.rx-d)
+					if sx >= 0 && sx < w && y >= 0 && y < h {
+						img.Pixels[y][sx] = strandColor(sx, y)
+					}
+				}
+			}
+		}
+	}
 
 	switch style {
-	case 0: // Buzzcut
-		for y := hairTop; y <= g.cy-g.ry/3; y++ {
-			for x := g.cx - g.rx - 1; x <= g.cx+g.rx+1; x++ {
-				if x >= 0 && x < w && y >= 0 && y < h {
-					if inHead(x, y, g) && y < g.cy {
-						img.Pixels[y][x] = color
+	case 0: // Buzzcut — razor-thin, 1-2px cap, heavy temple recession
+		for x := 0; x < w; x++ {
+			ty := headTopY(x)
+			if ty < 0 {
+				continue
+			}
+			dx := x - g.cx
+			if dx < 0 {
+				dx = -dx
+			}
+			templeF := 1.0 - float64(dx)/float64(g.rx+1)
+			depth := int(2.0*templeF + 0.5)
+			if depth < 1 {
+				depth = 1
+			}
+			setHairCol(x, ty, depth)
+		}
+
+	case 1: // Medium — natural crown shape, 3-5px, side wisps
+		for x := 0; x < w; x++ {
+			ty := headTopY(x)
+			if ty < 0 {
+				continue
+			}
+			dx := x - g.cx
+			if dx < 0 {
+				dx = -dx
+			}
+			templeF := 1.0 - float64(dx)/float64(g.rx+1)*0.7
+			depth := int(5.0*templeF + 0.5)
+			if depth < 1 {
+				depth = 1
+			}
+			setHairCol(x, ty, depth)
+		}
+		sideHair(2)
+
+	case 2: // Spiky — alternating taller spikes on crown only
+		for x := 0; x < w; x++ {
+			ty := headTopY(x)
+			if ty < 0 {
+				continue
+			}
+			dx := x - g.cx
+			if dx < 0 {
+				dx = -dx
+			}
+			if dx > g.rx*3/5 {
+				continue
+			}
+			spikeExtra := 0
+			if x%2 == 0 {
+				spikeExtra = 4 - dx/2
+				if spikeExtra < 0 {
+					spikeExtra = 0
+				}
+			}
+			setHairCol(x, ty-spikeExtra, 3+spikeExtra)
+		}
+
+	case 3: // Afro — rounded puff extending beyond head ellipse
+		afroRX := float64(g.rx) * 1.35
+		afroRY := float64(g.ry) * 0.85
+		afroCY := float64(g.cy) - float64(g.ry)*0.15
+		for y := int(afroCY-afroRY) - 1; y <= g.cy; y++ {
+			for x := g.cx - int(afroRX) - 1; x <= g.cx+int(afroRX)+1; x++ {
+				if x < 0 || x >= w || y < 0 || y >= h {
+					continue
+				}
+				dx := float64(x - g.cx)
+				dy := float64(y) - afroCY
+				if (dx*dx)/(afroRX*afroRX)+(dy*dy)/(afroRY*afroRY) <= 1.0 {
+					inHead := (dx*dx)/float64(g.rx*g.rx)+(dy*dy)/float64(g.ry*g.ry) <= 1.0
+					rx2, ry2 := float64(g.rx-4), float64(g.ry-4)
+					if rx2 < 1 {
+						rx2 = 1
+					}
+					if ry2 < 1 {
+						ry2 = 1
+					}
+					innerShell := (dx*dx)/(rx2*rx2)+(dy*dy)/(ry2*ry2) <= 1.0
+					if !inHead || !innerShell {
+						img.Pixels[y][x] = strandColor(x, y)
 					}
 				}
 			}
 		}
 
-	case 1: // Long hair / sides
-		for y := hairTop; y <= g.cy+g.ry/2; y++ {
-			for x := g.cx - g.rx - 2; x <= g.cx+g.rx+2; x++ {
-				if x >= 0 && x < w && y >= 0 && y < h {
-					dx := float64(x - g.cx)
-					dy := float64(y - g.cy)
-					val := (dx*dx)/(float64(g.rx*g.rx)) + (dy*dy)/(float64(g.ry*g.ry))
-					onTop := val <= 1.3 && val >= 0.85 && y < g.cy
-					onSide := (x < g.cx-g.rx+2 || x > g.cx+g.rx-2) && y >= g.cy && y <= g.cy+g.ry/2
-					if onTop || onSide {
-						img.Pixels[y][x] = color
-						if onSide && (x == g.cx-g.rx-1 || x == g.cx+g.rx+1 || y == g.cy+g.ry/2) {
-							img.Pixels[y][x] = darkHair
-						}
+	case 4: // Side part — full coverage with visible dark part groove
+		for x := 0; x < w; x++ {
+			ty := headTopY(x)
+			if ty < 0 {
+				continue
+			}
+			dx := x - g.cx
+			if dx < 0 {
+				dx = -dx
+			}
+			templeF := 1.0 - float64(dx)/float64(g.rx+1)*0.5
+			depth := int(6.0*templeF + 0.5)
+			if depth < 1 {
+				depth = 1
+			}
+			setHairCol(x, ty, depth)
+		}
+		partX := g.cx + g.rx/4
+		for dy := 0; dy < 5; dy++ {
+			ty := headTopY(partX)
+			if ty >= 0 {
+				py := ty + dy
+				if py >= 0 && py < h && partX >= 0 && partX < w {
+					img.Pixels[py][partX] = darkHair
+				}
+			}
+		}
+
+	case 5: // Curly — medium depth with curl texture alternation
+		for x := 0; x < w; x++ {
+			ty := headTopY(x)
+			if ty < 0 {
+				continue
+			}
+			dx := x - g.cx
+			if dx < 0 {
+				dx = -dx
+			}
+			templeF := 1.0 - float64(dx)/float64(g.rx+1)*0.6
+			depth := int(5.0*templeF + 0.5)
+			if depth < 1 {
+				depth = 1
+			}
+			for dy := 0; dy < depth; dy++ {
+				py := ty + dy
+				if py < 0 || py >= h || x < 0 || x >= w {
+					continue
+				}
+				switch (x + py) % 3 {
+				case 0:
+					img.Pixels[py][x] = lightHair
+				case 1:
+					img.Pixels[py][x] = darkHair
+				default:
+					img.Pixels[py][x] = color
+				}
+			}
+		}
+		sideHair(2)
+
+	case 6: // Ponytail — top hair + narrow strip falling on right
+		for x := 0; x < w; x++ {
+			ty := headTopY(x)
+			if ty < 0 {
+				continue
+			}
+			dx := x - g.cx
+			if dx < 0 {
+				dx = -dx
+			}
+			templeF := 1.0 - float64(dx)/float64(g.rx+1)*0.55
+			depth := int(5.0*templeF + 0.5)
+			if depth < 1 {
+				depth = 1
+			}
+			setHairCol(x, ty, depth)
+		}
+		tailX := g.cx + g.rx
+		for y := g.cy - g.ry/3; y <= g.cy+g.ry; y++ {
+			for d := 0; d < 2; d++ {
+				tx := tailX + d
+				if tx >= 0 && tx < w && y >= 0 && y < h {
+					img.Pixels[y][tx] = strandColor(tx, y)
+				}
+			}
+		}
+
+	case 7: // Undercut — crown-only, stark shaved sides
+		crownW := g.rx * 3 / 5
+		for x := g.cx - crownW; x <= g.cx+crownW; x++ {
+			ty := headTopY(x)
+			if ty < 0 {
+				continue
+			}
+			dx := x - g.cx
+			if dx < 0 {
+				dx = -dx
+			}
+			templeF := 1.0 - float64(dx)/float64(crownW+1)*0.3
+			depth := int(4.0*templeF + 0.5)
+			if depth < 1 {
+				depth = 1
+			}
+			setHairCol(x, ty, depth)
+		}
+		for side := -1; side <= 1; side += 2 {
+			ex := g.cx + side*(crownW+1)
+			ty := headTopY(ex)
+			if ty >= 0 && ex >= 0 && ex < w {
+				for dy := 0; dy < 3; dy++ {
+					py := ty + dy
+					if py >= 0 && py < h {
+						img.Pixels[py][ex] = darkHair
 					}
 				}
 			}
 		}
 
-	case 2: // Spiky / mohawk
-		for y := hairTop - 3; y <= g.cy-g.ry/3; y++ {
-			for x := g.cx - g.rx/2; x <= g.cx+g.rx/2; x++ {
-				if x >= 0 && x < w && y >= 0 && y < h {
-					if y < g.cy-g.ry+2 {
-						if (x-g.cx)%2 == 0 {
-							img.Pixels[y][x] = color
-						}
-					} else if inHead(x, y, g) && y < g.cy {
-						img.Pixels[y][x] = color
-					}
-				}
+	default: // Short cropped — thin curved shell, heavy recession
+		for x := 0; x < w; x++ {
+			ty := headTopY(x)
+			if ty < 0 {
+				continue
 			}
-		}
-
-	case 3: // Afro
-		afroR := float64(g.rx) * 1.4
-		afroCY := float64(g.cy - g.ry/2)
-		for y := hairTop - 2; y <= g.cy-g.ry/3; y++ {
-			for x := g.cx - int(afroR) - 1; x <= g.cx+int(afroR)+1; x++ {
-				if x >= 0 && x < w && y >= 0 && y < h {
-					dx := float64(x - g.cx)
-					dy := float64(y) - afroCY
-					if dx*dx+dy*dy <= afroR*afroR && float64(y) < afroCY+afroR*0.5 {
-						img.Pixels[y][x] = color
-						if dx*dx+dy*dy > afroR*afroR*0.7 {
-							img.Pixels[y][x] = darkHair
-						}
-					}
-				}
+			dx := x - g.cx
+			if dx < 0 {
+				dx = -dx
 			}
-		}
-
-	case 4: // Parted / slicked
-		for y := hairTop; y <= g.cy-g.ry/4; y++ {
-			for x := g.cx - g.rx - 1; x <= g.cx+g.rx+1; x++ {
-				if x >= 0 && x < w && y >= 0 && y < h {
-					if inHead(x, y, g) && y < g.cy {
-						img.Pixels[y][x] = color
-					}
-				}
+			templeF := 1.0 - float64(dx)/float64(g.rx+1)*0.8
+			depth := int(3.0*templeF + 0.5)
+			if depth < 1 {
+				depth = 1
 			}
-		}
-		// Part line
-		partX := g.cx + g.rx/3
-		for y := hairTop; y <= g.cy-g.ry/2; y++ {
-			if partX >= 0 && partX < w && y >= 0 && y < h {
-				img.Pixels[y][partX] = darkHair
-			}
-		}
-
-	case 5: // Curly — rounded tufts
-		afroR := float64(g.rx) * 1.2
-		afroCY := float64(g.cy - g.ry/2)
-		for y := hairTop - 1; y <= g.cy-g.ry/3; y++ {
-			for x := g.cx - int(afroR) - 1; x <= g.cx+int(afroR)+1; x++ {
-				if x >= 0 && x < w && y >= 0 && y < h {
-					dx := float64(x - g.cx)
-					dy := float64(y) - afroCY
-					dist := dx*dx + dy*dy
-					if dist <= afroR*afroR && float64(y) < afroCY+afroR*0.4 {
-						// Create curl pattern with alternating light/dark
-						curl := (x+y)%3 == 0
-						if curl {
-							img.Pixels[y][x] = lightHair
-						} else if dist > afroR*afroR*0.6 {
-							img.Pixels[y][x] = darkHair
-						} else {
-							img.Pixels[y][x] = color
-						}
-					}
-				}
-			}
-		}
-
-	case 6: // Ponytail — hair on top + tail down one side
-		// Top part
-		for y := hairTop; y <= g.cy-g.ry/3; y++ {
-			for x := g.cx - g.rx - 1; x <= g.cx+g.rx+1; x++ {
-				if x >= 0 && x < w && y >= 0 && y < h {
-					if inHead(x, y, g) && y < g.cy {
-						img.Pixels[y][x] = color
-					}
-				}
-			}
-		}
-		// Tail — hangs down from right side
-		tailX := g.cx + g.rx + 1
-		for y := g.cy - g.ry/2; y <= g.cy+g.ry; y++ {
-			if tailX >= 0 && tailX < w && y >= 0 && y < h {
-				img.Pixels[y][tailX] = color
-				if tailX+1 < w {
-					img.Pixels[y][tailX+1] = darkHair
-				}
-			}
-		}
-
-	case 7: // Shaved sides / undercut — short on top, skin on sides
-		// Short hair on top only
-		for y := hairTop; y <= g.cy-g.ry/2; y++ {
-			for x := g.cx - g.rx/2; x <= g.cx+g.rx/2; x++ {
-				if x >= 0 && x < w && y >= 0 && y < h {
-					if inHead(x, y, g) && y < g.cy {
-						img.Pixels[y][x] = color
-					}
-				}
-			}
-		}
-		// Fade gradient on sides
-		for y := g.cy - g.ry/2; y <= g.cy-g.ry/4; y++ {
-			for side := -1; side <= 1; side += 2 {
-				fadeX := g.cx + side*(g.rx/2+1)
-				if fadeX >= 0 && fadeX < w && y >= 0 && y < h {
-					img.Pixels[y][fadeX] = darkHair
-				}
-			}
-		}
-
-	default: // Short cropped
-		for y := hairTop; y <= g.cy-g.ry/3; y++ {
-			for x := g.cx - g.rx; x <= g.cx+g.rx; x++ {
-				if x >= 0 && x < w && y >= 0 && y < h {
-					if inHead(x, y, g) && y < g.cy {
-						img.Pixels[y][x] = color
-					}
-				}
-			}
+			setHairCol(x, ty, depth)
 		}
 	}
 
 	return img
 }
+
 
 func generateHelmetLayer(w, h int, color tcell.Color) *PixelImage {
 	img := NewPixelImage(w, h)

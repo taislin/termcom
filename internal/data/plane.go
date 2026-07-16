@@ -137,106 +137,113 @@ func CalcPlaneStats(cfg PlaneConfig) PlaneStats {
 	}
 }
 
-// DefaultPlanePreview renders a top-down ASCII preview of a plane config.
-// Returns a slice of (x, y, rune) for each character to draw.
+// PlaneCell is a single character in the plane ASCII preview.
 type PlaneCell struct {
 	X, Y int
 	Rune rune
 }
 
-// Plane preview parameters
-const (
-	previewLen    = 7
-	previewWing   = 4
-	previewCenter = previewWing // Y offset for center line
-)
-
-// RenderPlanePreview generates the Unicode art for a plane configuration.
-// The plane faces right (nose on the right).
+// RenderPlanePreview generates block-art for a plane configuration.
+// The plane faces right (nose on the right). All characters are BMP block/box
+// drawing symbols — no diagonal triangle chars.
 func RenderPlanePreview(cfg PlaneConfig) []PlaneCell {
 	var cells []PlaneCell
-	length := cfg.Length
-	wingspan := cfg.Wingspan
 
-	// Normalize to preview scale
-	fuseLen := length
-	if fuseLen > previewLen {
-		fuseLen = previewLen
-	}
+	// Clamp parameters to renderable range.
+	fuseLen := cfg.Length
 	if fuseLen < 3 {
 		fuseLen = 3
 	}
-	wingSpan := wingspan
-	if wingSpan > previewWing {
-		wingSpan = previewWing
+	if fuseLen > 9 {
+		fuseLen = 9
 	}
+	wingSpan := cfg.Wingspan
 	if wingSpan < 1 {
 		wingSpan = 1
 	}
-
-	centerY := previewCenter
-	noseX := 1
-	tailX := noseX + fuseLen - 1
-	wingStart := noseX + 2
-	wingEnd := tailX - 1
-	if wingEnd < wingStart {
-		wingEnd = wingStart
+	if wingSpan > 5 {
+		wingSpan = 5
 	}
 
-	// Fuselage (center line)
-	for x := noseX; x <= tailX; x++ {
-		cells = append(cells, PlaneCell{X: x, Y: centerY, Rune: '\u25A0'})
+	// Layout: plane is drawn on a grid where row 0 is the fuselage centre.
+	// Positive Y = below, negative Y = above.
+	// Caller re-centres the bounding box, so we just use natural coordinates.
+
+	noseX := 0         // leftmost X (nose tip)
+	tailX := fuseLen   // rightmost fuselage cell (engines attach at tailX+1)
+	wingMidX := fuseLen/2 + 1 // X column where wings are widest
+
+	// ── Nose ──────────────────────────────────────────────────────────────────
+	// Nose: left half-block pointing right
+	cells = append(cells, PlaneCell{X: noseX, Y: 0, Rune: '\u258C'}) // ▌
+
+	// ── Fuselage ──────────────────────────────────────────────────────────────
+	for x := noseX + 1; x <= tailX; x++ {
+		r := '\u2588' // █ solid block
+		if x == noseX+2 && fuseLen > 3 {
+			r = '\u25A3' // ▣ cockpit window
+		}
+		cells = append(cells, PlaneCell{X: x, Y: 0, Rune: r})
 	}
 
-	// Nose cone
-	cells = append(cells, PlaneCell{X: noseX - 1, Y: centerY, Rune: '\u25B6'})
-
-	// Cockpit window (second cell from nose)
-	if fuseLen > 2 {
-		cells = append(cells, PlaneCell{X: noseX + 1, Y: centerY, Rune: '\u25C6'})
-	}
-
-	// Wings (extending above and below center)
+	// ── Wings ─────────────────────────────────────────────────────────────────
+	// Each wing row: a horizontal bar of ▄ (upper wing) / ▀ (lower wing).
+	// Widest at wingMidX, tapering by 1 cell per row outward.
 	for wy := 1; wy <= wingSpan; wy++ {
-		for x := wingStart; x <= wingEnd; x++ {
-			// Taper: outer wings are shorter
-			if wy == wingSpan && (x == wingStart || x == wingEnd) {
-				continue
-			}
-			cells = append(cells, PlaneCell{X: x, Y: centerY - wy, Rune: '\u25E3'})
-			cells = append(cells, PlaneCell{X: x, Y: centerY + wy, Rune: '\u25E2'})
+		// Wing span at this distance from fuselage tapers inward.
+		wingLeft := noseX + 2
+		wingRight := tailX - 1
+		// Taper: remove one cell from each end per wing row after the first.
+		taper := wy - 1
+		wingLeft += taper
+		wingRight -= taper
+		if wingLeft > wingRight {
+			// Draw at least the centre column as a stub.
+			wingLeft = wingMidX
+			wingRight = wingMidX
 		}
-		// Wing tips
-		if wy < wingSpan {
-			cells = append(cells, PlaneCell{X: wingStart - 1, Y: centerY - wy, Rune: '\u25E5'})
-			cells = append(cells, PlaneCell{X: wingStart - 1, Y: centerY + wy, Rune: '\u25E4'})
+		for x := wingLeft; x <= wingRight; x++ {
+			cells = append(cells, PlaneCell{X: x, Y: -wy, Rune: '\u2580'}) // ▀ upper half-block
+			cells = append(cells, PlaneCell{X: x, Y: wy, Rune: '\u2584'})  // ▄ lower half-block
 		}
+		// Wing leading-edge cap
+		cells = append(cells, PlaneCell{X: wingLeft - 1, Y: -wy, Rune: '\u258C'}) // ▌
+		cells = append(cells, PlaneCell{X: wingLeft - 1, Y: wy, Rune: '\u258C'})  // ▌
 	}
 
-	// Engines (at tail, offset from center)
+	// ── Tail fins ─────────────────────────────────────────────────────────────
+	// Small vertical fin stubs at the tail using half-blocks.
+	finX := tailX - 1
+	if finX < noseX+1 {
+		finX = noseX + 1
+	}
+	cells = append(cells, PlaneCell{X: finX, Y: -(wingSpan + 1), Rune: '\u2590'}) // ▐
+	cells = append(cells, PlaneCell{X: finX, Y: wingSpan + 1, Rune: '\u2590'})    // ▐
+
+	// ── Engines ───────────────────────────────────────────────────────────────
+	// Engines are solid blocks attached at the tail.
+	engX := tailX + 1
 	if cfg.Engines >= 1 {
-		cells = append(cells, PlaneCell{X: tailX + 1, Y: centerY, Rune: '\u25CE'})
+		cells = append(cells, PlaneCell{X: engX, Y: 0, Rune: '\u25A0'})  // ■
 	}
 	if cfg.Engines >= 2 {
-		cells = append(cells, PlaneCell{X: tailX + 1, Y: centerY - 1, Rune: '\u25CE'})
-		cells = append(cells, PlaneCell{X: tailX + 1, Y: centerY + 1, Rune: '\u25CE'})
+		cells = append(cells, PlaneCell{X: engX, Y: -1, Rune: '\u25A0'}) // ■
+		cells = append(cells, PlaneCell{X: engX, Y: 1, Rune: '\u25A0'})  // ■
 	}
 	if cfg.Engines >= 3 {
-		cells = append(cells, PlaneCell{X: tailX + 2, Y: centerY, Rune: '\u25CE'})
+		cells = append(cells, PlaneCell{X: engX + 1, Y: -1, Rune: '\u25A0'}) // ■
+		cells = append(cells, PlaneCell{X: engX + 1, Y: 1, Rune: '\u25A0'})  // ■
 	}
 
-	// Tail fins
-	cells = append(cells, PlaneCell{X: tailX - 1, Y: centerY - wingSpan - 1, Rune: '\u25BC'})
-	cells = append(cells, PlaneCell{X: tailX - 1, Y: centerY + wingSpan + 1, Rune: '\u25B2'})
-
-	// Weapons (under wings)
+	// ── Weapon hardpoints ─────────────────────────────────────────────────────
 	if cfg.Weapon >= 0 && cfg.Weapon < len(PlaneWeapons) {
-		weaponX := wingStart + 1
-		if weaponX > wingEnd {
-			weaponX = wingEnd
+		hpX := noseX + 3
+		if hpX > tailX-1 {
+			hpX = tailX - 1
 		}
-		cells = append(cells, PlaneCell{X: weaponX, Y: centerY - wingSpan - 1, Rune: '\u25B2'})
-		cells = append(cells, PlaneCell{X: weaponX, Y: centerY + wingSpan + 1, Rune: '\u25BC'})
+		// Weapon pod: a short dash on the wing tips.
+		cells = append(cells, PlaneCell{X: hpX, Y: -(wingSpan + 1), Rune: '\u2501'}) // ━
+		cells = append(cells, PlaneCell{X: hpX, Y: wingSpan + 1, Rune: '\u2501'})    // ━
 	}
 
 	return cells

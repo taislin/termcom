@@ -39,10 +39,10 @@ func (wd *WeaponDesignerScreen) Render(ctx *engine.ScreenCtx) {
 	rightX := leftW + 4
 	rightW := w - rightX - 2
 
-	paramY := 6 + h/2
-	wd.renderPreview(ctx, 2, 3, leftW, paramY-6)
-	wd.renderStats(ctx, rightX, 3, rightW, paramY-6)
-	wd.renderParams(ctx, 2, paramY, w-4)
+	paramY := h - 8
+	wd.renderPreview(ctx, 2, 3, leftW, paramY-4)
+	wd.renderStats(ctx, rightX, 3, rightW, paramY-4)
+	wd.renderParams(ctx, 2, paramY, rightX)
 
 	fundsStr := fmt.Sprintf(language.String("GEOSCAPE_FUNDS"), wd.Game.Funds/1000)
 	ctx.DrawString(w/2, h-3, fundsStr, engine.StyleGreen)
@@ -90,66 +90,71 @@ func (wd *WeaponDesignerScreen) renderWeaponArt() []weaponCell {
 	isAuto := wd.Design.Auto
 	stock := wd.Design.Stock
 
-	// Muzzle
+	// Muzzle (2 rows high: Y=0 top, Y=1 bottom)
 	muzzleLen := 1 + barrel
 	for i := 0; i < muzzleLen; i++ {
-		cells = append(cells, weaponCell{X: i, Y: 1, Rune: '\u2500', Style: engine.StyleCyan})
+		cells = append(cells, weaponCell{X: i, Y: 0, Rune: '\u2588', Style: engine.StyleCyan})
+		cells = append(cells, weaponCell{X: i, Y: 1, Rune: '\u2588', Style: engine.StyleCyan})
 	}
-	// Muzzle tip
-	cells = append(cells, weaponCell{X: muzzleLen, Y: 1, Rune: '\u25B8', Style: engine.StyleCyanBold})
+	// Muzzle tip (flat right-cap)
+	cells = append(cells, weaponCell{X: muzzleLen, Y: 0, Rune: '\u2590', Style: engine.StyleCyanBold})
+	cells = append(cells, weaponCell{X: muzzleLen, Y: 1, Rune: '\u2590', Style: engine.StyleCyanBold})
 
-	// Barrel body
+	// Barrel body (handguard, 2 rows, seamless continuation)
 	barrelStart := muzzleLen + 1
 	barrelEnd := barrelStart + 2
 	for x := barrelStart; x <= barrelEnd; x++ {
-		cells = append(cells, weaponCell{X: x, Y: 0, Rune: '\u2580', Style: engine.StyleCyan})
+		cells = append(cells, weaponCell{X: x, Y: 0, Rune: '\u2588', Style: engine.StyleCyan})
 		cells = append(cells, weaponCell{X: x, Y: 1, Rune: '\u2588', Style: engine.StyleCyan})
-		cells = append(cells, weaponCell{X: x, Y: 2, Rune: '\u2584', Style: engine.StyleCyan})
 	}
 
 	// Optics (on top of receiver)
 	receiverStart := barrelEnd + 1
 	if optics > 0 {
-		opticChar := '\u25CE'
+		opticChar := '\u25C9' // ◉
 		if optics >= 2 {
-			opticChar = '\u25C9'
+			opticChar = '\u25CE' // ◎
 		}
 		if optics >= 3 {
-			opticChar = '\u25DF'
+			opticChar = '\u2605' // ★
 		}
 		cells = append(cells, weaponCell{X: receiverStart + 1, Y: 0, Rune: opticChar, Style: engine.StyleYellow})
 	}
 
-	// Receiver
+	// Receiver (2 rows high, solid blocks in bold)
 	receiverEnd := receiverStart + 2
 	for x := receiverStart; x <= receiverEnd; x++ {
-		cells = append(cells, weaponCell{X: x, Y: 1, Rune: '\u25A0', Style: engine.StyleCyanBold})
+		cells = append(cells, weaponCell{X: x, Y: 0, Rune: '\u2588', Style: engine.StyleCyanBold})
+		cells = append(cells, weaponCell{X: x, Y: 1, Rune: '\u2588', Style: engine.StyleCyanBold})
 	}
 
-	// Grip
-	cells = append(cells, weaponCell{X: receiverEnd - 1, Y: 2, Rune: '\u2514', Style: engine.StyleCyan})
-	cells = append(cells, weaponCell{X: receiverEnd - 1, Y: 3, Rune: '\u2502', Style: engine.StyleCyan})
+	// Grip (solid blocks below receiver)
+	cells = append(cells, weaponCell{X: receiverEnd - 1, Y: 2, Rune: '\u2588', Style: engine.StyleCyan})
+	cells = append(cells, weaponCell{X: receiverEnd - 1, Y: 3, Rune: '\u2588', Style: engine.StyleCyan})
 
-	// Stock
+	// Stock (2 rows high)
 	stockStart := receiverEnd + 1
 	stockLen := 2 + stock
+	for i := 0; i < stockLen; i++ {
+		cells = append(cells, weaponCell{X: stockStart + i, Y: 0, Rune: '\u2588', Style: engine.StyleCyan})
+		cells = append(cells, weaponCell{X: stockStart + i, Y: 1, Rune: '\u2588', Style: engine.StyleCyan})
+	}
+	// Buttplate (at end of stock, 2 rows, bold vertical cap)
 	if stock > 0 {
-		for i := 0; i < stockLen; i++ {
-			cells = append(cells, weaponCell{X: stockStart + i, Y: 1, Rune: '\u2588', Style: engine.StyleCyan})
-		}
+		buttX := stockStart + stockLen - 1
+		cells = append(cells, weaponCell{X: buttX, Y: 0, Rune: '\u2590', Style: engine.StyleCyanBold})
+		cells = append(cells, weaponCell{X: buttX, Y: 1, Rune: '\u2590', Style: engine.StyleCyanBold})
 	}
 
-	// Magazine (if ammo type > 0)
+	// Magazine (single solid block below receiver, only if ammo type > 0)
 	if wd.Design.AmmoType > 0 {
-		magChar := '\u25BC'
-		cells = append(cells, weaponCell{X: receiverStart + 1, Y: 2, Rune: magChar, Style: engine.StyleRed})
-		cells = append(cells, weaponCell{X: receiverStart + 1, Y: 3, Rune: '\u2502', Style: engine.StyleRed})
+		cells = append(cells, weaponCell{X: receiverStart + 1, Y: 2, Rune: '\u2588', Style: engine.StyleRed})
 	}
 
-	// Auto indicator
+	// Auto indicator: two solid blocks above the stock area.
 	if isAuto {
-		cells = append(cells, weaponCell{X: receiverEnd + 1, Y: 0, Rune: '\u25B6', Style: engine.StyleGreen})
-		cells = append(cells, weaponCell{X: receiverEnd + 2, Y: 0, Rune: '\u25B6', Style: engine.StyleGreen})
+		cells = append(cells, weaponCell{X: receiverEnd + 1, Y: 0, Rune: '\u25A0', Style: engine.StyleGreen})
+		cells = append(cells, weaponCell{X: receiverEnd + 2, Y: 0, Rune: '\u25A0', Style: engine.StyleGreen})
 	}
 
 	return cells
@@ -178,12 +183,24 @@ func (wd *WeaponDesignerScreen) renderStats(ctx *engine.ScreenCtx, sx, sy, sw, s
 		if sy+i >= sy+sh {
 			break
 		}
-		ctx.DrawString(sx, sy+i, r.label+": ", engine.StyleGray)
-		ctx.DrawString(sx+18, sy+i, r.val, r.style)
+		ctx.DrawString(sx, sy+i, r.label+":", engine.StyleGray)
+	}
+	maxLabel := 0
+	for _, r := range rows {
+		if len(r.label) > maxLabel {
+			maxLabel = len(r.label)
+		}
+	}
+	valCol := sx + maxLabel + 2
+	for i, r := range rows {
+		if sy+i >= sy+sh {
+			break
+		}
+		ctx.DrawString(valCol, sy+i, r.val, r.style)
 	}
 }
 
-func (wd *WeaponDesignerScreen) renderParams(ctx *engine.ScreenCtx, px, py, pw int) {
+func (wd *WeaponDesignerScreen) renderParams(ctx *engine.ScreenCtx, px, py, cx int) {
 	ctx.DrawString(px, py-1, language.String("WEAPON_PARAMETERS"), engine.StyleCyanBold)
 
 	labels := data.WeaponDesignBarLabels(wd.Design)
@@ -195,6 +212,12 @@ func (wd *WeaponDesignerScreen) renderParams(ctx *engine.ScreenCtx, px, py, pw i
 		language.String("WEAPON_PARAM_STOCK"),
 	}
 	for i, name := range paramNames {
+		colX := px
+		colY := py + 1 + i
+		if i >= 3 {
+			colX = cx
+			colY = py + 1 + (i - 3)
+		}
 		style := engine.StyleDefault
 		if i == wd.Param {
 			style = engine.StyleHighlight
@@ -203,7 +226,7 @@ func (wd *WeaponDesignerScreen) renderParams(ctx *engine.ScreenCtx, px, py, pw i
 		if i < len(labels) {
 			bar = labels[i]
 		}
-		ctx.DrawString(px, py+1+i, fmt.Sprintf("%-12s  < %s >", name, bar), style)
+		ctx.DrawString(colX, colY, fmt.Sprintf("%-12s  < %s >", name, bar), style)
 	}
 }
 
@@ -320,12 +343,22 @@ func (wd *WeaponDesignerScreen) HandleMouse(e *tcell.EventMouse) {
 		return
 	}
 	x, y := e.Position()
-	_, h := wd.Game.ScreenSize()
+	w, h := wd.Game.ScreenSize()
 
-	paramY := 6 + h/2
+	leftW := w * 45 / 100
+	rightX := leftW + 4
+	paramY := h - 8
 
-	if y >= paramY+1 && y <= paramY+5 {
-		idx := y - (paramY + 1)
+	if y >= paramY+1 && y <= paramY+3 {
+		var idx int
+		if x < rightX {
+			idx = y - (paramY + 1)
+		} else {
+			if y > paramY+2 {
+				return
+			}
+			idx = y - (paramY + 1) + 3
+		}
 		if idx >= 0 && idx < 5 {
 			wd.Param = idx
 			if x > 20 {
