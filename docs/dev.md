@@ -4,7 +4,7 @@ Build, test, and development reference for the termcom codebase.
 
 ## Prerequisites
 
-- Go 1.21+
+- Go 1.25+
 - Terminal with true-color support (for VFX, lighting effects)
 
 ## Building & Running
@@ -247,7 +247,7 @@ internal/
 - **Map tiles:** rune-based with tcell.Style coloring
 - **AI:** Behavior tree pattern with patrol, seek, attack, flee, flank, retreat
 - **Save system:** JSON-based with version migration (current: v3)
-- **Audio:** oto-based PCM synthesis on Windows, terminal BEL fallback on Linux/macOS
+- **Audio:** MIDI synthesis on Windows, oto-based PCM synthesis on Linux/macOS
 
 ## Common Development Tasks
 
@@ -275,7 +275,7 @@ internal/
 
 1. Add generator function to `internal/battle/map.go`
 2. Add case to `NewBattlescape` switch in `internal/battle/battlescape.go`
-3. Add entry to `cmd/test_battle/main.go` for testing
+3. Add entry to `cmd/termcom_battle/main.go` for testing
 
 ### Adding a new item
 

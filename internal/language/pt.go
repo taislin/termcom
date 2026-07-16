@@ -191,7 +191,7 @@ func init() {
 		"SIDE_POS":         "[%d,%d]",
 		"SIDE_CROUCH":      "Agachado",
 		"SIDE_NONE":        "(nenhum)",
-		"BATTLE_HELP":      " [Setas]/[WSAD]=Mover [Espa\u00e7o]/[Enter]=Agir [q]=Circular [f]=Disparar [r]=Recarregar [g]=Granada [m]=Kit m\u00e9dico [p]=Psi [e]=Terminar [c]=Agachar",
+		"BATTLE_HELP":      " [Setas]=Mover [Espa\u00e7o]/[Enter]=Agir [q]=Circular [f]=Disparar [r]=Recarregar [g]=Granada [m]=Move [h]=Kit m\u00e9dico [p]=Psi [e]=Terminar [c]=Agachar",
 
 		// Phases
 		"PHASE_YOUR_TURN":  "O SEU TURNO",
@@ -321,7 +321,7 @@ func init() {
 		"MSG_VISION_NORMAL":  "VIS\u00c3O NORMAL",
 
 		// Battlescape help bars
-		"HELP_BATTLESCAPE":   "[↑↓←→]/[WASD]=Mover [Enter]=Selecionar [Espa\u00e7o]=Planear/Mover [q]=Circular [f]=Disparar [r]=Recarregar [g]=Granada [m]=Kit m\u00e9dico [e]=Terminar [c]=Agachar",
+		"HELP_BATTLESCAPE":   "[↑↓←→]=Mover [Enter]=Selecionar [Espa\u00e7o]=Planear/Mover [q]=Circular [f]=Disparar [r]=Recarregar [g]=Granada [m]=Move [h]=Kit m\u00e9dico [e]=Terminar [c]=Agachar",
 		"HELP_STAIRS_SUFFIX": " [<>]=Escadas",
 
 		// ── Base Management ───────────────────────────────

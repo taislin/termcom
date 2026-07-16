@@ -189,7 +189,7 @@ func init() {
 		"SIDE_POS":         "[%d,%d]",
 		"SIDE_CROUCH":      "Crouching",
 		"SIDE_NONE":        "(none)",
-		"BATTLE_HELP":      " [Arrow]/[WSAD]=Move [Space]/[Enter]=Act [q]=Cycle [f]=Fire [r]=Reload [g]=Grenade [m]=Medikit [p]=Psi [e]=End [c]=Crouch",
+		"BATTLE_HELP":      " [Arrow]=Move [Space]/[Enter]=Act [q]=Cycle [f]=Fire [r]=Reload [g]=Grenade [m]=Move [h]=Medikit [p]=Psi [e]=End [c]=Crouch",
 
 		// Phases
 		"PHASE_YOUR_TURN":  "YOUR TURN",
@@ -319,7 +319,7 @@ func init() {
 		"MSG_VISION_NORMAL":  "NORMAL VISION",
 
 		// Battlescape help bars
-		"HELP_BATTLESCAPE":   "[↑↓←→]/[WASD]=Move [Enter]=Select [Space]=Plan/Move [q]=Cycle [f]=Fire [r]=Reload [g]=Grenade [m]=Medikit [e]=End [c]=Crouch",
+		"HELP_BATTLESCAPE":   "[↑↓←→]=Move [Enter]=Select [Space]=Plan/Move [q]=Cycle [f]=Fire [r]=Reload [g]=Grenade [m]=Move [h]=Medikit [e]=End [c]=Crouch",
 		"HELP_STAIRS_SUFFIX": " [<>]=Stairs",
 
 		// ── Base Management ───────────────────────────────

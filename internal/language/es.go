@@ -191,7 +191,7 @@ func init() {
 		"SIDE_POS":         "[%d,%d]",
 		"SIDE_CROUCH":      "Agachado",
 		"SIDE_NONE":        "(ninguno)",
-		"BATTLE_HELP":      " [Flechas]/[WASD]=Mover [Espacio]/[Enter]=Actuar [q]=Ciclo [f]=Disparar [r]=Recargar [g]=Granada [m]=Medipack [p]=Psi [e]=Terminar [c]=Agacharse",
+		"BATTLE_HELP":      " [Flechas]=Mover [Espacio]/[Enter]=Actuar [q]=Ciclo [f]=Disparar [r]=Recargar [g]=Granada [m]=Move [h]=Medipack [p]=Psi [e]=Terminar [c]=Agacharse",
 
 		// Fases
 		"PHASE_YOUR_TURN":  "VUESTRO TURNO",
@@ -321,7 +321,7 @@ func init() {
 		"MSG_VISION_NORMAL":  "VISI\u00d3N NORMAL",
 
 		// Barras de ayuda de batalla
-		"HELP_BATTLESCAPE":   "[↑↓←→]/[WASD]=Mover [Enter]=Seleccionar [Espacio]=Planear/Mover [q]=Ciclo [f]=Disparar [r]=Recargar [g]=Granada [m]=Medipack [e]=Terminar [c]=Agacharse",
+		"HELP_BATTLESCAPE":   "[↑↓←→]=Mover [Enter]=Seleccionar [Espacio]=Planear/Mover [q]=Ciclo [f]=Disparar [r]=Recargar [g]=Granada [m]=Move [h]=Medipack [e]=Terminar [c]=Agacharse",
 		"HELP_STAIRS_SUFFIX": " [<>]=Escaleras",
 
 		// ── Gesti\u00f3n de base ───────────────────────────────

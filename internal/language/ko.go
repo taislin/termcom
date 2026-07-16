@@ -191,7 +191,7 @@ func init() {
 		"SIDE_POS":         "[%d,%d]",
 		"SIDE_CROUCH":      "엎드리는 중",
 		"SIDE_NONE":        "(없음)",
-		"BATTLE_HELP":      " 이동 [Arrow]/[WSAD]  행동 [Space]/[Enter]  순환 [q]  사격 [f]  재장전 [r]  수류탄 [g]  구급 [m]  초감각 [p]  턴종료 [e]  엎드리기 [c]",
+		"BATTLE_HELP":      " 이동 [Arrow]  행동 [Space]/[Enter]  순환 [q]  사격 [f]  재장전 [r]  수류탄 [g]  이동 [m]  구급 [h]  초감각 [p]  턴종료 [e]  엎드리기 [c]",
 
 		// Phases
 		"PHASE_YOUR_TURN":  "아군 턴",
@@ -321,7 +321,7 @@ func init() {
 		"MSG_VISION_NORMAL":  "일반 시야",
 
 		// Battlescape help bars
-		"HELP_BATTLESCAPE":   "이동 [↑↓←→]/[WASD]  선택 [Enter]  계획/이동 [Space]  순환 [q]  사격 [f]  재장전 [r]  수류탄 [g]  구급 [m]  턴종료 [e]  엎드리기 [c]",
+		"HELP_BATTLESCAPE":   "이동 [↑↓←→]  선택 [Enter]  계획/이동 [Space]  순환 [q]  사격 [f]  재장전 [r]  수류탄 [g]  이동 [m]  구급 [h]  턴종료 [e]  엎드리기 [c]",
 		"HELP_STAIRS_SUFFIX": "  [<>]=계단",
 
 		// ── Base Management ───────────────────────────────

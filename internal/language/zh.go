@@ -189,7 +189,7 @@ func init() {
 		"SIDE_POS":         "[%d,%d]",
 		"SIDE_CROUCH":      "\u8e72\u4f0f\u4e2d",
 		"SIDE_NONE":        "(\u65e0)",
-		"BATTLE_HELP":      " [\u65b9\u5411\u952e]/[WASD]=\u79fb\u52a8 [\u7a7a\u683c]/[Enter]=\u884c\u52a8 [q]=\u5207\u6362 [f]=\u5f00\u706b [r]=\u6362\u5f39 [g]=\u624b\u69f2 [m]=\u533b\u7597 [p]=\u7075\u80fd [e]=\u7ed3\u675f [c]=\u8e72\u4f0f",
+		"BATTLE_HELP":      " [\u65b9\u5411\u952e]=\u79fb\u52a8 [\u7a7a\u683c]/[Enter]=\u884c\u52a8 [q]=\u5207\u6362 [f]=\u5f00\u706b [r]=\u6362\u5f39 [g]=\u624b\u69f2 [m]=Move [h]=\u533b\u7597 [p]=\u7075\u80fd [e]=\u7ed3\u675f [c]=\u8e72\u4f0f",
 
 		// \u56de\u5408
 		"PHASE_YOUR_TURN":  "\u4f60\u7684\u56de\u5408",
@@ -319,7 +319,7 @@ func init() {
 		"MSG_VISION_NORMAL":  "\u6b63\u5e38\u89c6\u89c9",
 
 		// \u6218\u573a\u5e2e\u52a9\u680f
-		"HELP_BATTLESCAPE":   "[↑↓←→]/[WASD]=\u79fb\u52a8 [Enter]=\u9009\u62e9 [\u7a7a\u683c]=\u89c4\u5212/\u79fb\u52a8 [q]=\u5207\u6362 [f]=\u5f00\u706b [r]=\u6362\u5f39 [g]=\u624b\u69f2 [m]=\u533b\u7597 [e]=\u7ed3\u675f [c]=\u8e72\u4f0f",
+		"HELP_BATTLESCAPE":   "[↑↓←→]=\u79fb\u52a8 [Enter]=\u9009\u62e9 [\u7a7a\u683c]=\u89c4\u5212/\u79fb\u52a8 [q]=\u5207\u6362 [f]=\u5f00\u706b [r]=\u6362\u5f39 [g]=\u624b\u69f2 [m]=Move [h]=\u533b\u7597 [e]=\u7ed3\u675f [c]=\u8e72\u4f0f",
 		"HELP_STAIRS_SUFFIX": " [<>>]=\u697c\u68af",
 
 		// ── \u57fa\u5730\u7ba1\u7406 ───────────────────────────────

@@ -191,7 +191,7 @@ func init() {
 		"SIDE_POS":         "[%d,%d]",
 		"SIDE_CROUCH":      "Accroupi",
 		"SIDE_NONE":        "(aucun)",
-		"BATTLE_HELP":      " [Flèche]/[ZQSD]=Déplacer [Espace]/[Entrée]=Agir [q]=Cycle [f]=Tirer [r]=Recharger [g]=Grenade [m]=Médikit [p]=Psi [e]=Fin [c]=S'accroupir",
+		"BATTLE_HELP":      " [Flèche]=Déplacer [Espace]/[Entrée]=Agir [q]=Cycle [f]=Tirer [r]=Recharger [g]=Grenade [m]=Move [h]=Médikit [p]=Psi [e]=Fin [c]=S'accroupir",
 
 		// Phases
 		"PHASE_YOUR_TURN":  "VOTRE TOUR",
@@ -321,7 +321,7 @@ func init() {
 		"MSG_VISION_NORMAL":  "VISION NORMALE",
 
 		// Battlescape help bars
-		"HELP_BATTLESCAPE":   "[↑↓←→]/[ZQSD]=Déplacer [Entrée]=Sélectionner [Espace]=Planifier [q]=Cycle [f]=Tirer [r]=Recharger [g]=Grenade [m]=Médikit [e]=Fin [c]=S'accroupir",
+		"HELP_BATTLESCAPE":   "[↑↓←→]=Déplacer [Entrée]=Sélectionner [Espace]=Planifier [q]=Cycle [f]=Tirer [r]=Recharger [g]=Grenade [m]=Move [h]=Médikit [e]=Fin [c]=S'accroupir",
 		"HELP_STAIRS_SUFFIX": " [<>]=Escalier",
 
 		// ── Base Management ───────────────────────────────

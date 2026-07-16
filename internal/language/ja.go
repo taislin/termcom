@@ -191,7 +191,7 @@ func init() {
 		"SIDE_POS":         "[%d,%d]",
 		"SIDE_CROUCH":      "伏せ",
 		"SIDE_NONE":        "(なし)",
-		"BATTLE_HELP":      "  [矢印]/[WSAD]=移動 [Space]/[Enter]=行動 [q]=切替 [f]=射撃 [r]=リロード [g]=手榴弾 [m]=メディキット [p]=サイ能力 [e]=終了 [c]=伏せ",
+		"BATTLE_HELP":      "  [矢印]=移動 [Space]/[Enter]=行動 [q]=切替 [f]=射撃 [r]=リロード [g]=手榴弾 [m]=Move [h]=メディキット [p]=サイ能力 [e]=終了 [c]=伏せ",
 
 		// Phases
 		"PHASE_YOUR_TURN":  "あなたのターン",
@@ -321,7 +321,7 @@ func init() {
 		"MSG_VISION_NORMAL":  "通常視覚",
 
 		// Battlescape help bars
-		"HELP_BATTLESCAPE":   "[↑↓←→]/[WASD]=移動 [Enter]=選択 [Space]=計画/移動 [q]=切替 [f]=射撃 [r]=リロード [g]=手榴弾 [m]=メディキット [e]=終了 [c]=伏せ",
+		"HELP_BATTLESCAPE":   "[↑↓←→]=移動 [Enter]=選択 [Space]=計画/移動 [q]=切替 [f]=射撃 [r]=リロード [g]=手榴弾 [m]=Move [h]=メディキット [e]=終了 [c]=伏せ",
 		"HELP_STAIRS_SUFFIX": " [<>]=階段",
 
 		// ── Base Management ───────────────────────────────

@@ -1,4 +1,4 @@
-# termcom — ASCII X-COM Roguelike-ified Demake Manual (v0.46)
+# termcom — ASCII X-COM Roguelike-ified Demake Manual (v0.47)
 
 ## Table of Contents
 
@@ -18,6 +18,16 @@
 14. [Key Bindings Reference](#key-bindings-reference)
 15. [Tips & Strategy](#tips--strategy)
 16. [Tutorial / Onboarding](#tutorial--onboarding)
+17. [Annex: Reference Tables](#annex-reference-tables)
+    - [Tile Types](#tile-types)
+    - [Visual Effects](#visual-effects)
+    - [Blood Splatter](#blood-splatter)
+    - [Fire Mechanics](#fire-mechanics)
+    - [Gas Mechanics](#gas-mechanics)
+    - [Destructible Terrain](#destructible-terrain)
+    - [Auto-Resolve System](#auto-resolve-system)
+    - [Alien Biology](#alien-biology)
+    - [Alien Roster](#alien-roster)
 
 ---
 
@@ -846,8 +856,8 @@ Alien stat scaling (HP, Accuracy) still applies on top of equipment tiers.
 
 ### Ranks
 
-| Rank | Kills Required |
-|------|----------------|
+| Rank | Roster Size Required |
+|------|----------------------|
 | Rookie | 0 |
 | Squaddie | 10 |
 | Corporal | 25 |
@@ -994,7 +1004,7 @@ The sidebar also contains the battle log (attack results, damage, kills).
 
 | Key | Action |
 |-----|--------|
-| hjkl / Arrows | Move cursor |
+| Arrow keys | Move cursor |
 | Space / Enter | Select / Confirm |
 | q | Cycle soldiers |
 | f | Fire weapon |
@@ -1002,9 +1012,11 @@ The sidebar also contains the battle log (attack results, damage, kills).
 | e | End turn |
 | c | Crouch |
 | g | Throw grenade |
-| p | Psi attack |
+| m | Move mode |
 | h | Use medikit |
-| v | Toggle vision mode (Normal / Night / Thermal) |
+| p | Psi attack |
+| y | Motion scanner |
+| t | Place proximity mine |
 | o | Options |
 | ? | Help |
 
@@ -1126,3 +1138,213 @@ covers:
 
 The tutorial only appears once. You can replay it by resetting your config
 (delete `config.json`) or by removing the `"tutorial_shown"` flag.
+
+---
+
+## Annex: Reference Tables
+
+### Tile Types
+
+All tactical maps use a 50×50 grid of tiles. Each tile has a rendering character,
+a cover value, and optional flammability.
+
+| Type | Char | Cover | Flammable | Notes |
+|------|------|-------|-----------|-------|
+| Floor | `.` | 0% | No | Default ground |
+| Wall | `#` | 80% | No | Impassable, blocks LOS |
+| Door | `+` | 0% | Yes | Passable, opens on contact |
+| Window | `¤` | 0% | No | Passable, blocks LOS |
+| Grass | `·` | 0% | Yes | Open terrain |
+| Tree | `♣` | 60% | Yes | Blocks LOS, decent cover |
+| Rock | `∩` | 70% | No | Blocks LOS, good cover |
+| Water | `≈` | 0% | No | Impassable |
+| UFO Floor | `≡` | 0% | No | Interior flooring |
+| UFO Wall | `█` | 80% | No | Impassable, blocks LOS |
+| Stairs Down | `▓` | 0% | No | Level transition |
+| Stairs | `▒` | 0% | No | Level transition |
+| Pavement | `░` | 0% | No | Road/landing pad |
+| Sand | `·` | 0% | No | Desert terrain |
+| Snow | `∗` | 0% | No | Polar terrain |
+| Marsh | `≋` | 0% | No | Swamp terrain |
+| Bush | `†` | 40% | Yes | Light cover |
+| Fence | `║` | 30% | Yes | Minimal cover |
+| Rubble | `▒` | 20% | No | Destroyed terrain |
+| Object | `■` | 50% | No | Furniture, crates |
+| Console | `░` | 50% | No | UFO console panel |
+| Machinery | `⚙` | 50% | No | UFO machinery |
+| Pod | `◈` | 50% | No | Alien pod |
+| Power Source | `⌁` | 50% | No | UFO power source |
+| Storage | `▤` | 50% | No | UFO storage container |
+| Alien Tech | `⊕` | 50% | No | Alien technology |
+
+### Visual Effects
+
+| Effect | Trigger | Description |
+|--------|---------|-------------|
+| Explosion particles | Grenade / weapon hit | Burst of `*` / `+` chars with color fade |
+| Screen shake | Explosions | Camera shake scaled by damage |
+| Smoke particles | Grenade impact | `~` / `:` chars drifting upward |
+| Night lighting | Night missions | Radial glow around units |
+| Volumetric gas | Grenade | Expanding `▓`/`▒`/`░` clouds, blocks LOS at density 3 |
+| Rubble particles | Wall destruction | `.` `*` `,` `'` in parabolic arcs |
+| Night vision filter | `V` key | Green phosphor overlay with static noise |
+| Thermal filter | `V` key | Entities glow hot, terrain is cold blue |
+| Blood splatter | Damage | `,` `%` `:` runes in red/green/purple on floor tiles |
+| Animated fire | Plasma/explosive | Cycles `^` `w` `*` in yellow/orange/red |
+
+### Blood Splatter
+
+| Source | Color | Rune |
+|--------|-------|------|
+| Human damage | Dark red (140,10,10) | `,` `%` `:` |
+| Muton/Chryssalid/Hyperworm | Neon green (20,180,20) | `,` `%` `:` |
+| Other aliens | Purple (160,30,200) | `,` `%` `:` |
+
+Splatter appears on the hit tile and 1 adjacent floor tile (33% chance).
+
+### Fire Mechanics
+
+| Property | Value |
+|----------|-------|
+| Animation | Cycles `^` → `w` → `*` every 4 frames |
+| Colors | Yellow → Orange → Red background |
+| Spread chance | 20% per turn to adjacent flammable tile (5% rain, 30% wind) |
+| Flammable tiles | Grass, Tree, Bush, Fence, Door |
+| Duration | 3 turns, then tile becomes Floor |
+| Ignition sources | Plasma weapons, explosives, grenades |
+
+Fire converts flammable terrain to bare Floor when it spreads or burns out.
+
+### Gas Mechanics
+
+| Density | Char | LOS Block | Cover Penalty |
+|---------|------|-----------|---------------|
+| 3 (Heavy) | ▓ | Yes | 40% |
+| 2 (Medium) | ▒ | No | 20% |
+| 1 (Thin) | ░ | No | 0% |
+
+Gas spreads to adjacent tiles and reduces density by 1 each turn until dissipation.
+
+### Destructible Terrain
+
+| Tile | Converts To | Cover Before | Cover After |
+|------|-------------|-------------|-------------|
+| Wall / UFO Wall | Rubble | 80% | 20% |
+| Tree | Rubble | 60% | 20% |
+| Rock | Rubble | 70% | 20% |
+| Fence | Rubble | 30% | 20% |
+
+Grenades destroy terrain within blast radius (2 tiles). Rubble retains 20% cover.
+
+### Auto-Resolve System
+
+#### Win Chance Calculation
+
+| Factor | Effect |
+|--------|--------|
+| Base | 30% |
+| Squad power | +1 per 5 points above alien power |
+| Alien power | alienCount × (40 + missionsWon×3) × difficultyScale |
+| Terror mission | -10% |
+| Council mission | +10% |
+| Alien Base | -15% |
+| Maximum cap | 70% |
+| Minimum floor | 10% |
+
+#### Rewards Comparison
+
+| Reward | Tactical | Auto-Resolve |
+|--------|----------|--------------|
+| XP | 100% | 50% |
+| Corpses | Yes | No |
+| Weapon drops | 15-55% | 25% |
+| Alloys/Elerium | Full | Full |
+| Fatigue | 1-5 days | 2-3 days |
+| Casualties (loss) | All die | 1-3 die |
+
+### Alien Biology
+
+Alien species are defined by morphology — their physical body plan — which
+affects combat stats, damage resistances, and visual appearance.
+
+#### Morphology
+
+**Limbs:**
+
+| Variable | Range | Effect |
+|----------|-------|--------|
+| Arms (manipulative) | 0–6 | 0 = no arms (-15 Acc, pistol-only), 2 = baseline, 3–4 = extra stability (+5 Acc), 5–6 = dual-wield |
+| Legs (locomotive) | 0–8 | 0 = floating (+10 Reactions, harder to hit), 2 = baseline, 4 = fast (+10 TU), 6–8 = very fast but large target |
+
+**Body Types:**
+
+| Body Type | Subtype | Resistances | Special |
+|-----------|---------|-------------|---------|
+| Organic | Carbon Flesh | +10 Kinetic, -10 Explosive | None |
+| Organic | Silicon Based | +20 Laser, +10 Plasma, -15 Explosive | Reflective |
+| Organic | Gaseous | Immune Kinetic, -20 Plasma | Phasing (move through walls) |
+| Organic | Crystalline | +15 all except Explosive (-25) | Shatter (AoE on death) |
+| Organic | Amorphous | +10 Psionic | Regenerate (2 HP/turn) |
+| Synthetic | Mechanical | Immune Psionic, +15 Plasma, -15 Laser | Overload (self-destruct AoE) |
+| Synthetic | Bio-Synthetic | +5 all | Healer (heal adjacent aliens) |
+| Synthetic | Nanotech | +20 Kinetic, -10 energy | Disperse (50% revive on death) |
+
+**Senses:**
+
+| Sense | Qualities | Combat Effect |
+|-------|-----------|---------------|
+| Eyesight | none / poor / normal / excellent / multi-spectrum | Affects accuracy and reaction fire. Multi-spectrum ignores smoke/darkness. |
+| Hearing | none / poor / normal / excellent / echolocation | Echolocation detects units through smoke within 6 tiles. |
+| Thermal Sense | none / low / high | High detects any living unit within 10 tiles regardless of cover/smoke. |
+| Psionic Sense | none / low / high | High grants +15 Psi and detects mind-controlled humans. |
+| Chemical Sense | none / low / high | High grants +10 Accuracy vs wounded targets. |
+
+#### Morphology & Stats
+
+Morphology modifies base stats before rank scaling:
+- Floating aliens: -5 TU, +10 Reactions, -3 HP
+- Multi-armed aliens: +5–10 Accuracy, +5–10 Strength
+- Many-legged aliens: +10–15 TU, +5–10 Reactions, +5 Strength
+- Blind aliens (Eyesight=none): -20 Accuracy, +10 Psi (compensates)
+- Crystalline: +5 HP, +5 Armour, -10 TU
+
+#### Knowledge Levels
+
+As you encounter aliens, your knowledge increases:
+
+| Level | Trigger | Effect |
+|-------|---------|--------|
+| 0 — Unknown | Never seen | Name appears as "???" in encyclopedia |
+| 1 — Sighted | Alien visible in FOV | Name and icon revealed |
+| 2 — Killed | Alien killed in combat | Stats and resistances revealed |
+| 3 — Autopsied | Research completed | Full lore and detailed weaknesses |
+
+#### Equipment Escalation
+
+As the campaign progresses, aliens deploy with better weapons:
+
+| Month | Tier | Equipment |
+|-------|------|-----------|
+| 0–2 | Tier 0 | Plasma pistols, basic armour |
+| 3–5 | Tier 1 | Plasma rifles, light heavy plasma; +2 HP & armour |
+| 6–8 | Tier 2 | Heavy plasma, alien cannons, alien lasers; +4 HP & armour |
+| 9+ | Tier 3 | Top-tier alien weaponry; +6 HP & armour |
+
+### Alien Roster
+
+Hardcoded alien species encountered in tactical combat. Procedural species are
+generated per-game from a seed and vary each playthrough.
+
+| Name | Icon | Rank Variants | Role |
+|------|------|---------------|------|
+| Sectoid | ◈ | Navigator, Commander | Psi-focused, low HP |
+| Floater | ◇ | Navigator, Commander | Balanced, mid-range |
+| Chryssalid | ᚠ | Queen | Melee only, high aggression |
+| Hyperworm | ᚨ | — | Fast, low HP, pack tactics |
+| Silacoid | Ф | — | Heavy armour, slow, tank |
+| Muton | ⊛ | Navigator, Commander | Heavy hitter, high HP |
+| Cyberdisc | ◉ | — | Flying, heavy plasma |
+| Celatid | ⌖ | — | Ranged acid attack |
+| Ethereal | Ψ | Navigator, Commander | Psi master, high stats |
+| Reaper | ᚱ | — | Boss, very high HP |
+| Sectopod | ⬡ | — | Endgame, massive HP + armour |

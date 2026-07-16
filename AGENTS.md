@@ -142,7 +142,8 @@ internal/
 | R | Reload |
 | E / N | End turn |
 | G | Grenade |
-| M | Medikit |
+| M | Move mode |
+| H | Use medikit |
 | C | Crouch |
 | V | Toggle vision mode (Normal / Night / Thermal) |
 | P | Psi attack |
