@@ -42,6 +42,7 @@ type CrashSite struct {
 	UFOName string
 	NodeID  int
 	Looted  bool
+	Seed    int64 // deterministic seed for procedural UFO blueprint
 }
 
 // Transport handles the movement of soldiers between bases.
@@ -597,7 +598,7 @@ func (gs *Geoscape) Update() {
 										for _, s := range healthy {
 											gs.PreBattleStats[s.Name] = [6]int{s.HP, s.Accuracy, s.Reactions, s.Strength, s.Bravery, s.TU}
 										}
-										bs := battle.NewBattlescape(gs.Game, selectedBase, healthy, localizeUFOName(cs.UFOName))
+										bs := battle.NewBattlescape(gs.Game, selectedBase, healthy, localizeUFOName(cs.UFOName), cs.Seed)
 										gs.Game.SetScreen(engine.StateBattlescape, bs)
 										gs.Game.PushState(engine.StateBattlescape)
 										return
@@ -926,6 +927,7 @@ func (gs *Geoscape) dogfight(inter *Interceptor) {
 			gs.CrashSites = append(gs.CrashSites, &CrashSite{
 				UFOName: ufo.Type.Name,
 				NodeID:  ufo.CurrentNode(),
+				Seed:    rand.Int63(),
 			})
 		}
 		if inter.State != nil {
@@ -1356,7 +1358,7 @@ func (gs *Geoscape) RespondToMission(idx int) {
 		ufoName = language.String("MISSION_TYPE_BASE")
 	}
 	gs.ActiveMissionType = mission.Type
-	bs := battle.NewBattlescape(gs.Game, defBase, healthy, ufoName)
+	bs := battle.NewBattlescape(gs.Game, defBase, healthy, ufoName, 0)
 	gs.Game.SetScreen(engine.StateBattlescape, bs)
 	gs.Game.PushState(engine.StateBattlescape)
 }

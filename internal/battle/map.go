@@ -4,6 +4,7 @@ import (
 	"math/rand"
 
 	"github.com/gdamore/tcell/v3"
+	"github.com/taislin/termcom/internal/data"
 )
 
 // randn returns rand.Intn(n) but safely yields 0 when n <= 0, avoiding a panic
@@ -769,7 +770,8 @@ var Biomes = map[string]*Biome{
 func GenerateProcedural(biomeName string, w, h int) *BattleMap {
 	biome, ok := Biomes[biomeName]
 	if !ok {
-		return GenerateCrashSite(w, h)
+		m, _ := GenerateCrashSite(w, h, 42)
+		return m
 	}
 	m := NewBattleMap(w, h)
 
@@ -791,8 +793,9 @@ func GenerateProcedural(biomeName string, w, h int) *BattleMap {
 	return m
 }
 
-// GenerateCrashSite creates a crash site map (OpenXcom: 50x50)
-func GenerateCrashSite(w, h int) *BattleMap {
+// GenerateCrashSite creates a crash site map with a procedural UFO blueprint
+// stamped onto the terrain. Returns both the map and crash result.
+func GenerateCrashSite(w, h int, seed int64) (*BattleMap, *CrashResult) {
 	m := NewBattleMap(w, h)
 
 	ApplyCommands(m, []MapCommand{
@@ -802,28 +805,45 @@ func GenerateCrashSite(w, h int) *BattleMap {
 		{Type: CmdScatter, X: 0, Y: 0, W: w, H: h, Tile: TileFence, Prob: 1, Count: w * h},
 	})
 
-	ufoX := w/2 - 4
-	ufoY := h/2 - 3
+	// Pick a UFO tier based on seed (deterministic)
+	seed16 := seed
+	if seed16 == 0 {
+		seed16 = 42
+	}
+	tiers := []data.UFOTier{
+		data.TierDrone, data.TierScout, data.TierInterceptor,
+		data.TierBomber, data.TierCarrier,
+	}
+	tier := tiers[seed16%int64(len(tiers))]
 
-	ApplyCommands(m, []MapCommand{
-		{Type: CmdDrawRect, X: ufoX, Y: ufoY, W: 8, H: 6, Tile: TileUFOWall},
-		{Type: CmdFillRect, X: ufoX + 1, Y: ufoY + 1, W: 6, H: 4, Tile: TileUFOFloor},
-	})
+	bp := data.GenerateProceduralUFO(seed, tier)
 
-	m.Set(ufoX+4, ufoY+5, TileDoor)
+	// Center the UFO on the map
+	ufoX := w/2 - bp.Width/2
+	ufoY := h/2 - bp.Height/2
+	crashSeverity := 0.1 + float64(seed16%80)/100.0 // 0.1–0.9
 
-	// Scatter some debris around crash
+	result := StampVehicleOnMap(bp, ufoX, ufoY, m, crashSeverity)
+
+	// Add a door on the bottom edge
+	doorX := ufoX + bp.Width/2
+	doorY := ufoY + bp.Height - 1
+	if doorX >= 0 && doorX < w && doorY >= 0 && doorY < h {
+		m.Set(doorX, doorY, TileDoor)
+	}
+
+	// Scatter debris around crash site
 	for i := 0; i < 15; i++ {
 		dx := rand.Intn(12) - 6
 		dy := rand.Intn(10) - 5
-		x := ufoX + 4 + dx
-		y := ufoY + 3 + dy
+		x := ufoX + bp.Width/2 + dx
+		y := ufoY + bp.Height/2 + dy
 		if m.At(x, y).Type == TileGrass || m.At(x, y).Type == TileTree {
 			m.Set(x, y, TileRubble)
 		}
 	}
 
-	return m
+	return m, &result
 }
 
 // GenerateTerrorSite creates a terror site map (OpenXcom: 50x50 urban)

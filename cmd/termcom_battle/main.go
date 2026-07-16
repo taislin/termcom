@@ -395,7 +395,7 @@ func launchBuiltin(ufoName, extra string) {
 		os.Exit(1)
 	}
 
-	bs := battle.NewBattlescape(g, b, squad, ufoName)
+	bs := battle.NewBattlescape(g, b, squad, ufoName, 42)
 	g.SetScreen(engine.StateBattlescape, bs)
 	g.SetState(engine.StateBattlescape)
 
@@ -494,7 +494,7 @@ func launchCustom(path string) {
 	case "polar":
 		m = battle.GeneratePolar(w, h)
 	default:
-		m = battle.GenerateCrashSite(w, h)
+		m, _ = battle.GenerateCrashSite(w, h, 42)
 	}
 
 	// Build unit definitions

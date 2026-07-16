@@ -8,7 +8,7 @@ import (
 )
 
 func BenchmarkAIUpdate(b *testing.B) {
-	m := GenerateCrashSite(30, 24)
+	m, _ := GenerateCrashSite(30, 24, 42)
 	alien := &Unit{X: 10, Y: 10, TU: 40, MaxTU: 40, HP: 20, MaxHP: 20, Accuracy: 60, Alive: true, Faction: 1}
 	ai := NewAlienAI(alien)
 	human := &Unit{X: 12, Y: 10, TU: 50, HP: 20, MaxHP: 20, Armour: 0, Alive: true, Faction: 0}
@@ -23,7 +23,7 @@ func BenchmarkAIUpdate(b *testing.B) {
 }
 
 func BenchmarkAIPatrol(b *testing.B) {
-	m := GenerateCrashSite(30, 24)
+	m, _ := GenerateCrashSite(30, 24, 42)
 	alien := &Unit{X: 10, Y: 10, TU: 40, MaxTU: 40, HP: 20, MaxHP: 20, Alive: true, Faction: 1}
 	ai := NewAlienAI(alien)
 	ai.PatrolX = 15
@@ -37,7 +37,7 @@ func BenchmarkAIPatrol(b *testing.B) {
 }
 
 func BenchmarkLOS(b *testing.B) {
-	m := GenerateCrashSite(30, 24)
+	m, _ := GenerateCrashSite(30, 24, 42)
 	s := &Unit{X: 5, Y: 5, Alive: true, Faction: 0}
 
 	b.ResetTimer()
@@ -47,7 +47,7 @@ func BenchmarkLOS(b *testing.B) {
 }
 
 func BenchmarkLOSClose(b *testing.B) {
-	m := GenerateCrashSite(30, 24)
+	m, _ := GenerateCrashSite(30, 24, 42)
 	s := &Unit{X: 5, Y: 5, Alive: true, Faction: 0}
 
 	b.ResetTimer()
@@ -77,7 +77,7 @@ func BenchmarkFireAt(b *testing.B) {
 }
 
 func BenchmarkMovement(b *testing.B) {
-	m := GenerateCrashSite(30, 24)
+	m, _ := GenerateCrashSite(30, 24, 42)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -89,7 +89,7 @@ func BenchmarkMovement(b *testing.B) {
 func BenchmarkMapGeneration(b *testing.B) {
 	b.Run("CrashSite", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			GenerateCrashSite(30, 24)
+			GenerateCrashSite(30, 24, 42)
 		}
 	})
 	b.Run("TerrorSite", func(b *testing.B) {

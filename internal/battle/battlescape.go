@@ -155,6 +155,9 @@ type Battlescape struct {
 	Weather               Weather
 	ReinforcementsSpawned bool
 
+	// Crash site interior tiles (for placing alien crew inside UFO)
+	CrashInterior []struct{ X, Y int }
+
 	// Input State
 	State          BattleState
 	viewW, viewH   int // cached viewport dimensions (set each Render)
@@ -294,8 +297,9 @@ func (bs *Battlescape) CalculatePath(startX, startY, endX, endY int) [][2]int {
 	return nil
 }
 
-func NewBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, ufoName string) *Battlescape {
+func NewBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, ufoName string, crashSeed int64) *Battlescape {
 	var m *BattleMap
+	var crashResult *CrashResult
 	switch ufoName {
 	case "Terror":
 		m = GenerateTerrorSite(50, 50)
@@ -318,7 +322,7 @@ func NewBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, ufoN
 	case "Polar":
 		m = GeneratePolar(50, 50)
 	default:
-		m = GenerateCrashSite(50, 50)
+		m, crashResult = GenerateCrashSite(50, 50, crashSeed)
 	}
 
 	rng := rand.New(rand.NewSource(int64(g.GameTime.UnixNano())))
@@ -473,14 +477,28 @@ func NewBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, ufoN
 		spawnAliens = append(spawnAliens, at)
 	}
 
+	// Store crash interior for alien placement inside the UFO
+	if crashResult != nil {
+		for _, pt := range crashResult.InteriorTiles {
+			bs.CrashInterior = append(bs.CrashInterior, struct{ X, Y int }{pt.X, pt.Y})
+		}
+	}
+
 	tierHP, tierArmor := data.GetTierStatBonus(equipTier)
 	for _, at := range spawnAliens {
 		if at == nil {
 			continue
 		}
 		u := NewAlienUnit(at)
-		u.X = 10 + randn(m.Width-14)
-		u.Y = 3 + randn(m.Height/2-4)
+		// For crash sites, place aliens inside the UFO structure
+		if len(bs.CrashInterior) > 0 {
+			tile := bs.CrashInterior[rand.Intn(len(bs.CrashInterior))]
+			u.X = tile.X
+			u.Y = tile.Y
+		} else {
+			u.X = 10 + randn(m.Width-14)
+			u.Y = 3 + randn(m.Height/2-4)
+		}
 		u.IsNight = bs.IsNight
 		u.HP += hpBonus + tierHP
 		u.MaxHP += hpBonus + tierHP

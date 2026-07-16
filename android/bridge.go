@@ -477,7 +477,7 @@ func (b *GameBridge) launchCustomBattle(path string) {
 	case "polar":
 		m = battle.GeneratePolar(w, h)
 	default:
-		m = battle.GenerateCrashSite(w, h)
+		m, _ = battle.GenerateCrashSite(w, h, 42)
 	}
 
 	var units []battle.CustomUnitDef
