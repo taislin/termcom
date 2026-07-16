@@ -48,8 +48,7 @@ func (cm *ControlMenu) SetScreenSize(w, h int) {
 	cm.screenH = h
 }
 
-func (cm *ControlMenu) buttonRects() []Rect {
-	if len(cm.Buttons) == 0 {
+func (cm *ControlMenu) buttonRects() []Rect {	if len(cm.Buttons) == 0 {
 		return nil
 	}
 	w, h := cm.screenW, cm.screenH
@@ -88,6 +87,27 @@ func (cm *ControlMenu) buttonRects() []Rect {
 		rects[i] = Rect{X: x, Y: y, W: btnW, H: btnH}
 	}
 	return rects
+}
+
+// ReservedBottom returns the number of rows the touch control panel occupies at
+// the bottom of the screen, so screens can lay out their content above it. It
+// returns 0 when the control bar is not shown (non-touch or hidden).
+func (cm *ControlMenu) ReservedBottom(w, h int) int {
+	if HideTouchOverlay || !Config.TouchMode {
+		return 0
+	}
+	if !cm.AlwaysShow && !cm.Visible {
+		return 0
+	}
+	cm.SetScreenSize(w, h)
+	rects := cm.buttonRects()
+	if len(rects) == 0 {
+		return 0
+	}
+	first := rects[0]
+	// Panel border adds one row above the first button row; include the trailing
+	// screen edge margin as well.
+	return h - (first.Y - 1)
 }
 
 func (cm *ControlMenu) Render(s *ScreenRaw) {

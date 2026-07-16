@@ -123,6 +123,7 @@ type Morphology struct {
 	ThermalSense  string // "none" | "low" | "high"
 	PsionicSense  string // "none" | "low" | "high"
 	ChemicalSense string // "none" | "low" | "high"
+	DamageType     int    // primary damage type (DMG_*); drives weapon-mask style
 }
 
 // OrganicSubtypes lists valid organic body subtypes.

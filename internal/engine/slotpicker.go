@@ -47,11 +47,11 @@ func (sp *SlotPickerScreen) Render(ctx *ScreenCtx) {
 
 	if len(sp.Slots) == 0 && sp.Mode == SlotPickerLoad {
 		ctx.DrawString(2, 3, language.String("SLOT_PICKER_NO_SAVES"), StyleGray)
-		ctx.DrawString(2, 5, language.String("SLOT_PICKER_HELP"), StyleGray)
+		ctx.DrawMarkupString(2, 5, language.String("SLOT_PICKER_HELP"), StyleGray, StyleHotkey)
 		return
 	}
 
-	ctx.DrawString(2, 2, language.String("SLOT_PICKER_HELP"), StyleCyanBold)
+	ctx.DrawMarkupString(2, 2, language.String("SLOT_PICKER_HELP"), StyleCyanBold, StyleHotkey)
 
 	startY := 4
 	for i, si := range sp.Slots {
@@ -76,7 +76,7 @@ func (sp *SlotPickerScreen) Render(ctx *ScreenCtx) {
 	}
 
 	ctx.DrawPanel(0, h-1, w, 1, "", StyleGray)
-	ctx.DrawString(1, h-1, language.String("SLOT_PICKER_BAR"), StyleGray)
+	ctx.DrawMarkupString(1, h-1, language.String("SLOT_PICKER_BAR"), StyleGray, StyleHotkey)
 }
 
 func (sp *SlotPickerScreen) HandleKey(e *tcell.EventKey) {

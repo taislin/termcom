@@ -2700,7 +2700,10 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 		if mobile {
 			sideX = 1
 			sideY0 = engine.Layout.BattleSidebarY(h)
-			sideH = h - sideY0 - 5
+			// Fill the space between the view and the touch control bar,
+			// leaving room for the 3-row bottom battle status panel.
+			reserved := engine.Menu.ReservedBottom(w, h)
+			sideH = (h - reserved - 4) - sideY0
 			if sideH < 3 {
 				sideH = 3
 			}

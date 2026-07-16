@@ -800,13 +800,26 @@ func GenerateAlienPixelsImage(ap data.AlienPixels, fgColor, bgColor tcell.Color)
 	bellyColor := tcell.NewRGBColor(clampColor(bR+40), clampColor(bG+30), clampColor(bB+50))
 	textureColor := tcell.NewRGBColor(clampColor(bR-12), clampColor(bG+18), clampColor(bB-8))
 	mouthColor := tcell.NewRGBColor(clampColor(bR-40), clampColor(bG-35), clampColor(bB-30))
+	pupilColor := tcell.NewRGBColor(60, 60, 70)
 
 	img := NewPixelImage(20, 24)
 	for y := 0; y < 24; y++ {
 		for x := 0; x < 20; x++ {
 			switch {
+			case ap.Weapon[y][x] && ap.Highlight[y][x]:
+				img.Pixels[y][x] = lightColor
+			case ap.Weapon[y][x] && ap.Shadow[y][x]:
+				img.Pixels[y][x] = darkColor
+			case ap.Weapon[y][x] && ap.Accent[y][x]:
+				img.Pixels[y][x] = accentColor
 			case ap.Weapon[y][x]:
 				img.Pixels[y][x] = weaponColor
+			case ap.Eyes[y][x] && ap.Accent[y][x]:
+				img.Pixels[y][x] = pupilColor
+			case ap.Eyes[y][x] && ap.Shadow[y][x]:
+				img.Pixels[y][x] = darkColor
+			case ap.Eyes[y][x] && ap.Highlight[y][x]:
+				img.Pixels[y][x] = lightColor
 			case ap.Eyes[y][x]:
 				img.Pixels[y][x] = tcell.NewRGBColor(255, 255, 255)
 			case ap.Mouth[y][x]:

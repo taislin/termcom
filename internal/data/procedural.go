@@ -427,6 +427,7 @@ func generateMorphology(rng *rand.Rand, dmgType int) *Morphology {
 		Hearing:       hearing,
 		ThermalSense:  thermal,
 		PsionicSense:  psiSense,
+		DamageType:    dmgType,
 		ChemicalSense: chemSense,
 	}
 }
@@ -503,7 +504,11 @@ func pickSyntheticSubtype(rng *rand.Rand, dmgType int) string {
 func generateArmCount(rng *rand.Rand, subtype string) int {
 	switch subtype {
 	case SubtypeGaseous, SubtypeAmorphous:
-		return 0 // amorphous/gaseous have no arms
+		// Mostly limbless floaters, but tentacled variants get 2 arms.
+		if rng.Intn(3) == 0 {
+			return 2
+		}
+		return 0
 	case SubtypeCrystalline:
 		return rng.Intn(3) // 0-2 (rigid)
 	case SubtypeNanotech:
@@ -532,6 +537,10 @@ func generateArmCount(rng *rand.Rand, subtype string) int {
 func generateLegCount(rng *rand.Rand, subtype string) int {
 	switch subtype {
 	case SubtypeGaseous, SubtypeAmorphous, SubtypeNanotech:
+		// Mostly floating, but tentacled variants slither on 2 legs.
+		if subtype != SubtypeNanotech && rng.Intn(3) == 0 {
+			return 2
+		}
 		return 0 // floating
 	case SubtypeCrystalline:
 		return 2 // rigid biped

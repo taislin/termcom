@@ -517,7 +517,7 @@ func (g *Game) renderQuitConfirm(ctx *ScreenCtx) {
 	msg := language.String("CONFIRM_QUIT")
 	ctx.DrawString(x+(boxW-StringWidth(msg))/2, y+2, msg, StyleDefault)
 	hint := language.String("CONFIRM_QUIT_HINT")
-	ctx.DrawString(x+(boxW-StringWidth(hint))/2, y+4, hint, StyleGray)
+	ctx.DrawMarkupString(x+(boxW-StringWidth(hint))/2, y+4, hint, StyleGray, StyleHotkey)
 
 	if Config.TouchMode {
 		yesLabel := language.String("CTRL_YES")

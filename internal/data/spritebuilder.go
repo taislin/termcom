@@ -26,6 +26,7 @@ type Locomotion int
 
 const (
 	LocomFloating Locomotion = iota
+	LocomSlither
 	LocomBipedal
 	LocomArachnid
 )
@@ -53,13 +54,26 @@ type TaggedEyes struct {
 }
 
 type TaggedTorso struct {
-	Pixels       []string
-	Manipulators Manipulators
+	Pixels []string
+	// Manip lists every manipulator category this torso is valid for. A torso
+	// may be shared across categories (e.g. an armless alien can wear a slim or
+	// hollow torso).
+	Manip []Manipulators
+	// BodyType restricts the torso to a body subtype (e.g. "gaseous"). Empty
+	// means it applies to carbon-flesh / silicon / bio_synthetic bodies. Each
+	// exotic subtype (gaseous, amorphous, mechanical, nanotech, crystalline)
+	// has dedicated core templates.
+	BodyType string
 }
 
 type TaggedLegs struct {
 	Pixels     []string
 	Locomotion Locomotion
+}
+
+type TaggedWeapon struct {
+	Pixels     []string
+	DamageType int // DMG_* constant this design represents (-1 = generic)
 }
 
 // --- AlienPixels: body + weapon layers ---
@@ -80,10 +94,11 @@ type AlienPixels struct {
 // --- Registry ---
 
 type SpriteRegistry struct {
-	Heads  []TaggedHead
-	Eyes   []TaggedEyes
-	Torsos []TaggedTorso
-	Legs   []TaggedLegs
+	Heads   []TaggedHead
+	Eyes    []TaggedEyes
+	Torsos  []TaggedTorso
+	Legs    []TaggedLegs
+	Weapons []TaggedWeapon
 }
 
 var defaultSpriteRegistry *SpriteRegistry
@@ -109,23 +124,40 @@ func NewAlienSpriteRegistry() *SpriteRegistry {
 				{Pixels: eyeNone, Style: EyeNone},
 			},
 			Torsos: []TaggedTorso{
-				{Pixels: torsoSlim, Manipulators: ManipBipedal},
-				{Pixels: torsoWide, Manipulators: ManipBipedal},
-				{Pixels: torsoArmored, Manipulators: ManipBipedal},
-				{Pixels: torsoHollow, Manipulators: ManipBipedal},
-				{Pixels: torsoAsymmetric, Manipulators: ManipBipedal},
-				{Pixels: torsoBladed, Manipulators: ManipBipedal},
-				{Pixels: torsoTentacle, Manipulators: ManipNone},
-				{Pixels: torsoMultiArmed, Manipulators: ManipMultiArmed},
+				{Pixels: torsoSlim, Manip: []Manipulators{ManipBipedal, ManipNone}},
+				{Pixels: torsoWide, Manip: []Manipulators{ManipBipedal, ManipNone}},
+				{Pixels: torsoArmored, Manip: []Manipulators{ManipBipedal, ManipNone}},
+				{Pixels: torsoHollow, Manip: []Manipulators{ManipBipedal, ManipNone}},
+				{Pixels: torsoAsymmetric, Manip: []Manipulators{ManipBipedal, ManipNone}},
+				{Pixels: torsoBladed, Manip: []Manipulators{ManipBipedal}},
+				{Pixels: torsoTentacle, Manip: []Manipulators{ManipNone}},
+				{Pixels: torsoFloating, Manip: []Manipulators{ManipNone}},
+				{Pixels: torsoMultiArmed, Manip: []Manipulators{ManipMultiArmed}},
+				{Pixels: torsoMultiArmed2, Manip: []Manipulators{ManipMultiArmed}},
+				{Pixels: torsoGaseous, Manip: []Manipulators{ManipBipedal, ManipMultiArmed, ManipNone}, BodyType: SubtypeGaseous},
+				{Pixels: torsoAmorphous, Manip: []Manipulators{ManipBipedal, ManipMultiArmed, ManipNone}, BodyType: SubtypeAmorphous},
+				{Pixels: torsoMechanical, Manip: []Manipulators{ManipBipedal, ManipMultiArmed, ManipNone}, BodyType: SubtypeMechanical},
+				{Pixels: torsoNanotech, Manip: []Manipulators{ManipBipedal, ManipMultiArmed, ManipNone}, BodyType: SubtypeNanotech},
+				{Pixels: torsoCrystalline, Manip: []Manipulators{ManipBipedal, ManipMultiArmed, ManipNone}, BodyType: SubtypeCrystalline},
 			},
 			Legs: []TaggedLegs{
 				{Pixels: legsBipedal, Locomotion: LocomBipedal},
 				{Pixels: legsLong, Locomotion: LocomBipedal},
 				{Pixels: legsWide, Locomotion: LocomBipedal},
 				{Pixels: legsArachnid, Locomotion: LocomArachnid},
-				{Pixels: legsSerpentine, Locomotion: LocomFloating},
+				{Pixels: legsCrab, Locomotion: LocomArachnid},
+				{Pixels: legsSerpentine, Locomotion: LocomSlither},
 				{Pixels: legsTentacle, Locomotion: LocomFloating},
 				{Pixels: legsPillar, Locomotion: LocomFloating},
+				{Pixels: legsFloating, Locomotion: LocomFloating},
+			},
+			Weapons: []TaggedWeapon{
+				{Pixels: weaponKinetic, DamageType: DMG_KINETIC},
+				{Pixels: weaponPlasma, DamageType: DMG_PLASMA},
+				{Pixels: weaponLaser, DamageType: DMG_LASER},
+				{Pixels: weaponExplosive, DamageType: DMG_EXPLOSIVE},
+				{Pixels: weaponMelee, DamageType: DMG_MELEE},
+				{Pixels: weaponPsionic, DamageType: DMG_PSIONIC},
 			},
 		}
 	}
@@ -133,7 +165,14 @@ func NewAlienSpriteRegistry() *SpriteRegistry {
 }
 
 // --- Head templates (10 rows x 20 wide) ---
-// Detail chars: e=eye, m=mouth, a=antenna, h=highlight, d=dark
+// Detail chars (see render loop at headOffset above):
+//   X = body (solid head/skull)
+//   m = body + Mouth layer (maw; drawn in dark mouth color)
+//   a = body + Accent layer (antenna / bright marking)
+//   h = body + Highlight layer (bright edge glint)
+//   d = body + Shadow layer (dark recessed detail, e.g. eye sockets)
+// Eyes are NOT a head char — they come from the separate eye mask below
+// and are carved into the body afterward.
 
 var headRound = []string{
 	"....................",
@@ -142,7 +181,7 @@ var headRound = []string{
 	"....XXXXXXXXXXXX....",
 	"....XXXXXXXXXXXX....",
 	"....XXXXXXXXXXXX....",
-	"....XXXmmXXXmXXX....",
+	"....XXXmmmmmmXXX....",
 	".....XXXXXXXXXX.....",
 	"......XXXXXXXX......",
 	".......XXXXXX.......",
@@ -155,7 +194,7 @@ var headSquare = []string{
 	"...XXXXXXXXXXXXXXX..",
 	"...XXXXXXXXXXXXXXX..",
 	"...XXXXXXXXXXXXXXX..",
-	"...XXmmmmmmmmmmXX...",
+	"...XXmmmmmmmmmmXXX..",
 	"...XXXXXXXXXXXXXXX..",
 	"...XXXXXXXXXXXXXXX..",
 	"....XXXXXXXXXXXX....",
@@ -166,7 +205,7 @@ var headTall = []string{
 	"......XXXXXX........",
 	"......XXXXXX........",
 	".....XXXXXXXX.......",
-	".....XXXXXXXXX......",
+	".....XXXXXXXX.......",
 	".....XXXXXXXX.......",
 	".....XXmmmmXX.......",
 	".....XXXXXXXX.......",
@@ -178,36 +217,36 @@ var headSkull = []string{
 	"....................",
 	"......XXXXXXXX......",
 	".....XXXXXXXXXX.....",
-	"....XXdXXXXXdXXX....",
-	"....XdXXXdXXXXdX....",
+	"....XXddXXXXddXX....",
+	"....XddXXddXXddX....",
 	"....XXXXXXXXXXXX....",
-	"....XXXddXXddXXX....",
-	".....XXXXXXXXXX.....",
+	"....XXXddXdddXXX....",
+	".....XXXXddXXXX.....",
 	"......XXXXXXXX......",
 	".......XXXXXX.......",
 }
 
 var headWide = []string{
 	"....................",
-	"XX................XX",
-	"XXX..............XXX",
-	"XXXX............XXXX",
+	"aa................aa",
+	"hhh..............hhh",
+	"XXXh............hXXX",
 	"XXXXXXXXXXXXXXXXXXXX",
 	".XXXXXXXXXXXXXXXXXX.",
-	".XXXXXXmmmmmmXXXXXX.",
 	".XXXXXXXXXXXXXXXXXX.",
 	".XXXXXXXXXXXXXXXXXX.",
-	"..XXXXXXXXXXXXXXX...",
+	".dXXXXXmmmmmXXXXXXd.",
+	"..dXXXXXXXXXXXXXd...",
 }
 
 var headAntennae = []string{
-	"..X...........X.....",
-	"..XX.........XX.....",
-	"...XX.......XX......",
+	"..a.............a...",
+	"..aa..........aa....",
+	"...aa........aa.....",
+	"...hhhXXXXXXhhh.....",
 	"....XXXXXXXXXX......",
 	"....XXXXXXXXXX......",
-	"....XXXXXXXXXX......",
-	"....XXmmmmXXX.......",
+	"....XXXmmmmXXX......",
 	".....XXXXXXXX.......",
 	"......XXXXXX........",
 	".......XXXX.........",
@@ -215,42 +254,46 @@ var headAntennae = []string{
 
 var headVisor = []string{
 	"....................",
-	"......XXXXXX........",
-	".....XXXXXXXXXX.....",
-	"....dddXXXXXXddd....",
-	"....dXXXXXXXXdX.....",
-	"....XXXXXXXXXXXX....",
-	"....XXXmmmmXXXX.....",
-	".....XXXXXXXXXX.....",
+	"......XXXXXXX.......",
+	".....ddXXXXXXdd.....",
+	"....dddXhhhhXddd....",
+	"....dXXXhhhhXXXd....",
+	"....dXXXXXXXXXXd....",
+	"....XXXXXXXXXXX.....",
+	".....XXXmmmmXXX.....",
 	"......XXXXXXXX......",
 	".......XXXXXX.......",
 }
 
 var headCone = []string{
-	"........XX..........",
-	"........XXXX........",
-	".......XXXXXX.......",
+	".........hh.........",
+	"........hXXh........",
+	".......hXXXXh.......",
 	"......XXXXXXXX......",
-	"......XXeXXeXX......",
+	"......XXXXXXXX......",
 	".....XXXXXXXXXX.....",
-	".....XXXmmmmXXX.....",
-	"....XXXXXXXXXXXX....",
-	"....XXXXXXXXXXXX....",
 	".....XXXXXXXXXX.....",
+	"....XXXXmmmmXXXX....",
+	"....dXXXXXXXXXXd....",
+	".....dXXXXXXXXd.....",
 }
 
 // --- Eye templates (10 rows x 20 wide) ---
-// These act as masks: 'X' carves a hole in the head silhouette and
-// marks the eyes layer for white/glowing rendering.
+// These act as masks overlaid on the head: each 'X' carves a hole in the
+// head body and marks the Eyes layer (white/glow). Supported chars:
+//   X = Eyes (carves body, marks eye)
+//   h = Eyes + Highlight (glowing / visor rim)
+//   a = Eyes + Accent (colored pupil)
+//   d = Eyes + Shadow (recessed eye)
 
 var eyeClassic = []string{
 	"....................",
 	"....................",
 	"....................",
 	".....XXX...XXX......",
-	"....XXXX...XXXX.....",
-	"....XXXX...XXXX.....",
-	".....XX.....XX......",
+	"....XaaXX.XaaXX....",
+	"....XXaXX.XaXXX....",
+	".....XXX...XXX......",
 	"....................",
 	"....................",
 	"....................",
@@ -261,7 +304,7 @@ var eyeCyclops = []string{
 	"....................",
 	"....................",
 	".......XXXXX........",
-	".......XXXXX........",
+	"......XXaaaXX.......",
 	".......XXXXX........",
 	"....................",
 	"....................",
@@ -271,14 +314,14 @@ var eyeCyclops = []string{
 
 var eyeArachnid = []string{
 	"....................",
-	"........X...X.......",
-	"....................",
-	".....X...X.X...X....",
-	"....................",
-	".....X...X.X...X....",
-	"....................",
-	"........X...X.......",
-	"....................",
+	"......XXXd.dXXX.....",
+	".......dd...dd......",
+	".....XXdXXdXXdXX....",
+	"........dd.dd.......",
+	".....XXdXXdXXdXX....",
+	"........dd.dd.......",
+	"........XXdXX.......",
+	".........d..d.......",
 	"....................",
 }
 
@@ -286,9 +329,9 @@ var eyeVisor = []string{
 	"....................",
 	"....................",
 	"....................",
-	"....................",
-	"....XXXXXXXXXXXX....",
-	"....................",
+	"........hhhh........",
+	"....XXXhaaaahXXX....",
+	"........hhhh........",
 	"....................",
 	"....................",
 	"....................",
@@ -308,27 +351,110 @@ var eyeNone = []string{
 	"....................",
 }
 
-// --- Torso templates (8 rows x 20 wide) ---
-// 'X' = body, 'W' = weapon, 'a' = accent, 'h' = highlight, 'd' = dark
+// --- Weapon mask templates (8 rows x 20 wide, drawn over torso rows 10-17) ---
+// These define the held weapon silhouette per damage type. 'X' = weapon body,
+// 'h' = highlight, 'a' = accent, 'd' = dark. Positioned on the right side
+// where the torso 'W' grip marker sits.
+//
+// DMG_KINETIC: a rail/slug rifle with a long barrel.
+var weaponKinetic = []string{
+	"....................",
+	"....................",
+	"...............h....",
+	"...XXXXXXXXXXXXXXh..",
+	".ddXXXXXXXXXXXXXXhh.",
+	".dddX.......XX......",
+	"....................",
+	"....................",
+}
+
+// DMG_PLASMA: a bulbous plasma projector with a glowing core.
+var weaponPlasma = []string{
+	"....................",
+	"....................",
+	"....................",
+	"........XXXXXXXhhh..",
+	".......XXXXXXXXhhhd.",
+	"......dXXXdddXXX....",
+	"......dd......dd....",
+	"......dd......dd....",
+}
+
+// DMG_LASER: a slim beam emitter with a barrel lens.
+var weaponLaser = []string{
+	"....................",
+	"....................",
+	"...............hhhhd",
+	".......XXXXXXXXXXXd.",
+	".......XXXXXXXXXXXd.",
+	"......XXX...........",
+	"......dd............",
+	"....................",
+}
+
+// DMG_EXPLOSIVE: a bulky launcher with a wide muzzle.
+var weaponExplosive = []string{
+	"....................",
+	"............XdddddX.",
+	"............XXXXXXXX",
+	"...........XXXXXXXXX",
+	"............XX...XX.",
+	"...........XX.....XX",
+	"....................",
+	"....................",
+}
+
+// DMG_MELEE: a bladed claw/edge held forward.
+var weaponMelee = []string{
+	"..................hh",
+	".................XXh",
+	"...............XXh..",
+	".............XXXh...",
+	"............XXXh....",
+	"..........XXXh......",
+	"........dXXXd.......",
+	"......ddddd.........",
+}
+
+// DMG_PSIONIC: a hovering staff/orb with no solid barrel.
+var weaponPsionic = []string{
+	"....................",
+	".............dXXXd..",
+	".............XhahX..",
+	".............XXXXX..",
+	"..............XXX...",
+	"..............XXX...",
+	"..............dXd...",
+	"...............d....",
+}
 
 var torsoSlim = []string{
 	".......XXXXXX.......",
 	".......XXXXXX.......",
 	"......XXXXXXXX......",
-	".....XXXXXXXXXX.....",
-	".......XXXXXX.WWWWWW",
-	".......XXXXWWWWWWW..",
-	".......XXXXX........",
+	"......XXXXXXXXX.....",
+	".......XXXXXXXX.....",
+	".......XXXXXXXX.....",
+	".......XXXXXX.......",
 	".......XXXXXX.......",
 }
+
+// --- Torso templates (8 rows x 20 wide) ---
+// Detail chars:
+//   X = body (solid torso)
+//   W = Weapon layer — only used by melee/claw torsos (e.g. torsoBladed)
+//       as integral blades. Ranged weapons come from the separate weapon mask.
+//   a = body + Accent layer (armor trim)
+//   h = body + Highlight layer (polished plate edge)
+//   d = body + Shadow layer (recessed seam)
 
 var torsoWide = []string{
 	".....XXXXXXXXXX.....",
 	".....XXXXXXXXXX.....",
 	"....XXXXXXXXXXXX....",
 	"....XXXXXXXXXXXX....",
-	".....XXXXXXXXXWWWWWW",
-	".....XXXXXXWWWWWWW..",
+	".....XXXXXXXXXXX....",
+	".....XXXXXXXXXXX....",
 	".....XXXXXXXXXX.....",
 	".....XXXXXXXXXX.....",
 }
@@ -337,11 +463,11 @@ var torsoArmored = []string{
 	".....dddXXXXdd......",
 	"....dXXXXXXXXXXd....",
 	"...XXdXXXXXXXXdXX...",
-	 "...XX.XX.XX.XXXX...",
-	 "..XXXX.XX.XXXXWWWWW",
-	 "..XXXX.XXWWWWWWWW..",
-	 "..XXXX.WWWWWWWWW...",
-	 "...XXX.XXXX.XXX....",
+	"...XXdXXdXXdXXXX....",
+	"..XXXXdXXdXXXXXXX...",
+	"..XXXXdXXXXXXXXX....",
+	"..XXXXdXXXXXXXXX....",
+	"...XXXdXXXXdXXX.....",
 }
 
 var torsoTentacle = []string{
@@ -349,7 +475,7 @@ var torsoTentacle = []string{
 	"......XXXXXXXX......",
 	"......XXXXXXXX......",
 	"......XXXXXXXX......",
-	"X......XXXXXX......X",
+	"h......XXXXXX......h",
 	"XX..XXXXXXXXXXXX..XX",
 	".XXXX..XXXXXX..XXXX.",
 	".......XXXXXX.......",
@@ -358,12 +484,101 @@ var torsoTentacle = []string{
 var torsoMultiArmed = []string{
 	".XXXXXXXXXXXXXXXXXX.",
 	".XXX..XXXXXXXX..XXX.",
-	"..XX...XXXXXX...XX..",
+	"..hh...XXXXXX...hh..",
 	".......XXXXXX.......",
 	".XXXXXXXXXXXXXXXXXX.",
 	".XXX...XXXXXX...XXX.",
-	"..XX...XXXXXX...XX..",
-	".......XXXXXX.......",
+	"..hh..XaaaaaaX..hh..",
+	".....XXXXXXXXXX.....",
+}
+
+var torsoMultiArmed2 = []string{
+	"a..aa..XXXXXX..aa..a",
+	"XX.XX..XXXXXX..XX.XX",
+	".XXXX...XXXX...XXXX.",
+	"...XXXXXXXXXXXXXX...",
+	".a...XXXXXXXXXX...a.",
+	".aXXXXXXXXXXXXXXXXa.",
+	".a..XXXXXXXXXXX...a.",
+	".....XXXXXXXXX......",
+}
+
+// torsoFloating is a compact hovering core with no legs/arms. Paired with
+// LocomFloating aliens (Legs == 0) via legsFloating for a levitating look.
+// It carries no weapon pixels (armless aliens are unarmed).
+var torsoFloating = []string{
+	".......dXXXXd.......",
+	".....dXXXXXXXXd.....",
+	"....XXXhhXXhhXXX....",
+	"....XXhhXXXXhhXX....",
+	"....XXXXaaaaXXXX....",
+	".....XXaaaaaaXX.....",
+	"......dXXXXXXd......",
+	".......dhhhhd.......",
+}
+
+// Exotic body-subtype cores. Each silhouette is used only for its matching
+// BodySubtype so e.g. gaseous aliens never get drawn as flesh torsos. They
+// carry no weapon pixels; arms/legs are drawn as separate modules on top.
+
+// torsoGaseous: a drifting cloud/vortex core.
+var torsoGaseous = []string{
+	".....X..X..X..X....",
+	"....X.X.XXX.X.X....",
+	"....X.X.XXX.X.X.X..",
+	"..X.X.X.X.X.X.X.X..",
+	"....X.X.XXX.X.X....",
+	".....X.XXXXX.X.....",
+	"......X.X.X.X.X....",
+	".......X.X.X.X.....",
+}
+
+// torsoAmorphous: a shifting blob with no fixed shape.
+var torsoAmorphous = []string{
+	"....XX.XXXX.XX.....",
+	"..XX..XXXXXX..XX...",
+	".XXXXXXXXXXXXXXXX..",
+	"..XXXXXXXXXXXXX....",
+	"....XXXXXXXXXX.....",
+	"..XXXXXXXXXXXXXX...",
+	".XXXXXXXXXXXXXXXX..",
+	"....XX.XXXX.XX.....",
+}
+
+// torsoMechanical: a rigid plated chassis with panel seams.
+var torsoMechanical = []string{
+	"..XXXXXXXXXXXXXXXX..",
+	"..XhhWWWWWWWWWhhX..",
+	"..XWWaaaaaaaaWWX...",
+	"..XaaXXXXXXXXaaX...",
+	"..XWWXXXXXXXXWWX...",
+	"..XhhWWWWWWWWWhhX..",
+	"..XaaXXXXXXXXaaX...",
+	"..XXXXXXXXXXXXXXXX..",
+}
+
+// torsoNanotech: a swarm-of-cells core with scattered nodes.
+var torsoNanotech = []string{
+	".dXdXhXhXhXhXhXhX..",
+	"X.X.XhX.X.XhXhXhXh.",
+	".XhXhXhXhXhXhXhXhXh",
+	"X.X.XaX.X.XaXhXhXhX",
+	".XhXhXhXhXhXhX.XhX.",
+	"X.XhXhXhXhXhXhXhXh.",
+	".X.X.XaX.X.XaXhXhXh",
+	"..XhXhXhXhXhXhXhX..",
+}
+
+// torsoCrystalline: a faceted gem-like lattice.
+var torsoCrystalline = []string{
+	".......X....X......",
+	"......XXX..XXX.....",
+	".....XXXXXaXXXXX...",
+	"....XXXXXXXXXXXXX..",
+	"....XXXXXhhXXXXX...",
+	".....XXXXXaXXXXX...",
+	"......XXX..XXX.....",
+	".......X....X......",
 }
 
 var torsoHollow = []string{
@@ -373,8 +588,8 @@ var torsoHollow = []string{
 	"....XX......XXX.....",
 	"....XXX....XXXX.....",
 	".....XXXXXXXXXX.....",
-	"......XXXX.WWW......",
-	"..........WWWWW......",
+	"......XXXXXXXXXX....",
+	"........XXXXXXXX....",
 }
 
 var torsoAsymmetric = []string{
@@ -383,9 +598,9 @@ var torsoAsymmetric = []string{
 	"...XXXX.XX.XXXXX....",
 	"..XXXXX.XX.XXXXXX...",
 	"..XXXX.XX.XXXXXXX...",
-	"......XX.WWWW.......",
-	".......WWWWWWW......",
-	"........WWWWW.......",
+	"...XX.XX.XXXXXXXXXX.",
+	"......XXXXXXXXXX.....",
+	"........XXXXX.......",
 }
 
 var torsoBladed = []string{
@@ -395,11 +610,17 @@ var torsoBladed = []string{
 	"..WWXXXX.XX.XXXXWW..",
 	"..WWXXXXXXXXXXXXWW..",
 	"......XX.XX.WWW.....",
-	".......XX...WW......",
-	"..............WW....",
+	".......XX.XXWW......",
+	".......XXXXX..WW....",
 }
 
 // --- Leg templates (6 rows x 20 wide) ---
+// Detail chars (same semantics as torso):
+//   X = body (solid limb)
+//   W = Weapon layer (built-in leg weapon; rarely used)
+//   a = body + Accent layer (limb trim)
+//   h = body + Highlight layer (limb edge glint)
+//   d = body + Shadow layer (recessed joint)
 
 var legsBipedal = []string{
 	".......XXXXXX.......",
@@ -407,16 +628,16 @@ var legsBipedal = []string{
 	"......XX....XX......",
 	".....XX......XX.....",
 	".....XX......XX.....",
-	"....XXX......XXX....",
+	"....ddd......ddd....",
 }
 
 var legsLong = []string{
 	".......XXXXXX.......",
-	".......XXXXXX.......",
-	"........XXXX........",
-	"........XXXX........",
-	"........XXXX........",
+	".......XX.XXX.......",
 	".......XX..XX.......",
+	".......XX..XX.......",
+	".......XX..XX.......",
+	".......dd..dd.......",
 }
 
 var legsWide = []string{
@@ -425,7 +646,7 @@ var legsWide = []string{
 	".....XX......XX.....",
 	"....XX........XX....",
 	"...XX..........XX...",
-	"..XX............XX..",
+	"..dd............dd..",
 }
 
 var legsArachnid = []string{
@@ -434,25 +655,34 @@ var legsArachnid = []string{
 	".....XX..XX..XX.....",
 	"....XX...XX...XX....",
 	"...XX....XX....XX...",
-	"..XX.....XX.....XX..",
+	"..dd.....dd.....dd..",
 }
 
 var legsTentacle = []string{
-	".......XXXXX........",
-	".......X..XX........",
+	"......XXXXXX........",
 	"......XX..XX........",
-	"XX...XX...XX...XX...",
+	"......XX..XX........",
+	"hh...XX...XX...hh...",
 	".XX.XX.....XX.XX....",
 	".XXXX.......XXX.....",
 }
 
 var legsPillar = []string{
-	".......XXXXXX.......",
+	".......hXXXXh.......",
 	"........XXXX........",
 	"........XXXX........",
 	"........XXXX........",
-	"........XXXX........",
-	".......XXXXXX.......",
+	"........hXXh........",
+	".......dddddd.......",
+}
+
+var legsFloating = []string{
+	".....XXXXXXXXXX.....",
+	".......hXXXXh.......",
+	"........haah........",
+	"....................",
+	"....................",
+	"....................",
 }
 
 var legsSerpentine = []string{
@@ -460,8 +690,17 @@ var legsSerpentine = []string{
 	".........XXXXXXXX...",
 	"........XXXXXXXX....",
 	"......XXXXXXXXX.....",
-	"..XXXXXXXXXX........",
-	"XXXXXXXXXX..........",
+	"..ddXXXXXXdd........",
+	"dddddddddd..........",
+}
+
+var legsCrab = []string{
+	"hh...XXXXXXXX...hh..",
+	".XX.XXXXXXXXXX.XX...",
+	"..XXX.XXXXXX.XXX....",
+	".....XXXXXXXX.......",
+	"...XX........XX.....",
+	"..hh..........hh....",
 }
 
 func SenseFromMorphology(m *Morphology) Sense {
@@ -496,7 +735,16 @@ func ManipulatorsFromMorphology(m *Morphology) Manipulators {
 
 func LocomotionFromMorphology(m *Morphology) Locomotion {
 	if m.Legs == 0 {
-		return LocomFloating
+		// 0 legs splits into two cases:
+		//  - slithering aliens (flesh/silicon) crawl on a tail/coil
+		//  - floaters (gas/amorphous/nanotech, or hovering mechanical)
+		//    levitate with no ground contact.
+		switch m.BodySubtype {
+		case SubtypeGaseous, SubtypeAmorphous, SubtypeNanotech, SubtypeMechanical:
+			return LocomFloating
+		default:
+			return LocomSlither
+		}
 	}
 	if m.Legs <= 2 {
 		return LocomBipedal
@@ -512,7 +760,7 @@ func GenerateAlienPixels(seed int64, m *Morphology) AlienPixels {
 	if m == nil {
 		m = &Morphology{
 			Arms: 2, Legs: 2, BodyType: BodyOrganic, BodySubtype: SubtypeCarbonFlesh,
-			Eyesight: "normal", Hearing: "normal",
+			Eyesight: "normal", Hearing: "normal", DamageType: DMG_KINETIC,
 		}
 	}
 
@@ -525,8 +773,9 @@ func GenerateAlienPixels(seed int64, m *Morphology) AlienPixels {
 
 	head := pickHead(reg.Heads, sense, rng)
 	eyes := pickEyes(reg.Eyes, m, rng)
-	torso := pickTorso(reg.Torsos, manip, rng)
+	torso := pickTorso(reg.Torsos, manip, m.BodySubtype, rng)
 	legs := pickLegs(reg.Legs, loco, rng)
+	weapon := pickWeapon(reg.Weapons, m.DamageType, rng)
 
 	var result AlienPixels
 
@@ -561,16 +810,24 @@ func GenerateAlienPixels(seed int64, m *Morphology) AlienPixels {
 		eyeOffset := centerOffset(eyes[0], 20)
 		for y := 0; y < 10 && y < len(eyes); y++ {
 			for x := 0; x < len(eyes[y]) && x < 20; x++ {
-				if eyes[y][x] != 'X' {
+				if eyes[y][x] == '.' {
 					continue
 				}
-				ex := x + eyeOffset
-				ey := y
-				if ex < 0 || ex >= 20 || ey < 0 || ey >= 10 {
-					continue
-				}
-				result.Body[ey][ex] = false
-				result.Eyes[ey][ex] = true
+			ex := x + eyeOffset
+			ey := y
+			if ex < 0 || ex >= 20 || ey < 0 || ey >= 10 {
+				continue
+			}
+			result.Body[ey][ex] = false
+			result.Eyes[ey][ex] = true
+			switch eyes[y][x] {
+			case 'h':
+				result.Highlight[ey][ex] = true
+			case 'a':
+				result.Accent[ey][ex] = true
+			case 'd':
+				result.Shadow[ey][ex] = true
+			}
 			}
 		}
 	}
@@ -586,7 +843,9 @@ func GenerateAlienPixels(seed int64, m *Morphology) AlienPixels {
 			case 'X':
 				result.Body[ty][x+torsoOffset] = true
 			case 'W':
-				result.Weapon[ty][x+torsoOffset] = true
+				if manip != ManipNone {
+					result.Weapon[ty][x+torsoOffset] = true
+				}
 			case 'a':
 				result.Body[ty][x+torsoOffset] = true
 				result.Accent[ty][x+torsoOffset] = true
@@ -596,6 +855,32 @@ func GenerateAlienPixels(seed int64, m *Morphology) AlienPixels {
 			case 'd':
 				result.Body[ty][x+torsoOffset] = true
 				result.Shadow[ty][x+torsoOffset] = true
+			}
+		}
+	}
+
+	// Weapon mask: a separate silhouette drawn over the torso's right side.
+	// Only armed aliens (manip != none) carry a weapon.
+		if manip != ManipNone {
+			for y, row := range weapon {
+				ty := 10 + y
+				if ty >= 18 || y >= len(weapon) {
+					break
+				}
+			for x, ch := range row {
+				switch ch {
+				case 'X':
+					result.Weapon[ty][x] = true
+				case 'h':
+					result.Weapon[ty][x] = true
+					result.Highlight[ty][x] = true
+				case 'a':
+					result.Weapon[ty][x] = true
+					result.Accent[ty][x] = true
+				case 'd':
+					result.Weapon[ty][x] = true
+					result.Shadow[ty][x] = true
+				}
 			}
 		}
 	}
@@ -610,8 +895,24 @@ func GenerateAlienPixels(seed int64, m *Morphology) AlienPixels {
 			break
 		}
 		for x, ch := range row {
-			if ch == 'X' {
-				result.Body[ly][x+legsOffset] = true
+			lx := x + legsOffset
+			if lx < 0 || lx >= 20 {
+				continue
+			}
+			switch ch {
+			case 'X':
+				result.Body[ly][lx] = true
+			case 'W':
+				result.Weapon[ly][lx] = true
+			case 'a':
+				result.Body[ly][lx] = true
+				result.Accent[ly][lx] = true
+			case 'h':
+				result.Body[ly][lx] = true
+				result.Highlight[ly][lx] = true
+			case 'd':
+				result.Body[ly][lx] = true
+				result.Shadow[ly][lx] = true
 			}
 		}
 	}
@@ -622,6 +923,11 @@ func GenerateAlienPixels(seed int64, m *Morphology) AlienPixels {
 	for y := 0; y < 24; y++ {
 		for x := 0; x < 20; x++ {
 			if !result.Body[y][x] {
+				continue
+			}
+			// Skip weapon pixels — they carry their own highlight/shadow from
+			// the weapon mask and must not be overwritten by body shading.
+			if result.Weapon[y][x] {
 				continue
 			}
 			if x > 0 && x < 19 && y > 0 && y < 23 {
@@ -649,12 +955,12 @@ func GenerateAlienPixels(seed int64, m *Morphology) AlienPixels {
 			}
 
 			// Belly patch: central torso area
-			if y >= 11 && y <= 16 && x >= 7 && x <= 12 {
+			if y >= 11 && y <= 16 && x >= 7 && x <= 12 && !result.Weapon[y][x] {
 				result.Belly[y][x] = true
 			}
 
 			// Texture speckle
-			if !result.Highlight[y][x] && !result.Shadow[y][x] && !result.Accent[y][x] && !result.Mouth[y][x] {
+			if !result.Highlight[y][x] && !result.Shadow[y][x] && !result.Accent[y][x] && !result.Mouth[y][x] && !result.Weapon[y][x] {
 				if texRng.Intn(100) < 20 {
 					result.Texture[y][x] = true
 				}
@@ -667,7 +973,7 @@ func GenerateAlienPixels(seed int64, m *Morphology) AlienPixels {
 	case SubtypeGaseous:
 		for y := 0; y < 24; y++ {
 			for x := 0; x < 20; x++ {
-				if result.Body[y][x] && texRng.Intn(100) < 40 {
+				if result.Body[y][x] && !result.Weapon[y][x] && texRng.Intn(100) < 40 {
 					result.Body[y][x] = false
 					result.Texture[y][x] = true
 				}
@@ -676,7 +982,7 @@ func GenerateAlienPixels(seed int64, m *Morphology) AlienPixels {
 	case SubtypeCrystalline:
 		for y := 0; y < 24; y++ {
 			for x := 0; x < 20; x++ {
-				if result.Body[y][x] && !result.Highlight[y][x] && !result.Shadow[y][x] {
+				if result.Body[y][x] && !result.Weapon[y][x] && !result.Highlight[y][x] && !result.Shadow[y][x] {
 					if texRng.Intn(100) < 15 {
 						result.Accent[y][x] = true
 					}
@@ -686,7 +992,7 @@ func GenerateAlienPixels(seed int64, m *Morphology) AlienPixels {
 	case SubtypeMechanical, SubtypeSilicon:
 		for y := 0; y < 24; y++ {
 			for x := 0; x < 20; x++ {
-				if result.Body[y][x] && texRng.Intn(100) < 10 {
+				if result.Body[y][x] && !result.Weapon[y][x] && texRng.Intn(100) < 10 {
 					result.Highlight[y][x] = true
 				}
 			}
@@ -694,7 +1000,7 @@ func GenerateAlienPixels(seed int64, m *Morphology) AlienPixels {
 	case SubtypeAmorphous:
 		for y := 0; y < 24; y++ {
 			for x := 0; x < 20; x++ {
-				if result.Body[y][x] && texRng.Intn(100) < 25 {
+				if result.Body[y][x] && !result.Weapon[y][x] && texRng.Intn(100) < 25 {
 					result.Texture[y][x] = true
 				}
 			}
@@ -702,10 +1008,10 @@ func GenerateAlienPixels(seed int64, m *Morphology) AlienPixels {
 	case SubtypeNanotech:
 		for y := 0; y < 24; y++ {
 			for x := 0; x < 20; x++ {
-				if result.Body[y][x] && texRng.Intn(100) < 30 {
+				if result.Body[y][x] && !result.Weapon[y][x] && texRng.Intn(100) < 30 {
 					result.Highlight[y][x] = true
 				}
-				if result.Body[y][x] && texRng.Intn(100) < 15 {
+				if result.Body[y][x] && !result.Weapon[y][x] && texRng.Intn(100) < 15 {
 					result.Texture[y][x] = true
 				}
 			}
@@ -713,7 +1019,7 @@ func GenerateAlienPixels(seed int64, m *Morphology) AlienPixels {
 	case SubtypeBioSynthetic:
 		for y := 0; y < 24; y++ {
 			for x := 0; x < 20; x++ {
-				if result.Body[y][x] && !result.Highlight[y][x] && !result.Shadow[y][x] {
+				if result.Body[y][x] && !result.Weapon[y][x] && !result.Highlight[y][x] && !result.Shadow[y][x] {
 					if texRng.Intn(100) < 10 {
 						result.Accent[y][x] = true
 					}
@@ -757,17 +1063,34 @@ func pickHead(candidates []TaggedHead, sense Sense, rng *rand.Rand) []string {
 	return filtered[rng.Intn(len(filtered))]
 }
 
-func pickTorso(candidates []TaggedTorso, manip Manipulators, rng *rand.Rand) []string {
-	var filtered [][]string
+func pickTorso(candidates []TaggedTorso, manip Manipulators, subtype string, rng *rand.Rand) []string {
+	var generic [][]string
+	var specific [][]string
 	for _, t := range candidates {
-		if t.Manipulators == manip {
-			filtered = append(filtered, t.Pixels)
+		okManip := false
+		for _, mm := range t.Manip {
+			if mm == manip {
+				okManip = true
+				break
+			}
+		}
+		if !okManip {
+			continue
+		}
+		if t.BodyType == "" {
+			generic = append(generic, t.Pixels)
+		} else if t.BodyType == subtype {
+			specific = append(specific, t.Pixels)
 		}
 	}
-	if len(filtered) == 0 {
+	pool := generic
+	if len(specific) > 0 {
+		pool = specific
+	}
+	if len(pool) == 0 {
 		return torsoSlim
 	}
-	return filtered[rng.Intn(len(filtered))]
+	return pool[rng.Intn(len(pool))]
 }
 
 func pickLegs(candidates []TaggedLegs, loco Locomotion, rng *rand.Rand) []string {
@@ -781,6 +1104,28 @@ func pickLegs(candidates []TaggedLegs, loco Locomotion, rng *rand.Rand) []string
 		return legsBipedal
 	}
 	return filtered[rng.Intn(len(filtered))]
+}
+
+// pickWeapon selects a weapon-mask design by damage type, falling back to the
+// kinetic design when no specific match exists.
+func pickWeapon(candidates []TaggedWeapon, dmgType int, rng *rand.Rand) []string {
+	var specific, generic [][]string
+	for _, w := range candidates {
+		if w.DamageType == dmgType {
+			specific = append(specific, w.Pixels)
+		}
+		if w.DamageType == DMG_KINETIC {
+			generic = append(generic, w.Pixels)
+		}
+	}
+	pool := generic
+	if len(specific) > 0 {
+		pool = specific
+	}
+	if len(pool) == 0 {
+		return weaponKinetic
+	}
+	return pool[rng.Intn(len(pool))]
 }
 
 // EyeTypeFromMorphology selects an eye style based on the alien's eyesight.
@@ -826,5 +1171,5 @@ func AlienColorFromSeed(seed int64) (r, g, b int32) {
 
 // AlienWeaponColor returns a metallic-grey variant for weapons.
 func AlienWeaponColor() (r, g, b int32) {
-	return 170, 180, 190
+	return 120, 130, 140
 }

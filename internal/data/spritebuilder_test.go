@@ -14,7 +14,8 @@ func TestTraitMapping(t *testing.T) {
 		wantLoco  Locomotion
 	}{
 		{"Standard human", &Morphology{Arms: 2, Legs: 2, Eyesight: "normal", Hearing: "normal"}, SenseStandard, ManipBipedal, LocomBipedal},
-		{"Floating 0-arm", &Morphology{Arms: 0, Legs: 0, Eyesight: "normal", Hearing: "normal"}, SenseStandard, ManipNone, LocomFloating},
+		{"Floating 0-arm gaseous", &Morphology{Arms: 0, Legs: 0, BodySubtype: SubtypeGaseous, Eyesight: "normal", Hearing: "normal"}, SenseStandard, ManipNone, LocomFloating},
+		{"Slithering 0-arm flesh", &Morphology{Arms: 0, Legs: 0, BodySubtype: SubtypeCarbonFlesh, Eyesight: "normal", Hearing: "normal"}, SenseStandard, ManipNone, LocomSlither},
 		{"4-arm 4-leg", &Morphology{Arms: 4, Legs: 4, Eyesight: "normal", Hearing: "normal"}, SenseStandard, ManipMultiArmed, LocomArachnid},
 		{"Echolocation", &Morphology{Arms: 2, Legs: 2, Eyesight: "poor", Hearing: "echolocation"}, SenseEcholocation, ManipBipedal, LocomBipedal},
 		{"Omni-sense", &Morphology{Arms: 2, Legs: 2, PsionicSense: "high", ThermalSense: "high"}, SenseOmni, ManipBipedal, LocomBipedal},
@@ -62,27 +63,27 @@ func TestTraitDrivenPixels(t *testing.T) {
 }
 
 func TestWeaponOnlyOnBipedalTorso(t *testing.T) {
-	mBipedal := &Morphology{Arms: 2, Legs: 2, Eyesight: "normal", Hearing: "normal"}
+	// Weapon pixels now come from the separate weapon mask (not torso 'W').
+	mBipedal := &Morphology{Arms: 2, Legs: 2, Eyesight: "normal", Hearing: "normal", DamageType: DMG_KINETIC}
 	ap := GenerateAlienPixels(42, mBipedal)
-	weaponRows := 0
-	for y := 10; y < 18; y++ {
+	weaponPixels := 0
+	for y := 0; y < 24; y++ {
 		for x := 0; x < 20; x++ {
 			if ap.Weapon[y][x] {
-				weaponRows++
-				break
+				weaponPixels++
 			}
 		}
 	}
-	if weaponRows == 0 {
-		t.Error("bipedal torso should have weapon pixels")
+	if weaponPixels == 0 {
+		t.Error("bipedal alien should have weapon pixels from mask")
 	}
 
-	mNone := &Morphology{Arms: 0, Legs: 0, Eyesight: "normal", Hearing: "normal"}
+	mNone := &Morphology{Arms: 0, Legs: 0, Eyesight: "normal", Hearing: "normal", DamageType: DMG_KINETIC}
 	ap2 := GenerateAlienPixels(42, mNone)
 	for y := 0; y < 24; y++ {
 		for x := 0; x < 20; x++ {
 			if ap2.Weapon[y][x] {
-				t.Error("none torso should have no weapon pixels")
+				t.Error("none alien should have no weapon pixels")
 				return
 			}
 		}

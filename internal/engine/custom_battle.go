@@ -79,7 +79,7 @@ func (cs *CustomBattleScreen) Render(ctx *ScreenCtx) {
 		ctx.DrawString(2, 3, language.String("CUSTOM_NO_BATTLES"), StyleGray)
 		ctx.DrawString(2, 5, language.String("CUSTOM_PLACE_JSON"), StyleGray)
 		ctx.DrawPanel(0, h-1, w, 1, "", StyleGray)
-		ctx.DrawString(1, h-1, language.String("CUSTOM_HELP"), StyleGray)
+		ctx.DrawMarkupString(1, h-1, language.String("CUSTOM_HELP"), StyleGray, StyleHotkey)
 		return
 	}
 

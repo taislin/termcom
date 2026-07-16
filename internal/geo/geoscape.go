@@ -93,6 +93,11 @@ type Geoscape struct {
 
 	// Visual Effects
 	DogfightVisual *DogfightAnim
+
+	// Cached layout rects from the last Render, used by the click handler so
+	// mouse hit-testing matches the (possibly mobile-stacked) on-screen layout.
+	tableRect [4]int // x, y, w, h of the region table panel
+	mapRect   [4]int // x, y, w, h of the world-map panel
 }
 
 // DogfightAnim drives the minimap combat visual for interceptor-vs-UFO engagements.
@@ -1938,17 +1943,34 @@ func (gs *Geoscape) Render(ctx *engine.ScreenCtx) {
 	mobile := engine.Layout.IsMobile()
 	tableX, tableY, tableH := 1, 1, h-7
 	miniX, miniY, miniH := mapX, 1, h-7
+	// statusY is the top row of the 5-row bottom status panel.
+	statusY := h - 6
 	if mobile {
+		// On mobile the touch control bar is pinned to the bottom. Lay out the
+		// content (region table + world map + status panel) to fill all the
+		// vertical space above it instead of the fixed h-7 desktop reservation.
+		reserved := engine.Menu.ReservedBottom(w, h)
+		contentBottom := h - reserved - 1
+		if contentBottom < 16 {
+			contentBottom = 16
+		}
+		if contentBottom > h-1 {
+			contentBottom = h - 1
+		}
+		// Place the 5-row status panel just above the control bar.
+		statusY = contentBottom - 5
+		usableH := statusY - 1 // rows 1..statusY-1 for table + map
+
 		// Stack vertically: region table on top, world map below it.
-		half := (h - 7) / 2
+		half := usableH / 2
 		tableX, tableY, tableH = 1, 1, half
-		miniX, miniY, miniH = 1, half+2, (h-7)-half-1
+		miniX, miniY, miniH = 1, half+2, usableH-half-1
 		mapW = w - 2
 		mapX = 1
 	}
 
 	// Clear
-	for y := 1; y < h-5; y++ {
+	for y := 1; y < h-1; y++ {
 		for x := 1; x < w-1; x++ {
 			ctx.SetCell(x, y, ' ', engine.StyleDefault)
 		}
@@ -1958,9 +1980,12 @@ func (gs *Geoscape) Render(ctx *engine.ScreenCtx) {
 	if mapW > 0 {
 		gs.renderMinimap(ctx, miniX, miniY, mapW-1, miniH)
 	}
+	// Cache layout rects for mouse hit-testing in HandleMouse.
+	gs.tableRect = [4]int{tableX, tableY, tableW - 1, tableH}
+	gs.mapRect = [4]int{miniX, miniY, mapW - 1, miniH}
 
 	// Bottom status
-	ctx.DrawPanel(0, h-6, w, 5, language.String("GEOSCAPE"), engine.StyleDefault)
+	ctx.DrawPanel(0, statusY, w, 5, language.String("GEOSCAPE"), engine.StyleDefault)
 	fundsStr := fmt.Sprintf(language.String("GEOSCAPE_FUNDS"), gs.Game.Funds/1000)
 	if gs.Game.Difficulty > 0 && gs.Game.Difficulty < len(engine.Difficulties) {
 		fundsStr += fmt.Sprintf(language.String("GEOSCAPE_DIFF_SUFFIX"), engine.Difficulties[gs.Game.Difficulty].LangName())
@@ -1970,9 +1995,9 @@ func (gs *Geoscape) Render(ctx *engine.ScreenCtx) {
 	if gs.Game.Paused {
 		pauseStr = language.String("GEOSCAPE_PAUSED")
 	}
-	ctx.DrawString(2, h-5, fundsStr, engine.StyleGreen)
-	ctx.DrawString(w/3, h-5, timeStr, engine.StyleDefault)
-	ctx.DrawString(w*2/3, h-5, pauseStr, engine.StyleYellow)
+	ctx.DrawString(2, statusY+1, fundsStr, engine.StyleGreen)
+	ctx.DrawString(w/3, statusY+1, timeStr, engine.StyleDefault)
+	ctx.DrawString(w*2/3, statusY+1, pauseStr, engine.StyleYellow)
 
 	soldiersStr := ""
 	if sb := gs.SelectedBase(); sb != nil {
@@ -1981,16 +2006,18 @@ func (gs *Geoscape) Render(ctx *engine.ScreenCtx) {
 	alienStr := fmt.Sprintf(language.String("GEOSCAPE_ACTIVITY"), gs.AlienActivity)
 	missionStr := fmt.Sprintf(language.String("GEOSCAPE_MISSIONS"), len(gs.Missions), gs.MissionsWon)
 
-	ctx.DrawString(2, h-4, missionStr, engine.StyleMagenta)
-	ctx.DrawString(w/3, h-4, alienStr, engine.StyleRed)
-	ctx.DrawString(w*2/3, h-4, soldiersStr, engine.StyleCyan)
+	ctx.DrawString(2, statusY+2, missionStr, engine.StyleMagenta)
+	ctx.DrawString(w/3, statusY+2, alienStr, engine.StyleRed)
+	ctx.DrawString(w*2/3, statusY+2, soldiersStr, engine.StyleCyan)
 
 	if time.Since(gs.MessageTimer) < 4*time.Second && gs.Message != "" {
-		ctx.DrawString(2, h-3, gs.Message, engine.StyleDefault)
+		ctx.DrawString(2, statusY+3, gs.Message, engine.StyleDefault)
 	}
 
-	help := language.String("HELP_GEOSCAPE")
-	ctx.DrawMarkupString(1, h-1, help, engine.StyleGray, engine.StyleHotkey)
+	if !engine.Config.TouchMode {
+		help := language.String("HELP_GEOSCAPE")
+		ctx.DrawMarkupString(1, h-1, help, engine.StyleGray, engine.StyleHotkey)
+	}
 
 	if gs.MissionSelectMode {
 		gs.renderMissionSelect(ctx, w, h)
@@ -2773,7 +2800,7 @@ func (gs *Geoscape) HandleMouse(e *tcell.EventMouse) {
 		return
 	}
 	x, y := e.Position()
-	w, h := gs.Game.ScreenSize()
+	_, h := gs.Game.ScreenSize()
 
 	if y == h-1 {
 		help := language.String("HELP_GEOSCAPE")
@@ -2804,10 +2831,10 @@ func (gs *Geoscape) HandleMouse(e *tcell.EventMouse) {
 		return
 	}
 
-	// Click in table region (left pane)
-	tableW := engine.Layout.GeoTableWidth(w)
-	if x > 1 && x < tableW && y > 2 && y < h-7 {
-		row := y - 3
+	// Click in table region (left/top pane)
+	tX, tY, tW, tH := gs.tableRect[0], gs.tableRect[1], gs.tableRect[2], gs.tableRect[3]
+	if x > tX && x < tX+tW && y > tY+1 && y < tY+tH {
+		row := y - (tY + 2)
 		if row >= 0 && row < len(gs.Cities) {
 			gs.CursorNode = gs.Cities[row].ID
 			gs.Message = fmt.Sprintf(language.String("GEOSCAPE_NODE_SELECTED"), gs.Cities[row].LangName(), gs.Cities[row].LangRegion())
@@ -2815,16 +2842,15 @@ func (gs *Geoscape) HandleMouse(e *tcell.EventMouse) {
 		}
 	}
 
-	// Click in minimap region (right pane)
-	mapX := engine.Layout.GeoMapX(w)
-	mWidth := engine.Layout.GeoMapWidth(w)
-	innerW := mWidth - 3
-	innerH := h - 9
-	if innerW > 0 && innerH > 0 && x >= mapX+1 && x < mapX+1+innerW && y >= 2 && y < 2+innerH {
+	// Click in minimap region (right/bottom pane)
+	mX, mY, mW, mH := gs.mapRect[0], gs.mapRect[1], gs.mapRect[2], gs.mapRect[3]
+	innerW := mW - 2
+	innerH := mH - 2
+	if innerW > 0 && innerH > 0 && x >= mX+1 && x < mX+1+innerW && y >= mY+1 && y < mY+1+innerH {
 		worldW := 180
 		worldH := 90
-		worldX := (x - mapX - 1) * worldW / innerW
-		worldY := (y - 2) * worldH / innerH
+		worldX := (x - mX - 1) * worldW / innerW
+		worldY := (y - mY - 1) * worldH / innerH
 		// Find nearest city, UFO, or CrashSite
 		var bestCity *City
 		bestDist := 25 // Click radius
