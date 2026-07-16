@@ -341,13 +341,13 @@ func init() {
 		"BASE_PERSONNEL": "Cient\u00edficos: %d  Ingenieros: %d  %s",
 
 		// Barras de ayuda
-		"HELP_BASE":            "[B]Construir  [H]Contratar  [1-5]=Pesta\u00f1a  [\u2191]/[\u2193]=Navegar  [Esc]=Volver",
-		"HELP_FACILITIES":      "[B]Construir  [V]ender  [\u2191]/[\u2193]=Navegar  [Esc]=Volver",
-		"HELP_SOLDIERS":        "[H]Contratar ($%dK)  [E]Equipar  [D]Descartar  [\u2191]/[\u2193]=Navegar  [Esc]=Volver",
-		"HELP_TAB_RESEARCH":    "[R]Investigar  [\u2191]/[\u2193]=Navegar  [Esc]=Volver",
-		"HELP_TAB_MANUFACTURE": "[M]Fabricar  [\u2191]/[\u2193]=Navegar  [Esc]=Volver",
-		"HELP_TAB_TRANSFER":    "[V]ender  [\u2191]/[\u2193]=Navegar  [Esc]=Volver",
-		"HELP_HANGARS":         "[B]Comprar  [W]=Arma  [\u2191]/[\u2193]=Navegar  [Esc]=Volver",
+		"HELP_BASE":            "[B]Construir  [H]Contratar  [G]=Diseñar Arma  [D]=Descartar  [1-5]=Pesta\u00f1a  [\u2191]/[\u2193]=Navegar  [Esc]=Volver",
+		"HELP_FACILITIES":      "[B]Construir  [V]ender  [G]=Diseñar Arma  [D]=Descartar  [\u2191]/[\u2193]=Navegar  [Esc]=Volver",
+		"HELP_SOLDIERS":        "[H]Contratar ($%dK)  [E]Equipar  [G]=Diseñar Arma  [D]Descartar  [\u2191]/[\u2193]=Navegar  [Esc]=Volver",
+		"HELP_TAB_RESEARCH":    "[R]Investigar  [G]=Diseñar Arma  [D]=Descartar  [\u2191]/[\u2193]=Navegar  [Esc]=Volver",
+		"HELP_TAB_MANUFACTURE": "[M]Fabricar  [G]=Diseñar Arma  [D]=Descartar  [\u2191]/[\u2193]=Navegar  [Esc]=Volver",
+		"HELP_TAB_TRANSFER":    "[V]ender  [G]=Diseñar Arma  [D]=Descartar  [\u2191]/[\u2193]=Navegar  [Esc]=Volver",
+		"HELP_HANGARS":         "[B]Comprar  [W]=Arma  [G]=Diseño de Armas  [D]=Diseño de Aviones  [\u2191]/[\u2193]=Navegar  [Esc]=Volver",
 
 		// Etiquetas de secci\u00f3n
 		"SECTION_FACILITIES":     "INSTALACIONES:",
@@ -444,6 +444,8 @@ func init() {
 		"WEAPON_MSG_INSUFFICIENT_FUNDS": "¡Fondos insuficientes!",
 		"WEAPON_LABEL_BASE":     "Base:",
 		"WEAPON_LABEL_COST":     "Coste: $%dk",
+		"WEAPON_DESIGNER_HELP":  "[\u2191\u2193] Naveg  [\u2190\u2192] Ajust  [Tab] Sig  [Enter] Const  [Esc] Cancel",
+		"PLANE_DESIGNER_HELP":   "[\u2191\u2193] Naveg  [\u2190\u2192] Ajust  [Tab] Sig  [Enter] Guard  [Esc] Cancel  [R] Rest",
 
 		// ── Equipamiento ──────────────────────────────────────
 		"EQUIP_TITLE":        "EQUIPAR SOLDADOS",

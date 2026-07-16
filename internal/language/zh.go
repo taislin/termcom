@@ -339,13 +339,13 @@ func init() {
 		"BASE_PERSONNEL": "\u79d1\u5b66\u5bb6: %d  \u5de5\u7a0b\u5e08: %d  %s",
 
 		// \u5e2e\u52a9\u680f
-		"HELP_BASE":            "[B]\u5efa\u9020  [H]\u62db\u52df  [1-5]=\u6807\u7b7e  [\u2191]/[\u2193]=\u5bfc\u822a  [Esc]=\u8fd4\u56de",
-		"HELP_FACILITIES":      "[B]\u5efa\u9020  [S]\u51fa\u552e  [\u2191]/[\u2193]=\u5bfc\u822a  [Esc]=\u8fd4\u56de",
-		"HELP_SOLDIERS":        "[H]\u62db\u52df ($%dK)  [E]\u88c5\u5907  [D]\u89e3\u96c4  [\u2191]/[\u2193]=\u5bfc\u822a  [Esc]=\u8fd4\u56de",
-		"HELP_TAB_RESEARCH":    "[R]\u7814\u7a76  [\u2191]/[\u2193]=\u5bfc\u822a  [Esc]=\u8fd4\u56de",
-		"HELP_TAB_MANUFACTURE": "[M]\u5236\u9020  [\u2191]/[\u2193]=\u5bfc\u822a  [Esc]=\u8fd4\u56de",
-		"HELP_TAB_TRANSFER":    "[S]\u51fa\u552e  [\u2191]/[\u2193]=\u5bfc\u822a  [Esc]=\u8fd4\u56de",
-		"HELP_HANGARS":         "[B]\u8d2d\u4e70  [W]=\u6b66\u5668  [\u2191]/[\u2193]=\u5bfc\u822a  [Esc]=\u8fd4\u56de",
+		"HELP_BASE":            "[B]\u5efa\u9020  [H]\u62db\u52df  [G]=\u8bbe\u8ba1\u6b66\u5668  [D]=\u89e3\u96c4  [1-5]=\u6807\u7b7e  [\u2191]/[\u2193]=\u5bfc\u822a  [Esc]=\u8fd4\u56de",
+		"HELP_FACILITIES":      "[B]\u5efa\u9020  [S]\u51fa\u552e  [G]=\u8bbe\u8ba1\u6b66\u5668  [D]=\u89e3\u96c4  [\u2191]/[\u2193]=\u5bfc\u822a  [Esc]=\u8fd4\u56de",
+		"HELP_SOLDIERS":        "[H]\u62db\u52df ($%dK)  [E]\u88c5\u5907  [G]=\u8bbe\u8ba1\u6b66\u5668  [D]\u89e3\u96c4  [\u2191]/[\u2193]=\u5bfc\u822a  [Esc]=\u8fd4\u56de",
+		"HELP_TAB_RESEARCH":    "[R]\u7814\u7a76  [G]=\u8bbe\u8ba1\u6b66\u5668  [D]=\u89e3\u96c4  [\u2191]/[\u2193]=\u5bfc\u822a  [Esc]=\u8fd4\u56de",
+		"HELP_TAB_MANUFACTURE": "[M]\u5236\u9020  [G]=\u8bbe\u8ba1\u6b66\u5668  [D]=\u89e3\u96c4  [\u2191]/[\u2193]=\u5bfc\u822a  [Esc]=\u8fd4\u56de",
+		"HELP_TAB_TRANSFER":    "[S]\u51fa\u552e  [G]=\u8bbe\u8ba1\u6b66\u5668  [D]=\u89e3\u96c4  [\u2191]/[\u2193]=\u5bfc\u822a  [Esc]=\u8fd4\u56de",
+		"HELP_HANGARS":         "[B]\u8d2d\u4e70  [W]=\u6b66\u5668  [G]=\u6b66\u5668\u8bbe\u8ba1  [D]=\u98de\u673a\u8bbe\u8ba1  [\u2191]/[\u2193]=\u5bfc\u822a  [Esc]=\u8fd4\u56de",
 
 		// \u90e8\u5206\u6807\u9898
 		"SECTION_FACILITIES":     "\u8bbe\u65bd\uff1a",
@@ -442,6 +442,8 @@ func init() {
 		"WEAPON_MSG_INSUFFICIENT_FUNDS": "资金不足！",
 		"WEAPON_LABEL_BASE":     "基础:",
 		"WEAPON_LABEL_COST":     "造价: $%dk",
+		"WEAPON_DESIGNER_HELP":  "[↑↓] 导航  [←→] 调整  [Tab] 下一个  [Enter] 建造  [Esc] 取消",
+		"PLANE_DESIGNER_HELP":   "[↑↓] 导航  [←→] 调整  [Tab] 下一个  [Enter] 保存  [Esc] 取消  [R] 重置",
 
 		// ── \u88c5\u5907 ──────────────────────────────────────
 		"EQUIP_TITLE":        "\u88c5\u5907\u58eb\u5175",

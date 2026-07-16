@@ -58,7 +58,7 @@ func (pd *PlaneDesignerScreen) Render(ctx *engine.ScreenCtx) {
 	if pd.Message != "" {
 		ctx.DrawString(w*3/4, h-3, pd.Message, engine.StyleYellow)
 	}
-	help := "[\u2191\u2193] Nav  [\u2190\u2192] Adjust  [Tab] Next  [Enter] Save  [Esc] Cancel  [R] Reset"
+	help := language.String("PLANE_DESIGNER_HELP")
 	ctx.DrawMarkupString(2, h-1, help, engine.StyleGray, engine.StyleHotkey)
 }
 

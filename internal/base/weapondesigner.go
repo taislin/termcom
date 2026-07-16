@@ -49,7 +49,7 @@ func (wd *WeaponDesignerScreen) Render(ctx *engine.ScreenCtx) {
 	if wd.Message != "" {
 		ctx.DrawString(w*3/4, h-3, wd.Message, engine.StyleYellow)
 	}
-	help := "[\u2191\u2193] Nav  [\u2190\u2192] Adjust  [Tab] Next  [Enter] Build  [Esc] Cancel"
+	help := language.String("WEAPON_DESIGNER_HELP")
 	ctx.DrawMarkupString(2, h-1, help, engine.StyleGray, engine.StyleHotkey)
 }
 

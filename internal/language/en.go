@@ -339,13 +339,13 @@ func init() {
 		"BASE_PERSONNEL": "Scientists: %d  Engineers: %d  %s",
 
 		// Help bars
-		"HELP_BASE":            "[B]uild  [H]ire  [G]=Design Weapon  [1-5]=Tab  [\u2191]/[\u2193]=Navigate  [Esc]=Back",
-		"HELP_FACILITIES":      "[B]uild  [S]ell  [\u2191]/[\u2193]=Navigate  [Esc]=Back",
-		"HELP_SOLDIERS":        "[H]ire ($%dK)  [E]quip  [D]ismiss  [\u2191]/[\u2193]=Navigate  [Esc]=Back",
-		"HELP_TAB_RESEARCH":    "[R]esearch  [\u2191]/[\u2193]=Navigate  [Esc]=Back",
-		"HELP_TAB_MANUFACTURE": "[M]anufacture  [\u2191]/[\u2193]=Navigate  [Esc]=Back",
-		"HELP_TAB_TRANSFER":    "[S]ell  [\u2191]/[\u2193]=Navigate  [Esc]=Back",
-		"HELP_HANGARS":         "[B]uy  [W]=Weapon  [D]=Design  [\u2191]/[\u2193]=Navigate  [Esc]=Back",
+		"HELP_BASE":            "[B]uild  [H]ire  [G]=Design Weapon  [D]=Dismiss  [1-5]=Tab  [\u2191]/[\u2193]=Navigate  [Esc]=Back",
+		"HELP_FACILITIES":      "[B]uild  [S]ell  [G]=Design Weapon  [D]=Dismiss  [\u2191]/[\u2193]=Navigate  [Esc]=Back",
+		"HELP_SOLDIERS":        "[H]ire ($%dK)  [E]quip  [G]=Design Weapon  [D]ismiss  [\u2191]/[\u2193]=Navigate  [Esc]=Back",
+		"HELP_TAB_RESEARCH":    "[R]esearch  [G]=Design Weapon  [D]=Dismiss  [\u2191]/[\u2193]=Navigate  [Esc]=Back",
+		"HELP_TAB_MANUFACTURE": "[M]anufacture  [G]=Design Weapon  [D]=Dismiss  [\u2191]/[\u2193]=Navigate  [Esc]=Back",
+		"HELP_TAB_TRANSFER":    "[S]ell  [G]=Design Weapon  [D]=Dismiss  [\u2191]/[\u2193]=Navigate  [Esc]=Back",
+		"HELP_HANGARS":         "[B]uy  [W]=Weapon  [G]=Weapon Design  [D]=Plane Design  [\u2191]/[\u2193]=Navigate  [Esc]=Back",
 
 		// Section labels
 		"SECTION_FACILITIES":     "FACILITIES:",
@@ -442,6 +442,8 @@ func init() {
 		"WEAPON_MSG_INSUFFICIENT_FUNDS": "Insufficient funds!",
 		"WEAPON_LABEL_BASE":     "Base:",
 		"WEAPON_LABEL_COST":     "Cost: $%dk",
+		"WEAPON_DESIGNER_HELP":  "[\u2191\u2193] Nav  [\u2190\u2192] Adjust  [Tab] Next  [Enter] Build  [Esc] Cancel",
+		"PLANE_DESIGNER_HELP":   "[\u2191\u2193] Nav  [\u2190\u2192] Adjust  [Tab] Next  [Enter] Save  [Esc] Cancel  [R] Reset",
 
 		// ── Equipment ──────────────────────────────────────
 		"EQUIP_TITLE":        "EQUIP SOLDIERS",

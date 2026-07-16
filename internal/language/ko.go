@@ -341,13 +341,13 @@ func init() {
 		"BASE_PERSONNEL": "과학자: %d  공학자: %d  %s",
 
 		// Help bars
-		"HELP_BASE":            "[B]건물  [H]고용  [1-5]=탭  [\u2191]/[\u2193]=탐색  [Esc]=뒤로",
-		"HELP_FACILITIES":      "[B]건물  [S]판매  [\u2191]/[\u2193]=탐색  [Esc]=뒤로",
-		"HELP_SOLDIERS":        "[H]고용 ($%dK)  [E]장비  [D]해고  [\u2191]/[\u2193]=탐색  [Esc]=뒤로",
-		"HELP_TAB_RESEARCH":    "[R]연구  [\u2191]/[\u2193]=탐색  [Esc]=뒤로",
-		"HELP_TAB_MANUFACTURE": "[M]제조  [\u2191]/[\u2193]=탐색  [Esc]=뒤로",
-		"HELP_TAB_TRANSFER":    "[S]판매  [\u2191]/[\u2193]=탐색  [Esc]=뒤로",
-		"HELP_HANGARS":         "[B]구매  [W]=무기  [\u2191]/[\u2193]=탐색  [Esc]=뒤로",
+		"HELP_BASE":            "[B]건물  [H]고용  [G]=무기 설계  [D]=해고  [1-5]=탭  [\u2191]/[\u2193]=탐색  [Esc]=뒤로",
+		"HELP_FACILITIES":      "[B]건물  [S]판매  [G]=무기 설계  [D]=해고  [\u2191]/[\u2193]=탐색  [Esc]=뒤로",
+		"HELP_SOLDIERS":        "[H]고용 ($%dK)  [E]장비  [G]=무기 설계  [D]해고  [\u2191]/[\u2193]=탐색  [Esc]=뒤로",
+		"HELP_TAB_RESEARCH":    "[R]연구  [G]=무기 설계  [D]=해고  [\u2191]/[\u2193]=탐색  [Esc]=뒤로",
+		"HELP_TAB_MANUFACTURE": "[M]제조  [G]=무기 설계  [D]=해고  [\u2191]/[\u2193]=탐색  [Esc]=뒤로",
+		"HELP_TAB_TRANSFER":    "[S]판매  [G]=무기 설계  [D]=해고  [\u2191]/[\u2193]=탐색  [Esc]=뒤로",
+		"HELP_HANGARS":         "[B]구매  [W]=무기  [G]=무기 설계  [D]=비행기 설계  [\u2191]/[\u2193]=탐색  [Esc]=뒤로",
 
 		// Section labels
 		"SECTION_FACILITIES":     "시설:",
@@ -444,6 +444,8 @@ func init() {
 		"WEAPON_MSG_INSUFFICIENT_FUNDS": "자금이 부족합니다!",
 		"WEAPON_LABEL_BASE":     "기반:",
 		"WEAPON_LABEL_COST":     "비용: $%dk",
+		"WEAPON_DESIGNER_HELP":  "[\u2191\u2193] 이동  [\u2190\u2192] 조정  [Tab] 다음  [Enter] 제조  [Esc] 취소",
+		"PLANE_DESIGNER_HELP":   "[\u2191\u2193] 이동  [\u2190\u2192] 조정  [Tab] 다음  [Enter] 저장  [Esc] 취소  [R] 초기화",
 
 		// ── Equipment ──────────────────────────────────────
 		"EQUIP_TITLE":        "병사 장비",

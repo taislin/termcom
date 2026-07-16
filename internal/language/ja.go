@@ -341,13 +341,13 @@ func init() {
 		"BASE_PERSONNEL": "科学者: %d  技師: %d  %s",
 
 		// Help bars
-		"HELP_BASE":            "[B]建設  [H]採用  [1-5]=タブ  [\u2191]/[\u2193]=移動  [Esc]=戻る",
-		"HELP_FACILITIES":      "[B]建設  [S]売却  [\u2191]/[\u2193]=移動  [Esc]=戻る",
-		"HELP_SOLDIERS":        "[H]採用 ($%dK)  [E]装備  [D]解雇  [\u2191]/[\u2193]=移動  [Esc]=戻る",
-		"HELP_TAB_RESEARCH":    "[R]研究  [\u2191]/[\u2193]=移動  [Esc]=戻る",
-		"HELP_TAB_MANUFACTURE": "[M]製造  [\u2191]/[\u2193]=移動  [Esc]=戻る",
-		"HELP_TAB_TRANSFER":    "[S]売却  [\u2191]/[\u2193]=移動  [Esc]=戻る",
-		"HELP_HANGARS":         "[B]購入  [W]=武器  [\u2191]/[\u2193]=移動  [Esc]=戻る",
+		"HELP_BASE":            "[B]建設  [H]採用  [G]=武器設計  [D]=解雇  [1-5]=タブ  [\u2191]/[\u2193]=移動  [Esc]=戻る",
+		"HELP_FACILITIES":      "[B]建設  [S]売却  [G]=武器設計  [D]=解雇  [\u2191]/[\u2193]=移動  [Esc]=戻る",
+		"HELP_SOLDIERS":        "[H]採用 ($%dK)  [E]装備  [G]=武器設計  [D]解雇  [\u2191]/[\u2193]=移動  [Esc]=戻る",
+		"HELP_TAB_RESEARCH":    "[R]研究  [G]=武器設計  [D]=解雇  [\u2191]/[\u2193]=移動  [Esc]=戻る",
+		"HELP_TAB_MANUFACTURE": "[M]製造  [G]=武器設計  [D]=解雇  [\u2191]/[\u2193]=移動  [Esc]=戻る",
+		"HELP_TAB_TRANSFER":    "[S]売却  [G]=武器設計  [D]=解雇  [\u2191]/[\u2193]=移動  [Esc]=戻る",
+		"HELP_HANGARS":         "[B]購入  [W]=武器  [G]=武器設計  [D]=航空機設計  [\u2191]/[\u2193]=移動  [Esc]=戻る",
 
 		// Section labels
 		"SECTION_FACILITIES":     "施設:",
@@ -444,6 +444,8 @@ func init() {
 		"WEAPON_MSG_INSUFFICIENT_FUNDS": "資金が不足しています！",
 		"WEAPON_LABEL_BASE":     "ベース:",
 		"WEAPON_LABEL_COST":     "コスト: $%dk",
+		"WEAPON_DESIGNER_HELP":  "[\u2191\u2193] 移動  [\u2190\u2192] 調整  [Tab] 次  [Enter] 建造  [Esc] 取消",
+		"PLANE_DESIGNER_HELP":   "[\u2191\u2193] 移動  [\u2190\u2192] 調整  [Tab] 次  [Enter] 保存  [Esc] 取消  [R] リセット",
 
 		// ── Equipment ──────────────────────────────────────
 		"EQUIP_TITLE":        "兵士装備",

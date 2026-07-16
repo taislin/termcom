@@ -341,13 +341,13 @@ func init() {
 		"BASE_PERSONNEL": "Scientifiques : %d  Ingénieurs : %d  %s",
 
 		// Help bars
-		"HELP_BASE":            "[B]atir  [E]ngager  [1-5]=Onglet  [\u2191]/[\u2193]=Naviguer  [Esc]=Retour",
-		"HELP_FACILITIES":      "[B]atir  [V]endre  [\u2191]/[\u2193]=Naviguer  [Esc]=Retour",
-		"HELP_SOLDIERS":        "[E]ngager ($%dK)  [É]quiper  [D]émettre  [\u2191]/[\u2193]=Naviguer  [Esc]=Retour",
-		"HELP_TAB_RESEARCH":    "[R]echerche  [\u2191]/[\u2193]=Naviguer  [Esc]=Retour",
-		"HELP_TAB_MANUFACTURE": "[M]anufacture  [\u2191]/[\u2193]=Naviguer  [Esc]=Retour",
-		"HELP_TAB_TRANSFER":    "[V]endre  [\u2191]/[\u2193]=Naviguer  [Esc]=Retour",
-		"HELP_HANGARS":         "[A]cheter  [A]=Arme  [\u2191]/[\u2193]=Naviguer  [Esc]=Retour",
+		"HELP_BASE":            "[B]atir  [E]ngager  [G]=Concevoir Arme  [D]=Démettre  [1-5]=Onglet  [\u2191]/[\u2193]=Naviguer  [Esc]=Retour",
+		"HELP_FACILITIES":      "[B]atir  [V]endre  [G]=Concevoir Arme  [D]=Démettre  [\u2191]/[\u2193]=Naviguer  [Esc]=Retour",
+		"HELP_SOLDIERS":        "[E]ngager ($%dK)  [É]quiper  [G]=Concevoir Arme  [D]émettre  [\u2191]/[\u2193]=Naviguer  [Esc]=Retour",
+		"HELP_TAB_RESEARCH":    "[R]echerche  [G]=Concevoir Arme  [D]=Démettre  [\u2191]/[\u2193]=Naviguer  [Esc]=Retour",
+		"HELP_TAB_MANUFACTURE": "[M]anufacture  [G]=Concevoir Arme  [D]=Démettre  [\u2191]/[\u2193]=Naviguer  [Esc]=Retour",
+		"HELP_TAB_TRANSFER":    "[V]endre  [G]=Concevoir Arme  [D]=Démettre  [\u2191]/[\u2193]=Naviguer  [Esc]=Retour",
+		"HELP_HANGARS":         "[A]cheter  [A]=Arme  [G]=Conception d'Armes  [D]=Conception d'Avions  [\u2191]/[\u2193]=Naviguer  [Esc]=Retour",
 
 		// Section labels
 		"SECTION_FACILITIES":     "INSTALLATIONS :",
@@ -444,6 +444,8 @@ func init() {
 		"WEAPON_MSG_INSUFFICIENT_FUNDS": "Fonds insuffisants !",
 		"WEAPON_LABEL_BASE":     "Base :",
 		"WEAPON_LABEL_COST":     "Coût : $%dk",
+		"WEAPON_DESIGNER_HELP":  "[\u2191\u2193] Nav  [\u2190\u2192] Ajust  [Tab] Suiv  [Enter] Constr  [Esc] Annul",
+		"PLANE_DESIGNER_HELP":   "[\u2191\u2193] Nav  [\u2190\u2192] Ajust  [Tab] Suiv  [Enter] Save  [Esc] Annul  [R] Réinit",
 
 		// ── Equipment ──────────────────────────────────────
 		"EQUIP_TITLE":        "ÉQUIPER LES SOLDATS",
