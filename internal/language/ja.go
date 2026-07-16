@@ -414,6 +414,14 @@ func init() {
 		"PLANE_STAT_THRUST":     "推力",
 		"PLANE_STAT_RANGE":      "航続距離",
 		"PLANE_MSG_RESET":       "デザインを標準に戻しました。",
+		"PLANE_LABEL_SPEED":     "速度:",
+		"PLANE_LABEL_DIMS":      "全長%d 翼幅%d",
+		"PLANE_LABEL_WEAPON":    "武器:",
+		"PLANE_LABEL_ARMOR":     "装甲:",
+		"PLANE_CLASS_LIGHT":     "軽",
+		"PLANE_CLASS_MEDIUM":    "中",
+		"PLANE_CLASS_HEAVY":     "重",
+		"PLANE_NAME_FIGHTER":    "戦闘機",
 
 		// ── Weapon Designer
 		"WEAPON_DESIGNER_TITLE":  "武器設計室",
@@ -434,6 +442,8 @@ func init() {
 		"WEAPON_STAT_STR":        "筋力",
 		"WEAPON_MSG_BUILT":       "武器を製造しました: %s",
 		"WEAPON_MSG_INSUFFICIENT_FUNDS": "資金が不足しています！",
+		"WEAPON_LABEL_BASE":     "ベース:",
+		"WEAPON_LABEL_COST":     "コスト: $%dk",
 
 		// ── Equipment ──────────────────────────────────────
 		"EQUIP_TITLE":        "兵士装備",

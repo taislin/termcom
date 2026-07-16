@@ -412,6 +412,14 @@ func init() {
 		"PLANE_STAT_THRUST":     "推力",
 		"PLANE_STAT_RANGE":      "航程",
 		"PLANE_MSG_RESET":       "设计已重置为默认。",
+		"PLANE_LABEL_SPEED":     "速度:",
+		"PLANE_LABEL_DIMS":      "%d长 x %d宽",
+		"PLANE_LABEL_WEAPON":    "武器:",
+		"PLANE_LABEL_ARMOR":     "装甲:",
+		"PLANE_CLASS_LIGHT":     "轻型",
+		"PLANE_CLASS_MEDIUM":    "中型",
+		"PLANE_CLASS_HEAVY":     "重型",
+		"PLANE_NAME_FIGHTER":    "战斗机",
 
 		// ── Weapon Designer
 		"WEAPON_DESIGNER_TITLE":  "武器设计室",
@@ -432,6 +440,8 @@ func init() {
 		"WEAPON_STAT_STR":        "力量",
 		"WEAPON_MSG_BUILT":       "武器制造完成: %s",
 		"WEAPON_MSG_INSUFFICIENT_FUNDS": "资金不足！",
+		"WEAPON_LABEL_BASE":     "基础:",
+		"WEAPON_LABEL_COST":     "造价: $%dk",
 
 		// ── \u88c5\u5907 ──────────────────────────────────────
 		"EQUIP_TITLE":        "\u88c5\u5907\u58eb\u5175",

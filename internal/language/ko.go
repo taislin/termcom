@@ -414,6 +414,14 @@ func init() {
 		"PLANE_STAT_THRUST":     "추력",
 		"PLANE_STAT_RANGE":      "사거리",
 		"PLANE_MSG_RESET":       "디자인이 기본값으로 초기화되었습니다.",
+		"PLANE_LABEL_SPEED":     "속도:",
+		"PLANE_LABEL_DIMS":      "길이%d 날개%d",
+		"PLANE_LABEL_WEAPON":    "무기:",
+		"PLANE_LABEL_ARMOR":     "장갑:",
+		"PLANE_CLASS_LIGHT":     "경",
+		"PLANE_CLASS_MEDIUM":    "중",
+		"PLANE_CLASS_HEAVY":     "중무장",
+		"PLANE_NAME_FIGHTER":    "전투기",
 
 		// ── Weapon Designer
 		"WEAPON_DESIGNER_TITLE":  "무기 설계기",
@@ -434,6 +442,8 @@ func init() {
 		"WEAPON_STAT_STR":        "근력",
 		"WEAPON_MSG_BUILT":       "무기 제작 완료: %s",
 		"WEAPON_MSG_INSUFFICIENT_FUNDS": "자금이 부족합니다!",
+		"WEAPON_LABEL_BASE":     "기반:",
+		"WEAPON_LABEL_COST":     "비용: $%dk",
 
 		// ── Equipment ──────────────────────────────────────
 		"EQUIP_TITLE":        "병사 장비",

@@ -99,9 +99,9 @@ func (pd *PlaneDesignerScreen) renderPreview(ctx *engine.ScreenCtx, px, py, pw, 
 	}
 
 	stats := data.CalcPlaneStats(pd.Config)
-	dimLabel := fmt.Sprintf("%dL x %dW", pd.Config.Length, pd.Config.Wingspan*2+1)
+	dimLabel := fmt.Sprintf(language.String("PLANE_LABEL_DIMS"), pd.Config.Length, pd.Config.Wingspan*2+1)
 	ctx.DrawString(px, py+ph, dimLabel, engine.StyleGray)
-	speedLabel := fmt.Sprintf("Speed: %.1f", stats.Speed)
+	speedLabel := fmt.Sprintf("%s %.1f", language.String("PLANE_LABEL_SPEED"), stats.Speed)
 	if len(speedLabel) < pw {
 		ctx.DrawString(px+pw-len(speedLabel), py+ph, speedLabel, engine.StyleGray)
 	}
@@ -134,13 +134,13 @@ func (pd *PlaneDesignerScreen) renderStats(ctx *engine.ScreenCtx, sx, sy, sw, sh
 	yOff := sy + len(rows) + 1
 	if pd.Config.Weapon >= 0 && pd.Config.Weapon < len(data.PlaneWeapons) {
 		w := data.PlaneWeapons[pd.Config.Weapon]
-		ctx.DrawString(sx, yOff, "Weapon:", engine.StyleGray)
+		ctx.DrawString(sx, yOff, language.String("PLANE_LABEL_WEAPON"), engine.StyleGray)
 		ctx.DrawString(sx+2, yOff+1, fmt.Sprintf("%s %dDMG %dACC", w.Name, w.Damage, w.Accuracy), engine.StyleRed)
 	}
 	yOff += 3
 	if pd.Config.Armor >= 0 && pd.Config.Armor < len(data.PlaneArmors) {
 		a := data.PlaneArmors[pd.Config.Armor]
-		ctx.DrawString(sx, yOff, "Armor:", engine.StyleGray)
+		ctx.DrawString(sx, yOff, language.String("PLANE_LABEL_ARMOR"), engine.StyleGray)
 		ctx.DrawString(sx+2, yOff+1, fmt.Sprintf("%s +%dHP %dDR", a.Name, a.HP, a.DR), engine.StyleYellow)
 	}
 }
@@ -298,16 +298,16 @@ func (pd *PlaneDesignerScreen) planeName() string {
 	var parts []string
 	switch cfg.Engines {
 	case 1:
-		parts = append(parts, "Light")
+		parts = append(parts, language.String("PLANE_CLASS_LIGHT"))
 	case 2:
-		parts = append(parts, "Medium")
+		parts = append(parts, language.String("PLANE_CLASS_MEDIUM"))
 	case 3:
-		parts = append(parts, "Heavy")
+		parts = append(parts, language.String("PLANE_CLASS_HEAVY"))
 	}
 	if cfg.Weapon >= 0 && cfg.Weapon < len(data.PlaneWeapons) {
 		parts = append(parts, data.PlaneWeapons[cfg.Weapon].Name)
 	}
-	parts = append(parts, "Fighter")
+	parts = append(parts, language.String("PLANE_NAME_FIGHTER"))
 	return strings.Join(parts, " ")
 }
 

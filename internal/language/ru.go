@@ -414,6 +414,14 @@ func init() {
 		"PLANE_STAT_THRUST":     "Тяга",
 		"PLANE_STAT_RANGE":      "Дальность",
 		"PLANE_MSG_RESET":       "Дизайн сброшен к стандарту.",
+		"PLANE_LABEL_SPEED":     "Скорость:",
+		"PLANE_LABEL_DIMS":      "%dД x %dШ",
+		"PLANE_LABEL_WEAPON":    "Оружие:",
+		"PLANE_LABEL_ARMOR":     "Броня:",
+		"PLANE_CLASS_LIGHT":     "Лёгкий",
+		"PLANE_CLASS_MEDIUM":    "Средний",
+		"PLANE_CLASS_HEAVY":     "Тяжёлый",
+		"PLANE_NAME_FIGHTER":    "Истребитель",
 
 		// ── Weapon Designer
 		"WEAPON_DESIGNER_TITLE":  "ПРОЕКТИРОВАНИЕ ОРУЖИЯ",
@@ -434,6 +442,8 @@ func init() {
 		"WEAPON_STAT_STR":        "Сила",
 		"WEAPON_MSG_BUILT":       "Оружие изготовлено: %s",
 		"WEAPON_MSG_INSUFFICIENT_FUNDS": "Недостаточно средств!",
+		"WEAPON_LABEL_BASE":     "База:",
+		"WEAPON_LABEL_COST":     "Цена: $%dk",
 
 		// ── Equipment ──────────────────────────────────────
 		"EQUIP_TITLE":        "ЭКИПИРОВКА СОЛДАТ",

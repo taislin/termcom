@@ -73,8 +73,8 @@ func (wd *WeaponDesignerScreen) renderPreview(ctx *engine.ScreenCtx, px, py, pw,
 	}
 
 	// Show base type
-	ctx.DrawString(px+1, py+ph-2, fmt.Sprintf("Base: %s", wd.Design.BaseType), engine.StyleGray)
-	ctx.DrawString(px+1, py+ph-1, fmt.Sprintf("Cost: $%dk", wd.cost()/1000), engine.StyleGray)
+	ctx.DrawString(px+1, py+ph-2, fmt.Sprintf("%s %s", language.String("WEAPON_LABEL_BASE"), wd.Design.BaseType), engine.StyleGray)
+	ctx.DrawString(px+1, py+ph-1, fmt.Sprintf(language.String("WEAPON_LABEL_COST"), wd.cost()/1000), engine.StyleGray)
 }
 
 type weaponCell struct {

@@ -412,6 +412,14 @@ func init() {
 		"PLANE_STAT_THRUST":     "Thrust",
 		"PLANE_STAT_RANGE":      "Range",
 		"PLANE_MSG_RESET":       "Design reset to default.",
+		"PLANE_LABEL_SPEED":     "Speed:",
+		"PLANE_LABEL_DIMS":      "%dL x %dW",
+		"PLANE_LABEL_WEAPON":    "Weapon:",
+		"PLANE_LABEL_ARMOR":     "Armor:",
+		"PLANE_CLASS_LIGHT":     "Light",
+		"PLANE_CLASS_MEDIUM":    "Medium",
+		"PLANE_CLASS_HEAVY":     "Heavy",
+		"PLANE_NAME_FIGHTER":    "Fighter",
 
 		// ── Weapon Designer ──────────────────────────────────
 		"WEAPON_DESIGNER_TITLE":  "WEAPON DESIGNER",
@@ -432,6 +440,8 @@ func init() {
 		"WEAPON_STAT_STR":        "Strength",
 		"WEAPON_MSG_BUILT":       "Weapon built: %s",
 		"WEAPON_MSG_INSUFFICIENT_FUNDS": "Insufficient funds!",
+		"WEAPON_LABEL_BASE":     "Base:",
+		"WEAPON_LABEL_COST":     "Cost: $%dk",
 
 		// ── Equipment ──────────────────────────────────────
 		"EQUIP_TITLE":        "EQUIP SOLDIERS",

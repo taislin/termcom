@@ -205,12 +205,13 @@ func applyPortraitDithering(img *PixelImage, spec PortraitSpec) {
 			}
 
 			if isSkin {
-				dx := float64(x-g.cx) / float64(g.rx)
-				edgeFactor := dx * dx
-				if edgeFactor > 0.1 {
-					f := 1.0 - edgeFactor*0.5
-					if f < 0.5 {
-						f = 0.5
+				nx := float64(x-g.cx) / float64(g.rx)
+				ny := float64(y-g.cy) / float64(g.ry)
+				dist := nx*nx + ny*ny
+				if dist > 0.5 {
+					f := 1.0 - (dist-0.5)*0.9
+					if f < 0.4 {
+						f = 0.4
 					}
 					img.Pixels[y][x] = DarkenColor(c, f)
 				}
@@ -218,10 +219,10 @@ func applyPortraitDithering(img *PixelImage, spec PortraitSpec) {
 
 			if isSkin {
 				dy := float64(y-g.cy) / float64(g.ry)
-				if dy > 0.3 {
-					f := 1.0 - (dy-0.3)*0.5
-					if f < 0.45 {
-						f = 0.45
+				if dy > 0.35 {
+					f := 1.0 - (dy-0.35)*0.6
+					if f < 0.4 {
+						f = 0.4
 					}
 					img.Pixels[y][x] = DarkenColor(c, f)
 				}

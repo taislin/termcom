@@ -414,6 +414,14 @@ func init() {
 		"PLANE_STAT_THRUST":     "Empuje",
 		"PLANE_STAT_RANGE":      "Alcance",
 		"PLANE_MSG_RESET":       "Diseño restablecido a defecto.",
+		"PLANE_LABEL_SPEED":     "Velocidad:",
+		"PLANE_LABEL_DIMS":      "%dL x %dAn",
+		"PLANE_LABEL_WEAPON":    "Arma:",
+		"PLANE_LABEL_ARMOR":     "Blindaje:",
+		"PLANE_CLASS_LIGHT":     "Ligero",
+		"PLANE_CLASS_MEDIUM":    "Medio",
+		"PLANE_CLASS_HEAVY":     "Pesado",
+		"PLANE_NAME_FIGHTER":    "Caza",
 
 		// ── Weapon Designer
 		"WEAPON_DESIGNER_TITLE":  "DISEÑO DE ARMAS",
@@ -434,6 +442,8 @@ func init() {
 		"WEAPON_STAT_STR":        "Fuerza",
 		"WEAPON_MSG_BUILT":       "Arma fabricada: %s",
 		"WEAPON_MSG_INSUFFICIENT_FUNDS": "¡Fondos insuficientes!",
+		"WEAPON_LABEL_BASE":     "Base:",
+		"WEAPON_LABEL_COST":     "Coste: $%dk",
 
 		// ── Equipamiento ──────────────────────────────────────
 		"EQUIP_TITLE":        "EQUIPAR SOLDADOS",
