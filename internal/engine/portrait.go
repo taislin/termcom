@@ -198,9 +198,9 @@ func applyPortraitDithering(img *PixelImage, spec PortraitSpec) {
 			if isSkin {
 				noise := rng.Intn(100)
 				if noise < 25 {
-					img.Pixels[y][x] = DarkenColor(img.Pixels[y][x], 0.65)
+					img.Pixels[y][x] = DarkenColor(c, 0.65)
 				} else if noise < 35 {
-					img.Pixels[y][x] = LightenColor(img.Pixels[y][x], 1.3)
+					img.Pixels[y][x] = LightenColor(c, 1.3)
 				}
 			}
 
@@ -212,7 +212,7 @@ func applyPortraitDithering(img *PixelImage, spec PortraitSpec) {
 					if f < 0.5 {
 						f = 0.5
 					}
-					img.Pixels[y][x] = DarkenColor(img.Pixels[y][x], f)
+					img.Pixels[y][x] = DarkenColor(c, f)
 				}
 			}
 
@@ -223,64 +223,64 @@ func applyPortraitDithering(img *PixelImage, spec PortraitSpec) {
 					if f < 0.45 {
 						f = 0.45
 					}
-					img.Pixels[y][x] = DarkenColor(img.Pixels[y][x], f)
+					img.Pixels[y][x] = DarkenColor(c, f)
 				}
 			}
 
 			if isSkin && x == g.cx && y >= g.cy-g.ry/3 && y <= g.noseTipY {
-				img.Pixels[y][x] = LightenColor(img.Pixels[y][x], 1.35)
+				img.Pixels[y][x] = LightenColor(c, 1.35)
 			}
 
 			if isSkin && (x+y)%2 == 0 {
-				img.Pixels[y][x] = DarkenColor(img.Pixels[y][x], 0.82)
+				img.Pixels[y][x] = DarkenColor(c, 0.82)
 			}
 
 			if isSkin {
 				wrinkleY := g.cy - g.ry/3
 				if y == wrinkleY && x >= g.cx-2 && x <= g.cx+2 {
-					img.Pixels[y][x] = DarkenColor(img.Pixels[y][x], 0.55)
+					img.Pixels[y][x] = DarkenColor(c, 0.55)
 				}
 				wrinkleY2 := g.cy - g.ry/5
 				if y == wrinkleY2 && x >= g.cx-1 && x <= g.cx+1 {
-					img.Pixels[y][x] = DarkenColor(img.Pixels[y][x], 0.6)
+					img.Pixels[y][x] = DarkenColor(c, 0.6)
 				}
 			}
 
 			if isSkin && y >= g.mouthY+2 && y <= g.mouthY+5 {
 				dx := x - g.cx
 				if dx >= -3 && dx <= 3 {
-					img.Pixels[y][x] = DarkenColor(img.Pixels[y][x], 0.55)
+					img.Pixels[y][x] = DarkenColor(c, 0.55)
 				}
 			}
 
 			if isSkin && y >= g.eyeY-4 && y < g.eyeY-1 {
-				img.Pixels[y][x] = DarkenColor(img.Pixels[y][x], 0.7)
+				img.Pixels[y][x] = DarkenColor(c, 0.7)
 			}
 
 			// --- HAIR EFFECTS ---
 			if isHair {
 				if (x+y)%3 == 0 {
-					img.Pixels[y][x] = DarkenColor(img.Pixels[y][x], 0.5)
+					img.Pixels[y][x] = DarkenColor(c, 0.5)
 				} else if (x+y)%4 == 0 {
-					img.Pixels[y][x] = LightenColor(img.Pixels[y][x], 1.25)
+					img.Pixels[y][x] = LightenColor(c, 1.25)
 				}
 			}
 
 			// --- HELMET EFFECTS ---
 			if isHelm {
 				if x%2 == 0 && y%2 == 0 {
-					img.Pixels[y][x] = DarkenColor(img.Pixels[y][x], 0.65)
+					img.Pixels[y][x] = DarkenColor(c, 0.65)
 				} else {
-					img.Pixels[y][x] = LightenColor(img.Pixels[y][x], 1.1)
+					img.Pixels[y][x] = LightenColor(c, 1.1)
 				}
 			}
 
 			// --- ARMOR EFFECTS ---
 			if isArm {
 				if (x+y)%3 == 0 {
-					img.Pixels[y][x] = DarkenColor(img.Pixels[y][x], 0.65)
+					img.Pixels[y][x] = DarkenColor(c, 0.65)
 				} else if (x+y)%4 == 0 {
-					img.Pixels[y][x] = LightenColor(img.Pixels[y][x], 1.1)
+					img.Pixels[y][x] = LightenColor(c, 1.1)
 				}
 			}
 		}
@@ -441,9 +441,6 @@ func generateSkinLayer(w, h int, baseColor tcell.Color, bgColor tcell.Color) *Pi
 	}
 
 	// Ears
-	// ... (rest of function)
-
-	// Ears
 	earW := g.rx / 3
 	if earW < 1 {
 		earW = 1
@@ -454,13 +451,17 @@ func generateSkinLayer(w, h int, baseColor tcell.Color, bgColor tcell.Color) *Pi
 			for dx := 0; dx < earW; dx++ {
 				px := ex + side*dx
 				if px >= 0 && px < w && y >= 0 && y < h {
-					img.Pixels[y][px] = DarkenColor(baseColor, 0.8)
+					factor := 0.88 - float64(dx)*0.12
+					if factor < 0.55 {
+						factor = 0.55
+					}
+					img.Pixels[y][px] = DarkenColor(baseColor, factor)
 				}
 			}
 			// Inner ear
 			ix := ex + side
 			if ix >= 0 && ix < w && y >= 0 && y < h {
-				img.Pixels[y][ix] = DarkenColor(baseColor, 0.8)
+				img.Pixels[y][ix] = DarkenColor(baseColor, 0.95)
 			}
 		}
 	}

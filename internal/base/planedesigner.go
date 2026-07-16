@@ -48,9 +48,10 @@ func (pd *PlaneDesignerScreen) Render(ctx *engine.ScreenCtx) {
 	rightX := leftW + 4
 	rightW := w - rightX - 2
 
-	pd.renderPreview(ctx, 2, 4, leftW, h-10)
-	pd.renderStats(ctx, rightX, 4, rightW, h-10)
-	pd.renderParams(ctx, 2, h-8, w-4)
+	paramY := 6 + h/2
+	pd.renderPreview(ctx, 2, 3, leftW, paramY-6)
+	pd.renderStats(ctx, rightX, 3, rightW, paramY-6)
+	pd.renderParams(ctx, 2, paramY, w-4)
 
 	fundsStr := fmt.Sprintf(language.String("GEOSCAPE_FUNDS"), pd.Game.Funds/1000)
 	ctx.DrawString(w/2, h-3, fundsStr, engine.StyleGreen)
@@ -318,8 +319,10 @@ func (pd *PlaneDesignerScreen) HandleMouse(e *tcell.EventMouse) {
 	x, y := e.Position()
 	_, h := pd.Game.ScreenSize()
 
-	if y >= h-8 && y <= h-4 {
-		idx := y - (h - 8) - 1
+	paramY := 6 + h/2
+
+	if y >= paramY+1 && y <= paramY+6 {
+		idx := y - (paramY + 1)
 		if idx >= 0 && idx < 6 {
 			pd.Param = idx
 			if x > 20 {

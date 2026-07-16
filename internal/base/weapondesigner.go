@@ -39,9 +39,10 @@ func (wd *WeaponDesignerScreen) Render(ctx *engine.ScreenCtx) {
 	rightX := leftW + 4
 	rightW := w - rightX - 2
 
-	wd.renderPreview(ctx, 2, 4, leftW, h-10)
-	wd.renderStats(ctx, rightX, 4, rightW, h-10)
-	wd.renderParams(ctx, 2, h-8, w-4)
+	paramY := 6 + h/2
+	wd.renderPreview(ctx, 2, 3, leftW, paramY-6)
+	wd.renderStats(ctx, rightX, 3, rightW, paramY-6)
+	wd.renderParams(ctx, 2, paramY, w-4)
 
 	fundsStr := fmt.Sprintf(language.String("GEOSCAPE_FUNDS"), wd.Game.Funds/1000)
 	ctx.DrawString(w/2, h-3, fundsStr, engine.StyleGreen)
@@ -321,8 +322,10 @@ func (wd *WeaponDesignerScreen) HandleMouse(e *tcell.EventMouse) {
 	x, y := e.Position()
 	_, h := wd.Game.ScreenSize()
 
-	if y >= h-8 && y <= h-4 {
-		idx := y - (h - 8) - 1
+	paramY := 6 + h/2
+
+	if y >= paramY+1 && y <= paramY+5 {
+		idx := y - (paramY + 1)
 		if idx >= 0 && idx < 5 {
 			wd.Param = idx
 			if x > 20 {
