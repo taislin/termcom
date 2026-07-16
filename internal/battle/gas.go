@@ -131,16 +131,23 @@ func (g *GasGrid) Diffuse() {
 
 func (g *GasGrid) Draw(ctx *engine.ScreenCtx, scrollX, scrollY, viewW, viewH int) {
 	g.mu.RLock()
-	defer g.mu.RUnlock()
-
+	cellCopy := make(map[[2]int]GasCell, len(g.cells))
 	for k, v := range g.cells {
+		cellCopy[k] = v
+	}
+	g.mu.RUnlock()
+
+	for k, v := range cellCopy {
 		mx, my := k[0], k[1]
 		sx := mx - scrollX + 1
 		sy := my - scrollY + 1
 		if sx < 1 || sx > viewW || sy < 1 || sy > viewH {
 			continue
 		}
-		if g.Visible != nil && !g.Visible(mx, my) {
+		g.mu.RLock()
+		vis := g.Visible
+		g.mu.RUnlock()
+		if vis != nil && !vis(mx, my) {
 			continue
 		}
 

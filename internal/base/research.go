@@ -57,16 +57,21 @@ func (rs *ResearchScreen) Render(ctx *engine.ScreenCtx) {
 	if rs.Base.ActiveResearch != nil && !rs.Base.ActiveResearch.Completed {
 		topic := data.ResearchByID(rs.Base.ActiveResearch.TopicID)
 		if topic != nil {
-			pct := rs.Base.ActiveResearch.Progress * 100 / rs.Base.ActiveResearch.Cost
+			cost := rs.Base.ActiveResearch.Cost
+		if cost <= 0 {
+			cost = 1
+		}
+		pct := rs.Base.ActiveResearch.Progress * 100 / cost
 			ctx.DrawString(2, 3, fmt.Sprintf(language.String("RESEARCH_IN_PROGRESS"),
 				topic.DisplayName(), pct, rs.Base.ActiveResearch.Scientists), engine.StyleGreen)
 			ctx.DrawString(2, 4, fmt.Sprintf(language.String("RESEARCH_UNASSIGNED"), rs.Base.UnassignedScientists), engine.StyleYellow)
 		}
-	} else {
-		ctx.DrawString(2, 3, language.String("NO_ACTIVE_RESEARCH"), engine.StyleGray)
+	}
+	if rs.Base.ActiveResearch == nil || rs.Base.ActiveResearch.Completed {
+		ctx.DrawString(2, 4, language.String("NO_ACTIVE_RESEARCH"), engine.StyleGray)
 	}
 
-	ctx.DrawString(2, 4, language.String("ALL_TOPICS"), engine.StyleCyanBold)
+	ctx.DrawString(2, 5, language.String("ALL_TOPICS"), engine.StyleCyanBold)
 
 	// Show captured aliens line
 	if len(rs.Base.LiveAliens) > 0 {
@@ -139,8 +144,9 @@ func (rs *ResearchScreen) Render(ctx *engine.ScreenCtx) {
 
 		line := fmt.Sprintf(language.String("RESEARCH_COST"), entry.topic.Tier, entry.topic.DisplayName(), entry.topic.Cost, req)
 		displayLine := marker + line
-		if len(displayLine) > listW {
-			displayLine = displayLine[:listW]
+		if len([]rune(displayLine)) > listW {
+			runes := []rune(displayLine)
+			displayLine = string(runes[:listW])
 		}
 		ctx.DrawString(2, 7+i, displayLine, style)
 	}
@@ -234,7 +240,7 @@ func (rs *ResearchScreen) renderTree(ctx *engine.ScreenCtx, x, y, maxW, maxH int
 		ctx.DrawString(x+2, y, language.String("SIDE_NONE"), engine.StyleGray)
 	} else {
 		for _, child := range children {
-			if y >= y+maxH {
+			if y-startY >= maxH {
 				break
 			}
 			done := rs.Base.HasResearch(child.ID)

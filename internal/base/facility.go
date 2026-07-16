@@ -389,7 +389,7 @@ func (b *Base) AdvanceDay() {
 			s.Fatigue--
 		}
 		if hasPsiLab && s.Wounds <= 0 && s.PsiSkill > 0 && s.PsiSkill < 80 {
-			if rand.Intn(100) < 8*100/50 {
+			if rand.Intn(100) < 8 {
 				s.PsiSkill++
 			}
 		}

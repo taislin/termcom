@@ -24,6 +24,9 @@ type BattleState struct {
 	TargetUnit   *Unit
 }
 
+// HandleEvent handles keyboard/mouse input for the battlescape.
+// IMPORTANT: Called methods (handleKey, handleMouse, etc.) must NOT acquire
+// bs.State.mu to avoid deadlock — this function already holds the lock.
 func (bs *Battlescape) HandleEvent(ev tcell.Event) {
 	bs.State.mu.Lock()
 	defer bs.State.mu.Unlock()

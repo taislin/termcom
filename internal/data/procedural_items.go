@@ -80,6 +80,10 @@ func GenerateProceduralItems(seed int64, aliens []*AlienSpecies) ([]ProceduralWe
 		dmgTypes[i], dmgTypes[j] = dmgTypes[j], dmgTypes[i]
 	})
 
+	if len(dmgTypes) == 0 {
+		dmgTypes = []int{DMG_KINETIC}
+	}
+
 	for i := 0; i < weaponCount; i++ {
 		dt := dmgTypes[i%len(dmgTypes)]
 		w := generateProceduralWeapon(rng, i, dt)

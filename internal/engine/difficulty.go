@@ -115,7 +115,7 @@ func (ds *DifficultyScreen) HandleMouse(e *tcell.EventMouse) {
 	x, y := e.Position()
 	_, h := ds.Game.ScreenSize()
 
-	if y >= 4 && y < 4+len(Difficulties) && x < h {
+	if y >= 4 && y < 4+len(Difficulties) && x < w {
 		ds.Selection = y - 4
 		ds.Game.Difficulty = ds.Selection
 		ds.Game.Funds = int64(float64(500000) * Difficulties[ds.Selection].FundsScale)

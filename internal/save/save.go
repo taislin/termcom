@@ -139,6 +139,7 @@ func SaveGame(path string, data *SaveData) error {
 	if err := os.WriteFile(tmp, buf, 0644); err != nil {
 		return err
 	}
+	os.Remove(path)
 	if err := os.Rename(tmp, path); err != nil {
 		os.Remove(tmp)
 		return err

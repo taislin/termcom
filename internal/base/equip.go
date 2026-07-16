@@ -41,6 +41,9 @@ func (es *EquipScreen) Render(ctx *engine.ScreenCtx) {
 	if es.SelectedSol >= len(es.Base.Soldiers) {
 		es.SelectedSol = len(es.Base.Soldiers) - 1
 	}
+	if es.SelectedSol < 0 {
+		es.SelectedSol = 0
+	}
 
 	rightX := engine.Layout.EquipSplitX(w)
 
