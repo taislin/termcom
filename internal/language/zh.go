@@ -393,6 +393,25 @@ func init() {
 		"SECTION_HANGARS":            "\u673a\u5e93\uff1a",
 		"LINE_HANGAR_INFO":           "\u673a\u5e93 %d: [%s] \u751f\u547d:%d/%d %s (\u62a4\u7532:%d)",
 
+		// ── Plane Designer ──────────────────────────────────
+		"PLANE_DESIGNER_TITLE":  "PLANE DESIGNER",
+		"PLANE_PREVIEW":         "PREVIEW",
+		"PLANE_STATS":           "STATS",
+		"PLANE_PARAMETERS":      "PARAMETERS",
+		"PLANE_PARAM_LENGTH":    "Length",
+		"PLANE_PARAM_WINGSPAN":  "Wingspan",
+		"PLANE_PARAM_ENGINES":   "Engines",
+		"PLANE_PARAM_FUEL":      "Fuel",
+		"PLANE_PARAM_WEAPON":    "Weapon",
+		"PLANE_PARAM_ARMOR":     "Armor",
+		"PLANE_STAT_SPEED":      "Speed",
+		"PLANE_STAT_FIREPOWER":  "Firepower",
+		"PLANE_STAT_HULL":       "Hull",
+		"PLANE_STAT_MASS":       "Mass",
+		"PLANE_STAT_THRUST":     "Thrust",
+		"PLANE_STAT_RANGE":      "Range",
+		"PLANE_MSG_RESET":       "Design reset to default.",
+
 		// ── \u88c5\u5907 ──────────────────────────────────────
 		"EQUIP_TITLE":        "\u88c5\u5907\u58eb\u5175",
 		"NO_SOLDIERS":        "\u540d\u5175\u51b8\u4e2d\u6ca1\u6709\u58eb\u5175\u3002",

@@ -31,6 +31,7 @@ const (
 	StateQuit
 	StateTutorial
 	StateLanguageSelect
+	StatePlaneDesigner
 )
 
 type Screen interface {

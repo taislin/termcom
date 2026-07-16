@@ -395,6 +395,25 @@ func init() {
 		"SECTION_HANGARS":            "АНГАРЫ:",
 		"LINE_HANGAR_INFO":           "Ангар %d: [%s] ОЗ:%d/%d %s (Пат:%d)",
 
+		// ── Plane Designer ──────────────────────────────────
+		"PLANE_DESIGNER_TITLE":  "PLANE DESIGNER",
+		"PLANE_PREVIEW":         "PREVIEW",
+		"PLANE_STATS":           "STATS",
+		"PLANE_PARAMETERS":      "PARAMETERS",
+		"PLANE_PARAM_LENGTH":    "Length",
+		"PLANE_PARAM_WINGSPAN":  "Wingspan",
+		"PLANE_PARAM_ENGINES":   "Engines",
+		"PLANE_PARAM_FUEL":      "Fuel",
+		"PLANE_PARAM_WEAPON":    "Weapon",
+		"PLANE_PARAM_ARMOR":     "Armor",
+		"PLANE_STAT_SPEED":      "Speed",
+		"PLANE_STAT_FIREPOWER":  "Firepower",
+		"PLANE_STAT_HULL":       "Hull",
+		"PLANE_STAT_MASS":       "Mass",
+		"PLANE_STAT_THRUST":     "Thrust",
+		"PLANE_STAT_RANGE":      "Range",
+		"PLANE_MSG_RESET":       "Design reset to default.",
+
 		// ── Equipment ──────────────────────────────────────
 		"EQUIP_TITLE":        "ЭКИПИРОВКА СОЛДАТ",
 		"NO_SOLDIERS":        "Нет солдат в отряде.",

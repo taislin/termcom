@@ -344,7 +344,7 @@ func init() {
 		"HELP_TAB_RESEARCH":    "[R]esearch  [\u2191]/[\u2193]=Navigate  [Esc]=Back",
 		"HELP_TAB_MANUFACTURE": "[M]anufacture  [\u2191]/[\u2193]=Navigate  [Esc]=Back",
 		"HELP_TAB_TRANSFER":    "[S]ell  [\u2191]/[\u2193]=Navigate  [Esc]=Back",
-		"HELP_HANGARS":         "[B]uy  [W]=Weapon  [\u2191]/[\u2193]=Navigate  [Esc]=Back",
+		"HELP_HANGARS":         "[B]uy  [W]=Weapon  [D]=Design  [\u2191]/[\u2193]=Navigate  [Esc]=Back",
 
 		// Section labels
 		"SECTION_FACILITIES":     "FACILITIES:",
@@ -392,6 +392,25 @@ func init() {
 		"MSG_WEAPON_CHANGED":         "Weapon changed to %s",
 		"SECTION_HANGARS":            "HANGARS:",
 		"LINE_HANGAR_INFO":           "Hangar %d: [%s] HP:%d/%d %s (A:%d)",
+
+		// ── Plane Designer ──────────────────────────────────
+		"PLANE_DESIGNER_TITLE":  "PLANE DESIGNER",
+		"PLANE_PREVIEW":         "PREVIEW",
+		"PLANE_STATS":           "STATS",
+		"PLANE_PARAMETERS":      "PARAMETERS",
+		"PLANE_PARAM_LENGTH":    "Length",
+		"PLANE_PARAM_WINGSPAN":  "Wingspan",
+		"PLANE_PARAM_ENGINES":   "Engines",
+		"PLANE_PARAM_FUEL":      "Fuel",
+		"PLANE_PARAM_WEAPON":    "Weapon",
+		"PLANE_PARAM_ARMOR":     "Armor",
+		"PLANE_STAT_SPEED":      "Speed",
+		"PLANE_STAT_FIREPOWER":  "Firepower",
+		"PLANE_STAT_HULL":       "Hull",
+		"PLANE_STAT_MASS":       "Mass",
+		"PLANE_STAT_THRUST":     "Thrust",
+		"PLANE_STAT_RANGE":      "Range",
+		"PLANE_MSG_RESET":       "Design reset to default.",
 
 		// ── Equipment ──────────────────────────────────────
 		"EQUIP_TITLE":        "EQUIP SOLDIERS",

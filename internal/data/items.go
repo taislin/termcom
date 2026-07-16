@@ -591,13 +591,14 @@ func (cm CombatMode) String() string {
 
 // InterceptorState defines the persisted state of an interceptor.
 type InterceptorState struct {
-	ID        int
-	Name      string
-	WeaponKey string
-	HP        int
-	MaxHP     int
-	Ammo      int
-	Status    string // "Available", "Active", "Rearming", "Damaged"
+	ID         int
+	Name       string
+	WeaponKey  string
+	HP         int
+	MaxHP      int
+	Ammo       int
+	Status     string // "Available", "Active", "Rearming", "Damaged"
+	PlaneConfig *PlaneConfig // modular design (nil = default)
 }
 
 

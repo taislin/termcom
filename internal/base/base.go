@@ -432,7 +432,12 @@ func (bs *BaseScreen) HandleKey(e *tcell.EventKey) {
 	case "h", "H":
 		bs.HireSoldier()
 	case "d", "D":
-		bs.DismissSoldier()
+		if bs.Tab == 5 && len(bs.Base.Hangars) > 0 {
+			bs.Game.SetScreen(engine.StatePlaneDesigner, NewPlaneDesignerScreen(bs.Game, bs.Base, bs.Selection))
+			bs.Game.PushState(engine.StatePlaneDesigner)
+		} else {
+			bs.DismissSoldier()
+		}
 	case "e", "E":
 		if bs.Tab == 1 && len(bs.Base.Soldiers) > 0 {
 			bs.Game.PushState(engine.StateEquip)
