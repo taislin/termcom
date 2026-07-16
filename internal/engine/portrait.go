@@ -167,7 +167,171 @@ func GenerateSoldierPortrait(spec PortraitSpec) *PixelImage {
 		res = CompositeImages(res, helmet)
 	}
 
+	applyPortraitDithering(res, spec)
+
 	return res
+}
+
+// applyPortraitDithering adds texture noise, edge shading, and surface detail
+// to soldier portraits, matching the visual richness of alien portraits.
+func applyPortraitDithering(img *PixelImage, spec PortraitSpec) {
+	w, h := img.Width, img.Height
+	g := computeFaceGeom(w, h)
+	rng := rngFromSeed(spec.Seed + 9999)
+
+	for y := 0; y < h; y++ {
+		for x := 0; x < w; x++ {
+			c := img.Pixels[y][x]
+			if c == tcell.ColorDefault || c == tcell.NewRGBColor(20, 20, 28) {
+				continue
+			}
+
+			// Skin texture noise — subtle random brightness variation
+			if isSkinTone(c) && inHead(x, y, g) {
+				n := rng.Intn(100)
+				if n < 25 {
+					factor := 0.92 + float64(rng.Intn(16))/100.0
+					img.Pixels[y][x] = DarkenColor(c, factor)
+				} else if n < 35 {
+					img.Pixels[y][x] = LightenColor(c, 1.08)
+				}
+			}
+
+			// Face edge shading — darken sides of face for depth
+			if inHead(x, y, g) && isSkinTone(c) {
+				dx := float64(x-g.cx) / float64(g.rx)
+				edgeFactor := dx * dx
+				if edgeFactor > 0.3 {
+					img.Pixels[y][x] = DarkenColor(c, 1.0-edgeFactor*0.25)
+				}
+			}
+
+			// Nose bridge highlight — light stripe down center
+			if inHead(x, y, g) && isSkinTone(c) {
+				if x == g.cx && y >= g.cy-g.ry/4 && y <= g.noseTipY {
+					img.Pixels[y][x] = LightenColor(c, 1.15)
+				}
+			}
+
+			// Cheek shadow — subtle darkening below eyes on sides
+			if inHead(x, y, g) && isSkinTone(c) {
+				if y >= g.eyeY+1 && y <= g.eyeY+3 {
+					dx := x - g.cx
+					if (dx > 1 && dx < g.eyeOff) || (dx < -1 && dx > -g.eyeOff) {
+						img.Pixels[y][x] = DarkenColor(c, 0.9)
+					}
+				}
+			}
+
+			// Checkerboard dither on skin (subtle)
+			if isSkinTone(c) && inHead(x, y, g) && (x+y)%2 == 0 {
+				img.Pixels[y][x] = DarkenColor(c, 0.96)
+			}
+
+			// Hair strand texture — alternating dark/light for depth
+			if isHairColor(c, spec.HairColor) {
+				if (x+y)%3 == 0 {
+					img.Pixels[y][x] = DarkenColor(c, 0.82)
+				} else if (x+y)%5 == 0 {
+					img.Pixels[y][x] = LightenColor(c, 1.12)
+				}
+			}
+
+			// Armor/helmet texture — subtle grid pattern
+			if spec.HelmetColor != tcell.ColorDefault && isHelmetColor(c, spec.HelmetColor) {
+				if x%2 == 0 && y%2 == 0 {
+					img.Pixels[y][x] = DarkenColor(c, 0.88)
+				}
+			}
+			if spec.ArmourColor != tcell.ColorDefault && isArmorColor(c, spec.ArmourColor) {
+				if (x+y)%3 == 0 {
+					img.Pixels[y][x] = DarkenColor(c, 0.9)
+				}
+			}
+
+			// Forehead wrinkle lines — faint horizontal lines
+			if inHead(x, y, g) && isSkinTone(c) {
+				wrinkleY := g.cy - g.ry/3
+				if y == wrinkleY && x >= g.cx-2 && x <= g.cx+2 {
+					img.Pixels[y][x] = DarkenColor(c, 0.85)
+				}
+			}
+
+			// Chin shadow — darken below mouth
+			if inHead(x, y, g) && isSkinTone(c) {
+				if y >= g.mouthY+2 && y <= g.mouthY+4 {
+					dx := x - g.cx
+					if dx >= -2 && dx <= 2 {
+						img.Pixels[y][x] = DarkenColor(c, 0.88)
+					}
+				}
+			}
+		}
+	}
+}
+
+// isSkinTone checks if a color is a warm skin-like tone (R > G > B tendency).
+func isSkinTone(c tcell.Color) bool {
+	r, g, b := c.RGB()
+	// Skin tones have R > B and R > 100 generally
+	return r > 100 && r > b && r >= g-20
+}
+
+// isHairColor checks if a pixel color matches the given hair color closely.
+func isHairColor(c, hair tcell.Color) bool {
+	cr, cg, cb := c.RGB()
+	hr, hg, hb := hair.RGB()
+	dr := cr - hr
+	dg := cg - hg
+	db := cb - hb
+	if dr < 0 {
+		dr = -dr
+	}
+	if dg < 0 {
+		dg = -dg
+	}
+	if db < 0 {
+		db = -db
+	}
+	return dr+dg+db < 80
+}
+
+// isHelmetColor checks if a pixel matches the helmet color.
+func isHelmetColor(c, helmet tcell.Color) bool {
+	cr, cg, cb := c.RGB()
+	hr, hg, hb := helmet.RGB()
+	dr := cr - hr
+	dg := cg - hg
+	db := cb - hb
+	if dr < 0 {
+		dr = -dr
+	}
+	if dg < 0 {
+		dg = -dg
+	}
+	if db < 0 {
+		db = -db
+	}
+	return dr+dg+db < 60
+}
+
+// isArmorColor checks if a pixel matches the armor color.
+func isArmorColor(c, armor tcell.Color) bool {
+	cr, cg, cb := c.RGB()
+	ar, ag, ab := armor.RGB()
+	dr := cr - ar
+	dg := cg - ag
+	db := cb - ab
+	if dr < 0 {
+		dr = -dr
+	}
+	if dg < 0 {
+		dg = -dg
+	}
+	if db < 0 {
+		db = -db
+	}
+	return dr+dg+db < 60
 }
 
 func rngFromSeed(seed int64) *rng {
