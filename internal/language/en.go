@@ -262,6 +262,7 @@ func init() {
 		"MSG_NOT_ENOUGH_TU_GRENADE": "Not enough TU to throw grenade.",
 		"MSG_GRENADE_OUT_OF_RANGE":  "Target out of grenade range!",
 		"MSG_GRENADE_DETONATED":     "Grenade detonated at [%d,%d]!",
+		"MSG_ALIEN_GRENADE":         "%s throws a grenade at [%d,%d]!",
 		"MSG_NOT_ENOUGH_TU_MEDIKIT": "Not enough TU to use medikit.",
 		"MSG_NOT_ENOUGH_TU_PSI":     "Not enough TU for psi attack.",
 		"MSG_NEED_SCANNER":          "Need Motion Scanner equipped.",

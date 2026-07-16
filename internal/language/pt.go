@@ -264,6 +264,7 @@ func init() {
 		"MSG_NOT_ENOUGH_TU_GRENADE": "UT insuficientes para lan\u00e7ar granada.",
 		"MSG_GRENADE_OUT_OF_RANGE":  "Alvo fora do alcance da granada!",
 		"MSG_GRENADE_DETONATED":     "Granada detonada em [%d,%d]!",
+		"MSG_ALIEN_GRENADE":         "%s lança uma granada em [%d,%d]!",
 		"MSG_NOT_ENOUGH_TU_MEDIKIT": "UT insuficientes para usar kit m\u00e9dico.",
 		"MSG_NOT_ENOUGH_TU_PSI":     "UT insuficientes para ataque psi.",
 		"MSG_NEED_SCANNER":          "Precisa de Scanner de Movimento equipado.",

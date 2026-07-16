@@ -774,18 +774,19 @@ func (bs *Battlescape) Update() {
 		audio.PlayWind()
 	}
 
-	/*
-		if bs.FrameCount%12 == 0 && bs.Phase != PhaseVictory && bs.Phase != PhaseDefeat {
-			switch bs.UFOName {
-			case "Polar":
-				engine.SpawnSnow(bs.Particles, bs.ScrollX, bs.ScrollY, viewW, 1)
-			case "Desert":
-				engine.SpawnDust(bs.Particles, bs.ScrollX, bs.ScrollY, viewW, viewH)
-			case "Cydonia", "Alien Base Assault":
-				engine.SpawnEmbers(bs.Particles, bs.ScrollX, bs.ScrollY, viewW, viewH)
-			}
+	if bs.FrameCount%12 == 0 && bs.Phase != PhaseVictory && bs.Phase != PhaseDefeat {
+		w, h := bs.Game.ScreenSize()
+		viewW := engine.Layout.BattleViewWidth(w)
+		viewH := engine.Layout.BattleViewHeight(h)
+		switch bs.UFOName {
+		case "Polar":
+			engine.SpawnSnow(bs.Particles, bs.ScrollX, bs.ScrollY, viewW, 1)
+		case "Desert":
+			engine.SpawnDust(bs.Particles, bs.ScrollX, bs.ScrollY, viewW, viewH)
+		case "Cydonia", "Alien Base Assault":
+			engine.SpawnEmbers(bs.Particles, bs.ScrollX, bs.ScrollY, viewW, viewH)
 		}
-	*/
+	}
 
 	// If a projectile is mid-flight, advance it every frame regardless of phase
 	// (alien reaction fire is spawned during the player's own turn, so gating this
@@ -946,6 +947,73 @@ func (bs *Battlescape) executeAlienAction(action AlienAction) {
 		} else {
 			bs.AddMessage(fmt.Sprintf(language.String("MSG_ALIEN_PSI_RESIST"), action.Unit.AlienType.LangName(), action.Target.Name()))
 		}
+		bs.ComputeFOVForTeam()
+		bs.checkHumanReactionFire(action.Unit)
+	case "grenade":
+		if action.Target == nil || !action.Target.Alive {
+			return
+		}
+		ax := action.ToX
+		ay := action.ToY
+		damage := 40
+		if action.Unit.AlienType != nil {
+			damage = action.Unit.AlienType.Strength*2 + 20
+		}
+		for _, u := range bs.Units {
+			if !u.Alive {
+				continue
+			}
+			udx := u.X - ax
+			udy := u.Y - ay
+			udist := udx*udx + udy*udy
+			if udist <= 4 {
+				splashDmg := damage - udist*5
+				if splashDmg < 5 {
+					splashDmg = 5
+				}
+				if u.Faction == action.Unit.Faction && u != action.Unit {
+					splashDmg /= 3
+				}
+				u.HP -= splashDmg
+				if u.HP <= 0 {
+					u.HP = 0
+					u.Alive = false
+				}
+				bs.SpawnBloodSplatter(u)
+				bs.spawnFloater(u.X, u.Y, fmt.Sprintf("-%d", splashDmg), color.XTerm9)
+			}
+		}
+		splashRadius := 2
+		for dy := -splashRadius; dy <= splashRadius; dy++ {
+			for dx := -splashRadius; dx <= splashRadius; dx++ {
+				if dx*dx+dy*dy > splashRadius*splashRadius {
+					continue
+				}
+				tx, ty := ax+dx, ay+dy
+				if bs.Map.IsDestructible(tx, ty) {
+					if bs.Map.DestroyWall(tx, ty) {
+						SpawnRubble(bs.Particles, tx-bs.ScrollX+1, ty-bs.ScrollY+1)
+					}
+				}
+				if tx >= 0 && tx < bs.Map.Width && ty >= 0 && ty < bs.Map.Height {
+					tile := bs.Map.At(tx, ty)
+					if tile.IsFlammable() && tile.Fire <= 0 && rand.Intn(3) == 0 {
+						bs.SpawnFire(tx, ty, 3)
+					}
+				}
+			}
+		}
+		bs.Gas.Set(ax, ay, 3, GasSmoke)
+		for _, d := range [][2]int{{0, -1}, {0, 1}, {-1, 0}, {1, 0}} {
+			bs.Gas.Set(ax+d[0], ay+d[1], 2, GasSmoke)
+		}
+		audio.PlayGrenade()
+		bs.AddMessage(fmt.Sprintf(language.String("MSG_ALIEN_GRENADE"), action.Unit.AlienType.LangName(), ax, ay))
+		if engine.Config.ScreenShake {
+			bs.Camera.TriggerShake(2.5)
+		}
+		engine.SpawnExplosion(bs.Particles, ax-bs.ScrollX+1, ay-bs.ScrollY+1, tcell.NewRGBColor(255, 180, 50), 24)
+		engine.SpawnSmoke(bs.Particles, ax-bs.ScrollX+1, ay-bs.ScrollY+1, 8)
 		bs.ComputeFOVForTeam()
 		bs.checkHumanReactionFire(action.Unit)
 	}

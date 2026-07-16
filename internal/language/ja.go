@@ -264,6 +264,7 @@ func init() {
 		"MSG_NOT_ENOUGH_TU_GRENADE": "手榴弾を投げるTUが足りません。",
 		"MSG_GRENADE_OUT_OF_RANGE":  "ターゲットが手榴弾の射程外です！",
 		"MSG_GRENADE_DETONATED":     "手榴弾が [%d,%d] で爆発！",
+		"MSG_ALIEN_GRENADE":         "%s が手榴弾を [%d,%d] に投げた！",
 		"MSG_NOT_ENOUGH_TU_MEDIKIT": "メディキットを使用するTUが足りません。",
 		"MSG_NOT_ENOUGH_TU_PSI":     "サイ攻撃を行うTUが足りません。",
 		"MSG_NEED_SCANNER":          "モーションスキャナーを装備してください。",

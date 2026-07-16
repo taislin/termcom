@@ -264,6 +264,7 @@ func init() {
 		"MSG_NOT_ENOUGH_TU_GRENADE": "UT insuffisantes pour lancer une grenade.",
 		"MSG_GRENADE_OUT_OF_RANGE":  "Cible hors de portée de la grenade !",
 		"MSG_GRENADE_DETONATED":     "Grenade détonée à [%d,%d] !",
+		"MSG_ALIEN_GRENADE":         "%s lance une grenade sur [%d,%d] !",
 		"MSG_NOT_ENOUGH_TU_MEDIKIT": "UT insuffisantes pour utiliser le médikit.",
 		"MSG_NOT_ENOUGH_TU_PSI":     "UT insuffisantes pour l'attaque psi.",
 		"MSG_NEED_SCANNER":          "Équipez un scanner de mouvement.",

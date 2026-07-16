@@ -264,6 +264,7 @@ func init() {
 		"MSG_NOT_ENOUGH_TU_GRENADE": "수류탄을 던질 TU가 부족합니다.",
 		"MSG_GRENADE_OUT_OF_RANGE":  "표적이 수류탄 사정거리 밖입니다!",
 		"MSG_GRENADE_DETONATED":     "수류탄이 [%d,%d]에서 폭발!",
+		"MSG_ALIEN_GRENADE":         "%s(이)가 [%d,%d]에 수류탄을 투척!",
 		"MSG_NOT_ENOUGH_TU_MEDIKIT": "구급키트를 쓸 TU가 부족합니다.",
 		"MSG_NOT_ENOUGH_TU_PSI":     "초감각 공격에 TU가 부족합니다.",
 		"MSG_NEED_SCANNER":          "이동 감지기를 장착해야 합니다.",

@@ -224,8 +224,16 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList, pla
 					FromX: ai.Unit.X, FromY: ai.Unit.Y,
 					ToX: target.X, ToY: target.Y,
 				})
+			} else if ai.Unit.Weapon == "alien_grenade" && ai.Unit.TU >= 18 && dist <= 8 && dist > 1 {
+				// 4. Grenade: Throw alien grenade at the target's position (AoE).
+				actions = append(actions, AlienAction{
+					Type: "grenade", Unit: ai.Unit, Target: target,
+					FromX: ai.Unit.X, FromY: ai.Unit.Y,
+					ToX: target.X, ToY: target.Y,
+				})
+				ai.Unit.TU -= 18
 			} else if (dist <= 2 || (longRange && dist <= 3) || (ai.Unit.AlienType != nil && ai.Unit.AlienType.Aggression > 7)) {
-				// 4. Standard Attack: Melee if adjacent, otherwise ranged fire.
+				// 5. Standard Attack: Melee if adjacent, otherwise ranged fire.
 				if dist <= 1 {
 					actions = append(actions, AlienAction{
 						Type: "melee", Unit: ai.Unit, Target: target,

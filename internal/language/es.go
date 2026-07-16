@@ -264,6 +264,7 @@ func init() {
 		"MSG_NOT_ENOUGH_TU_GRENADE": "TU insuficientes para lanzar granada.",
 		"MSG_GRENADE_OUT_OF_RANGE":  "\u00a1Objetivo fuera del rango de la granada!",
 		"MSG_GRENADE_DETONATED":     "\u00a1Granada detonada en [%d,%d]!",
+		"MSG_ALIEN_GRENADE":         "%s lanza una granada a [%d,%d]!",
 		"MSG_NOT_ENOUGH_TU_MEDIKIT": "TU insuficientes para usar medipack.",
 		"MSG_NOT_ENOUGH_TU_PSI":     "TU insuficientes para ataque psi.",
 		"MSG_NEED_SCANNER":          "Necesita escáner de movimiento equipado.",

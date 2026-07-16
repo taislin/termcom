@@ -262,6 +262,7 @@ func init() {
 		"MSG_NOT_ENOUGH_TU_GRENADE": "\u884c\u52a8\u70b9\u4e0d\u8db3\uff0c\u65e0\u6cd5\u629b\u63b7\u624b\u69f2\u3002",
 		"MSG_GRENADE_OUT_OF_RANGE":  "\u76ee\u6807\u8d85\u51fa\u624b\u69f2\u5c04\u7a0b\uff01",
 		"MSG_GRENADE_DETONATED":     "\u624b\u69f2\u5728 [%d,%d] \u7206\u70b8\uff01",
+		"MSG_ALIEN_GRENADE":         "%s \u6254\u51fa\u4e00\u679f\u624b\u69f2\u5230 [%d,%d]\uff01",
 		"MSG_NOT_ENOUGH_TU_MEDIKIT": "\u884c\u52a8\u70b9\u4e0d\u8db3\uff0c\u65e0\u6cd5\u4f7f\u7528\u533b\u7597\u5305\u3002",
 		"MSG_NOT_ENOUGH_TU_PSI":     "\u884c\u52a8\u70b9\u4e0d\u8db3\uff0c\u65e0\u6cd5\u4f7f\u7528\u7075\u80fd\u653b\u51fb\u3002",
 		"MSG_NEED_SCANNER":          "\u9700\u8981\u88c5\u5907\u8fd0\u52a8\u626b\u63cf\u4eea\u3002",
