@@ -158,6 +158,7 @@ type Battlescape struct {
 
 	// Crash site interior tiles (for placing alien crew inside UFO)
 	CrashInterior []struct{ X, Y int }
+	CrashExterior []struct{ X, Y int }
 
 	// Input State
 	State          BattleState
@@ -478,24 +479,36 @@ func NewBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, ufoN
 		spawnAliens = append(spawnAliens, at)
 	}
 
-	// Store crash interior for alien placement inside the UFO
+	// Store crash interior for alien placement inside the UFO, and collect
+	// nearby outdoor tiles so some aliens can spawn as perimeter guards.
 	if crashResult != nil {
 		for _, pt := range crashResult.InteriorTiles {
 			bs.CrashInterior = append(bs.CrashInterior, struct{ X, Y int }{pt.X, pt.Y})
 		}
+		for _, pt := range crashResult.ExteriorTiles {
+			bs.CrashExterior = append(bs.CrashExterior, struct{ X, Y int }{pt.X, pt.Y})
+		}
 	}
 
 	tierHP, tierArmor := data.GetTierStatBonus(equipTier)
-	for _, at := range spawnAliens {
+	for i, at := range spawnAliens {
 		if at == nil {
 			continue
 		}
 		u := NewAlienUnit(at)
-		// For crash sites, place aliens inside the UFO structure
+		// For crash sites, roughly half the crew spawns inside the UFO and the
+		// rest deploy as perimeter guards on nearby outdoor tiles, so they are
+		// not all clustered in one place.
 		if len(bs.CrashInterior) > 0 {
-			tile := bs.CrashInterior[rand.Intn(len(bs.CrashInterior))]
-			u.X = tile.X
-			u.Y = tile.Y
+			if i%2 == 0 || len(bs.CrashExterior) == 0 {
+				tile := bs.CrashInterior[rand.Intn(len(bs.CrashInterior))]
+				u.X = tile.X
+				u.Y = tile.Y
+			} else {
+				tile := bs.CrashExterior[rand.Intn(len(bs.CrashExterior))]
+				u.X = tile.X
+				u.Y = tile.Y
+			}
 		} else {
 			u.X = 10 + randn(m.Width-14)
 			u.Y = 3 + randn(m.Height/2-4)
@@ -827,7 +840,7 @@ func (bs *Battlescape) executeAlienAction(action AlienAction) {
 		if action.Target == nil || !action.Target.Alive {
 			return
 		}
-		damage, hit, err := action.Unit.FireAt(action.Target, bs.Map, &bs.Weather)
+		damage, hit, coverHit, err := action.Unit.FireAt(action.Target, bs.Map, &bs.Weather)
 		if err != nil {
 			return
 		}
@@ -863,7 +876,11 @@ func (bs *Battlescape) executeAlienAction(action AlienAction) {
 				bs.AddMessage(fmt.Sprintf(language.String("MSG_ALIEN_KILL"), name))
 			}
 		} else {
-			bs.AddMessage(language.String("MSG_ALIEN_MISS"))
+			if coverHit {
+				bs.AddMessage(language.String("MSG_HIT_COVER"))
+			} else {
+				bs.AddMessage(language.String("MSG_ALIEN_MISS"))
+			}
 		}
 	case "melee":
 		if action.Target == nil || !action.Target.Alive {
@@ -977,7 +994,7 @@ func (bs *Battlescape) checkHumanReactionFire(movedAlien *Unit) {
 		bs.OverwatchFlash = 30
 		bs.Camera.SetTarget(u.X, u.Y)
 		u.InOverwatch = true
-		damage, hit, _ := u.FireAt(movedAlien, bs.Map, &bs.Weather)
+		damage, hit, coverHit, _ := u.FireAt(movedAlien, bs.Map, &bs.Weather)
 		u.InOverwatch = false
 		bs.recordPlayerShot(u, movedAlien)
 		if hit && u.Soldier != nil {
@@ -1000,7 +1017,11 @@ func (bs *Battlescape) checkHumanReactionFire(movedAlien *Unit) {
 				bs.AddMessage(fmt.Sprintf(language.String("MSG_REACTION_KILL"), movedAlien.Name()))
 			}
 		} else {
-			bs.AddMessage(language.String("MSG_REACTION_MISS"))
+			if coverHit {
+				bs.AddMessage(language.String("MSG_HIT_COVER"))
+			} else {
+				bs.AddMessage(language.String("MSG_REACTION_MISS"))
+			}
 		}
 		return
 	}
@@ -1047,7 +1068,7 @@ func (bs *Battlescape) checkAlienReactionFire(movedHuman *Unit) {
 		bs.OverwatchFlash = 30
 		bs.Camera.SetTarget(u.X, u.Y)
 		u.InOverwatch = true
-		damage, hit, _ := u.FireAt(movedHuman, bs.Map, &bs.Weather)
+		damage, hit, coverHit, _ := u.FireAt(movedHuman, bs.Map, &bs.Weather)
 		u.InOverwatch = false
 		if hit && u.Soldier != nil {
 			u.Soldier.AddReactionsExp()
@@ -1069,7 +1090,11 @@ func (bs *Battlescape) checkAlienReactionFire(movedHuman *Unit) {
 				bs.AddMessage(fmt.Sprintf(language.String("MSG_REACTION_KILL"), movedHuman.Name()))
 			}
 		} else {
-			bs.AddMessage(language.String("MSG_REACTION_MISS"))
+			if coverHit {
+				bs.AddMessage(language.String("MSG_HIT_COVER"))
+			} else {
+				bs.AddMessage(language.String("MSG_REACTION_MISS"))
+			}
 		}
 		return
 	}
@@ -1783,7 +1808,7 @@ func (bs *Battlescape) FireWeapon() {
 		bs.AddMessage(language.String("MSG_TARGET_NO_LOS"))
 		return
 	}
-	damage, hit, err := bs.Selected.FireAt(target, bs.Map, &bs.Weather)
+	damage, hit, coverHit, err := bs.Selected.FireAt(target, bs.Map, &bs.Weather)
 	if err != nil {
 		msg := err.Error()
 		switch {
@@ -1819,8 +1844,13 @@ func (bs *Battlescape) FireWeapon() {
 		bs.spawnFloater(target.X, target.Y, fmt.Sprintf("-%d", damage), color.XTerm9)
 	} else {
 		audio.PlayMiss()
-		bs.AddMessage(language.String("MSG_MISSED"))
-		bs.spawnFloater(target.X, target.Y, language.String("FLOATER_MISS"), color.XTerm8)
+		if coverHit {
+			bs.AddMessage(language.String("MSG_HIT_COVER"))
+			bs.spawnFloater(target.X, target.Y, language.String("FLOATER_COVER"), color.XTerm8)
+		} else {
+			bs.AddMessage(language.String("MSG_MISSED"))
+			bs.spawnFloater(target.X, target.Y, language.String("FLOATER_MISS"), color.XTerm8)
+		}
 	}
 	bs.PlayerLock = bs.Game.ActionDelay / 2
 }

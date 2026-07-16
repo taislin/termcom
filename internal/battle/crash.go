@@ -14,6 +14,7 @@ type CrashResult struct {
 	LootItems      []string // loot IDs from surviving lootable parts
 	Explosions     []image.Point // positions of parts that exploded on destruction
 	InteriorTiles  []image.Point // passable tiles inside the UFO (for alien crew placement)
+	ExteriorTiles  []image.Point // passable outdoor tiles adjacent to the UFO (perimeter guards)
 }
 
 // StampVehicleOnMap places a vehicle blueprint onto the tactical map.
@@ -117,6 +118,29 @@ func StampVehicleOnMap(
 			// Collect passable interior tiles for crew placement
 			if battleMap.Passable(x, y) {
 				result.InteriorTiles = append(result.InteriorTiles, image.Point{X: x, Y: y})
+			}
+		}
+	}
+
+	// Collect passable outdoor tiles adjacent to the UFO so a portion of the
+	// crew can deploy as perimeter guards instead of all spawning inside.
+	interiorSet := make(map[image.Point]bool, len(result.InteriorTiles))
+	for _, pt := range result.InteriorTiles {
+		interiorSet[pt] = true
+	}
+	adj := [][2]int{{1, 0}, {-1, 0}, {0, 1}, {0, -1}, {1, 1}, {1, -1}, {-1, 1}, {-1, -1}}
+	for pt := range interiorSet {
+		for _, d := range adj {
+			ex, ey := pt.X+d[0], pt.Y+d[1]
+			if ex < 0 || ex >= battleMap.Width || ey < 0 || ey >= battleMap.Height {
+				continue
+			}
+			ep := image.Point{X: ex, Y: ey}
+			if interiorSet[ep] {
+				continue
+			}
+			if battleMap.Passable(ex, ey) {
+				result.ExteriorTiles = append(result.ExteriorTiles, ep)
 			}
 		}
 	}

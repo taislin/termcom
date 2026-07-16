@@ -130,16 +130,16 @@ func (u *Unit) Name() string {
 	return language.String("MSG_CIVILIAN")
 }
 
-func (u *Unit) FireAt(target *Unit, m *BattleMap, weather *Weather) (int, bool, error) {
+func (u *Unit) FireAt(target *Unit, m *BattleMap, weather *Weather) (int, bool, bool, error) {
 	w, ok := data.RuleItems[u.Weapon]
 	if !ok {
-		return 0, false, fmt.Errorf("unknown weapon: %s", u.Weapon)
+		return 0, false, false, fmt.Errorf("unknown weapon: %s", u.Weapon)
 	}
 	if u.TU < w.TU {
-		return 0, false, fmt.Errorf("not enough TU")
+		return 0, false, false, fmt.Errorf("not enough TU")
 	}
 	if u.WeaponAmmo <= 0 && w.AmmoMax < 99 {
-		return 0, false, fmt.Errorf("out of ammo")
+		return 0, false, false, fmt.Errorf("out of ammo")
 	}
 	if w.AmmoMax < 99 {
 		u.WeaponAmmo--
@@ -178,7 +178,18 @@ func (u *Unit) FireAt(target *Unit, m *BattleMap, weather *Weather) (int, bool, 
 	}
 
 	if rand.Intn(100) >= hitChance {
-		return 0, false, nil
+		return 0, false, false, nil
+	}
+
+	// Adjacent cover check: when the target is within 1 tile and standing in
+	// partial cover, the cover value acts as a block chance rather than a
+	// silent damage reduction. A successful block stops the shot entirely.
+	if m != nil && dist <= 1.5 {
+		if tc := m.At(target.X, target.Y).Cover; tc > 0 {
+			if rand.Intn(100) < tc {
+				return 0, false, true, nil
+			}
+		}
 	}
 
 	damage := w.Damage + rand.Intn(w.Damage/3+1)
@@ -191,20 +202,27 @@ func (u *Unit) FireAt(target *Unit, m *BattleMap, weather *Weather) (int, bool, 
 		if u.Soldier != nil {
 			u.Soldier.AddMeleeExp()
 		}
-		return damage, true, nil
+		return damage, true, false, nil
+	}
+
+	// Apply cover from intervening tiles. Cover acts as a block chance rather
+	// than a silent damage reduction: a 100% obstacle always blocks, while
+	// partial cover only has a 1/3 chance of stopping the shot (a 30% bush
+	// blocks ~10% of the time). A shot that gets through deals full damage.
+	cover := 0
+	if m != nil {
+		cover = m.CoverAlongLine(u.X, u.Y, target.X, target.Y)
+	}
+	if cover >= 100 {
+		return 0, false, true, nil
+	}
+	if cover > 0 && rand.Intn(100) < cover/3 {
+		return 0, false, true, nil
 	}
 
 	damage -= target.Armour
 	if target.Crouching {
 		damage = damage * 7 / 10
-	}
-
-	// Apply cover from intervening tiles
-	if m != nil {
-		cover := m.CoverAlongLine(u.X, u.Y, target.X, target.Y)
-		if cover > 0 {
-			damage = damage * (100 - cover) / 100
-		}
 	}
 
 	// Apply damage type resistance/weakness from target
@@ -243,7 +261,7 @@ func (u *Unit) FireAt(target *Unit, m *BattleMap, weather *Weather) (int, bool, 
 			target.BleedRate = 5
 		}
 	}
-	return damage, true, nil
+	return damage, true, false, nil
 }
 
 // WeaponDamageType returns the damage type for a given weapon ID.

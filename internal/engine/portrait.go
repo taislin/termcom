@@ -151,7 +151,7 @@ func GenerateSoldierPortrait(spec PortraitSpec) *PixelImage {
 
 	bgColor := tcell.NewRGBColor(20, 20, 28)
 	skin := generateSkinLayer(w, h, spec.SkinColor, bgColor)
-	eyes := generateEyeLayer(w, h, spec.EyeColor)
+	eyes := generateEyeLayer(w, h, spec.EyeColor, spec.SkinColor)
 	nose := generateNoseLayer(w, h, spec.SkinColor)
 	mouth := generateMouthLayer(w, h, spec.SkinColor)
 	hair := generateHairLayer(w, h, spec.HairColor, rng.Intn(8))
@@ -172,8 +172,9 @@ func GenerateSoldierPortrait(spec PortraitSpec) *PixelImage {
 	return res
 }
 
-// applyPortraitDithering adds texture noise, edge shading, and surface detail
-// to soldier portraits, matching the visual richness of alien portraits.
+// applyPortraitDithering adds dramatic shading, texture noise, and depth
+// to soldier portraits. Effects accumulate: each reads the current pixel
+// so edge shading, noise, and cheek shadows all stack.
 func applyPortraitDithering(img *PixelImage, spec PortraitSpec) {
 	w, h := img.Width, img.Height
 	g := computeFaceGeom(w, h)
@@ -185,85 +186,101 @@ func applyPortraitDithering(img *PixelImage, spec PortraitSpec) {
 			if c == tcell.ColorDefault || c == tcell.NewRGBColor(20, 20, 28) {
 				continue
 			}
+			isSkin := isSkinTone(c) && inHead(x, y, g)
+			isHair := isHairColor(c, spec.HairColor)
+			isHelm := spec.HelmetColor != tcell.ColorDefault && isHelmetColor(c, spec.HelmetColor)
+			isArm := spec.ArmourColor != tcell.ColorDefault && isArmorColor(c, spec.ArmourColor)
+			if !isSkin && !isHair && !isHelm && !isArm {
+				continue
+			}
 
-			// Skin texture noise — subtle random brightness variation
-			if isSkinTone(c) && inHead(x, y, g) {
-				n := rng.Intn(100)
-				if n < 25 {
-					factor := 0.92 + float64(rng.Intn(16))/100.0
-					img.Pixels[y][x] = DarkenColor(c, factor)
-				} else if n < 35 {
-					img.Pixels[y][x] = LightenColor(c, 1.08)
+			// --- SKIN EFFECTS ---
+			if isSkin {
+				noise := rng.Intn(100)
+				if noise < 25 {
+					img.Pixels[y][x] = DarkenColor(img.Pixels[y][x], 0.65)
+				} else if noise < 35 {
+					img.Pixels[y][x] = LightenColor(img.Pixels[y][x], 1.3)
 				}
 			}
 
-			// Face edge shading — darken sides of face for depth
-			if inHead(x, y, g) && isSkinTone(c) {
+			if isSkin {
 				dx := float64(x-g.cx) / float64(g.rx)
 				edgeFactor := dx * dx
-				if edgeFactor > 0.3 {
-					img.Pixels[y][x] = DarkenColor(c, 1.0-edgeFactor*0.25)
-				}
-			}
-
-			// Nose bridge highlight — light stripe down center
-			if inHead(x, y, g) && isSkinTone(c) {
-				if x == g.cx && y >= g.cy-g.ry/4 && y <= g.noseTipY {
-					img.Pixels[y][x] = LightenColor(c, 1.15)
-				}
-			}
-
-			// Cheek shadow — subtle darkening below eyes on sides
-			if inHead(x, y, g) && isSkinTone(c) {
-				if y >= g.eyeY+1 && y <= g.eyeY+3 {
-					dx := x - g.cx
-					if (dx > 1 && dx < g.eyeOff) || (dx < -1 && dx > -g.eyeOff) {
-						img.Pixels[y][x] = DarkenColor(c, 0.9)
+				if edgeFactor > 0.1 {
+					f := 1.0 - edgeFactor*0.5
+					if f < 0.5 {
+						f = 0.5
 					}
+					img.Pixels[y][x] = DarkenColor(img.Pixels[y][x], f)
 				}
 			}
 
-			// Checkerboard dither on skin (subtle)
-			if isSkinTone(c) && inHead(x, y, g) && (x+y)%2 == 0 {
-				img.Pixels[y][x] = DarkenColor(c, 0.96)
-			}
-
-			// Hair strand texture — alternating dark/light for depth
-			if isHairColor(c, spec.HairColor) {
-				if (x+y)%3 == 0 {
-					img.Pixels[y][x] = DarkenColor(c, 0.82)
-				} else if (x+y)%5 == 0 {
-					img.Pixels[y][x] = LightenColor(c, 1.12)
+			if isSkin {
+				dy := float64(y-g.cy) / float64(g.ry)
+				if dy > 0.3 {
+					f := 1.0 - (dy-0.3)*0.5
+					if f < 0.45 {
+						f = 0.45
+					}
+					img.Pixels[y][x] = DarkenColor(img.Pixels[y][x], f)
 				}
 			}
 
-			// Armor/helmet texture — subtle grid pattern
-			if spec.HelmetColor != tcell.ColorDefault && isHelmetColor(c, spec.HelmetColor) {
-				if x%2 == 0 && y%2 == 0 {
-					img.Pixels[y][x] = DarkenColor(c, 0.88)
-				}
-			}
-			if spec.ArmourColor != tcell.ColorDefault && isArmorColor(c, spec.ArmourColor) {
-				if (x+y)%3 == 0 {
-					img.Pixels[y][x] = DarkenColor(c, 0.9)
-				}
+			if isSkin && x == g.cx && y >= g.cy-g.ry/3 && y <= g.noseTipY {
+				img.Pixels[y][x] = LightenColor(img.Pixels[y][x], 1.35)
 			}
 
-			// Forehead wrinkle lines — faint horizontal lines
-			if inHead(x, y, g) && isSkinTone(c) {
+			if isSkin && (x+y)%2 == 0 {
+				img.Pixels[y][x] = DarkenColor(img.Pixels[y][x], 0.82)
+			}
+
+			if isSkin {
 				wrinkleY := g.cy - g.ry/3
 				if y == wrinkleY && x >= g.cx-2 && x <= g.cx+2 {
-					img.Pixels[y][x] = DarkenColor(c, 0.85)
+					img.Pixels[y][x] = DarkenColor(img.Pixels[y][x], 0.55)
+				}
+				wrinkleY2 := g.cy - g.ry/5
+				if y == wrinkleY2 && x >= g.cx-1 && x <= g.cx+1 {
+					img.Pixels[y][x] = DarkenColor(img.Pixels[y][x], 0.6)
 				}
 			}
 
-			// Chin shadow — darken below mouth
-			if inHead(x, y, g) && isSkinTone(c) {
-				if y >= g.mouthY+2 && y <= g.mouthY+4 {
-					dx := x - g.cx
-					if dx >= -2 && dx <= 2 {
-						img.Pixels[y][x] = DarkenColor(c, 0.88)
-					}
+			if isSkin && y >= g.mouthY+2 && y <= g.mouthY+5 {
+				dx := x - g.cx
+				if dx >= -3 && dx <= 3 {
+					img.Pixels[y][x] = DarkenColor(img.Pixels[y][x], 0.55)
+				}
+			}
+
+			if isSkin && y >= g.eyeY-4 && y < g.eyeY-1 {
+				img.Pixels[y][x] = DarkenColor(img.Pixels[y][x], 0.7)
+			}
+
+			// --- HAIR EFFECTS ---
+			if isHair {
+				if (x+y)%3 == 0 {
+					img.Pixels[y][x] = DarkenColor(img.Pixels[y][x], 0.5)
+				} else if (x+y)%4 == 0 {
+					img.Pixels[y][x] = LightenColor(img.Pixels[y][x], 1.25)
+				}
+			}
+
+			// --- HELMET EFFECTS ---
+			if isHelm {
+				if x%2 == 0 && y%2 == 0 {
+					img.Pixels[y][x] = DarkenColor(img.Pixels[y][x], 0.65)
+				} else {
+					img.Pixels[y][x] = LightenColor(img.Pixels[y][x], 1.1)
+				}
+			}
+
+			// --- ARMOR EFFECTS ---
+			if isArm {
+				if (x+y)%3 == 0 {
+					img.Pixels[y][x] = DarkenColor(img.Pixels[y][x], 0.65)
+				} else if (x+y)%4 == 0 {
+					img.Pixels[y][x] = LightenColor(img.Pixels[y][x], 1.1)
 				}
 			}
 		}
@@ -443,7 +460,7 @@ func generateSkinLayer(w, h int, baseColor tcell.Color, bgColor tcell.Color) *Pi
 			// Inner ear
 			ix := ex + side
 			if ix >= 0 && ix < w && y >= 0 && y < h {
-				img.Pixels[y][ix] = DarkenColor(baseColor, 0.6)
+				img.Pixels[y][ix] = DarkenColor(baseColor, 0.8)
 			}
 		}
 	}
@@ -451,7 +468,7 @@ func generateSkinLayer(w, h int, baseColor tcell.Color, bgColor tcell.Color) *Pi
 	return img
 }
 
-func generateEyeLayer(w, h int, irisColor tcell.Color) *PixelImage {
+func generateEyeLayer(w, h int, irisColor tcell.Color, skinColor tcell.Color) *PixelImage {
 	img := NewPixelImage(w, h)
 	g := computeFaceGeom(w, h)
 
@@ -462,7 +479,7 @@ func generateEyeLayer(w, h int, irisColor tcell.Color) *PixelImage {
 	if browColor == tcell.ColorDefault {
 		browColor = tcell.NewRGBColor(60, 50, 40)
 	}
-	eyeShadow := DarkenColor(irisColor, 0.12)
+	eyeShadow := DarkenColor(skinColor, 0.8)
 
 	eyeW := g.rx / 3
 	if eyeW < 2 {

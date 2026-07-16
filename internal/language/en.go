@@ -240,6 +240,7 @@ func init() {
 		"MSG_TARGET_NO_LOS":         "Target not in line of sight.",
 		"MSG_HIT_TARGET":            "HIT! %d damage to %s (HP:%d)",
 		"MSG_MISSED":                "Missed!",
+		"MSG_HIT_COVER":             "Shot hit cover!",
 		"MSG_MOVED":                 "Moved %s to [%d,%d]",
 		"MSG_CANNOT_MOVE":           "Cannot move there.",
 		"MSG_NO_TARGET":             "No target.",
@@ -897,6 +898,7 @@ func init() {
 
 		// ── Floater ───────────────────────────────────────
 		"FLOATER_MISS": "MISS",
+		"FLOATER_COVER": "COVER",
 
 		// ── Game Over ─────────────────────────────────────
 		"GAMEOVER_PROMPT":  "Press ESC to Quit",

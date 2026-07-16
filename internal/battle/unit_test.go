@@ -48,7 +48,7 @@ func TestUnitFireAtConsumesTU(t *testing.T) {
 	u.WeaponAmmo = 10
 
 	beforeTU := u.TU
-	_, _, err := u.FireAt(target, nil, nil)
+	_, _, _, err := u.FireAt(target, nil, nil)
 	if err != nil {
 		t.Fatalf("FireAt returned error: %v", err)
 	}
@@ -71,7 +71,7 @@ func TestUnitFireAtConsumesAmmo(t *testing.T) {
 	u.WeaponAmmo = 10
 
 	beforeAmmo := u.WeaponAmmo
-	_, _, err := u.FireAt(target, nil, nil)
+	_, _, _, err := u.FireAt(target, nil, nil)
 	if err != nil {
 		t.Fatalf("FireAt returned error: %v", err)
 	}
@@ -92,7 +92,7 @@ func TestUnitFireAtNoAmmo(t *testing.T) {
 	u.Weapon = "rifle"
 	u.WeaponAmmo = 0
 
-	_, _, err := u.FireAt(target, nil, nil)
+	_, _, _, err := u.FireAt(target, nil, nil)
 	if err == nil {
 		t.Error("expected error for no ammo")
 	}
@@ -110,7 +110,7 @@ func TestUnitFireAtNoTU(t *testing.T) {
 	u.Weapon = "rifle"
 	u.WeaponAmmo = 10
 
-	_, _, err := u.FireAt(target, nil, nil)
+	_, _, _, err := u.FireAt(target, nil, nil)
 	if err == nil {
 		t.Error("expected error for no TU")
 	}
@@ -179,7 +179,7 @@ func TestUnitFireAtStunRod(t *testing.T) {
 	m.Set(5, 6, TileFloor)
 	m.Set(5, 5, TileFloor)
 
-	damage, hit, err := u.FireAt(target, m, nil)
+	damage, hit, _, err := u.FireAt(target, m, nil)
 	if err != nil {
 		t.Fatalf("FireAt error: %v", err)
 	}
@@ -265,7 +265,7 @@ func TestUnitFireAtCoverDamageReduction(t *testing.T) {
 	m.Set(5, 5, TileFloor)
 	m.Set(8, 5, TileFloor)
 
-	_, hit, err := u.FireAt(target, m, nil)
+	_, hit, _, err := u.FireAt(target, m, nil)
 	if err != nil {
 		t.Fatalf("FireAt error: %v", err)
 	}
@@ -277,7 +277,7 @@ func TestUnitFireAtCoverDamageReduction(t *testing.T) {
 func TestUnitFireAtUnknownWeapon(t *testing.T) {
 	u := &Unit{HP: 10, Weapon: "unknown_weapon", TU: 50, X: 5, Y: 5}
 	target := &Unit{HP: 10, X: 5, Y: 6}
-	_, _, err := u.FireAt(target, nil, nil)
+	_, _, _, err := u.FireAt(target, nil, nil)
 	if err == nil {
 		t.Error("expected error for unknown weapon")
 	}
