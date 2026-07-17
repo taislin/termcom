@@ -29,16 +29,18 @@ jobs:
         run: |
           mkdir -p pdfs
           VER=$(cat VERSION)
+          # Fix: removed undefined \sectionrule and simplified fontspec usage.
+          # fontspec is loaded automatically by xelatex/pandoc when mainfont is set.
           pandoc docs/manual.md -o "pdfs/termcom-manual-v${VER}.pdf" --pdf-engine=xelatex --number-sections \
             -V mainfont="Space Grotesk" \
             -V monofont="NovaMono" \
             -V geometry:margin=1in \
-            -V header-includes="\usepackage{sectsty}\allsectionsfont{\fontspec{NovaMono}\Large}\sectionrule"
+            -V header-includes="\usepackage{sectsty}\allsectionsfont{\fontspec{NovaMono}\Large}"
           pandoc docs/quickstart.md -o "pdfs/termcom-quickstart-v${VER}.pdf" --pdf-engine=xelatex --number-sections \
             -V mainfont="Space Grotesk" \
             -V monofont="NovaMono" \
             -V geometry:margin=1in \
-            -V header-includes="\usepackage{sectsty}\allsectionsfont{\fontspec{NovaMono}\Large}\sectionrule"
+            -V header-includes="\usepackage{sectsty}\allsectionsfont{\fontspec{NovaMono}\Large}"
 
       - name: Upload PDFs
         uses: actions/upload-artifact@v7
