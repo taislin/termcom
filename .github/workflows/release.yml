@@ -16,7 +16,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y pandoc texlive-xetex texlive-fonts-recommended
 
       - name: Install typography fonts
-        # The PDF build requests "Space Grotesk" and "Nova Mono" via fontspec;
+        # The PDF build requests "Space Grotesk" and "NovaMono" via fontspec;
         # neither ships with texlive, so fetch the TTFs and register them with
         # fontconfig so xelatex can resolve them by family name.
         run: |
@@ -31,14 +31,14 @@ jobs:
           VER=$(cat VERSION)
           pandoc docs/manual.md -o "pdfs/termcom-manual-v${VER}.pdf" --pdf-engine=xelatex --number-sections \
             -V mainfont="Space Grotesk" \
-            -V monofont="Nova Mono" \
+            -V monofont="NovaMono" \
             -V geometry:margin=1in \
-            -V header-includes="\usepackage{sectsty}\allsectionsfont{\fontspec{Nova Mono}\Large}\sectionrule"
+            -V header-includes="\usepackage{sectsty}\allsectionsfont{\fontspec{NovaMono}\Large}\sectionrule"
           pandoc docs/quickstart.md -o "pdfs/termcom-quickstart-v${VER}.pdf" --pdf-engine=xelatex --number-sections \
             -V mainfont="Space Grotesk" \
-            -V monofont="Nova Mono" \
+            -V monofont="NovaMono" \
             -V geometry:margin=1in \
-            -V header-includes="\usepackage{sectsty}\allsectionsfont{\fontspec{Nova Mono}\Large}\sectionrule"
+            -V header-includes="\usepackage{sectsty}\allsectionsfont{\fontspec{NovaMono}\Large}\sectionrule"
 
       - name: Upload PDFs
         uses: actions/upload-artifact@v7
