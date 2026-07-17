@@ -739,16 +739,11 @@ func ApplyCommands(m *BattleMap, cmds []MapCommand) {
 }
 
 // GenerateCrashSite creates a crash site map with a procedural UFO blueprint
-// stamped onto the terrain. Returns both the map and crash result.
+// stamped onto clustered terrain. Returns both the map and crash result.
 func GenerateCrashSite(w, h int, seed int64) (*BattleMap, *CrashResult) {
-	m := NewBattleMap(w, h)
-
-	ApplyCommands(m, []MapCommand{
-		{Type: CmdScatter, X: 0, Y: 0, W: w, H: h, Tile: TileTree, Prob: 3, Count: w * h},
-		{Type: CmdScatter, X: 0, Y: 0, W: w, H: h, Tile: TileBush, Prob: 2, Count: w * h},
-		{Type: CmdScatter, X: 0, Y: 0, W: w, H: h, Tile: TileRock, Prob: 2, Count: w * h},
-		{Type: CmdScatter, X: 0, Y: 0, W: w, H: h, Tile: TileFence, Prob: 1, Count: w * h},
-	})
+	// Clustered forest terrain via AssembleMap, deterministic on seed.
+	rng := rand.New(rand.NewSource(seed))
+	m := AssembleMap("forest", w, h, rng)
 
 	// Pick a UFO tier based on seed (deterministic)
 	seed16 := seed
@@ -792,58 +787,21 @@ func GenerateCrashSite(w, h int, seed int64) (*BattleMap, *CrashResult) {
 }
 
 // GenerateTerrorSite creates a terror site map (OpenXcom: 50x50 urban)
+// via AssembleMap with the urban biome (pavement base, scattered objects,
+// and building fragments).
 func GenerateTerrorSite(w, h int) *BattleMap {
-	m := NewBattleMap(w, h)
+	rng := rand.New(rand.NewSource(int64(w*19349663 + h*83492791)))
+	m := AssembleMap("urban", w, h, rng)
 
-	// Fill with pavement (roads)
-	m.fillRect(0, 0, w, h, TilePavement)
-
-	// Generate roads (OpenXcom urban script pattern)
-	if rand.Intn(2) == 0 {
-		roadX := w/4 + rand.Intn(w/2)
+	// Roads (OpenXcom urban script pattern) overlaid on the assembled map.
+	if rng.Intn(2) == 0 {
+		roadX := w/4 + rng.Intn(w/2)
 		m.fillRect(roadX-1, 0, 3, h, TilePavement)
 	}
-	if rand.Intn(2) == 0 {
-		roadY := h/4 + rand.Intn(h/2)
+	if rng.Intn(2) == 0 {
+		roadY := h/4 + rng.Intn(h/2)
 		m.fillRect(0, roadY-1, w, 3, TilePavement)
 	}
-
-	// Generate buildings
-	buildings := 0
-	maxBuildings := 12
-	attempts := 0
-	for buildings < maxBuildings && attempts < 200 {
-		attempts++
-		bw := 6 + rand.Intn(8)
-		bh := 5 + rand.Intn(7)
-		bx := randn(w-bw-2) + 1
-		by := randn(h-bh-2) + 1
-
-		// Ensure building doesn't overlap existing structures or map boundaries
-		overlap := false
-		for dy := -1; dy <= bh; dy++ {
-			for dx := -1; dx <= bw; dx++ {
-				if m.At(bx+dx, by+dy).Type == TileWall {
-					overlap = true
-					break
-				}
-			}
-			if overlap {
-				break
-			}
-		}
-
-		if overlap {
-			continue
-		}
-
-		m.ApplyCommand(MapCommand{Type: CmdPlaceBuilding, X: bx, Y: by, W: bw, H: bh, DoorSide: 0})
-		buildings++
-	}
-
-	ApplyCommands(m, []MapCommand{
-		{Type: CmdScatter, X: 1, Y: 1, W: w - 2, H: h - 2, Tile: TileObject, Prob: 10, Count: 20},
-	})
 
 	return m
 }
@@ -1113,6 +1071,9 @@ func GenerateCydonia(w, h int) *BattleMap {
 		}
 	}
 
+	// Guarantee the whole interior is reachable from the command center.
+	m.RepairConnectivity(ccX+ccSize/2, ccY+ccSize/2)
+
 	return m
 }
 
@@ -1198,6 +1159,9 @@ func GenerateAlienBase(w, h int) *BattleMap {
 	for _, p := range pods {
 		m.generateCorridorUFO(coreCx, coreCy, p[0], p[1], 2)
 	}
+
+	// Guarantee the whole interior is reachable from the core.
+	m.RepairConnectivity(coreCx, coreCy)
 
 	// Entrance on a random side
 	entranceSide := rand.Intn(4)

@@ -101,6 +101,18 @@ func init() {
 			{TileFloor, TileFloor, TileFloor},
 		},
 	})
+	registerFragment("urban_building", &MapFragment{
+		W: 7, H: 6, Tags: []string{"urban"},
+		DoorSides: []int{0},
+		Tiles: [][]TileType{
+			{TileWall, TileWall, TileWall, TileWall, TileWall, TileWall, TileWall},
+			{TileWall, TileFloor, TileFloor, TileFloor, TileFloor, TileFloor, TileWall},
+			{TileWall, TileFloor, TileChair, TileFloor, TileComputer, TileFloor, TileWall},
+			{TileWall, TileFloor, TileFloor, TileDesk, TileFloor, TileFloor, TileWall},
+			{TileWall, TileFloor, TileLocker, TileFloor, TileFloor, TileCabinet, TileWall},
+			{TileWall, TileWall, TileWall, TileWall, TileWall, TileWall, TileWall},
+		},
+	})
 	registerFragment("junction", &MapFragment{
 		W: 3, H: 3, Tags: []string{"ufo", "alien"},
 		DoorSides: []int{0, 1, 2, 3},

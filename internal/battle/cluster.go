@@ -114,3 +114,60 @@ func (m *BattleMap) ValidateMap() bool {
 	}
 	return reachable >= open*3/4
 }
+
+// RepairConnectivity flood-fills passable tiles from (sx,sy) and carves a
+// UFO corridor from the seed to any unreachable floor pocket, guaranteeing the
+// map is fully traversable. Used by walled base/interior generators.
+func (m *BattleMap) RepairConnectivity(sx, sy int) {
+	dirs := [][2]int{{0, -1}, {0, 1}, {-1, 0}, {1, 0}}
+	seen := map[[2]int]bool{}
+	stack := [][2]int{{sx, sy}}
+	for len(stack) > 0 {
+		c := stack[len(stack)-1]
+		stack = stack[:len(stack)-1]
+		if seen[c] {
+			continue
+		}
+		seen[c] = true
+		for _, d := range dirs {
+			nx, ny := c[0]+d[0], c[1]+d[1]
+			if nx < 0 || nx >= m.Width || ny < 0 || ny >= m.LevelHeight {
+				continue
+			}
+			if m.Passable(nx, ny) && !seen[[2]int{nx, ny}] {
+				stack = append(stack, [2]int{nx, ny})
+			}
+		}
+	}
+	// Find unreachable floor pockets and connect them to the seed.
+	for y := 0; y < m.LevelHeight; y++ {
+		for x := 0; x < m.Width; x++ {
+			if !m.Passable(x, y) {
+				continue
+			}
+			if seen[[2]int{x, y}] {
+				continue
+			}
+			m.generateCorridorUFO(sx, sy, x, y, 1)
+			// Re-flood from the new connection point.
+			stack = append(stack, [2]int{x, y})
+			for len(stack) > 0 {
+				c := stack[len(stack)-1]
+				stack = stack[:len(stack)-1]
+				if seen[c] {
+					continue
+				}
+				seen[c] = true
+				for _, d := range dirs {
+					nx, ny := c[0]+d[0], c[1]+d[1]
+					if nx < 0 || nx >= m.Width || ny < 0 || ny >= m.LevelHeight {
+						continue
+					}
+					if m.Passable(nx, ny) && !seen[[2]int{nx, ny}] {
+						stack = append(stack, [2]int{nx, ny})
+					}
+				}
+			}
+		}
+	}
+}
