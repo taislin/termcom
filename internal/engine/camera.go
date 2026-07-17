@@ -12,13 +12,15 @@ type Camera struct {
 	OffsetX, OffsetY int
 	ShakeIntensity float64
 	decay          float64
+	rng            *rand.Rand
 }
 
 func NewCamera(x, y int) *Camera {
 	return &Camera{
-		X:    x,
-		Y:    y,
+		X:     x,
+		Y:     y,
 		decay: 8.0,
+		rng:   rand.New(rand.NewSource(0)),
 	}
 }
 
@@ -38,16 +40,16 @@ func (c *Camera) UpdateShake(dt float64) {
 		return
 	}
 
-	c.OffsetX = int((rand.Float64()*2 - 1) * c.ShakeIntensity)
-	c.OffsetY = int((rand.Float64()*2 - 1) * c.ShakeIntensity)
+	c.OffsetX = int((c.rng.Float64()*2 - 1) * c.ShakeIntensity)
+	c.OffsetY = int((c.rng.Float64()*2 - 1) * c.ShakeIntensity)
 }
 
 func (c *Camera) TriggerShake(intensity float64) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.ShakeIntensity = math.Max(c.ShakeIntensity, intensity)
-	c.OffsetX = int((rand.Float64()*2 - 1) * intensity)
-	c.OffsetY = int((rand.Float64()*2 - 1) * intensity)
+	c.OffsetX = int((c.rng.Float64()*2 - 1) * c.ShakeIntensity)
+	c.OffsetY = int((c.rng.Float64()*2 - 1) * c.ShakeIntensity)
 }
 
 func (c *Camera) SetTarget(x, y int) {

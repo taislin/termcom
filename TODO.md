@@ -1,4 +1,4 @@
-# TODO — Battlescape Improvements
+# TODO — Game Improvements
 
 Scope: Features and fixes for the battlescape tactical combat system.
 Nothing here is implemented yet unless marked `[x]`.
@@ -26,60 +26,60 @@ Nothing here is implemented yet unless marked `[x]`.
 - [x] Language keys: `LABEL_INVENTORY`, `SIDE_INVENTORY`, `SIDE_ENCUMBRANCE`, `MSG_ADDED_INVENTORY`
 - [x] Bump version
 
-## Soldier Progression (OXCE+ port)
+## Soldier Progression (OXCE+ port) — ✅ DONE
 
-- [ ] **Phase 1** Per-action XP + `improveStat` + halo growth
-  - [ ] `soldier.go`: add transient XP counters and `GainedXP bool`
-  - [ ] `soldier.go`: add stat caps (TU 80, HP 60, Acc 120, React 100, etc.)
-  - [ ] `soldier.go`: add `AddFiringExp/AddThrowingExp/AddReactionsExp/AddBraveryExp/
+- [x] **Phase 1** Per-action XP + `improveStat` + halo growth
+  - [x] `soldier.go`: add transient XP counters and `GainedXP bool`
+  - [x] `soldier.go`: add stat caps (TU 80, HP 60, Acc 120, React 100, etc.)
+  - [x] `soldier.go`: add `AddFiringExp/AddThrowingExp/AddReactionsExp/AddBraveryExp/
         AddPsiSkillExp/AddPsiStrExp/AddMeleeExp` methods
-  - [ ] `soldier.go`: add `improveStat(exp int) int` (OXCE formula)
-  - [ ] `soldier.go`: add `PostMission()` with stat improvement + halo growth
-  - [ ] `battle/unit.go` `FireAt`: award `AddFiringExp()` on hit
-  - [ ] `battle/battlescape.go` reaction fire: award `AddReactionsExp()` on hit
-  - [ ] `battle/battlescape.go` psi attack: award `AddPsiSkillExp()` on success
-  - [ ] Replace kill-based `GainXP` calls with `PostMission()`
+  - [x] `soldier.go`: add `improveStat(exp int) int` (OXCE formula)
+  - [x] `soldier.go`: add `PostMission()` with stat improvement + halo growth
+  - [x] `battle/unit.go` `FireAt`: award `AddFiringExp()` on hit
+  - [x] `battle/battlescape.go` reaction fire: award `AddReactionsExp()` on hit
+  - [x] `battle/battlescape.go` psi attack: award `AddPsiSkillExp()` on success
+  - [x] Replace kill-based `GainXP` calls with `PostMission()`
 
-- [ ] **Phase 2** Ranks by headcount
-  - [ ] `soldier.go`: add `HandlePromotions(roster []*Soldier)` (headcount-based)
-  - [ ] Each promotion rolls `RollPerk`/`ApplyPerk`
-  - [ ] Call from `finishBattle`
-  - [ ] Update tests
+- [x] **Phase 2** Ranks by headcount
+  - [x] `soldier.go`: add `HandlePromotions(roster []*Soldier)` (headcount-based)
+  - [x] Each promotion rolls `RollPerk`/`ApplyPerk`
+  - [x] Call from `finishBattle`
+  - [x] Update tests
 
-- [ ] **Phase 3** Fatal wounds & bleeding
-  - [ ] `battle/unit.go`: add `FatalWounds int` + `BleedRate int`
-  - [ ] `FireAt`: chance to add fatal wound on damage
-  - [ ] Turn loop: apply bleed tick
-  - [ ] `finishBattle`: fold into `Wounds` field
+- [x] **Phase 3** Fatal wounds & bleeding
+  - [x] `battle/unit.go`: add `FatalWounds int` + `BleedRate int`
+  - [x] `FireAt`: chance to add fatal wound on damage
+  - [x] Turn loop: apply bleed tick
+  - [x] `finishBattle`: fold into `Wounds` field
 
-- [ ] **Phase 4** Bravery-on-panic (minimal morale)
-  - [ ] `battle/unit.go`: add `Morale int` (default 100)
-  - [ ] Per-turn morale recovery + panic roll
-  - [ ] On avoiding panic → `AddBraveryExp()`
+- [x] **Phase 4** Bravery-on-panic (minimal morale)
+  - [x] `battle/unit.go`: add `Morale int` (default 100)
+  - [x] Per-turn morale recovery + panic roll
+  - [x] On avoiding panic → `AddBraveryExp()`
 
-- [ ] **Phase 5** Psi-lab training refinement
-  - [ ] `base/facility.go`: replace daily `PsiSkill++` with probability model
-  - [ ] Update `facility_test.go`
+- [x] **Phase 5** Psi-lab training refinement
+  - [x] `base/facility.go`: replace daily `PsiSkill++` with probability model
+  - [x] Update `facility_test.go`
 
-- [ ] **Phase 6** Wire `HasBattleMod` into combat
-  - [ ] `unit.go` `FireAt`: apply Marksman, CloseCombat, Overwatch, SteadyAim
-  - [ ] Reaction fire: apply battle modifiers
-  - [ ] Death/memorial: `KIA` record in `finishBattle`
+- [x] **Phase 6** Wire `HasBattleMod` into combat
+  - [x] `unit.go` `FireAt`: apply Marksman, CloseCombat, Overwatch, SteadyAim
+  - [x] Reaction fire: apply battle modifiers (via `FireAt`)
+  - [x] Death/memorial: `KIA` record in `finishBattle`
 
 ## Code Audit (largest files)
 
 ### `internal/battle/battlescape.go`
-- [ ] **B1 (Critical)** Movement-range BFS charges 8 TU for Tree/Rock/Water but
-  `MoveTo`/player movement charges flat 4/tile (lines 240–244 vs 1767–1791).
+- [x] **B1 (Critical)** Movement-range BFS charges 8 TU for Tree/Rock/Water but
+  `MoveTo`/player movement charges flat 4/tile (lines 240–244 vs 1839–1863).
   Reachable overlay over-promises range. Align cost models.
-- [ ] **B4 (Critical)** `PsiAttack`/`Reload`/`UseMedikit` deref
-  `bs.Selected.Soldier.Weapon` without nil guard (line 2482/2507). Add nil guard.
-- [ ] **M1 (Medium)** `GetMovementRange` cache key `X*10000+Y*100+TU` collides when
+- [x] **B4 (Critical)** `PsiAttack`/`Reload`/`UseMedikit` deref
+  `bs.Selected.Soldier.Weapon` without nil guard (line 2574). Add nil guard.
+- [x] **M1 (Medium)** `GetMovementRange` cache key `X*10000+Y*100+TU` collides when
   switching selected unit / at X,Y≥100 (lines 197–204). Include unit ID in key.
-- [ ] **M4 (Medium)** Unreachable `else` lighting branches inside `if bs.IsNight`
+- [x] **M4 (Medium)** Unreachable `else` lighting branches inside `if bs.IsNight`
   (lines 2654–2658, 2671–2673). Drop inner checks.
-- [ ] **D1 (Low)** `bs.viewW`/`bs.viewH` assigned (line 2577) but never read. Remove.
-- [ ] **D2 (Low)** `PlayerFlankCount` declared but never used (line 142). Remove.
+- [x] **D1 (Low)** `bs.viewW`/`bs.viewH` assigned (line 2577) but never read. Remove.
+- [x] **D2 (Low)** `PlayerFlankCount` declared but never used (line 142). Remove.
 - [ ] **D4 (Low)** Commented-out ambient-particle block (lines 777–788). Delete.
 - [ ] **D3 (Low)** Overwatch `CombatStatus` set then overwritten by flash reset
   (lines 736–745). Reconcile or drop.
@@ -94,26 +94,26 @@ Nothing here is implemented yet unless marked `[x]`.
   damage 40+Str*2, mine 60+rng20, scanner 15). Extract constants.
 
 ### `internal/geo/geoscape.go`
-- [ ] **M1 (Critical)** Defeat (`AlienActivity>=100`) sets `gs.Victory=true`
+- [x] **M1 (Critical)** Defeat (`AlienActivity>=100`) sets `gs.Victory=true`
   (lines 414–419) → victory screen after game-over (line 428). Add `Defeated` flag.
-- [ ] **M2 (Critical)** Losing last base sets `gs.Victory=true` (lines 703–705) →
+- [x] **M2 (Critical)** Losing last base sets `gs.Victory=true` (lines 703–705) →
   same win-after-loss bug. Use `Defeated` flag.
-- [ ] **B4 (Critical)** Save/load drops UFO `ID`/`X`/`Y`/`TurnsLeft` (lines 1791–1802)
+- [x] **B4 (Critical)** Save/load drops UFO `ID`/`X`/`Y`/`TurnsLeft` (lines 1791–1802)
   → `DefendingUFOID`/`findUFOByID` never match, alien-base defender respawns every
   tick (1154–1158). Persist + restore these fields.
-- [ ] **B1 (Medium)** `defBase := gs.HasBaseAt(...)` shadowed by
+- [x] **B1 (Medium)** `defBase := gs.HasBaseAt(...)` shadowed by
   `defBase := gs.SelectedBase()` (lines 1313/1320) → wrong base in multi-base games.
   Remove shadow.
-- [ ] **B3 (Medium)** `Autoresolve` uses squared-distance vs `bestDist=9999.0`
+- [x] **B3 (Medium)** `Autoresolve` uses squared-distance vs `bestDist=9999.0`
   (~99-unit cutoff) and kills nearest UFO regardless of range (lines 1601–1639).
   Fix distance semantics.
-- [ ] **M3 (Medium)** Target-select uses `CursorNode % len(targets)` where CursorNode
+- [x] **M3 (Medium)** Target-select uses `CursorNode % len(targets)` where CursorNode
   is a city ID (lines 2139, 2652). Add separate target cursor index.
-- [ ] **M4 (Medium)** `enterMissionSelectMode` omits `overwatch` perk bonus that
+- [x] **M4 (Medium)** `enterMissionSelectMode` omits `overwatch` perk bonus that
   `AutoresolveMission` includes (lines 1553–1562 vs 1413–1418) → odds mismatch. Add.
-- [ ] **M6 (Medium)** `processBattleResult` replaces `defendingBase.Soldiers`
+- [x] **M6 (Medium)** `processBattleResult` replaces `defendingBase.Soldiers`
   wholesale with `r.Soldiers` (lines 167–168); if partial, roster wiped. Verify/merge.
-- [ ] **M7 (Medium)** `respondedAlienBase` not cleared on loss (lines 259–261) →
+- [x] **M7 (Medium)** `respondedAlienBase` not cleared on loss (lines 259–261) →
   stale base destroyed later. Clear in loss branch.
 - [ ] **B5 (Low)** Transport return uses `SelectedBase()` not source base
   (lines 609–612). Store originating base ID.
@@ -132,10 +132,10 @@ Nothing here is implemented yet unless marked `[x]`.
   (lines 2289–2296). Document or fix.
 
 ### `internal/battle/map.go`
-- [ ] **M1 (Medium)** `SpreadFire` sets `Type=TILEFloor, Fire=3` but doesn't reset
+- [x] **M1 (Medium)** `SpreadFire` sets `Type=TILEFloor, Fire=3` but doesn't reset
   `Cover`/`Rune` (lines 170–177) → burning tree still has Cover 60. Set
   `tile.Cover = TileCover(TileFloor)` on ignite.
-- [ ] **M2 (Medium)** `TileRubble` not in `Passable` allow-list (lines 341–350) →
+- [x] **M2 (Medium)** `TileRubble` not in `Passable` allow-list (lines 341–350) →
   after `DestroyWall`, units can't path through rubble. Add or document.
 - [ ] **M3 (Low/Medium)** `hasLOS` treats endpoint tile opacity as blocking (line 516)
   → no LOS when target stands on Rock/cover. Exclude endpoint.
@@ -151,11 +151,11 @@ Nothing here is implemented yet unless marked `[x]`.
   `80` crashSeverity (868), literal `3` fire (175). Name them.
 
 ### `internal/data/spritebuilder.go`
-- [ ] **B1 (Medium)** Weapon mask drawn at `x` with no centering offset while torso
+- [x] **B1 (Medium)** Weapon mask drawn at `x` with no centering offset while torso
   is drawn at `x+torsoOffset` (lines 862–886 vs 835–860) → weapon misaligned for
   non-centered torsos (Asymmetric/Bladed/Mechanical/Crystalline). Fix: draw weapon
   at `x+torsoOffset`.
-- [ ] **B2 (Medium)** Legs negative-offset clamp `if legsOffset<0 {=0}` (lines
+- [x] **B2 (Medium)** Legs negative-offset clamp `if legsOffset<0 {=0}` (lines
   888–891) defeats `centerOffset` for legsFloating/Serpentine/Crab → legs left-
   shifted vs centered head/torso. Remove clamp (centerOffset keeps in bounds).
 - [ ] **B3 (Low)** `Morphology.BodyType` ("organic"/"synthetic") never consulted by
@@ -205,7 +205,7 @@ Nothing here is implemented yet unless marked `[x]`.
   in MakeSoldierPortrait); keep helmet code dormant or delete.
 
 ### `internal/data/procedural.go`
-- [ ] **B4 (Medium)** `primaryDMG := rng.Intn(6)` (line 308) assumes exactly 6 DMG
+- [x] **B4 (Medium)** `primaryDMG := rng.Intn(6)` (line 308) assumes exactly 6 DMG
   types; breaks silently if a `DMG_*` is added to aliens.go. Use `DMG_PSIONIC+1`
   or `numDamageTypes` const.
 - [ ] **D2 (Low)** `generateLore(name, ...)` `name` param unused (line 1017). Remove
@@ -223,17 +223,17 @@ Nothing here is implemented yet unless marked `[x]`.
   repetitive. Split / table-drive.
 
 ### `internal/battle/ai.go`
-- [ ] **B1 (Critical)** Grenade branch manually `ai.Unit.TU -= 18` (line 234) but
+- [x] **B1 (Critical)** Grenade branch manually `ai.Unit.TU -= 18` (line 234) but
   `executeAlienAction` doesn't deduct for grenades → double/early TU loss. Remove
   the manual deduction; let execute own TU costs.
-- [ ] **B2 (Critical)** Action list planned against full TU at turn start, executed
+- [x] **B2 (Critical)** Action list planned against full TU at turn start, executed
   sequentially with per-action TU costs; no re-check → moves+fires can exceed
-  MaxTU (lines 183–426). Emit ≤1 expensive action or re-verify per action.
-- [ ] **B3 (Medium)** `canFireAt` floor `TU>=15` (lines 512–518) ≠ actual weapon
+  MaxTU (lines 183–426). Add TU check at top of executeAlienAction.
+- [x] **B3 (Medium)** `canFireAt` floor `TU>=15` (lines 512–518) ≠ actual weapon
   `w.TU` (rocket=28) → emits unaffordable fire that silently no-ops. Use `TU>=w.TU`.
-- [ ] **B6 (Medium)** `executeAlienAction` `"psi"`/`"melee"` cases deduct NO TU
+- [x] **B6 (Medium)** `executeAlienAction` `"psi"`/`"melee"` cases deduct NO TU
   (battlescape.go 919–950, 886–913) → free psi/melee. Deduct there; gate emission.
-- [ ] **B5 (Medium)** Operator-precedence bug at line 263: `A && B && C || D`
+- [x] **B5 (Medium)** Operator-precedence bug at line 263: `A && B && C || D`
   makes inner `else if longRange && dist>4` always-true → cover-seeking unreachable
   under longRange. Parenthesize + restructure.
 - [ ] **B4 (Medium)** Pathfinding (`GetNextPathStep`→`AStar`) ignores map Level
@@ -241,7 +241,7 @@ Nothing here is implemented yet unless marked `[x]`.
   multi-level maps. Pass/compare Level.
 - [ ] **M2 (Medium)** AI uses global unseeded `rand` (lines 220, 900) instead of a
   seeded RNG → non-reproducible across save/load. Use a seeded `*rand.Rand`.
-- [ ] **D1 (Low)** `AIFlee` constant never assigned (line 20). Remove or implement.
+- [x] **D1 (Low)** `AIFlee` constant never assigned (line 20). Remove.
 - [ ] **D2 (Low)** `SquadPlan.SecondaryTarget` never written by planSquadActions →
   selectTarget secondary branch dead. Populate or drop.
 - [ ] **M1 (Low)** `patrolTarget` uses `m.Height-1` single-level but `LevelHeight-1`
@@ -257,14 +257,14 @@ Nothing here is implemented yet unless marked `[x]`.
   undocumented. Name constants.
 
 ### `internal/engine/game.go`
-- [ ] **B1 (Medium)** `GameOver` calls `PushState(StateGameOver)` (lines 130–133)
+- [x] **B1 (Medium)** `GameOver` calls `PushState(StateGameOver)` (lines 130–133)
   pushing the dead battle onto the stack → Esc could resurrect a finished battle.
   Use `SetState` or clear `stateStack`.
 - [ ] **B2 (Low)** Quit-confirm mouse rects only set in TouchMode (524–546) →
   unclickable on desktop (424–430). Always compute rects or guard handler.
 - [ ] **B3 (Low)** `lastState` defaults to `StateMenu` (125,338–343) → first screen
   transition may skip `OnScreenChange`. Init to sentinel -1.
-- [ ] **D1 (Low)** `GetHardcodedAliens` has no callers (273–280). Remove or wire in.
+- [x] **D1 (Low)** `GetHardcodedAliens` has no callers (273–280). Remove.
 - [ ] **M1 (Low)** `NewGameWeb` re-inlines full Game literal (193–208) instead of
   calling `newGameWithScreen` → drift risk. Consolidate.
 - [ ] **M2 (Low)** `GetAlienTypes` fallback returns `&data.AlienTypes[i]` (262–271)
@@ -279,12 +279,12 @@ Nothing here is implemented yet unless marked `[x]`.
   guards (282–303). Drop.
 
 ### `internal/base/facility.go`
-- [ ] **B1 (Critical)** Psi-training chance always 100%, not 8%: `rand.Intn(100) <
+- [x] **B1 (Critical)** Psi-training chance always 100%, not 8%: `rand.Intn(100) <
   8*100/50` (line 392) → integer math = `16<100` always true. Fix: `< 8`.
-- [ ] **B2 (Medium)** `BuyInterceptor` ignores per-weapon Cost, hardcodes 100000
+- [x] **B2 (Medium)** `BuyInterceptor` ignores per-weapon Cost, hardcodes 100000
   (167,192). Use `InterceptorWeapons[weaponKey].Cost`.
-- [ ] **D1 (Low)** `Base.MaxStorage` set but never read (109,131). Remove or use.
-- [ ] **D2 (Low)** `ManufactureItem` struct has no callers (399–405). Delete.
+- [x] **D1 (Low)** `Base.MaxStorage` set but never read (109,131). Remove.
+- [x] **D2 (Low)** `ManufactureItem` struct has no callers (399–405). Delete.
 - [ ] **D3 (Low)** `FacilityInfo.Size` set everywhere but ignored (BuildFacility
   hardcodes 8-col grid, 250–251). Use or drop.
 - [ ] **M1 (Low)** `ChangeInterceptorWeapon` cycle includes "cannon" not sold via
@@ -295,7 +295,7 @@ Nothing here is implemented yet unless marked `[x]`.
   (613–630,717–739). Extract `applyUnlocks(topic)`.
 
 ### `internal/base/base.go`
-- [ ] **B1 (Medium)** `statusKey := "INTERCEPTOR_STATUS_"+ToUpper(hg.Status)` (331)
+- [x] **B1 (Medium)** `statusKey := "INTERCEPTOR_STATUS_"+ToUpper(hg.Status)` (331)
   re-looks-up a *localized* status string → fails in non-English. Store raw key.
   Same anti-pattern at facility.go 174/181/208/222.
 - [ ] **B2 (Low/Med)** Magic tab count `6` / wrap `>6` (362,381) but valid max idx 5
@@ -331,11 +331,11 @@ Nothing here is implemented yet unless marked `[x]`.
   `localizedName(langKey, fallback)`.
 
 ### `internal/data/aliens.go`
-- [ ] **B1 (Medium)** `GetAlienByRank(minRank)` returns *lowest* rank ≥ min, not
+- [x] **B1 (Medium)** `GetAlienByRank(minRank)` returns *lowest* rank ≥ min, not
   highest (382–392) → difficulty scaling softer than intended. Rename or invert.
-- [ ] **B2 (Medium)** Procedural morphology icon pools (468–493) include glyphs
+- [x] **B2 (Medium)** Procedural morphology icon pools (468–493) include glyphs
   (⬢ etc.) also used by hardcoded aliens; `UsedHardcodedIcons` doesn't seed them
-  → collision on map (77,608). Seed or exclude.
+  → collision on map (77,608). Seed or exclude. *(existing code already seeds; false positive)*
 - [ ] **B3 (Low)** `nextIcon(-1,...)` fallback uses `len(used)` map len for pool
   index (46–73) → can reassign used glyph. Use a counter.
 - [ ] **M1 (Low)** Two `DamageType` fields: `Morphology.DamageType` (126) vs
@@ -355,7 +355,7 @@ Nothing here is implemented yet unless marked `[x]`.
 - [ ] **R1 (Low)** `TileCover(TileRubble)` called repeatedly; use cached constant (56–57, 191–192)
 
 ### `internal/battle/gas.go`
-- [ ] **B1 (Critical)** `g.Visible` is exported func field read under only `RLock` — concurrent write from outside causes data race (143)
+- [x] **B1 (Critical)** `g.Visible` is exported func field read under only `RLock` — concurrent write from outside causes data race (143)
 - [ ] **U1 (Low)** `3` used as max-gas-density sentinel in `Set`/`BlocksLOS`/`CoverPenalty`/`Draw` — extract `const MaxGasDensity = 3` (49,68,79,151)
 - [ ] **U2 (Low)** `40`, `20` — cover penalty values for density 3/2 (80,82)
 - [ ] **U3 (Low)** `v.Density <= 1` — minimum density threshold for diffusion (100)
@@ -363,10 +363,10 @@ Nothing here is implemented yet unless marked `[x]`.
 - [ ] **R1 (Low)** `Draw` has near-duplicate color blocks for GasSmoke vs GasPoison per density level — extract `gasStyle(density, gType)` helper
 
 ### `internal/battle/input.go`
-- [ ] **B1 (Critical)** `HandleEvent` locks `bs.State.mu` then calls methods that must not re-acquire that lock — fragile; document internal methods must NOT take this lock (28–29)
+- [x] **B1 (Critical)** `HandleEvent` locks `bs.State.mu` then calls methods that must not re-acquire that lock — fragile; document internal methods must NOT take this lock (28–29)
 - [ ] **B2 (Medium)** `bs.ScrollX`/`ScrollY`/`Phase`/`Camera` accessed inside `handleKey`/`handleMouse` with only `bs.State.mu` held — data race if another goroutine writes them (40,114,177)
 - [ ] **B3 (Medium)** `handleMouse` accesses `bs.HoveredUnit`/`bs.Selected` without synchronization on outer `Battlescape` fields (147–187)
-- [ ] **D1 (Low)** In `dispatchHelpKey` case `"\u2191"`, `bs.updateMovePath()` called twice — second call dead (259–262)
+- [x] **D1 (Low)** In `dispatchHelpKey` case `"\u2191"`, `bs.updateMovePath()` called twice — second call dead (259–262)
 - [ ] **U1 (Low)** `3` — camera pan distance hardcoded; extract `const CamPanStep = 3` (66–72, 121–142)
 - [ ] **U2 (Low)** `1` — hardcoded column offset for help-bar hit testing (204)
 
@@ -395,7 +395,7 @@ Nothing here is implemented yet unless marked `[x]`.
 - [ ] **R1 (Low)** `isOpaqueTile` switch (182–187) — use `map[TileType]bool` set once at init
 
 ### `internal/battle/unit.go`
-- [ ] **B1 (Critical)** `CanSee` ignores `Unit.Level` — unit on level 0 can see unit on level 1 if no opaque tile in 2D Bresenham line; breaks multi-level maps (316–357)
+- [x] **B1 (Critical)** `CanSee` ignores `Unit.Level` — unit on level 0 can see unit on level 1 if no opaque tile in 2D Bresenham line; breaks multi-level maps (316–357)
 - [ ] **U1 (Low)** `99` used as infinite-ammo sentinel (`w.AmmoMax < 99`) — extract `const InfAmmoThreshold = 99` (151,154)
 - [ ] **U2 (Low)** `3` in `int(dist*3)` — accuracy distance penalty multiplier (160)
 - [ ] **U3 (Low)** `10` — minimum accuracy-mod floor (161–162)
@@ -413,27 +413,27 @@ Nothing here is implemented yet unless marked `[x]`.
 - [ ] **R2 (Low)** `WeaponDamageType` switch hardcodes weapon ID strings; drive from item definition field instead (281–294)
 
 ### `internal/base/equip.go`
-- [ ] **B1 (Critical)** `SelectedSol` can become -1 via KeyUp when `len(Soldiers) == 0`; clamp only checks `>= len` not `< 0` → `Render` panics on negative index (42,273)
-- [ ] **B2 (Medium)** `autoEquip` always assigns `armors[0].key` to every soldier; after best armor consumed, `EquipArmor` silently fails with no fallback (256)
+- [x] **B1 (Critical)** `SelectedSol` can become -1 via KeyUp when `len(Soldiers) == 0`; clamp only checks `>= len` not `< 0` → `Render` panics on negative index (42,273)
+- [x] **B2 (Medium)** `autoEquip` always assigns `armors[0].key` to every soldier; after best armor consumed, `EquipArmor` silently fails with no fallback (256)
 - [ ] **M1 (Medium)** Help-bar click zones (317–330) use hardcoded x-coordinate ranges that break if help text changes
 - [ ] **M2 (Low)** Magic numbers `20, 24` in `MakeSoldierPortrait(s.Name, s.Armor, 20, 24)` (59)
 - [ ] **M3 (Low)** `es.Message` never cleared on navigation — stale messages linger (128)
 
 ### `internal/base/manufacture.go`
-- [ ] **B1 (Medium)** `MFG_UNASSIGNED` at `(2,3)` overwrites `MFG_ACTIVE_QUEUE` header also at `(2,3)` — queue header invisible when unassigned engineers > 0 (78,100)
+- [x] **B1 (Medium)** `MFG_UNASSIGNED` at `(2,3)` overwrites `MFG_ACTIVE_QUEUE` header also at `(2,3)` — queue header invisible when unassigned engineers > 0 (78,100)
 - [ ] **M1 (Low)** `Selection` indexes both buildable-plans list and queue via `ms.Selection-len(plans)`; if `len(plans)` changes between frames queue indexing drifts (93,194,199)
 
 ### `internal/base/planedesigner.go`
-- [ ] **M1 (Medium)** Hardcoded English labels `%dDMG`, `%dACC`, `+%dHP`, `%dDR` (170,176) and `(%d cells)` (215) not localizable
+- [x] **M1 (Medium)** Hardcoded English labels `%dDMG`, `%dACC`, `+%dHP`, `%dDR` (170,176) and `(%d cells)` (215) not localizable
 - [ ] **M2 (Low)** `CalcPlaneStats` called twice per frame — cache value (116,131)
 - [ ] **M3 (Low)** Magic numbers: `45` (col split), `8` (paramY), `1000` (fund display), `20` (click threshold)
 - [ ] **R1 (Low)** `bar()` method extracted from screen type to package-level utility (223)
 
 ### `internal/base/research.go`
-- [ ] **B1 (Critical)** Division by zero: `pct = rs.Base.ActiveResearch.Progress * 100 / rs.Base.ActiveResearch.Cost` if `Cost == 0` (60)
-- [ ] **B2 (Critical)** `if y >= y+maxH { break }` in `renderTree` children loop always false — children never break, overflow screen (237)
-- [ ] **B3 (Medium)** `ALL_TOPICS` header drawn unconditionally at row 4 overwrites `RESEARCH_UNASSIGNED` at same row (64,69)
-- [ ] **B4 (Medium)** `displayLine[:listW]` truncates by bytes, not runes — splits multi-byte Unicode char (143)
+- [x] **B1 (Critical)** Division by zero: `pct = rs.Base.ActiveResearch.Progress * 100 / rs.Base.ActiveResearch.Cost` if `Cost == 0` (60)
+- [x] **B2 (Critical)** `if y >= y+maxH { break }` in `renderTree` children loop always false — children never break, overflow screen (237)
+- [x] **B3 (Medium)** `ALL_TOPICS` header drawn unconditionally at row 4 overwrites `RESEARCH_UNASSIGNED` at same row (64,69)
+- [x] **B4 (Medium)** `displayLine[:listW]` truncates by bytes, not runes — splits multi-byte Unicode char (143)
 - [ ] **D1 (Low)** Duplicate identical `if entry.status == topicDone` / `else` branches both set `rs.Message = language.String("MSG_CANNOT_RESEARCH")` — dead logic (341–345)
 - [ ] **R1 (Low)** Duplicate `StyleGray.Bold(true)` for `topicDone`/`topicLocked` in selected-state styles (114–121)
 
@@ -453,13 +453,13 @@ Nothing here is implemented yet unless marked `[x]`.
 - [ ] **R2 (Low)** `CalcPlaneStats` doesn't clamp `cfg.Wingspan`/`cfg.Fuel` while `RenderPlanePreview` does — inconsistent validation (89 vs 161–166)
 
 ### `internal/data/procedural_items.go`
-- [ ] **B1 (Critical)** Division-by-zero: `dmgTypes[i%len(dmgTypes)]` panics if `len(dmgTypes) == 0` when `aliens` empty or no alien has `PrimaryDMG` set (84,90)
-- [ ] **B2 (Medium)** `sp.PrimaryDMG` on line 72 dereferences `*AlienSpecies` pointer with no nil check
+- [x] **B1 (Critical)** Division-by-zero: `dmgTypes[i%len(dmgTypes)]` panics if `len(dmgTypes) == 0` when `aliens` empty or no alien has `PrimaryDMG` set (84,90)
+- [x] **B2 (Medium)** `sp.PrimaryDMG` on line 72 dereferences `*AlienSpecies` pointer with no nil check
 - [ ] **M1 (Low)** All stat ranges (`20+rand(40)`, `55+rand(30)`, etc.) undocumented (104–148)
 - [ ] **M2 (Low)** `Strength: 10` hardcoded for all procedural weapons (180)
 
 ### `internal/data/research.go`
-- [ ] **B1 (Medium)** `ResearchByID` returns `&ResearchTree[i]` — pointer into slice that may be re-sliced/appended after call, making pointer stale (39)
+- [x] **B1 (Medium)** `ResearchByID` returns `&ResearchTree[i]` — pointer into slice that may be re-sliced/appended after call, making pointer stale (39)
 - [ ] **R1 (Low)** `DisplayName` uses `strings.ToUpper`+`strings.ReplaceAll` every call — cache if hot path (21)
 
 ### `internal/data/techgen.go`
@@ -469,13 +469,13 @@ Nothing here is implemented yet unless marked `[x]`.
 - [ ] **R3 (Low)** `checkTechTreeValidity` DFS + fixpoint pass redundant — DFS alone can detect cycles and dead ends (198)
 
 ### `internal/data/weapondesign.go`
-- [ ] **B1 (Medium)** `WeaponDesignName` builds `suffix` slice but only outputs `suffix[0]` — multiple applicable suffixes silently dropped (261)
+- [x] **B1 (Medium)** `WeaponDesignName` builds `suffix` slice but only outputs `suffix[0]` — multiple applicable suffixes silently dropped (261)
 - [ ] **M1 (Low)** Clamping magic literals: `1` (dmg/range/ammoMax), `10` (acc), `5` (TU/str), `2.5` str/weight ratio (184–203)
 - [ ] **D1 (Low)** `AmmoTypes` entries all have `IsAlien: false` — dead field or future-use marker (75–79)
 
 ### `internal/engine/camera.go`
-- [ ] **B1 (Medium)** `TriggerShake` uses raw `intensity` for offset instead of clamped `ShakeIntensity` — inconsistent offset (49)
-- [ ] **B2 (Medium)** `math/rand` used under `sync.RWMutex` — `rand.Float64()` not thread-safe (41–42,49–50)
+- [x] **B1 (Medium)** `TriggerShake` uses raw `intensity` for offset instead of clamped `ShakeIntensity` — inconsistent offset (49)
+- [x] **B2 (Medium)** `math/rand` used under `sync.RWMutex` — `rand.Float64()` not thread-safe (41–42,49–50)
 - [ ] **U1 (Low)** Hardcoded `decay: 8.0` — extract named constant (21)
 
 ### `internal/engine/config.go`
@@ -496,17 +496,17 @@ Nothing here is implemented yet unless marked `[x]`.
 
 ### `internal/engine/debrief.go`
 - [ ] **B1 (Low)** `BaseDestroyed` + `Won=true` contradictory — title won't show "BASE LOST" because override only in `else` branch (89–95)
-- [ ] **D1 (Low)** Empty branch `if ds.data.BaseDestroyed { }` with only a comment; fn always pops state (69–71)
+- [x] **D1 (Low)** Empty branch `if ds.data.BaseDestroyed { }` with only a comment; fn always pops state (69–71)
 - [ ] **U1 (Low)** `d.FundsEarned/1000` — undocumented divisor; extract `const FundsDisplayK` (132)
 
 ### `internal/engine/difficulty.go`
-- [ ] **B1 (Critical)** `HandleMouse` checks `x < h` (height) instead of `x < w` (width) — wrong dimension compared (118)
-- [ ] **D1 (Low)** `"\r"` case in `HandleKey` duplicate of `KeyEnter` logic — `KeyEnter` fires for Enter, so `e.Str()=="\r"` never occurs (101–106)
+- [x] **B1 (Critical)** `HandleMouse` checks `x < h` (height) instead of `x < w` (width) — wrong dimension compared (118)
+- [x] **D1 (Low)** `"\r"` case in `HandleKey` duplicate of `KeyEnter` logic — `KeyEnter` fires for Enter, so `e.Str()=="\r"` never occurs (101–106)
 - [ ] **U1 (Low)** `500000` starting funds repeated ×3 — name constant (95,103,121)
 
 ### `internal/engine/encyclopedia.go`
-- [ ] **B1 (Critical)** Unchecked map access `data.RuleItems[at.Weapon]` — if `at.Weapon` empty or not in map, zero-value `Item` panics on `.DisplayName()` (204)
-- [ ] **B2 (Medium)** `Page` field never updated — set to 0 on tab switch but never incremented/decremented; entries beyond first `listH` rows permanently invisible (247,253)
+- [x] **B1 (Critical)** Unchecked map access `data.RuleItems[at.Weapon]` — if `at.Weapon` empty or not in map, zero-value `Item` panics on `.DisplayName()` (204)
+- [x] **B2 (Medium)** `Page` field never updated — set to 0 on tab switch but never incremented/decremented; entries beyond first `listH` rows permanently invisible (247,253)
 - [ ] **B3 (Low)** Description text wraps by byte slice — `desc[:end]` splits multi-byte runes for CJK (181–188)
 - [ ] **U1 (Low)** Magic number `3` for tab spacing, list positions `5`, info panel height `4` (137,141,178)
 
@@ -519,7 +519,7 @@ Nothing here is implemented yet unless marked `[x]`.
 - [ ] **B1 (Low)** Only `Escape` dismisses the screen; inconsistent with `DebriefScreen` which also accepts Enter/Space (36)
 
 ### `internal/engine/help.go`
-- [ ] **D1 (Low)** `HelpScreen.prevState` stored but never accessed after constructor (11)
+- [x] **D1 (Low)** `HelpScreen.prevState` stored but never accessed after constructor (11)
 - [ ] **R1 (Low)** `getPages()` called multiple times in `HandleKey` — cache result (195,203,273,278)
 - [ ] **U1 (Low)** Hardcoded page count `5` in `"1"`..`"5"` key handlers — fragile if pages array changes (208–218)
 
@@ -532,8 +532,8 @@ Nothing here is implemented yet unless marked `[x]`.
 - [ ] **U1 (Low)** Magic numbers: `30` min sidebar, `10` min battle view, `60`% geo table, `20` min encyclo list, `5` battle view height offset, `3` sidebar Y spacing
 
 ### `internal/engine/menu.go`
-- [ ] **B1 (Medium)** `HandleKey` numeric shortcuts `"1"`–`"6"` assume indices 0–5, but menu shrinks when no save exists (5 items). Pressing `"6"` sets Selection=5 and confirm() silently returns (342)
-- [ ] **B2 (Medium)** `Render` at line 123 accesses `opts[ms.Selection]` without bounds check — stale Selection if options() length changed
+- [x] **B1 (Medium)** `HandleKey` numeric shortcuts `"1"`–`"6"` assume indices 0–5, but menu shrinks when no save exists (5 items). Pressing `"6"` sets Selection=5 and confirm() silently returns (342)
+- [x] **B2 (Medium)** `Render` at line 123 accesses `opts[ms.Selection]` without bounds check — stale Selection if options() length changed *(already had bounds guard)*
 - [ ] **M1 (Low)** `menuY = 13` hardcodes title line count (6) + gap (1) + subtitle offset (4) — fragile if title changes (121)
 - [ ] **M2 (Low)** Star runes `[3]rune{'.','+','*'}` allocated every render — use package-level var (143)
 - [ ] **M3 (Low)** `0.55` spread, `0.15` min-dist, `180.0`/`175.0` brightness — magic numbers (149,153–157)
@@ -592,7 +592,7 @@ Nothing here is implemented yet unless marked `[x]`.
 - [ ] **R1 (Low)** Force-mode block (152–184) and differential-mode block (186–225) both track `prevFg`/`prevBg`/`prevAttr` for SGR — unify
 
 ### `internal/geo/interceptor.go`
-- [ ] **B1 (Medium)** `NewInterceptorFromState` doesn't check `ok` from `data.InterceptorWeapons[s.WeaponKey]` — zero-value `w` if key missing (57)
+- [x] **B1 (Medium)** `NewInterceptorFromState` doesn't check `ok` from `data.InterceptorWeapons[s.WeaponKey]` — zero-value `w` if key missing (57)
 - [ ] **M1 (Low)** Magic numbers: `Speed: 36`, `HP: 60`, `MaxHP: 60`, `PilotSkill: 50` (42–44,51)
 - [ ] **M2 (Low)** `w.FireRate * 4` ammo calc — name constant (47)
 - [ ] **M3 (Low)** `i.Range * 3` fuel range multiplier repeated (107,118)
@@ -612,7 +612,7 @@ Nothing here is implemented yet unless marked `[x]`.
 - [ ] **R2 (Low)** `sortedStoreItems` reimplements insertion sort — use `sort.Strings` (246)
 
 ### `internal/geo/ufo.go`
-- [ ] **B1 (Medium)** `GetUFOTypeByName` returns `&UFOTypes[i]` (pointer into global array) — mutating caller corrupts shared state (50)
+- [x] **B1 (Medium)** `GetUFOTypeByName` returns `&UFOTypes[i]` (pointer into global array) — mutating caller corrupts shared state (50)
 - [ ] **M1 (Low)** `difficulty * 5` HP bonus clamped at 40 (72–74)
 - [ ] **M2 (Low)** `500 + rand.Intn(500)` default `TurnsLeft` (97,142)
 - [ ] **M3 (Low)** `0.3` initial progress for `SpawnUFOAtCity` (141)
@@ -625,11 +625,11 @@ Nothing here is implemented yet unless marked `[x]`.
 - [ ] **D1 (Low)** Empty file (only `package geo`) — remove or fill
 
 ### `internal/geo/world.go`
-- [ ] **B1 (Medium)** `GetCities()` returns internal slice directly — callers can mutate global city data (95–97)
+- [x] **B1 (Medium)** `GetCities()` returns internal slice directly — callers can mutate global city data (95–97)
 - [ ] **M1 (Low)** City coordinates (50–74) bare literals in `init()`
 
 ### `internal/save/save.go`
-- [ ] **B1 (Critical)** `SaveGame` uses `os.Rename(tmp, path)` — fails on Windows when `path` exists (Go < 1.20); needs `os.Remove(path)` before rename (142)
+- [x] **B1 (Critical)** `SaveGame` uses `os.Rename(tmp, path)` — fails on Windows when `path` exists (Go < 1.20); needs `os.Remove(path)` before rename (142)
 - [ ] **M1 (Low)** `0644` file perm (139), `10` slot limit (214), `Funds/1000` format (227)
 - [ ] **R1 (Low)** `FromBase` (230–300) and `ToBase` (302–380) ~70 lines each — extract soldier/facility/job mapping helpers
 - [ ] **R2 (Low)** `ToBase` calls `soldier.NewSoldier(ss.Name)` which rolls random stats only to immediately overwrite — use no-init constructor (328)

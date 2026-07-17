@@ -587,7 +587,7 @@ var Items = map[string]Item{
 	"corpse_float":{Name: "Floater Corpse", ShortName: "FLT", Weight: 10, Value: 4000, Alien: true},
 	"corpse_muton":{Name: "Muton Corpse", ShortName: "MUT", Weight: 15, Value: 6000, Alien: true},
 	"corpse_ether":{Name: "Ethereal Corpse", ShortName: "ETH", Weight: 10, Value: 8000, Alien: true},
-	"alien_grenade":{Name: "Alien Grenade", ShortName: "AGR", Weight: 1, Value: 4000, Alien: true},
+	"alien_grenade_item":{Name: "Alien Grenade", ShortName: "AGR", Weight: 1, Value: 4000, Alien: true},
 	"medikit":     {Name: "Medi-Kit", ShortName: "MDK", Weight: 2, Value: 6000},
 	"motion_scanner":{Name: "Motion Scanner", ShortName: "MSC", Weight: 3, Value: 5000},
 	"proximity_mine":{Name: "Proximity Mine", ShortName: "PRM", Weight: 3, Value: 4000},
@@ -684,7 +684,7 @@ type InterceptorState struct {
 	HP         int
 	MaxHP      int
 	Ammo       int
-	Status     string // "Available", "Active", "Rearming", "Damaged"
+	Status     string // raw key: "available", "active", "rearming", "damaged", "destroyed"
 	PlaneConfig *PlaneConfig // modular design (nil = default)
 }
 
@@ -707,7 +707,7 @@ var itemNameKeys = map[string]string{
 	"corpse_float":    "ITEM_FLOATER_CORPSE",
 	"corpse_muton":    "ITEM_MUTON_CORPSE",
 	"corpse_ether":    "ITEM_ETHEREAL_CORPSE",
-	"alien_grenade":   "ITEM_ALIEN_GRENADE",
+	"alien_grenade_item":   "ITEM_ALIEN_GRENADE",
 	"medikit":         "ITEM_MEDI_KIT",
 	"motion_scanner":  "ITEM_MOTION_SCANNER",
 	"proximity_mine":  "ITEM_PROXIMITY_MINE",

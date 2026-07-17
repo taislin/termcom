@@ -111,12 +111,14 @@ type ResearchSave struct {
 }
 
 type UFOSave struct {
-	TypeName string
-	X, Y     float64
-	Progress float64
-	NodeFrom int
-	NodeTo   int
-	Active   bool
+	ID        int
+	TypeName  string
+	X, Y      float64
+	Progress  float64
+	NodeFrom  int
+	NodeTo    int
+	TurnsLeft int
+	Active    bool
 }
 
 type MissionSave struct {

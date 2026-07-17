@@ -6,9 +6,8 @@ import (
 )
 
 type HelpScreen struct {
-	Game      *Game
-	Page      int
-	prevState GameState
+	Game *Game
+	Page int
 }
 
 func NewHelpScreen(g *Game, prev GameState) *HelpScreen {
@@ -21,7 +20,7 @@ func NewHelpScreen(g *Game, prev GameState) *HelpScreen {
 	case StateBattlescape:
 		page = 2
 	}
-	return &HelpScreen{Game: g, Page: page, prevState: prev}
+	return &HelpScreen{Game: g, Page: page}
 }
 
 func (hs *HelpScreen) Update() {}

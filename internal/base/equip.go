@@ -253,14 +253,10 @@ func (es *EquipScreen) autoEquip() {
 			}
 		}
 
-		// Best armor
-		bestArm := "none"
-		if len(armors) > 0 {
-			bestArm = armors[0].key
-		}
-		if bestArm != "none" {
-			if es.Base.EquipArmor(idx, bestArm) {
-				// Armor equipped (no ammo side-effect needed)
+		// Best armor (try each until one is available)
+		for _, a := range armors {
+			if es.Base.EquipArmor(idx, a.key) {
+				break
 			}
 		}
 		equipped++

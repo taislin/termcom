@@ -66,9 +66,6 @@ func (ds *DebriefScreen) dismiss() {
 		ds.game.GameOver(true, language.String("DEBRIEF_CYDONIA_VICTORY"))
 		return
 	}
-	if ds.data.BaseDestroyed {
-		// Already handled by geoscape — just pop back
-	}
 	ds.game.PopState()
 }
 

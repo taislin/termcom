@@ -172,6 +172,7 @@ func (m *BattleMap) SpreadFire() {
 		if tile.Fire <= 0 && tile.IsFlammable() {
 			tile.Type = TileFloor
 			tile.Cover = TileCover(TileFloor)
+			tile.Rune = tileChars[TileFloor]
 			tile.Fire = 3
 		}
 	}
@@ -343,7 +344,8 @@ func (m *BattleMap) Passable(x, y int) bool {
 	switch t.Type {
 	case TileFloor, TileDoor, TileGrass, TileUFOFloor, TileStairs, TileStairsDown, TilePavement, TileSand, TileSnow,
 		TileConsole, TileMachinery, TilePod, TilePowerSource, TileStorage, TileAlienTech,
-		TileDesk, TileChair, TileComputer, TileBed, TileLocker, TileCabinet:
+		TileDesk, TileChair, TileComputer, TileBed, TileLocker, TileCabinet,
+		TileRubble:
 		return true
 	}
 	return false

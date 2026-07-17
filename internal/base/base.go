@@ -328,8 +328,7 @@ func (bs *BaseScreen) renderHangars(ctx *engine.ScreenCtx, x, y, w, h int) {
 	y += 2
 	idx := 0
 	for _, hg := range bs.Base.Hangars {
-		statusKey := "INTERCEPTOR_STATUS_" + strings.ToUpper(hg.Status)
-		if hg.Status == language.String("INTERCEPTOR_STATUS_DESTROYED") {
+		if hg.Status == "destroyed" {
 			continue
 		}
 		style := engine.StyleDefault
@@ -337,6 +336,7 @@ func (bs *BaseScreen) renderHangars(ctx *engine.ScreenCtx, x, y, w, h int) {
 			style = engine.StyleHighlight
 		}
 		wpn := data.InterceptorWeapons[hg.WeaponKey]
+		statusKey := "INTERCEPTOR_STATUS_" + strings.ToUpper(hg.Status)
 		line := fmt.Sprintf(language.String("LINE_HANGAR_INFO"), idx+1, language.String(statusKey), hg.HP, hg.MaxHP, wpn.DisplayName(hg.WeaponKey), hg.Ammo)
 		ctx.DrawString(x, y+idx, line, style)
 		idx++

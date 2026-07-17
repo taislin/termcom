@@ -314,6 +314,9 @@ func (u *Unit) MoveTo(x, y int, m *BattleMap) bool {
 }
 
 func (u *Unit) CanSee(tx, ty int, m *BattleMap) bool {
+	if u.Level != m.CurrentLevel {
+		return false
+	}
 	dx := tx - u.X
 	dy := ty - u.Y
 	absDx := dx

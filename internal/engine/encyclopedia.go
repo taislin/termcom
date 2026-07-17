@@ -242,9 +242,17 @@ func (es *EncyclopediaScreen) HandleKey(e *tcell.EventKey) {
 		if es.Selection > 0 {
 			es.Selection--
 		}
+		if es.Selection < es.Page {
+			es.Page--
+		}
 	case tcell.KeyDown:
 		if es.Selection < len(entries)-1 {
 			es.Selection++
+		}
+		_, h := es.Game.ScreenSize()
+		listH := h - 8
+		if es.Selection >= es.Page+listH {
+			es.Page++
 		}
 	case tcell.KeyLeft:
 		if es.Tab > 0 {

@@ -17,7 +17,6 @@ const (
 	AIPatrol                  // Unit moves between patrol points
 	AISearch                  // Unit moves toward the last known player position
 	AIAttack                  // Unit actively engages the player
-	AIFlee                    // Unit attempts to distance itself from the player
 	AIFlank                   // Unit attempts to move to the side of a target
 	AIRetreat                 // Unit falls back to a defensive position
 	AISuppress                // Unit fires to keep the player in cover
@@ -232,7 +231,6 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList, pla
 					FromX: ai.Unit.X, FromY: ai.Unit.Y,
 					ToX: target.X, ToY: target.Y,
 				})
-				ai.Unit.TU -= 18
 			} else if (dist <= 2 || (longRange && dist <= 3) || (ai.Unit.AlienType != nil && ai.Unit.AlienType.Aggression > 7)) {
 				// 5. Standard Attack: Melee if adjacent, otherwise ranged fire.
 				if dist <= 1 {
@@ -261,7 +259,7 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList, pla
 					ToX: fx, ToY: fy,
 				})
 			}
-		} else if !ai.InCover && dist > 3 && ai.Unit.TU >= 16 || (longRange && dist > 4 && ai.Unit.TU >= 18) {
+		} else if !ai.InCover && dist > 3 && (ai.Unit.TU >= 16 || (longRange && dist > 4 && ai.Unit.TU >= 18)) {
 			if longRange && dist > 4 {
 				// Adapt to long-range players: close distance aggressively.
 				ax, ay := ai.advanceToward(nearest.X, nearest.Y, m, units)
@@ -516,11 +514,11 @@ func (ai *AlienAI) canFireAt(target *Unit) bool {
 	if target == nil || !target.Alive {
 		return false
 	}
-	if ai.Unit.TU < 15 {
-		return false
-	}
 	w, ok := data.RuleItems[ai.Unit.Weapon]
 	if !ok {
+		return false
+	}
+	if ai.Unit.TU < w.TU {
 		return false
 	}
 	if w.AmmoMax < 99 && ai.Unit.WeaponAmmo <= 0 {

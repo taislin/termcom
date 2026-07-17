@@ -47,7 +47,8 @@ type UFO struct {
 func GetUFOTypeByName(name string) *UFOType {
 	for i := range UFOTypes {
 		if UFOTypes[i].Name == name {
-			return &UFOTypes[i]
+			t := UFOTypes[i]
+			return &t
 		}
 	}
 	return nil

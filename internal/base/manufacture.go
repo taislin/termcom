@@ -97,7 +97,11 @@ func (ms *ManufactureScreen) Render(ctx *engine.ScreenCtx) {
 			y++
 		}
 	}
-	ctx.DrawString(2, 3, fmt.Sprintf(language.String("MFG_UNASSIGNED"), ms.Base.UnassignedEngineers), engine.StyleYellow)
+	unassignedY := 3
+	if len(ms.Base.ManufactureQueue) > 0 {
+		unassignedY = 4 + len(ms.Base.ManufactureQueue)
+	}
+	ctx.DrawString(2, unassignedY, fmt.Sprintf(language.String("MFG_UNASSIGNED"), ms.Base.UnassignedEngineers), engine.StyleYellow)
 
 	ctx.DrawString(2, h/2, language.String("MFG_BUILDABLE"), engine.StyleCyanBold)
 

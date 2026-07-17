@@ -316,31 +316,33 @@ func (ms *MenuScreen) HandleKey(e *tcell.EventKey) {
 			ms.Selection = maxSel
 		}
 	case "1":
-		ms.Selection = 0
-		ms.confirm()
+		if 0 < len(opts) {
+			ms.Selection = 0
+			ms.confirm()
+		}
 	case "2":
-		ms.Selection = 1
-		if ms.Selection < len(opts) {
+		if 1 < len(opts) {
+			ms.Selection = 1
 			ms.confirm()
 		}
 	case "3":
-		ms.Selection = 2
-		if ms.Selection < len(opts) {
+		if 2 < len(opts) {
+			ms.Selection = 2
 			ms.confirm()
 		}
 	case "4":
-		ms.Selection = 3
-		if ms.Selection < len(opts) {
+		if 3 < len(opts) {
+			ms.Selection = 3
 			ms.confirm()
 		}
 	case "5":
-		ms.Selection = 4
-		if ms.Selection < len(opts) {
+		if 4 < len(opts) {
+			ms.Selection = 4
 			ms.confirm()
 		}
 	case "6":
-		ms.Selection = 5
-		if ms.Selection < len(opts) {
+		if 5 < len(opts) {
+			ms.Selection = 5
 			ms.confirm()
 		}
 	}

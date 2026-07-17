@@ -113,7 +113,7 @@ func (ds *DifficultyScreen) HandleMouse(e *tcell.EventMouse) {
 		return
 	}
 	x, y := e.Position()
-	_, h := ds.Game.ScreenSize()
+	w, _ := ds.Game.ScreenSize()
 
 	if y >= 4 && y < 4+len(Difficulties) && x < w {
 		ds.Selection = y - 4

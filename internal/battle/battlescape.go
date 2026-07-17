@@ -139,7 +139,6 @@ type Battlescape struct {
 
 	// Combat Resources
 	PlayerGrenadeCount int
-	PlayerFlankCount   int
 
 	// Pathfinding and Cache
 	MovementCache    map[[2]int]bool
@@ -162,7 +161,6 @@ type Battlescape struct {
 
 	// Input State
 	State          BattleState
-	viewW, viewH   int // cached viewport dimensions (set each Render)
 	mouseX, mouseY int // last mouse position for edge-scrolling
 	mouseActive    bool
 }
@@ -194,7 +192,7 @@ func (bs *Battlescape) GetMovementRange() map[[2]int]bool {
 		return nil
 	}
 
-	cacheKey := bs.Selected.X*10000 + bs.Selected.Y*100 + bs.Selected.TU
+	cacheKey := bs.Selected.X*10000 + bs.Selected.Y*100 + bs.Selected.TU + bs.Selected.Level*1000000
 	if bs.MovementCache != nil && bs.MovementCacheKey == cacheKey {
 		return bs.MovementCache
 	}
@@ -836,6 +834,9 @@ func (bs *Battlescape) Update() {
 }
 
 func (bs *Battlescape) executeAlienAction(action AlienAction) {
+	if action.Unit.TU <= 0 || !action.Unit.Alive {
+		return
+	}
 	switch action.Type {
 	case "fire":
 		if action.Target == nil || !action.Target.Alive {
@@ -887,6 +888,10 @@ func (bs *Battlescape) executeAlienAction(action AlienAction) {
 		if action.Target == nil || !action.Target.Alive {
 			return
 		}
+		if action.Unit.TU < 20 {
+			return
+		}
+		action.Unit.TU -= 20
 		audio.PlayMeleeFire()
 		damage := action.Unit.Strength + rand.Intn(10)
 		damage -= action.Target.Armour
@@ -920,6 +925,10 @@ func (bs *Battlescape) executeAlienAction(action AlienAction) {
 		if action.Target == nil || !action.Target.Alive {
 			return
 		}
+		if action.Unit.TU < 20 {
+			return
+		}
+		action.Unit.TU -= 20
 		audio.PlayLaserFire()
 		engine.SpawnExplosion(bs.Particles, action.Target.X-bs.ScrollX+1, action.Target.Y-bs.ScrollY+1, color.NewRGBColor(120, 0, 200), 12)
 		if engine.Config.ScreenShake {
@@ -1843,8 +1852,15 @@ func (bs *Battlescape) MoveSelected() {
 	}
 	// Walk along the path, consuming TU, until we can't afford the next step.
 	best := 0
+	totalCost := 0
 	for i := 1; i < len(path); i++ {
-		if i*4+crouchExtra <= u.TU {
+		tile := bs.Map.At(path[i][0], path[i][1])
+		stepCost := 4
+		if tile.Type == TileTree || tile.Type == TileRock || tile.Type == TileWater {
+			stepCost = 8
+		}
+		totalCost += stepCost
+		if totalCost+crouchExtra <= u.TU {
 			best = i
 		} else {
 			break
@@ -1854,9 +1870,18 @@ func (bs *Battlescape) MoveSelected() {
 		bs.AddMessage(language.String("MSG_CANNOT_MOVE"))
 		return
 	}
+	totalCost = 0
+	for i := 1; i <= best; i++ {
+		tile := bs.Map.At(path[i][0], path[i][1])
+		stepCost := 4
+		if tile.Type == TileTree || tile.Type == TileRock || tile.Type == TileWater {
+			stepCost = 8
+		}
+		totalCost += stepCost
+	}
 	dest := path[best]
 	u.X, u.Y = dest[0], dest[1]
-	u.TU -= best*4 + crouchExtra
+	u.TU -= totalCost + crouchExtra
 	audio.PlayMove()
 	bs.AddMessage(fmt.Sprintf(language.String("MSG_MOVED"), u.Soldier.Name, u.X, u.Y))
 	bs.ComputeFOVForTeam()
@@ -2571,7 +2596,7 @@ func (bs *Battlescape) PsiAttack() {
 	if bs.Selected == nil || bs.Phase != PhasePlayerTurn {
 		return
 	}
-	if bs.Selected.Soldier.Weapon != "psi_amp" {
+	if bs.Selected.Soldier == nil || bs.Selected.Soldier.Weapon != "psi_amp" {
 		bs.AddMessage(language.String("MSG_NEED_PSI_AMP"))
 		return
 	}
@@ -2666,7 +2691,6 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 	bs.SidebarW = engine.Layout.BattleSidebarWidth(w)
 	viewW := engine.Layout.BattleViewWidth(w)
 	viewH := engine.Layout.BattleViewHeight(h)
-	bs.viewW, bs.viewH = viewW, viewH
 
 	// 2. Top-level UI elements
 	bs.DrawCombatStatusBar(ctx, w)
@@ -2743,11 +2767,7 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 			sx := u.X - bs.ScrollX + 1
 			sy := u.Y - bs.ScrollY + 1
 			if sx >= 1 && sx < viewW+1 && sy >= 1 && sy < viewH+1 {
-				if bs.IsNight {
-					engine.ApplyLightSource(ctx.ScreenRaw, ctx.FrameBuffer(), sx, sy, 3, tcell.NewRGBColor(120, 110, 70))
-				} else {
-					engine.ApplyLightSource(ctx.ScreenRaw, ctx.FrameBuffer(), sx, sy, 4, tcell.NewRGBColor(180, 160, 100))
-				}
+				engine.ApplyLightSource(ctx.ScreenRaw, ctx.FrameBuffer(), sx, sy, 3, tcell.NewRGBColor(120, 110, 70))
 			}
 		}
 		for _, u := range bs.Units {
@@ -2758,11 +2778,7 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 			sy := u.Y - bs.ScrollY + 1
 			if sx >= 1 && sx < viewW+1 && sy >= 1 && sy < viewH+1 {
 				if bs.Map.IsSeen(u.X, u.Y) {
-					if bs.IsNight {
-						engine.ApplyLightSource(ctx.ScreenRaw, ctx.FrameBuffer(), sx, sy, 1, tcell.NewRGBColor(60, 80, 150))
-					} else {
-						engine.ApplyLightSource(ctx.ScreenRaw, ctx.FrameBuffer(), sx, sy, 2, tcell.NewRGBColor(100, 140, 255))
-					}
+				engine.ApplyLightSource(ctx.ScreenRaw, ctx.FrameBuffer(), sx, sy, 1, tcell.NewRGBColor(60, 80, 150))
 				}
 			}
 		}

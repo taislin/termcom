@@ -129,7 +129,8 @@ type Game struct {
 
 func (g *Game) GameOver(won bool, stats string) {
 	g.SetScreen(StateGameOver, NewGameOverScreen(g, won, stats))
-	g.PushState(StateGameOver)
+	g.state = StateGameOver
+	g.stateStack = nil
 }
 
 func NewGame() (*Game, error) {
@@ -263,15 +264,6 @@ func (g *Game) GetAlienTypes() []*data.AlienType {
 	if len(g.AlienTypes) > 0 {
 		return g.AlienTypes
 	}
-	result := make([]*data.AlienType, len(data.AlienTypes))
-	for i := range data.AlienTypes {
-		result[i] = &data.AlienTypes[i]
-	}
-	return result
-}
-
-// GetHardcodedAliens returns the hardcoded alien roster (reserved for scripted missions).
-func (g *Game) GetHardcodedAliens() []*data.AlienType {
 	result := make([]*data.AlienType, len(data.AlienTypes))
 	for i := range data.AlienTypes {
 		result[i] = &data.AlienTypes[i]

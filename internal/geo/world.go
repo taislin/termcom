@@ -93,7 +93,9 @@ func IsLand(x, y int) bool {
 }
 
 func GetCities() []*City {
-	return cities
+	cpy := make([]*City, len(cities))
+	copy(cpy, cities)
+	return cpy
 }
 
 func MapSize() (int, int) {

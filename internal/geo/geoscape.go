@@ -75,9 +75,11 @@ type Geoscape struct {
 	AlienActivity       int
 	MissionsWon         int
 	Victory             bool
+	Defeated            bool
 	LastSpeed           int
 	CursorNode          int
 	TargetSelectionMode bool
+	TargetCursor        int // cursor index in target-selection mode (separate from CursorNode)
 	PreBattleStats      map[string][6]int
 	ActiveCrashSite     *CrashSite
 	ActiveBaseDefense   *base.Base // non-nil if the current battle is defending this base
@@ -164,7 +166,16 @@ func (gs *Geoscape) processBattleResult() {
 		gs.Game.ActiveBattle = nil
 		return
 	}
-	defendingBase.Soldiers = r.Soldiers
+	// Merge battle-result soldiers into base roster (preserving non-deployed soldiers).
+	battleSoldiers := make(map[string]*soldier.Soldier, len(r.Soldiers))
+	for _, s := range r.Soldiers {
+		battleSoldiers[s.Name] = s
+	}
+	for _, s := range defendingBase.Soldiers {
+		if bs, ok := battleSoldiers[s.Name]; ok {
+			*s = *bs // copy stats from battle result
+		}
+	}
 	dead := defendingBase.RemoveDeadSoldiers()
 
 	// Build per-soldier report from PreBattleStats
@@ -287,6 +298,7 @@ func (gs *Geoscape) processBattleResult() {
 			gs.destroyBase(defendingBase)
 			baseDestroyed = true
 		}
+		gs.respondedAlienBase = nil
 		dd := &engine.DebriefData{
 			Won:           false,
 			MissionName:   missionName,
@@ -411,15 +423,15 @@ func (gs *Geoscape) Update() {
 	}
 
 	// 2. Defeat condition: alien activity exceeds the threshold
-	if gs.AlienActivity >= 100 && !gs.Victory {
+	if gs.AlienActivity >= 100 && !gs.Defeated && !gs.Victory {
 		stats := fmt.Sprintf(language.String("GEO_MISSIONS_WON"), gs.MissionsWon)
 		gs.Game.GameOver(false, stats)
-		gs.Victory = true
+		gs.Defeated = true
 		gs.Game.Paused = true
 	}
 
 	// 3. Victory condition: check if enough missions have been completed
-	if gs.MissionsWon >= 10 && !gs.Victory {
+	if gs.MissionsWon >= 10 && !gs.Victory && !gs.Defeated {
 		// Instead of immediate victory, trigger the final campaign stage (Cydonia)
 		gs.triggerCydonia()
 	}
@@ -701,7 +713,7 @@ func (gs *Geoscape) destroyBase(b *base.Base) {
 	if len(gs.Bases) <= 1 {
 		gs.Message = fmt.Sprintf(language.String("MSG_BASE_DESTROYED"), b.Name)
 		gs.Game.GameOver(false, language.String("GEO_LAST_BASE_DESTROYED"))
-		gs.Victory = true
+		gs.Defeated = true
 		gs.Game.Paused = true
 		return
 	}
@@ -931,7 +943,7 @@ func (gs *Geoscape) dogfight(inter *Interceptor) {
 			})
 		}
 		if inter.State != nil {
-			inter.State.Status = language.String("INTERCEPTOR_STATUS_AVAILABLE")
+			inter.State.Status = "available"
 			inter.State.HP = inter.HP
 		}
 	}
@@ -948,7 +960,7 @@ func (gs *Geoscape) dogfight(inter *Interceptor) {
 		interDestroyed = true
 		if inter.State != nil {
 			inter.State.HP = 0
-			inter.State.Status = language.String("INTERCEPTOR_STATUS_DESTROYED")
+			inter.State.Status = "destroyed"
 		}
 	}
 
@@ -1559,6 +1571,9 @@ func (gs *Geoscape) enterMissionSelectMode() {
 		if s.HasPerk("close_combat") {
 			squadPower += 10
 		}
+		if s.HasPerk("overwatch") {
+			squadPower += 10
+		}
 	}
 	alienPower := int(float64(alienCount*(40+gs.MissionsWon*3)) * diffMult)
 	winChance := 30 + (squadPower-alienPower)/5
@@ -1599,7 +1614,7 @@ func (gs *Geoscape) Autoresolve() {
 		return
 	}
 	var nearest *UFO
-	bestDist := 9999.0
+	bestDist := math.MaxFloat64
 	for _, u := range gs.UFOs.Active() {
 		city := gs.CityByID(u.CurrentNode())
 		if city == nil {
@@ -1664,13 +1679,15 @@ func (gs *Geoscape) buildSaveData() *save.SaveData {
 	ufoSaves := make([]*save.UFOSave, 0)
 	for _, u := range gs.UFOs {
 		ufoSaves = append(ufoSaves, &save.UFOSave{
-			TypeName: u.Type.Name,
-			X:        u.X,
-			Y:        u.Y,
-			Progress: u.Progress,
-			NodeFrom: u.NodeFrom,
-			NodeTo:   u.NodeTo,
-			Active:   u.Active,
+			ID:        u.ID,
+			TypeName:  u.Type.Name,
+			X:         u.X,
+			Y:         u.Y,
+			Progress:  u.Progress,
+			NodeFrom:  u.NodeFrom,
+			NodeTo:    u.NodeTo,
+			TurnsLeft: u.TurnsLeft,
+			Active:    u.Active,
 		})
 	}
 	missionSaves := make([]*save.MissionSave, 0)
@@ -1791,13 +1808,21 @@ func (gs *Geoscape) loadFromSaveData(sd *save.SaveData) {
 	for _, u := range sd.UFOs {
 		ufoType := GetUFOTypeByName(u.TypeName)
 		if ufoType != nil {
-			gs.UFOs = append(gs.UFOs, &UFO{
-				Type:     *ufoType,
-				NodeFrom: int(u.X),
-				NodeTo:   int(u.Y),
-				Progress: 0.5,
-				Active:   u.Active,
-			})
+			ufo := &UFO{
+			Type:     *ufoType,
+			ID:       u.ID,
+			X:        u.X,
+			Y:        u.Y,
+			Progress: u.Progress,
+			NodeFrom: u.NodeFrom,
+			NodeTo:   u.NodeTo,
+			TurnsLeft: u.TurnsLeft,
+			Active:   u.Active,
+		}
+		if u.ID > ufoIDCounter {
+			ufoIDCounter = u.ID
+		}
+		gs.UFOs = append(gs.UFOs, ufo)
 		}
 	}
 	gs.Missions = nil
@@ -1892,6 +1917,7 @@ func (gs *Geoscape) SetSpeed(s int) {
 func (gs *Geoscape) LaunchInterceptor() {
 	gs.TargetSelectionMode = !gs.TargetSelectionMode
 	if gs.TargetSelectionMode {
+		gs.TargetCursor = 0
 		gs.Message = language.String("GEO_SELECT_TARGET")
 	} else {
 		gs.Message = language.String("GEO_LAUNCH_CANCELLED")
@@ -1916,7 +1942,7 @@ func (gs *Geoscape) confirmLaunch(target interface{}) {
 		}
 		baseCity := gs.CityByID(gs.SelectedBase().CityID)
 		interState := available[0]
-		interState.Status = language.String("INTERCEPTOR_STATUS_ACTIVE")
+		interState.Status = "active"
 		inter := NewInterceptorFromState(interState, baseCity.X, baseCity.Y)
 		inter.LaunchAtUFO(t)
 		gs.Interceptors = append(gs.Interceptors, inter)
@@ -2136,7 +2162,7 @@ func (gs *Geoscape) renderRegionTable(ctx *engine.ScreenCtx, x, y, w, h int) {
 			ry := y + 2 + row
 
 			// Highlight selected (reuse cursor for selection index)
-			sel := row == gs.CursorNode%len(targets)
+			sel := row == gs.TargetCursor%len(targets)
 			baseStyle := engine.StyleDefault
 			if sel {
 				baseStyle = engine.StyleHighlight
@@ -2638,9 +2664,17 @@ func (gs *Geoscape) HandleKey(e *tcell.EventKey) {
 	}
 	switch e.Key() {
 	case tcell.KeyUp:
-		gs.moveCursor(0, -1)
+		if gs.TargetSelectionMode {
+			gs.TargetCursor--
+		} else {
+			gs.moveCursor(0, -1)
+		}
 	case tcell.KeyDown:
-		gs.moveCursor(0, 1)
+		if gs.TargetSelectionMode {
+			gs.TargetCursor++
+		} else {
+			gs.moveCursor(0, 1)
+		}
 	case tcell.KeyLeft:
 		gs.moveCursor(-1, 0)
 	case tcell.KeyRight:
@@ -2649,7 +2683,7 @@ func (gs *Geoscape) HandleKey(e *tcell.EventKey) {
 		if gs.TargetSelectionMode {
 			targets := gs.getTargets()
 			if len(targets) > 0 {
-				idx := gs.CursorNode % len(targets)
+				idx := gs.TargetCursor % len(targets)
 				gs.confirmLaunch(targets[idx])
 			}
 		}

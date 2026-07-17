@@ -260,9 +260,6 @@ func (bs *Battlescape) dispatchHelpKey(key string) {
 	case "\u2191":
 		bs.MoveCursor(0, -1)
 		bs.updateMovePath()
-		if bs.Selected != nil && bs.State.CursorState == StateMovePlan {
-			bs.updateMovePath()
-		}
 	case "\u2193":
 		bs.MoveCursor(0, 1)
 		bs.updateMovePath()

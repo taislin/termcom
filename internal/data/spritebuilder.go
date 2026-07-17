@@ -861,34 +861,31 @@ func GenerateAlienPixels(seed int64, m *Morphology) AlienPixels {
 
 	// Weapon mask: a separate silhouette drawn over the torso's right side.
 	// Only armed aliens (manip != none) carry a weapon.
-		if manip != ManipNone {
-			for y, row := range weapon {
-				ty := 10 + y
-				if ty >= 18 || y >= len(weapon) {
-					break
-				}
+	if manip != ManipNone {
+		for y, row := range weapon {
+			ty := 10 + y
+			if ty >= 18 || y >= len(weapon) {
+				break
+			}
 			for x, ch := range row {
 				switch ch {
 				case 'X':
-					result.Weapon[ty][x] = true
+					result.Weapon[ty][x+torsoOffset] = true
 				case 'h':
-					result.Weapon[ty][x] = true
-					result.Highlight[ty][x] = true
+					result.Weapon[ty][x+torsoOffset] = true
+					result.Highlight[ty][x+torsoOffset] = true
 				case 'a':
-					result.Weapon[ty][x] = true
-					result.Accent[ty][x] = true
+					result.Weapon[ty][x+torsoOffset] = true
+					result.Accent[ty][x+torsoOffset] = true
 				case 'd':
-					result.Weapon[ty][x] = true
-					result.Shadow[ty][x] = true
+					result.Weapon[ty][x+torsoOffset] = true
+					result.Shadow[ty][x+torsoOffset] = true
 				}
 			}
 		}
 	}
 
 	legsOffset := centerOffset(legs[0], 20)
-	if legsOffset < 0 {
-		legsOffset = 0
-	}
 	for y, row := range legs {
 		ly := 18 + y
 		if ly >= 24 {

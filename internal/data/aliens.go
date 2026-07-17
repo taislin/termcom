@@ -379,11 +379,12 @@ func GetAlienByName(name string) *AlienType {
 	return nil
 }
 
+// GetAlienByRank returns the highest-rank alien ≥ minRank.
 func GetAlienByRank(minRank int) *AlienType {
 	var best *AlienType
 	for i := range AlienTypes {
 		if AlienTypes[i].Rank >= minRank {
-			if best == nil || AlienTypes[i].Rank < best.Rank {
+			if best == nil || AlienTypes[i].Rank > best.Rank {
 				best = &AlienTypes[i]
 			}
 		}

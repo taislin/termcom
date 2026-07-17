@@ -733,8 +733,8 @@ func TestLoseConditionAlienActivity(t *testing.T) {
 	if !gs.Game.InState(engine.StateGameOver) {
 		t.Error("expected GameOver when AlienActivity >= 100")
 	}
-	if !gs.Victory {
-		t.Error("expected Victory flag set (defeat latch) on alien victory")
+	if !gs.Defeated {
+		t.Error("expected Defeated flag set (defeat latch) on alien victory")
 	}
 }
 

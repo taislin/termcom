@@ -431,6 +431,8 @@ func init() {
 		"PLANE_LABEL_DIMS":      "길이%d 날개%d",
 		"PLANE_LABEL_WEAPON":    "무기:",
 		"PLANE_LABEL_ARMOR":     "장갑:",
+		"PLANE_WEAPON_LINE":     "%s %dDMG %d명중",
+		"PLANE_ARMOR_LINE":      "%s +%dHP %dDR",
 		"PLANE_CLASS_LIGHT":     "경",
 		"PLANE_CLASS_MEDIUM":    "중",
 		"PLANE_CLASS_HEAVY":     "중무장",

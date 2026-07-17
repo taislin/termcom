@@ -33,10 +33,12 @@ func InitResearchTree(seed int64, aliens []*AlienSpecies) {
 	ResearchTree = GenerateTechTree(seed, aliens)
 }
 
+// ResearchByID returns a pointer to a copy of the matching topic.
 func ResearchByID(id string) *ResearchTopic {
 	for i := range ResearchTree {
 		if ResearchTree[i].ID == id {
-			return &ResearchTree[i]
+			t := ResearchTree[i]
+			return &t
 		}
 	}
 	return nil

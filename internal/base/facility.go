@@ -106,7 +106,6 @@ type Base struct {
 	Engineers            int
 	UnassignedScientists int
 	UnassignedEngineers  int
-	MaxStorage           int
 	UsedStorage          int
 	Stores               map[string]int
 	CompletedResearch    []string
@@ -128,7 +127,6 @@ func NewBase(name string, cityID int) *Base {
 		UnassignedScientists: 10,
 		Engineers:            10,
 		UnassignedEngineers:  10,
-		MaxStorage:           50,
 		Stores:               make(map[string]int),
 		Hangars:              make([]*data.InterceptorState, 0),
 		CustomWeapons:        make(map[string]*data.WeaponDesign),
@@ -148,7 +146,7 @@ func NewBase(name string, cityID int) *Base {
 		HP:        60,
 		MaxHP:     60,
 		Ammo:      w.FireRate * 4,
-		Status:    language.String("INTERCEPTOR_STATUS_AVAILABLE"),
+		Status:    "available",
 	})
 	return b
 }
@@ -164,14 +162,17 @@ func (b *Base) CountFacility(ft FacilityType) int {
 }
 
 func (b *Base) BuyInterceptor(weaponKey string, funds *int64) bool {
-	cost := int64(100000)
+	w, ok := data.InterceptorWeapons[weaponKey]
+	if !ok {
+		return false
+	}
+	cost := int64(w.Cost)
 	if *funds < cost {
 		return false
 	}
-	w := data.InterceptorWeapons[weaponKey]
 	// Replace a destroyed interceptor first
 	for i, h := range b.Hangars {
-		if h.Status == language.String("INTERCEPTOR_STATUS_DESTROYED") {
+		if h.Status == "destroyed" {
 			b.Hangars[i] = &data.InterceptorState{
 				ID:        h.ID,
 				Name:      language.String("INTERCEPTOR_DEFAULT_NAME"),
@@ -179,7 +180,7 @@ func (b *Base) BuyInterceptor(weaponKey string, funds *int64) bool {
 				HP:        60,
 				MaxHP:     60,
 				Ammo:      w.FireRate * 4,
-				Status:    language.String("INTERCEPTOR_STATUS_AVAILABLE"),
+				Status:    "available",
 			}
 			*funds -= cost
 			return true
@@ -197,7 +198,7 @@ func (b *Base) BuyInterceptor(weaponKey string, funds *int64) bool {
 		HP:        60,
 		MaxHP:     60,
 		Ammo:      w.FireRate * 4,
-		Status:    language.String("INTERCEPTOR_STATUS_AVAILABLE"),
+		Status:    "available",
 	})
 	return true
 }
@@ -205,7 +206,7 @@ func (b *Base) BuyInterceptor(weaponKey string, funds *int64) bool {
 func (b *Base) GetAvailableInterceptors() []*data.InterceptorState {
 	var available []*data.InterceptorState
 	for _, h := range b.Hangars {
-		if h.Status == language.String("INTERCEPTOR_STATUS_AVAILABLE") {
+		if h.Status == "available" {
 			available = append(available, h)
 		}
 	}
@@ -219,7 +220,7 @@ func (b *Base) ChangeInterceptorWeapon(idx int) string {
 		return ""
 	}
 	hg := b.Hangars[idx]
-	if hg.Status != language.String("INTERCEPTOR_STATUS_AVAILABLE") {
+	if hg.Status != "available" {
 		return ""
 	}
 	curIdx := -1
@@ -394,14 +395,6 @@ func (b *Base) AdvanceDay() {
 			}
 		}
 	}
-}
-
-type ManufactureItem struct {
-	Item     string
-	Count    int
-	Assigned int
-	DaysLeft int
-	Queue    int
 }
 
 func GetBuildableWeapons() []string {

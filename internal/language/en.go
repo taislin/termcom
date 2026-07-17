@@ -429,6 +429,8 @@ func init() {
 		"PLANE_LABEL_DIMS":      "%dL x %dW",
 		"PLANE_LABEL_WEAPON":    "Weapon:",
 		"PLANE_LABEL_ARMOR":     "Armor:",
+		"PLANE_WEAPON_LINE":     "%s %dDMG %dACC",
+		"PLANE_ARMOR_LINE":      "%s +%dHP %dDR",
 		"PLANE_CLASS_LIGHT":     "Light",
 		"PLANE_CLASS_MEDIUM":    "Medium",
 		"PLANE_CLASS_HEAVY":     "Heavy",

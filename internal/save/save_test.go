@@ -175,11 +175,11 @@ func TestInterceptorSaveRoundTrip(t *testing.T) {
 	initialCount := len(b.Hangars)
 	b.Hangars = append(b.Hangars, &data.InterceptorState{
 		ID: initialCount, Name: "Skyranger-1", WeaponKey: "avalanche",
-		HP: 60, MaxHP: 60, Ammo: 8, Status: "Available",
+		HP: 60, MaxHP: 60, Ammo: 8, Status: "available",
 	})
 	b.Hangars = append(b.Hangars, &data.InterceptorState{
 		ID: initialCount + 1, Name: "Firestorm-1", WeaponKey: "laser_cannon",
-		HP: 45, MaxHP: 60, Ammo: 5, Status: "Damaged",
+		HP: 45, MaxHP: 60, Ammo: 5, Status: "damaged",
 	})
 
 	sd := &SaveData{
@@ -206,7 +206,7 @@ func TestInterceptorSaveRoundTrip(t *testing.T) {
 		t.Errorf("interceptor 1 mismatch: %+v", h1)
 	}
 	h2 := loadedBase.Hangars[initialCount+1]
-	if h2.Name != "Firestorm-1" || h2.WeaponKey != "laser_cannon" || h2.HP != 45 || h2.Status != "Damaged" {
+	if h2.Name != "Firestorm-1" || h2.WeaponKey != "laser_cannon" || h2.HP != 45 || h2.Status != "damaged" {
 		t.Errorf("interceptor 2 mismatch: %+v", h2)
 	}
 }

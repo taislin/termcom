@@ -1,6 +1,6 @@
 package data
 
-import "fmt"
+import "strings"
 
 // WeaponDesign defines a player-designed modular weapon.
 type WeaponDesign struct {
@@ -258,7 +258,7 @@ func WeaponDesignName(d WeaponDesign) string {
 		suffix = append(suffix, AmmoTypes[d.AmmoType].Name)
 	}
 	if len(suffix) > 0 {
-		parts = append(parts, "("+fmt.Sprintf("%s", suffix[0])+")")
+		parts = append(parts, "("+strings.Join(suffix, "/")+")")
 	}
 
 	return joinParts(parts)

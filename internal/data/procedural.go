@@ -185,9 +185,9 @@ var alienWeaponsByDmgType = map[int][][]string{
 		{"alien_cannon"},
 	},
 	DMG_EXPLOSIVE: {
-		{"alien_grenade"},
-		{"alien_grenade"},
-		{"alien_grenade", "alien_rocket"},
+		{"alien_grenade_item"},
+		{"alien_grenade_item"},
+		{"alien_grenade_item", "alien_rocket"},
 		{"alien_rocket"},
 		{"alien_rocket"},
 	},
@@ -305,7 +305,7 @@ func generateOneSpecies(rng *rand.Rand, idx int, usedNames map[string]bool, used
 	runes := []rune(name)
 	prefix := strings.ToUpper(string(runes[:min(3, len(runes))]))
 
-	primaryDMG := rng.Intn(6) // DMG_PLASMA..DMG_PSIONIC
+	primaryDMG := rng.Intn(DMG_PSIONIC + 1) // DMG_PLASMA..DMG_PSIONIC
 
 	// Generate morphology
 	morph := generateMorphology(rng, primaryDMG)

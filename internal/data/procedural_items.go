@@ -69,7 +69,9 @@ func GenerateProceduralItems(seed int64, aliens []*AlienSpecies) ([]ProceduralWe
 
 	usedDmgTypes := make(map[int]bool)
 	for _, sp := range aliens {
-		usedDmgTypes[sp.PrimaryDMG] = true
+		if sp != nil {
+			usedDmgTypes[sp.PrimaryDMG] = true
+		}
 	}
 
 	dmgTypes := make([]int, 0, len(usedDmgTypes))

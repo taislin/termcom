@@ -431,6 +431,8 @@ func init() {
 		"PLANE_LABEL_DIMS":      "%dД x %dШ",
 		"PLANE_LABEL_WEAPON":    "Оружие:",
 		"PLANE_LABEL_ARMOR":     "Броня:",
+		"PLANE_WEAPON_LINE":     "%s %dУРН %dТОЧ",
+		"PLANE_ARMOR_LINE":      "%s +%dЗД %dБРН",
 		"PLANE_CLASS_LIGHT":     "Лёгкий",
 		"PLANE_CLASS_MEDIUM":    "Средний",
 		"PLANE_CLASS_HEAVY":     "Тяжёлый",

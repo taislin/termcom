@@ -54,7 +54,10 @@ func NewInterceptor(baseX, baseY int) *Interceptor {
 
 // NewInterceptorFromState creates an interceptor from a persisted state.
 func NewInterceptorFromState(s *data.InterceptorState, baseX, baseY int) *Interceptor {
-	w := data.InterceptorWeapons[s.WeaponKey]
+	w, ok := data.InterceptorWeapons[s.WeaponKey]
+	if !ok {
+		w = data.InterceptorWeapons["avalanche"]
+	}
 	return &Interceptor{
 		Name:       s.Name,
 		X:          float64(baseX),
@@ -274,9 +277,9 @@ func (i *Interceptor) Disengage() {
 		i.State.HP = i.HP
 		i.State.Ammo = i.Ammo
 		if i.HP <= 0 {
-			i.State.Status = language.String("INTERCEPTOR_STATUS_DESTROYED")
+			i.State.Status = "destroyed"
 		} else {
-			i.State.Status = language.String("INTERCEPTOR_STATUS_AVAILABLE")
+			i.State.Status = "available"
 		}
 	}
 }

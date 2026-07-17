@@ -167,13 +167,13 @@ func (pd *PlaneDesignerScreen) renderStats(ctx *engine.ScreenCtx, sx, sy, sw, sh
 	if pd.Config.Weapon >= 0 && pd.Config.Weapon < len(data.PlaneWeapons) {
 		w := data.PlaneWeapons[pd.Config.Weapon]
 		ctx.DrawString(sx, yOff, language.String("PLANE_LABEL_WEAPON"), engine.StyleGray)
-		ctx.DrawString(sx+2, yOff+1, fmt.Sprintf("%s %dDMG %dACC", w.Name, w.Damage, w.Accuracy), engine.StyleRed)
+		ctx.DrawString(sx+2, yOff+1, language.Sprintf("PLANE_WEAPON_LINE", w.Name, w.Damage, w.Accuracy), engine.StyleRed)
 	}
 	yOff += 3
 	if pd.Config.Armor >= 0 && pd.Config.Armor < len(data.PlaneArmors) {
 		a := data.PlaneArmors[pd.Config.Armor]
 		ctx.DrawString(sx, yOff, language.String("PLANE_LABEL_ARMOR"), engine.StyleGray)
-		ctx.DrawString(sx+2, yOff+1, fmt.Sprintf("%s +%dHP %dDR", a.Name, a.HP, a.DR), engine.StyleYellow)
+		ctx.DrawString(sx+2, yOff+1, language.Sprintf("PLANE_ARMOR_LINE", a.Name, a.HP, a.DR), engine.StyleYellow)
 	}
 }
 
