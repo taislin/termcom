@@ -625,6 +625,12 @@ func (m *BattleMap) generateCorridor(x1, y1, x2, y2 int, w int) {
 	m.corridorImpl(x1, y1, x2, y2, w, m.CurrentLevel, TileWall, TileFloor)
 }
 
+// generateCorridorUFO creates an L-shaped corridor that carves through
+// UFO walls (used by alien base / Cydonia-style maps).
+func (m *BattleMap) generateCorridorUFO(x1, y1, x2, y2 int, w int) {
+	m.corridorImpl(x1, y1, x2, y2, w, m.CurrentLevel, TileUFOWall, TileUFOFloor)
+}
+
 type MapCommandType int
 
 const (
@@ -634,6 +640,8 @@ const (
 	CmdPlaceBuilding
 	CmdCorridor
 	CmdClearArea
+	CmdBlob
+	CmdPoisson
 )
 
 type MapCommand struct {
@@ -645,6 +653,10 @@ type MapCommand struct {
 	Count    int // for Scatter: number of attempts
 	X2, Y2   int // for Corridor: endpoint
 	DoorSide int // for PlaceBuilding: 0=south, 1=east, 2=north, 3=west
+	Seeds    int // for Blob: number of clusters
+	Size     int // for Blob: target tiles per cluster
+	Radius   int // for Poisson: min spacing
+	Seed     int64 // for commands needing an RNG seed
 }
 
 func (m *BattleMap) ApplyCommand(cmd MapCommand) {
@@ -669,6 +681,12 @@ func (m *BattleMap) ApplyCommand(cmd MapCommand) {
 	case CmdClearArea:
 		// identical to CmdFillRect; kept for semantic clarity only
 		m.fillRect(cmd.X, cmd.Y, cmd.W, cmd.H, cmd.Tile)
+	case CmdBlob:
+		rng := rand.New(rand.NewSource(cmd.Seed + int64(cmd.X*73856093+cmd.Y*19349663)))
+		m.Blob(cmd.Tile, cmd.Seeds, cmd.Size, cmd.Prob, rng)
+	case CmdPoisson:
+		rng := rand.New(rand.NewSource(cmd.Seed + int64(cmd.X*83492791+cmd.Y*2654435761)))
+		m.Poisson(cmd.Tile, cmd.Radius, cmd.Count, rng)
 	}
 }
 
@@ -1113,19 +1131,19 @@ func GenerateCydonia(w, h int) *BattleMap {
 
 	// Connect command center to pods
 	for _, pos := range podPositions {
-		m.generateCorridor(ccX+ccSize/2, ccY+ccSize/2, pos[0], pos[1], 2)
+		m.generateCorridorUFO(ccX+ccSize/2, ccY+ccSize/2, pos[0], pos[1], 2)
 	}
 
 	// Connect entrance to command center
 	switch entranceSide {
 	case 0:
-		m.generateCorridor(w/2, 6, ccX+ccSize/2, ccY, 2)
+		m.generateCorridorUFO(w/2, 6, ccX+ccSize/2, ccY, 2)
 	case 1:
-		m.generateCorridor(w/2, h-6, ccX+ccSize/2, ccY+ccSize, 2)
+		m.generateCorridorUFO(w/2, h-6, ccX+ccSize/2, ccY+ccSize, 2)
 	case 2:
-		m.generateCorridor(6, h/2, ccX, ccY+ccSize/2, 2)
+		m.generateCorridorUFO(6, h/2, ccX, ccY+ccSize/2, 2)
 	case 3:
-		m.generateCorridor(w-6, h/2, ccX+ccSize, ccY+ccSize/2, 2)
+		m.generateCorridorUFO(w-6, h/2, ccX+ccSize, ccY+ccSize/2, 2)
 	}
 
 	// Scatter objects
@@ -1221,7 +1239,7 @@ func GenerateAlienBase(w, h int) *BattleMap {
 	coreCx := cx + coreSize/2
 	coreCy := cy + coreSize/2
 	for _, p := range pods {
-		m.generateCorridor(coreCx, coreCy, p[0], p[1], 2)
+		m.generateCorridorUFO(coreCx, coreCy, p[0], p[1], 2)
 	}
 
 	// Entrance on a random side
@@ -1261,16 +1279,14 @@ func GenerateAlienBase(w, h int) *BattleMap {
 // GenerateForest creates a forest map (OpenXcom: 50x50)
 func GenerateForest(w, h int) *BattleMap {
 	m := NewBattleMap(w, h)
-	ApplyCommands(m, []MapCommand{
-		{Type: CmdScatter, X: 0, Y: 0, W: w, H: h, Tile: TileTree, Prob: 15, Count: w * h},
-		{Type: CmdScatter, X: 0, Y: 0, W: w, H: h, Tile: TileBush, Prob: 5, Count: w * h},
-		{Type: CmdScatter, X: 0, Y: 0, W: w, H: h, Tile: TileRock, Prob: 2, Count: w * h},
-	})
+	// Clustered terrain: tree thickets with bush halos, plus rock outcrops.
+	m.Blob(TileTree, 6, w*h/40, 55, rand.New(rand.NewSource(int64(w*73856093+h*19349663))))
+	m.Blob(TileBush, 8, w*h/60, 60, rand.New(rand.NewSource(int64(w*83492791+h*2654435761))))
+	m.Poisson(TileRock, 3, w*h/120, rand.New(rand.NewSource(int64(w*32452843+h*456789))))
+
 	clearX := w/4 + rand.Intn(w/2)
 	clearY := h/4 + rand.Intn(h/2)
-	ApplyCommands(m, []MapCommand{
-		{Type: CmdClearArea, X: clearX - 3, Y: clearY - 3, W: 7, H: 7, Tile: TileGrass},
-	})
+	m.fillRect(clearX-3, clearY-3, 7, 7, TileGrass)
 	return m
 }
 
@@ -1282,11 +1298,10 @@ func GenerateDesert(w, h int) *BattleMap {
 			m.Set(x, y, TilePavement)
 		}
 	}
-	ApplyCommands(m, []MapCommand{
-		{Type: CmdScatter, X: 0, Y: 0, W: w, H: h, Tile: TileRock, Prob: 5, Count: w * h},
-		{Type: CmdScatter, X: 0, Y: 0, W: w, H: h, Tile: TileSand, Prob: 3, Count: w * h},
-		{Type: CmdScatter, X: 0, Y: 0, W: w, H: h, Tile: TileBush, Prob: 2, Count: w * h},
-	})
+	// Clustered dunes and rock islands instead of uniform scatter.
+	m.Blob(TileSand, 5, w*h/50, 50, rand.New(rand.NewSource(int64(w*19349663+h*83492791))))
+	m.Blob(TileRock, 4, w*h/80, 45, rand.New(rand.NewSource(int64(w*2654435761+h*32452843))))
+	m.Poisson(TileBush, 4, w*h/200, rand.New(rand.NewSource(int64(w*456789+h*73856093))))
 	return m
 }
 
@@ -1298,10 +1313,9 @@ func GeneratePolar(w, h int) *BattleMap {
 			m.Set(x, y, TileSnow)
 		}
 	}
-	ApplyCommands(m, []MapCommand{
-		{Type: CmdScatter, X: 0, Y: 0, W: w, H: h, Tile: TileRock, Prob: 3, Count: w * h},
-		{Type: CmdScatter, X: 0, Y: 0, W: w, H: h, Tile: TileMarsh, Prob: 2, Count: w * h},
-	})
+	// Marsh patches in snow, plus rocky outcrops.
+	m.Blob(TileMarsh, 5, w*h/60, 50, rand.New(rand.NewSource(int64(w*2654435761+h*19349663))))
+	m.Poisson(TileRock, 3, w*h/150, rand.New(rand.NewSource(int64(w*32452843+h*83492791))))
 	return m
 }
 

@@ -368,6 +368,10 @@ func NewBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, ufoN
 	default:
 		m, crashResult = GenerateCrashSite(50, 50, crashSeed)
 	}
+	if m != nil && !m.ValidateMap() {
+		// Fallback: clear to open ground so combat remains playable.
+		m = NewBattleMap(50, 50)
+	}
 
 	rng := rand.New(rand.NewSource(int64(g.GameTime.UnixNano())))
 	mods := RollModifiers(rng, ufoName)
