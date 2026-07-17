@@ -767,6 +767,13 @@ func (bs *Battlescape) ComputeFOVForTeam() {
 }
 
 func (bs *Battlescape) Update() {
+	// Serialize mutations of shared Battlescape state (Phase, Selected, etc.)
+	// with the render path's RLock in ApplyCursorStyles. Input handlers hold
+	// the same lock via HandleEvent; this keeps all writers consistent without
+	// re-locking (sync.RWMutex is not reentrant).
+	bs.State.mu.Lock()
+	defer bs.State.mu.Unlock()
+
 	dt := 0.016 // Fixed delta time for visual updates
 	bs.FrameCount++
 	bs.Camera.UpdateShake(dt)
