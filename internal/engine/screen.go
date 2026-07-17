@@ -1,6 +1,8 @@
 package engine
 
 import (
+	"sync"
+
 	"github.com/clipperhouse/displaywidth"
 	"github.com/gdamore/tcell/v3"
 	"github.com/gdamore/tcell/v3/color"
@@ -200,22 +202,26 @@ func (s *ScreenRaw) DrawPanel(x, y, w, h int, title string, style tcell.Style) {
 var ColorBlack = color.Black
 var ColorBlackTcell = color.Black
 
-// Global styles
-var StyleDefault = tcell.StyleDefault.Background(ColorBlack).Foreground(color.XTerm15)
-var StyleHighlight = tcell.StyleDefault.Background(color.DarkBlue).Foreground(color.XTerm15)
-var StyleRed = tcell.StyleDefault.Background(ColorBlack).Foreground(color.XTerm9)
-var StyleGreen = tcell.StyleDefault.Background(ColorBlack).Foreground(color.XTerm2)
-var StyleBlue = tcell.StyleDefault.Background(ColorBlack).Foreground(color.XTerm12)
-var StyleYellow = tcell.StyleDefault.Background(ColorBlack).Foreground(color.XTerm11)
-var StyleCyan = tcell.StyleDefault.Background(ColorBlack).Foreground(color.XTerm6)
-var StyleMagenta = tcell.StyleDefault.Background(ColorBlack).Foreground(color.XTerm13)
-var StyleGray = tcell.StyleDefault.Background(ColorBlack).Foreground(color.XTerm8)
-var StyleOrange = tcell.StyleDefault.Background(ColorBlack).Foreground(color.Orange)
-var StyleWater = tcell.StyleDefault.Background(ColorBlack).Foreground(tcell.NewRGBColor(30, 100, 200))
-
-var StyleCyanBold = StyleCyan.Bold(true)
-var StyleRedBold = StyleRed.Bold(true)
-var StyleHotkey = tcell.StyleDefault.Background(ColorBlack).Foreground(color.Orange)
+// Global styles. Written by ApplyTheme (under styleMu) on the config/options
+// screen; read from the main goroutine during rendering. Not safe for
+// concurrent read/write from different goroutines.
+var (
+	styleMu       sync.Mutex
+	StyleDefault  = tcell.StyleDefault.Background(ColorBlack).Foreground(color.XTerm15)
+	StyleHighlight = tcell.StyleDefault.Background(color.DarkBlue).Foreground(color.XTerm15)
+	StyleRed      = tcell.StyleDefault.Background(ColorBlack).Foreground(color.XTerm9)
+	StyleGreen    = tcell.StyleDefault.Background(ColorBlack).Foreground(color.XTerm2)
+	StyleBlue     = tcell.StyleDefault.Background(ColorBlack).Foreground(color.XTerm12)
+	StyleYellow   = tcell.StyleDefault.Background(ColorBlack).Foreground(color.XTerm11)
+	StyleCyan     = tcell.StyleDefault.Background(ColorBlack).Foreground(color.XTerm6)
+	StyleMagenta  = tcell.StyleDefault.Background(ColorBlack).Foreground(color.XTerm13)
+	StyleGray     = tcell.StyleDefault.Background(ColorBlack).Foreground(color.XTerm8)
+	StyleOrange   = tcell.StyleDefault.Background(ColorBlack).Foreground(color.Orange)
+	StyleWater    = tcell.StyleDefault.Background(ColorBlack).Foreground(tcell.NewRGBColor(30, 100, 200))
+	StyleCyanBold = StyleCyan.Bold(true)
+	StyleRedBold  = StyleRed.Bold(true)
+	StyleHotkey   = tcell.StyleDefault.Background(ColorBlack).Foreground(color.Orange)
+)
 
 func setThemeStyles(bg, fg, dim tcell.Color, bold bool) {
 	StyleDefault = tcell.StyleDefault.Background(bg).Foreground(fg)
@@ -233,6 +239,8 @@ func setThemeStyles(bg, fg, dim tcell.Color, bold bool) {
 }
 
 func ApplyTheme(theme string) {
+	styleMu.Lock()
+	defer styleMu.Unlock()
 	switch theme {
 	case "high_contrast":
 		ColorBlack = color.Black

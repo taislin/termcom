@@ -164,6 +164,12 @@ func (u *Unit) Name() string {
 }
 
 func (u *Unit) FireAt(target *Unit, m *BattleMap, weather *Weather) (int, bool, bool, error) {
+	if target == nil {
+		return 0, false, false, fmt.Errorf("no target")
+	}
+	if m != nil && (target.X < 0 || target.X >= m.Width || target.Y < 0 || target.Y >= m.Height) {
+		return 0, false, false, fmt.Errorf("target out of bounds")
+	}
 	w, ok := data.RuleItems[u.Weapon]
 	if !ok {
 		return 0, false, false, fmt.Errorf("unknown weapon: %s", u.Weapon)

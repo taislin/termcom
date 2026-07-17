@@ -27,8 +27,6 @@ Scope: Features and fixes for the battlescape tactical combat system.
   `dispatchHotkey`.
 - [ ] **R1 (Low)** 4 preset generators dup'd coordinate lists (312–412). Fold into
   tierConfigs/seed tables.
-### `internal/battle/unit.go`
-- [ ] **B1 (Low)** `FireAt` firing at a tile instead of a unit causes runtime error if the tile is not a valid coordinate (out of range) leading to looking up an alien outside the map bounds.
 ### `internal/base/planedesigner.go`
 - [ ] **M2 (Low)** `CalcPlaneStats` called twice per frame — cache value (116,131)
 ### `internal/base/weapondesigner.go`
@@ -41,8 +39,6 @@ Scope: Features and fixes for the battlescape tactical combat system.
 - [ ] **M1 (Low)** Magic numbers: `40+rng.Intn(30)` autopsy cost, `60+rng.Intn(50)` study cost, `0.85`/`0.30` cost modifier range, floor `10`, `1+rng.Intn(2)` prereqs (53,71,101,103–104,151)
 ### `internal/engine/custom_battle.go`
 - [ ] **U1 (Low)** Magic numbers: `leftW-7` name truncation, `h-6` scroll threshold, positions `2`,`3`,`h-3`
-### `internal/engine/debrief.go`
-- [ ] **B1 (Low)** `BaseDestroyed` + `Won=true` contradictory — title won't show "BASE LOST" because override only in `else` branch (89–95)
 ### `internal/engine/layout.go`
 - [ ] **U1 (Low)** Magic numbers: `30` min sidebar, `10` min battle view, `60`% geo table, `20` min encyclo list, `5` battle view height offset, `3` sidebar Y spacing
 ### `internal/engine/menu.go`
@@ -54,12 +50,9 @@ Scope: Features and fixes for the battlescape tactical combat system.
 - [ ] **M2 (Low)** Over 40 distinct undocumented numeric literals across spawn functions (144–251): RGB triplets, velocities, life ranges, fade speeds
 ### `internal/engine/pixel.go`
 - [ ] **M2 (Low)** `ColorBlackTcell` fallback theme-dependent — transparent pixels get themed "black", not true transparent, surprising (37–69)
-### `internal/engine/screen.go`
-- [ ] **B1 (Low)** `StyleDefault`, `StyleHighlight` etc. are package-level vars mutated by `ApplyTheme` — data race if called concurrently with rendering (220–320)
 ### `internal/engine/slotpicker.go`
 - [ ] **M2 (Low)** Save mode's `newSlot = len(sp.Slots) + 1` assumes contiguous slot numbering — collision if slots sparse (157)
 ### `internal/engine/tutorial.go`
-- [ ] **B1 (Low)** `wrapDrawString` counts runes rather than display width for word-wrap — CJK (double-width) chars under-count, overflow box (130)
 - [ ] **M1 (Low)** `boxW = 62`, `boxH = 14` magic numbers (43–44)
 - [ ] **M2 (Low)** `HandleMouse` advances on ANY left click anywhere, not just within dialog — accidental advancement
 ### `internal/engine/vfx.go`
@@ -67,7 +60,6 @@ Scope: Features and fixes for the battlescape tactical combat system.
 ### `internal/engine/water.go`
 - [ ] **M1 (Low)** `waterColors` hard-coded RGB triples — extract `waterPalette` type (11–15)
 ### `internal/engine/webscreen.go`
-- [ ] **B1 (Low)** `sgrCode` emits `\x1b[0;1;...` — some legacy terminals treat params after `0` differently; minor portability issue
 - [ ] **M1 (Low)** Event queue buffer size `64` (32), pre-allocation multiplier `20` (147)
 ### `internal/geo/interceptor.go`
 - [ ] **M1 (Low)** Magic numbers: `Speed: 36`, `HP: 60`, `MaxHP: 60`, `PilotSkill: 50` (42–44,51)

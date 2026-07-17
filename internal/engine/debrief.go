@@ -84,12 +84,12 @@ func (ds *DebriefScreen) Render(ctx *ScreenCtx) {
 
 	// Title
 	title := language.String("DEBRIEF_TITLE")
-	if d.Won {
+	if d.BaseDestroyed {
+		title = language.String("DEBRIEF_BASE_LOST")
+		ctx.DrawPanel(2, 1, w-4, h-3, title, StyleRed.Bold(true))
+	} else if d.Won {
 		ctx.DrawPanel(2, 1, w-4, h-3, title, StyleGreen.Bold(true))
 	} else {
-		if d.BaseDestroyed {
-			title = language.String("DEBRIEF_BASE_LOST")
-		}
 		ctx.DrawPanel(2, 1, w-4, h-3, title, StyleRed.Bold(true))
 	}
 

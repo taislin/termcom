@@ -252,7 +252,6 @@ func sgrCode(fg, bg tcell.Color, attr tcell.AttrMask) string {
 
 func sgrAttrs(attr tcell.AttrMask) []string {
 	var parts []string
-	parts = append(parts, "0") // reset
 	if attr&tcell.AttrBold != 0 {
 		parts = append(parts, "1")
 	}
@@ -271,6 +270,8 @@ func sgrAttrs(attr tcell.AttrMask) []string {
 	if attr&tcell.AttrStrikeThrough != 0 {
 		parts = append(parts, "9")
 	}
+	// Reset must be LAST for terminals that parse params left-to-right.
+	parts = append(parts, "0")
 	return parts
 }
 

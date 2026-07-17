@@ -142,7 +142,7 @@ func wrapDrawString(ctx *ScreenCtx, x, y, maxWidth int, s string, style tcell.St
 		if ch == ' ' {
 			lastSpace = i
 		}
-		col++
+		col += RuneWidth(ch)
 		if col >= maxWidth {
 			if lastSpace > lineStart {
 				ctx.DrawString(x, curY, string(runes[lineStart:lastSpace]), style)
@@ -156,6 +156,12 @@ func wrapDrawString(ctx *ScreenCtx, x, y, maxWidth int, s string, style tcell.St
 			col = i - lineStart
 			if col < 0 {
 				col = 0
+			} else {
+				// recalculate display width from lineStart to current
+				col = 0
+				for _, rc := range runes[lineStart : i+1] {
+					col += RuneWidth(rc)
+				}
 			}
 		}
 	}
