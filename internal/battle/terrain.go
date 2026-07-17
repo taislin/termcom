@@ -16,6 +16,38 @@ const (
 	GlyphUFOHatch    rune = '⊠'
 )
 
+// Tile rendering tuning factors.
+const (
+	bgDarkenFactor      = 0.25 // base background darkening relative to tile color
+	aoPerNeighbor       = 0.08 // ambient-occlusion darkening per adjacent opaque tile
+	aoMinFactor         = 0.6  // clamp for accumulated AO darkening
+	ditherFactor        = 0.92 // checkerboard dither darkening on even-parity tiles
+	fogOfWarDim         = 0.45 // foreground/background dim for remembered (seen) tiles
+)
+
+// Blood palette by blood type (1=human red, 2/3=alien green/purple).
+var bloodPalette = map[int]tcell.Color{
+	1: tcell.NewRGBColor(200, 0, 0),
+	2: tcell.NewRGBColor(0, 180, 0),
+	3: tcell.NewRGBColor(140, 0, 140),
+}
+
+// firePalette cycles by frame phase for animated flames.
+var firePalette = []tcell.Color{
+	tcell.NewRGBColor(255, 120, 0),
+	tcell.NewRGBColor(255, 60, 0),
+	tcell.NewRGBColor(255, 200, 0),
+}
+
+// opaqueTiles is the set of tile types that block line of sight.
+var opaqueTiles = map[TileType]bool{
+	TileWall:    true,
+	TileTree:    true,
+	TileRock:    true,
+	TileUFOWall: true,
+	TileFence:   true,
+}
+
 // Human building box-drawing glyphs
 const (
 	GlyphBuildingTL   rune = '╔'
@@ -155,35 +187,18 @@ func TileGeomRune(t Tile, ctx [3][3]TileType) rune {
 }
 
 func bloodColor(bloodType int) tcell.Color {
-	switch bloodType {
-	case 1:
-		return tcell.NewRGBColor(200, 0, 0) // red (human)
-	case 2:
-		return tcell.NewRGBColor(0, 180, 0) // green (alien)
-	case 3:
-		return tcell.NewRGBColor(140, 0, 140) // purple (alien)
-	default:
-		return tcell.NewRGBColor(200, 0, 0)
+	if col, ok := bloodPalette[bloodType]; ok {
+		return col
 	}
+	return bloodPalette[1] // default human red
 }
 
 func fireColor(frame int) tcell.Color {
-	switch frame % 3 {
-	case 0:
-		return tcell.NewRGBColor(255, 120, 0)
-	case 1:
-		return tcell.NewRGBColor(255, 60, 0)
-	default:
-		return tcell.NewRGBColor(255, 200, 0)
-	}
+	return firePalette[frame%len(firePalette)]
 }
 
 func isOpaqueTile(t TileType) bool {
-	switch t {
-	case TileWall, TileTree, TileRock, TileUFOWall, TileFence:
-		return true
-	}
-	return false
+	return opaqueTiles[t]
 }
 
 // RenderTile produces the character and style for drawing a tile.
@@ -196,7 +211,7 @@ func RenderTile(t Tile, ctx [3][3]TileType, visible, seen bool, frame int, tileX
 	fg := baseCol
 
 	// Make background a dark version of the base color for depth
-	bg := engine.DarkenColor(baseCol, 0.25)
+	bg := engine.DarkenColor(baseCol, bgDarkenFactor)
 
 	// Ambient occlusion: darken floor tiles adjacent to opaque walls
 	if !isOpaqueTile(t.Type) {
@@ -218,9 +233,9 @@ func RenderTile(t Tile, ctx [3][3]TileType, visible, seen bool, frame int, tileX
 			aoCount++
 		}
 		if aoCount > 0 {
-			aoFactor := 1.0 - float64(aoCount)*0.08
-			if aoFactor < 0.6 {
-				aoFactor = 0.6
+			aoFactor := 1.0 - float64(aoCount)*aoPerNeighbor
+			if aoFactor < aoMinFactor {
+				aoFactor = aoMinFactor
 			}
 			bg = engine.DarkenColor(bg, aoFactor)
 		}
@@ -228,13 +243,13 @@ func RenderTile(t Tile, ctx [3][3]TileType, visible, seen bool, frame int, tileX
 
 	// Subtle per-tile dither based on checkerboard parity
 	if (tileX+tileY)%2 == 0 {
-		bg = engine.DarkenColor(bg, 0.92)
+		bg = engine.DarkenColor(bg, ditherFactor)
 	}
 
 	if !visible && seen {
 		// Fog of War: dim both foreground and background
-		fg = engine.DarkenColor(fg, 0.45)
-		bg = engine.DarkenColor(bg, 0.45)
+		fg = engine.DarkenColor(fg, fogOfWarDim)
+		bg = engine.DarkenColor(bg, fogOfWarDim)
 	} else {
 		// Overlay effects (blood, fire) only visible when tile is currently in line of sight
 		if t.Blood > 0 {

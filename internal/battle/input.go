@@ -17,6 +17,12 @@ const (
 	StateTargeting
 )
 
+// Camera pan step (tiles) for keyboard and wheel scrolling.
+const CamPanStep = 3
+
+// Help-bar start column for hotkey hit-testing.
+const helpBarCol = 1
+
 type BattleState struct {
 	mu           sync.RWMutex
 	CursorState  CursorState
@@ -66,13 +72,13 @@ func (bs *Battlescape) handleKey(e *tcell.EventKey) {
 	case " ":
 		bs.RightClick()
 	case "w", "W":
-		bs.Camera.Pan(0, -3)
+		bs.Camera.Pan(0, -CamPanStep)
 	case "a", "A":
-		bs.Camera.Pan(-3, 0)
+		bs.Camera.Pan(-CamPanStep, 0)
 	case "s", "S":
-		bs.Camera.Pan(0, 3)
+		bs.Camera.Pan(0, CamPanStep)
 	case "d", "D":
-		bs.Camera.Pan(3, 0)
+		bs.Camera.Pan(CamPanStep, 0)
 	case "q", "Q": bs.cycleUnit(1)
 	case "m", "M": 
 		bs.State.CursorState = StateMovePlan
@@ -121,26 +127,26 @@ func (bs *Battlescape) handleMouse(e *tcell.EventMouse) {
 
 	if buttons&tcell.WheelUp != 0 {
 		if mods&tcell.ModShift != 0 {
-			bs.Camera.Pan(-3, 0) // Shift+WheelUp → pan left
+			bs.Camera.Pan(-CamPanStep, 0) // Shift+WheelUp → pan left
 		} else {
-			bs.Camera.Pan(0, -3)
+			bs.Camera.Pan(0, -CamPanStep)
 		}
 		return
 	}
 	if buttons&tcell.WheelDown != 0 {
 		if mods&tcell.ModShift != 0 {
-			bs.Camera.Pan(3, 0) // Shift+WheelDown → pan right
+			bs.Camera.Pan(CamPanStep, 0) // Shift+WheelDown → pan right
 		} else {
-			bs.Camera.Pan(0, 3)
+			bs.Camera.Pan(0, CamPanStep)
 		}
 		return
 	}
 	if buttons&tcell.WheelLeft != 0 {
-		bs.Camera.Pan(-3, 0)
+		bs.Camera.Pan(-CamPanStep, 0)
 		return
 	}
 	if buttons&tcell.WheelRight != 0 {
-		bs.Camera.Pan(3, 0)
+		bs.Camera.Pan(CamPanStep, 0)
 		return
 	}
 
@@ -204,7 +210,7 @@ func (bs *Battlescape) clickHelpBar(x int) {
 	if bs.Map.NumLevels > 1 {
 		help += language.String("HELP_STAIRS_SUFFIX")
 	}
-	col := 1
+	col := helpBarCol
 	runes := []rune(help)
 	for i := 0; i < len(runes); {
 		if runes[i] != '[' {

@@ -19,6 +19,28 @@ const (
 	FactionCivilian Faction = 2
 )
 
+// Unit combat / battle tuning constants.
+const (
+	InfAmmoThreshold    = 99    // AmmoMax at/above this means effectively infinite ammo
+	distAccPenalty      = 3     // accuracy loss per tile of distance
+	minAccMod           = 10    // floor for distance-based accuracy modifier
+	minHitChance        = 5     // floor for final hit chance
+	crouchAimBonus      = 110   // % aim multiplier when crouched
+	nightAimMult        = 75    // % aim multiplier at night
+	marksmanDist        = 8     // min range for marksman bonus
+	marksmanAimBonus    = 115   // % aim multiplier for marksman
+	closeCombatDist     = 4     // max range for close-combat bonus
+	closeCombatAimBonus = 115   // % aim multiplier for close combat
+	steadyAimBonus      = 110   // % aim multiplier for steady aim
+	overwatchAimBonus   = 120   // % aim multiplier for overwatch
+	meleeCoverDist      = 1.5   // distance threshold for melee cover check
+	crouchDmgReduce     = 7     // crouching damage reduction numerator (of 10)
+	fatalWoundChance    = 15    // % chance per hit to inflict a fatal wound
+	bleedDivisor        = 4     // bleed rate = damage / bleedDivisor
+	maxBleedRate        = 5     // cap on bleed rate
+	moveTUCostPerTile   = 4     // TU cost per tile moved (matches pathMoveCost)
+)
+
 type Unit struct {
 	Type        int
 	Soldier     *soldier.Soldier
@@ -157,46 +179,46 @@ func (u *Unit) FireAt(target *Unit, m *BattleMap, weather *Weather) (int, bool, 
 	if rounds <= 0 {
 		rounds = 1
 	}
-	if w.AmmoMax < 99 && u.WeaponAmmo < rounds {
+	if w.AmmoMax < InfAmmoThreshold && u.WeaponAmmo < rounds {
 		return 0, false, false, fmt.Errorf("out of ammo")
 	}
-	if w.AmmoMax < 99 {
+	if w.AmmoMax < InfAmmoThreshold {
 		u.WeaponAmmo -= rounds
 	}
 	u.TU -= tuCost
 
 	dist := math.Sqrt(float64((target.X-u.X)*(target.X-u.X) + (target.Y-u.Y)*(target.Y-u.Y)))
-	accMod := 100 - int(dist*3)
-	if accMod < 10 {
-		accMod = 10
+	accMod := 100 - int(dist*distAccPenalty)
+	if accMod < minAccMod {
+		accMod = minAccMod
 	}
 	hitChance := u.Accuracy * accMod / 100
 	hitChance -= w.ModeAccuracy(u.FireMode)
-	if hitChance < 5 {
-		hitChance = 5
+	if hitChance < minHitChance {
+		hitChance = minHitChance
 	}
 	if u.Crouching {
-		hitChance = hitChance * 110 / 100
+		hitChance = hitChance * crouchAimBonus / 100
 	}
 	if u.IsNight {
-		hitChance = hitChance * 75 / 100
+		hitChance = hitChance * nightAimMult / 100
 	}
 	if weather != nil {
 		hitChance -= weather.AccuracyPenalty()
 	}
 
 	if u.Soldier != nil {
-		if dist > 8 && u.Soldier.HasBattleMod(soldier.BModMarksman) {
-			hitChance = hitChance * 115 / 100
+		if dist > marksmanDist && u.Soldier.HasBattleMod(soldier.BModMarksman) {
+			hitChance = hitChance * marksmanAimBonus / 100
 		}
-		if dist <= 4 && u.Soldier.HasBattleMod(soldier.BModCloseCombat) {
-			hitChance = hitChance * 115 / 100
+		if dist <= closeCombatDist && u.Soldier.HasBattleMod(soldier.BModCloseCombat) {
+			hitChance = hitChance * closeCombatAimBonus / 100
 		}
 		if !u.HasMoved && u.Soldier.HasBattleMod(soldier.BModSteadyAim) {
-			hitChance = hitChance * 110 / 100
+			hitChance = hitChance * steadyAimBonus / 100
 		}
 		if u.InOverwatch && u.Soldier.HasBattleMod(soldier.BModOverwatch) {
-			hitChance = hitChance * 120 / 100
+			hitChance = hitChance * overwatchAimBonus / 100
 		}
 	}
 
@@ -208,7 +230,7 @@ func (u *Unit) FireAt(target *Unit, m *BattleMap, weather *Weather) (int, bool, 
 		if rand.Intn(100) >= hitChance {
 			continue
 		}
-		if m != nil && dist <= 1.5 {
+		if m != nil && dist <= meleeCoverDist {
 			if tc := m.At(target.X, target.Y).Cover; tc > 0 {
 				if rand.Intn(100) < tc {
 					anyCover = true
@@ -240,7 +262,7 @@ func (u *Unit) FireAt(target *Unit, m *BattleMap, weather *Weather) (int, bool, 
 		}
 		dmg -= target.Armour
 		if target.Crouching {
-			dmg = dmg * 7 / 10
+			dmg = dmg * crouchDmgReduce / 10
 		}
 		weapDMG := WeaponDamageType(u.Weapon)
 		if target.AlienType != nil {
@@ -256,11 +278,11 @@ func (u *Unit) FireAt(target *Unit, m *BattleMap, weather *Weather) (int, bool, 
 		}
 		totalDamage += dmg
 		anyHit = true
-		if rand.Intn(100) < 15 {
+		if rand.Intn(100) < fatalWoundChance {
 			target.FatalWounds++
-			target.BleedRate += dmg / 4
-			if target.BleedRate > 5 {
-				target.BleedRate = 5
+			target.BleedRate += dmg / bleedDivisor
+			if target.BleedRate > maxBleedRate {
+				target.BleedRate = maxBleedRate
 			}
 		}
 	}
@@ -305,7 +327,7 @@ func WeaponDamageType(weapon string) int {
 
 func (u *Unit) MoveTo(x, y int, m *BattleMap) bool {
 	dist := math.Abs(float64(x-u.X)) + math.Abs(float64(y-u.Y))
-	tuCost := int(dist) * 4
+	tuCost := int(dist) * moveTUCostPerTile
 	if u.Crouching {
 		tuCost += 4
 	}

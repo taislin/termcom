@@ -6,6 +6,40 @@ import (
 	"github.com/taislin/termcom/internal/language"
 )
 
+// Probability denominators for mission-modifier rolls (1-in-N chance).
+const (
+	nightOpsChance      = 3
+	reinforcementsChance = 4
+	timeLimitChance     = 5
+	boobyTrapChance     = 3
+	alienAmbushChance   = 4
+	vipRescueChance     = 3
+	heavyFogChance      = 5
+	lowVisChance        = 6
+	highGroundChance    = 6
+	snowChance          = 2
+	windChance          = 3
+	rainChance          = 4
+	stormChance         = 5
+	marshFogChance      = 4
+	defaultFogChance    = 6
+)
+
+// Weather accuracy/sight/fire tuning.
+const (
+	rainAccPenalty   = 5
+	fogAccPerDensity = 5
+	coldAccPenalty   = 3
+	rainSightRed     = 2
+	fogSightPerDensity = 3
+	coldWindSightRed = 2
+	fireSpreadRain   = 5
+	fireSpreadWind   = 30
+	fireSpreadBase   = 20
+	fogRangeMin      = 1
+	fogRangeSpan     = 2
+)
+
 // MissionModifier defines mission-specific environment rules.
 type MissionModifier int
 
@@ -72,41 +106,46 @@ func (m MissionModifier) Description() string {
 	}
 }
 
+// roll reports whether a 1-in-chance event occurs this rng draw.
+func roll(rng *rand.Rand, chance int) bool {
+	return rng.Intn(chance) == 0
+}
+
 func RollModifiers(rng *rand.Rand, missionType string) []MissionModifier {
 	var mods []MissionModifier
 
-	if rng.Intn(3) == 0 {
+	if roll(rng, nightOpsChance) {
 		mods = append(mods, ModNightOps)
 	}
 
 	switch missionType {
 	case "Terror", "Abduction":
-		if rng.Intn(4) == 0 {
+		if roll(rng, reinforcementsChance) {
 			mods = append(mods, ModReinforcements)
 		}
-		if rng.Intn(5) == 0 {
+		if roll(rng, timeLimitChance) {
 			mods = append(mods, ModTimeLimit)
 		}
 	case "Supply Raid", "Alien Research":
-		if rng.Intn(3) == 0 {
+		if roll(rng, boobyTrapChance) {
 			mods = append(mods, ModBoobyTrapped)
 		}
-		if rng.Intn(4) == 0 {
+		if roll(rng, alienAmbushChance) {
 			mods = append(mods, ModAlienAmbush)
 		}
 	case "Council":
-		if rng.Intn(3) == 0 {
+		if roll(rng, vipRescueChance) {
 			mods = append(mods, ModVIPRescue)
 		}
 	}
 
-	if rng.Intn(5) == 0 {
+	if roll(rng, heavyFogChance) {
 		mods = append(mods, ModHeavyFog)
 	}
-	if rng.Intn(6) == 0 {
+	if roll(rng, lowVisChance) {
 		mods = append(mods, ModLowVisibility)
 	}
-	if rng.Intn(6) == 0 {
+	if roll(rng, highGroundChance) {
 		mods = append(mods, ModHighGround)
 	}
 
@@ -135,33 +174,33 @@ func RollWeather(rng *rand.Rand, biome string) Weather {
 
 	switch biome {
 	case "snow", "polar":
-		if rng.Intn(2) == 0 {
+		if roll(rng, snowChance) {
 			w.Snow = true
 		}
-		if rng.Intn(3) == 0 {
+		if roll(rng, windChance) {
 			w.Wind = true
 		}
 		w.TempCold = true
 	case "desert":
-		if rng.Intn(4) == 0 {
+		if roll(rng, windChance) {
 			w.Wind = true
 		}
 	case "marsh":
-		if rng.Intn(3) == 0 {
+		if roll(rng, rainChance) {
 			w.Rain = true
 		}
-		if rng.Intn(4) == 0 {
-			w.FogDensity = 1 + rng.Intn(2)
+		if roll(rng, marshFogChance) {
+			w.FogDensity = fogRangeMin + rng.Intn(fogRangeSpan)
 		}
 	default:
-		if rng.Intn(4) == 0 {
+		if roll(rng, rainChance) {
 			w.Rain = true
 		}
-		if rng.Intn(5) == 0 {
+		if roll(rng, stormChance) {
 			w.Wind = true
 		}
-		if rng.Intn(6) == 0 {
-			w.FogDensity = 1 + rng.Intn(2)
+		if roll(rng, defaultFogChance) {
+			w.FogDensity = fogRangeMin + rng.Intn(fogRangeSpan)
 		}
 	}
 
@@ -171,13 +210,13 @@ func RollWeather(rng *rand.Rand, biome string) Weather {
 func (w Weather) AccuracyPenalty() int {
 	pen := 0
 	if w.Rain {
-		pen += 5
+		pen += rainAccPenalty
 	}
 	if w.FogDensity > 0 {
-		pen += w.FogDensity * 5
+		pen += w.FogDensity * fogAccPerDensity
 	}
 	if w.TempCold {
-		pen += 3
+		pen += coldAccPenalty
 	}
 	return pen
 }
@@ -185,25 +224,25 @@ func (w Weather) AccuracyPenalty() int {
 func (w Weather) SightReduction() int {
 	red := 0
 	if w.Rain {
-		red += 2
+		red += rainSightRed
 	}
 	if w.FogDensity > 0 {
-		red += w.FogDensity * 3
+		red += w.FogDensity * fogSightPerDensity
 	}
 	if w.TempCold && w.Wind {
-		red += 2
+		red += coldWindSightRed
 	}
 	return red
 }
 
 func (w Weather) FireSpreadChance() int {
 	if w.Rain {
-		return 5
+		return fireSpreadRain
 	}
 	if w.Wind {
-		return 30
+		return fireSpreadWind
 	}
-	return 20
+	return fireSpreadBase
 }
 
 func (w Weather) IsClear() bool {

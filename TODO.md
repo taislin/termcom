@@ -99,54 +99,54 @@ Scope: Features and fixes for the battlescape tactical combat system.
 ### `internal/battle/crash.go`
 
 ### `internal/battle/gas.go`
-- [ ] **U1 (Low)** `3` used as max-gas-density sentinel in `Set`/`BlocksLOS`/`CoverPenalty`/`Draw` — extract `const MaxGasDensity = 3` (49,68,79,151)
-- [ ] **U2 (Low)** `40`, `20` — cover penalty values for density 3/2 (80,82)
-- [ ] **U3 (Low)** `v.Density <= 1` — minimum density threshold for diffusion (100)
-- [ ] **U4 (Low)** All RGB color literals in `Draw` (154–171) — extract named palette constants
-- [ ] **R1 (Low)** `Draw` has near-duplicate color blocks for GasSmoke vs GasPoison per density level — extract `gasStyle(density, gType)` helper
+- [x] **U1 (Low)** `3` used as max-gas-density sentinel — `MaxGasDensity` const.
+- [x] **U2 (Low)** `40`, `20` cover penalty values — `GasCoverDensity3/2`.
+- [x] **U3 (Low)** `v.Density <= 1` diffusion threshold — `MinDiffuseDensity`.
+- [x] **U4 (Low)** RGB color literals in `Draw` — named `gasSmokeFg/Bg`, `gasPoisonFg/Bg`, `gasRune`.
+- [x] **R1 (Low)** `Draw` dup color blocks — extracted `gasStyle(density, gType)`.
 
 ### `internal/battle/input.go`
-- [ ] **U1 (Low)** `3` — camera pan distance hardcoded; extract `const CamPanStep = 3` (66–72, 121–142)
-- [ ] **U2 (Low)** `1` — hardcoded column offset for help-bar hit testing (204)
+- [x] **U1 (Low)** `3` camera pan — `CamPanStep` const (66–72, 121–142).
+- [x] **U2 (Low)** `1` help-bar column offset — `helpBarCol` const (204).
 
 ### `internal/battle/modifiers.go`
-- [ ] **U1 (Low)** All probability denominators in `RollModifiers` — `3`, `4`, `5`, `6` used directly; name as `const` like `nightOpsChance = 3` (78–111)
-- [ ] **U2 (Low)** `5`, `3`, `2` in `AccuracyPenalty`, `SightReduction` (171–197)
-- [ ] **U3 (Low)** `5`, `30`, `20` in `FireSpreadChance` (200–207)
-- [ ] **U4 (Low)** `1 + rng.Intn(2)` random fog range (154,164)
-- [ ] **R1 (Low)** `RollModifiers` has near-identical `rng.Intn(N) == 0` ×7 — extract `func roll(rng *rand.Rand, chance int) bool`
+- [x] **U1 (Low)** Probability denominators — named `nightOpsChance` etc.
+- [x] **U2 (Low)** `5`,`3`,`2` accuracy/sight — named `rainAccPenalty` etc.
+- [x] **U3 (Low)** `5`,`30`,`20` fire spread — `fireSpreadRain/Wind/Base`.
+- [x] **U4 (Low)** `1 + rng.Intn(2)` fog range — `fogRangeMin`/`fogRangeSpan`.
+- [x] **R1 (Low)** `rng.Intn(N)==0` ×7 — extracted `roll(rng, chance)`.
 
 ### `internal/battle/path.go`
-- [ ] **U1 (Low)** `15` — TU threshold for reaction fire (138)
-- [ ] **U2 (Low)** `20` — distance cutoff for reaction fire (143)
-- [ ] **U3 (Low)** `2`, `3`, `5` — multipliers in reaction-fire chance formula (149)
-- [ ] **U4 (Low)** `1` — minimum reaction-fire chance floor (151)
+- [x] **U1 (Low)** `15` TU threshold — `MinReactionTU` (battlescape.go).
+- [x] **U2 (Low)** `20` distance cutoff — `SightRange`.
+- [x] **U3 (Low)** `2`,`3`,`5` multipliers — `ReactionMult/AccDiv/DistPen`.
+- [x] **U4 (Low)** `1` min chance — `ReactionMinChance`.
 
 ### `internal/battle/terrain.go`
-- [ ] **U1 (Low)** `0.25` — background darkening factor in `RenderTile` (199)
-- [ ] **U2 (Low)** `0.08` — ambient occlusion factor per opaque neighbor (221)
-- [ ] **U3 (Low)** `0.6` — minimum AO darkening clamp (223)
-- [ ] **U4 (Low)** `0.92` — checkerboard dither factor (231)
-- [ ] **U5 (Low)** `0.45` — fog-of-war dim factor (236–237)
-- [ ] **U6 (Low)** All RGB triples in `TilePalette`, `bloodColor`, `fireColor` — name as constants
-- [ ] **R1 (Low)** `isOpaqueTile` switch (182–187) — use `map[TileType]bool` set once at init
+- [x] **U1 (Low)** `0.25` bg darkening — `bgDarkenFactor`.
+- [x] **U2 (Low)** `0.08` AO factor — `aoPerNeighbor`.
+- [x] **U3 (Low)** `0.6` AO clamp — `aoMinFactor`.
+- [x] **U4 (Low)** `0.92` dither — `ditherFactor`.
+- [x] **U5 (Low)** `0.45` fog dim — `fogOfWarDim`.
+- [x] **U6 (Low)** RGB triples — `tilePalette` (existing), `bloodPalette`, `firePalette`.
+- [x] **R1 (Low)** `isOpaqueTile` switch — `opaqueTiles` map at init.
 
 ### `internal/battle/unit.go`
-- [ ] **U1 (Low)** `99` used as infinite-ammo sentinel (`w.AmmoMax < 99`) — extract `const InfAmmoThreshold = 99` (151,154)
-- [ ] **U2 (Low)** `3` in `int(dist*3)` — accuracy distance penalty multiplier (160)
-- [ ] **U3 (Low)** `10` — minimum accuracy-mod floor (161–162)
-- [ ] **U4 (Low)** `5` — minimum hit-chance floor (166–167)
-- [ ] **U5 (Low)** `110/100`, `75/100`, `115/100`, `120/100` — crouch/night/marksman/close-combat/steady-aim/overwatch percentage bonuses (170–191)
-- [ ] **U6 (Low)** `8` — marksman distance threshold (180)
-- [ ] **U7 (Low)** `4` — close-combat distance threshold (183)
-- [ ] **U8 (Low)** `1.5` — melee-cover distance threshold raw float (202)
-- [ ] **U9 (Low)** `15` — fatal wound chance percent (250)
-- [ ] **U10 (Low)** `4` in `dmg / 4` — bleed-rate divisor (252)
-- [ ] **U11 (Low)** `5` — max bleed-rate cap (253–254)
-- [ ] **U12 (Low)** `7/10` — crouching damage reduction factor (234)
-- [ ] **U13 (Low)** `4` in `int(dist) * 4` — TU cost per tile in `MoveTo` duplicates `pathMoveCost` from path.go (299)
-- [ ] **R1 (Low)** `FireAt` ~140 lines (135–277) deeply nested conditionals — extract `calcHitChance`, `applyDamage`, `applyFatalWound`, `applyBattleMods`
-- [ ] **R2 (Low)** `WeaponDamageType` switch hardcodes weapon ID strings; drive from item definition field instead (281–294)
+- [x] **U1 (Low)** `99` infinite-ammo sentinel — `InfAmmoThreshold`.
+- [x] **U2 (Low)** `3` dist accuracy penalty — `distAccPenalty`.
+- [x] **U3 (Low)** `10` min accuracy-mod — `minAccMod`.
+- [x] **U4 (Low)** `5` min hit-chance — `minHitChance`.
+- [x] **U5 (Low)** crouch/night/marksman/close/steady/overwatch bonuses — named consts.
+- [x] **U6 (Low)** `8` marksman range — `marksmanDist`.
+- [x] **U7 (Low)** `4` close-combat range — `closeCombatDist`.
+- [x] **U8 (Low)** `1.5` melee cover dist — `meleeCoverDist`.
+- [x] **U9 (Low)** `15` fatal wound chance — `fatalWoundChance`.
+- [x] **U10 (Low)** `4` bleed divisor — `bleedDivisor`.
+- [x] **U11 (Low)** `5` max bleed — `maxBleedRate`.
+- [x] **U12 (Low)** `7/10` crouch dmg reduce — `crouchDmgReduce`.
+- [x] **U13 (Low)** `4` TU/tile — `moveTUCostPerTile`.
+- [ ] **R1 (Low)** `FireAt` nested conditionals — extract helpers (deferred).
+- [ ] **R2 (Low)** `WeaponDamageType` switch hardcoded strings — drive from item field (deferred).
 
 ### `internal/base/equip.go`
 - [ ] **M2 (Low)** Magic numbers `20, 24` in `MakeSoldierPortrait(s.Name, s.Armor, 20, 24)` (59)

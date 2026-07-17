@@ -14,6 +14,39 @@ const (
 	GasPoison
 )
 
+// Gas density bounds and tuning.
+const (
+	MaxGasDensity      = 3    // density is clamped to this ceiling
+	MinDiffuseDensity  = 1    // cells at or below this density stop spreading
+	GasCoverDensity3   = 40   // cover penalty (%) at max density
+	GasCoverDensity2   = 20   // cover penalty (%) at medium density
+)
+
+// Gas palette colours per density level (smoke foreground/background, poison fg/bg).
+var (
+	gasSmokeFg = []tcell.Color{
+		tcell.NewRGBColor(80, 80, 80),
+		tcell.NewRGBColor(128, 128, 128),
+		tcell.NewRGBColor(160, 160, 160),
+	}
+	gasSmokeBg = []tcell.Color{
+		tcell.NewRGBColor(0, 0, 0),
+		tcell.NewRGBColor(25, 25, 25),
+		tcell.NewRGBColor(40, 40, 40),
+	}
+	gasPoisonFg = []tcell.Color{
+		tcell.NewRGBColor(0, 100, 0),
+		tcell.NewRGBColor(0, 160, 0),
+		tcell.NewRGBColor(0, 200, 0),
+	}
+	gasPoisonBg = []tcell.Color{
+		tcell.NewRGBColor(0, 0, 0),
+		tcell.NewRGBColor(0, 25, 0),
+		tcell.NewRGBColor(0, 40, 0),
+	}
+	gasRune = []rune{'\u2591', '\u2592', '\u2593'} // light/medium/dark shade by density-1
+)
+
 type GasCell struct {
 	Density int
 	Type    GasType
@@ -45,8 +78,8 @@ func (g *GasGrid) Set(x, y, density int, gt GasType) {
 		delete(g.cells, [2]int{x, y})
 		return
 	}
-	if density > 3 {
-		density = 3
+	if density > MaxGasDensity {
+		density = MaxGasDensity
 	}
 	g.cells[[2]int{x, y}] = GasCell{Density: density, Type: gt}
 }
@@ -65,7 +98,7 @@ func (g *GasGrid) BlocksLOS(x, y int) bool {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 	c, ok := g.cells[[2]int{x, y}]
-	return ok && c.Density >= 3
+	return ok && c.Density >= MaxGasDensity
 }
 
 func (g *GasGrid) CoverPenalty(x, y int) int {
@@ -76,10 +109,10 @@ func (g *GasGrid) CoverPenalty(x, y int) int {
 		return 0
 	}
 	switch c.Density {
-	case 3:
-		return 40
-	case 2:
-		return 20
+	case MaxGasDensity:
+		return GasCoverDensity3
+	case MaxGasDensity - 1:
+		return GasCoverDensity2
 	default:
 		return 0
 	}
@@ -97,7 +130,7 @@ func (g *GasGrid) Diffuse() {
 	var spreads []spread
 
 	for k, v := range g.cells {
-		if v.Density <= 1 {
+		if v.Density <= MinDiffuseDensity {
 			continue
 		}
 		newD := v.Density - 1
@@ -154,34 +187,27 @@ func (g *GasGrid) Draw(ctx *engine.ScreenCtx, scrollX, scrollY, viewW, viewH int
 		var ch rune
 		var style tcell.Style
 
-		switch v.Density {
-		case 3:
-			ch = '\u2593'
-			if v.Type == GasPoison {
-				style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(0, 200, 0)).Background(tcell.NewRGBColor(0, 40, 0))
-			} else {
-				style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(160, 160, 160)).Background(tcell.NewRGBColor(40, 40, 40))
-			}
-		case 2:
-			ch = '\u2592'
-			if v.Type == GasPoison {
-				style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(0, 160, 0)).Background(tcell.NewRGBColor(0, 25, 0))
-			} else {
-				style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(128, 128, 128)).Background(tcell.NewRGBColor(25, 25, 25))
-			}
-		case 1:
-			ch = '\u2591'
-			if v.Type == GasPoison {
-				style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(0, 100, 0))
-			} else {
-				style = tcell.StyleDefault.Foreground(tcell.NewRGBColor(80, 80, 80))
-			}
-		default:
+		ch, style = gasStyle(v.Density, v.Type)
+		if ch == 0 {
 			continue
 		}
 
 		ctx.SetCell(sx, sy, ch, style)
 	}
+}
+
+// gasStyle returns the display rune and colour style for a gas cell of the
+// given density and type. Returns ch=0 when density is out of range.
+func gasStyle(density int, gt GasType) (rune, tcell.Style) {
+	if density < 1 || density > MaxGasDensity {
+		return 0, tcell.StyleDefault
+	}
+	idx := density - 1
+	ch := gasRune[idx]
+	if gt == GasPoison {
+		return ch, tcell.StyleDefault.Foreground(gasPoisonFg[idx]).Background(gasPoisonBg[idx])
+	}
+	return ch, tcell.StyleDefault.Foreground(gasSmokeFg[idx]).Background(gasSmokeBg[idx])
 }
 
 func (g *GasGrid) Clear() {
