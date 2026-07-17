@@ -292,15 +292,16 @@ func init() {
 		"MSG_PSI_ATTACK":            "%s에 대해 초감각 공격 시도 중...",
 		"MSG_PSI_SUCCESS":           "초감각 공격 성공! %s이(가) 공황 상태!",
 		"MSG_PSI_FAIL":              "초감각 공격 실패.",
-		"MSG_ALIEN_HIT":             "외계인이 %s에게 %d 데미지 타격!",
+		"MSG_ALIEN_HIT":             "외계인이 %2$s에게 %1$d 데미지 타격!(HP:%3$d)",
 		"MSG_ALIEN_KILL":            "%s 제거됨!",
 		"MSG_ALIEN_MISS":            "외계인 사격 조준 실패!",
 		"MSG_ALIEN_MELEE":           "%s이(가) %s을(를) %d 데미지 공격!",
 		"MSG_REACTION_FIRE":         "%s이(가) 반응함! %s을(를) 사격!",
-		"MSG_REACTION_HIT":          "반응 사격 타격! %s에게 %d 데미지 (HP:%d)",
+		"MSG_REACTION_HIT":          "반응 사격 타격! %2$s에게 %1$d 데미지 (HP:%3$d)",
 		"MSG_REACTION_MISS":         "반응 사격 조준 실패!",
 		"MSG_REACTION_KILL":         "%s이(가) 반응 사격에 사살됨!",
 		"MSG_REINFORCEMENTS":        "외계인 증원 %d마리 접근 중!",
+		"MSG_BATTLE_EXITED":         "임무 포기! 모든 팀원이 손실되었습니다.",
 
 		// Status bar
 		"STATUS_TURN":             "턴: %d | %s",
@@ -860,6 +861,8 @@ func init() {
 		"OPTIONS_HELP":             "[\u2190]/[\u2192]=\uc870\uc815  [\u2191]/[\u2193]=\uc120\ud0dd  [Enter]=\uc804\ud658  [Esc]=\ub3cc\uc544\uac00\uae30",
 		"CONFIRM_QUIT":             "종료하시겠습니까?",
 		"CONFIRM_QUIT_HINT":        "[Y] = 예   [N] = 아니오",
+		"CONFIRM_BATTLE_EXIT":      "모든 팀원이 손실됩니다. 임무를 포기하시겠습니까?",
+		"CONFIRM_BATTLE_EXIT_HINT": "[Y] = 포기   [N] = 취소",
 
 		// ── Battle ────────────────────────────────────────
 		"BATTLE_COVER_FMT":          " (\\u25C8 %d%%)",

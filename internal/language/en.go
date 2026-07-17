@@ -290,7 +290,7 @@ func init() {
 		"MSG_PSI_ATTACK":            "Attempting psi attack on %s...",
 		"MSG_PSI_SUCCESS":           "PSI ATTACK SUCCESSFUL! %s is panicked!",
 		"MSG_PSI_FAIL":              "Psi attack failed.",
-		"MSG_ALIEN_HIT":             "Alien hits %s for %d damage!",
+		"MSG_ALIEN_HIT":             "Alien hits %2$s for %1$d damage! (HP:%3$d)",
 		"MSG_ALIEN_KILL":            "%s eliminated!",
 		"MSG_ALIEN_MISS":            "Alien shot misses!",
 		"MSG_ALIEN_MELEE":           "%s attacks %s for %d damage!",
@@ -299,6 +299,7 @@ func init() {
 		"MSG_REACTION_MISS":         "Reaction shot misses!",
 		"MSG_REACTION_KILL":         "%s killed by reaction fire!",
 		"MSG_REINFORCEMENTS":        "%d alien reinforcements incoming!",
+		"MSG_BATTLE_EXITED":         "Mission abandoned! All squad members lost.",
 
 		// Status bar
 		"STATUS_TURN":             "Turn: %d | %s",
@@ -879,6 +880,8 @@ func init() {
 		"OPTIONS_HELP":             "[\u2190]/[\u2192]=Adjust  [\u2191]/[\u2193]=Select  [Enter]=Toggle  [Esc]=Back",
 		"CONFIRM_QUIT":             "ARE YOU SURE YOU WANT TO QUIT?",
 		"CONFIRM_QUIT_HINT":        "[Y] = Yes   [N] = No",
+		"CONFIRM_BATTLE_EXIT":      "ALL SQUAD MEMBERS WILL BE LOST. ABANDON MISSION?",
+		"CONFIRM_BATTLE_EXIT_HINT": "[Y] = Abandon   [N] = Cancel",
 
 		// ── Battle ────────────────────────────────────────
 		"BATTLE_COVER_FMT":          " (\u25C8 %d%%)",

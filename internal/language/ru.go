@@ -292,7 +292,7 @@ func init() {
 		"MSG_PSI_ATTACK":            "Попытка пси-атаки на %s...",
 		"MSG_PSI_SUCCESS":           "ПСИ-АТАКА УСПЕШНА! %s в панике!",
 		"MSG_PSI_FAIL":              "Пси-атака провалилась.",
-		"MSG_ALIEN_HIT":             "Пришелец попал в %s! Урон: %d",
+		"MSG_ALIEN_HIT":             "Пришелец попал в %2$s! Урон: %1$d (ОЗ:%3$d)",
 		"MSG_ALIEN_KILL":            "%s уничтожен!",
 		"MSG_ALIEN_MISS":            "Выстрел пришельца промахнулся!",
 		"MSG_ALIEN_MELEE":           "%s атакует %s! Урон: %d",
@@ -301,6 +301,7 @@ func init() {
 		"MSG_REACTION_MISS":         "Реактивный выстрел промахнулся!",
 		"MSG_REACTION_KILL":         "%s убит реактивным огнём!",
 		"MSG_REINFORCEMENTS":        "Прибывает %d подкрепление пришельцев!",
+		"MSG_BATTLE_EXITED":         "Миссия брошена! Все члены отряда потеряны.",
 
 		// Status bar
 		"STATUS_TURN":             "Ход: %d | %s",
@@ -855,6 +856,8 @@ func init() {
 		"OPTIONS_PAUSE_ALIEN":      "Пауза при НЛО",
 		"CONFIRM_QUIT":             "ВЫ УВЕРЕНЫ, ЧТО ХОТИТЕ ВЫЙТИ?",
 		"CONFIRM_QUIT_HINT":        "[Y] = Да   [N] = Нет",
+		"CONFIRM_BATTLE_EXIT":      "ВСЕ ЧЛЕНЫ ОТРЯДА БУДУТ ПОТЕРЯНЫ. ПОКИНУТЬ МИССИЮ?",
+		"CONFIRM_BATTLE_EXIT_HINT": "[Y] = Покинуть   [N] = Отмена",
 		"OPTIONS_VOLUME":           "Громкость SFX",
 		"OPTIONS_RESOLUTION_SPEED": "Скорость разрешения",
 		"OPTIONS_ON":               "ВКЛ",

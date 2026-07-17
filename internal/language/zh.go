@@ -290,7 +290,7 @@ func init() {
 		"MSG_PSI_ATTACK":            "\u6b63\u5728\u5bf9 %s \u53d1\u52a8\u7075\u80fd\u653b\u51fb...",
 		"MSG_PSI_SUCCESS":           "\u7075\u80fd\u653b\u51fb\u6210\u529f\uff01%s \u5df2\u88ab\u6050\u614c\uff01",
 		"MSG_PSI_FAIL":              "\u7075\u80fd\u653b\u51fb\u5931\u8d25\u3002",
-		"MSG_ALIEN_HIT":             "\u5916\u661f\u4eba\u547d\u4e2d %s\uff0c\u9020\u6210 %d \u4f24\u5bb3\uff01",
+		"MSG_ALIEN_HIT":             "\u5916\u661f\u4eba\u547d\u4e2d %[2]s\uff0c\u9020\u6210 %[1]d \u4f24\u5bb3\uff01\uff08\u751f\u547d:%[3]d\uff09",
 		"MSG_ALIEN_KILL":            "%s \u5df2\u88ab\u6d88\u706d\uff01",
 		"MSG_ALIEN_MISS":            "\u5916\u661f\u4eba\u672a\u547d\u4e2d\uff01",
 		"MSG_ALIEN_MELEE":           "%s \u653b\u51fb %s\uff0c\u9020\u6210 %d \u4f24\u5bb3\uff01",
@@ -299,6 +299,7 @@ func init() {
 		"MSG_REACTION_MISS":         "\u53cd\u5e94\u5c04\u51fb\u672a\u547d\u4e2d\uff01",
 		"MSG_REACTION_KILL":         "%s \u88ab\u53cd\u5e94\u5c04\u51fb\u51fb\u6740\uff01",
 		"MSG_REINFORCEMENTS":        "%d \u540d\u5916\u661f\u63a5\u5175\u5df2\u5230\u8fbe\uff01",
+		"MSG_BATTLE_EXITED":         "\u4efb\u52a1\u653e\u5f03\uff01\u6240\u6709\u961f\u5458\u5168\u90e8\u4e27\u5931\u3002",
 
 		// \u72b6\u6001\u680f
 		"STATUS_TURN":             "\u56de\u5408: %d | %s",
@@ -851,6 +852,8 @@ func init() {
 		"OPTIONS_CONFIRM":          "\u786e\u8ba4\u5bf9\u8bdd\u6846",
 		"CONFIRM_QUIT":             "\u4f60\u786e\u5b9a\u8981\u9000\u51fa\u5417\uff1f",
 		"CONFIRM_QUIT_HINT":        "[Y] = \u662f   [N] = \u5426",
+		"CONFIRM_BATTLE_EXIT":      "\u6240\u6709\u961f\u5458\u5c06\u5168\u90e8\u4e27\u5931\u3002\u653e\u5f03\u4efb\u52a1\uff1f",
+		"CONFIRM_BATTLE_EXIT_HINT": "[Y] = \u653e\u5f03   [N] = \u53d6\u6d88",
 		"OPTIONS_VOLUME":           "\u97f3\u91cf",
 		"OPTIONS_PAUSE_ALIEN":      "\u5916\u661f\u4eba\u884c\u52a8\u65f6\u6682\u505c",
 		"OPTIONS_RESOLUTION_SPEED": "\u5206\u8fa8\u7387\u901f\u5ea6",

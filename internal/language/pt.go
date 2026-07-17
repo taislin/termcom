@@ -292,7 +292,7 @@ func init() {
 		"MSG_PSI_ATTACK":            "A tentar ataque psi em %s...",
 		"MSG_PSI_SUCCESS":           "ATAQUE PSI BEM-SUCEDIDO! %s est\u00e1 em p\u00e2nico!",
 		"MSG_PSI_FAIL":              "Ataque psi falhou.",
-		"MSG_ALIEN_HIT":             "Alien acerta em %s com %d de dano!",
+		"MSG_ALIEN_HIT":             "Alien acerta em %2$s com %1$d de dano! (HP:%3$d)",
 		"MSG_ALIEN_KILL":            "%s eliminado!",
 		"MSG_ALIEN_MISS":            "Disparo alien falha!",
 		"MSG_ALIEN_MELEE":           "%s ataca %s com %d de dano!",
@@ -301,6 +301,7 @@ func init() {
 		"MSG_REACTION_MISS":         "Disparo de rea\u00e7\u00e3o falha!",
 		"MSG_REACTION_KILL":         "%s eliminado por fogo de rea\u00e7\u00e3o!",
 		"MSG_REINFORCEMENTS":        "%d refor\u00e7os alien em caminho!",
+		"MSG_BATTLE_EXITED":         "Miss\u00e3o abandonada! Todos os membros da equipe perdidos.",
 
 		// Status bar
 		"STATUS_TURN":             "Turno: %d | %s",
@@ -855,6 +856,8 @@ func init() {
 		"OPTIONS_PAUSE_ALIEN":      "Pausar ao detectar",
 		"CONFIRM_QUIT":             "TEM A CERTEZA QUE QUER SAIR?",
 		"CONFIRM_QUIT_HINT":        "[Y] = Sim   [N] = Não",
+		"CONFIRM_BATTLE_EXIT":      "TODOS OS MEMBROS DA EQUIPE SERÃO PERDIDOS. ABANDONAR MISSÃO?",
+		"CONFIRM_BATTLE_EXIT_HINT": "[Y] = Abandonar   [N] = Cancelar",
 		"OPTIONS_VOLUME":           "Volume SFX",
 		"OPTIONS_RESOLUTION_SPEED": "Velocidade de Resolu\u00e7\u00e3o",
 		"OPTIONS_ON":               "LIG ",

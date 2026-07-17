@@ -292,7 +292,7 @@ func init() {
 		"MSG_PSI_ATTACK":            "Intentando ataque psi sobre %s...",
 		"MSG_PSI_SUCCESS":           "\u00a1ATAQUE PSI EXITOSO! \u00a1%s entr\u00f3 en p\u00e1nico!",
 		"MSG_PSI_FAIL":              "Ataque psi fallido.",
-		"MSG_ALIEN_HIT":             "\u00a1El alien\u00edgena impacta a %s por %d de da\u00f1o!",
+		"MSG_ALIEN_HIT":             "\u00a1El alien\u00edgena impacta a %2$s por %1$d de da\u00f1o! (HP:%3$d)",
 		"MSG_ALIEN_KILL":            "\u00a1%s eliminado!",
 		"MSG_ALIEN_MISS":            "\u00a1El disparo alien\u00edgena falla!",
 		"MSG_ALIEN_MELEE":           "\u00a1%s ataca a %s por %d de da\u00f1o!",
@@ -301,6 +301,7 @@ func init() {
 		"MSG_REACTION_MISS":         "\u00a1El disparo de reacci\u00f3n falla!",
 		"MSG_REACTION_KILL":         "\u00a1%s muerto por fuego de reacci\u00f3n!",
 		"MSG_REINFORCEMENTS":        "\u00a1%d refuerzos alien\u00edgenas en camino!",
+		"MSG_BATTLE_EXITED":         "\u00a1Misi\u00f3n abandonada! Todos los miembros del escuadr\u00f3n perdidos.",
 
 		// Barra de estado
 		"STATUS_TURN":             "Turno: %d | %s",
@@ -854,6 +855,8 @@ func init() {
 		"OPTIONS_PAUSE_ALIEN":      "Pausa al detectar",
 		"CONFIRM_QUIT":             "¿ESTÁS SEGURO DE QUE QUIERES SALIR?",
 		"CONFIRM_QUIT_HINT":        "[Y] = Sí   [N] = No",
+		"CONFIRM_BATTLE_EXIT":      "TODOS LOS MIEMBROS DEL ESCUADRÓN SE PERDERÁN. ¿ABANDONAR MISIÓN?",
+		"CONFIRM_BATTLE_EXIT_HINT": "[Y] = Abandonar   [N] = Cancelar",
 		"OPTIONS_VOLUME":           "Volumen SFX",
 		"OPTIONS_RESOLUTION_SPEED": "Velocidad de resoluci\u00f3n",
 		"OPTIONS_ON":               "S\u00cd ",

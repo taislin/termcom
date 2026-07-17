@@ -292,7 +292,7 @@ func init() {
 		"MSG_PSI_ATTACK":            "%s へのサイ攻撃を試みます...",
 		"MSG_PSI_SUCCESS":           "サイ攻撃成功！%s がパニックに陥った！",
 		"MSG_PSI_FAIL":              "サイ攻撃が失敗しました。",
-		"MSG_ALIEN_HIT":             "エイリアンが %s に %d ダメージ！",
+		"MSG_ALIEN_HIT":             "エイリアンが %[2]s に %[1]d ダメージ！(HP:%[3]d)",
 		"MSG_ALIEN_KILL":            "%s を排除！",
 		"MSG_ALIEN_MISS":            "エイリアンの射撃が外れた！",
 		"MSG_ALIEN_MELEE":           "%s が %s に %d ダメージ！",
@@ -301,6 +301,7 @@ func init() {
 		"MSG_REACTION_MISS":         "反応射撃が外れた！",
 		"MSG_REACTION_KILL":         "%s が反応射撃で撃たれた！",
 		"MSG_REINFORCEMENTS":        "エイリアンの増援 %d 体が接近中！",
+		"MSG_BATTLE_EXITED":         "任務放棄！全隊員が失われた。",
 
 		// Status bar
 		"STATUS_TURN":             "ターン: %d | %s",
@@ -860,6 +861,8 @@ func init() {
 		"OPTIONS_HELP":             "[\u2190]/[\u2192]=\u8abf\u6574  [\u2191]/[\u2193]=\u9078\u629e  [Enter]=\u5207\u308a\u66ff\u3048  [Esc]=\u623b\u308b",
 		"CONFIRM_QUIT":             "終了してもよろしいですか？",
 		"CONFIRM_QUIT_HINT":        "[Y] = はい   [N] = いいえ",
+		"CONFIRM_BATTLE_EXIT":      "全隊員が失われます。任務を放棄しますか？",
+		"CONFIRM_BATTLE_EXIT_HINT": "[Y] = 放棄   [N] = キャンセル",
 
 		"BATTLE_COVER_FMT":          " (\u25C8 %d%%)",
 		"BATTLE_LEVEL_FMT":          " [L%d]",

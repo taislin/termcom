@@ -292,7 +292,7 @@ func init() {
 		"MSG_PSI_ATTACK":            "Tentative d'attaque psi sur %s...",
 		"MSG_PSI_SUCCESS":           "ATTAQUE PSI RÉUSSIE ! %s est en panique !",
 		"MSG_PSI_FAIL":              "Ataque psi échouée.",
-		"MSG_ALIEN_HIT":             "Extraterrestre touche %s pour %d dégâts !",
+		"MSG_ALIEN_HIT":             "Extraterrestre touche %2$s pour %1$d dégâts ! (PV:%3$d)",
 		"MSG_ALIEN_KILL":            "%s éliminé !",
 		"MSG_ALIEN_MISS":            "Le tir extraterrestre rate !",
 		"MSG_ALIEN_MELEE":           "%s attaque %s pour %d dégâts !",
@@ -301,6 +301,7 @@ func init() {
 		"MSG_REACTION_MISS":         "Le tir de réaction rate !",
 		"MSG_REACTION_KILL":         "%s tué par le tir de réaction !",
 		"MSG_REINFORCEMENTS":        "%d renforts extraterrestres en approche !",
+		"MSG_BATTLE_EXITED":         "Mission abandonnée ! Tous les membres de l'équipe perdus.",
 
 		// Status bar
 		"STATUS_TURN":             "Tour : %d | %s",
@@ -855,6 +856,8 @@ func init() {
 		"OPTIONS_PAUSE_ALIEN":      "Pause sur alien",
 		"CONFIRM_QUIT":             "ÊTES-VOUS SÛR DE VOULOIR QUITTER ?",
 		"CONFIRM_QUIT_HINT":        "[Y] = Oui   [N] = Non",
+		"CONFIRM_BATTLE_EXIT":      "TOUS LES MEMBRES DE L'ÉQUIPE SERONT PERDUS. ABANDONNER LA MISSION ?",
+		"CONFIRM_BATTLE_EXIT_HINT": "[Y] = Abandonner   [N] = Annuler",
 		"OPTIONS_VOLUME":           "Volume SFX",
 		"OPTIONS_RESOLUTION_SPEED": "Vitesse de Résolution",
 		"OPTIONS_ON":               "ACT ",

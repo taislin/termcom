@@ -184,6 +184,7 @@ type Battlescape struct {
 	// Input State
 	State          BattleState
 	mouseX, mouseY int // last mouse position for edge-scrolling
+	QuitConfirm    bool
 	mouseActive    bool
 }
 
@@ -918,7 +919,7 @@ func (bs *Battlescape) spawnShotFX(shooter, target *Unit, damage int, hit, cover
 		bs.SpawnBloodSplatter(target)
 		bs.spawnFloater(target.X, target.Y, fmt.Sprintf("-%d", damage), color.XTerm9)
 		name := target.Name()
-		bs.AddMessage(fmt.Sprintf(language.String(hitMsg), name, damage))
+		bs.AddMessage(fmt.Sprintf(language.String(hitMsg), damage, name, target.HP))
 		if !target.Alive {
 			bs.AddMessage(fmt.Sprintf(language.String(killMsg), name))
 		}
@@ -1278,6 +1279,18 @@ func (bs *Battlescape) checkAlienReactionFire(movedHuman *Unit) {
 		bs.spawnShotFX(u, movedHuman, damage, hit, coverHit, engine.StyleRedBold, "MSG_REACTION_MISS", "MSG_REACTION_HIT", "MSG_REACTION_KILL")
 		return
 	}
+}
+
+// exitBattle aborts the mission — all human units are killed and the battle ends in defeat.
+func (bs *Battlescape) exitBattle() {
+	for _, u := range bs.Units {
+		if u.Faction == FactionHuman && u.Alive {
+			u.HP = 0
+			u.Alive = false
+		}
+	}
+	bs.SetPhase(PhaseDefeat)
+	bs.AddMessage(language.String("MSG_BATTLE_EXITED"))
 }
 
 func (bs *Battlescape) finishBattle() {
@@ -2953,6 +2966,28 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 		}
 		ctx.DrawMarkupString(1, h-1, help, engine.StyleGray, engine.StyleHotkey)
 	}
+
+	// Quit confirmation dialog
+	if bs.QuitConfirm {
+		bs.renderQuitConfirm(ctx, w, h)
+	}
+}
+
+func (bs *Battlescape) renderQuitConfirm(ctx *engine.ScreenCtx, w, h int) {
+	boxW := 46
+	boxH := 5
+	x := (w - boxW) / 2
+	y := (h - boxH) / 2
+	for fy := y; fy < y+boxH; fy++ {
+		for fx := x; fx < x+boxW; fx++ {
+			ctx.SetCell(fx, fy, ' ', engine.StyleGray)
+		}
+	}
+	ctx.DrawPanel(x, y, boxW, boxH, "", engine.StyleGray)
+	msg := language.String("CONFIRM_BATTLE_EXIT")
+	ctx.DrawString(x+(boxW-engine.StringWidth(msg))/2, y+2, msg, engine.StyleYellow)
+	hint := language.String("CONFIRM_BATTLE_EXIT_HINT")
+	ctx.DrawString(x+(boxW-engine.StringWidth(hint))/2, y+3, hint, engine.StyleHotkey)
 }
 
 func (bs *Battlescape) phaseStr() string {
