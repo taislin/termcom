@@ -175,7 +175,7 @@ func DrawPixelImageFramed(screen tcell.Screen, x, y int, img *PixelImage, frameS
 	for row := 0; row < img.Height; row += 2 {
 		cellRow := y + 1 + row/2
 		for col := 0; col < img.Width; col++ {
-			resolvedTop, resolvedBottom, skip := drawPixelCell(screen, x+1+col, 0, cellRow, row, img)
+			resolvedTop, resolvedBottom, skip := drawPixelCell(screen, x+1, col, cellRow, row, img)
 			if skip {
 				continue
 			}
