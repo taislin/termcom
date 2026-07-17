@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"sort"
+	"time"
 
 	"github.com/taislin/termcom/internal/data"
 	"github.com/taislin/termcom/internal/language"
@@ -329,7 +330,15 @@ func HandlePromotions(roster []*Soldier) {
 	if maxRank < 1 {
 		return
 	}
-	rng := rand.New(rand.NewSource(int64(total)*131 + 7))
+	// Seed from the roster's actual composition plus a time-varying component so
+	// that equal-sized rosters (and repeated calls) yield different, per-roster
+	// promotion sequences instead of a fixed one.
+	var seed int64
+	for _, s := range roster {
+		seed = seed*31 + int64(len(s.Name)) + int64(s.Rank)*131 + int64(s.Missions)*17 + int64(s.Kills)*7
+	}
+	seed ^= time.Now().UnixNano()
+	rng := rand.New(rand.NewSource(seed))
 	for target := 1; target <= maxRank; target++ {
 		capCount := RankOpenings[target]
 		atTarget := 0

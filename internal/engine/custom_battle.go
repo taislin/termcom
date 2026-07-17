@@ -109,8 +109,12 @@ func (cs *CustomBattleScreen) Render(ctx *ScreenCtx) {
 			style = StyleHighlight
 		}
 		label := entry.Name
-		if len([]rune(label)) > leftW-4 {
-			label = string([]rune(label)[:leftW-7]) + "..."
+		if StringWidth(label) > leftW-4 {
+			runes := []rune(label)
+			for len(runes) > 0 && StringWidth(string(runes)) > leftW-7 {
+				runes = runes[:len(runes)-1]
+			}
+			label = string(runes) + "..."
 		}
 		ctx.DrawString(2, y, label, style)
 	}
@@ -140,7 +144,7 @@ func (cs *CustomBattleScreen) Render(ctx *ScreenCtx) {
 			words := strings.Fields(entry.Description)
 			line := ""
 			for _, word := range words {
-				if len([]rune(line))+len([]rune(word))+1 > w-rightX-2 {
+				if StringWidth(line)+StringWidth(word)+1 > w-rightX-2 {
 					ctx.DrawString(rightX+2, ry, line, StyleDefault)
 					ry++
 					line = word

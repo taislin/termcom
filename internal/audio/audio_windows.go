@@ -31,9 +31,11 @@ func ensureMIDI() {
 				audioDisabled = true
 			}
 		}()
-		// Open MIDI Mapper (Device ID -1)
-		_, _, err := midiOutOpen.Call(uintptr(unsafe.Pointer(&handle)), 0xFFFFFFFF, 0, 0, 0)
-		if err != nil && err.Error() != "The operation completed successfully." {
+		// Open MIDI Mapper (Device ID -1).
+		// Call returns (r1, r2, err); on Windows r1 is the HRESULT. A zero
+		// result (MMSYSERR_NOERROR) indicates success, regardless of err text.
+		r1, _, _ := midiOutOpen.Call(uintptr(unsafe.Pointer(&handle)), 0xFFFFFFFF, 0, 0, 0)
+		if r1 != 0 {
 			audioDisabled = true
 		}
 	})
@@ -52,6 +54,7 @@ func (b *midiBackend) Close() {
 		return
 	}
 	midiOutClose.Call(handle)
+	audioDisabled = true
 }
 
 func sendMIDI(msg uint32) {

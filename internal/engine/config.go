@@ -5,6 +5,8 @@ import (
 	"log"
 	"os"
 	"strings"
+	"sync/atomic"
+	"unsafe"
 
 	"github.com/taislin/termcom/internal/audio"
 	"github.com/taislin/termcom/internal/language"
@@ -44,7 +46,11 @@ type GlobalConfig struct {
 	TouchButtonSize    int    `json:"touch_button_size"`
 }
 
-var Config = GlobalConfig{
+// Config is the live configuration. It is a pointer so that LoadConfig can
+// publish a freshly unmarshalled struct via atomic pointer swap, never mutating
+// a struct that other goroutines are concurrently reading. All reads use the
+// Config.X field syntax, which remains valid because Config is a *GlobalConfig.
+var Config = &GlobalConfig{
 	BloomEnabled:       true,
 	LightingEnabled:    true,
 	SoundEnabled:       true,
@@ -61,6 +67,20 @@ var Config = GlobalConfig{
 	TouchButtonSize:    4,
 }
 
+func storeConfig(c *GlobalConfig) {
+	atomic.StorePointer((*unsafe.Pointer)(unsafe.Pointer(&Config)), unsafe.Pointer(c))
+}
+
+// applyConfig applies the side effects of a configuration (language, audio, theme).
+func applyConfig(c *GlobalConfig) {
+	if c.Language != "" {
+		language.SetLanguage(c.Language)
+	}
+	audio.SetAudioEnabled(c.SoundEnabled)
+	audio.SetSfxVolume(c.SfxVolume)
+	ApplyTheme(c.Theme)
+}
+
 const ConfigFile = "config.json"
 
 func LoadConfig() {
@@ -68,16 +88,13 @@ func LoadConfig() {
 	if err != nil {
 		return
 	}
-	if err := json.Unmarshal(data, &Config); err != nil {
+	var c GlobalConfig
+	if err := json.Unmarshal(data, &c); err != nil {
 		log.Printf("config: ignoring corrupt %s: %v", ConfigFile, err)
 		return
 	}
-	if Config.Language != "" {
-		language.SetLanguage(Config.Language)
-	}
-	audio.SetAudioEnabled(Config.SoundEnabled)
-	audio.SetSfxVolume(Config.SfxVolume)
-	ApplyTheme(Config.Theme)
+	applyConfig(&c)
+	storeConfig(&c)
 }
 
 func SaveConfig() {

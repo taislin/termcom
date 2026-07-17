@@ -67,9 +67,9 @@ func (lm *LayoutManager) BattleSidebarY(h int) int {
 
 func (lm *LayoutManager) BattleViewWidth(w int) int {
 	if lm.IsMobile() {
-		vw := 10
-		if vw > w-2 {
-			vw = w - 2
+		vw := w - 2
+		if vw < 24 {
+			vw = 24
 		}
 		return vw
 	}

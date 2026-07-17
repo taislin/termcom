@@ -3,6 +3,7 @@ package data
 import (
 	"fmt"
 	"image"
+	"math/rand"
 
 	"github.com/gdamore/tcell/v3"
 	"github.com/taislin/termcom/internal/language"
@@ -249,7 +250,17 @@ func (vb *VehicleBlueprint) IsContiguous() bool {
 	return len(visited) == len(vb.Parts)
 }
 
-// IsValid checks minimum requirements: at least 1 cockpit, 1 engine, all parts connected.
+// HasWeapon returns true if at least one weapon part is placed.
+func (vb *VehicleBlueprint) HasWeapon() bool {
+	for _, p := range vb.Parts {
+		if p.Def.Category == PartWeapon {
+			return true
+		}
+	}
+	return false
+}
+
+// IsValid checks minimum requirements: at least 1 cockpit, 1 engine, 1 weapon, all parts connected.
 func (vb *VehicleBlueprint) IsValid() error {
 	if len(vb.Parts) == 0 {
 		return fmt.Errorf("blueprint is empty")
@@ -515,98 +526,92 @@ var tierConfigs = map[UFOTier]tierConfig{
 // GenerateProceduralUFO creates a randomized UFO blueprint from a seed and tier.
 // Each (seed, tier) pair produces a deterministic but unique layout.
 func GenerateProceduralUFO(seed int64, tier UFOTier) *VehicleBlueprint {
-	rng := newRand(seed)
-	cfg := tierConfigs[tier]
-	name := UFOTierLangName(tier)
+	for i := 0; i < 10; i++ {
+		rng := newRand(seed + int64(i))
+		cfg := tierConfigs[tier]
+		name := UFOTierLangName(tier)
 
-	vb := NewVehicleBlueprint(name, cfg.width, cfg.height)
+		vb := NewVehicleBlueprint(name, cfg.width, cfg.height)
 
-	// Step 1: fill the interior ring with hull
-	hullPool := cfg.hulls
-	for y := 0; y < cfg.height; y++ {
-		for x := 0; x < cfg.width; x++ {
-			if isEdge(x, y, cfg.width, cfg.height) {
-				continue // skip edges — fill later
+		// Step 1: fill the interior ring with hull
+		hullPool := cfg.hulls
+		for y := 0; y < cfg.height; y++ {
+			for x := 0; x < cfg.width; x++ {
+				if isEdge(x, y, cfg.width, cfg.height) {
+					continue // skip edges — fill later
+				}
+				def := VehiclePartDefs[pickFrom(rng, hullPool)]
+				vb.Place(def, x, y)
 			}
-			def := VehiclePartDefs[pickFrom(rng, hullPool)]
-			vb.Place(def, x, y)
+		}
+
+		// Step 2: place cockpit near center
+		cx, cy := cfg.width/2, cfg.height/2
+		vb.Place(VehiclePartDefs[pickFrom(rng, cfg.cockpits)], cx, cy)
+
+		// Step 3: place engines along bottom edge
+		engineSlots := edgeSlotsBottom(cfg.width, cfg.height)
+		placed := 0
+		for _, slot := range engineSlots {
+			if placed >= cfg.minEngines {
+				break
+			}
+			if vb.Get(slot.x, slot.y) != nil {
+				continue
+			}
+			vb.Place(VehiclePartDefs[pickFrom(rng, cfg.engines)], slot.x, slot.y)
+			placed++
+		}
+
+		// Step 4: place weapons along middle or top edges
+		weaponSlots := edgeSlotsSides(cfg.width, cfg.height)
+		placed = 0
+		for _, slot := range weaponSlots {
+			if placed >= cfg.minWeapons {
+				break
+			}
+			if vb.Get(slot.x, slot.y) != nil {
+				continue
+			}
+			vb.Place(VehiclePartDefs[pickFrom(rng, cfg.weapons)], slot.x, slot.y)
+			placed++
+		}
+
+		// Step 5: place power cores — prefer side edges
+		powerSlots := append(edgeSlotsLeft(cfg.width, cfg.height), edgeSlotsRight(cfg.width, cfg.height)...)
+		placed = 0
+		for _, slot := range powerSlots {
+			if placed >= 1 {
+				break
+			}
+			if vb.Get(slot.x, slot.y) != nil {
+				continue
+			}
+			vb.Place(VehiclePartDefs[pickFrom(rng, cfg.powers)], slot.x, slot.y)
+			placed++
+		}
+
+		if vb.IsValid() == nil && vb.HasWeapon() {
+			return vb
 		}
 	}
-
-	// Step 2: place cockpit near center
-	cx, cy := cfg.width/2, cfg.height/2
-	vb.Place(VehiclePartDefs[pickFrom(rng, cfg.cockpits)], cx, cy)
-
-	// Step 3: place engines along bottom edge
-	engineSlots := edgeSlotsBottom(cfg.width, cfg.height)
-	placed := 0
-	for _, slot := range engineSlots {
-		if placed >= cfg.minEngines {
-			break
-		}
-		if vb.Get(slot.x, slot.y) != nil {
-			continue
-		}
-		vb.Place(VehiclePartDefs[pickFrom(rng, cfg.engines)], slot.x, slot.y)
-		placed++
-	}
-
-	// Step 4: place weapons along middle or top edges
-	weaponSlots := edgeSlotsSides(cfg.width, cfg.height)
-	placed = 0
-	for _, slot := range weaponSlots {
-		if placed >= cfg.minWeapons {
-			break
-		}
-		if vb.Get(slot.x, slot.y) != nil {
-			continue
-		}
-		vb.Place(VehiclePartDefs[pickFrom(rng, cfg.weapons)], slot.x, slot.y)
-		placed++
-	}
-
-	// Step 5: place power cores — prefer side edges
-	powerSlots := append(edgeSlotsLeft(cfg.width, cfg.height), edgeSlotsRight(cfg.width, cfg.height)...)
-	placed = 0
-	for _, slot := range powerSlots {
-		if placed >= 1 {
-			break
-		}
-		if vb.Get(slot.x, slot.y) != nil {
-			continue
-		}
-		vb.Place(VehiclePartDefs[pickFrom(rng, cfg.powers)], slot.x, slot.y)
-		placed++
-	}
-
-	return vb
+	// Fallback to minimal valid blueprint
+	return GenerateScoutUFO()
 }
 
 // ── RNG + layout helpers ────────────────────────────────────────────
 
-type simpleRand struct {
-	state int64
-}
-
-func newRand(seed int64) *simpleRand {
+// newRand creates a deterministic RNG source for vehicle generation.
+func newRand(seed int64) *rand.Rand {
+	// 0 is a special sentinel seed value, remapped to 42 for consistency.
 	if seed == 0 {
 		seed = 42
 	}
-	return &simpleRand{state: seed}
+	return rand.New(rand.NewSource(seed))
 }
 
-func (r *simpleRand) intn(n int) int {
-	r.state = r.state*6364136223846793005 + 1
-	if n <= 0 {
-		return 0
-	}
-	// Use the lower 32 bits of the positive magnitude to avoid negative mod.
-	v := r.state & 0x7FFFFFFF // mask sign bit
-	return int(v % int64(n))
-}
-
-func pickFrom(rng *simpleRand, pool []string) string {
-	return pool[rng.intn(len(pool))]
+func pickFrom(rng *rand.Rand, pool []string) string {
+	return pool[rng.Intn(len(pool))]
 }
 
 func isEdge(x, y, w, h int) bool {

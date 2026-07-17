@@ -60,11 +60,16 @@ func heuristic(ax, ay, bx, by int) int {
 	return (dx + dy) * pathMoveCost
 }
 
-func passableFor(m *BattleMap, units UnitList, ignore *Unit, x, y int) bool {
+func passableFor(m *BattleMap, units UnitList, ignore *Unit, x, y, level int) bool {
 	if x < 0 || y < 0 || x >= m.Width || y >= m.LevelHeight {
 		return false
 	}
-	if !m.Passable(x, y) {
+	t := m.AtLevel(x, y, level)
+	switch t.Type {
+	case TileFloor, TileDoor, TileGrass, TileUFOFloor, TileStairs, TileStairsDown, TilePavement, TileSand, TileSnow,
+		TileConsole, TileMachinery, TilePod, TilePowerSource, TileStorage, TileAlienTech,
+		TileDesk, TileChair, TileComputer, TileBed, TileLocker, TileCabinet, TileRubble:
+	default:
 		return false
 	}
 	if u := units.At(x, y); u != nil && u != ignore {
@@ -73,11 +78,11 @@ func passableFor(m *BattleMap, units UnitList, ignore *Unit, x, y int) bool {
 	return true
 }
 
-func AStar(sx, sy, ex, ey int, m *BattleMap, units UnitList, ignore *Unit) [][2]int {
+func AStar(sx, sy, ex, ey int, level int, m *BattleMap, units UnitList, ignore *Unit) [][2]int {
 	if sx == ex && sy == ey {
 		return [][2]int{{sx, sy}}
 	}
-	if !passableFor(m, units, ignore, ex, ey) {
+	if !passableFor(m, units, ignore, ex, ey, level) {
 		return nil
 	}
 
@@ -104,7 +109,7 @@ func AStar(sx, sy, ex, ey int, m *BattleMap, units UnitList, ignore *Unit) [][2]
 
 		for _, d := range dirs {
 			nx, ny := cur.x+d[0], cur.y+d[1]
-			if !passableFor(m, units, ignore, nx, ny) {
+			if !passableFor(m, units, ignore, nx, ny, level) {
 				continue
 			}
 			ng := cur.g + pathMoveCost
@@ -121,7 +126,7 @@ func AStar(sx, sy, ex, ey int, m *BattleMap, units UnitList, ignore *Unit) [][2]
 }
 
 func (ai *AlienAI) GetNextPathStep(tx, ty int, m *BattleMap, units UnitList) (int, int) {
-	path := AStar(ai.Unit.X, ai.Unit.Y, tx, ty, m, units, ai.Unit)
+	path := AStar(ai.Unit.X, ai.Unit.Y, tx, ty, ai.Unit.Level, m, units, ai.Unit)
 	if len(path) < 2 {
 		return ai.Unit.X, ai.Unit.Y
 	}

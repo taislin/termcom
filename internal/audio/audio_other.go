@@ -40,9 +40,6 @@ func (m *mixerStream) Read(buf []byte) (int, error) {
 				sum += m.buffers[b][0]
 				m.buffers[b] = m.buffers[b][1:]
 			}
-			if len(m.buffers[b]) == 0 {
-				m.buffers = append(m.buffers[:b], m.buffers[b+1:]...)
-			}
 		}
 		if sum > 1.0 {
 			sum = 1.0
@@ -52,6 +49,17 @@ func (m *mixerStream) Read(buf []byte) (int, error) {
 		}
 		f32[i] = sum
 	}
+
+	// Drop buffers that have been fully consumed. Compacting after the sample
+	// loop (rather than while iterating backwards) avoids skipping a neighbour
+	// when an element is removed.
+	remaining := m.buffers[:0]
+	for _, buf := range m.buffers {
+		if len(buf) > 0 {
+			remaining = append(remaining, buf)
+		}
+	}
+	m.buffers = remaining
 
 	for i, s := range f32 {
 		v := int16(s * 32767)

@@ -68,8 +68,10 @@ func TestBlueprintIsValid(t *testing.T) {
 
 	// Add engine
 	vb.Place(VehiclePartDefs["engine_standard"], 2, 3)
+	// Add weapon
+	vb.Place(VehiclePartDefs["weapon_cannon"], 2, 4)
 	if err := vb.IsValid(); err != nil {
-		t.Errorf("blueprint with cockpit+engine should be valid: %v", err)
+		t.Errorf("blueprint with cockpit+engine+weapon should be valid: %v", err)
 	}
 }
 

@@ -2,10 +2,14 @@ package engine
 
 import (
 	"math/rand"
+	"time"
 
 	"github.com/gdamore/tcell/v3"
 	"github.com/gdamore/tcell/v3/color"
 )
+
+// filterRand is a seeded RNG so night-vision noise is non-deterministic across runs.
+var filterRand = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 type VisionMode int
 
@@ -34,7 +38,7 @@ func ApplyNightVision(s *ScreenRaw) {
 			lum := luminance(fgR, fgG, fgB)
 
 			var newFg tcell.Color
-			if rand.Intn(100) < 5 {
+			if filterRand.Intn(100) < 5 {
 				dim := lum * 0.3
 				newFg = tcell.NewRGBColor(0, int32(dim), 0)
 			} else {

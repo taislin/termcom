@@ -310,24 +310,10 @@ func (es *EquipScreen) HandleMouse(e *tcell.EventMouse) {
 	x, y := e.Position()
 	w, h := es.Game.ScreenSize()
 
-	// Handle help bar clicks (bottom bar)
+	// Handle help bar clicks (bottom bar) by parsing the rendered markup
+	// segments so the hit zones stay correct regardless of locale/text width.
 	if y == h-1 {
-		switch {
-		case x >= 1 && x <= 12: // ↑/↓=Soldier
-			if es.CycleIdx < len(es.getAvailableItems())-1 {
-				es.CycleIdx++
-			}
-		case x >= 14 && x <= 22: // 1=Weapon
-			es.SelectedSlot = 0
-		case x >= 24 && x <= 31: // 2=Armor
-			es.SelectedSlot = 1
-		case x >= 33 && x <= 44: // Space=Equip
-			es.equipSelected()
-		case x >= 46 && x <= 52: // A=Auto
-			es.autoEquip()
-		case x >= 54 && x <= 64: // [Esc]=Back
-			es.Game.PopState()
-		}
+		es.clickEquipHelpBar(x)
 		return
 	}
 
@@ -349,5 +335,62 @@ func (es *EquipScreen) HandleMouse(e *tcell.EventMouse) {
 	}
 	if x > w/2 && y == 4 {
 		es.SelectedSlot = 1
+	}
+}
+
+// clickEquipHelpBar dispatches a click on the bottom help bar by matching the
+// x coordinate against the rendered [key] markup segments, so the click zones
+// remain aligned even when the help text width varies by language.
+func (es *EquipScreen) clickEquipHelpBar(x int) {
+	help := language.String("HELP_EQUIP")
+	if len(es.getAvailableItems()) > 0 {
+		help = language.String("HELP_EQUIP_TAB")
+	}
+	col := 1
+	runes := []rune(help)
+	for i := 0; i < len(runes); {
+		if runes[i] != '[' {
+			col += engine.StringWidth(string(runes[i]))
+			i++
+			continue
+		}
+		segStart := col
+		end := i + 1
+		for end < len(runes) && runes[end] != ']' {
+			end++
+		}
+		if end >= len(runes) {
+			break
+		}
+		segEnd := col + engine.StringWidth(string(runes[i:end+1]))
+		if x >= segStart && x <= segEnd {
+			es.dispatchEquipHelpKey(string(runes[i+1 : end]))
+			return
+		}
+		col = segEnd
+		i = end + 1
+	}
+}
+
+func (es *EquipScreen) dispatchEquipHelpKey(key string) {
+	switch key {
+	case "↑", "↓":
+		if es.CycleIdx < len(es.getAvailableItems())-1 {
+			es.CycleIdx++
+		}
+	case "1":
+		es.SelectedSlot = 0
+	case "2":
+		es.SelectedSlot = 1
+	case "Tab":
+		if es.CycleIdx < len(es.getAvailableItems())-1 {
+			es.CycleIdx++
+		}
+	case "Space":
+		es.equipSelected()
+	case "A":
+		es.autoEquip()
+	case "Esc":
+		es.Game.PopState()
 	}
 }

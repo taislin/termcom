@@ -187,6 +187,35 @@ type Battlescape struct {
 	mouseActive    bool
 }
 
+// The following setters mutate Battlescape fields that are also read by the
+// input handlers (which hold bs.State.mu via HandleEvent). Writers must go
+// through these to honour the same lock, keeping shared-state access free of
+// data races even if a writer ever runs on a different goroutine.
+func (bs *Battlescape) SetPhase(p BattlePhase) {
+	bs.State.mu.Lock()
+	bs.SetPhase(p)
+	bs.State.mu.Unlock()
+}
+
+func (bs *Battlescape) SetSelected(u *Unit) {
+	bs.State.mu.Lock()
+	bs.SetSelected(u)
+	bs.State.mu.Unlock()
+}
+
+func (bs *Battlescape) SetHovered(u *Unit) {
+	bs.State.mu.Lock()
+	bs.SetHovered(u)
+	bs.State.mu.Unlock()
+}
+
+func (bs *Battlescape) SetScroll(x, y int) {
+	bs.State.mu.Lock()
+	bs.ScrollX = x
+	bs.ScrollY = y
+	bs.State.mu.Unlock()
+}
+
 type CustomVictory struct {
 	Condition   string // "eliminate_all", "survive_turns", "reach_point"
 	Turns       int    // for survive_turns
@@ -1435,7 +1464,7 @@ func (bs *Battlescape) finishBattle() {
 }
 
 func (bs *Battlescape) finishAlienTurn() {
-	bs.Phase = PhasePlayerTurn
+	bs.SetPhase(PhasePlayerTurn)
 	bs.Status = StatusPlayerTurn
 	bs.restorePlayerTU()
 	bs.ComputeFOVForTeam()
@@ -1451,7 +1480,7 @@ func (bs *Battlescape) finishAlienTurn() {
 	bs.checkVictory()
 
 	oldSelected := bs.Selected
-	bs.Selected = nil
+	bs.SetSelected(nil)
 
 	// Decay stun: lose 2 stun points per turn (recovery)
 	for _, u := range bs.Units {
@@ -1495,11 +1524,11 @@ func (bs *Battlescape) finishAlienTurn() {
 	// Preserve the previously selected human across turns when still valid.
 	if oldSelected != nil && oldSelected.Alive && oldSelected.HP > 0 &&
 		oldSelected.Faction == 0 && oldSelected.Level == bs.Map.CurrentLevel {
-		bs.Selected = oldSelected
+		bs.SetSelected(oldSelected)
 	} else {
 		for _, u := range bs.Units {
 			if u.Faction == 0 && u.Alive && u.HP > 0 && u.Level == bs.Map.CurrentLevel {
-				bs.Selected = u
+				bs.SetSelected(u)
 				break
 			}
 		}
@@ -1606,11 +1635,11 @@ func (bs *Battlescape) checkVictory() {
 		switch cv.Condition {
 		case "survive_turns":
 			if bs.Turn >= cv.Turns {
-				bs.Phase = PhaseVictory
+				bs.SetPhase(PhaseVictory)
 				audio.PlayVictory()
 				bs.AddMessage(language.Sprintf("BATTLE_SURVIVED_TURNS", cv.Turns))
 			} else if len(humans) == 0 {
-				bs.Phase = PhaseDefeat
+				bs.SetPhase(PhaseDefeat)
 				audio.PlayDefeat()
 				bs.AddMessage(language.String("MSG_MISSION_FAILED"))
 			}
@@ -1627,23 +1656,23 @@ func (bs *Battlescape) checkVictory() {
 				minReq = 1
 			}
 			if safe >= minReq {
-				bs.Phase = PhaseVictory
+				bs.SetPhase(PhaseVictory)
 				audio.PlayVictory()
 				bs.AddMessage(language.Sprintf("MSG_MISSION_EXTRACT", safe))
 			} else if len(humans) == 0 {
 
-				bs.Phase = PhaseDefeat
+				bs.SetPhase(PhaseDefeat)
 				audio.PlayDefeat()
 				bs.AddMessage(language.String("MSG_MISSION_FAILED"))
 			}
 			return
 		default: // "eliminate_all"
 			if len(aliens) == 0 {
-				bs.Phase = PhaseVictory
+				bs.SetPhase(PhaseVictory)
 				audio.PlayVictory()
 				bs.AddMessage(language.String("MSG_MISSION_COMPLETE"))
 			} else if len(humans) == 0 {
-				bs.Phase = PhaseDefeat
+				bs.SetPhase(PhaseDefeat)
 				audio.PlayDefeat()
 				bs.AddMessage(language.String("MSG_MISSION_FAILED"))
 			}
@@ -1653,14 +1682,14 @@ func (bs *Battlescape) checkVictory() {
 
 	// TimeLimit modifier: defeat if turns exceed limit and aliens remain
 	if HasModifier(bs.MissionModifiers, ModTimeLimit) && bs.Turn > 15 && len(aliens) > 0 {
-		bs.Phase = PhaseDefeat
+		bs.SetPhase(PhaseDefeat)
 		audio.PlayDefeat()
 		bs.AddMessage(language.String("MSG_TIME_LIMIT_EXCEEDED"))
 		return
 	}
 
 	if len(aliens) == 0 {
-		bs.Phase = PhaseVictory
+		bs.SetPhase(PhaseVictory)
 		audio.PlayVictory()
 		if bs.UFOName == "Terror" {
 			totalCiv := 0
@@ -1678,15 +1707,15 @@ func (bs *Battlescape) checkVictory() {
 			bs.AddMessage(language.String("MSG_MISSION_COMPLETE"))
 		}
 	} else if len(humans) == 0 {
-		bs.Phase = PhaseDefeat
+		bs.SetPhase(PhaseDefeat)
 		audio.PlayDefeat()
 		bs.AddMessage(language.String("MSG_MISSION_FAILED"))
 	} else if bs.UFOName == "Terror" && len(civilians) == 0 && len(aliens) > 0 {
-		bs.Phase = PhaseDefeat
+		bs.SetPhase(PhaseDefeat)
 		audio.PlayDefeat()
 		bs.AddMessage(language.String("MSG_MISSION_FAILED_CIV"))
 	} else if bs.UFOName == "Abduction" && bs.AbductionCivs >= bs.AbductionTotal {
-		bs.Phase = PhaseDefeat
+		bs.SetPhase(PhaseDefeat)
 		audio.PlayDefeat()
 		bs.AddMessage(language.String("MSG_MISSION_FAILED_CIV"))
 	}
@@ -1719,7 +1748,7 @@ func (bs *Battlescape) SelectUnit() {
 	unit := bs.Units.At(bs.CursorX, bs.CursorY)
 	if unit != nil && unit.Faction == 0 && unit.Alive && unit.Soldier != nil {
 		audio.PlaySelect()
-		bs.Selected = unit
+		bs.SetSelected(unit)
 		bs.AddMessage(fmt.Sprintf(language.String("MSG_UNIT_SELECTED"), unit.Soldier.Name, unit.HP, unit.TU))
 	} else {
 		bs.cycleUnit(1)
@@ -1738,7 +1767,7 @@ func (bs *Battlescape) LeftClick() {
 	}
 	unit := bs.Units.At(bs.CursorX, bs.CursorY)
 	if unit != nil && unit.Faction == 0 && unit.Alive && unit.Soldier != nil {
-		bs.Selected = unit
+		bs.SetSelected(unit)
 		bs.State.CursorState = StateInspect
 		bs.AddMessage(fmt.Sprintf(language.String("MSG_UNIT_SELECTED"), unit.Soldier.Name, unit.HP, unit.TU))
 		return
@@ -1952,7 +1981,7 @@ func (bs *Battlescape) EndTurn() {
 		return
 	}
 	audio.PlayAlienTurn()
-	bs.Phase = PhaseAlienTurn
+	bs.SetPhase(PhaseAlienTurn)
 	bs.Status = StatusAlienTurn
 	bs.AddMessage(language.String("MSG_ALIEN_TURN"))
 
@@ -2634,8 +2663,7 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 
 	// 3. Camera and scrolling
 	camX, camY := bs.Camera.Pos()
-	bs.ScrollX = camX - viewW/2
-	bs.ScrollY = camY - viewH/2
+	bs.SetScroll(camX-viewW/2, camY-viewH/2)
 
 	if bs.FrameCount%12 == 0 && bs.Phase != PhaseVictory && bs.Phase != PhaseDefeat {
 		switch bs.UFOName {
@@ -3341,7 +3369,7 @@ func (bs *Battlescape) cycleUnit(dir int) {
 	if idx >= len(humans) {
 		idx = 0
 	}
-	bs.Selected = humans[idx]
+	bs.SetSelected(humans[idx])
 	bs.CursorX = bs.Selected.X
 	bs.CursorY = bs.Selected.Y
 

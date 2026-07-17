@@ -88,6 +88,13 @@ func (sp *SlotPickerScreen) HandleKey(e *tcell.EventKey) {
 		}
 	case tcell.KeyDown:
 		maxSel := len(sp.Slots)
+		if sp.Mode == SlotPickerSave {
+			maxSel++
+		} else if maxSel > 0 {
+			maxSel--
+		} else {
+			maxSel = 0
+		}
 		sp.Selection++
 		if sp.Selection > maxSel {
 			sp.Selection = maxSel
@@ -101,8 +108,15 @@ func (sp *SlotPickerScreen) HandleKey(e *tcell.EventKey) {
 	case "q", "Q":
 		sp.Game.PopState()
 	case "j", "J":
-		sp.Selection++
 		maxSel := len(sp.Slots)
+		if sp.Mode == SlotPickerSave {
+			maxSel++
+		} else if maxSel > 0 {
+			maxSel--
+		} else {
+			maxSel = 0
+		}
+		sp.Selection++
 		if sp.Selection > maxSel {
 			sp.Selection = maxSel
 		}
@@ -138,7 +152,11 @@ func (sp *SlotPickerScreen) HandleMouse(e *tcell.EventMouse) {
 	}
 
 	startY := 4
-	if y >= startY && y < startY+len(sp.Slots)+1 {
+	maxY := startY + len(sp.Slots)
+	if sp.Mode == SlotPickerSave {
+		maxY++ // allow selecting the "new slot" row
+	}
+	if y >= startY && y < maxY {
 		sp.Selection = y - startY
 		if buttons&tcell.Button1 != 0 {
 			sp.confirm()

@@ -31,11 +31,19 @@ func (fb *FrameBuffer) Resize(w, h int) {
 		return
 	}
 	newCells := make([]cellData, w*h)
-	n := len(fb.cells)
-	if n > w*h {
-		n = w*h
+	copyRows := h
+	if copyRows > fb.h {
+		copyRows = fb.h
 	}
-	copy(newCells, fb.cells[:n])
+	copyCols := w
+	if copyCols > fb.w {
+		copyCols = fb.w
+	}
+	for y := 0; y < copyRows; y++ {
+		srcStart := y * fb.w
+		dstStart := y * w
+		copy(newCells[dstStart:dstStart+copyCols], fb.cells[srcStart:srcStart+copyCols])
+	}
 	fb.cells = newCells
 	fb.w = w
 	fb.h = h

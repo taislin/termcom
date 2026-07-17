@@ -172,6 +172,7 @@ func newGameWithScreen(scr *ScreenRaw, initialState GameState) *Game {
 		ActionDelay:    Config.ActionDelay,
 	}
 	g.initSpecies()
+	Menu.SetGame(g)
 	return g
 }
 

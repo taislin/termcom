@@ -9,6 +9,8 @@ import (
 	"github.com/taislin/termcom/internal/engine"
 )
 
+var globalRNG = rand.New(rand.NewSource(42))
+
 // AIState defines the current behavioral mode of an alien unit.
 type AIState int
 
@@ -111,12 +113,25 @@ type AlienAI struct {
 	TurnsSince int
 	InCover    bool
 	Memory     *SquadMemory // shared squad belief map (nil if not used)
+	rng        *rand.Rand   // per-AI seeded RNG for reproducible behaviour
 }
 
 func NewAlienAI(u *Unit) *AlienAI {
+	var seed int64
+	seed = int64(u.X)*73856093 + int64(u.Y)*19349663
+	if u.AlienType != nil {
+		seed += int64(u.AlienType.Rank) * 131
+	}
+	if u.Soldier != nil {
+		for _, r := range u.Soldier.Name {
+			seed = seed*31 + int64(r)
+		}
+	}
+	seed ^= 0x9e3779b9
 	return &AlienAI{
 		Unit:  u,
 		State: AIPatrol,
+		rng:   rand.New(rand.NewSource(seed)),
 	}
 }
 
@@ -217,7 +232,7 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList, pla
 			} else if role == RoleFlanker && dist > 3 && ai.Unit.TU >= 20 {
 				// 2. Flank: Move to a side position if specialized and distance allows.
 				ai.State = AIFlank
-			} else if ai.Unit.AlienType != nil && ai.Unit.AlienType.Psi > 40 && ai.Unit.TU >= 20 && rand.Intn(3) == 0 {
+			} else if ai.Unit.AlienType != nil && ai.Unit.AlienType.Psi > 40 && ai.Unit.TU >= 20 && ai.rng.Intn(3) == 0 {
 				// 3. Psi Attack: Use psionic abilities if strong enough and by chance.
 				actions = append(actions, AlienAction{
 					Type: "psi", Unit: ai.Unit, Target: target,
@@ -898,8 +913,8 @@ func (ai *AlienAI) moveTowardTargetCover(tx, ty int, m *BattleMap, units UnitLis
 func (ai *AlienAI) patrolTarget(m *BattleMap) (int, int) {
 	if ai.PatrolX == 0 && ai.PatrolY == 0 {
 		for attempt := 0; attempt < 10; attempt++ {
-			px := ai.Unit.X + rand.Intn(12) - 6
-			py := ai.Unit.Y + rand.Intn(12) - 6
+			px := ai.Unit.X + ai.rng.Intn(12) - 6
+			py := ai.Unit.Y + ai.rng.Intn(12) - 6
 			if px < 1 {
 				px = 1
 			}

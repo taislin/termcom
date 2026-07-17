@@ -21,6 +21,21 @@ type ControlMenu struct {
 	AlwaysShow bool // pin bar to bottom edge in touch mode
 	screenW    int
 	screenH    int
+	game       *Game // optional back-reference for live screen size
+}
+
+// SetGame wires the menu to the active game so it can read the current screen
+// size on demand (e.g. during input handling) instead of relying solely on a
+// cached value that may be stale after a resize.
+func (cm *ControlMenu) SetGame(g *Game) { cm.game = g }
+
+// screenSize returns the live screen dimensions when a game is wired, falling
+// back to the last value supplied via SetScreenSize otherwise.
+func (cm *ControlMenu) screenSize() (int, int) {
+	if cm.game != nil {
+		return cm.game.ScreenSize()
+	}
+	return cm.screenW, cm.screenH
 }
 
 var HideTouchOverlay = false
@@ -48,10 +63,11 @@ func (cm *ControlMenu) SetScreenSize(w, h int) {
 	cm.screenH = h
 }
 
-func (cm *ControlMenu) buttonRects() []Rect {	if len(cm.Buttons) == 0 {
+func (cm *ControlMenu) buttonRects() []Rect {
+	if len(cm.Buttons) == 0 {
 		return nil
 	}
-	w, h := cm.screenW, cm.screenH
+	w, h := cm.screenSize()
 	if w == 0 || h == 0 {
 		return nil
 	}
@@ -197,7 +213,8 @@ func (cm *ControlMenu) HandleMouse(ev *tcell.EventMouse) bool {
 	// Hamburger toggles the bar only when it is not pinned (always-show mode
 	// keeps the bar permanently visible at the bottom).
 	if !cm.AlwaysShow {
-		if x >= cm.screenW-4 && x <= cm.screenW-1 && y == 0 {
+		w, _ := cm.screenSize()
+		if x >= w-4 && x <= w-1 && y == 0 {
 			cm.Toggle()
 			return true
 		}
@@ -224,5 +241,6 @@ func (cm *ControlMenu) HandleMouse(ev *tcell.EventMouse) bool {
 }
 
 func (cm *ControlMenu) HamburgerHit(x, y int) bool {
-	return !HideTouchOverlay && !cm.AlwaysShow && Config.TouchMode && x >= cm.screenW-4 && x <= cm.screenW-1 && y == 0
+	w, _ := cm.screenSize()
+	return !HideTouchOverlay && !cm.AlwaysShow && Config.TouchMode && x >= w-4 && x <= w-1 && y == 0
 }
