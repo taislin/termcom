@@ -35,12 +35,12 @@ jobs:
             -V mainfont="Space Grotesk" \
             -V monofont="NovaMono" \
             -V geometry:margin=1in \
-            -V header-includes="\usepackage{sectsty}\allsectionsfont{\fontspec{NovaMono}\Large}"
+            -V header-includes="\usepackage{sectsty}\allsectionsfont{\fontspec{NovaMono}\Large}\newfontfamily\fallbackfont{DejaVu Sans}\defaultfontfeatures[\rmfamily,\ttfamily]{Fallbacks={\fallbackfont}}"
           pandoc docs/quickstart.md -o "pdfs/termcom-quickstart-v${VER}.pdf" --pdf-engine=xelatex --number-sections \
             -V mainfont="Space Grotesk" \
             -V monofont="NovaMono" \
             -V geometry:margin=1in \
-            -V header-includes="\usepackage{sectsty}\allsectionsfont{\fontspec{NovaMono}\Large}"
+            -V header-includes="\usepackage{sectsty}\allsectionsfont{\fontspec{NovaMono}\Large}\newfontfamily\fallbackfont{DejaVu Sans}\defaultfontfeatures[\rmfamily,\ttfamily]{Fallbacks={\fallbackfont}}"
 
       - name: Upload PDFs
         uses: actions/upload-artifact@v7
