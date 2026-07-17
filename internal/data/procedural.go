@@ -10,11 +10,11 @@ import (
 )
 
 const (
-	minSpecies      = 5
-	speciesRange    = 3
+	minSpecies   = 5
+	speciesRange = 3
 
-	minRank         = 1
-	rankRange       = 4
+	minRank   = 1
+	rankRange = 4
 
 	syntheticChance = 3 // 1-in-3 chance (33%) of synthetic morphology
 )
@@ -28,6 +28,8 @@ type AlienSpecies struct {
 	BaseStyle  tcell.Style  // shared style across all variants
 	PrimaryDMG int          // species-wide damage affinity
 	Lore       string       // species-wide lore
+	PlanetName string       // shared homeworld name (same for all variants of a species)
+	PlanetDesc string       // descriptive homeworld type (e.g. "an oceanic planet")
 	Morphology *Morphology  // shared physical form across all variants
 	Types      []*AlienType // Rank 0..4 variants (may be nil for higher ranks)
 }
@@ -229,6 +231,26 @@ var loreTemplates = []string{
 	language.String("LORE_TEMPLATE_15"),
 }
 
+// planetDescPool lists descriptive homeworld types. The same species shares one
+// entry, so every variant of a species reports the same origin.
+var planetDescPool = []string{
+	language.String("PLANET_DESC_1"),
+	language.String("PLANET_DESC_2"),
+	language.String("PLANET_DESC_3"),
+	language.String("PLANET_DESC_4"),
+	language.String("PLANET_DESC_5"),
+	language.String("PLANET_DESC_6"),
+	language.String("PLANET_DESC_7"),
+	language.String("PLANET_DESC_8"),
+	language.String("PLANET_DESC_9"),
+	language.String("PLANET_DESC_10"),
+	language.String("PLANET_DESC_11"),
+	language.String("PLANET_DESC_12"),
+	language.String("PLANET_DESC_13"),
+	language.String("PLANET_DESC_14"),
+	language.String("PLANET_DESC_15"),
+}
+
 // Morphology lore snippets describing body subtypes.
 var morphLoreSnippets = map[string]string{
 	SubtypeCarbonFlesh:  language.String("MORPH_LORE_CARBON"),
@@ -320,12 +342,21 @@ func generateOneSpecies(rng *rand.Rand, idx int, usedNames map[string]bool, used
 	// Generate morphology
 	morph := generateMorphology(rng, primaryDMG)
 
+	// Generate a shared homeworld for the whole species (deterministic per seed).
+	planetName := generateName(rng)
+	planetDesc := planetDescPool[rng.Intn(len(planetDescPool))]
+
 	sp := &AlienSpecies{
 		Name:       name,
 		Prefix:     prefix,
 		PrimaryDMG: primaryDMG,
 		Morphology: morph,
+		PlanetName: planetName,
+		PlanetDesc: planetDesc,
 	}
+
+	// Generate species lore first so variants can embed it.
+	sp.Lore = generateLore(primaryDMG, morph, planetName, planetDesc)
 
 	// Generate 2-4 rank variants (not all species have all ranks)
 	maxRank := minRank + rng.Intn(rankRange) // 1-4 variants
@@ -340,9 +371,6 @@ func generateOneSpecies(rng *rand.Rand, idx int, usedNames map[string]bool, used
 		sp.BaseIcon = sp.Types[0].Icon
 		sp.BaseStyle = sp.Types[0].Style
 	}
-
-	// Generate species lore
-	sp.Lore = generateLore(primaryDMG, morph)
 
 	return sp
 }
@@ -450,7 +478,7 @@ func weightedIndex(rng *rand.Rand, cumThresholds []int) int {
 }
 
 var organicDefaultWeights = []int{4, 6, 7, 9, 10} // carbon, silicon, gaseous, crystalline, amorphous
-var syntheticDefaultWeights = []int{5, 8, 10}       // mechanical, bio_synthetic, nanotech
+var syntheticDefaultWeights = []int{5, 8, 10}     // mechanical, bio_synthetic, nanotech
 
 var organicSubtypes = []string{SubtypeCarbonFlesh, SubtypeSilicon, SubtypeGaseous, SubtypeCrystalline, SubtypeAmorphous}
 var syntheticSubtypes = []string{SubtypeMechanical, SubtypeBioSynthetic, SubtypeNanotech}
@@ -962,6 +990,10 @@ func generateVariant(rng *rand.Rand, sp *AlienSpecies, rank int, usedIcons map[r
 	if title := rankTitle(sp.PrimaryDMG, rank); title != "" {
 		variantLore = title + " of the " + sp.Name + " species. " + variantLore
 	}
+	// Per-variant weakness hint derived from the alien's real negative resistances.
+	if weak := weaknessPhrase(resistPlasma, resistLaser, resistExplosive, resistMelee, resistKinetic, resistPsionic); weak != "" {
+		variantLore = variantLore + " " + weak
+	}
 
 	return &AlienType{
 		Name:       varName,
@@ -1013,7 +1045,7 @@ func genResist(rng *rand.Rand, affinity int, dmgType int, rank int) int {
 	return 0
 }
 
-func generateLore(dmgType int, m *Morphology) string {
+func generateLore(dmgType int, m *Morphology, planetName, planetDesc string) string {
 	// Mix damage type and body subtype for template variety
 	subtypeHash := 0
 	for _, c := range m.BodySubtype {
@@ -1032,14 +1064,42 @@ func generateLore(dmgType int, m *Morphology) string {
 
 	senseDesc := ""
 	if m.Eyesight == SenseNone {
-		senseDesc = language.String("LORE_SENSE_PREFIX") + senseLoreSnippets[SenseNone] + language.String("LORE_SENSE_SUFFIX")
+		senseDesc += language.String("LORE_SENSE_PREFIX") + senseLoreSnippets[SenseNone] + language.String("LORE_SENSE_SUFFIX")
 	} else if m.Eyesight == SenseMultiSpec {
-		senseDesc = language.String("LORE_SENSE_PREFIX") + senseLoreSnippets[SenseMultiSpec] + language.String("LORE_SENSE_SUFFIX")
+		senseDesc += language.String("LORE_SENSE_PREFIX") + senseLoreSnippets[SenseMultiSpec] + language.String("LORE_SENSE_SUFFIX")
 	} else if m.Hearing == SenseEcholoc {
-		senseDesc = language.String("LORE_SENSE_PREFIX") + senseLoreSnippets[SenseEcholoc] + language.String("LORE_SENSE_SUFFIX")
+		senseDesc += language.String("LORE_SENSE_PREFIX") + senseLoreSnippets[SenseEcholoc] + language.String("LORE_SENSE_SUFFIX")
+	}
+	// Surface the high-tier exotic senses (previously invisible in lore).
+	if m.ThermalSense == SenseHigh {
+		senseDesc += language.String("LORE_SENSE_THERMAL")
+	}
+	if m.PsionicSense == SenseHigh {
+		senseDesc += language.String("LORE_SENSE_PSI")
+	}
+	if m.ChemicalSense == SenseHigh {
+		senseDesc += language.String("LORE_SENSE_CHEM")
 	}
 
-	return fmt.Sprintf("%s %s. "+language.String("LORE_BODY_FORMAT")+"%s", limbDesc, base, bodyDesc, senseDesc)
+	originDesc := " " + language.Sprintf("LORE_ORIGIN_FORMAT", planetName, planetDesc)
+
+	return fmt.Sprintf("%s %s "+language.String("LORE_BODY_FORMAT")+"%s%s", limbDesc, base, bodyDesc, senseDesc, originDesc)
+}
+
+// weaknessPhrase returns a lore hint listing the damage types the alien is
+// genuinely weak to (negative resistance). Empty when no real weakness exists.
+func weaknessPhrase(resists ...int) string {
+	weakTypes := []int{DMG_PLASMA, DMG_LASER, DMG_EXPLOSIVE, DMG_MELEE, DMG_KINETIC, DMG_PSIONIC}
+	var names []string
+	for i, r := range resists {
+		if r < 0 {
+			names = append(names, DamageTypeStr(weakTypes[i]))
+		}
+	}
+	if len(names) == 0 {
+		return ""
+	}
+	return language.Sprintf("LORE_WEAK_FORMAT", strings.Join(names, ", "))
 }
 
 // clamp restricts v to the [lo, hi] range.

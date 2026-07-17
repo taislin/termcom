@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TERM=COM Manual</title>
-  <link href="https://fonts.googleapis.com/css2?family=Nova+Mono&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+  <title>TERMCOM Manual</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nova+Mono&family=Space+Grotesk:wght@400;700&display=swap"
+    rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/marked@15.0.4/marked.min.js"></script>
   <style>
     body {
@@ -17,32 +19,57 @@
       display: flex;
       justify-content: center;
     }
+
     .container {
       max-width: 860px;
       width: 100%;
       border: 1px solid #444444;
       padding: 2em 2.5em;
     }
-    h1, h2, h3, h4 {
+
+    h1,
+    h2,
+    h3,
+    h4 {
       font-family: 'Nova Mono', 'Courier New', Courier, monospace;
     }
+
     h1 {
       color: #8A2BE2;
       border-bottom: 2px solid #8A2BE2;
       padding-bottom: 0.4em;
       margin-top: 0;
     }
+
     h2 {
       color: #FF8C00;
       margin-top: 1.8em;
       border-bottom: 1px solid #333;
       padding-bottom: 0.3em;
     }
-    h3 { color: #e0a0ff; margin-top: 1.4em; }
-    h4 { color: #cccccc; margin-top: 1.2em; }
-    a { color: #FF8C00; }
-    a:hover { color: #ffaa40; }
-    strong { color: #dddddd; }
+
+    h3 {
+      color: #e0a0ff;
+      margin-top: 1.4em;
+    }
+
+    h4 {
+      color: #cccccc;
+      margin-top: 1.2em;
+    }
+
+    a {
+      color: #FF8C00;
+    }
+
+    a:hover {
+      color: #ffaa40;
+    }
+
+    strong {
+      color: #dddddd;
+    }
+
     code {
       background: #1a1a2e;
       color: #ffcc88;
@@ -51,6 +78,7 @@
       font-family: 'Courier New', Courier, monospace;
       font-size: 0.9em;
     }
+
     pre {
       background: #0a0a18;
       border: 1px solid #333;
@@ -60,7 +88,13 @@
       font-size: 0.85em;
       line-height: 1.4;
     }
-    pre code { background: none; padding: 0; border-radius: 0; }
+
+    pre code {
+      background: none;
+      padding: 0;
+      border-radius: 0;
+    }
+
     blockquote {
       border-left: 3px solid #8A2BE2;
       margin: 1em 0;
@@ -68,80 +102,135 @@
       background: #0d0d1a;
       color: #bbbbbb;
     }
+
     table {
       width: 100%;
       border-collapse: collapse;
       margin: 1em 0;
       font-size: 0.9em;
     }
-    th, td {
+
+    th,
+    td {
       border: 1px solid #444;
       padding: 0.5em 0.7em;
       text-align: left;
     }
+
     th {
       background: #1a1a2e;
       color: #FF8C00;
       font-family: 'Nova Mono', 'Courier New', Courier, monospace;
     }
-    tr:nth-child(even) td { background: #0d0d18; }
-    tr:nth-child(odd) td { background: #111122; }
-    ul, ol { padding-left: 1.5em; }
-    li { margin: 0.3em 0; }
-    hr { border: none; border-top: 1px solid #444; margin: 2em 0; }
-    img { max-width: 100%; border: 1px solid #444; }
+
+    tr:nth-child(even) td {
+      background: #0d0d18;
+    }
+
+    tr:nth-child(odd) td {
+      background: #111122;
+    }
+
+    ul,
+    ol {
+      padding-left: 1.5em;
+    }
+
+    li {
+      margin: 0.3em 0;
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid #444;
+      margin: 2em 0;
+    }
+
+    img {
+      max-width: 100%;
+      border: 1px solid #444;
+    }
+
     .nav-bar {
       margin-bottom: 1.5em;
       padding-bottom: 0.8em;
       border-bottom: 1px solid #444;
       font-size: 0.9em;
     }
-    .nav-bar a { color: #8A2BE2; text-decoration: none; }
-    .nav-bar a:hover { text-decoration: underline; }
-    #loading { text-align: center; padding: 4em 0; color: #666; }
-    #error { text-align: center; padding: 4em 0; color: #e94560; display: none; }
+
+    .nav-bar a {
+      color: #8A2BE2;
+      text-decoration: none;
+    }
+
+    .nav-bar a:hover {
+      text-decoration: underline;
+    }
+
+    #loading {
+      text-align: center;
+      padding: 4em 0;
+      color: #666;
+    }
+
+    #error {
+      text-align: center;
+      padding: 4em 0;
+      color: #e94560;
+      display: none;
+    }
+
     @media (max-width: 600px) {
-      body { padding: 0.5em; }
-      .container { padding: 1em; border: none; }
+      body {
+        padding: 0.5em;
+      }
+
+      .container {
+        padding: 1em;
+        border: none;
+      }
     }
   </style>
 </head>
+
 <body>
   <div class="container">
     <div class="nav-bar">
-      <a href="./">&#8592; TERM=COM</a>
+      <a href="./">&#8592; TERMCOM</a>
     </div>
     <div id="loading">Loading manual...</div>
-    <div id="error">Failed to load manual. <a href="https://github.com/taislin/termcom/blob/master/docs/manual.md">View on GitHub</a></div>
+    <div id="error">Failed to load manual. <a href="https://github.com/taislin/termcom/blob/master/docs/manual.md">View
+        on GitHub</a></div>
     <div id="content"></div>
   </div>
   <script>
     fetch('manual.md')
-      .then(function (r) {
+      .then((r) => {
         if (!r.ok) throw new Error('HTTP ' + r.status);
         return r.text();
       })
-      .then(function (md) {
+      .then((md) => {
         document.getElementById('loading').style.display = 'none';
         var html = marked.parse(md, { breaks: true });
         document.getElementById('content').innerHTML = html;
-        document.querySelectorAll('#content a').forEach(function (a) {
+        document.querySelectorAll('#content a').forEach((a) => {
           var href = a.getAttribute('href');
           if (href && href.startsWith('#') && href.length > 1) {
-            a.addEventListener('click', function (e) {
+            a.addEventListener('click', (e) => {
               e.preventDefault();
-              var id = href.slice(1).toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '');
+              var id = href.slice(1).toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
               var el = document.getElementById(id);
               if (el) el.scrollIntoView({ behavior: 'smooth' });
             });
           }
         });
       })
-      .catch(function (err) {
+      .catch((err) => {
         document.getElementById('loading').style.display = 'none';
         document.getElementById('error').style.display = 'block';
         console.error(err);
       });
   </script>
 </body>
+
 </html>

@@ -4,8 +4,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TERM=COM - ASCII X-COM Demake</title>
-  <link href="https://fonts.googleapis.com/css2?family=Nova+Mono&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+  <title>TERMCOM - ASCII X-COM Demake</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nova+Mono&family=Space+Grotesk:wght@400;700&display=swap"
+    rel="stylesheet">
   <style>
     body {
       background-color: #000000;
@@ -52,6 +53,7 @@
       body {
         padding: 0.8em;
       }
+
       .container {
         padding: 1em;
         border: none;
@@ -120,13 +122,14 @@
       <button type="button" data-lang="ko">한국어</button>
     </div>
 
-    <h1>TERM=COM</h1>
+    <h1>TERMCOM</h1>
 
     <p class="i18n lang-en">A roguelike-ified demake of <a href="https://en.wikipedia.org/wiki/XCOM">X-COM: UFO
         Defense</a> <i>(1994, MicroProse)</i> rendered entirely in coloured ASCII on a terminal. Written in <a
         href="https://go.dev/">Go</a> with <a href="https://github.com/gdamore/tcell">Tcell</a>.</p>
     <p class="i18n lang-zh">《X-COM：UFO 防御》(1994，MicroProse) 的 Roguelike 化重制版，完全以彩色 ASCII 字符在终端中呈现。使用
-      <a href="https://go.dev/">Go</a> 语言与 <a href="https://github.com/gdamore/tcell">Tcell</a> 库编写。</p>
+      <a href="https://go.dev/">Go</a> 语言与 <a href="https://github.com/gdamore/tcell">Tcell</a> 库编写。
+    </p>
     <p class="i18n lang-es">Un remake tipo roguelike de <a href="https://en.wikipedia.org/wiki/XCOM">X-COM: UFO
         Defense</a> (1994, MicroProse) renderizado enteramente en ASCII de colores en una terminal. Escrito en <a
         href="https://go.dev/">Go</a> con <a href="https://github.com/gdamore/tcell">Tcell</a>.</p>
@@ -139,8 +142,10 @@
     <p class="i18n lang-pt">Um remake estilo roguelike de <a href="https://en.wikipedia.org/wiki/XCOM">X-COM: UFO
         Defense</a> (1994, MicroProse) renderizado inteiramente em ASCII colorido num terminal. Escrito em <a
         href="https://go.dev/">Go</a> com <a href="https://github.com/gdamore/tcell">Tcell</a>.</p>
-    <p class="i18n lang-ja"><a href="https://en.wikipedia.org/wiki/XCOM">X-COM: UFO Defense</a> (1994, MicroProse) のローグライク風リメイクで、ターミナル上で完全にカラーASCIIで描画されます。<a href="https://go.dev/">Go</a> 言語と
-      <a href="https://github.com/gdamore/tcell">Tcell</a> で書かれています。</p>
+    <p class="i18n lang-ja"><a href="https://en.wikipedia.org/wiki/XCOM">X-COM: UFO Defense</a> (1994, MicroProse)
+      のローグライク風リメイクで、ターミナル上で完全にカラーASCIIで描画されます。<a href="https://go.dev/">Go</a> 言語と
+      <a href="https://github.com/gdamore/tcell">Tcell</a> で書かれています。
+    </p>
     <p class="i18n lang-ko"><a href="https://en.wikipedia.org/wiki/XCOM">X-COM: UFO Defense</a> (1994, MicroProse)의
       로그라이크풍 리메이크로, 터미널에서 전부 컬러 ASCII로 렌더링됩니다. <a href="https://go.dev/">Go</a> 언어와 <a
         href="https://github.com/gdamore/tcell">Tcell</a>로 작성되었습니다.</p>
@@ -154,24 +159,27 @@
     <h2 class="i18n lang-ja">概要</h2>
     <h2 class="i18n lang-ko">개요</h2>
 
-    <p class="i18n lang-en"><strong>TERM=COM</strong> brings the classic alien invasion strategy experience to your
+    <p class="i18n lang-en"><strong>TERMCOM</strong> brings the classic alien invasion strategy experience to your
       terminal. It features a complete implementation of all gameplay loops: the Geoscape (global strategy), Base
       management, and the tactical Battlescape.</p>
-    <p class="i18n lang-zh"><strong>TERM=COM</strong> 将经典的异形入侵策略体验带到了您的终端。它完整实现了所有游戏循环：地球战略层（Geoscape）、基地管理以及战术战斗层（Battlescape）。</p>
-    <p class="i18n lang-es"><strong>TERM=COM</strong> lleva la clásica experiencia de estrategia de invasión alienígena
+    <p class="i18n lang-zh"><strong>TERMCOM</strong>
+      将经典的异形入侵策略体验带到了您的终端。它完整实现了所有游戏循环：地球战略层（Geoscape）、基地管理以及战术战斗层（Battlescape）。</p>
+    <p class="i18n lang-es"><strong>TERMCOM</strong> lleva la clásica experiencia de estrategia de invasión alienígena
       a tu terminal. Implementa por completo todos los bucles de juego: el Geoscape (estrategia global), la gestión de
       bases y el Battlescape táctico.</p>
-    <p class="i18n lang-fr"><strong>TERM=COM</strong> transpose l'expérience stratégique classique d'invasion alienne
+    <p class="i18n lang-fr"><strong>TERMCOM</strong> transpose l'expérience stratégique classique d'invasion alienne
       dans votre terminal. Il implémente intégralement toutes les boucles de jeu : le Geoscape (stratégie globale), la
       gestion de base et le Battlescape tactique.</p>
-    <p class="i18n lang-ru"><strong>TERM=COM</strong> переносит классический опыт стратегии вторжения пришельцев в ваш
+    <p class="i18n lang-ru"><strong>TERMCOM</strong> переносит классический опыт стратегии вторжения пришельцев в ваш
       терминал. В игре полностью реализованы все игровые циклы: Геоскейп (глобальная стратегия), управление базой и
       тактический Баттлскейп.</p>
-    <p class="i18n lang-pt"><strong>TERM=COM</strong> traz a clássica experiência de estratégia de invasão alienígena
+    <p class="i18n lang-pt"><strong>TERMCOM</strong> traz a clássica experiência de estratégia de invasão alienígena
       para o seu terminal. Implementa de forma completa todos os ciclos de jogo: o Geoscape (estratégia global), a
       gestão de base e o Battlescape táctico.</p>
-    <p class="i18n lang-ja"><strong>TERM=COM</strong> は、古典的なエイリアン侵略ストラテジーの体験をターミナルに届けます。すべてのゲームループ（地球戦略のジオスケープ、基地管理、そして戦術バトルのバトルスケープ）を完全に実装しています。</p>
-    <p class="i18n lang-ko"><strong>TERM=COM</strong>은 클래식한 외계인 침공 전략 경험을 터미널로 가져옵니다. 모든 게임 루프(지구 전략인 지오스케이프, 기지 관리, 그리고 전술 전투인 배틀스케이프)를 완전히 구현했습니다.</p>
+    <p class="i18n lang-ja"><strong>TERMCOM</strong>
+      は、古典的なエイリアン侵略ストラテジーの体験をターミナルに届けます。すべてのゲームループ（地球戦略のジオスケープ、基地管理、そして戦術バトルのバトルスケープ）を完全に実装しています。</p>
+    <p class="i18n lang-ko"><strong>TERMCOM</strong>은 클래식한 외계인 침공 전략 경험을 터미널로 가져옵니다. 모든 게임 루프(지구 전략인 지오스케이프, 기지 관리, 그리고
+      전술 전투인 배틀스케이프)를 완전히 구현했습니다.</p>
 
     <h2 class="i18n lang-en">Key Features</h2>
     <h2 class="i18n lang-zh">主要特性</h2>
@@ -183,7 +191,8 @@
     <h2 class="i18n lang-ko">주요 기능</h2>
 
     <ul>
-      <li class="i18n lang-en"><strong>Geoscape:</strong> Real-time global map with time compression and UFO tracking.</li>
+      <li class="i18n lang-en"><strong>Geoscape:</strong> Real-time global map with time compression and UFO tracking.
+      </li>
       <li class="i18n lang-zh"><strong>地球战略层：</strong> 实时全球地图，支持时间加速与 UFO 追踪。</li>
       <li class="i18n lang-es"><strong>GEOSCAPE:</strong> Mapa global en tiempo real con compresión de tiempo y
         seguimiento de OVNI.</li>
@@ -199,13 +208,17 @@
       <li class="i18n lang-en"><strong>Battlescape:</strong> Turn-based tactical combat with Time Units, destructible
         terrain, and line-of-sight.</li>
       <li class="i18n lang-zh"><strong>战场画面：</strong> 含时间单位的回合制战术战斗，可破坏地形与视线机制。</li>
-      <li class="i18n lang-es"><strong>CAMPO DE BATALLA:</strong> Combate táctico por turnos con Unidades de Tiempo, terreno
+      <li class="i18n lang-es"><strong>CAMPO DE BATALLA:</strong> Combate táctico por turnos con Unidades de Tiempo,
+        terreno
         destructible y línea de visión.</li>
-      <li class="i18n lang-fr"><strong>CHAMP DE BATAILLE:</strong> Combat tactique au tour par tour avec Unités de Temps,
+      <li class="i18n lang-fr"><strong>CHAMP DE BATAILLE:</strong> Combat tactique au tour par tour avec Unités de
+        Temps,
         terrain destructible et ligne de vue.</li>
-      <li class="i18n lang-ru"><strong>БОЕВАЯ ПОЗИЦИЯ:</strong> Пошаговые тактические бои с единицами времени, разрушаемым
+      <li class="i18n lang-ru"><strong>БОЕВАЯ ПОЗИЦИЯ:</strong> Пошаговые тактические бои с единицами времени,
+        разрушаемым
         ландшафтом и линией видимости.</li>
-      <li class="i18n lang-pt"><strong>CAMPO DE BATALHA:</strong> Combate táctico por turnos com Unidades de Tempo, terreno
+      <li class="i18n lang-pt"><strong>CAMPO DE BATALHA:</strong> Combate táctico por turnos com Unidades de Tempo,
+        terreno
         destrutível e linha de visão.</li>
       <li class="i18n lang-ja"><strong>バトルスケープ:</strong> タイムユニット、破壊可能な地形、視線判定を備えたターン制タクティカル戦闘。</li>
       <li class="i18n lang-ko"><strong>전술전장:</strong> 타임 유닛, 파괴 가능한 지형, 시선 판정을 갖춘 턴제 전술 전투.</li>
@@ -217,7 +230,8 @@
         escuadrón.</li>
       <li class="i18n lang-fr"><strong>Gestion de Base:</strong> Construisez des installations, recrutez des soldats et
         équipez votre escouade.</li>
-      <li class="i18n lang-ru"><strong>Управление базой:</strong> Стройте объекты, нанимайте солдат и экипируйте отряд.</li>
+      <li class="i18n lang-ru"><strong>Управление базой:</strong> Стройте объекты, нанимайте солдат и экипируйте отряд.
+      </li>
       <li class="i18n lang-pt"><strong>Gestão de Base:</strong> Construa instalações, recrute soldados e equipue o seu
         esquadrão.</li>
       <li class="i18n lang-ja"><strong>基地管理：</strong> 施設の建設、兵士の雇用、部隊の装備。</li>
@@ -226,13 +240,16 @@
       <li class="i18n lang-en"><strong>Deep Systems:</strong> Research alien technology, manage manufacturing, and track
         soldier progression.</li>
       <li class="i18n lang-zh"><strong>深度系统：</strong> 研究外星科技、管理生产线并追踪士兵成长。</li>
-      <li class="i18n lang-es"><strong>Sistemas Avanzados:</strong> Investiga tecnología alienígena, gestiona la fabricación y
+      <li class="i18n lang-es"><strong>Sistemas Avanzados:</strong> Investiga tecnología alienígena, gestiona la
+        fabricación y
         sigue el progreso de los soldados.</li>
-      <li class="i18n lang-fr"><strong>Systèmes Avancés:</strong> Recherchez la technologie alienne, gérez la fabrication et
+      <li class="i18n lang-fr"><strong>Systèmes Avancés:</strong> Recherchez la technologie alienne, gérez la
+        fabrication et
         suivez la progression des soldats.</li>
       <li class="i18n lang-ru"><strong>Продвинутые системы:</strong> Исследуйте инопланетные технологии, управляйте
         производством и отслеживайте прогресс солдат.</li>
-      <li class="i18n lang-pt"><strong>Sistemas Avançados:</strong> Pesquise tecnologia alienígena, gerencie a fabricação e
+      <li class="i18n lang-pt"><strong>Sistemas Avançados:</strong> Pesquise tecnologia alienígena, gerencie a
+        fabricação e
         acompanhe o progresso dos soldados.</li>
       <li class="i18n lang-ja"><strong>高度なシステム：</strong> エイリアン技術の研究、生産管理、兵士の成長の追跡。</li>
       <li class="i18n lang-ko"><strong>심화 시스템:</strong> 외계 기술 연구, 생산 관리, 병사 성장 추적.</li>
@@ -240,13 +257,17 @@
       <li class="i18n lang-en"><strong>Procedurally Generated Aliens:</strong> A roster of aliens is generated at the
         start of each campaign, each with unique abilities, strengths, weaknesses, and weapons.</li>
       <li class="i18n lang-zh"><strong>程序生成的外星人：</strong> 每个战役开始时生成一套外星人名单，各自拥有独特的能力、优势、弱点与武器。</li>
-      <li class="i18n lang-es"><strong>Alienígenas Generados Proceduralmente:</strong> Se genera una lista de alienígenas al
+      <li class="i18n lang-es"><strong>Alienígenas Generados Proceduralmente:</strong> Se genera una lista de
+        alienígenas al
         inicio de cada campaña, cada uno con habilidades, fortalezas, debilidades y armas únicas.</li>
-      <li class="i18n lang-fr"><strong>Aliens Générés Procéduralement:</strong> Un roster d'aliens est généré au début de
+      <li class="i18n lang-fr"><strong>Aliens Générés Procéduralement:</strong> Un roster d'aliens est généré au début
+        de
         chaque campagne, chacun avec des capacités, forces, faiblesses et armes uniques.</li>
-      <li class="i18n lang-ru"><strong>Процедурно генерируемые пришельцы:</strong> На старте каждой кампании генерируется
+      <li class="i18n lang-ru"><strong>Процедурно генерируемые пришельцы:</strong> На старте каждой кампании
+        генерируется
         ростер пришельцев, каждый с уникальными способностями, сильными и слабыми сторонами и оружием.</li>
-      <li class="i18n lang-pt"><strong>Alienígenas Gerados Proceduralmente:</strong> Um rol de aliens é gerado no início de
+      <li class="i18n lang-pt"><strong>Alienígenas Gerados Proceduralmente:</strong> Um rol de aliens é gerado no início
+        de
         cada campanha, cada um com habilidades, pontos fortes, fraquezas e armas únicas.</li>
       <li class="i18n lang-ja"><strong>プロシージャル生成エイリアン：</strong> キャンペーン開始時にエイリアンの一覧が生成され、それぞれが独自の能力・長所・弱点・武器を持つ。</li>
       <li class="i18n lang-ko"><strong>절차적 외계인 생성:</strong> 각 캠페인 시작 시 외계인 명단이 생성되며, 각자는 고유한 능력·강점·약점·무기를 가짐.</li>
@@ -310,7 +331,8 @@
     <p class="i18n lang-en"><a href="https://github.com/taislin/termcom/releases">Download Latest Release</a></p>
     <p class="i18n lang-zh"><a href="https://github.com/taislin/termcom/releases">下载最新版本</a></p>
     <p class="i18n lang-es"><a href="https://github.com/taislin/termcom/releases">Descargar la última versión</a></p>
-    <p class="i18n lang-fr"><a href="https://github.com/taislin/termcom/releases">Télécharger la dernière version</a></p>
+    <p class="i18n lang-fr"><a href="https://github.com/taislin/termcom/releases">Télécharger la dernière version</a>
+    </p>
     <p class="i18n lang-ru"><a href="https://github.com/taislin/termcom/releases">Скачать последнюю версию</a></p>
     <p class="i18n lang-pt"><a href="https://github.com/taislin/termcom/releases">Baixar a última versão</a></p>
     <p class="i18n lang-ja"><a href="https://github.com/taislin/termcom/releases">最新リリースをダウンロード</a></p>
@@ -327,17 +349,17 @@
   </div>
 
   <script>
-    (function () {
+    (() => {
       var LANGS = ['en', 'zh', 'es', 'fr', 'ru', 'pt', 'ja', 'ko'];
       var TITLES = {
-        en: 'TERM=COM - ASCII X-COM Demake',
-        zh: 'TERM=COM - ASCII X-COM 重制版',
-        es: 'TERM=COM - Remake ASCII de X-COM',
-        fr: 'TERM=COM - Remake ASCII de X-COM',
-        ru: 'TERM=COM - ASCII-ремейк X-COM',
-        pt: 'TERM=COM - Remake ASCII de X-COM',
-        ja: 'TERM=COM - ASCII X-COM リメイク',
-        ko: 'TERM=COM - ASCII X-COM 리메이크'
+        en: 'TERMCOM - ASCII X-COM Demake',
+        zh: 'TERMCOM - ASCII X-COM 重制版',
+        es: 'TERMCOM - Remake ASCII de X-COM',
+        fr: 'TERMCOM - Remake ASCII de X-COM',
+        ru: 'TERMCOM - ASCII-ремейк X-COM',
+        pt: 'TERMCOM - Remake ASCII de X-COM',
+        ja: 'TERMCOM - ASCII X-COM リメイク',
+        ko: 'TERMCOM - ASCII X-COM 리메이크'
       };
 
       function apply(lang) {
