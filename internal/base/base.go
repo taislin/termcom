@@ -12,6 +12,8 @@ import (
 	"github.com/taislin/termcom/internal/language"
 )
 
+const numTabs = 6
+
 type BaseScreen struct {
 	Game        *engine.Game
 	Base        *Base
@@ -359,7 +361,7 @@ func (bs *BaseScreen) HandleKey(e *tcell.EventKey) {
 			} else if bs.Tab == 5 {
 				bs.Selection = len(bs.Base.Hangars) - 1
 			} else {
-				bs.Selection = 6
+				bs.Selection = numTabs
 			}
 		}
 	case tcell.KeyDown:
@@ -378,7 +380,7 @@ func (bs *BaseScreen) HandleKey(e *tcell.EventKey) {
 				bs.Selection = 0
 			}
 		} else {
-			if bs.Selection > 6 {
+			if bs.Selection >= numTabs {
 				bs.Selection = 0
 			}
 		}
@@ -386,13 +388,13 @@ func (bs *BaseScreen) HandleKey(e *tcell.EventKey) {
 		audio.PlayMenuNav()
 		bs.Tab--
 		if bs.Tab < 0 {
-			bs.Tab = 5
+			bs.Tab = numTabs - 1
 		}
 		bs.Selection = 0
 	case tcell.KeyRight:
 		audio.PlayMenuNav()
 		bs.Tab++
-		if bs.Tab > 5 {
+		if bs.Tab >= numTabs {
 			bs.Tab = 0
 		}
 		bs.Selection = 0

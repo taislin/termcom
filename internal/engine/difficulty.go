@@ -7,6 +7,8 @@ import (
 	"github.com/gdamore/tcell/v3"
 )
 
+const startingFunds = 500000
+
 type DifficultyEntry struct {
 	Name        string
 	Description string
@@ -92,7 +94,7 @@ func (ds *DifficultyScreen) HandleKey(e *tcell.EventKey) {
 		}
 	case tcell.KeyEnter:
 		ds.Game.Difficulty = ds.Selection
-		ds.Game.Funds = int64(float64(500000) * Difficulties[ds.Selection].FundsScale)
+		ds.Game.Funds = int64(float64(startingFunds) * Difficulties[ds.Selection].FundsScale)
 		if ds.OnConfirm != nil {
 			ds.OnConfirm(ds.Selection)
 		}
@@ -100,7 +102,7 @@ func (ds *DifficultyScreen) HandleKey(e *tcell.EventKey) {
 	switch e.Str() {
 	case "\r":
 		ds.Game.Difficulty = ds.Selection
-		ds.Game.Funds = int64(float64(500000) * Difficulties[ds.Selection].FundsScale)
+		ds.Game.Funds = int64(float64(startingFunds) * Difficulties[ds.Selection].FundsScale)
 		if ds.OnConfirm != nil {
 			ds.OnConfirm(ds.Selection)
 		}
@@ -118,7 +120,7 @@ func (ds *DifficultyScreen) HandleMouse(e *tcell.EventMouse) {
 	if y >= 4 && y < 4+len(Difficulties) && x < w {
 		ds.Selection = y - 4
 		ds.Game.Difficulty = ds.Selection
-		ds.Game.Funds = int64(float64(500000) * Difficulties[ds.Selection].FundsScale)
+		ds.Game.Funds = int64(float64(startingFunds) * Difficulties[ds.Selection].FundsScale)
 		if ds.OnConfirm != nil {
 			ds.OnConfirm(ds.Selection)
 		}

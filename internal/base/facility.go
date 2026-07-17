@@ -26,19 +26,18 @@ type FacilityInfo struct {
 	Name      string
 	Short     string
 	Cost      int
-	Size      int
 	BuildDays int
 }
 
 var FacilityDefs = map[FacilityType]FacilityInfo{
-	FacLivingQuarters: {Name: "Living Quarters", Short: "LQ", Cost: 50000, Size: 1, BuildDays: 5},
-	FacLab:            {Name: "Laboratory", Short: "LAB", Cost: 75000, Size: 1, BuildDays: 7},
-	FacWorkshop:       {Name: "Workshop", Short: "WRK", Cost: 60000, Size: 1, BuildDays: 7},
-	FacStorage:        {Name: "Storage", Short: "STR", Cost: 40000, Size: 1, BuildDays: 3},
-	FacRadar:          {Name: "Radar", Short: "RAD", Cost: 80000, Size: 1, BuildDays: 5},
-	FacContainment:    {Name: "Alien Containment", Short: "ALC", Cost: 100000, Size: 1, BuildDays: 10},
-	FacPsiLab:         {Name: "Psi-Lab", Short: "PSI", Cost: 150000, Size: 1, BuildDays: 14},
-	FacHangar:         {Name: "Hangar", Short: "HNG", Cost: 120000, Size: 1, BuildDays: 8},
+	FacLivingQuarters: {Name: "Living Quarters", Short: "LQ", Cost: 50000, BuildDays: 5},
+	FacLab:            {Name: "Laboratory", Short: "LAB", Cost: 75000, BuildDays: 7},
+	FacWorkshop:       {Name: "Workshop", Short: "WRK", Cost: 60000, BuildDays: 7},
+	FacStorage:        {Name: "Storage", Short: "STR", Cost: 40000, BuildDays: 3},
+	FacRadar:          {Name: "Radar", Short: "RAD", Cost: 80000, BuildDays: 5},
+	FacContainment:    {Name: "Alien Containment", Short: "ALC", Cost: 100000, BuildDays: 10},
+	FacPsiLab:         {Name: "Psi-Lab", Short: "PSI", Cost: 150000, BuildDays: 14},
+	FacHangar:         {Name: "Hangar", Short: "HNG", Cost: 120000, BuildDays: 8},
 }
 
 var facilityNameKeys = map[FacilityType]string{

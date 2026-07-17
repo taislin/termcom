@@ -170,6 +170,7 @@ func newGameWithScreen(scr *ScreenRaw, initialState GameState) *Game {
 		eventDone:      make(chan struct{}),
 		AlienKnowledge: make(map[string]int),
 		ActionDelay:    Config.ActionDelay,
+		lastState:      -1,
 	}
 	g.initSpecies()
 	Menu.SetGame(g)
@@ -267,7 +268,8 @@ func (g *Game) GetAlienTypes() []*data.AlienType {
 	}
 	result := make([]*data.AlienType, len(data.AlienTypes))
 	for i := range data.AlienTypes {
-		result[i] = &data.AlienTypes[i]
+		cp := data.AlienTypes[i]
+		result[i] = &cp
 	}
 	return result
 }

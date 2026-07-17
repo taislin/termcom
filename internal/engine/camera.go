@@ -6,6 +6,8 @@ import (
 	"sync"
 )
 
+const shakeDecay = 8.0
+
 type Camera struct {
 	mu             sync.RWMutex
 	X, Y           int
@@ -19,7 +21,7 @@ func NewCamera(x, y int) *Camera {
 	return &Camera{
 		X:     x,
 		Y:     y,
-		decay: 8.0,
+		decay: shakeDecay,
 		rng:   rand.New(rand.NewSource(0)),
 	}
 }

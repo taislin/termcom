@@ -33,7 +33,7 @@ func (gos *GameOverScreen) Render(ctx *ScreenCtx) {
 }
 
 func (gos *GameOverScreen) HandleKey(e *tcell.EventKey) {
-	if e.Key() == tcell.KeyEscape {
+	if e.Key() == tcell.KeyEscape || e.Key() == tcell.KeyEnter || e.Key() == tcell.KeySpace {
 		gos.Game.Quit()
 	}
 }

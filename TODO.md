@@ -38,12 +38,12 @@ Scope: Features and fixes for the battlescape tactical combat system.
 ### `internal/engine/game.go`
 - [ ] **B2 (Low)** Quit-confirm mouse rects only set in TouchMode (524–546) →
   unclickable on desktop (424–430). Always compute rects or guard handler.
-- [ ] **B3 (Low)** `lastState` defaults to `StateMenu` (125,338–343) → first screen
-  transition may skip `OnScreenChange`. Init to sentinel -1.
+- [x] **B3 (Low)** `lastState` defaults to `StateMenu` (125,338–343) → first screen
+  transition may skip `OnScreenChange`. Init to -1.
 - [ ] **M1 (Low)** `NewGameWeb` re-inlines full Game literal (193–208) instead of
   calling `newGameWithScreen` → drift risk. Consolidate.
-- [ ] **M2 (Low)** `GetAlienTypes` fallback returns `&data.AlienTypes[i]` (262–271)
-  → mutating caller corrupts shared global. Copy values.
+- [x] **M2 (Low)** `GetAlienTypes` fallback returns `&data.AlienTypes[i]` (262–271)
+  → mutating caller corrupts shared global. Now copies values.
 - [ ] **M3 (Low)** `setupControlMenu` uses positional button indices (589–593,
   633–640) → brittle. Use named refs/map.
 - [ ] **U2 (Low)** Magic numbers: boxW/H 46/7, btnW 16, gap 4, frameSleep 16ms,
@@ -54,7 +54,7 @@ Scope: Features and fixes for the battlescape tactical combat system.
   guards (282–303). Drop.
 
 ### `internal/base/facility.go`
-- [ ] **D3 (Low)** `FacilityInfo.Size` set everywhere but ignored (BuildFacility
+- [x] **D3 (Low)** `FacilityInfo.Size` set everywhere but ignored — removed field.
   hardcodes 8-col grid, 250–251). Use or drop.
 - [ ] **M1 (Low)** `ChangeInterceptorWeapon` cycle includes "cannon" not sold via
   BuyInterceptor; curIdx -1 silently resets to avalanche (215,232–237).
@@ -64,8 +64,8 @@ Scope: Features and fixes for the battlescape tactical combat system.
   (613–630,717–739). Extract `applyUnlocks(topic)`.
 
 ### `internal/base/base.go`
-- [ ] **B2 (Low/Med)** Magic tab count `6` / wrap `>6` (362,381) but valid max idx 5
-  → selection 6 momentarily reachable. Use `len(tabs)`.
+- [x] **B2 (Low/Med)** Magic tab count `6` / wrap `>6` (362,381) but valid max idx 5
+  → selection 6 momentarily reachable. Replaced with `numTabs` constant.
 - [ ] **M1 (Low)** `HandleMouse` vs `HandleKey` hotkey dispatch dup'd (465–551 vs
   349–456); they already differ ('g' opens different designers). Extract
   `dispatchHotkey`.
@@ -86,10 +86,11 @@ Scope: Features and fixes for the battlescape tactical combat system.
 - [ ] **U1 (Low)** `simpleRand` undocumented custom RNG — explain why not math/rand.
 
 ### `internal/data/items.go`
+- [x] **B1 (Medium)** `"alien_grenade"` collides between RuleItems weapon (487) and Items loot (590) — already renamed to `alien_grenade_item` in Items.
 - [ ] **B2 (Low)** ShortName collisions MSC/PRM/PSI across RuleItems vs Items
   (504–507). Document or avoid cross-index by ShortName.
-- [ ] **D1 (Low)** `Weapons` map is write-only (AmmoCur never read, 49–51,663–668).
-  Remove or document.
+- [x] **D1 (Low)** `Weapons` map is write-only (AmmoCur never read, 49–51,663–668).
+  Documented as reserved for future runtime tracking.
 - [ ] **U1 (Low)** `BT_*` constants undocumented (11–23). Add doc.
 - [ ] **R1 (Low)** 3 near-identical `DisplayName*` methods (634–661). Extract
   `localizedName(langKey, fallback)`.
@@ -195,12 +196,12 @@ Scope: Features and fixes for the battlescape tactical combat system.
 ### `internal/data/weapondesign.go`
 - [ ] **M1 (Low)** Clamping magic literals: `1` (dmg/range/ammoMax), `10` (acc), `5` (TU/str), `2.5` str/weight ratio (184–203)
 - [ ] **D1 (Low)** `AmmoTypes` entries all have `IsAlien: false` — dead field or future-use marker (75–79)
-
 ### `internal/engine/camera.go`
-- [ ] **U1 (Low)** Hardcoded `decay: 8.0` — extract named constant (21)
+
+- [x] **U1 (Low)** Hardcoded `decay: 8.0` — extracted `shakeDecay` constant.
 
 ### `internal/engine/config.go`
-- [ ] **D1 (Low)** `WebsiteURL` exported — check for callers; dead export if none (13)
+- [x] **D1 (Low)** `WebsiteURL` exported — has callers in menu.go, kept.
 - [ ] **U1 (Low)** Magic numbers: `ActionDelay: 8`, `SfxVolume: 10`, `TouchButtonSize: 4` undocumented
 
 ### `internal/engine/control_menu.go`
@@ -215,9 +216,9 @@ Scope: Features and fixes for the battlescape tactical combat system.
 ### `internal/engine/debrief.go`
 - [ ] **B1 (Low)** `BaseDestroyed` + `Won=true` contradictory — title won't show "BASE LOST" because override only in `else` branch (89–95)
 - [ ] **U1 (Low)** `d.FundsEarned/1000` — undocumented divisor; extract `const FundsDisplayK` (132)
-
 ### `internal/engine/difficulty.go`
-- [ ] **U1 (Low)** `500000` starting funds repeated ×3 — name constant (95,103,121)
+
+- [x] **U1 (Low)** `500000` starting funds repeated ×3 — extracted `startingFunds` constant.
 
 ### `internal/engine/encyclopedia.go`
 - [ ] **B3 (Low)** Description text wraps by byte slice — `desc[:end]` splits multi-byte runes for CJK (181–188)
@@ -228,7 +229,7 @@ Scope: Features and fixes for the battlescape tactical combat system.
 - [ ] **U2 (Low)** Thresholds `128`, `40` in night vision (47,49) and thermal (86,89)
 
 ### `internal/engine/game_over.go`
-- [ ] **B1 (Low)** Only `Escape` dismisses the screen; inconsistent with `DebriefScreen` which also accepts Enter/Space (36)
+- [x] **B1 (Low)** Only `Escape` dismisses the screen; now also accepts Enter/Space.
 
 ### `internal/engine/help.go`
 - [ ] **R1 (Low)** `getPages()` called multiple times in `HandleKey` — cache result (195,203,273,278)
@@ -326,7 +327,7 @@ Scope: Features and fixes for the battlescape tactical combat system.
 - [ ] **R1 (Low)** Difficulty-weighted type selection duplicated in `SpawnUFOOnCities` (62–70) and `SpawnUFOAtCity` (108–115) — extract `pickUFOType`
 
 ### `internal/geo/vehicle.go`
-- [ ] **D1 (Low)** Empty file (only `package geo`) — remove or fill
+- [x] **D1 (Low)** Empty file (only `package geo`) — removed.
 
 ### `internal/geo/world.go`
 - [ ] **M1 (Low)** City coordinates (50–74) bare literals in `init()`
