@@ -181,7 +181,7 @@ func printMenu(left []menuEntry, selected int) {
 	fmt.Printf("  %s%-2d. %s%s\n", ansiDim, len(left)+1, "Quit", ansiReset)
 
 	// Right panel: details of selected
-	fmt.Printf("\033[%dA", len(left)+6) // move cursor up to details area
+	fmt.Printf("\033[%dA", len(left)+3) // move cursor up to header row level
 	rightX := 43
 	fmt.Printf("\033[%dC", rightX)
 

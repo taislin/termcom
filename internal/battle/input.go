@@ -211,6 +211,17 @@ func (bs *Battlescape) handleMouse(e *tcell.EventMouse) {
 			bs.State.MovePath = nil
 			bs.HoveredUnit = nil
 		}
+		return
+	}
+
+	// Mouse hover (no button): show enemy info when hovering over aliens
+	if buttons == 0 {
+		unit := bs.Units.At(mx, my)
+		if unit != nil && unit.Faction == FactionAlien && unit.Alive {
+			bs.HoveredUnit = unit
+		} else {
+			bs.HoveredUnit = nil
+		}
 	}
 }
 

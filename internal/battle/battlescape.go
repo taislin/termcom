@@ -1755,6 +1755,17 @@ func (bs *Battlescape) MoveCursor(dx, dy int) {
 	}
 
 	bs.Camera.SetTarget(bs.CursorX, bs.CursorY)
+	bs.updateHoverFromCursor()
+}
+
+// updateHoverFromCursor sets HoveredUnit to the alien under the cursor (keyboard or mouse).
+func (bs *Battlescape) updateHoverFromCursor() {
+	unit := bs.Units.At(bs.CursorX, bs.CursorY)
+	if unit != nil && unit.Faction == FactionAlien && unit.Alive {
+		bs.HoveredUnit = unit
+	} else if unit == nil || unit.Faction != FactionAlien {
+		bs.HoveredUnit = nil
+	}
 }
 
 // SelectUnit selects the unit at the cursor position or cycles to the next one.
