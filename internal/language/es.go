@@ -13,7 +13,8 @@ func init() {
 		"MENU_CUSTOM_BATTLE": "Batalla personalizada",
 		"MENU_WEBSITE":       "Sitio Web",
 		"MENU_CONTINUE":      "Continuar",
-		"MENU_HELP":          "[\u2191]/[\u2193]=Seleccionar  [Enter]=Confirmar  [Q]=Salir  [F5]=Guardar  [F9]=Cargar",
+		"MENU_HELP":               "[\u2191]/[\u2193]=Seleccionar  [Enter]=Confirmar  [Q]=Salir  [F5]=Guardar  [F9]=Cargar",
+		"MENU_UPDATE_AVAILABLE":   "ACTUALIZACIÓN DISPONIBLE",
 
 		// ── Dificultad ─────────────────────────────────────
 		"DIFFICULTY_TITLE":  "SELECCIONAR DIFICULTAD",

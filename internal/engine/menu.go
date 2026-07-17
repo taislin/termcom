@@ -1,12 +1,18 @@
 package engine
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 	"math"
 	"math/rand"
+	"net/http"
 	"os"
 	"os/exec"
 	"runtime"
+	"strconv"
+	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/taislin/termcom/internal/language"
@@ -59,16 +65,23 @@ type MenuScreen struct {
 
 	// Timing
 	lastUpdate time.Time
+
+	// Update check
+	latestVersion     atomic.Value // stores string (empty = not fetched)
+	updateCheckStarted bool
 }
 
 func NewMenuScreen(g *Game) *MenuScreen {
-	return &MenuScreen{
+	ms := &MenuScreen{
 		Game:          g,
 		Selection:     0,
 		lastSelection: -1,
 		menuParticles: NewParticleSystem(80),
 		lastUpdate:    time.Now(),
 	}
+	ms.latestVersion.Store("")
+	ms.startVersionCheck()
+	return ms
 }
 
 func gameVersionStr() string {
@@ -217,8 +230,60 @@ func (ms *MenuScreen) Render(ctx *ScreenCtx) {
 		}
 	}
 
-	// ── 4. Version ────────────────────────────────────────────────────────────
-	ctx.DrawString(w-len([]rune(gameVersionStr()))-2, 0, gameVersionStr(), StyleGray)
+	// ── 4. Version / Update box ───────────────────────────────────────────────
+	versionStr := gameVersionStr()
+	latest := ms.latestVersion.Load()
+	if latest != nil {
+		if v := latest.(string); v != "" {
+			updateText := language.String("MENU_UPDATE_AVAILABLE")
+			vLen := len([]rune(versionStr))
+			uLen := len([]rune(updateText))
+			contentW := vLen
+			if uLen > contentW {
+				contentW = uLen
+			}
+			contentW += 2
+			boxW := contentW + 2
+			boxX := w - boxW - 2
+			boxY := 0
+
+			// top border
+			ctx.SetCell(boxX, boxY, '┌', StyleGray)
+			for dx := 1; dx <= contentW; dx++ {
+				ctx.SetCell(boxX+dx, boxY, '─', StyleGray)
+			}
+			ctx.SetCell(boxX+contentW+1, boxY, '┐', StyleGray)
+
+			// row 1: version (centered)
+			vOff := 1 + (contentW-vLen)/2
+			ctx.SetCell(boxX, boxY+1, '│', StyleGray)
+			for dx := 1; dx <= contentW; dx++ {
+				ctx.SetCell(boxX+dx, boxY+1, ' ', StyleDefault)
+			}
+			ctx.DrawString(boxX+vOff, boxY+1, versionStr, StyleGray)
+			ctx.SetCell(boxX+contentW+1, boxY+1, '│', StyleGray)
+
+			// row 2: update text (centered)
+			uOff := 1 + (contentW-uLen)/2
+			ctx.SetCell(boxX, boxY+2, '│', StyleGray)
+			for dx := 1; dx <= contentW; dx++ {
+				ctx.SetCell(boxX+dx, boxY+2, ' ', StyleDefault)
+			}
+			ctx.DrawString(boxX+uOff, boxY+2, updateText, StyleYellow)
+			ctx.SetCell(boxX+contentW+1, boxY+2, '│', StyleGray)
+
+			// bottom border
+			ctx.SetCell(boxX, boxY+3, '└', StyleGray)
+			for dx := 1; dx <= contentW; dx++ {
+				ctx.SetCell(boxX+dx, boxY+3, '─', StyleGray)
+			}
+			ctx.SetCell(boxX+contentW+1, boxY+3, '┘', StyleGray)
+		} else {
+			ctx.DrawString(w-len([]rune(versionStr))-2, 0, versionStr, StyleGray)
+		}
+	} else {
+		ctx.DrawString(w-len([]rune(versionStr))-2, 0, versionStr, StyleGray)
+	}
 
 	// ── 5. Subtitle + decorations ─────────────────────────────────────────────
 	subY := startY + len(title) + 1
@@ -294,6 +359,58 @@ func (ms *MenuScreen) Render(ctx *ScreenCtx) {
 	} else {
 		ctx.DrawMarkupString(1, h-2, language.String("MENU_HELP"), StyleGray, StyleHotkey)
 	}
+}
+
+func (ms *MenuScreen) startVersionCheck() {
+	if ms.updateCheckStarted {
+		return
+	}
+	ms.updateCheckStarted = true
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		req, err := http.NewRequestWithContext(ctx, "GET", "https://api.github.com/repos/taislin/termcom/releases/latest", nil)
+		if err != nil {
+			return
+		}
+		req.Header.Set("Accept", "application/vnd.github.v3+json")
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			return
+		}
+		defer resp.Body.Close()
+		var release struct {
+			TagName string `json:"tag_name"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&release); err != nil {
+			return
+		}
+		if release.TagName != "" && isNewerVersion(release.TagName, GameVersion) {
+			ms.latestVersion.Store(release.TagName)
+		}
+	}()
+}
+
+func isNewerVersion(latest, current string) bool {
+	la := strings.Split(strings.TrimPrefix(latest, "v"), ".")
+	ca := strings.Split(strings.TrimPrefix(current, "v"), ".")
+	maxLen := len(la)
+	if len(ca) > maxLen {
+		maxLen = len(ca)
+	}
+	for i := 0; i < maxLen; i++ {
+		var lv, cv int
+		if i < len(la) {
+			lv, _ = strconv.Atoi(la[i])
+		}
+		if i < len(ca) {
+			cv, _ = strconv.Atoi(ca[i])
+		}
+		if lv != cv {
+			return lv > cv
+		}
+	}
+	return false
 }
 
 func (ms *MenuScreen) options() []string {
@@ -444,6 +561,25 @@ func (ms *MenuScreen) HandleMouse(e *tcell.EventMouse) {
 			i = end + 1
 		}
 		return
+	}
+
+	// Update notification box click
+	if latest := ms.latestVersion.Load(); latest != nil && latest.(string) != "" {
+		vLen := len([]rune(gameVersionStr()))
+		uLen := len([]rune(language.String("MENU_UPDATE_AVAILABLE")))
+		contentW := vLen
+		if uLen > contentW {
+			contentW = uLen
+		}
+		contentW += 2
+		boxW := contentW + 2
+		boxX := w - boxW - 2
+		if y >= 0 && y <= 3 && x >= boxX && x < boxX+boxW {
+			if buttons&tcell.Button1 != 0 {
+				openBrowser("https://github.com/taislin/termcom/releases/latest")
+			}
+			return
+		}
 	}
 
 	subY := 9

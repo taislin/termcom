@@ -11,7 +11,8 @@ func init() {
 		"MENU_OPTIONS":       "Options",
 		"MENU_CUSTOM_BATTLE": "Custom Battle",
 		"MENU_WEBSITE":       "Website",
-		"MENU_HELP":          "[\u2191]/[\u2193]=Select  [Enter]=Confirm  [Q]=Quit  [F5]=Save  [F9]=Load",
+		"MENU_HELP":               "[\u2191]/[\u2193]=Select  [Enter]=Confirm  [Q]=Quit  [F5]=Save  [F9]=Load",
+		"MENU_UPDATE_AVAILABLE":   "UPDATE AVAILABLE",
 
 		// ── Difficulty ─────────────────────────────────────
 		"DIFFICULTY_TITLE":  "SELECT DIFFICULTY",

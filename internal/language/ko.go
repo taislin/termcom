@@ -13,7 +13,8 @@ func init() {
 		"MENU_OPTIONS":       "설정",
 		"MENU_CUSTOM_BATTLE": "사용자 정의 전투",
 		"MENU_WEBSITE":       "웹사이트",
-		"MENU_HELP":          "[\\u2191]/[\\u2193]=Select  [Enter]=Confirm  [Q]=Quit  [F5]=Save  [F9]=Load",
+		"MENU_HELP":               "[\\u2191]/[\\u2193]=Select  [Enter]=Confirm  [Q]=Quit  [F5]=Save  [F9]=Load",
+		"MENU_UPDATE_AVAILABLE":   "업데이트 가능",
 
 		// ── Difficulty ─────────────────────────────────────
 		"DIFFICULTY_TITLE":  "난이도 선택",

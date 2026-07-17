@@ -13,7 +13,8 @@ func init() {
 		"MENU_OPTIONS":       "オプション",
 		"MENU_CUSTOM_BATTLE": "カスタムバトル",
 		"MENU_WEBSITE":       "ウェブサイト",
-		"MENU_HELP":          "[\u2191]/[\u2193]=選択  [Enter]=確定  [Q]=終了  [F5]=セーブ  [F9]=ロード",
+		"MENU_HELP":               "[\u2191]/[\u2193]=選択  [Enter]=確定  [Q]=終了  [F5]=セーブ  [F9]=ロード",
+		"MENU_UPDATE_AVAILABLE":   "アップデート利用可能",
 
 		// ── Difficulty ─────────────────────────────────────
 		"DIFFICULTY_TITLE":  "難易度を選択",

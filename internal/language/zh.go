@@ -11,7 +11,8 @@ func init() {
 		"MENU_CUSTOM_BATTLE": "\u81ea\u5b9a\u4e49\u6218\u6597",
 		"MENU_WEBSITE":       "\u7f51\u7ad9",
 		"MENU_CONTINUE":      "\u7ee7\u7eed",
-		"MENU_HELP":          "[\u2191]/[\u2193]=\u9009\u62e9  [Enter]=\u786e\u8ba4  [Q]=\u9000\u51fa  [F5]=\u5b58\u6863  [F9]=\u8bfb\u53d6",
+		"MENU_HELP":               "[\u2191]/[\u2193]=\u9009\u62e9  [Enter]=\u786e\u8ba4  [Q]=\u9000\u51fa  [F5]=\u5b58\u6863  [F9]=\u8bfb\u53d6",
+		"MENU_UPDATE_AVAILABLE":   "\u6709\u53ef\u7528\u66F4\u65B0",
 
 		// ── \u96be\u5ea6 ─────────────────────────────────────
 		"DIFFICULTY_TITLE":  "\u9009\u62e9\u96be\u5ea6",
