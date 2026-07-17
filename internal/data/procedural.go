@@ -332,14 +332,14 @@ func generateOneSpecies(rng *rand.Rand, idx int, usedNames map[string]bool, used
 	}
 
 	// Generate species lore
-	sp.Lore = generateLore(name, primaryDMG, morph)
+	sp.Lore = generateLore(primaryDMG, morph)
 
 	return sp
 }
 
 func generateName(rng *rand.Rand) string {
 	p, m, e := poolsForLang(language.Current())
-	pi := p[midSyllIdx(rng, len(p))]
+	pi := p[rng.Intn(len(p))]
 	mi := m[rng.Intn(len(m))]
 	ei := e[rng.Intn(len(e))]
 	return pi + mi + ei
@@ -358,10 +358,6 @@ func poolsForLang(lang string) (prefix, mid, end []string) {
 	default:
 		return prefixSyll, midSyll, endSyll
 	}
-}
-
-func midSyllIdx(rng *rand.Rand, max int) int {
-	return rng.Intn(max)
 }
 
 // generateMorphology creates the physical form of an alien species.
@@ -555,7 +551,7 @@ func generateLegCount(rng *rand.Rand, subtype string) int {
 			return 4
 		}
 	case SubtypeSilicon:
-		return 2 + rng.Intn(3)*2 // 2 or 4
+		return 2 + rng.Intn(2)*2 // 2 or 4
 	default:
 		roll := rng.Intn(10)
 		switch {
@@ -1014,7 +1010,7 @@ func genResist(rng *rand.Rand, affinity int, dmgType int, rank int) int {
 	return 0
 }
 
-func generateLore(name string, dmgType int, m *Morphology) string {
+func generateLore(dmgType int, m *Morphology) string {
 	// Mix damage type and body subtype for template variety
 	subtypeHash := 0
 	for _, c := range m.BodySubtype {
@@ -1043,6 +1039,7 @@ func generateLore(name string, dmgType int, m *Morphology) string {
 	return fmt.Sprintf("%s %s. "+language.String("LORE_BODY_FORMAT")+"%s", limbDesc, base, bodyDesc, senseDesc)
 }
 
+// clamp restricts v to the [lo, hi] range.
 func clamp(v, lo, hi int) int {
 	if v < lo {
 		return lo
