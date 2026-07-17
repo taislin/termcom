@@ -21,7 +21,7 @@ Scope: Features and fixes for the battlescape tactical combat system.
       2. places 1 anchor fragment (UFO hull / command core),
       3. greedily places N fragments with spacing + connectivity (flood-fill) check,
       4. stamps corridors (`generateCorridor`) between adjacent fragment doors.
-- [ ] Keep `GenerateCrashSite` / `GenerateTerrorSite` / `GenerateForest` / etc. as
+- [x] Keep `GenerateCrashSite` / `GenerateTerrorSite` / `GenerateForest` / etc. as
       thin wrappers calling `AssembleMap` with biome-specific fragment sets
       (preserves existing tests and map contracts).
 

@@ -85,7 +85,7 @@ func registerFragment(name string, f *MapFragment) {
 
 func init() {
 	registerFragment("ruined_shack", &MapFragment{
-		W: 5, H: 4, Tags: []string{"urban", "forest"},
+		W: 5, H: 4, Tags: []string{"urban", "forest", "rural"},
 		DoorSides: []int{0},
 		Tiles: [][]TileType{
 			{TileWall, TileWall, TileWall, TileWall, TileWall},
@@ -170,10 +170,15 @@ func AssembleMap(biome string, w, h int, rng *rand.Rand) *BattleMap {
 		baseTile = TileSand
 	case "polar":
 		baseTile = TileSnow
+	case "rural":
+		baseTile = TileGrass
 	case "ufo", "alien":
 		baseTile = TileUFOFloor
 	}
 	m.fillRect(0, 0, w, h, baseTile)
+
+	// Apply biome-specific clustered terrain (blob growth + poisson spacing).
+	clusterBiome(m, biome, w, h, rng)
 
 	frags := fragmentsForBiome(biome)
 	if len(frags) == 0 {
@@ -222,4 +227,32 @@ func AssembleMap(biome string, w, h int, rng *rand.Rand) *BattleMap {
 	}
 
 	return m
+}
+
+// clusterBiome applies biome-aware clustered terrain to m, replacing the old
+// uniform scatter. Uses deterministic seeds derived from w/h/rng so output is
+// reproducible for a given (biome, size, rng) combination.
+func clusterBiome(m *BattleMap, biome string, w, h int, rng *rand.Rand) {
+	switch biome {
+	case "forest":
+		m.Blob(TileTree, 6, w*h/40, 55, rng)
+		m.Blob(TileBush, 8, w*h/60, 60, rng)
+		m.Poisson(TileRock, 3, w*h/120, rng)
+		clearX := w/4 + rng.Intn(w/2)
+		clearY := h/4 + rng.Intn(h/2)
+		m.fillRect(clearX-3, clearY-3, 7, 7, TileGrass)
+	case "desert":
+		m.Blob(TileSand, 5, w*h/50, 50, rng)
+		m.Blob(TileRock, 4, w*h/80, 45, rng)
+		m.Poisson(TileBush, 4, w*h/200, rng)
+	case "polar":
+		m.Blob(TileMarsh, 5, w*h/60, 50, rng)
+		m.Poisson(TileRock, 3, w*h/150, rng)
+	case "urban":
+		m.Poisson(TileObject, 4, w*h/200, rng)
+	case "rural":
+		m.Blob(TileRock, 5, w*h/60, 50, rng)
+		m.Blob(TileTree, 6, w*h/50, 55, rng)
+		m.Poisson(TileObject, 4, w*h/200, rng)
+	}
 }

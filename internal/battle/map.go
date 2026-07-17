@@ -849,50 +849,7 @@ func GenerateTerrorSite(w, h int) *BattleMap {
 }
 
 func GenerateAbductionSite(w, h int) *BattleMap {
-	m := NewBattleMap(w, h)
-
-	// Fill with grass
-	m.fillRect(0, 0, w, h, TileGrass)
-
-	// Scatter rocks
-	ApplyCommands(m, []MapCommand{
-		{Type: CmdScatter, X: 1, Y: 1, W: w - 2, H: h - 2, Tile: TileRock, Prob: 5, Count: 30},
-	})
-
-	// Scatter trees
-	ApplyCommands(m, []MapCommand{
-		{Type: CmdScatter, X: 1, Y: 1, W: w - 2, H: h - 2, Tile: TileTree, Prob: 8, Count: 40},
-	})
-
-	// A few small structures (rural buildings)
-	buildings := 3 + rand.Intn(3)
-	attempts := 0
-	for i := 0; i < buildings && attempts < 100; i++ {
-		attempts++
-		bw := 4 + rand.Intn(4)
-		bh := 3 + rand.Intn(3)
-		bx := randn(w-bw-2) + 1
-		by := randn(h-bh-2) + 1
-		overlap := false
-		for dy := -1; dy <= bh; dy++ {
-			for dx := -1; dx <= bw; dx++ {
-				if m.At(bx+dx, by+dy).Type != TileGrass {
-					overlap = true
-				}
-			}
-		}
-		if overlap {
-			continue
-		}
-		m.ApplyCommand(MapCommand{Type: CmdPlaceBuilding, X: bx, Y: by, W: bw, H: bh, DoorSide: rand.Intn(4)})
-	}
-
-	// Scatter objects inside buildings
-	ApplyCommands(m, []MapCommand{
-		{Type: CmdScatter, X: 1, Y: 1, W: w - 2, H: h - 2, Tile: TileObject, Prob: 3, Count: 15},
-	})
-
-	return m
+	return AssembleMap("rural", w, h, rand.New(rand.NewSource(int64(w*32452843+h*456789))))
 }
 
 // GenerateUFOInterior creates a UFO interior map (OpenXcom: 50x50)
@@ -1276,47 +1233,19 @@ func GenerateAlienBase(w, h int) *BattleMap {
 	return m
 }
 
-// GenerateForest creates a forest map (OpenXcom: 50x50)
+// GenerateForest creates a forest map (OpenXcom: 50x50) via AssembleMap.
 func GenerateForest(w, h int) *BattleMap {
-	m := NewBattleMap(w, h)
-	// Clustered terrain: tree thickets with bush halos, plus rock outcrops.
-	m.Blob(TileTree, 6, w*h/40, 55, rand.New(rand.NewSource(int64(w*73856093+h*19349663))))
-	m.Blob(TileBush, 8, w*h/60, 60, rand.New(rand.NewSource(int64(w*83492791+h*2654435761))))
-	m.Poisson(TileRock, 3, w*h/120, rand.New(rand.NewSource(int64(w*32452843+h*456789))))
-
-	clearX := w/4 + rand.Intn(w/2)
-	clearY := h/4 + rand.Intn(h/2)
-	m.fillRect(clearX-3, clearY-3, 7, 7, TileGrass)
-	return m
+	return AssembleMap("forest", w, h, rand.New(rand.NewSource(int64(w*73856093+h*19349663))))
 }
 
-// GenerateDesert creates a desert map (OpenXcom: 50x50)
+// GenerateDesert creates a desert map (OpenXcom: 50x50) via AssembleMap.
 func GenerateDesert(w, h int) *BattleMap {
-	m := NewBattleMap(w, h)
-	for y := 0; y < h; y++ {
-		for x := 0; x < w; x++ {
-			m.Set(x, y, TilePavement)
-		}
-	}
-	// Clustered dunes and rock islands instead of uniform scatter.
-	m.Blob(TileSand, 5, w*h/50, 50, rand.New(rand.NewSource(int64(w*19349663+h*83492791))))
-	m.Blob(TileRock, 4, w*h/80, 45, rand.New(rand.NewSource(int64(w*2654435761+h*32452843))))
-	m.Poisson(TileBush, 4, w*h/200, rand.New(rand.NewSource(int64(w*456789+h*73856093))))
-	return m
+	return AssembleMap("desert", w, h, rand.New(rand.NewSource(int64(w*19349663+h*83492791))))
 }
 
-// GeneratePolar creates a polar map (OpenXcom: 50x50)
+// GeneratePolar creates a polar map (OpenXcom: 50x50) via AssembleMap.
 func GeneratePolar(w, h int) *BattleMap {
-	m := NewBattleMap(w, h)
-	for y := 0; y < h; y++ {
-		for x := 0; x < w; x++ {
-			m.Set(x, y, TileSnow)
-		}
-	}
-	// Marsh patches in snow, plus rocky outcrops.
-	m.Blob(TileMarsh, 5, w*h/60, 50, rand.New(rand.NewSource(int64(w*2654435761+h*19349663))))
-	m.Poisson(TileRock, 3, w*h/150, rand.New(rand.NewSource(int64(w*32452843+h*83492791))))
-	return m
+	return AssembleMap("polar", w, h, rand.New(rand.NewSource(int64(w*2654435761+h*19349663))))
 }
 
 func (m *BattleMap) neighbourhood(x, y int) [3][3]TileType {
