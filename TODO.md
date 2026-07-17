@@ -49,8 +49,9 @@ Scope: Features and fixes for the battlescape tactical combat system.
   Added comments explaining model.
 - [x] **U3 (Low)** Hardcoded `NewPixelImage(20,24)` disconnected from `AlienPixels`.
   Derived from `data.SpriteW` / `data.SpriteH`.
-- [ ] **R1 (Low)** 8 hair-style switch cases share scaffolding (lines 835–1058).
-  Table-drive with `{k,d}` per style.
+- [x] **R1 (Low)** 8 hair-style switch cases share scaffolding (lines 835–1058).
+  Table-drove with `hairStyle{k,d,crownW}` + `forEachCrownCol` helper; spiky/afro/curly
+  kept as special branches.
 - [x] **R2 (Low)** Redundant `sqrt64` wrapper. Inlined `math.Sqrt`.
 - [x] **R3 (Low)** Ellipse-test `(dx*dx)/(RX*RX)+(dy*dy)/(RY*RY)` dup'd 4×.
   Added `inEllipse` / `inEllipseF` helpers.

@@ -674,6 +674,44 @@ func generateMouthLayer(w, h int, skinColor tcell.Color) *PixelImage {
 	return img
 }
 
+type hairStyle struct {
+	k      float64 // temple recession factor (higher = less recession)
+	d      float64 // base hair depth before scaling
+	crownW int     // 0 = full width; otherwise half-width of crown from center
+}
+
+var hairStyleTable = [...]hairStyle{
+	{1.0, 2.0, 0},    // 0: buzzcut
+	{0.7, 5.0, 0},    // 1: medium
+	{},                // 2: spiky (special — not table-driven)
+	{},                // 3: afro (special — not table-driven)
+	{0.5, 6.0, 0},    // 4: side part
+	{0.6, 5.0, 0},    // 5: curly (table params but custom paint)
+	{0.55, 5.0, 0},   // 6: ponytail
+	{0.3, 4.0, 60},   // 7: undercut (crownW = rx * 3 / 5 ≈ 60%)
+}
+
+// forEachCrownCol iterates head columns from startX to endX, computing hair
+// depth from temple factor k and base depth d, then calling fn(x, topY, depth).
+func forEachCrownCol(g faceGeom, startX, endX, divRx int, k, d float64, headTopY func(int) int, fn func(x, ty, depth int)) {
+	for x := startX; x <= endX; x++ {
+		ty := headTopY(x)
+		if ty < 0 {
+			continue
+		}
+		dx := x - g.cx
+		if dx < 0 {
+			dx = -dx
+		}
+		templeF := 1.0 - float64(dx)/float64(divRx)*k
+		depth := int(d*templeF + 0.5)
+		if depth < 1 {
+			depth = 1
+		}
+		fn(x, ty, depth)
+	}
+}
+
 func generateHairLayer(w, h int, color tcell.Color, style int) *PixelImage {
 	img := NewPixelImage(w, h)
 	g := computeFaceGeom(w, h)
@@ -740,43 +778,6 @@ func generateHairLayer(w, h int, color tcell.Color, style int) *PixelImage {
 	}
 
 	switch style {
-	case 0: // Buzzcut — razor-thin, 1-2px cap, heavy temple recession
-		for x := 0; x < w; x++ {
-			ty := headTopY(x)
-			if ty < 0 {
-				continue
-			}
-			dx := x - g.cx
-			if dx < 0 {
-				dx = -dx
-			}
-			templeF := 1.0 - float64(dx)/float64(g.rx+1)
-			depth := int(2.0*templeF + 0.5)
-			if depth < 1 {
-				depth = 1
-			}
-			setHairCol(x, ty, depth)
-		}
-
-	case 1: // Medium — natural crown shape, 3-5px, side wisps
-		for x := 0; x < w; x++ {
-			ty := headTopY(x)
-			if ty < 0 {
-				continue
-			}
-			dx := x - g.cx
-			if dx < 0 {
-				dx = -dx
-			}
-			templeF := 1.0 - float64(dx)/float64(g.rx+1)*0.7
-			depth := int(5.0*templeF + 0.5)
-			if depth < 1 {
-				depth = 1
-			}
-			setHairCol(x, ty, depth)
-		}
-		sideHair(2)
-
 	case 2: // Spiky — alternating taller spikes on crown only
 		for x := 0; x < w; x++ {
 			ty := headTopY(x)
@@ -828,49 +829,9 @@ func generateHairLayer(w, h int, color tcell.Color, style int) *PixelImage {
 			}
 		}
 
-	case 4: // Side part — full coverage with visible dark part groove
-		for x := 0; x < w; x++ {
-			ty := headTopY(x)
-			if ty < 0 {
-				continue
-			}
-			dx := x - g.cx
-			if dx < 0 {
-				dx = -dx
-			}
-			templeF := 1.0 - float64(dx)/float64(g.rx+1)*0.5
-			depth := int(6.0*templeF + 0.5)
-			if depth < 1 {
-				depth = 1
-			}
-			setHairCol(x, ty, depth)
-		}
-		partX := g.cx + g.rx/4
-		for dy := 0; dy < 5; dy++ {
-			ty := headTopY(partX)
-			if ty >= 0 {
-				py := ty + dy
-				if py >= 0 && py < h && partX >= 0 && partX < w {
-					img.Pixels[py][partX] = darkHair
-				}
-			}
-		}
-
-	case 5: // Curly — medium depth with curl texture alternation
-		for x := 0; x < w; x++ {
-			ty := headTopY(x)
-			if ty < 0 {
-				continue
-			}
-			dx := x - g.cx
-			if dx < 0 {
-				dx = -dx
-			}
-			templeF := 1.0 - float64(dx)/float64(g.rx+1)*0.6
-			depth := int(5.0*templeF + 0.5)
-			if depth < 1 {
-				depth = 1
-			}
+	case 5: // Curly — texture alternation instead of strandColor
+		p := hairStyleTable[5]
+		forEachCrownCol(g, 0, w-1, g.rx+1, p.k, p.d, headTopY, func(x, ty, depth int) {
 			for dy := 0; dy < depth; dy++ {
 				py := ty + dy
 				if py < 0 || py >= h || x < 0 || x >= w {
@@ -885,83 +846,54 @@ func generateHairLayer(w, h int, color tcell.Color, style int) *PixelImage {
 					img.Pixels[py][x] = color
 				}
 			}
-		}
+		})
 		sideHair(2)
 
-	case 6: // Ponytail — top hair + narrow strip falling on right
-		for x := 0; x < w; x++ {
-			ty := headTopY(x)
-			if ty < 0 {
-				continue
-			}
-			dx := x - g.cx
-			if dx < 0 {
-				dx = -dx
-			}
-			templeF := 1.0 - float64(dx)/float64(g.rx+1)*0.55
-			depth := int(5.0*templeF + 0.5)
-			if depth < 1 {
-				depth = 1
-			}
-			setHairCol(x, ty, depth)
+	default: // Standard crown styles: table-driven with k,d per style
+		p := hairStyleTable[style%len(hairStyleTable)]
+		startX, endX, divRx := 0, w-1, g.rx+1
+		if p.crownW > 0 {
+			startX, endX = g.cx-p.crownW, g.cx+p.crownW
+			divRx = p.crownW + 1
 		}
-		tailX := g.cx + g.rx
-		for y := g.cy - g.ry/3; y <= g.cy+g.ry; y++ {
-			for d := 0; d < 2; d++ {
-				tx := tailX + d
-				if tx >= 0 && tx < w && y >= 0 && y < h {
-					img.Pixels[y][tx] = strandColor(tx, y)
-				}
-			}
-		}
-
-	case 7: // Undercut — crown-only, stark shaved sides
-		crownW := g.rx * 3 / 5
-		for x := g.cx - crownW; x <= g.cx+crownW; x++ {
-			ty := headTopY(x)
-			if ty < 0 {
-				continue
-			}
-			dx := x - g.cx
-			if dx < 0 {
-				dx = -dx
-			}
-			templeF := 1.0 - float64(dx)/float64(crownW+1)*0.3
-			depth := int(4.0*templeF + 0.5)
-			if depth < 1 {
-				depth = 1
-			}
-			setHairCol(x, ty, depth)
-		}
-		for side := -1; side <= 1; side += 2 {
-			ex := g.cx + side*(crownW+1)
-			ty := headTopY(ex)
-			if ty >= 0 && ex >= 0 && ex < w {
-				for dy := 0; dy < 3; dy++ {
+		forEachCrownCol(g, startX, endX, divRx, p.k, p.d, headTopY, setHairCol)
+		switch style {
+		case 1:
+			sideHair(2)
+		case 4: // part groove
+			partX := g.cx + g.rx/4
+			for dy := 0; dy < 5; dy++ {
+				ty := headTopY(partX)
+				if ty >= 0 {
 					py := ty + dy
-					if py >= 0 && py < h {
-						img.Pixels[py][ex] = darkHair
+					if py >= 0 && py < h && partX >= 0 && partX < w {
+						img.Pixels[py][partX] = darkHair
 					}
 				}
 			}
-		}
-
-	default: // Short cropped — thin curved shell, heavy recession
-		for x := 0; x < w; x++ {
-			ty := headTopY(x)
-			if ty < 0 {
-				continue
+		case 6: // ponytail strip
+			tailX := g.cx + g.rx
+			for y := g.cy - g.ry/3; y <= g.cy+g.ry; y++ {
+				for d := 0; d < 2; d++ {
+					tx := tailX + d
+					if tx >= 0 && tx < w && y >= 0 && y < h {
+						img.Pixels[y][tx] = strandColor(tx, y)
+					}
+				}
 			}
-			dx := x - g.cx
-			if dx < 0 {
-				dx = -dx
+		case 7: // undercut dark sides
+			for side := -1; side <= 1; side += 2 {
+				ex := g.cx + side*(p.crownW+1)
+				ty := headTopY(ex)
+				if ty >= 0 && ex >= 0 && ex < w {
+					for dy := 0; dy < 3; dy++ {
+						py := ty + dy
+						if py >= 0 && py < h {
+							img.Pixels[py][ex] = darkHair
+						}
+					}
+				}
 			}
-			templeF := 1.0 - float64(dx)/float64(g.rx+1)*0.8
-			depth := int(3.0*templeF + 0.5)
-			if depth < 1 {
-				depth = 1
-			}
-			setHairCol(x, ty, depth)
 		}
 	}
 
