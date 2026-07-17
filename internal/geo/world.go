@@ -46,6 +46,9 @@ func init() {
 	}
 
 	cities = []*City{
+		// City coordinates use the world map's screen coordinate system:
+		// X = longitude/2 (0..179, where 0 = 180W and 179 = 180E),
+		// Y = (90 - latitude)/2 (0..89, where 0 = 90N and 89 = 90S).
 		// North America
 		{ID: 0, NameKey: "CITY_NEW_YORK", X: 48, Y: 33, RegionKey: "REGION_NA_EAST"},
 		{ID: 1, NameKey: "CITY_LOS_ANGELES", X: 28, Y: 36, RegionKey: "REGION_NA_WEST"},

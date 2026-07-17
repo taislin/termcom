@@ -413,8 +413,17 @@ func (bs *BaseScreen) HandleKey(e *tcell.EventKey) {
 		bs.Tab = 4
 	case "6":
 		bs.Tab = 5
+	}
+	bs.dispatchHotkey(e.Str(), false)
+}
+
+func (bs *BaseScreen) dispatchHotkey(key string, viaMouse bool) {
+	switch key {
 	case "b", "B":
-		if bs.Tab == 5 {
+		if viaMouse {
+			bs.Tab = 0
+			bs.BuildFacility()
+		} else if bs.Tab == 5 {
 			bs.BuyInterceptor()
 		} else {
 			bs.BuildFacility()
@@ -435,7 +444,9 @@ func (bs *BaseScreen) HandleKey(e *tcell.EventKey) {
 	case "h", "H":
 		bs.HireSoldier()
 	case "d", "D":
-		if bs.Tab == 5 && len(bs.Base.Hangars) > 0 {
+		if viaMouse {
+			bs.DismissSoldier()
+		} else if bs.Tab == 5 && len(bs.Base.Hangars) > 0 {
 			bs.Game.SetScreen(engine.StatePlaneDesigner, NewPlaneDesignerScreen(bs.Game, bs.Base, bs.Selection))
 			bs.Game.PushState(engine.StatePlaneDesigner)
 		} else {
@@ -454,8 +465,14 @@ func (bs *BaseScreen) HandleKey(e *tcell.EventKey) {
 			bs.Game.PushState(engine.StateManufacture)
 		}
 	case "g", "G":
-		bs.Game.SetScreen(engine.StateWeaponDesigner, NewWeaponDesignerScreen(bs.Game, bs.Base))
-		bs.Game.PushState(engine.StateWeaponDesigner)
+		if viaMouse {
+			if bs.Tab == 0 {
+				bs.Game.PushState(engine.StatePlaneDesigner)
+			}
+		} else {
+			bs.Game.SetScreen(engine.StateWeaponDesigner, NewWeaponDesignerScreen(bs.Game, bs.Base))
+			bs.Game.PushState(engine.StateWeaponDesigner)
+		}
 	}
 }
 
@@ -485,38 +502,11 @@ func (bs *BaseScreen) HandleMouse(e *tcell.EventMouse) {
 
 			runHotkey := func(r rune) {
 				switch r {
-				case 'b', 'B':
-					bs.Tab = 0
-					bs.BuildFacility()
-				case 's', 'S':
-					if bs.Tab == 4 {
-						bs.SellSelectedItem()
-					} else {
-						bs.SellFacility()
-					}
-				case 'h', 'H':
-					bs.HireSoldier()
-				case 'e', 'E':
-					if bs.Tab == 1 && len(bs.Base.Soldiers) > 0 {
-						bs.Game.PushState(engine.StateEquip)
-					}
-				case 'd', 'D':
-					bs.DismissSoldier()
-				case 'r', 'R':
-					if bs.Tab == 2 {
-						bs.Game.PushState(engine.StateResearch)
-					}
-				case 'm', 'M':
-					if bs.Tab == 3 {
-						bs.Game.PushState(engine.StateManufacture)
-					}
 				case '1', '2', '3', '4', '5':
 					bs.Tab = int(r-'1') % 6
 					bs.Selection = 0
-				case 'g', 'G':
-					if bs.Tab == 0 {
-						bs.Game.PushState(engine.StatePlaneDesigner)
-					}
+				case 'b', 'B', 's', 'S', 'h', 'H', 'd', 'D', 'e', 'E', 'r', 'R', 'm', 'M', 'g', 'G':
+					bs.dispatchHotkey(string(r), true)
 				case 'w', 'W':
 					if bs.Tab == 5 {
 						bs.Game.PushState(engine.StatePlaneDesigner)

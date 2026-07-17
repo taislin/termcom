@@ -180,6 +180,16 @@ func NewSoldier(name string) *Soldier {
 	}
 }
 
+func NewBlankSoldier(name string) *Soldier {
+	return &Soldier{
+		Name:       name,
+		Rank:       Rookie,
+		Weapon:     "rifle",
+		Armor:      "none",
+		WeaponAmmo: data.RuleItems["rifle"].AmmoMax,
+	}
+}
+
 func (s *Soldier) FireWeapon(target *Soldier) (int, bool) {
 	w := data.RuleItems[s.Weapon]
 	if s.WeaponAmmo <= 0 {

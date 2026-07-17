@@ -108,6 +108,19 @@ func colorRGB(c tcell.Color) (float64, float64, float64) {
 	return float64(r), float64(g), float64(b)
 }
 
+const (
+	bloomRadius  = 1.5
+	bloomForce   = 0.3
+	bloomRadiusI = 2
+
+	directionalFalloff = 0.4
+	coneDotThreshold   = 0.7
+
+	distortionFreq  = 0.05
+	distortionFreqY = 0.1
+	distortionAmp   = 2.0
+)
+
 func lerpColor(a, b [3]float64, t float64) [3]float64 {
 	return [3]float64{
 		a[0] + (b[0]-a[0])*t,
@@ -164,11 +177,6 @@ func ApplyLightSource(s *ScreenRaw, fb *FrameBuffer, sourceX, sourceY int, radiu
 }
 
 func ApplyBloom(s *ScreenRaw, fb *FrameBuffer, centerX, centerY int, bloomColor tcell.Color) {
-	const (
-		bloomRadius  = 1.5
-		bloomForce   = 0.3
-		bloomRadiusI = 2
-	)
 	lR, lG, lB := colorRGB(bloomColor)
 	scrW, scrH := s.Size()
 
@@ -189,14 +197,14 @@ func ApplyBloom(s *ScreenRaw, fb *FrameBuffer, centerX, centerY int, bloomColor 
 
 func ApplyDistortion(s *ScreenRaw, fb *FrameBuffer, timeVal float64) {
 	scrW, scrH := s.Size()
-	
+
 	// Create a temporary buffer to hold the distorted image
 	tmp := NewFrameBuffer(scrW, scrH)
-	
+
 	for y := 0; y < scrH; y++ {
 		// Calculate distortion offset for this row
-		offsetX := int(math.Sin(timeVal*0.05+float64(y)*0.1) * 2.0)
-		
+		offsetX := int(math.Sin(timeVal*distortionFreq+float64(y)*distortionFreqY) * distortionAmp)
+
 		for x := 0; x < scrW; x++ {
 			srcX := x + offsetX
 			if srcX < 0 {
@@ -207,7 +215,7 @@ func ApplyDistortion(s *ScreenRaw, fb *FrameBuffer, timeVal float64) {
 			tmp.cells[y*scrW+x] = fb.Get(srcX, y)
 		}
 	}
-	
+
 	// Copy back to screen
 	for y := 0; y < scrH; y++ {
 		for x := 0; x < scrW; x++ {
@@ -241,7 +249,7 @@ func ApplyDirectionalLight(s *ScreenRaw, fb *FrameBuffer, sourceX, sourceY int, 
 			// Cone filter: dot product against direction vector
 			if mag > 0 {
 				dot := (float64(dx)*dirX + float64(dy)*dirY) / dist
-				if dot < 0.7 {
+				if dot < coneDotThreshold {
 					continue
 				}
 			}
@@ -259,7 +267,7 @@ func ApplyDirectionalLight(s *ScreenRaw, fb *FrameBuffer, sourceX, sourceY int, 
 			falloff := smoothstep(1 - dist/radius)
 			cell := fb.Get(x, y)
 			bgR, bgG, bgB := colorRGB(cell.Bg)
-			blended := lerpColor([3]float64{bgR, bgG, bgB}, [3]float64{lR, lG, lB}, falloff*0.4)
+			blended := lerpColor([3]float64{bgR, bgG, bgB}, [3]float64{lR, lG, lB}, falloff*directionalFalloff)
 			newBg := tcell.NewRGBColor(int32(blended[0]), int32(blended[1]), int32(blended[2]))
 			style := tcell.StyleDefault.Foreground(cell.Fg).Background(newBg)
 			s.SetCell(x, y, cell.Ch, style)

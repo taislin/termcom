@@ -14,6 +14,18 @@ import (
 type GameState int
 
 const (
+	controlBoxW     = 46
+	controlBoxH     = 7
+	controlBtnW     = 16
+	controlBtnGap   = 4
+	frameSleepMS    = 16
+	keyChanBuffer   = 20
+	startYear       = 1999
+	startMonth      = time.March
+	startDay        = 1
+)
+
+const (
 	StateMenu GameState = iota
 	StateGeoscape
 	StateBase
@@ -161,12 +173,12 @@ func newGameWithScreen(scr *ScreenRaw, initialState GameState) *Game {
 		screen:         scr,
 		state:          initialState,
 		running:        true,
-		GameTime:       time.Date(1999, time.March, 1, 0, 0, 0, 0, time.UTC),
+		GameTime:       time.Date(startYear, startMonth, startDay, 0, 0, 0, 0, time.UTC),
 		TimeSpeed:      0,
 		Paused:         true,
-		Funds:          500000,
+		Funds:          startingFunds,
 		screens:        make(map[GameState]Screen),
-		keyChan:        make(chan tcell.Event, 20),
+		keyChan:        make(chan tcell.Event, keyChanBuffer),
 		eventDone:      make(chan struct{}),
 		AlienKnowledge: make(map[string]int),
 		ActionDelay:    Config.ActionDelay,
@@ -193,20 +205,7 @@ func NewGameWeb(cols, rows int) (*Game, *nullScreen, error) {
 		initialState = StateLanguageSelect
 	}
 
-	g := &Game{
-		screen:         scr,
-		state:          initialState,
-		running:        true,
-		GameTime:       time.Date(1999, time.March, 1, 0, 0, 0, 0, time.UTC),
-		TimeSpeed:      0,
-		Paused:         true,
-		Funds:          500000,
-		screens:        make(map[GameState]Screen),
-		keyChan:        make(chan tcell.Event, 20),
-		eventDone:      make(chan struct{}),
-		AlienKnowledge: make(map[string]int),
-		ActionDelay:    Config.ActionDelay,
-	}
+	g := newGameWithScreen(scr, initialState)
 	g.initSpecies()
 	return g, ns, nil
 }
@@ -368,7 +367,7 @@ func (g *Game) Run() {
 
 		g.screen.Flush()
 		g.FrameCount++
-		time.Sleep(16 * time.Millisecond)
+		time.Sleep(frameSleepMS * time.Millisecond)
 	}
 }
 
@@ -500,8 +499,8 @@ func (g *Game) Quit() {
 
 func (g *Game) renderQuitConfirm(ctx *ScreenCtx) {
 	w, h := ctx.Size()
-	boxW := 46
-	boxH := 7
+	boxW := controlBoxW
+	boxH := controlBoxH
 	x := (w - boxW) / 2
 	y := (h - boxH) / 2
 	// Fill the box with an opaque background so the screen underneath doesn't show through.
@@ -518,8 +517,8 @@ func (g *Game) renderQuitConfirm(ctx *ScreenCtx) {
 
 	yesLabel := language.String("CTRL_YES")
 	noLabel := language.String("CTRL_NO")
-	btnW := 16
-	gap := 4
+	btnW := controlBtnW
+	gap := controlBtnGap
 	totalW := btnW*2 + gap
 	by := y + boxH - 2
 	bx := x + (boxW-totalW)/2
@@ -552,6 +551,18 @@ func (g *Game) IsWeb() bool {
 	return ok
 }
 
+// keyBtn builds a touch-menu ControlButton that injects a key event into the
+// game loop when tapped. label is the displayed text, hotkey the keyboard
+// equivalent shown to the user, key the tcell key, and str an optional rune
+// string (used for KeyRune events; pass "" for named keys like Enter/F5).
+func (g *Game) keyBtn(label, hotkey string, key tcell.Key, str string) ControlButton {
+	return ControlButton{
+		Label:  label,
+		Hotkey: hotkey,
+		Action: func() { g.InjectKey(tcell.NewEventKey(key, str, tcell.ModNone)) },
+	}
+}
+
 func (g *Game) setupControlMenu() {
 	Menu.TouchFirst = false
 	Menu.AlwaysShow = true
@@ -560,32 +571,39 @@ func (g *Game) setupControlMenu() {
 		gs, _ := g.screens[StateGeoscape].(geoView)
 		menu := func() []ControlButton {
 			btns := []ControlButton{
-				{Label: language.String("CTRL_CONFIRM"), Hotkey: "Enter", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyEnter, "", tcell.ModNone)) }},
-				{Label: language.String("CTRL_PAUSE"), Hotkey: "Space", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, " ", tcell.ModNone)) }},
-				{Label: language.String("CTRL_SPEED_1"), Hotkey: "1", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "1", tcell.ModNone)) }},
-				{Label: language.String("CTRL_SPEED_2"), Hotkey: "2", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "2", tcell.ModNone)) }},
-				{Label: language.String("CTRL_SPEED_3"), Hotkey: "3", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "3", tcell.ModNone)) }},
-				{Label: language.String("CTRL_SPEED_4"), Hotkey: "4", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "4", tcell.ModNone)) }},
-				{Label: language.String("CTRL_BASE"), Hotkey: "B", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "b", tcell.ModNone)) }},
-				{Label: language.String("CTRL_LAUNCH"), Hotkey: "L", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "l", tcell.ModNone)) }},
-				{Label: language.String("CTRL_AUTORESOLVE"), Hotkey: "A", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "a", tcell.ModNone)) }},
-				{Label: language.String("CTRL_RESPOND"), Hotkey: "M", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "m", tcell.ModNone)) }},
-				{Label: language.String("CTRL_DISPATCH"), Hotkey: "R", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "r", tcell.ModNone)) }},
-				{Label: language.String("CTRL_ENCYCLOPEDIA"), Hotkey: "E", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "e", tcell.ModNone)) }},
-				{Label: language.String("CTRL_SAVE"), Hotkey: "F5", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyF5, "", tcell.ModNone)) }},
-				{Label: language.String("CTRL_LOAD"), Hotkey: "F9", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyF9, "", tcell.ModNone)) }},
-				{Label: language.String("CTRL_QUIT"), Hotkey: "Q", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "q", tcell.ModNone)) }},
-				{Label: language.String("CTRL_HELP"), Hotkey: "?", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "?", tcell.ModNone)) }},
+				g.keyBtn(language.String("CTRL_CONFIRM"), "Enter", tcell.KeyEnter, ""),
+				g.keyBtn(language.String("CTRL_PAUSE"), "Space", tcell.KeyRune, " "),
+				g.keyBtn(language.String("CTRL_SPEED_1"), "1", tcell.KeyRune, "1"),
+				g.keyBtn(language.String("CTRL_SPEED_2"), "2", tcell.KeyRune, "2"),
+				g.keyBtn(language.String("CTRL_SPEED_3"), "3", tcell.KeyRune, "3"),
+				g.keyBtn(language.String("CTRL_SPEED_4"), "4", tcell.KeyRune, "4"),
+				g.keyBtn(language.String("CTRL_BASE"), "B", tcell.KeyRune, "b"),
+				g.keyBtn(language.String("CTRL_LAUNCH"), "L", tcell.KeyRune, "l"),
+				g.keyBtn(language.String("CTRL_AUTORESOLVE"), "A", tcell.KeyRune, "a"),
+				g.keyBtn(language.String("CTRL_RESPOND"), "M", tcell.KeyRune, "m"),
+				g.keyBtn(language.String("CTRL_DISPATCH"), "R", tcell.KeyRune, "r"),
+				g.keyBtn(language.String("CTRL_ENCYCLOPEDIA"), "E", tcell.KeyRune, "e"),
+				g.keyBtn(language.String("CTRL_SAVE"), "F5", tcell.KeyF5, ""),
+				g.keyBtn(language.String("CTRL_LOAD"), "F9", tcell.KeyF9, ""),
+				g.keyBtn(language.String("CTRL_QUIT"), "Q", tcell.KeyRune, "q"),
+				g.keyBtn(language.String("CTRL_HELP"), "?", tcell.KeyRune, "?"),
 			}
+			const (
+				btnConfirm      = 0  // Confirm launch at target
+				btnAutoresolve  = 8  // Autoresolve needs a UFO
+				btnDispatch     = 10 // Dispatch needs a mission
+				btnEncyclopedia = 11 // Encyclopedia needs a base
+				btnBase         = 6  // Base needs a base
+			)
 			for i := range btns {
 				btns[i].Enabled = true
 			}
 			if gs != nil {
-				btns[0].Enabled = gs.CanConfirm()        // Confirm launch at target
-				btns[8].Enabled = gs.UFOCount() > 0      // Autoresolve needs a UFO
-				btns[10].Enabled = gs.MissionCount() > 0 // Dispatch needs a mission
-				btns[11].Enabled = gs.HasSelectedBase()  // Encyclopedia needs a base
-				btns[6].Enabled = gs.HasSelectedBase()   // Base needs a base
+				btns[btnConfirm].Enabled = gs.CanConfirm()
+				btns[btnAutoresolve].Enabled = gs.UFOCount() > 0
+				btns[btnDispatch].Enabled = gs.MissionCount() > 0
+				btns[btnEncyclopedia].Enabled = gs.HasSelectedBase()
+				btns[btnBase].Enabled = gs.HasSelectedBase()
 			}
 			return btns
 		}
@@ -595,44 +613,54 @@ func (g *Game) setupControlMenu() {
 		bs, _ := g.screens[StateBattlescape].(battleView)
 		menu := func() []ControlButton {
 			btns := []ControlButton{
-				{Label: "↑", Hotkey: "Up", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyUp, "", tcell.ModNone)) }},
-				{Label: "↓", Hotkey: "Down", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyDown, "", tcell.ModNone)) }},
-				{Label: "←", Hotkey: "Left", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyLeft, "", tcell.ModNone)) }},
-				{Label: "→", Hotkey: "Right", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRight, "", tcell.ModNone)) }},
-				{Label: language.String("CTRL_SELECT"), Hotkey: "Enter", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyEnter, "", tcell.ModNone)) }},
-				{Label: language.String("CTRL_DESELECT"), Hotkey: "Space", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, " ", tcell.ModNone)) }},
-				{Label: language.String("CTRL_MOVE"), Hotkey: "M", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "m", tcell.ModNone)) }},
-				{Label: language.String("CTRL_FIRE"), Hotkey: "F", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "f", tcell.ModNone)) }},
-				{Label: language.String("CTRL_RELOAD"), Hotkey: "R", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "r", tcell.ModNone)) }},
-				{Label: language.String("CTRL_END_TURN"), Hotkey: "E", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "e", tcell.ModNone)) }},
-				{Label: language.String("CTRL_GRENADE"), Hotkey: "G", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "g", tcell.ModNone)) }},
-				{Label: language.String("CTRL_MEDIKIT"), Hotkey: "H", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "h", tcell.ModNone)) }},
-				{Label: language.String("CTRL_CROUCH"), Hotkey: "C", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "c", tcell.ModNone)) }},
-				{Label: language.String("CTRL_PSI"), Hotkey: "P", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "p", tcell.ModNone)) }},
-				{Label: language.String("CTRL_CYCLE"), Hotkey: "Q", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "q", tcell.ModNone)) }},
-				{Label: language.String("CTRL_SCANNER"), Hotkey: "Y", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "y", tcell.ModNone)) }},
-				{Label: language.String("CTRL_MINES"), Hotkey: "T", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "t", tcell.ModNone)) }},
-				{Label: language.String("CTRL_PAN_UP"), Hotkey: "W", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "w", tcell.ModNone)) }},
-				{Label: language.String("CTRL_PAN_DOWN"), Hotkey: "S", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "s", tcell.ModNone)) }},
-				{Label: language.String("CTRL_PAN_LEFT"), Hotkey: "A", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "a", tcell.ModNone)) }},
-				{Label: language.String("CTRL_PAN_RIGHT"), Hotkey: "D", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "d", tcell.ModNone)) }},
-			{Label: language.String("CTRL_VISION"), Hotkey: "V", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "v", tcell.ModNone)) }},
-				{Label: language.String("CTRL_OPTIONS"), Hotkey: "O", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "o", tcell.ModNone)) }},
-				{Label: language.String("CTRL_HELP"), Hotkey: "?", Action: func() { g.InjectKey(tcell.NewEventKey(tcell.KeyRune, "?", tcell.ModNone)) }},
+				g.keyBtn("↑", "Up", tcell.KeyUp, ""),
+				g.keyBtn("↓", "Down", tcell.KeyDown, ""),
+				g.keyBtn("←", "Left", tcell.KeyLeft, ""),
+				g.keyBtn("→", "Right", tcell.KeyRight, ""),
+				g.keyBtn(language.String("CTRL_SELECT"), "Enter", tcell.KeyEnter, ""),
+				g.keyBtn(language.String("CTRL_DESELECT"), "Space", tcell.KeyRune, " "),
+				g.keyBtn(language.String("CTRL_MOVE"), "M", tcell.KeyRune, "m"),
+				g.keyBtn(language.String("CTRL_FIRE"), "F", tcell.KeyRune, "f"),
+				g.keyBtn(language.String("CTRL_RELOAD"), "R", tcell.KeyRune, "r"),
+				g.keyBtn(language.String("CTRL_END_TURN"), "E", tcell.KeyRune, "e"),
+				g.keyBtn(language.String("CTRL_GRENADE"), "G", tcell.KeyRune, "g"),
+				g.keyBtn(language.String("CTRL_MEDIKIT"), "H", tcell.KeyRune, "h"),
+				g.keyBtn(language.String("CTRL_CROUCH"), "C", tcell.KeyRune, "c"),
+				g.keyBtn(language.String("CTRL_PSI"), "P", tcell.KeyRune, "p"),
+				g.keyBtn(language.String("CTRL_CYCLE"), "Q", tcell.KeyRune, "q"),
+				g.keyBtn(language.String("CTRL_SCANNER"), "Y", tcell.KeyRune, "y"),
+				g.keyBtn(language.String("CTRL_MINES"), "T", tcell.KeyRune, "t"),
+				g.keyBtn(language.String("CTRL_PAN_UP"), "W", tcell.KeyRune, "w"),
+				g.keyBtn(language.String("CTRL_PAN_DOWN"), "S", tcell.KeyRune, "s"),
+				g.keyBtn(language.String("CTRL_PAN_LEFT"), "A", tcell.KeyRune, "a"),
+				g.keyBtn(language.String("CTRL_PAN_RIGHT"), "D", tcell.KeyRune, "d"),
+				g.keyBtn(language.String("CTRL_VISION"), "V", tcell.KeyRune, "v"),
+				g.keyBtn(language.String("CTRL_OPTIONS"), "O", tcell.KeyRune, "o"),
+				g.keyBtn(language.String("CTRL_HELP"), "?", tcell.KeyRune, "?"),
 			}
+			const (
+				btnFire     = 7
+				btnReload   = 8
+				btnGrenade  = 10
+				btnMedikit  = 11
+				btnPsi      = 13
+				btnScanner  = 15
+				btnMines    = 16
+				btnMove     = 6
+			)
 			for i := range btns {
 				btns[i].Enabled = true
 			}
 			if bs != nil {
 				hasSel := bs.HasSelectedUnit()
-				btns[7].Enabled = hasSel  // Fire needs a selected unit
-				btns[8].Enabled = hasSel  // Reload needs a selected unit
-				btns[10].Enabled = hasSel // Grenade needs a selected unit
-				btns[11].Enabled = hasSel // Medikit needs a selected unit
-				btns[13].Enabled = hasSel // Psi needs a selected unit
-				btns[15].Enabled = hasSel // Scanner needs a selected unit
-				btns[16].Enabled = hasSel // Mines needs a selected unit
-				btns[6].Enabled = true    // Move plan always allowed
+				btns[btnFire].Enabled = hasSel
+				btns[btnReload].Enabled = hasSel
+				btns[btnGrenade].Enabled = hasSel
+				btns[btnMedikit].Enabled = hasSel
+				btns[btnPsi].Enabled = hasSel
+				btns[btnScanner].Enabled = hasSel
+				btns[btnMines].Enabled = hasSel
+				btns[btnMove].Enabled = true
 			}
 			return btns
 		}

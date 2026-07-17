@@ -296,7 +296,7 @@ func FromBase(b *base.Base) *BaseSave {
 }
 
 func fromSoldierSave(ss *SoldierSave) *soldier.Soldier {
-	s := soldier.NewSoldier(ss.Name)
+	s := soldier.NewBlankSoldier(ss.Name)
 	s.Rank = soldier.Rank(ss.Rank)
 	s.HP = ss.HP
 	s.MaxHP = ss.MaxHP

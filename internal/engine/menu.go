@@ -15,7 +15,22 @@ import (
 
 const SaveFile = "xcom_save.json"
 
+const (
+	titleLines    = 6
+	titleGap      = 1
+	subtitleOffset = 4
+	menuStartY    = 2
+)
+
 var starRunes = [3]rune{'.', '+', '*'}
+
+const (
+	starVerticalSpread = 0.55
+	starMinDist        = 0.15
+	starColorScale     = 180.0
+	starBlueBase       = 80.0
+	starBlueScale      = 175.0
+)
 
 type menuStar struct {
 	angle   float64
@@ -125,8 +140,8 @@ func (ms *MenuScreen) Update() {
 		w, _ := ms.Game.ScreenSize()
 		opts := ms.options()
 		if ms.Selection >= 0 && ms.Selection < len(opts) {
-			// menuY = startY(2) + titleLines(6) + gap(1) + subOffset(4) = 13
-			const menuY = 13
+			// menuY = menuStartY + titleLines + titleGap + subtitleOffset
+			const menuY = menuStartY + titleLines + titleGap + subtitleOffset
 			optY := menuY + ms.Selection*2
 			textLen := StringWidth(opts[ms.Selection])
 			textX := w/2 - textLen/2
@@ -152,15 +167,15 @@ func (ms *MenuScreen) Render(ctx *ScreenCtx) {
 		bri := st.dist * st.baseBri
 		sx := w/2 + int(math.Cos(st.angle)*st.dist*halfW)
 		// 0.55 compresses vertical spread to account for taller terminal cells
-		sy := starOriginY + int(math.Sin(st.angle)*st.dist*halfH*0.55)
+		sy := starOriginY + int(math.Sin(st.angle)*st.dist*halfH*starVerticalSpread)
 		if sx < 0 || sx >= w || sy < 0 || sy >= h {
 			continue
 		}
-		rv := int32(bri * 180.0)
-		gv := int32(bri * 180.0)
-		bv := int32(80.0 + bri*175.0)
+		rv := int32(bri * starColorScale)
+		gv := int32(bri * starColorScale)
+		bv := int32(starBlueBase + bri*starBlueScale)
 		ch := starRunes[st.size]
-		if st.dist < 0.15 {
+		if st.dist < starMinDist {
 			ch = '.'
 		}
 		ctx.SetCell(sx, sy, ch, StyleDefault.Foreground(tcell.NewRGBColor(rv, gv, bv)))
@@ -180,7 +195,7 @@ func (ms *MenuScreen) Render(ctx *ScreenCtx) {
 	}
 
 	nowSec := float64(time.Now().UnixNano()) / 1e9
-	startY := 2
+	startY := menuStartY
 	for i, line := range title {
 		x := (w - len([]rune(line))) / 2
 		if x < 0 {

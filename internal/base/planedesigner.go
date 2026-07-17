@@ -19,6 +19,7 @@ type PlaneDesignerScreen struct {
 	Orig     data.PlaneConfig
 	Param    int
 	Message  string
+	cachedStats data.PlaneStats
 }
 
 func NewPlaneDesignerScreen(g *engine.Game, b *Base, hangarID int) *PlaneDesignerScreen {
@@ -114,6 +115,7 @@ func (pd *PlaneDesignerScreen) renderPreview(ctx *engine.ScreenCtx, px, py, pw, 
 	}
 
 	stats := data.CalcPlaneStats(pd.Config)
+	pd.cachedStats = stats
 	labelY := py + ph - 1
 	if labelY < py {
 		labelY = py
@@ -128,7 +130,7 @@ func (pd *PlaneDesignerScreen) renderPreview(ctx *engine.ScreenCtx, px, py, pw, 
 
 func (pd *PlaneDesignerScreen) renderStats(ctx *engine.ScreenCtx, sx, sy, sw, sh int) {
 	ctx.DrawString(sx, sy-1, language.String("PLANE_STATS"), engine.StyleCyanBold)
-	stats := data.CalcPlaneStats(pd.Config)
+	stats := pd.cachedStats
 
 	rows := []struct {
 		label string

@@ -94,6 +94,18 @@ const planeWingMass = 1.5
 // planeFuelMass defines mass per unit of fuel.
 const planeFuelMass = 0.1
 
+// planeBaseHull is the hull points a plane has before length/armor bonuses.
+const planeBaseHull = 30
+
+// planeHullPerLength is the extra hull points granted per fuselage cell.
+const planeHullPerLength = 5
+
+// planeThrustPerEngine is the thrust contributed by each engine.
+const planeThrustPerEngine = 20.0
+
+// planeWingSpanSides is how many wing cells exist per wingspan unit (both sides).
+const planeWingSpanSides = 2
+
 // PlaneStats holds derived stats computed from a PlaneConfig.
 type PlaneStats struct {
 	Speed      float64
@@ -110,7 +122,7 @@ func CalcPlaneStats(cfg PlaneConfig) PlaneStats {
 	// Mass = fuselage + engines + wings + fuel + weapon + armor
 	fuselageMass := float64(cfg.Length) * planePartMass
 	engineMass := float64(cfg.Engines) * planeEngineMass
-	wingMass := float64(cfg.Wingspan*2) * planeWingMass
+	wingMass := float64(cfg.Wingspan*planeWingSpanSides) * planeWingMass
 	fuelMass := float64(cfg.Fuel) * planeFuelMass
 
 	wpnMass := 0.0
@@ -128,13 +140,13 @@ func CalcPlaneStats(cfg PlaneConfig) PlaneStats {
 	}
 
 	// Thrust = engines * base thrust per engine
-	thrust := float64(cfg.Engines) * 20.0
+	thrust := float64(cfg.Engines) * planeThrustPerEngine
 
 	// Speed = thrust / mass (higher is faster)
 	speed := thrust / totalMass
 
 	// Hull = base + length bonus + armor bonus
-	hull := 30 + cfg.Length*5
+	hull := planeBaseHull + cfg.Length*planeHullPerLength
 	if cfg.Armor >= 0 && cfg.Armor < len(PlaneArmors) {
 		hull += PlaneArmors[cfg.Armor].HP
 	}

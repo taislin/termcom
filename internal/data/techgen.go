@@ -17,6 +17,18 @@ type techDef struct {
 	AlienLore   bool
 }
 
+const (
+	autopsyCostBase = 40
+	autopsyCostRange = 30
+	studyCostBase = 60
+	studyCostRange = 50
+	costModMin = 0.85
+	costModRange = 0.30
+	techCostFloor = 10
+	prereqMin = 1
+	prereqRange = 2
+)
+
 var baseTechs = []techDef{
 	{ID: "alien_alloys", Name: "Alien Alloys", BaseCost: 60, Tier: 1, UnlockItems: []string{"alloys"}},
 	{ID: "elerium", Name: "Elerium-115", BaseCost: 80, Tier: 1, UnlockItems: []string{"elerium"}},
@@ -50,7 +62,7 @@ func generateSpeciesStudyTopic(rng *rand.Rand, sp *AlienSpecies, autopsyID strin
 	return techDef{
 		ID:       sp.Name + "_study",
 		Name:     sp.Name + " " + nameSuffix,
-		BaseCost: 60 + rng.Intn(50),
+		BaseCost: studyCostBase + rng.Intn(studyCostRange),
 		Tier:     2,
 		Requires: []string{autopsyID},
 		AlienLore: true,
@@ -68,7 +80,7 @@ func GenerateTechTree(seed int64, aliens []*AlienSpecies) []ResearchTopic {
 		def := techDef{
 			ID:       sp.Name + "_autopsy",
 			Name:     sp.Name + " Autopsy",
-			BaseCost: 40 + rng.Intn(30),
+			BaseCost: autopsyCostBase + rng.Intn(autopsyCostRange),
 			Tier:     1,
 			AlienLore: true,
 		}
@@ -80,7 +92,7 @@ func GenerateTechTree(seed int64, aliens []*AlienSpecies) []ResearchTopic {
 			def := techDef{
 				ID:       sp + "_autopsy",
 				Name:     sp + " Autopsy",
-				BaseCost: 40 + rng.Intn(30),
+				BaseCost: autopsyCostBase + rng.Intn(autopsyCostRange),
 				Tier:     1,
 				AlienLore: true,
 			}
@@ -98,10 +110,10 @@ func GenerateTechTree(seed int64, aliens []*AlienSpecies) []ResearchTopic {
 
 	for i := range defs {
 		if defs[i].Tier > 1 {
-			modifier := 0.85 + rng.Float64()*0.30
+			modifier := costModMin + rng.Float64()*costModRange
 			defs[i].BaseCost = int(float64(defs[i].BaseCost) * modifier)
-			if defs[i].BaseCost < 10 {
-				defs[i].BaseCost = 10
+			if defs[i].BaseCost < techCostFloor {
+				defs[i].BaseCost = techCostFloor
 			}
 		}
 	}
@@ -148,7 +160,7 @@ func GenerateTechTree(seed int64, aliens []*AlienSpecies) []ResearchTopic {
 			rng.Shuffle(len(remaining), func(i, j int) {
 				remaining[i], remaining[j] = remaining[j], remaining[i]
 			})
-			n := 1 + rng.Intn(2)
+			n := prereqMin + rng.Intn(prereqRange)
 			if n > len(remaining) {
 				n = len(remaining)
 			}

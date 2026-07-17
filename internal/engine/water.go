@@ -7,7 +7,9 @@ import (
 	"github.com/gdamore/tcell/v3"
 )
 
-var waterColors = [4][3]float64{
+type waterPalette [3]float64
+
+var waterColors = [4]waterPalette{
 	{0, 0, 100},
 	{0, 20, 140},
 	{0, 40, 180},
@@ -15,13 +17,13 @@ var waterColors = [4][3]float64{
 }
 
 const (
-	waveFreq    = 0.5
-	colorScale  = 3
-	waveChurn   = 0.3
-	randWave    = 5
-	fgOffR      = 40
-	fgOffG      = 60
-	fgOffB      = 40
+	waveFreq   = 0.5
+	colorScale = 3
+	waveChurn  = 0.3
+	randWave   = 5
+	fgOffR     = 40
+	fgOffG     = 60
+	fgOffB     = 40
 )
 
 func DrawWater(s *ScreenRaw, x, y int, gameTime float64) {

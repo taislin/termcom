@@ -806,16 +806,25 @@ func GenerateAlienPixels(seed int64, m *Morphology) AlienPixels {
 
 	var result AlienPixels
 
-	stampHead(&result, head, centerOffset(head[0], SpriteW), 0)
-	stampEyes(&result, eyes, centerOffset(eyes[0], SpriteW))
-	arms := manip != ManipNone
-	stampTorso(&result, torso, centerOffset(torso[0], SpriteW), torsoRow, arms)
-	if arms {
-		stampWeapon(&result, weapon, centerOffset(weapon[0], SpriteW), torsoRow)
-	}
-	stampLegs(&result, legs, centerOffset(legs[0], SpriteW), legsRow)
+	assembleSprite(&result, head, eyes, torso, legs, weapon, manip)
+	texRng := applyShading(&result, seed)
+	applyBiologyPass(&result, m.BodySubtype, texRng)
 
-	// Edge detection for 3D shading
+	return result
+}
+
+func assembleSprite(result *AlienPixels, head, eyes, torso, legs, weapon []string, manip Manipulators) {
+	stampHead(result, head, centerOffset(head[0], SpriteW), 0)
+	stampEyes(result, eyes, centerOffset(eyes[0], SpriteW))
+	arms := manip != ManipNone
+	stampTorso(result, torso, centerOffset(torso[0], SpriteW), torsoRow, arms)
+	if arms {
+		stampWeapon(result, weapon, centerOffset(weapon[0], SpriteW), torsoRow)
+	}
+	stampLegs(result, legs, centerOffset(legs[0], SpriteW), legsRow)
+}
+
+func applyShading(result *AlienPixels, seed int64) *rand.Rand {
 	texRng := rand.New(rand.NewSource(seed ^ 0xF0F0F0F0F0))
 
 	for y := 0; y < SpriteH; y++ {
@@ -866,9 +875,7 @@ func GenerateAlienPixels(seed int64, m *Morphology) AlienPixels {
 		}
 	}
 
-	applyBiologyPass(&result, m.BodySubtype, texRng)
-
-	return result
+	return texRng
 }
 
 func stampHead(result *AlienPixels, template []string, ox, oy int) {

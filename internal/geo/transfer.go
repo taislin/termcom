@@ -10,6 +10,17 @@ import (
 	"github.com/gdamore/tcell/v3"
 )
 
+const (
+	panelMarginX  = 2
+	titleY        = 1
+	fromLabelY    = 2
+	messageY      = 3
+	soldierListY  = 4
+	listStartY   = 5
+	panelBottomOffset = 2
+	helpBarYOffset    = 1
+)
+
 type TransferScreen struct {
 	Game       *engine.Game
 	Geo        *Geoscape
@@ -39,13 +50,13 @@ func (ts *TransferScreen) Update() {}
 
 func (ts *TransferScreen) Render(ctx *engine.ScreenCtx) {
 	w, h := ctx.Size()
-	ctx.DrawPanel(0, 0, w, h-2, language.String("TRANSFER_TITLE"), engine.StyleDefault)
+	ctx.DrawPanel(0, 0, w, h-panelBottomOffset, language.String("TRANSFER_TITLE"), engine.StyleDefault)
 
 	from := ts.Geo.Bases[ts.FromIdx]
 	to := ts.Geo.Bases[ts.ToIdx]
 
-	ctx.DrawString(2, 1, fmt.Sprintf(language.String("TRANSFER_FROM"), from.Name), engine.StyleCyanBold)
-	ctx.DrawString(2, 2, fmt.Sprintf(language.String("TRANSFER_TO"), to.Name), engine.StyleGreen)
+	ctx.DrawString(panelMarginX, titleY, fmt.Sprintf(language.String("TRANSFER_FROM"), from.Name), engine.StyleCyanBold)
+	ctx.DrawString(panelMarginX, fromLabelY, fmt.Sprintf(language.String("TRANSFER_TO"), to.Name), engine.StyleGreen)
 
 	if ts.Tab == 0 {
 		ts.drawSoldierList(ctx, from, h)
@@ -54,19 +65,19 @@ func (ts *TransferScreen) Render(ctx *engine.ScreenCtx) {
 	}
 
 	if ts.Message != "" {
-		ctx.DrawString(2, h-3, ts.Message, engine.StyleYellow)
+		ctx.DrawString(panelMarginX, h-messageY, ts.Message, engine.StyleYellow)
 	}
 	help := language.String("HELP_TRANSFER")
-	ctx.DrawMarkupString(2, h-1, help, engine.StyleGray, engine.StyleHotkey)
+	ctx.DrawMarkupString(panelMarginX, h-helpBarYOffset, help, engine.StyleGray, engine.StyleHotkey)
 }
 
 func (ts *TransferScreen) drawSoldierList(ctx *engine.ScreenCtx, from *base.Base, h int) {
-	ctx.DrawString(2, 4, language.String("TRANSFER_SOLDIERS"), engine.StyleYellow)
+	ctx.DrawString(panelMarginX, soldierListY, language.String("TRANSFER_SOLDIERS"), engine.StyleYellow)
 	if len(from.Soldiers) == 0 {
-		ctx.DrawString(4, 5, language.String("SECTION_NO_SOLDIERS"), engine.StyleGray)
+		ctx.DrawString(listStartY+1, listStartY, language.String("SECTION_NO_SOLDIERS"), engine.StyleGray)
 	}
 	for i, s := range from.Soldiers {
-		if 5+i >= h-2 {
+		if listStartY+i >= h-panelBottomOffset {
 			break
 		}
 		style := engine.StyleDefault
@@ -74,18 +85,18 @@ func (ts *TransferScreen) drawSoldierList(ctx *engine.ScreenCtx, from *base.Base
 			style = engine.StyleHighlight
 		}
 		line := fmt.Sprintf(language.String("TRANSFER_SOLDIER_LINE"), s.Name, s.Rank, s.HP)
-		ctx.DrawString(4, 5+i, line, style)
+		ctx.DrawString(listStartY+1, listStartY+i, line, style)
 	}
 }
 
 func (ts *TransferScreen) drawItemList(ctx *engine.ScreenCtx, from *base.Base, h int) {
-	ctx.DrawString(2, 4, language.String("TRANSFER_ITEMS"), engine.StyleYellow)
+	ctx.DrawString(panelMarginX, soldierListY, language.String("TRANSFER_ITEMS"), engine.StyleYellow)
 	items := sortedStoreItems(from)
 	if len(items) == 0 {
-		ctx.DrawString(4, 5, language.String("SECTION_NO_ITEMS"), engine.StyleGray)
+		ctx.DrawString(listStartY+1, listStartY, language.String("SECTION_NO_ITEMS"), engine.StyleGray)
 	}
 	for i, item := range items {
-		if 5+i >= h-2 {
+		if listStartY+i >= h-panelBottomOffset {
 			break
 		}
 		style := engine.StyleDefault
@@ -94,7 +105,7 @@ func (ts *TransferScreen) drawItemList(ctx *engine.ScreenCtx, from *base.Base, h
 		}
 		qty := from.CountItem(item)
 		line := fmt.Sprintf(language.String("TRANSFER_ITEM_LINE"), item, qty)
-		ctx.DrawString(4, 5+i, line, style)
+		ctx.DrawString(listStartY+1, listStartY+i, line, style)
 	}
 }
 
@@ -135,8 +146,8 @@ func (ts *TransferScreen) HandleMouse(e *tcell.EventMouse) {
 	}
 
 	// Click on item/soldier list area
-	if y >= 4 && buttons&tcell.Button1 != 0 {
-		ts.moveSel(y - 4)
+	if y >= soldierListY && buttons&tcell.Button1 != 0 {
+		ts.moveSel(y - soldierListY)
 	}
 }
 

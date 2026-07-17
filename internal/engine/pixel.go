@@ -4,7 +4,6 @@ import (
 	"github.com/gdamore/tcell/v3"
 )
 
-
 const halfBlockRune = '▀'
 
 // PixelImage represents a 2D grid of colors.
@@ -32,6 +31,13 @@ func NewPixelImage(w, h int) *PixelImage {
 	}
 }
 
+// drawPixelCell resolves the top/bottom colors for a single half-block cell.
+// Transparent (tcell.ColorDefault) pixels are NOT truly transparent here:
+// they fall back to ColorBlackTcell, which is the current theme's background
+// color. This keeps the half-block glyph opaque against the theme rather than
+// leaking whatever was underneath through the terminal. The bool return is
+// true when the whole cell should be skipped (both pixels transparent and
+// thus identical theme background, or out of bounds).
 func drawPixelCell(screen tcell.Screen, x, col, y, row int, img *PixelImage) (tcell.Color, tcell.Color, bool) {
 	if x+col < 0 || x+col >= screenW(screen) || y+row/2 < 0 || y+row/2 >= screenH(screen) {
 		return 0, 0, true
@@ -59,6 +65,8 @@ func screenW(s tcell.Screen) int { w, _ := s.Size(); return w }
 func screenH(s tcell.Screen) int { _, h := s.Size(); return h }
 
 // DrawPixelImage draws the PixelImage onto a tcell.Screen.
+// Note: transparent (tcell.ColorDefault) pixels fall back to ColorBlackTcell
+// (the active theme's background), NOT true transparency — see drawPixelCell.
 func DrawPixelImage(screen tcell.Screen, x, y int, img *PixelImage) {
 	for row := 0; row < img.Height; row += 2 {
 		for col := 0; col < img.Width; col++ {
@@ -82,7 +90,7 @@ func CompositeImages(base, overlay *PixelImage) *PixelImage {
 		for c := 0; c < w; c++ {
 			// Get base color
 			baseCol := base.Pixels[r][c]
-			
+
 			// Overlay color
 			overlayCol := tcell.ColorDefault
 			if r < overlay.Height && c < overlay.Width {
@@ -128,21 +136,27 @@ func LightenColor(c tcell.Color, factor float64) tcell.Color {
 		return DarkenColor(c, factor)
 	}
 	r, g, b := c.RGB()
-	
+
 	// Blend towards white (255)
 	blend := factor - 1.0
 	if blend > 1.0 {
 		blend = 1.0
 	}
-	
+
 	nr := int32(float64(r) + (255-float64(r))*blend)
 	ng := int32(float64(g) + (255-float64(g))*blend)
 	nb := int32(float64(b) + (255-float64(b))*blend)
-	
-	if nr > 255 { nr = 255 }
-	if ng > 255 { ng = 255 }
-	if nb > 255 { nb = 255 }
-	
+
+	if nr > 255 {
+		nr = 255
+	}
+	if ng > 255 {
+		ng = 255
+	}
+	if nb > 255 {
+		nb = 255
+	}
+
 	return tcell.NewRGBColor(nr, ng, nb)
 }
 
@@ -190,4 +204,3 @@ func drawFrameEdge(s tcell.Screen, x, y, w, h int, tl, tr, bl, br, hRune, vRune 
 func (s *ScreenRaw) DrawPixelImageFramed(x, y int, img *PixelImage, frameStyle tcell.Style) {
 	DrawPixelImageFramed(s.screen, x, y, img, frameStyle)
 }
-

@@ -11,6 +11,15 @@ import (
 	"github.com/taislin/termcom/internal/language"
 )
 
+const (
+	nameTruncPad         = 7
+	scrollThresholdOff   = 6
+	statusBarH           = 3
+	listStartRow         = 3
+	dividerEndOffset     = 3
+	leftTextPad          = 2
+)
+
 type CustomBattleEntry struct {
 	Name        string `json:"name"`
 	Author      string `json:"author"`
@@ -89,23 +98,23 @@ func (cs *CustomBattleScreen) Render(ctx *ScreenCtx) {
 
 	ctx.DrawString(2, 2, language.String("CUSTOM_MISSION_SELECT"), StyleCyanBold)
 	// Vertical divider
-	for y := 3; y < h-3; y++ {
+	for y := listStartRow; y < h-dividerEndOffset; y++ {
 		ctx.SetCell(leftW, y, '│', StyleGray)
 	}
 
 	// Left panel: list
-	maxVisible := h - 6
+	maxVisible := h - scrollThresholdOff
 	scrollOffset := cs.scrollOffset(maxVisible)
 
 	for i := 0; i < maxVisible && i+scrollOffset < len(cs.Entries); i++ {
 		idx := i + scrollOffset
 		entry := cs.Entries[idx]
-		y := 3 + i
+		y := listStartRow + i
 		style := StyleDefault
 		if idx == cs.Selection {
 			style = StyleHighlight
 		}
-		truncW := leftW - 7
+		truncW := leftW - nameTruncPad
 		label := entry.Name
 		if StringWidth(label) > leftW-4 {
 			runes := []rune(label)
@@ -114,13 +123,13 @@ func (cs *CustomBattleScreen) Render(ctx *ScreenCtx) {
 			}
 			label = string(runes) + "..."
 		}
-		ctx.DrawString(2, y, label, style)
+		ctx.DrawString(leftTextPad, y, label, style)
 	}
 
 	// Right panel: details of selected
 	if cs.Selection >= 0 && cs.Selection < len(cs.Entries) {
 		entry := cs.Entries[cs.Selection]
-		ry := 3
+		ry := listStartRow
 
 		ctx.DrawString(rightX, ry, entry.Name, StyleCyanBold)
 		ry++
@@ -171,7 +180,7 @@ func (cs *CustomBattleScreen) Render(ctx *ScreenCtx) {
 	}
 
 	// Status bar
-	ctx.DrawPanel(0, h-3, w, 3, "", StyleGray)
+	ctx.DrawPanel(0, h-statusBarH, w, statusBarH, "", StyleGray)
 	ctx.DrawMarkupString(1, h-2, language.String("CUSTOM_HELP"), StyleGray, StyleHotkey)
 }
 
@@ -236,10 +245,10 @@ func (cs *CustomBattleScreen) HandleMouse(e *tcell.EventMouse) {
 	leftW := Layout.CustomBattleLeftWidth(w)
 	if x < leftW {
 		// Click in left panel
-		clickIdx := y - 3
+		clickIdx := y - listStartRow
 		scrollOffset := 0
-		if cs.Selection >= h-6 {
-			scrollOffset = cs.Selection - (h - 6) + 1
+		if cs.Selection >= h-scrollThresholdOff {
+			scrollOffset = cs.Selection - (h - scrollThresholdOff) + 1
 		}
 		clickIdx += scrollOffset
 		if clickIdx >= 0 && clickIdx < len(cs.Entries) {

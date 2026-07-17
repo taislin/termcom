@@ -2,6 +2,16 @@ package engine
 
 const mobileWidthThreshold = 100
 
+const (
+	minSidebarWidth  = 30
+	minBattleViewW   = 10
+	geoTablePct      = 60
+	minGeoTableW     = 30
+	minEncycloListW  = 20
+	battleViewHOff   = 5
+	sidebarYSpacing  = 3
+)
+
 type LayoutMode int
 
 const (
@@ -49,8 +59,8 @@ func (lm *LayoutManager) BattleSidebarWidth(w int) int {
 		return 0
 	}
 	sw := w / 3
-	if sw < 30 {
-		sw = 30
+	if sw < minSidebarWidth {
+		sw = minSidebarWidth
 	}
 	return sw
 }
@@ -60,7 +70,7 @@ func (lm *LayoutManager) BattleSidebarWidth(w int) int {
 // the view at the top.
 func (lm *LayoutManager) BattleSidebarY(h int) int {
 	if lm.IsMobile() {
-		return lm.BattleViewHeight(h) + 3
+		return lm.BattleViewHeight(h) + sidebarYSpacing
 	}
 	return 1
 }
@@ -78,8 +88,8 @@ func (lm *LayoutManager) BattleViewWidth(w int) int {
 		return w - 2
 	}
 	vw := w - sw - 2
-	if vw < 10 {
-		vw = 10
+	if vw < minBattleViewW {
+		vw = minBattleViewW
 	}
 	return vw
 }
@@ -88,7 +98,7 @@ func (lm *LayoutManager) BattleViewHeight(h int) int {
 	if lm.IsMobile() {
 		return 10
 	}
-	return h - 5
+	return h - battleViewHOff
 }
 
 func (lm *LayoutManager) BattleSidebarX(w int) int {
@@ -103,9 +113,9 @@ func (lm *LayoutManager) GeoTableWidth(w int) int {
 	if !lm.GeoMinimapOpen {
 		return w - 2
 	}
-	tw := w * 60 / 100
-	if tw < 30 {
-		tw = 30
+	tw := w * geoTablePct / 100
+	if tw < minGeoTableW {
+		tw = minGeoTableW
 	}
 	return tw
 }
@@ -141,8 +151,8 @@ func (lm *LayoutManager) EncyclopediaListWidth(w int) int {
 		return w - 2
 	}
 	lw := w / 3
-	if lw < 20 {
-		lw = 20
+	if lw < minEncycloListW {
+		lw = minEncycloListW
 	}
 	return lw
 }

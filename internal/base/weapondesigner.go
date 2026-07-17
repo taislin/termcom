@@ -22,7 +22,15 @@ type WeaponDesignerScreen struct {
 }
 
 func NewWeaponDesignerScreen(g *engine.Game, b *Base) *WeaponDesignerScreen {
-	nextID := len(b.CustomWeapons)
+	nextID := 0
+	for k := range b.CustomWeapons {
+		if len(k) > 7 && k[:7] == "custom_" {
+			var n int
+			if _, err := fmt.Sscanf(k[7:], "%d", &n); err == nil && n >= nextID {
+				nextID = n + 1
+			}
+		}
+	}
 	return &WeaponDesignerScreen{
 		Game:   g,
 		Base:   b,
@@ -348,6 +356,7 @@ func (wd *WeaponDesignerScreen) build() {
 	wd.Base.CustomWeapons[item.Type] = &wd.Design
 	wd.Base.Stores[item.Type] = 1
 
+	wd.nextID++
 	wd.Message = fmt.Sprintf(language.String("WEAPON_MSG_BUILT"), data.WeaponDesignName(wd.Design))
 	wd.Game.PopState()
 }

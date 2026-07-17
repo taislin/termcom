@@ -1,5 +1,7 @@
 package data
 
+import "sort"
+
 // AlienEquipTier defines weapon/armor upgrades aliens receive as the
 // campaign progresses.  Each tier is gated by a minimum game month.
 type AlienEquipTier struct {
@@ -37,14 +39,16 @@ var AlienEquipTiers = []AlienEquipTier{
 }
 
 // GetAlienEquipTier returns the tier index active for a given game month.
+// AlienEquipTiers is sorted ascending by MinMonth, so a binary search is used
+// instead of a linear scan.
 func GetAlienEquipTier(gameMonth int) int {
-	tier := 0
-	for i, t := range AlienEquipTiers {
-		if gameMonth >= t.MinMonth {
-			tier = i
-		}
+	idx := sort.Search(len(AlienEquipTiers), func(i int) bool {
+		return AlienEquipTiers[i].MinMonth > gameMonth
+	})
+	if idx == 0 {
+		return 0
 	}
-	return tier
+	return idx - 1
 }
 
 // GetTierWeapon picks a weapon from the current tier's pool.

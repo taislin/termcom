@@ -22,6 +22,76 @@ type Particle struct {
 
 const PixelGravity = 9.8 // pixels/frame²; used as downward velocity increment per tick
 
+const (
+	explosionUpBias   = 4.0
+	explosionSpeedMin = 2.0
+	explosionSpeedRng = 6.0
+	explosionLifeMin  = 0.4
+	explosionLifeRng  = 0.6
+	explosionFade     = 0.8
+
+	rainCount    = 3
+	rainVX       = -0.5
+	rainVY       = 12.0
+	rainLife     = 1.5
+	rainFade     = 0.1
+	rainStartRow = -1
+
+	smokeVXRng   = 2.0
+	smokeVYMin   = -1.0
+	smokeVYRng   = 3.0
+	smokeLifeMin = 0.8
+	smokeLifeRng = 1.2
+	smokeFade    = 0.5
+
+	menuDriftVXMin   = 0.5
+	menuDriftVXRng   = 1.0
+	menuDriftVYMin   = 6.0
+	menuDriftVYRng   = 4.0
+	menuDriftLifeMin = 1.0
+	menuDriftLifeRng = 1.0
+	menuDriftFade    = 0.6
+
+	muzzleCount         = 6
+	muzzleSpeedMin      = 1.0
+	muzzleSpeedRng      = 3.0
+	muzzleLifeMin       = 0.15
+	muzzleLifeRng       = 0.2
+	muzzleFade          = 2.0
+	muzzleBrightnessMin = 200
+	muzzleBrightnessRng = 55
+
+	snowCount    = 2
+	snowVXRng    = 0.8
+	snowVYMin    = 2.0
+	snowVYRng    = 2.0
+	snowLifeMin  = 2.0
+	snowLifeRng  = 1.0
+	snowFade     = 0.1
+	snowStartRow = -1
+
+	dustCount   = 2
+	dustVXMin   = 1.0
+	dustVXRng   = 2.0
+	dustVYRng   = 0.5
+	dustLifeMin = 1.5
+	dustLifeRng = 1.0
+	dustFade    = 0.3
+
+	emberCount   = 2
+	emberVXRng   = 1.5
+	emberVYMin   = 1.5
+	emberVYRng   = 2.0
+	emberLifeMin = 1.0
+	emberLifeRng = 1.0
+	emberFade    = 0.8
+	emberRMin    = 200
+	emberRRng    = 55
+	emberGMin    = 80
+	emberGRng    = 100
+	emberB       = 20
+)
+
 var particlePool = sync.Pool{
 	New: func() interface{} {
 		return &Particle{}
@@ -144,17 +214,17 @@ type explosionParams struct {
 
 func randomExplosionParticle() explosionParams {
 	angle := rand.Float64() * 2 * math.Pi
-	speed := 2 + rand.Float64()*6
+	speed := explosionSpeedMin + rand.Float64()*explosionSpeedRng
 	ch := '*'
 	if rand.Intn(2) == 0 {
 		ch = '+'
 	}
 	return explosionParams{
 		vx:   math.Cos(angle) * speed,
-		vy:   math.Sin(angle)*speed - 4,
+		vy:   math.Sin(angle)*speed - explosionUpBias,
 		ch:   ch,
-		life: 0.4 + rand.Float64()*0.6,
-		fade: 0.8,
+		life: explosionLifeMin + rand.Float64()*explosionLifeRng,
+		fade: explosionFade,
 	}
 }
 
@@ -173,24 +243,24 @@ func SpawnRain(ps *ParticleSystem, x, y int, w, h int) {
 	if w <= 0 || h <= 0 {
 		return
 	}
-	for i := 0; i < 3; i++ {
+	for i := 0; i < rainCount; i++ {
 		rx := float64(x + rand.Intn(w))
-		ry := float64(y - 1)
+		ry := float64(y + rainStartRow)
 		style := StyleDefault.Foreground(tcell.NewRGBColor(100, 150, 255))
-		ps.Spawn(rx, ry, -0.5, 12, '|', style, 1.5, 0.1)
+		ps.Spawn(rx, ry, rainVX, rainVY, '|', style, rainLife, rainFade)
 	}
 }
 
 func SpawnSmoke(ps *ParticleSystem, x, y int, count int) {
 	for i := 0; i < count; i++ {
-		vx := (rand.Float64() - 0.5) * 2
-		vy := -1 - rand.Float64()*3
+		vx := (rand.Float64() - 0.5) * smokeVXRng
+		vy := smokeVYMin - rand.Float64()*smokeVYRng
 		ch := '~'
 		if rand.Intn(3) == 0 {
 			ch = ':'
 		}
 		style := StyleDefault.Foreground(tcell.NewRGBColor(128, 128, 128))
-		ps.Spawn(float64(x)+rand.Float64()*2-1, float64(y), vx, vy, ch, style, 0.8+rand.Float64()*1.2, 0.5)
+		ps.Spawn(float64(x)+rand.Float64()*2-1, float64(y), vx, vy, ch, style, smokeLifeMin+rand.Float64()*smokeLifeRng, smokeFade)
 	}
 }
 
@@ -206,24 +276,24 @@ func SpawnMenuDrift(ps *ParticleSystem, x, y, side int) {
 	ch := driftRunes[rand.Intn(len(driftRunes))]
 	fg := tcell.NewRGBColor(col[0], col[1], col[2])
 	style := StyleDefault.Foreground(fg)
-	vx := float64(side) * (0.5 + rand.Float64()*1.0)
-	vy := -(6.0 + rand.Float64()*4.0)
-	life := 1.0 + rand.Float64()*1.0
-	ps.Spawn(float64(x), float64(y), vx, vy, ch, style, life, 0.6)
+	vx := float64(side) * (menuDriftVXMin + rand.Float64()*menuDriftVXRng)
+	vy := -(menuDriftVYMin + rand.Float64()*menuDriftVYRng)
+	life := menuDriftLifeMin + rand.Float64()*menuDriftLifeRng
+	ps.Spawn(float64(x), float64(y), vx, vy, ch, style, life, menuDriftFade)
 }
 
 func SpawnMuzzleFlash(ps *ParticleSystem, x, y int) {
 	flashRunes := []rune{'.', '*', '°', '+'}
-	for i := 0; i < 6; i++ {
+	for i := 0; i < muzzleCount; i++ {
 		angle := rand.Float64() * 2 * math.Pi
-		speed := 1 + rand.Float64()*3
+		speed := muzzleSpeedMin + rand.Float64()*muzzleSpeedRng
 		vx := math.Cos(angle) * speed
 		vy := math.Sin(angle) * speed
 		ch := flashRunes[rand.Intn(len(flashRunes))]
-		brightness := 200 + rand.Intn(55)
+		brightness := muzzleBrightnessMin + rand.Intn(muzzleBrightnessRng)
 		fg := tcell.NewRGBColor(int32(brightness), int32(brightness-30), int32(50+rand.Intn(80)))
 		style := StyleDefault.Foreground(fg)
-		ps.Spawn(float64(x), float64(y), vx, vy, ch, style, 0.15+rand.Float64()*0.2, 2.0)
+		ps.Spawn(float64(x), float64(y), vx, vy, ch, style, muzzleLifeMin+rand.Float64()*muzzleLifeRng, muzzleFade)
 	}
 }
 
@@ -231,15 +301,15 @@ func SpawnSnow(ps *ParticleSystem, x, y int, w, h int) {
 	if w <= 0 || h <= 0 {
 		return
 	}
-	for i := 0; i < 2; i++ {
+	for i := 0; i < snowCount; i++ {
 		rx := float64(x + rand.Intn(w))
-		ry := float64(y - 1)
+		ry := float64(y + snowStartRow)
 		ch := '*'
 		if rand.Intn(3) == 0 {
 			ch = '.'
 		}
 		style := StyleDefault.Foreground(tcell.NewRGBColor(200, 210, 255))
-		ps.Spawn(rx, ry, (rand.Float64()-0.5)*0.8, 2+rand.Float64()*2, ch, style, 2.0+rand.Float64()*1.0, 0.1)
+		ps.Spawn(rx, ry, (rand.Float64()-0.5)*snowVXRng, snowVYMin+rand.Float64()*snowVYRng, ch, style, snowLifeMin+rand.Float64()*snowLifeRng, snowFade)
 	}
 }
 
@@ -247,7 +317,7 @@ func SpawnDust(ps *ParticleSystem, x, y int, w, h int) {
 	if w <= 0 || h <= 0 {
 		return
 	}
-	for i := 0; i < 2; i++ {
+	for i := 0; i < dustCount; i++ {
 		rx := float64(x + rand.Intn(w))
 		ry := float64(y + rand.Intn(h))
 		ch := '.'
@@ -255,7 +325,7 @@ func SpawnDust(ps *ParticleSystem, x, y int, w, h int) {
 			ch = '~'
 		}
 		style := StyleDefault.Foreground(tcell.NewRGBColor(180, 160, 120))
-		ps.Spawn(rx, ry, 1+rand.Float64()*2, (rand.Float64()-0.5)*0.5, ch, style, 1.5+rand.Float64()*1.0, 0.3)
+		ps.Spawn(rx, ry, dustVXMin+rand.Float64()*dustVXRng, (rand.Float64()-0.5)*dustVYRng, ch, style, dustLifeMin+rand.Float64()*dustLifeRng, dustFade)
 	}
 }
 
@@ -263,16 +333,16 @@ func SpawnEmbers(ps *ParticleSystem, x, y int, w, h int) {
 	if w <= 0 || h <= 0 {
 		return
 	}
-	for i := 0; i < 2; i++ {
+	for i := 0; i < emberCount; i++ {
 		rx := float64(x + rand.Intn(w))
 		ry := float64(y + rand.Intn(h))
 		ch := '.'
 		if rand.Intn(3) == 0 {
 			ch = '*'
 		}
-		r := 200 + rand.Intn(55)
-		g := 80 + rand.Intn(100)
-		style := StyleDefault.Foreground(tcell.NewRGBColor(int32(r), int32(g), 20))
-		ps.Spawn(rx, ry, (rand.Float64()-0.5)*1.5, -1.5-rand.Float64()*2, ch, style, 1.0+rand.Float64()*1.0, 0.8)
+		r := emberRMin + rand.Intn(emberRRng)
+		g := emberGMin + rand.Intn(emberGRng)
+		style := StyleDefault.Foreground(tcell.NewRGBColor(int32(r), int32(g), emberB))
+		ps.Spawn(rx, ry, (rand.Float64()-0.5)*emberVXRng, -emberVYMin-rand.Float64()*emberVYRng, ch, style, emberLifeMin+rand.Float64()*emberLifeRng, emberFade)
 	}
 }

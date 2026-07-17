@@ -1,8 +1,8 @@
 package engine
 
 import (
-	"github.com/taislin/termcom/internal/language"
 	"github.com/gdamore/tcell/v3"
+	"github.com/taislin/termcom/internal/language"
 )
 
 type SlotPickerMode int
@@ -28,10 +28,10 @@ type SlotPickerScreen struct {
 
 func NewSlotPickerScreen(g *Game, mode SlotPickerMode, slots []SlotInfo, onSelect func(int)) *SlotPickerScreen {
 	return &SlotPickerScreen{
-		Game:    g,
-		Mode:    mode,
-		Slots:   slots,
-		OnPick:  onSelect,
+		Game:   g,
+		Mode:   mode,
+		Slots:  slots,
+		OnPick: onSelect,
 	}
 }
 
@@ -168,7 +168,12 @@ func (sp *SlotPickerScreen) confirm() {
 				sp.OnPick(slot)
 			}
 		} else {
-			newSlot := len(sp.Slots) + 1
+			newSlot := 1
+			for _, s := range sp.Slots {
+				if s.Slot >= newSlot {
+					newSlot = s.Slot + 1
+				}
+			}
 			if newSlot > MaxSaveSlots {
 				sp.Message = language.String("SLOT_PICKER_FULL")
 				return

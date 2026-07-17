@@ -25,25 +25,30 @@ type nullScreen struct {
 	cursorVisible bool
 }
 
+const (
+	eventQueueSize         = 64
+	renderBufferMultiplier = 20
+)
+
 func newNullScreen(w, h int) *nullScreen {
 	return &nullScreen{
 		w:      w,
 		h:      h,
-		eventQ: make(chan tcell.Event, 64),
+		eventQ: make(chan tcell.Event, eventQueueSize),
 		stopQ:  make(chan struct{}),
 	}
 }
 
-func (s *nullScreen) Init() error                                        { return nil }
-func (s *nullScreen) Fini()                                              { close(s.stopQ) }
-func (s *nullScreen) Clear()                                             {}
-func (s *nullScreen) Fill(_ rune, _ tcell.Style)                        {}
+func (s *nullScreen) Init() error                                               { return nil }
+func (s *nullScreen) Fini()                                                     { close(s.stopQ) }
+func (s *nullScreen) Clear()                                                    {}
+func (s *nullScreen) Fill(_ rune, _ tcell.Style)                                {}
 func (s *nullScreen) Put(x, y int, str string, style tcell.Style) (string, int) { return "", 0 }
-func (s *nullScreen) PutStr(x, y int, str string)                       {}
-func (s *nullScreen) PutStrStyled(x, y int, str string, style tcell.Style) {}
-func (s *nullScreen) Get(x, y int) (string, tcell.Style, int)           { return " ", tcell.StyleDefault, 1 }
-func (s *nullScreen) SetContent(_ int, _ int, _ rune, _ []rune, _ tcell.Style) {}
-func (s *nullScreen) SetStyle(_ tcell.Style)                            {}
+func (s *nullScreen) PutStr(x, y int, str string)                               {}
+func (s *nullScreen) PutStrStyled(x, y int, str string, style tcell.Style)      {}
+func (s *nullScreen) Get(x, y int) (string, tcell.Style, int)                   { return " ", tcell.StyleDefault, 1 }
+func (s *nullScreen) SetContent(_ int, _ int, _ rune, _ []rune, _ tcell.Style)  {}
+func (s *nullScreen) SetStyle(_ tcell.Style)                                    {}
 func (s *nullScreen) ShowCursor(x, y int) {
 	s.mu.Lock()
 	s.cursorX = x
@@ -57,34 +62,42 @@ func (s *nullScreen) HideCursor() {
 	s.mu.Unlock()
 }
 func (s *nullScreen) SetCursorStyle(_ tcell.CursorStyle, _ ...color.Color) {}
-func (s *nullScreen) Size() (int, int)                                   { s.mu.Lock(); defer s.mu.Unlock(); return s.w, s.h }
-func (s *nullScreen) EventQ() chan tcell.Event                           { return s.eventQ }
-func (s *nullScreen) EnableMouse(...tcell.MouseFlags)                    {}
-func (s *nullScreen) DisableMouse()                                      {}
-func (s *nullScreen) EnablePaste()                                       {}
-func (s *nullScreen) DisablePaste()                                      {}
-func (s *nullScreen) EnableFocus()                                       {}
-func (s *nullScreen) DisableFocus()                                      {}
-func (s *nullScreen) Colors() int                                        { return 256 }
-func (s *nullScreen) Show()                                              { if s.OnShow != nil { s.OnShow() } }
-func (s *nullScreen) Sync()                                              { if s.OnShow != nil { s.OnShow() } }
-func (s *nullScreen) CharacterSet() string                               { return "UTF-8" }
-func (s *nullScreen) RegisterRuneFallback(_ rune, _ string)             {}
-func (s *nullScreen) UnregisterRuneFallback(_ rune)                     {}
-func (s *nullScreen) Resize(_, _, _, _ int)                             {}
-func (s *nullScreen) Suspend() error                                     { return nil }
-func (s *nullScreen) Resume() error                                      { return nil }
-func (s *nullScreen) Beep() error                                        { return nil }
-func (s *nullScreen) SetSize(w, h int)                                  { s.mu.Lock(); s.w = w; s.h = h; s.mu.Unlock() }
-func (s *nullScreen) LockRegion(_, _, _, _ int, _ bool)                 {}
-func (s *nullScreen) Tty() (tcell.Tty, bool)                            { return nil, false }
-func (s *nullScreen) SetTitle(_ string)                                  {}
-func (s *nullScreen) SetClipboard(_ []byte)                             {}
-func (s *nullScreen) GetClipboard()                                      {}
-func (s *nullScreen) HasClipboard() bool                                 { return false }
-func (s *nullScreen) ShowNotification(_, _ string)                       {}
-func (s *nullScreen) KeyboardProtocol() tcell.KeyProtocol                { return tcell.LegacyKeyboard }
-func (s *nullScreen) Terminal() (string, string)                         { return "", "" }
+func (s *nullScreen) Size() (int, int)                                     { s.mu.Lock(); defer s.mu.Unlock(); return s.w, s.h }
+func (s *nullScreen) EventQ() chan tcell.Event                             { return s.eventQ }
+func (s *nullScreen) EnableMouse(...tcell.MouseFlags)                      {}
+func (s *nullScreen) DisableMouse()                                        {}
+func (s *nullScreen) EnablePaste()                                         {}
+func (s *nullScreen) DisablePaste()                                        {}
+func (s *nullScreen) EnableFocus()                                         {}
+func (s *nullScreen) DisableFocus()                                        {}
+func (s *nullScreen) Colors() int                                          { return 256 }
+func (s *nullScreen) Show() {
+	if s.OnShow != nil {
+		s.OnShow()
+	}
+}
+func (s *nullScreen) Sync() {
+	if s.OnShow != nil {
+		s.OnShow()
+	}
+}
+func (s *nullScreen) CharacterSet() string                  { return "UTF-8" }
+func (s *nullScreen) RegisterRuneFallback(_ rune, _ string) {}
+func (s *nullScreen) UnregisterRuneFallback(_ rune)         {}
+func (s *nullScreen) Resize(_, _, _, _ int)                 {}
+func (s *nullScreen) Suspend() error                        { return nil }
+func (s *nullScreen) Resume() error                         { return nil }
+func (s *nullScreen) Beep() error                           { return nil }
+func (s *nullScreen) SetSize(w, h int)                      { s.mu.Lock(); s.w = w; s.h = h; s.mu.Unlock() }
+func (s *nullScreen) LockRegion(_, _, _, _ int, _ bool)     {}
+func (s *nullScreen) Tty() (tcell.Tty, bool)                { return nil, false }
+func (s *nullScreen) SetTitle(_ string)                     {}
+func (s *nullScreen) SetClipboard(_ []byte)                 {}
+func (s *nullScreen) GetClipboard()                         {}
+func (s *nullScreen) HasClipboard() bool                    { return false }
+func (s *nullScreen) ShowNotification(_, _ string)          {}
+func (s *nullScreen) KeyboardProtocol() tcell.KeyProtocol   { return tcell.LegacyKeyboard }
+func (s *nullScreen) Terminal() (string, string)            { return "", "" }
 
 // InjectEvent posts an event into the screen's event queue for the game to consume.
 func (s *nullScreen) InjectEvent(ev tcell.Event) {
@@ -144,7 +157,7 @@ func (wr *WebRenderer) Render(scr *ScreenRaw) string {
 	}
 
 	var sb strings.Builder
-	sb.Grow(w * h * 20) // generous pre-allocation
+	sb.Grow(w * h * renderBufferMultiplier) // generous pre-allocation
 
 	// Hide cursor for the duration of the update.
 	sb.WriteString("\x1b[?25l")
@@ -301,4 +314,3 @@ func colorSGR(c tcell.Color, isFg bool) string {
 	}
 	return fmt.Sprintf("48;2;%d;%d;%d", r, g, b)
 }
-

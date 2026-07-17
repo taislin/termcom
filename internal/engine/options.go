@@ -18,6 +18,16 @@ type flagCell struct {
 
 type flagGrid [3][6]flagCell
 
+const (
+	optionsCenterXOff = 15
+	optionsCenterYOff = 10
+	boolHitWidth      = 30
+	langHitWidth      = 35
+	langFlagOffset    = 7
+	maxActionDelay    = 20
+	maxSfxVolume      = 10
+)
+
 func fc(fg color.Color) flagCell {
 	return flagCell{Ch: '█', Fg: fg}
 }
@@ -99,8 +109,8 @@ func (os *OptionsScreen) Render(ctx *ScreenCtx) {
 	w, h := ctx.Size()
 	ctx.DrawPanel(0, 0, w, h, language.String("OPTIONS_TITLE"), StyleDefault)
 
-	startY := h/2 - 10
-	baseX := w/2 - 15
+	startY := h/2 - optionsCenterYOff
+	baseX := w/2 - optionsCenterXOff
 
 	// Bool toggles
 	boolOpts := []struct {
@@ -173,7 +183,7 @@ func (os *OptionsScreen) Render(ctx *ScreenCtx) {
 	}
 		flagY := startY + langIdx + 2
 	drawFlag(ctx, baseX, flagY, language.Current())
-	ctx.DrawString(baseX+7, flagY+1, fmt.Sprintf("  %s: [%s]", language.String("OPTIONS_LANGUAGE"), langs[li]), langStyle)
+	ctx.DrawString(baseX+langFlagOffset, flagY+1, fmt.Sprintf("  %s: [%s]", language.String("OPTIONS_LANGUAGE"), langs[li]), langStyle)
 
 	ctx.DrawPanel(0, h-1, w, 1, "", StyleGray)
 	ctx.DrawMarkupString(1, h-1, language.String("OPTIONS_HELP"), StyleGray, StyleHotkey)
@@ -283,8 +293,8 @@ func (os *OptionsScreen) HandleMouse(e *tcell.EventMouse) {
 	}
 	x, y := e.Position()
 	w, h := os.Game.ScreenSize()
-	baseX := w/2 - 15
-	startY := h/2 - 10
+	baseX := w/2 - optionsCenterXOff
+	startY := h/2 - optionsCenterYOff
 
 	buttons := e.Buttons()
 	if buttons&tcell.Button1 == 0 && buttons&tcell.Button2 == 0 {
@@ -294,19 +304,19 @@ func (os *OptionsScreen) HandleMouse(e *tcell.EventMouse) {
 	// Determine which option row was clicked, accounting for non-sequential spacing
 	optIndex := -1
 	for i := 0; i < 9; i++ {
-		if y == startY+i && x >= baseX && x < baseX+30 {
+		if y == startY+i && x >= baseX && x < baseX+boolHitWidth {
 			optIndex = i
 			break
 		}
 	}
 	if optIndex < 0 {
-		if y == startY+10 && x >= baseX && x < baseX+30 {
+		if y == startY+10 && x >= baseX && x < baseX+boolHitWidth {
 			optIndex = 9 // theme
-		} else if y == startY+11 && x >= baseX && x < baseX+30 {
+		} else if y == startY+11 && x >= baseX && x < baseX+boolHitWidth {
 			optIndex = 10 // speed
-		} else if y == startY+12 && x >= baseX && x < baseX+30 {
+		} else if y == startY+12 && x >= baseX && x < baseX+boolHitWidth {
 			optIndex = 11 // volume
-		} else if y == startY+15 && x >= baseX+7 && x < baseX+35 {
+		} else if y == startY+15 && x >= baseX+langFlagOffset && x < baseX+langHitWidth {
 			optIndex = 12 // language
 		}
 	}
@@ -341,8 +351,8 @@ func (os *OptionsScreen) applyOptionDelta(idx, dir int) {
 		if Config.ActionDelay < 1 {
 			Config.ActionDelay = 1
 		}
-		if Config.ActionDelay > 20 {
-			Config.ActionDelay = 20
+		if Config.ActionDelay > maxActionDelay {
+			Config.ActionDelay = maxActionDelay
 		}
 		os.Game.ActionDelay = Config.ActionDelay
 	case 11:
@@ -350,8 +360,8 @@ func (os *OptionsScreen) applyOptionDelta(idx, dir int) {
 		if Config.SfxVolume < 0 {
 			Config.SfxVolume = 0
 		}
-		if Config.SfxVolume > 10 {
-			Config.SfxVolume = 10
+		if Config.SfxVolume > maxSfxVolume {
+			Config.SfxVolume = maxSfxVolume
 		}
 		audio.SetSfxVolume(Config.SfxVolume)
 	case 12:

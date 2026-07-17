@@ -213,7 +213,7 @@ func (b *Base) GetAvailableInterceptors() []*data.InterceptorState {
 	return available
 }
 
-var interceptorWeaponOrder = []string{"avalanche", "stingray", "cannon"}
+var interceptorWeaponOrder = []string{"avalanche", "stingray"}
 
 func (b *Base) ChangeInterceptorWeapon(idx int) string {
 	if idx < 0 || idx >= len(b.Hangars) {
@@ -229,6 +229,9 @@ func (b *Base) ChangeInterceptorWeapon(idx int) string {
 			curIdx = i
 			break
 		}
+	}
+	if curIdx == -1 {
+		return ""
 	}
 	nextIdx := (curIdx + 1) % len(interceptorWeaponOrder)
 	newKey := interceptorWeaponOrder[nextIdx]

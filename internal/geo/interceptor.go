@@ -8,6 +8,41 @@ import (
 	"github.com/taislin/termcom/internal/language"
 )
 
+const (
+	defaultInterceptorSpeed = 36
+	defaultInterceptorHP    = 60
+	defaultPilotSkill       = 50
+
+	ammoPerFireRate = 4
+
+	fuelRangeMultiplier = 3
+
+	rangeFractionAttack   = 0.3
+	rangeFractionCautious = 0.5
+	rangeFractionBreakoff = 0.7
+
+	breakoffHPDivisor = 3
+
+	interceptorSpeedScale = 0.015
+
+	maxTrailLength  = 30
+	arrivalThreshold = 1.5
+
+	modeAccuracyAttackBonus  = 10
+	modeAccuracyBreakoffPenalty = 10
+	accuracyMin              = 10
+	accuracyMax              = 100
+
+	damageVarianceDivisor = 3
+
+	critChancePct    = 10
+	critMultiplierNum = 3
+	critMultiplierDen = 2
+
+	effectiveRangeRatioThreshold = 0.7
+	rangeFalloffMultiplier       = 1.5
+)
+
 type TrailPoint struct {
 	X, Y float64
 }
@@ -39,16 +74,16 @@ func NewInterceptor(baseX, baseY int) *Interceptor {
 		Name:       language.String("INTERCEPTOR_DEFAULT_NAME"),
 		X:          float64(baseX),
 		Y:          float64(baseY),
-		Speed:      36,
-		HP:         60,
-		MaxHP:      60,
+		Speed:       defaultInterceptorSpeed,
+		HP:          defaultInterceptorHP,
+		MaxHP:       defaultInterceptorHP,
 		WeaponKey:  "avalanche",
 		Weapon:     w,
-		Ammo:       w.FireRate * 4,
+		Ammo:       w.FireRate * ammoPerFireRate,
 		Range:      w.Range,
 		TargetNode: -1,
 		Mode:       data.CombatCautious,
-		PilotSkill: 50,
+		PilotSkill: defaultPilotSkill,
 	}
 }
 
@@ -62,7 +97,7 @@ func NewInterceptorFromState(s *data.InterceptorState, baseX, baseY int) *Interc
 		Name:       s.Name,
 		X:          float64(baseX),
 		Y:          float64(baseY),
-		Speed:      36,
+		Speed:       defaultInterceptorSpeed,
 		HP:         s.HP,
 		MaxHP:      s.MaxHP,
 		WeaponKey:  s.WeaponKey,
@@ -71,7 +106,7 @@ func NewInterceptorFromState(s *data.InterceptorState, baseX, baseY int) *Interc
 		Range:      w.Range,
 		TargetNode: -1,
 		Mode:       data.CombatCautious,
-		PilotSkill: 50,
+		PilotSkill: defaultPilotSkill,
 		State:      s,
 	}
 }
@@ -85,7 +120,7 @@ func (i *Interceptor) SetWeapon(key string) {
 	i.WeaponKey = key
 	i.Weapon = w
 	i.Range = w.Range
-	i.Ammo = w.FireRate * 4
+	i.Ammo = w.FireRate * ammoPerFireRate
 }
 
 // SetMode changes the interceptor's combat behavior.
@@ -107,10 +142,10 @@ func (i *Interceptor) LaunchAtNode(nodeID int, cities []*City) {
 			i.TargetNode = nodeID
 			i.TargetUFO = nil
 			i.Launching = true
-			i.RangeLeft = i.Range * 3
-			return
-		}
+		i.RangeLeft = i.Range * fuelRangeMultiplier
+		return
 	}
+}
 }
 
 // LaunchAtUFO sends interceptor to pursue a specific UFO.
@@ -118,7 +153,7 @@ func (i *Interceptor) LaunchAtUFO(ufo *UFO) {
 	i.TargetUFO = ufo
 	i.TargetNode = -1
 	i.Launching = true
-	i.RangeLeft = i.Range * 3
+	i.RangeLeft = i.Range * fuelRangeMultiplier
 }
 
 // Update moves interceptor toward its target. Returns true if reached.
@@ -134,17 +169,17 @@ func (i *Interceptor) Update(cities []*City, ufos UFOList) bool {
 		switch i.Mode {
 		case data.CombatAttack:
 			// Aggressive: close to optimal firing range (30% of max)
-			return i.moveToWithTarget(i.TargetUFO.X, i.TargetUFO.Y, 0.3)
+			return i.moveToWithTarget(i.TargetUFO.X, i.TargetUFO.Y, rangeFractionAttack)
 		case data.CombatCautious:
 			// Balanced: maintain medium distance (50% of max)
-			return i.moveToWithTarget(i.TargetUFO.X, i.TargetUFO.Y, 0.5)
+			return i.moveToWithTarget(i.TargetUFO.X, i.TargetUFO.Y, rangeFractionCautious)
 		case data.CombatBreakoff:
 			// Defensive: keep distance, disengage if HP low
-			if i.HP < i.MaxHP/3 {
+			if i.HP < i.MaxHP/breakoffHPDivisor {
 				i.Disengage()
 				return false
 			}
-			return i.moveToWithTarget(i.TargetUFO.X, i.TargetUFO.Y, 0.7)
+			return i.moveToWithTarget(i.TargetUFO.X, i.TargetUFO.Y, rangeFractionBreakoff)
 		}
 		
 		// Default: chase directly
@@ -188,7 +223,7 @@ func (i *Interceptor) moveStep(tx, ty, maxDist float64) (dx, dy, dist float64, r
 	if maxDist >= 0 && dist <= maxDist+0.5 {
 		return dx, dy, dist, true
 	}
-	speed := float64(i.Speed) * 0.015
+	speed := float64(i.Speed) * interceptorSpeedScale
 	if maxDist >= 0 && speed > dist-maxDist {
 		speed = dist - maxDist
 	}
@@ -231,13 +266,13 @@ func (i *Interceptor) recordTrail() {
 		}
 	}
 	i.Trail = append(i.Trail, pt)
-	if len(i.Trail) > 30 {
+	if len(i.Trail) > maxTrailLength {
 		i.Trail = i.Trail[1:]
 	}
 }
 
 func (i *Interceptor) moveTo(tx, ty float64) bool {
-	_, _, _, reached := i.moveStep(tx, ty, 1.5)
+	_, _, _, reached := i.moveStep(tx, ty, arrivalThreshold)
 	return reached
 }
 
@@ -269,27 +304,27 @@ func (i *Interceptor) FireAt(ufo *UFO) int {
 	
 	// Accuracy penalty beyond optimal range
 	accuracy := i.EffectiveAccuracy()
-	if rangeRatio > 0.7 {
+	if rangeRatio > effectiveRangeRatioThreshold {
 		// Beyond 70% of max range, accuracy drops
-		accuracy = int(float64(accuracy) * (1.0 - (rangeRatio-0.7)*1.5))
+		accuracy = int(float64(accuracy) * (1.0 - (rangeRatio-effectiveRangeRatioThreshold)*rangeFalloffMultiplier))
 	}
-	
+
 	// Combat mode adjustments
 	switch i.Mode {
 	case data.CombatAttack:
 		// Aggressive: +10% accuracy, -5 range
-		accuracy += 10
+		accuracy += modeAccuracyAttackBonus
 	case data.CombatBreakoff:
 		// Defensive: -10% accuracy, but can disengage
-		accuracy -= 10
+		accuracy -= modeAccuracyBreakoffPenalty
 	}
-	
+
 	// Clamp accuracy
-	if accuracy < 10 {
-		accuracy = 10
+	if accuracy < accuracyMin {
+		accuracy = accuracyMin
 	}
-	if accuracy > 100 {
-		accuracy = 100
+	if accuracy > accuracyMax {
+		accuracy = accuracyMax
 	}
 	
 	// Fire
@@ -301,11 +336,11 @@ func (i *Interceptor) FireAt(ufo *UFO) int {
 	}
 	
 	// Calculate damage with some variance
-	damage := i.Weapon.Damage + rand.Intn(i.Weapon.Damage/3+1)
-	
+	damage := i.Weapon.Damage + rand.Intn(i.Weapon.Damage/damageVarianceDivisor+1)
+
 	// Critical hit chance (10%)
-	if rand.Intn(100) < 10 {
-		damage = damage * 3 / 2
+	if rand.Intn(100) < critChancePct {
+		damage = damage * critMultiplierNum / critMultiplierDen
 	}
 	
 	ufo.Type.Toughness -= damage

@@ -19,6 +19,32 @@ const (
 	GrenadeTUThreshold   = 18
 	GrenadeRangeMax      = 8
 	GrenadeRangeMin      = 1
+	FlankManeuverTU      = 16
+	FlankLongRangeTU     = 18
+	DisperseTU           = 14
+	TargetWoundedBonus   = 5
+	TargetCrouchPenalty  = 3
+	TargetLowTUBonus     = 3
+	TargetHeavyPenalty   = 5
+	MorphRangeBonus      = 3
+	MorphThermalBonus    = 4
+	MorphChemBonus       = 5
+	ThermalSenseRange    = 10
+	EcholocSenseRange    = 6
+	LongRangeDist        = 8
+	LongRangeAggroDist   = 4
+	CoverSeekDist        = 3
+	MeleeDist            = 1
+	CloseAttackDist      = 2
+	FireModeAutoDist     = 4
+	FireModeBurstDist    = 8
+	FlankMinDist         = 3
+	RetreatMinDist       = 4
+	CivilianFleeRange    = 10
+	CivilianFleeStep     = 3
+	PatrolScanRadius     = 12
+	PatrolScanOffset     = 6
+	RetreatStep          = 4
 )
 type AIState int
 
@@ -229,26 +255,26 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList, pla
 					ToX: target.X, ToY: target.Y,
 				})
 				ai.State = AISuppress
-			} else if role == RoleFlanker && dist > 3 && ai.Unit.TU >= 20 {
+			} else if role == RoleFlanker && dist > FlankDistThreshold && ai.Unit.TU >= FlankTUThreshold {
 				// 2. Flank: Move to a side position if specialized and distance allows.
 				ai.State = AIFlank
-			} else if ai.Unit.AlienType != nil && ai.Unit.AlienType.Psi > 40 && ai.Unit.TU >= 20 && ai.rng.Intn(3) == 0 {
+			} else if ai.Unit.AlienType != nil && ai.Unit.AlienType.Psi > PsiSkillThreshold && ai.Unit.TU >= PsiTUThreshold && ai.rng.Intn(3) == 0 {
 				// 3. Psi Attack: Use psionic abilities if strong enough and by chance.
 				actions = append(actions, AlienAction{
 					Type: "psi", Unit: ai.Unit, Target: target,
 					FromX: ai.Unit.X, FromY: ai.Unit.Y,
 					ToX: target.X, ToY: target.Y,
 				})
-			} else if ai.Unit.Weapon == "alien_grenade" && ai.Unit.TU >= 18 && dist <= 8 && dist > 1 {
+			} else if ai.Unit.Weapon == "alien_grenade" && ai.Unit.TU >= GrenadeTUThreshold && dist <= GrenadeRangeMax && dist > GrenadeRangeMin {
 				// 4. Grenade: Throw alien grenade at the target's position (AoE).
 				actions = append(actions, AlienAction{
 					Type: "grenade", Unit: ai.Unit, Target: target,
 					FromX: ai.Unit.X, FromY: ai.Unit.Y,
 					ToX: target.X, ToY: target.Y,
 				})
-			} else if (dist <= 2 || (longRange && dist <= 3) || (ai.Unit.AlienType != nil && ai.Unit.AlienType.Aggression > 7)) {
+			} else if (dist <= CloseAttackDist || (longRange && dist <= CoverSeekDist) || (ai.Unit.AlienType != nil && ai.Unit.AlienType.Aggression > 7)) {
 				// 5. Standard Attack: Melee if adjacent, otherwise ranged fire.
-				if dist <= 1 {
+				if dist <= MeleeDist {
 					actions = append(actions, AlienAction{
 						Type: "melee", Unit: ai.Unit, Target: target,
 						FromX: ai.Unit.X, FromY: ai.Unit.Y,
@@ -265,13 +291,13 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList, pla
 		}
 
 		// Maneuvering: Move to cover or advance based on player tactics.
-		if role == RoleFlanker && dist > 3 && ai.Unit.TU >= 20 {
+		if role == RoleFlanker && dist > FlankDistThreshold && ai.Unit.TU >= FlankTUThreshold {
 			fx, fy := ai.findFlankPosition(target, nearest, m, humanUnits)
 			if (fx != ai.Unit.X || fy != ai.Unit.Y) && m.Passable(fx, fy) {
 				actions = ai.appendMove(actions, fx, fy)
 			}
-		} else if !ai.InCover && dist > 3 && (ai.Unit.TU >= 16 || (longRange && dist > 4 && ai.Unit.TU >= 18)) {
-			if longRange && dist > 4 {
+		} else if !ai.InCover && dist > FlankDistThreshold && (ai.Unit.TU >= FlankManeuverTU || (longRange && dist > LongRangeAggroDist && ai.Unit.TU >= FlankLongRangeTU)) {
+			if longRange && dist > LongRangeAggroDist {
 				// Adapt to long-range players: close distance aggressively.
 				ax, ay := ai.advanceToward(nearest.X, nearest.Y, m, units)
 				if (ax != ai.Unit.X || ay != ai.Unit.Y) && m.Passable(ax, ay) {
@@ -284,7 +310,7 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList, pla
 					actions = ai.appendMove(actions, cx, cy)
 				}
 			}
-		} else if grenadeHeavy && ai.Unit.TU >= 14 {
+		} else if grenadeHeavy && ai.Unit.TU >= DisperseTU {
 			// Adapt to grenade-heavy players: disperse from allies to minimize blast damage.
 			if buddy := ai.nearestAlly(units); buddy != nil {
 				fx, fy := ai.disperseFrom(buddy, m, humanUnits)
@@ -371,28 +397,28 @@ func (ai *AlienAI) selectTarget(nearest *Unit, humanUnits UnitList, plan *SquadP
 		dist := math.Sqrt(dx*dx + dy*dy)
 		score := -dist
 		if h.HP < h.MaxHP/2 {
-			score += 5
+			score += TargetWoundedBonus
 		}
 		if h.Crouching {
-			score -= 3
+			score -= TargetCrouchPenalty
 		}
 		if h.Weapon == "rocket" || h.Weapon == "heavy_plasma" {
-			score -= 5
+			score -= TargetHeavyPenalty
 		}
-		if h.TU < 20 {
-			score += 3
+		if h.TU < FlankTUThreshold {
+			score += TargetLowTUBonus
 		}
 
 		if at := ai.Unit.AlienType; at != nil && at.Morphology != nil {
 			morph := at.Morphology
 			if morph.ThermalSense == data.SenseHigh && h.Crouching {
-				score += 4
+				score += MorphThermalBonus
 			}
 			if morph.ChemicalSense == data.SenseHigh && h.HP < h.MaxHP/2 {
-				score += 5
+				score += MorphChemBonus
 			}
-			if (morph.Eyesight == data.SenseExcellent || morph.Eyesight == data.SenseMultiSpec) && dist > 8 {
-				score += 3
+			if (morph.Eyesight == data.SenseExcellent || morph.Eyesight == data.SenseMultiSpec) && dist > LongRangeDist {
+				score += MorphRangeBonus
 			}
 		}
 
@@ -416,7 +442,7 @@ func (ai *AlienAI) canSense(tx, ty int, m *BattleMap) bool {
 		dx := float64(tx - ai.Unit.X)
 		dy := float64(ty - ai.Unit.Y)
 		dist := math.Sqrt(dx*dx + dy*dy)
-		if dist <= 10 {
+		if dist <= ThermalSenseRange {
 			return true
 		}
 	}
@@ -424,7 +450,7 @@ func (ai *AlienAI) canSense(tx, ty int, m *BattleMap) bool {
 		dx := float64(tx - ai.Unit.X)
 		dy := float64(ty - ai.Unit.Y)
 		dist := math.Sqrt(dx*dx + dy*dy)
-		if dist <= 6 {
+		if dist <= EcholocSenseRange {
 			return true
 		}
 	}
@@ -489,7 +515,7 @@ func (ai *AlienAI) evaluateCoverVsThreats(x, y int, m *BattleMap, humanUnits Uni
 		dy := float64(h.Y - y)
 		dist := math.Sqrt(dx*dx + dy*dy)
 		weight := 1.0
-		if dist < 6 {
+		if dist < CoverSeekDist {
 			weight = 1.5
 		}
 		totalProtection += float64(lineCover) * weight
@@ -605,7 +631,7 @@ func (ai *AlienAI) findFlankPosition(target, nearest *Unit, m *BattleMap, units 
 		tdx := target.X - fx
 		tdy := target.Y - fy
 		tDist := math.Sqrt(float64(tdx*tdx + tdy*tdy))
-		if tDist < 3 {
+		if tDist < FlankMinDist {
 			continue
 		}
 
@@ -642,8 +668,8 @@ func (ai *AlienAI) retreatTarget(threat *Unit, m *BattleMap, units UnitList) (in
 	if mag < 1 {
 		mag = 1
 	}
-	fx := ai.Unit.X + int(float64(dx)/mag*4)
-	fy := ai.Unit.Y + int(float64(dy)/mag*4)
+	fx := ai.Unit.X + int(float64(dx)/mag*RetreatStep)
+	fy := ai.Unit.Y + int(float64(dy)/mag*RetreatStep)
 
 	if fx < 1 {
 		fx = 1
@@ -677,7 +703,7 @@ func (ai *AlienAI) retreatTarget(threat *Unit, m *BattleMap, units UnitList) (in
 			tdx := threat.X - cx
 			tdy := threat.Y - cy
 			threatDist := math.Sqrt(float64(tdx*tdx + tdy*tdy))
-			if total > bestProtection && threatDist > 4 {
+			if total > bestProtection && threatDist > RetreatMinDist {
 				bestProtection = total
 				bestX = cx
 				bestY = cy
@@ -819,8 +845,8 @@ func (ai *AlienAI) moveTowardTargetCover(tx, ty int, m *BattleMap, units UnitLis
 func (ai *AlienAI) patrolTarget(m *BattleMap) (int, int) {
 	if ai.PatrolX == 0 && ai.PatrolY == 0 {
 		for attempt := 0; attempt < 10; attempt++ {
-			px := ai.Unit.X + ai.rng.Intn(12) - 6
-			py := ai.Unit.Y + ai.rng.Intn(12) - 6
+			px := ai.Unit.X + ai.rng.Intn(PatrolScanRadius) - PatrolScanOffset
+			py := ai.Unit.Y + ai.rng.Intn(PatrolScanRadius) - PatrolScanOffset
 			if px < 1 {
 				px = 1
 			}
@@ -901,7 +927,7 @@ func (cai *CivilianAI) GenerateActions(units UnitList, m *BattleMap) []AlienActi
 		}
 	}
 
-	if nearestThreat != nil && bestDist < 10 {
+	if nearestThreat != nil && bestDist < CivilianFleeRange {
 		cai.Scared = true
 	}
 
@@ -920,8 +946,8 @@ func (cai *CivilianAI) GenerateActions(units UnitList, m *BattleMap) []AlienActi
 	if dist < 1 {
 		dist = 1
 	}
-	fx := cai.Unit.X + int(dx/dist*3)
-	fy := cai.Unit.Y + int(dy/dist*3)
+	fx := cai.Unit.X + int(dx/dist*CivilianFleeStep)
+	fy := cai.Unit.Y + int(dy/dist*CivilianFleeStep)
 
 	if fx < 0 {
 		fx = 0
@@ -1067,7 +1093,7 @@ func (ai *AlienAI) selectFireMode(dist int) {
 	if len(modes) <= 1 {
 		return
 	}
-	if dist <= 4 {
+	if dist <= FireModeAutoDist {
 		for _, m := range modes {
 			if m == data.FireModeAuto {
 				ai.Unit.FireMode = data.FireModeAuto
@@ -1080,7 +1106,7 @@ func (ai *AlienAI) selectFireMode(dist int) {
 				return
 			}
 		}
-	} else if dist <= 8 {
+	} else if dist <= FireModeBurstDist {
 		for _, m := range modes {
 			if m == data.FireModeBurst {
 				ai.Unit.FireMode = data.FireModeBurst

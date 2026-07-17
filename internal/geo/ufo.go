@@ -7,6 +7,24 @@ import (
 	"github.com/taislin/termcom/internal/language"
 )
 
+const (
+	hpBonusPerDifficulty = 5
+	maxHPBonus           = 40
+
+	turnsLeftBase = 500
+	turnsLeftRange = 500
+
+	spawnAtCityProgress = 0.3
+
+	ufoSpeedScale = 0.002
+
+	nodeMidpointThreshold = 0.5
+
+	ufoBaseAccuracy = 30
+	ufoDamageBase   = 5
+	ufoDamageRange  = 10
+)
+
 type UFOType struct {
 	Name       string
 	Short      string
@@ -68,9 +86,9 @@ func pickUFOType(difficulty int) UFOType {
 		}
 	}
 	t := UFOTypes[idx]
-	hpBonus := difficulty * 5
-	if hpBonus > 40 {
-		hpBonus = 40
+	hpBonus := difficulty * hpBonusPerDifficulty
+	if hpBonus > maxHPBonus {
+		hpBonus = maxHPBonus
 	}
 	t.Toughness += hpBonus
 	t.MaxHP += hpBonus
@@ -98,7 +116,7 @@ func SpawnUFOOnCities(cities []*City, difficulty int) *UFO {
 		NodeFrom:   cities[idx1].ID,
 		NodeTo:     cities[idx2].ID,
 		Progress:   0.0,
-		TurnsLeft:  500 + rand.Intn(500),
+		TurnsLeft:  turnsLeftBase + rand.Intn(turnsLeftRange),
 		Active:     true,
 	}
 	ufo.updatePosition(cities)
@@ -128,8 +146,8 @@ func SpawnUFOAtCity(target *City, cities []*City, difficulty int) *UFO {
 		Type:       t,
 		NodeFrom:   from.ID,
 		NodeTo:     target.ID,
-		Progress:   0.3,
-		TurnsLeft:  500 + rand.Intn(500),
+		Progress:   spawnAtCityProgress,
+		TurnsLeft:  turnsLeftBase + rand.Intn(turnsLeftRange),
 		Active:     true,
 	}
 	ufo.updatePosition(cities)
@@ -141,7 +159,7 @@ func (u *UFO) Update(cities []*City) {
 		return
 	}
 	// Speed as progress per tick (higher = faster traversal)
-	speed := float64(u.Type.Speed) * 0.002
+	speed := float64(u.Type.Speed) * ufoSpeedScale
 	u.Progress += speed
 
 	if u.Progress >= 1.0 {
@@ -196,7 +214,7 @@ func (u *UFO) TileY() int {
 }
 
 func (u *UFO) CurrentNode() int {
-	if u.Progress < 0.5 {
+	if u.Progress < nodeMidpointThreshold {
 		return u.NodeFrom
 	}
 	return u.NodeTo
@@ -206,8 +224,8 @@ func (u *UFO) FireAtInterceptor(inter *Interceptor) int {
 	if !u.Active {
 		return 0
 	}
-	accuracy := 30
-	damage := 5 + rand.Intn(10)
+	accuracy := ufoBaseAccuracy
+	damage := ufoDamageBase + rand.Intn(ufoDamageRange)
 	if rand.Intn(100) < accuracy {
 		inter.HP -= damage
 		if inter.HP < 0 {
