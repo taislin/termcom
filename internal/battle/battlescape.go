@@ -193,19 +193,19 @@ type Battlescape struct {
 // data races even if a writer ever runs on a different goroutine.
 func (bs *Battlescape) SetPhase(p BattlePhase) {
 	bs.State.mu.Lock()
-	bs.SetPhase(p)
+	bs.Phase = p
 	bs.State.mu.Unlock()
 }
 
 func (bs *Battlescape) SetSelected(u *Unit) {
 	bs.State.mu.Lock()
-	bs.SetSelected(u)
+	bs.Selected = u
 	bs.State.mu.Unlock()
 }
 
 func (bs *Battlescape) SetHovered(u *Unit) {
 	bs.State.mu.Lock()
-	bs.SetHovered(u)
+	bs.HoveredUnit = u
 	bs.State.mu.Unlock()
 }
 
@@ -2234,15 +2234,6 @@ func (bs *Battlescape) planSquadActions() *SquadPlan {
 		Roles:           roles,
 		Retreat:         retreat,
 	}
-}
-
-func (bs *Battlescape) findAIForUnit(u *Unit) *AlienAI {
-	for _, ai := range bs.AlienAIs {
-		if ai.Unit == u {
-			return ai
-		}
-	}
-	return nil
 }
 
 func (bs *Battlescape) Crouch() {

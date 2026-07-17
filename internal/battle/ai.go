@@ -9,8 +9,6 @@ import (
 	"github.com/taislin/termcom/internal/engine"
 )
 
-var globalRNG = rand.New(rand.NewSource(42))
-
 // Game balance constants for alien behavior.
 const (
 	VisualRangeThreshold = 12
