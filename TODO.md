@@ -5,10 +5,6 @@ Scope: Features and fixes for the battlescape tactical combat system.
 ---
 
 ### `internal/battle/battlescape.go`
-- [x] **R2 (Low)** `Render` ~550 lines. Extracted `drawSidebar`, `drawTargetInfo`,
-  `drawUnitInfo`, `drawBattleLog`, `drawCompactBanner`, `sidebarLayout` methods.
-- [x] **U2 (Low)** Magic numbers (reaction 15, OverwatchFlash 30, grenade TU 20,
-  damage 40+Str*2, mine 60+rng20, scanner 15). Extracted game-balance constants.
 
 ### `internal/data/spritebuilder.go`
 - [ ] **R1 (Low)** 4 duplicated layer-stamp switch blocks (head/torso/legs/weapon).
@@ -21,11 +17,6 @@ Scope: Features and fixes for the battlescape tactical combat system.
 ### `internal/engine/portrait.go`
 
 ### `internal/data/procedural.go`
-- [x] **D2 (Low)** `generateLore(name, ...)` `name` param unused. Removed.
-- [x] **B1/D1 (Low)** `midSyllIdx` is a no-op wrapper, misleadingly named. Inlined.
-- [x] **M2 (Low)** `generateLegCount` Silicon comment says "2 or 4" but code yields
-  2/4/6. Fixed code to produce "2 or 4".
-- [x] **U1 (Low)** Exported `clamp` lacks doc comment. Added.
 - [ ] **U2 (Low)** Magic tuning numbers (speciesCount 5+rng3, maxRank 1+rng4,
   `rng.Intn(3)==0` synthetic, sense rolls) undocumented. Name constants.
 - [ ] **R1 (Low)** Five duplicated `rng.Intn(10)` weighted-roll switches (464–616).
@@ -34,15 +25,6 @@ Scope: Features and fixes for the battlescape tactical combat system.
   repetitive. Split / table-drive.
 
 ### `internal/battle/ai.go`
-- [x] **B4 (Medium)** Pathfinding (`GetNextPathStep`→`AStar`) ignores map Level
-  (path.go) while `findNearest` filters by level (line 936) → bad paths on
-  multi-level maps. Pass/compare Level.
-- [x] **M2 (Medium)** AI uses global unseeded `rand` (lines 220, 900) instead of a
-  seeded RNG → non-reproducible across save/load. Use a seeded `*rand.Rand`.
-- [ ] **D2 (Low)** `SquadPlan.SecondaryTarget` never written by planSquadActions →
-  selectTarget secondary branch dead. Populate or drop.
-- [ ] **M1 (Low)** `patrolTarget` uses `m.Height-1` single-level but `LevelHeight-1`
-  multi-level (lines 911–917). Confirm LevelHeight==Height for single-level.
 - [ ] **R1 (Low)** `disperseFrom`/`moveTowardTargetCover` dup candidate construction
   (846–862 vs 791–807). Extract `orthogonalCandidates`.
 - [ ] **R2 (Low)** Move-action append pattern copy-pasted ~8× (181–390). Extract
@@ -104,8 +86,6 @@ Scope: Features and fixes for the battlescape tactical combat system.
 - [ ] **U1 (Low)** `simpleRand` undocumented custom RNG — explain why not math/rand.
 
 ### `internal/data/items.go`
-- [x] **B1 (Medium)** `"alien_grenade"` collides between RuleItems weapon (400) and
-  Items loot (503). Rename loot → `alien_grenade_item`.
 - [ ] **B2 (Low)** ShortName collisions MSC/PRM/PSI across RuleItems vs Items
   (504–507). Document or avoid cross-index by ShortName.
 - [ ] **D1 (Low)** `Weapons` map is write-only (AmmoCur never read, 49–51,663–668).
@@ -115,23 +95,8 @@ Scope: Features and fixes for the battlescape tactical combat system.
   `localizedName(langKey, fallback)`.
 
 ### `internal/data/aliens.go`
-- [ ] **B3 (Low)** `nextIcon(-1,...)` fallback uses `len(used)` map len for pool
-  index (46–73) → can reassign used glyph. Use a counter.
-- [ ] **M1 (Low)** Two `DamageType` fields: `Morphology.DamageType` (126) vs
-  `AlienType.DamageType` (166) — confusing. Document roles.
-- [ ] **M2 (Low)** Default fallback color `tcell.Color(9)` repeated 3× (459,586,
-  448). Name as constant.
-- [ ] **D-typo (Low)** Duplicate `'ቿ'` twice in same pool (472). Copy-paste typo.
-- [ ] **R1 (Low)** `switch m.BodySubtype` repeats 3-color pick 9× (501–589). Extract
-  `pickColor(rng, names...)`.
 
 ### `internal/battle/crash.go`
-- [x] **B1 (Medium)** `ExteriorTiles` may contain duplicate coordinates (no dedup check) (131–146)
-- [ ] **U1 (Low)** `0.3` — undocumented factor for HP-ratio boost to destroy chance (48)
-- [ ] **U2 (Low)** `3` in `rand.Intn(3)` — blood spawn probability denominator (61)
-- [ ] **U3 (Low)** `50` in `rand.Intn(100) < damage*50` — 50% per damage point undocumented (188)
-- [ ] **U4 (Low)** `radius * 2` for power-core chain damage multiplier (185)
-- [ ] **R1 (Low)** `TileCover(TileRubble)` called repeatedly; use cached constant (56–57, 191–192)
 
 ### `internal/battle/gas.go`
 - [ ] **U1 (Low)** `3` used as max-gas-density sentinel in `Set`/`BlocksLOS`/`CoverPenalty`/`Draw` — extract `const MaxGasDensity = 3` (49,68,79,151)
@@ -141,8 +106,6 @@ Scope: Features and fixes for the battlescape tactical combat system.
 - [ ] **R1 (Low)** `Draw` has near-duplicate color blocks for GasSmoke vs GasPoison per density level — extract `gasStyle(density, gType)` helper
 
 ### `internal/battle/input.go`
-- [x] **B2 (Medium)** `bs.ScrollX`/`ScrollY`/`Phase`/`Camera` accessed inside `handleKey`/`handleMouse` with only `bs.State.mu` held — data race if another goroutine writes them (40,114,177)
-- [x] **B3 (Medium)** `handleMouse` accesses `bs.HoveredUnit`/`bs.Selected` without synchronization on outer `Battlescape` fields (147–187)
 - [ ] **U1 (Low)** `3` — camera pan distance hardcoded; extract `const CamPanStep = 3` (66–72, 121–142)
 - [ ] **U2 (Low)** `1` — hardcoded column offset for help-bar hit testing (204)
 
@@ -154,14 +117,12 @@ Scope: Features and fixes for the battlescape tactical combat system.
 - [ ] **R1 (Low)** `RollModifiers` has near-identical `rng.Intn(N) == 0` ×7 — extract `func roll(rng *rand.Rand, chance int) bool`
 
 ### `internal/battle/path.go`
-- [x] **B1 (Medium)** `passableFor` checks `y >= m.LevelHeight` but never considers calling unit's `Level` — pathfinding ignores vertical level (64)
 - [ ] **U1 (Low)** `15` — TU threshold for reaction fire (138)
 - [ ] **U2 (Low)** `20` — distance cutoff for reaction fire (143)
 - [ ] **U3 (Low)** `2`, `3`, `5` — multipliers in reaction-fire chance formula (149)
 - [ ] **U4 (Low)** `1` — minimum reaction-fire chance floor (151)
 
 ### `internal/battle/terrain.go`
-- [x] **B1 (Medium)** `TilePalette` is exported `var` (not `const`) — external code can mutate at runtime causing data races or visual corruption (32)
 - [ ] **U1 (Low)** `0.25` — background darkening factor in `RenderTile` (199)
 - [ ] **U2 (Low)** `0.08` — ambient occlusion factor per opaque neighbor (221)
 - [ ] **U3 (Low)** `0.6` — minimum AO darkening clamp (223)
@@ -188,7 +149,6 @@ Scope: Features and fixes for the battlescape tactical combat system.
 - [ ] **R2 (Low)** `WeaponDamageType` switch hardcodes weapon ID strings; drive from item definition field instead (281–294)
 
 ### `internal/base/equip.go`
-- [x] **M1 (Medium)** Help-bar click zones (317–330) use hardcoded x-coordinate ranges that break if help text changes
 - [ ] **M2 (Low)** Magic numbers `20, 24` in `MakeSoldierPortrait(s.Name, s.Armor, 20, 24)` (59)
 - [ ] **M3 (Low)** `es.Message` never cleared on navigation — stale messages linger (128)
 
@@ -240,18 +200,15 @@ Scope: Features and fixes for the battlescape tactical combat system.
 - [ ] **U1 (Low)** Hardcoded `decay: 8.0` — extract named constant (21)
 
 ### `internal/engine/config.go`
-- [x] **B1 (Medium)** `Config` is mutable global (`var Config = ...`) with no synchronization — `LoadConfig()` writes via `json.Unmarshal` while goroutines may read (47)
 - [ ] **D1 (Low)** `WebsiteURL` exported — check for callers; dead export if none (13)
 - [ ] **U1 (Low)** Magic numbers: `ActionDelay: 8`, `SfxVolume: 10`, `TouchButtonSize: 4` undocumented
 
 ### `internal/engine/control_menu.go`
-- [x] **B1 (Medium)** `HandleMouse` uses stale `cm.screenW` — never calls `SetScreenSize`; hit-detection inaccurate after resize (200)
 - [ ] **D1 (Low)** `ControlMenu.ScrollOff` field set but never read (19)
 - [ ] **U1 (Low)** Magic numbers: `btnH=3`, `btnMinW=10`, `cols=3/2/1`, `padX/padY=1`, thresholds `60`/`40` (58–68)
 - [ ] **R1 (Low)** Repeated `StringWidth` calls in label truncation loop — O(n²) for CJK (167–173)
 
 ### `internal/engine/custom_battle.go`
-- [x] **B1 (Medium)** Description word-wrap uses `len([]rune(line))` instead of `StringWidth` — CJK lines overflow (143,153)
 - [ ] **R1 (Low)** Scroll offset calc duplicated in `Render` (98–101) and `HandleMouse` (231–234) — extract helper
 - [ ] **U1 (Low)** Magic numbers: `leftW-7` name truncation, `h-6` scroll threshold, positions `2`,`3`,`h-3`
 
@@ -267,7 +224,6 @@ Scope: Features and fixes for the battlescape tactical combat system.
 - [ ] **U1 (Low)** Magic number `3` for tab spacing, list positions `5`, info panel height `4` (137,141,178)
 
 ### `internal/engine/filters.go`
-- [x] **B1 (Medium)** `math/rand` used without explicit seeding — `rand.Intn(100)` always same sequence, night-vision noise deterministic (37)
 - [ ] **U1 (Low)** Luminance coefficients `0.299`, `0.587`, `0.114` — name as ITU-R BT.601 constant (19)
 - [ ] **U2 (Low)** Thresholds `128`, `40` in night vision (47,49) and thermal (86,89)
 
@@ -282,7 +238,6 @@ Scope: Features and fixes for the battlescape tactical combat system.
 - [ ] **U1 (Low)** Many undocumented magic numbers: phase multipliers `0.3`/`0.2`/`2.0`, RGB glow `128,40,180`+amplitude `127,60,75`, column offsets `w/2-26`/`w/2+3`, `startLangY=13`, row spacing `4`, flag width `6` (64–171)
 
 ### `internal/engine/layout.go`
-- [x] **B1 (Medium)** Mobile `BattleViewWidth` clamped to min 10 — 10 columns unusably narrow for tactical view (70)
 - [ ] **R1 (Low)** `MinSidebarWidth` duplicates `BattleSidebarWidth` min-width logic — dead code or unify (181,51–55)
 - [ ] **U1 (Low)** Magic numbers: `30` min sidebar, `10` min battle view, `60`% geo table, `20` min encyclo list, `5` battle view height offset, `3` sidebar Y spacing
 
@@ -318,7 +273,6 @@ Scope: Features and fixes for the battlescape tactical combat system.
 - [ ] **R1 (Low)** `ApplyTheme` 100 lines with near-identical blocks repeated 5× — extract theme config struct, data-driven map (220–320)
 
 ### `internal/engine/slotpicker.go`
-- [x] **B1 (Medium)** `HandleMouse` `y < startY+len(sp.Slots)+1` allows clicking "new slot" area in load mode — unexpected dismissal on accidental click below last slot (141)
 - [ ] **M1 (Low)** `10` — max save slots magic number (158)
 - [ ] **M2 (Low)** Save mode's `newSlot = len(sp.Slots) + 1` assumes contiguous slot numbering — collision if slots sparse (157)
 - [ ] **R1 (Low)** `HandleKey` duplicates up/down logic in both `Key` switch (84–94) and `Str` switch (103–113) — extract `moveSelection(delta)`
@@ -330,7 +284,6 @@ Scope: Features and fixes for the battlescape tactical combat system.
 - [ ] **R1 (Low)** Progress bar rebuilds string every frame — precompute or cache (67–77)
 
 ### `internal/engine/vfx.go`
-- [x] **B1 (Medium)** `FrameBuffer.Resize` (29–42) copies cells linearly — corrupts buffer when aspect ratio changes (e.g. 100×50→80×60 reinterprets row data)
 - [ ] **M1 (Low)** Magic numbers: radius `1.5`, falloff `0.3` (bloom), falloff `0.4` (directional), cone dot `0.7`, distortion freq `0.05`/`0.1` and amp `2.0` (165,181,206,252,270)
 - [ ] **R1 (Low)** `ApplyLightSource` runs two identical nested loops — merge into single loop with flag/counter (116–162)
 - [ ] **R2 (Low)** `ApplyLightSource` and `ApplyDirectionalLight` share iteration pattern — extract `forEachCellInRadius`
@@ -389,7 +342,6 @@ Scope: Features and fixes for the battlescape tactical combat system.
 - [ ] **R2 (Low)** `PerkNames` and `FormatPerks` have identical iteration — `FormatPerks` should call `PerkNames` then join (186,198)
 
 ### `internal/soldier/soldier.go`
-- [x] **B1 (Medium)** `HandlePromotions` RNG seeded with `int64(total)*131 + 7` — same roster size → same promotion sequence; not per-soldier (281)
 - [ ] **M1 (Low)** Stat ranges in `NewSoldier`: `20+rand.Intn(6)`, `45+rand.Intn(11)`, `40+rand.Intn(21)`, etc. — undocumented (110–124)
 - [ ] **M2 (Low)** `improveStat` thresholds `10, 5, 2` and gains `2+rand.Intn(5)`, `1+rand.Intn(4)` — undocumented (192–202)
 - [ ] **M3 (Low)** Bravery gain `10` with `rand.Intn(11)` threshold (224–225)
@@ -397,12 +349,9 @@ Scope: Features and fixes for the battlescape tactical combat system.
 - [ ] **R1 (Low)** `PostMission` 57 lines — TU/HP/Strength blocks repeated code (234–250)
 
 ### `internal/audio/audio_other.go`
-- [x] **B1 (Medium)** `mixerStream.Read` holds `mu.Lock` while iterating backwards and deleting from `m.buffers` via slice re-slicing — `b--` after deletion skips moved element (38–45)
 - [ ] **M1 (Low)** `40` ms buffer size (80), `32767` int16 max (57)
 
 ### `internal/audio/audio_windows.go`
-- [x] **B1 (Medium)** `Close()` calls `midiOutClose.Call(handle)` but doesn't set `audioDisabled=true` — goroutines in `playNote` may write to closed handle (50–55,78–82)
-- [x] **B2 (Medium)** Error check compares `err.Error()` string to check success — fragile, relies on English error text (36)
 - [ ] **M1 (Low)** MIDI note numbers (70,65,60...), velocities (100,80,60...), durations (30ms,50ms...), channels (0,9), status bytes (0x90,0x80) — dozens of undocumented literals (88–210)
 
 ### `internal/audio/pcm_synth.go`

@@ -18,6 +18,8 @@ const (
 	DMG_PSIONIC
 )
 
+const ColorDefaultAlien = tcell.Color(9)
+
 // AlienIconsByDamage maps each damage type to a pool of display glyphs (BMP runes).
 // Glyphs are themed by damage type so the unit's look hints at its threat:
 //
@@ -37,6 +39,10 @@ var AlienIconsByDamage = map[int][]rune{
 	DMG_LASER:     {'⌖', '⌬', '⌭', '⌮', '⌑', '⎔', '⎕', '⏃', '⏄', '⏚', '⏛', '⌒'},
 	DMG_EXPLOSIVE: {'✸', '✺', '❋', '❂', '✶', '✷', '✴', '✦', '✧', '❉', '✱', '✲'},
 }
+
+var (
+	fallbackIconCounter int // counter for deterministic fallback when pools are exhausted
+)
 
 // nextIcon returns the next unused glyph for the given damage type, recording it in
 // used so each alien in a game gets a distinct on-map character. used should be seeded
@@ -60,11 +66,13 @@ func nextIcon(dmg int, used map[rune]bool) rune {
 			}
 		}
 	}
-	// Truly exhausted (should not happen with current pool sizes): deterministic reuse.
+	// Truly exhausted (should not happen with current pool sizes): deterministic reuse
+	// using a counter rather than map length to avoid mid-run collisions.
 	r := '?'
 	for _, pool := range AlienIconsByDamage {
 		if len(pool) > 0 {
-			r = pool[len(used)%len(pool)]
+			r = pool[fallbackIconCounter%len(pool)]
+			fallbackIconCounter++
 			break
 		}
 	}
@@ -123,7 +131,7 @@ type Morphology struct {
 	ThermalSense  string // "none" | "low" | "high"
 	PsionicSense  string // "none" | "low" | "high"
 	ChemicalSense string // "none" | "low" | "high"
-	DamageType     int    // primary damage type (DMG_*); drives weapon-mask style
+	DamageType    int    // preferred damage affinity; drives procedural weapon-mask styling
 }
 
 // OrganicSubtypes lists valid organic body subtypes.
@@ -446,10 +454,17 @@ func AlienTypesByRank(rank int) []*AlienType {
 func init() {
 	for i := range AlienTypes {
 		if AlienTypes[i].Style == tcell.StyleDefault {
-			AlienTypes[i].Style = tcell.StyleDefault.Foreground(tcell.Color(9)).Bold(true)
-			AlienTypes[i].FgColor = tcell.Color(9)
+			AlienTypes[i].Style = tcell.StyleDefault.Foreground(ColorDefaultAlien).Bold(true)
+			AlienTypes[i].FgColor = ColorDefaultAlien
 		}
 	}
+}
+
+func pickColor(rng *rand.Rand, colors ...tcell.Color) tcell.Color {
+	if len(colors) == 0 {
+		return ColorDefaultAlien
+	}
+	return colors[rng.Intn(len(colors))]
 }
 
 // DetermineProceduralIconAndStyle selects the custom Unicode character/rune, tcell.Style,
@@ -457,7 +472,7 @@ func init() {
 // The chosen rune is marked in usedIcons to guarantee uniqueness within a run.
 func DetermineProceduralIconAndStyle(m *Morphology, rng *rand.Rand, usedIcons map[rune]bool) (rune, tcell.Style, tcell.Color) {
 	if m == nil {
-		c := tcell.Color(9)
+		c := ColorDefaultAlien
 		return '?', tcell.StyleDefault.Foreground(c).Bold(true), c
 	}
 
@@ -470,7 +485,7 @@ func DetermineProceduralIconAndStyle(m *Morphology, rng *rand.Rand, usedIcons ma
 	} else if m.Legs > 2 {
 		if m.Arms >= 4 {
 			// Category D. Multi-Armed (4–6 Arms, 2 Legs)
-			categoryRunes = []rune{'ቿ', 'ቿ', 'ቹ', 'ᚼ'}
+			categoryRunes = []rune{'ቿ', 'ቹ', 'ᚼ'}
 		} else if m.Arms == 3 {
 			// Category F. 3 Arms, 2 Legs
 			categoryRunes = []rune{'ቱ', 'ቲ', 'ቴ', 'պ'}
@@ -502,15 +517,13 @@ func DetermineProceduralIconAndStyle(m *Morphology, rng *rand.Rand, usedIcons ma
 	switch m.BodySubtype {
 	case SubtypeCarbonFlesh:
 		// Color: Red, Dark Red, or Pink.
-		colors := []tcell.Color{tcell.GetColor("red"), tcell.GetColor("darkred"), tcell.GetColor("pink")}
-		fgColor = colors[rng.Intn(len(colors))]
+		fgColor = pickColor(rng, tcell.GetColor("red"), tcell.GetColor("darkred"), tcell.GetColor("pink"))
 		style = style.Foreground(fgColor)
 		runePool = categoryRunes
 
 	case SubtypeSilicon:
 		// Color: Dark Grey, Brown, or Dark Orange.
-		colors := []tcell.Color{tcell.GetColor("darkgray"), tcell.GetColor("brown"), tcell.GetColor("darkorange")}
-		fgColor = colors[rng.Intn(len(colors))]
+		fgColor = pickColor(rng, tcell.GetColor("darkgray"), tcell.GetColor("brown"), tcell.GetColor("darkorange"))
 		style = style.Foreground(fgColor)
 
 		// Override Rune: If it has low limbs (Arms + Legs <= 2), use ⬢ (Solid Hexagon)
@@ -522,8 +535,7 @@ func DetermineProceduralIconAndStyle(m *Morphology, rng *rand.Rand, usedIcons ma
 
 	case SubtypeGaseous:
 		// Color: Magenta, Green, or Purple.
-		colors := []tcell.Color{tcell.GetColor("magenta"), tcell.GetColor("green"), tcell.GetColor("purple")}
-		fgColor = colors[rng.Intn(len(colors))]
+		fgColor = pickColor(rng, tcell.GetColor("magenta"), tcell.GetColor("green"), tcell.GetColor("purple"))
 		style = style.Foreground(fgColor)
 
 		// Override Rune: Override the shape with a more ethereal glyph
@@ -531,8 +543,7 @@ func DetermineProceduralIconAndStyle(m *Morphology, rng *rand.Rand, usedIcons ma
 
 	case SubtypeCrystalline:
 		// Color: Bright Cyan, White, or Aqua.
-		colors := []tcell.Color{tcell.GetColor("cyan"), tcell.GetColor("white"), tcell.GetColor("aqua")}
-		fgColor = colors[rng.Intn(len(colors))]
+		fgColor = pickColor(rng, tcell.GetColor("cyan"), tcell.GetColor("white"), tcell.GetColor("aqua"))
 		style = style.Foreground(fgColor)
 
 		// Override Rune: Overwrite normal stick figures (Category C) with sharp geometry: ♦, ❖, ᛟ
@@ -545,8 +556,7 @@ func DetermineProceduralIconAndStyle(m *Morphology, rng *rand.Rand, usedIcons ma
 
 	case SubtypeAmorphous:
 		// Color: Slime Green or Deep Purple.
-		colors := []tcell.Color{tcell.GetColor("lime"), tcell.GetColor("darkmagenta")}
-		fgColor = colors[rng.Intn(len(colors))]
+		fgColor = pickColor(rng, tcell.GetColor("lime"), tcell.GetColor("darkmagenta"))
 		style = style.Foreground(fgColor)
 
 		// Override Rune
@@ -554,8 +564,7 @@ func DetermineProceduralIconAndStyle(m *Morphology, rng *rand.Rand, usedIcons ma
 
 	case SubtypeMechanical:
 		// Color: Silver, Steel Blue, or Yellow.
-		colors := []tcell.Color{tcell.GetColor("silver"), tcell.GetColor("steelblue"), tcell.GetColor("yellow")}
-		fgColor = colors[rng.Intn(len(colors))]
+		fgColor = pickColor(rng, tcell.GetColor("silver"), tcell.GetColor("steelblue"), tcell.GetColor("yellow"))
 		style = style.Foreground(fgColor)
 
 		// Override Rune: Use strict, boxy characters regardless of limbs: ⊞
@@ -563,8 +572,7 @@ func DetermineProceduralIconAndStyle(m *Morphology, rng *rand.Rand, usedIcons ma
 
 	case SubtypeBioSynthetic:
 		// Color: Half-Flesh, Half-Neon (e.g., Dark Red with style.Blink(true)).
-		colors := []tcell.Color{tcell.GetColor("darkred"), tcell.GetColor("lime"), tcell.GetColor("pink")}
-		fgColor = colors[rng.Intn(len(colors))]
+		fgColor = pickColor(rng, tcell.GetColor("darkred"), tcell.GetColor("lime"), tcell.GetColor("pink"))
 		style = style.Foreground(fgColor).Blink(true)
 
 		// Override Rune: Φ or ⍾
@@ -584,7 +592,7 @@ func DetermineProceduralIconAndStyle(m *Morphology, rng *rand.Rand, usedIcons ma
 		runePool = []rune{'፨', '⠪', '✜', '⛬', '⡳'}
 
 	default:
-		fgColor = tcell.Color(9)
+		fgColor = ColorDefaultAlien
 		style = style.Foreground(fgColor)
 		runePool = categoryRunes
 	}

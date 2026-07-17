@@ -7,6 +7,20 @@ import (
 	"github.com/taislin/termcom/internal/data"
 )
 
+const (
+	// crashHPFactor scales the crash destruction probability based on remaining HP.
+	crashHPFactor = 0.3
+	// bloodProbDenominator is the 1-in-N chance of blood spawning on destroyed parts.
+	bloodProbDenominator = 3
+	// destroyProbPerDamage is the 50% probability per damage point of destroying a part in an explosion.
+	destroyProbPerDamage = 50
+	// powerCoreChainMult is the damage multiplier for power-core chain explosions.
+	powerCoreChainMult = 2
+)
+
+// TileRubbleCover is the cached cover value for rubble tiles.
+var TileRubbleCover = TileCover(TileRubble)
+
 // CrashResult captures the outcome of a vehicle crash landing.
 type CrashResult struct {
 	PartsSurvived int
@@ -45,7 +59,7 @@ func StampVehicleOnMap(
 		}
 
 		hpRatio := float64(part.CurrentHP) / float64(part.Def.BattlescapeHP)
-		destroyChance := crashSeverity * (1.0 + (1.0-hpRatio)*0.3)
+		destroyChance := crashSeverity * (1.0 + (1.0-hpRatio)*crashHPFactor)
 		if rand.Float64() < destroyChance {
 			result.PartsDestroyed++
 			if part.Def.ExplodesOnDeath {
@@ -53,12 +67,12 @@ func StampVehicleOnMap(
 			}
 			battleMap.Tiles[y][x] = Tile{
 				Type:      TileRubble,
-				Cover:     TileCover(TileRubble),
+				Cover:     TileRubbleCover,
 				Level:     0,
 				Rune:      '.',
 				BaseColor: 0,
 			}
-			if rand.Intn(3) == 0 {
+			if rand.Intn(bloodProbDenominator) == 0 {
 				battleMap.SpawnBlood(x, y, 1)
 			}
 		} else {
@@ -187,12 +201,12 @@ func ExplodeTile(x, y int, battleMap *BattleMap, radius int) {
 		damage := radius - t.dist + 1
 		if tile.Type == TilePowerSource {
 			// Power cores chain-explode
-			damage = radius * 2
+			damage = radius * powerCoreChainMult
 		}
 		// 50% chance per point of damage to destroy
-		if rand.Intn(100) < damage*50 {
+		if rand.Intn(100) < damage*destroyProbPerDamage {
 			tile.Type = TileRubble
-			tile.Cover = TileCover(TileRubble)
+			tile.Cover = TileRubbleCover
 			tile.Rune = '.'
 			tile.BaseColor = 0
 		}
