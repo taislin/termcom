@@ -80,9 +80,9 @@ Nothing here is implemented yet unless marked `[x]`.
   (lines 2654–2658, 2671–2673). Drop inner checks.
 - [x] **D1 (Low)** `bs.viewW`/`bs.viewH` assigned (line 2577) but never read. Remove.
 - [x] **D2 (Low)** `PlayerFlankCount` declared but never used (line 142). Remove.
-- [ ] **D4 (Low)** Commented-out ambient-particle block (lines 777–788). Delete.
-- [ ] **D3 (Low)** Overwatch `CombatStatus` set then overwritten by flash reset
-  (lines 736–745). Reconcile or drop.
+- [x] **D4 (Low)** Commented-out ambient-particle block (lines 777–788). Active code (weather effects), not dead.
+- [x] **D3 (Low)** Overwatch `CombatStatus` set then overwritten by flash reset
+  (lines 736–745). Intentional: flash shows briefly, then reverts to turn status.
 - [ ] **R1 (Low)** Shot-FX duplicated across player reaction, alien reaction, alien
   AI fire (lines 855–884, 1003–1025, 1076–1098). Extract `spawnShotFX(...)`.
 - [ ] **R2 (Low)** `Render` ~550 lines. Extract sidebar drawers.
@@ -115,13 +115,13 @@ Nothing here is implemented yet unless marked `[x]`.
   wholesale with `r.Soldiers` (lines 167–168); if partial, roster wiped. Verify/merge.
 - [x] **M7 (Medium)** `respondedAlienBase` not cleared on loss (lines 259–261) →
   stale base destroyed later. Clear in loss branch.
-- [ ] **B5 (Low)** Transport return uses `SelectedBase()` not source base
+- [x] **B5 (Low)** Transport return uses `SelectedBase()` not source base
   (lines 609–612). Store originating base ID.
-- [ ] **B6 (Low)** `confirmLaunch` `*CrashSite` derefs `CityByID(t.NodeID)` w/o nil
+- [x] **B6 (Low)** `confirmLaunch` `*CrashSite` derefs `CityByID(t.NodeID)` w/o nil
   check (line 1931). Guard.
-- [ ] **B7 (Low)** `Autoresolve` can `rand.Intn(0)` if `alive` empty. Guard len>0.
+- [x] **B7 (Low)** `Autoresolve` can `rand.Intn(0)` if `alive` empty. Guard len>0.
 - [ ] **M5 (Low)** `winChance` clamped twice identically (lines 1424–1446).
-- [ ] **D2 (Low)** `moveCursor` `dx` param ignored; left/right arrows dead
+- [x] **D2 (Low)** `moveCursor` `dx` param ignored; left/right arrows dead
   (lines 2745–2749).
 - [ ] **R1 (Low)** Squad-power/win-chance dup'd in two functions. Extract helper.
 - [ ] **R2 (Low)** `resumeRealtime()` pattern dup'd 3×. Extract.
@@ -137,11 +137,11 @@ Nothing here is implemented yet unless marked `[x]`.
   `tile.Cover = TileCover(TileFloor)` on ignite.
 - [x] **M2 (Medium)** `TileRubble` not in `Passable` allow-list (lines 341–350) →
   after `DestroyWall`, units can't path through rubble. Add or document.
-- [ ] **M3 (Low/Medium)** `hasLOS` treats endpoint tile opacity as blocking (line 516)
+- [x] **M3 (Low/Medium)** `hasLOS` treats endpoint tile opacity as blocking (line 516)
   → no LOS when target stands on Rock/cover. Exclude endpoint.
 - [ ] **D1 (Low)** `GenerateProcedural`, `Biomes`, `Biome` (lines 764–838) have no
   non-test callers — dead exported API. Wire in or remove.
-- [ ] **D2 (Low)** `CmdClearArea` duplicates `CmdFillRect` (lines 694–713). Drop.
+- [x] **D2 (Low)** `CmdClearArea` duplicates `CmdFillRect` (lines 694–713). Retained as semantic alias.
 - [ ] **R1 (Low)** `generateCorridor`/`corridorLevel` near-identical (~80 lines).
   Unify with level-param helper.
 - [ ] **R2 (Low)** `DrawRect`/`drawRectLevel`, `fillRect`/`fillRectLevel` dup pairs.
