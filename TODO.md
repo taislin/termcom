@@ -10,18 +10,18 @@ Scope: Features and fixes for the battlescape tactical combat system.
   damage 40+Str*2, mine 60+rng20, scanner 15). Extract constants.
 
 ### `internal/data/spritebuilder.go`
-- [ ] **B3 (Low)** `Morphology.BodyType` ("organic"/"synthetic") never consulted by
+- [x] **B3 (Low)** `Morphology.BodyType` ("organic"/"synthetic") never consulted by
   builder; `BodySubtype` is sole driver. Document or wire in.
-- [ ] **D1 (Low)** Unreachable `break` in torso loop (`ty>=18`, line 838). Remove.
-- [ ] **D2 (Low)** Unreachable `break` in weapon loop (`ty>=18`, line 867). Remove.
-- [ ] **D3 (Low)** Unreachable `break` in head loop (`y>=10`, line 784). Remove.
-- [ ] **U1 (Low)** Grid dims 24/20 bare literals everywhere. Add `SpriteW/SpriteH`.
-- [ ] **U2 (Low)** Exported ids (Sense, Manipulators, Locomotion, EyeStyle, Tagged*,
+- [x] **D1 (Low)** Unreachable `break` in torso loop (`ty>=18`, line 838). Remove.
+- [x] **D2 (Low)** Unreachable `break` in weapon loop (`ty>=18`, line 867). Remove.
+- [x] **D3 (Low)** Unreachable `break` in head loop (`y>=10`, line 784). Remove.
+- [x] **U1 (Low)** Grid dims 24/20 bare literals everywhere. Add `SpriteW/SpriteH`.
+- [x] **U2 (Low)** Exported ids (Sense, Manipulators, Locomotion, EyeStyle, Tagged*,
   AlienPixels, SpriteRegistry, AlienColorFromSeed, AlienWeaponColor) lack doc
   comments. Add per AGENTS.md.
-- [ ] **M1 (Low)** 0-leg Silicon/Crystalline/BioSynthetic fall to LocomSlither
+- [x] **M1 (Low)** 0-leg Silicon/Crystalline/BioSynthetic fall to LocomSlither
   (lines 736–753). Decide if synthetic should float.
-- [ ] **M3 (Low)** Eye mask doesn't carve `Mouth` layer (lines 809–833) → mouth
+- [x] **M3 (Low)** Eye mask doesn't carve `Mouth` layer (lines 809–833) → mouth
   pixel remains under eye. Carve Mouth too.
 - [ ] **R1 (Low)** 4 duplicated layer-stamp switch blocks (head/torso/legs/weapon).
   Extract `stampLayer(ch, dst, y, x, allowWeapon)`.

@@ -4,8 +4,19 @@ import (
 	"math/rand"
 )
 
+// Sprite dimensions for alien pixel art.
+const (
+	SpriteW = 20
+	SpriteH = 24
+
+	headRows  = 10 // head occupies rows 0-9
+	torsoRow  = 10 // torso starts at row 10
+	legsRow   = 18 // legs start at row 18
+)
+
 // --- Trait enums derived from Morphology ---
 
+// Sense represents an alien's primary sensory modality, used to select head templates.
 type Sense int
 
 const (
@@ -14,6 +25,7 @@ const (
 	SenseOmni
 )
 
+// Manipulators describes the arm/hand configuration, used for torso selection.
 type Manipulators int
 
 const (
@@ -22,6 +34,7 @@ const (
 	ManipMultiArmed
 )
 
+// Locomotion describes the movement style, used for legs template selection.
 type Locomotion int
 
 const (
@@ -31,6 +44,7 @@ const (
 	LocomArachnid
 )
 
+// EyeStyle describes the visual appearance of an alien's eyes.
 type EyeStyle int
 
 const (
@@ -43,11 +57,13 @@ const (
 
 // --- Tagged module types ---
 
+// TaggedHead pairs a head pixel template with its required sense type.
 type TaggedHead struct {
 	Pixels []string
 	Sense  Sense
 }
 
+// TaggedEyes pairs an eye pixel template with its style.
 type TaggedEyes struct {
 	Pixels []string
 	Style  EyeStyle
@@ -66,11 +82,13 @@ type TaggedTorso struct {
 	BodyType string
 }
 
+// TaggedLegs pairs a legs pixel template with its locomotion type.
 type TaggedLegs struct {
 	Pixels     []string
 	Locomotion Locomotion
 }
 
+// TaggedWeapon pairs a weapon pixel template with its damage type.
 type TaggedWeapon struct {
 	Pixels     []string
 	DamageType int // DMG_* constant this design represents (-1 = generic)
@@ -78,21 +96,23 @@ type TaggedWeapon struct {
 
 // --- AlienPixels: body + weapon layers ---
 
+// AlienPixels holds the composite pixel layers for one alien sprite.
 type AlienPixels struct {
-	Body      [24][20]bool
-	Weapon    [24][20]bool
-	Shadow    [24][20]bool
-	Highlight [24][20]bool
-	Accent    [24][20]bool
-	Eyes      [24][20]bool
-	Mouth     [24][20]bool
-	Interior  [24][20]bool
-	Belly     [24][20]bool
-	Texture   [24][20]bool
+	Body      [SpriteH][SpriteW]bool
+	Weapon    [SpriteH][SpriteW]bool
+	Shadow    [SpriteH][SpriteW]bool
+	Highlight [SpriteH][SpriteW]bool
+	Accent    [SpriteH][SpriteW]bool
+	Eyes      [SpriteH][SpriteW]bool
+	Mouth     [SpriteH][SpriteW]bool
+	Interior  [SpriteH][SpriteW]bool
+	Belly     [SpriteH][SpriteW]bool
+	Texture   [SpriteH][SpriteW]bool
 }
 
 // --- Registry ---
 
+// SpriteRegistry holds all available pixel templates grouped by body part.
 type SpriteRegistry struct {
 	Heads   []TaggedHead
 	Eyes    []TaggedEyes
@@ -703,6 +723,7 @@ var legsCrab = []string{
 	"..hh..........hh....",
 }
 
+// SenseFromMorphology derives a Sense value from the morphology's sensory traits.
 func SenseFromMorphology(m *Morphology) Sense {
 	if m.Hearing == "echolocation" {
 		return SenseEcholocation
@@ -723,6 +744,9 @@ func SenseFromMorphology(m *Morphology) Sense {
 	return SenseStandard
 }
 
+// ManipulatorsFromMorphology derives a Manipulators value from arm count.
+// NOTE: only m.Arms is consulted; m.BodyType (organic/synthetic) does not
+// affect manipulator selection — the builder drives entirely off BodySubtype.
 func ManipulatorsFromMorphology(m *Morphology) Manipulators {
 	if m.Arms == 0 {
 		return ManipNone
@@ -733,6 +757,9 @@ func ManipulatorsFromMorphology(m *Morphology) Manipulators {
 	return ManipMultiArmed
 }
 
+// LocomotionFromMorphology derives a Locomotion value from leg count and body subtype.
+// 0-leg aliens: Gaseous/Amorphous/Nanotech/Mechanical float; CarbonFlesh/Silicon/Crystalline
+// slither (design choice: silicon/crystalline are dense, ground-dwelling forms).
 func LocomotionFromMorphology(m *Morphology) Locomotion {
 	if m.Legs == 0 {
 		// 0 legs splits into two cases:
@@ -754,7 +781,7 @@ func LocomotionFromMorphology(m *Morphology) Locomotion {
 
 // --- Generation ---
 
-// GenerateAlienPixels produces a 24x20 pixel grid (body + weapon layers)
+// GenerateAlienPixels produces a SpriteH x SpriteW pixel grid (body + weapon layers)
 // by assembling trait-matched head, torso, and leg modules.
 func GenerateAlienPixels(seed int64, m *Morphology) AlienPixels {
 	if m == nil {
@@ -779,11 +806,8 @@ func GenerateAlienPixels(seed int64, m *Morphology) AlienPixels {
 
 	var result AlienPixels
 
-	headOffset := centerOffset(head[0], 20)
+	headOffset := centerOffset(head[0], SpriteW)
 	for y, row := range head {
-		if y >= 10 {
-			break
-		}
 		for x, ch := range row {
 			if ch == 'X' || ch == 'm' || ch == 'a' || ch == 'h' || ch == 'd' {
 				result.Body[y][x+headOffset] = true
@@ -807,18 +831,19 @@ func GenerateAlienPixels(seed int64, m *Morphology) AlienPixels {
 	// For each 'X' in the eye template, carve a hole in the body
 	// and mark it on the Eyes layer for white/glowing rendering.
 	if eyes != nil {
-		eyeOffset := centerOffset(eyes[0], 20)
-		for y := 0; y < 10 && y < len(eyes); y++ {
-			for x := 0; x < len(eyes[y]) && x < 20; x++ {
+		eyeOffset := centerOffset(eyes[0], SpriteW)
+		for y := 0; y < headRows && y < len(eyes); y++ {
+			for x := 0; x < len(eyes[y]) && x < SpriteW; x++ {
 				if eyes[y][x] == '.' {
 					continue
 				}
 			ex := x + eyeOffset
 			ey := y
-			if ex < 0 || ex >= 20 || ey < 0 || ey >= 10 {
+			if ex < 0 || ex >= SpriteW || ey < 0 || ey >= headRows {
 				continue
 			}
 			result.Body[ey][ex] = false
+			result.Mouth[ey][ex] = false
 			result.Eyes[ey][ex] = true
 			switch eyes[y][x] {
 			case 'h':
@@ -832,12 +857,9 @@ func GenerateAlienPixels(seed int64, m *Morphology) AlienPixels {
 		}
 	}
 
-	torsoOffset := centerOffset(torso[0], 20)
+	torsoOffset := centerOffset(torso[0], SpriteW)
 	for y, row := range torso {
-		ty := 10 + y
-		if ty >= 18 {
-			break
-		}
+		ty := torsoRow + y
 		for x, ch := range row {
 			switch ch {
 			case 'X':
@@ -863,10 +885,7 @@ func GenerateAlienPixels(seed int64, m *Morphology) AlienPixels {
 	// Only armed aliens (manip != none) carry a weapon.
 	if manip != ManipNone {
 		for y, row := range weapon {
-			ty := 10 + y
-			if ty >= 18 || y >= len(weapon) {
-				break
-			}
+			ty := torsoRow + y
 			for x, ch := range row {
 				switch ch {
 				case 'X':
@@ -885,15 +904,15 @@ func GenerateAlienPixels(seed int64, m *Morphology) AlienPixels {
 		}
 	}
 
-	legsOffset := centerOffset(legs[0], 20)
+	legsOffset := centerOffset(legs[0], SpriteW)
 	for y, row := range legs {
-		ly := 18 + y
-		if ly >= 24 {
+		ly := legsRow + y
+		if ly >= SpriteH {
 			break
 		}
 		for x, ch := range row {
 			lx := x + legsOffset
-			if lx < 0 || lx >= 20 {
+			if lx < 0 || lx >= SpriteW {
 				continue
 			}
 			switch ch {
@@ -917,8 +936,8 @@ func GenerateAlienPixels(seed int64, m *Morphology) AlienPixels {
 	// Edge detection for 3D shading
 	texRng := rand.New(rand.NewSource(seed ^ 0xF0F0F0F0F0))
 
-	for y := 0; y < 24; y++ {
-		for x := 0; x < 20; x++ {
+	for y := 0; y < SpriteH; y++ {
+		for x := 0; x < SpriteW; x++ {
 			if !result.Body[y][x] {
 				continue
 			}
@@ -968,8 +987,8 @@ func GenerateAlienPixels(seed int64, m *Morphology) AlienPixels {
 	// Biology-specific rendering pass
 	switch m.BodySubtype {
 	case SubtypeGaseous:
-		for y := 0; y < 24; y++ {
-			for x := 0; x < 20; x++ {
+		for y := 0; y < SpriteH; y++ {
+			for x := 0; x < SpriteW; x++ {
 				if result.Body[y][x] && !result.Weapon[y][x] && texRng.Intn(100) < 40 {
 					result.Body[y][x] = false
 					result.Texture[y][x] = true
@@ -977,8 +996,8 @@ func GenerateAlienPixels(seed int64, m *Morphology) AlienPixels {
 			}
 		}
 	case SubtypeCrystalline:
-		for y := 0; y < 24; y++ {
-			for x := 0; x < 20; x++ {
+		for y := 0; y < SpriteH; y++ {
+			for x := 0; x < SpriteW; x++ {
 				if result.Body[y][x] && !result.Weapon[y][x] && !result.Highlight[y][x] && !result.Shadow[y][x] {
 					if texRng.Intn(100) < 15 {
 						result.Accent[y][x] = true
@@ -987,24 +1006,24 @@ func GenerateAlienPixels(seed int64, m *Morphology) AlienPixels {
 			}
 		}
 	case SubtypeMechanical, SubtypeSilicon:
-		for y := 0; y < 24; y++ {
-			for x := 0; x < 20; x++ {
+		for y := 0; y < SpriteH; y++ {
+			for x := 0; x < SpriteW; x++ {
 				if result.Body[y][x] && !result.Weapon[y][x] && texRng.Intn(100) < 10 {
 					result.Highlight[y][x] = true
 				}
 			}
 		}
 	case SubtypeAmorphous:
-		for y := 0; y < 24; y++ {
-			for x := 0; x < 20; x++ {
+		for y := 0; y < SpriteH; y++ {
+			for x := 0; x < SpriteW; x++ {
 				if result.Body[y][x] && !result.Weapon[y][x] && texRng.Intn(100) < 25 {
 					result.Texture[y][x] = true
 				}
 			}
 		}
 	case SubtypeNanotech:
-		for y := 0; y < 24; y++ {
-			for x := 0; x < 20; x++ {
+		for y := 0; y < SpriteH; y++ {
+			for x := 0; x < SpriteW; x++ {
 				if result.Body[y][x] && !result.Weapon[y][x] && texRng.Intn(100) < 30 {
 					result.Highlight[y][x] = true
 				}
@@ -1014,8 +1033,8 @@ func GenerateAlienPixels(seed int64, m *Morphology) AlienPixels {
 			}
 		}
 	case SubtypeBioSynthetic:
-		for y := 0; y < 24; y++ {
-			for x := 0; x < 20; x++ {
+		for y := 0; y < SpriteH; y++ {
+			for x := 0; x < SpriteW; x++ {
 				if result.Body[y][x] && !result.Weapon[y][x] && !result.Highlight[y][x] && !result.Shadow[y][x] {
 					if texRng.Intn(100) < 10 {
 						result.Accent[y][x] = true
