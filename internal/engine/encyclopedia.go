@@ -123,9 +123,15 @@ func (es *EncyclopediaScreen) Update() {}
 func (es *EncyclopediaScreen) Render(ctx *ScreenCtx) {
 	w, h := ctx.Size()
 
-	ctx.DrawPanel(0, 0, w, 3, language.String("ENCYCLOPEDIA"), StyleCyanBold)
+	const (
+		panelH     = 3
+		tabY       = 3
+		tabGap     = 3
+		listY      = 5
+		infoPanelH = 4
+	)
+	ctx.DrawPanel(0, 0, w, panelH, language.String("ENCYCLOPEDIA"), StyleCyanBold)
 
-	tabY := 3
 	tx := 2
 	tabs := encTabs()
 	for i, tab := range tabs {
@@ -134,11 +140,10 @@ func (es *EncyclopediaScreen) Render(ctx *ScreenCtx) {
 			style = StyleHighlight
 		}
 		ctx.DrawString(tx, tabY, tab, style)
-		tx += StringWidth(tab) + 3
+		tx += StringWidth(tab) + tabGap
 	}
 
 	listX := 1
-	listY := 5
 	listW := Layout.EncyclopediaListWidth(w)
 	listH := h - 8
 
@@ -175,7 +180,7 @@ func (es *EncyclopediaScreen) Render(ctx *ScreenCtx) {
 	if es.Selection >= 0 && es.Selection < len(tabEntries) {
 		e := tabEntries[es.Selection]
 		if e.Discovered {
-			ctx.DrawPanel(infoX, listY, infoW, 4, e.Name, StyleCyanBold)
+			ctx.DrawPanel(infoX, listY, infoW, infoPanelH, e.Name, StyleCyanBold)
 			desc := []rune(e.Desc)
 			line := listY + 2
 			for len(desc) > 0 {

@@ -189,9 +189,9 @@ func (hs *HelpScreen) getPages() []helpPage {
 }
 
 func (hs *HelpScreen) HandleKey(e *tcell.EventKey) {
+	pages := hs.getPages()
 	switch e.Key() {
 	case tcell.KeyRight, tcell.KeyTab:
-		pages := hs.getPages()
 		hs.Page++
 		if hs.Page >= len(pages) {
 			hs.Page = 0
@@ -199,21 +199,13 @@ func (hs *HelpScreen) HandleKey(e *tcell.EventKey) {
 	case tcell.KeyLeft:
 		hs.Page--
 		if hs.Page < 0 {
-			pages := hs.getPages()
 			hs.Page = len(pages) - 1
 		}
 	}
-	switch e.Str() {
-	case "1":
-		hs.Page = 0
-	case "2":
-		hs.Page = 1
-	case "3":
-		hs.Page = 2
-	case "4":
-		hs.Page = 3
-	case "5":
-		hs.Page = 4
+	if e.Str() >= "1" && e.Str() <= "9" {
+		if p := int(e.Str()[0] - '1'); p >= 0 && p < len(pages) {
+			hs.Page = p
+		}
 	}
 }
 
@@ -252,9 +244,8 @@ func (hs *HelpScreen) HandleMouse(e *tcell.EventMouse) {
 					return
 				}
 				if key == "Tab" {
-					pages := hs.getPages()
 					hs.Page++
-					if hs.Page >= len(pages) {
+					if pages := hs.getPages(); hs.Page >= len(pages) {
 						hs.Page = 0
 					}
 					return
@@ -266,14 +257,13 @@ func (hs *HelpScreen) HandleMouse(e *tcell.EventMouse) {
 		return
 	}
 
+	pages := hs.getPages()
 	if x < w/2 {
 		hs.Page--
 		if hs.Page < 0 {
-			pages := hs.getPages()
 			hs.Page = len(pages) - 1
 		}
 	} else {
-		pages := hs.getPages()
 		hs.Page++
 		if hs.Page >= len(pages) {
 			hs.Page = 0

@@ -20,7 +20,7 @@ type Particle struct {
 	fadeTarget [3]float64
 }
 
-const Gravity = 9.8
+const PixelGravity = 9.8 // pixels/frame²; used as downward velocity increment per tick
 
 var particlePool = sync.Pool{
 	New: func() interface{} {
@@ -92,7 +92,7 @@ func (ps *ParticleSystem) Update(dt float64) {
 			continue
 		}
 
-		p.VY += Gravity * dt
+		p.VY += PixelGravity * dt
 		p.X += p.VX * dt
 		p.Y += p.VY * dt
 

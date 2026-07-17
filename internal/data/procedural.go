@@ -9,6 +9,16 @@ import (
 	"github.com/taislin/termcom/internal/language"
 )
 
+const (
+	minSpecies      = 5
+	speciesRange    = 3
+
+	minRank         = 1
+	rankRange       = 4
+
+	syntheticChance = 3 // 1-in-3 chance (33%) of synthetic morphology
+)
+
 // AlienSpecies represents a procedurally generated alien species.
 // Each species has variants at different ranks, sharing a base morphology and damage affinity.
 type AlienSpecies struct {
@@ -275,7 +285,7 @@ func limbLore(m *Morphology) string {
 func GenerateSpecies(seed int64) ([]*AlienSpecies, []*AlienType) {
 	rng := rand.New(rand.NewSource(seed))
 
-	speciesCount := 5 + rng.Intn(3) // 5-7 species per run
+	speciesCount := minSpecies + rng.Intn(speciesRange) // 5-7 species per run
 	allSpecies := make([]*AlienSpecies, 0, speciesCount)
 	allTypes := make([]*AlienType, 0, speciesCount*4)
 
@@ -318,7 +328,7 @@ func generateOneSpecies(rng *rand.Rand, idx int, usedNames map[string]bool, used
 	}
 
 	// Generate 2-4 rank variants (not all species have all ranks)
-	maxRank := 1 + rng.Intn(4) // 1-4 variants
+	maxRank := minRank + rng.Intn(rankRange) // 1-4 variants
 	sp.Types = make([]*AlienType, 0, maxRank)
 
 	for rank := 0; rank < maxRank; rank++ {
@@ -364,7 +374,7 @@ func poolsForLang(lang string) (prefix, mid, end []string) {
 // Body subtype is influenced by damage type for thematic consistency.
 func generateMorphology(rng *rand.Rand, dmgType int) *Morphology {
 	bodyType := BodyOrganic
-	if rng.Intn(3) == 0 { // 33% synthetic
+	if rng.Intn(syntheticChance) == 0 {
 		bodyType = BodySynthetic
 	}
 

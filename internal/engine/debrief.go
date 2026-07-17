@@ -8,6 +8,8 @@ import (
 	"github.com/gdamore/tcell/v3"
 )
 
+const FundsDisplayK = 1000
+
 // DebriefSoldier holds per-soldier info for the after-action report.
 type DebriefSoldier struct {
 	Name      string
@@ -126,7 +128,7 @@ func (ds *DebriefScreen) Render(ctx *ScreenCtx) {
 	}
 	if d.FundsEarned > 0 {
 		yOff++
-		ctx.DrawString(4, yOff, fmt.Sprintf(language.String("DEBRIEF_FUNDS_EARNED"), d.FundsEarned/1000), StyleGreen)
+		ctx.DrawString(4, yOff, fmt.Sprintf(language.String("DEBRIEF_FUNDS_EARNED"), d.FundsEarned/FundsDisplayK), StyleGreen)
 	}
 	yOff += 2
 

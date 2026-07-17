@@ -5,8 +5,10 @@ import (
 )
 
 
+const halfBlockRune = '▀'
+
 // PixelImage represents a 2D grid of colors.
-// Since each terminal cell can show two vertically stacked pixels (foreground and background of ▀),
+// Since each terminal cell can show two vertically stacked pixels (foreground and background of halfBlockRune),
 // a PixelImage of Width x Height pixels requires Width x (Height/2) terminal cells.
 type PixelImage struct {
 	Width  int
@@ -31,8 +33,8 @@ func NewPixelImage(w, h int) *PixelImage {
 }
 
 // DrawPixelImage draws the PixelImage onto a tcell.Screen.
-// Each cell at (x + col, y + row/2) uses '▀' (U+2580) with
-// FG = top pixel (row) and BG = bottom pixel (row+1).
+	// Each cell at (x + col, y + row/2) uses halfBlockRune with
+	// FG = top pixel (row) and BG = bottom pixel (row+1).
 // If the height is odd, the bottom pixel of the last cell row defaults to color.Black.
 func DrawPixelImage(screen tcell.Screen, x, y int, img *PixelImage) {
 	w, h := screen.Size()
@@ -63,7 +65,7 @@ func DrawPixelImage(screen tcell.Screen, x, y int, img *PixelImage) {
 			}
 
 			style := tcell.StyleDefault.Foreground(resolvedTop).Background(resolvedBottom)
-			screen.SetContent(x+col, y+row/2, '▀', nil, style)
+			screen.SetContent(x+col, y+row/2, halfBlockRune, nil, style)
 		}
 	}
 }
@@ -183,7 +185,7 @@ func DrawPixelImageFramed(screen tcell.Screen, x, y int, img *PixelImage, frameS
 
 
 				style := tcell.StyleDefault.Foreground(resolvedTop).Background(resolvedBottom)
-				screen.SetContent(x+1+col, cellRow, '▀', nil, style)
+				screen.SetContent(x+1+col, cellRow, halfBlockRune, nil, style)
 			}
 
 

@@ -23,6 +23,12 @@ const (
 	lumR = 0.299
 	lumG = 0.587
 	lumB = 0.114
+
+	nightVisionHigh = 128 // luminance threshold for bright NV tint
+	nightVisionLow  = 40  // luminance threshold for dim NV tint
+
+	thermalHigh = 128 // luminance threshold for hot entity tint
+	thermalLow  = 40  // luminance threshold for warm entity tint
 )
 
 func luminance(r, g, b float64) float64 {
@@ -52,9 +58,9 @@ func ApplyNightVision(s *ScreenRaw) {
 				if green > 255 {
 					green = 255
 				}
-				if lum > 128 {
+				if lum > nightVisionHigh {
 					newFg = tcell.NewRGBColor(0, int32(green), int32(green*0.15))
-				} else if lum > 40 {
+				} else if lum > nightVisionLow {
 					newFg = tcell.NewRGBColor(0, int32(green), 0)
 				} else {
 					newFg = tcell.NewRGBColor(0, int32(green*0.6), 0)
@@ -93,10 +99,10 @@ func ApplyThermalVision(s *ScreenRaw, entities []ThermalEntity) {
 			if isEntity {
 				fgR, fgG, fgB := colorRGB(cell.Fg)
 				lum := luminance(fgR, fgG, fgB)
-				if lum > 128 {
+				if lum > thermalHigh {
 					newFg = color.XTerm11
 					newBg = tcell.NewRGBColor(60, 40, 0)
-				} else if lum > 40 {
+				} else if lum > thermalLow {
 					newFg = color.Orange
 					newBg = tcell.NewRGBColor(40, 20, 0)
 				} else {

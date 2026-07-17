@@ -8,18 +8,18 @@ import (
 
 // Battle types corresponding to OpenXcom definitions.
 const (
-	BT_NONE = iota
-	BT_FIREARM
-	BT_AMMO
-	BT_MELEE
-	BT_GRENADE
-	BT_PROXIMITYGRENADE
-	BT_MEDIKIT
-	BT_SCANNER
-	BT_MINDPROBE
-	BT_PSIAMP
-	BT_FLARE
-	BT_CORPSE
+	BT_NONE             = iota // not a weapon
+	BT_FIREARM                  // conventional firearm
+	BT_AMMO                     // ammunition item
+	BT_MELEE                    // melee weapon
+	BT_GRENADE                  // thrown explosive
+	BT_PROXIMITYGRENADE         // proximity-triggered explosive
+	BT_MEDIKIT                  // healing item
+	BT_SCANNER                  // motion scanner
+	BT_MINDPROBE                // mind probe
+	BT_PSIAMP                   // psi amplifier
+	BT_FLARE                    // illumination flare
+	BT_CORPSE                   // alien corpse (research)
 )
 
 // FireMode represents a weapon firing mode.
@@ -617,11 +617,16 @@ var interceptorWeaponKeys = map[string]string{
 	"cannon":    "WPN_INTERCEPTOR_CANNON",
 }
 
+func localizedName(langKey, fallback string) string {
+	if s := language.String(langKey); s != langKey {
+		return s
+	}
+	return fallback
+}
+
 func (w InterceptorWeapon) DisplayName(key string) string {
 	if langKey, ok := interceptorWeaponKeys[key]; ok {
-		if s := language.String(langKey); s != langKey {
-			return s
-		}
+		return localizedName(langKey, w.Name)
 	}
 	return w.Name
 }
@@ -722,26 +727,19 @@ var itemNameKeys = map[string]string{
 
 func (r RuleItem) DisplayName() string {
 	key := "WPN_" + strings.TrimPrefix(r.Type, "STR_")
-	if s := language.String(key); s != key {
-		return s
-	}
-	return r.Name
+	return localizedName(key, r.Name)
 }
 
 func (a Armor) DisplayNameByKey(key string) string {
 	if langKey, ok := armorNameKeys[key]; ok {
-		if s := language.String(langKey); s != langKey {
-			return s
-		}
+		return localizedName(langKey, a.Name)
 	}
 	return a.Name
 }
 
 func ItemDisplayName(key string) string {
 	if langKey, ok := itemNameKeys[key]; ok {
-		if s := language.String(langKey); s != langKey {
-			return s
-		}
+		return localizedName(langKey, Items[key].Name)
 	}
 	if item, ok := Items[key]; ok {
 		return item.Name

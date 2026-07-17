@@ -35,6 +35,8 @@ func NewSlotPickerScreen(g *Game, mode SlotPickerMode, slots []SlotInfo, onSelec
 	}
 }
 
+const MaxSaveSlots = 10
+
 func (sp *SlotPickerScreen) Update() {}
 
 func (sp *SlotPickerScreen) Render(ctx *ScreenCtx) {
@@ -79,26 +81,34 @@ func (sp *SlotPickerScreen) Render(ctx *ScreenCtx) {
 	ctx.DrawMarkupString(1, h-1, language.String("SLOT_PICKER_BAR"), StyleGray, StyleHotkey)
 }
 
+func (sp *SlotPickerScreen) maxSelection() int {
+	maxSel := len(sp.Slots)
+	if sp.Mode == SlotPickerSave {
+		maxSel++
+	} else if maxSel > 0 {
+		maxSel--
+	} else {
+		maxSel = 0
+	}
+	return maxSel
+}
+
+func (sp *SlotPickerScreen) moveSelection(delta int) {
+	sp.Selection += delta
+	if sp.Selection < 0 {
+		sp.Selection = 0
+	}
+	if maxSel := sp.maxSelection(); sp.Selection > maxSel {
+		sp.Selection = maxSel
+	}
+}
+
 func (sp *SlotPickerScreen) HandleKey(e *tcell.EventKey) {
 	switch e.Key() {
 	case tcell.KeyUp:
-		sp.Selection--
-		if sp.Selection < 0 {
-			sp.Selection = 0
-		}
+		sp.moveSelection(-1)
 	case tcell.KeyDown:
-		maxSel := len(sp.Slots)
-		if sp.Mode == SlotPickerSave {
-			maxSel++
-		} else if maxSel > 0 {
-			maxSel--
-		} else {
-			maxSel = 0
-		}
-		sp.Selection++
-		if sp.Selection > maxSel {
-			sp.Selection = maxSel
-		}
+		sp.moveSelection(1)
 	case tcell.KeyEnter:
 		sp.confirm()
 	case tcell.KeyEscape:
@@ -108,23 +118,9 @@ func (sp *SlotPickerScreen) HandleKey(e *tcell.EventKey) {
 	case "q", "Q":
 		sp.Game.PopState()
 	case "j", "J":
-		maxSel := len(sp.Slots)
-		if sp.Mode == SlotPickerSave {
-			maxSel++
-		} else if maxSel > 0 {
-			maxSel--
-		} else {
-			maxSel = 0
-		}
-		sp.Selection++
-		if sp.Selection > maxSel {
-			sp.Selection = maxSel
-		}
+		sp.moveSelection(1)
 	case "k", "K":
-		sp.Selection--
-		if sp.Selection < 0 {
-			sp.Selection = 0
-		}
+		sp.moveSelection(-1)
 	}
 }
 
@@ -173,7 +169,7 @@ func (sp *SlotPickerScreen) confirm() {
 			}
 		} else {
 			newSlot := len(sp.Slots) + 1
-			if newSlot > 10 {
+			if newSlot > MaxSaveSlots {
 				sp.Message = language.String("SLOT_PICKER_FULL")
 				return
 			}

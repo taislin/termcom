@@ -17,8 +17,7 @@ Scope: Features and fixes for the battlescape tactical combat system.
 ### `internal/engine/portrait.go`
 
 ### `internal/data/procedural.go`
-- [ ] **U2 (Low)** Magic tuning numbers (speciesCount 5+rng3, maxRank 1+rng4,
-  `rng.Intn(3)==0` synthetic, sense rolls) undocumented. Name constants.
+- [x] **U2 (Low)** Magic tuning numbers named as `minSpecies`/`speciesRange`/`minRank`/`rankRange`/`syntheticChance` constants.
 - [ ] **R1 (Low)** Five duplicated `rng.Intn(10)` weighted-roll switches (464–616).
   Add `weightedIndex(rng, cumThresholds)`.
 - [ ] **R3 (Low)** `generateVariant` 116-line dense fn (882–997); stat formulas
@@ -78,8 +77,8 @@ Scope: Features and fixes for the battlescape tactical combat system.
 - [x] **B2 (Low)** ShortName collisions MSC/PRM/PSI across RuleItems vs Items
   (504–507). Document or avoid cross-index by ShortName.
 
-- [ ] **U1 (Low)** `BT_*` constants undocumented (11–23). Add doc.
-- [ ] **R1 (Low)** 3 near-identical `DisplayName*` methods (634–661). Extract
+- [x] **U1 (Low)** `BT_*` constants documented with per-value comments.
+- [x] **R1 (Low)** 3 near-identical `DisplayName*` methods — extracted `localizedName` helper. (634–661). Extract
   `localizedName(langKey, fallback)`.
 
 ### `internal/data/aliens.go`
@@ -155,7 +154,7 @@ Scope: Features and fixes for the battlescape tactical combat system.
 - [ ] **U1 (Low)** Magic numbers: `ActionDelay: 8`, `SfxVolume: 10`, `TouchButtonSize: 4` undocumented
 
 ### `internal/engine/control_menu.go`
-- [ ] **D1 (Low)** `ControlMenu.ScrollOff` field set but never read (19)
+- [x] **D1 (Low)** Unused `ScrollOff` field removed from `ControlMenu`. (19)
 - [ ] **U1 (Low)** Magic numbers: `btnH=3`, `btnMinW=10`, `cols=3/2/1`, `padX/padY=1`, thresholds `60`/`40` (58–68)
 - [ ] **R1 (Low)** Repeated `StringWidth` calls in label truncation loop — O(n²) for CJK (167–173)
 
@@ -165,23 +164,23 @@ Scope: Features and fixes for the battlescape tactical combat system.
 
 ### `internal/engine/debrief.go`
 - [ ] **B1 (Low)** `BaseDestroyed` + `Won=true` contradictory — title won't show "BASE LOST" because override only in `else` branch (89–95)
-- [ ] **U1 (Low)** `d.FundsEarned/1000` — undocumented divisor; extract `const FundsDisplayK` (132)
+- [x] **U1 (Low)** `FundsEarned/1000` — extracted `const FundsDisplayK = 1000`. — undocumented divisor; extract `const FundsDisplayK` (132)
 ### `internal/engine/difficulty.go`
 
 ### `internal/engine/encyclopedia.go`
 - [x] **B3 (Low)** Description text wraps by byte slice — now uses `[]rune` slicing for CJK safety.
-- [ ] **U1 (Low)** Magic number `3` for tab spacing, list positions `5`, info panel height `4` (137,141,178)
+- [x] **U1 (Low)** Tab spacing, list position, info panel height named as constants `tabGap`, `listY`, `infoPanelH`. (137,141,178)
 
 ### `internal/engine/filters.go`
 - [x] **U1 (Low)** Luminance coefficients `0.299`, `0.587`, `0.114` — named `lumR`/`lumG`/`lumB` constants.
-- [ ] **U2 (Low)** Thresholds `128`, `40` in night vision (47,49) and thermal (86,89)
+- [x] **U2 (Low)** Thresholds named `nightVisionHigh`/`nightVisionLow`/`thermalHigh`/`thermalLow`. (47,49) and thermal (86,89)
 
 ### `internal/engine/game_over.go`
 
 
 ### `internal/engine/help.go`
-- [ ] **R1 (Low)** `getPages()` called multiple times in `HandleKey` — cache result (195,203,273,278)
-- [ ] **U1 (Low)** Hardcoded page count `5` in `"1"`..`"5"` key handlers — fragile if pages array changes (208–218)
+- [x] **R1 (Low)** `getPages()` called once at top of `HandleKey` and `HandleMouse`. — cache result (195,203,273,278)
+- [x] **U1 (Low)** Hardcoded page keys replaced with `Str >= 1 && <= 9` loop using `len(pages)`. — fragile if pages array changes (208–218)
 
 ### `internal/engine/language_select.go`
 - [ ] **U1 (Low)** Many undocumented magic numbers: phase multipliers `0.3`/`0.2`/`2.0`, RGB glow `128,40,180`+amplitude `127,60,75`, column offsets `w/2-26`/`w/2+3`, `startLangY=13`, row spacing `4`, flag width `6` (64–171)
@@ -201,19 +200,19 @@ Scope: Features and fixes for the battlescape tactical combat system.
 - [ ] **R1 (Low)** Single-purpose file for 3-line function — inline into `menu.go`
 
 ### `internal/engine/options.go`
-- [ ] **M1 (Low)** Index constants `themeIdx=9`, `speedIdx=10`, `volIdx=11`, `langIdx=12` — fragile if `boolOpts` grows/shrinks (103–107)
+- [x] **M1 (Low)** `themeIdx`/`speedIdx`/`volIdx`/`langIdx` computed from `len(boolOpts)`. — fragile if `boolOpts` grows/shrinks (103–107)
 - [ ] **M2 (Low)** Magic numbers: `baseX = w/2 - 15`, `startY = h/2 - 10`, hit-test widths `30`/`35`, max delay `20`, max volume `10`, flag offset `+7` (108,109,229,235,340,353)
 - [ ] **R1 (Low)** `HandleKey` and `HandleMouse` duplicate same volume/speed/theme/language cycling logic (204–241 vs 364–407) — extract helper
 - [ ] **R2 (Low)** `cycleTheme` and `cycleLang` structurally identical — extract generic `cycleSlice` helper (274,304)
 
 ### `internal/engine/particles.go`
 - [x] **B1 (Low)** `SpawnRain`/`SpawnSnow`/`SpawnDust`/`SpawnEmbers` use `rand.Intn(w)`/`rand.Intn(h)` — added `w<=0||h<=0` early return.
-- [ ] **M1 (Low)** `Gravity = 9.8` is Earth's gravitational constant in m/s², used as pixel-velocity — misleading name/units (23)
+- [x] **M1 (Low)** `Gravity` renamed to `PixelGravity` with clarifying doc.'s gravitational constant in m/s², used as pixel-velocity — misleading name/units (23)
 - [ ] **M2 (Low)** Over 40 distinct undocumented numeric literals across spawn functions (144–251): RGB triplets, velocities, life ranges, fade speeds
 - [ ] **R1 (Low)** `SpawnRain`/`SpawnSnow`/`SpawnDust`/`SpawnEmbers` differ only in parameters — use single parametric spawn helper
 
 ### `internal/engine/pixel.go`
-- [ ] **M1 (Low)** `'▀'` (U+2580) appears in 3 places — name `const halfBlockRune`
+- [x] **M1 (Low)** `\\u2580` extracted as `const halfBlockRune` and used in all 3 sites. — name `const halfBlockRune`
 - [ ] **M2 (Low)** `ColorBlackTcell` fallback theme-dependent — transparent pixels get themed "black", not true transparent, surprising (37–69)
 - [ ] **R1 (Low)** `DrawPixelImage` and `DrawPixelImageFramed` duplicate `topColor`/`bottomColor` resolution logic — extract `drawHalfBlockCell`
 
@@ -222,9 +221,9 @@ Scope: Features and fixes for the battlescape tactical combat system.
 - [ ] **R1 (Low)** `ApplyTheme` 100 lines with near-identical blocks repeated 5× — extract theme config struct, data-driven map (220–320)
 
 ### `internal/engine/slotpicker.go`
-- [ ] **M1 (Low)** `10` — max save slots magic number (158)
+- [x] **M1 (Low)** Max save slots named `MaxSaveSlots = 10`. (158)
 - [ ] **M2 (Low)** Save mode's `newSlot = len(sp.Slots) + 1` assumes contiguous slot numbering — collision if slots sparse (157)
-- [ ] **R1 (Low)** `HandleKey` duplicates up/down logic in both `Key` switch (84–94) and `Str` switch (103–113) — extract `moveSelection(delta)`
+- [x] **R1 (Low)** `HandleKey` up/down — extracted `moveSelection(delta)` and `maxSelection()` helpers. (84–94) and `Str` switch (103–113) — extract `moveSelection(delta)`
 
 ### `internal/engine/tutorial.go`
 - [ ] **B1 (Low)** `wrapDrawString` counts runes rather than display width for word-wrap — CJK (double-width) chars under-count, overflow box (130)
@@ -239,7 +238,7 @@ Scope: Features and fixes for the battlescape tactical combat system.
 
 ### `internal/engine/water.go`
 - [ ] **M1 (Low)** `waterColors` hard-coded RGB triples — extract `waterPalette` type (11–15)
-- [ ] **M2 (Low)** Magic numbers: wave freq `0.5`, color index scale `3`, wave threshold `0.3`, random `≈` chance `5`, FG offsets `40`/`60`/`40` (18,20,29,31,35)
+- [x] **M2 (Low)** Water magic numbers named `waveFreq`/`colorScale`/`waveChurn`/`randWave`/`fgOffR`/`fgOffG`/`fgOffB`., random `≈` chance `5`, FG offsets `40`/`60`/`40` (18,20,29,31,35)
 
 ### `internal/engine/webscreen.go`
 - [ ] **B1 (Low)** `sgrCode` emits `\x1b[0;1;...` — some legacy terminals treat params after `0` differently; minor portability issue
@@ -304,3 +303,20 @@ Scope: Features and fixes for the battlescape tactical combat system.
 
 
 ### `internal/audio/pcm_synth.go`
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

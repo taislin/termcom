@@ -14,25 +14,35 @@ var waterColors = [4][3]float64{
 	{10, 60, 200},
 }
 
+const (
+	waveFreq    = 0.5
+	colorScale  = 3
+	waveChurn   = 0.3
+	randWave    = 5
+	fgOffR      = 40
+	fgOffG      = 60
+	fgOffB      = 40
+)
+
 func DrawWater(s *ScreenRaw, x, y int, gameTime float64) {
-	wave := math.Sin(float64(x)*0.5+gameTime) * math.Cos(float64(y)*0.5+gameTime)
+	wave := math.Sin(float64(x)*waveFreq+gameTime) * math.Cos(float64(y)*waveFreq+gameTime)
 	t := (wave + 1) / 2
-	idx := int(t * 3)
-	if idx > 3 {
-		idx = 3
+	idx := int(t * colorScale)
+	if idx > colorScale {
+		idx = colorScale
 	}
 
 	c := waterColors[idx]
 	bg := tcell.NewRGBColor(int32(c[0]), int32(c[1]), int32(c[2]))
 
 	ch := '~'
-	if wave > 0.3 {
+	if wave > waveChurn {
 		ch = '≈'
-	} else if rand.Intn(5) == 0 {
+	} else if rand.Intn(randWave) == 0 {
 		ch = '≈'
 	}
 
-	fg := tcell.NewRGBColor(int32(c[0]+40), int32(c[1]+60), int32(c[2]+40))
+	fg := tcell.NewRGBColor(int32(c[0]+fgOffR), int32(c[1]+fgOffG), int32(c[2]+fgOffB))
 	style := tcell.StyleDefault.Foreground(fg).Background(bg)
 	s.SetCell(x, y, ch, style)
 }

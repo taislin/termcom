@@ -16,7 +16,6 @@ type ControlButton struct {
 type ControlMenu struct {
 	Visible    bool
 	Buttons    []ControlButton
-	ScrollOff  int
 	TouchFirst bool // auto-showed on first touch
 	AlwaysShow bool // pin bar to bottom edge in touch mode
 	screenW    int

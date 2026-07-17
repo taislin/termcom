@@ -99,12 +99,6 @@ func (os *OptionsScreen) Render(ctx *ScreenCtx) {
 	w, h := ctx.Size()
 	ctx.DrawPanel(0, 0, w, h, language.String("OPTIONS_TITLE"), StyleDefault)
 
-	const (
-		themeIdx = 9
-		speedIdx = 10
-		volIdx   = 11
-		langIdx  = 12
-	)
 	startY := h/2 - 10
 	baseX := w/2 - 15
 
@@ -136,6 +130,10 @@ func (os *OptionsScreen) Render(ctx *ScreenCtx) {
 	}
 
 	// Theme cycler
+	themeIdx := len(boolOpts)
+	speedIdx := themeIdx + 1
+	volIdx := speedIdx + 1
+	langIdx := volIdx + 1
 	themeStyle := StyleDefault
 	if os.Selection == themeIdx {
 		themeStyle = StyleHighlight
