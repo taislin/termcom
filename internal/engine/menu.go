@@ -5,6 +5,8 @@ import (
 	"math"
 	"math/rand"
 	"os"
+	"os/exec"
+	"runtime"
 	"time"
 
 	"github.com/taislin/termcom/internal/language"
@@ -52,6 +54,10 @@ func NewMenuScreen(g *Game) *MenuScreen {
 		menuParticles: NewParticleSystem(80),
 		lastUpdate:    time.Now(),
 	}
+}
+
+func gameVersionStr() string {
+	return "v" + GameVersion
 }
 
 func HasSave() bool {
@@ -197,8 +203,7 @@ func (ms *MenuScreen) Render(ctx *ScreenCtx) {
 	}
 
 	// ── 4. Version ────────────────────────────────────────────────────────────
-	verStr := "v" + GameVersion
-	ctx.DrawString(w-len([]rune(verStr))-2, 0, verStr, StyleGray)
+	ctx.DrawString(w-len([]rune(gameVersionStr()))-2, 0, gameVersionStr(), StyleGray)
 
 	// ── 5. Subtitle + decorations ─────────────────────────────────────────────
 	subY := startY + len(title) + 1
@@ -316,35 +321,25 @@ func (ms *MenuScreen) HandleKey(e *tcell.EventKey) {
 			ms.Selection = maxSel
 		}
 	case "1":
-		if 0 < len(opts) {
-			ms.Selection = 0
-			ms.confirm()
-		}
+		ms.handleNumericShortcut(1, opts)
 	case "2":
-		if 1 < len(opts) {
-			ms.Selection = 1
-			ms.confirm()
-		}
+		ms.handleNumericShortcut(2, opts)
 	case "3":
-		if 2 < len(opts) {
-			ms.Selection = 2
-			ms.confirm()
-		}
+		ms.handleNumericShortcut(3, opts)
 	case "4":
-		if 3 < len(opts) {
-			ms.Selection = 3
-			ms.confirm()
-		}
+		ms.handleNumericShortcut(4, opts)
 	case "5":
-		if 4 < len(opts) {
-			ms.Selection = 4
-			ms.confirm()
-		}
+		ms.handleNumericShortcut(5, opts)
 	case "6":
-		if 5 < len(opts) {
-			ms.Selection = 5
-			ms.confirm()
-		}
+		ms.handleNumericShortcut(6, opts)
+	}
+}
+
+func (ms *MenuScreen) handleNumericShortcut(num int, opts []string) {
+	idx := num - 1
+	if idx < len(opts) {
+		ms.Selection = idx
+		ms.confirm()
 	}
 }
 
@@ -449,4 +444,17 @@ func (ms *MenuScreen) HandleMouse(e *tcell.EventMouse) {
 			return
 		}
 	}
+}
+
+func openBrowser(url string) error {
+	var cmd *exec.Cmd
+	switch runtime.GOOS {
+	case "linux":
+		cmd = exec.Command("xdg-open", url)
+	case "darwin":
+		cmd = exec.Command("open", url)
+	default:
+		cmd = exec.Command("cmd", "/c", "start", "", url)
+	}
+	return cmd.Start()
 }

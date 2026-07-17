@@ -195,12 +195,15 @@ func isWeaponTech(id string) bool {
 // from a root (a topic with no prerequisites). A "dead-end" tree is one in
 // which some topic can never be researched because its prerequisites form an
 // isolated or cyclic component.
-func checkTechTreeValidity(topics []ResearchTopic) error {
+func buildTechMap(topics []ResearchTopic) map[string]ResearchTopic {
 	byID := make(map[string]ResearchTopic, len(topics))
 	for _, t := range topics {
 		byID[t.ID] = t
 	}
+	return byID
+}
 
+func hasCycle(topics []ResearchTopic, byID map[string]ResearchTopic) error {
 	visited := make(map[string]bool)
 	inStack := make(map[string]bool)
 
@@ -238,7 +241,10 @@ func checkTechTreeValidity(topics []ResearchTopic) error {
 			return err
 		}
 	}
+	return nil
+}
 
+func collectReachable(topics []ResearchTopic, byID map[string]ResearchTopic) (map[string]bool, error) {
 	reachable := make(map[string]bool)
 	for _, t := range topics {
 		if len(t.Requires) == 0 {
@@ -265,13 +271,22 @@ func checkTechTreeValidity(topics []ResearchTopic) error {
 			}
 		}
 	}
-
 	for _, t := range topics {
 		if !reachable[t.ID] {
-			return fmt.Errorf("dead-end topic %s: unreachable from any root", t.ID)
+			return nil, fmt.Errorf("dead-end topic %s: unreachable from any root", t.ID)
 		}
 	}
+	return reachable, nil
+}
 
+func checkTechTreeValidity(topics []ResearchTopic) error {
+	byID := buildTechMap(topics)
+	if err := hasCycle(topics, byID); err != nil {
+		return err
+	}
+	if _, err := collectReachable(topics, byID); err != nil {
+		return err
+	}
 	return nil
 }
 

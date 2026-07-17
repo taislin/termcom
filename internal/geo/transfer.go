@@ -48,39 +48,9 @@ func (ts *TransferScreen) Render(ctx *engine.ScreenCtx) {
 	ctx.DrawString(2, 2, fmt.Sprintf(language.String("TRANSFER_TO"), to.Name), engine.StyleGreen)
 
 	if ts.Tab == 0 {
-		ctx.DrawString(2, 4, language.String("TRANSFER_SOLDIERS"), engine.StyleYellow)
-		if len(from.Soldiers) == 0 {
-			ctx.DrawString(4, 5, language.String("SECTION_NO_SOLDIERS"), engine.StyleGray)
-		}
-		for i, s := range from.Soldiers {
-			if 5+i >= h-2 {
-				break
-			}
-			style := engine.StyleDefault
-			if i == ts.SelSoldier {
-				style = engine.StyleHighlight
-			}
-			line := fmt.Sprintf(language.String("TRANSFER_SOLDIER_LINE"), s.Name, s.Rank, s.HP)
-			ctx.DrawString(4, 5+i, line, style)
-		}
+		ts.drawSoldierList(ctx, from, h)
 	} else {
-		ctx.DrawString(2, 4, language.String("TRANSFER_ITEMS"), engine.StyleYellow)
-		items := sortedStoreItems(from)
-		if len(items) == 0 {
-			ctx.DrawString(4, 5, language.String("SECTION_NO_ITEMS"), engine.StyleGray)
-		}
-		for i, item := range items {
-			if 5+i >= h-2 {
-				break
-			}
-			style := engine.StyleDefault
-			if i == ts.SelItem {
-				style = engine.StyleHighlight
-			}
-			qty := from.CountItem(item)
-			line := fmt.Sprintf(language.String("TRANSFER_ITEM_LINE"), item, qty)
-			ctx.DrawString(4, 5+i, line, style)
-		}
+		ts.drawItemList(ctx, from, h)
 	}
 
 	if ts.Message != "" {
@@ -88,6 +58,44 @@ func (ts *TransferScreen) Render(ctx *engine.ScreenCtx) {
 	}
 	help := language.String("HELP_TRANSFER")
 	ctx.DrawMarkupString(2, h-1, help, engine.StyleGray, engine.StyleHotkey)
+}
+
+func (ts *TransferScreen) drawSoldierList(ctx *engine.ScreenCtx, from *base.Base, h int) {
+	ctx.DrawString(2, 4, language.String("TRANSFER_SOLDIERS"), engine.StyleYellow)
+	if len(from.Soldiers) == 0 {
+		ctx.DrawString(4, 5, language.String("SECTION_NO_SOLDIERS"), engine.StyleGray)
+	}
+	for i, s := range from.Soldiers {
+		if 5+i >= h-2 {
+			break
+		}
+		style := engine.StyleDefault
+		if i == ts.SelSoldier {
+			style = engine.StyleHighlight
+		}
+		line := fmt.Sprintf(language.String("TRANSFER_SOLDIER_LINE"), s.Name, s.Rank, s.HP)
+		ctx.DrawString(4, 5+i, line, style)
+	}
+}
+
+func (ts *TransferScreen) drawItemList(ctx *engine.ScreenCtx, from *base.Base, h int) {
+	ctx.DrawString(2, 4, language.String("TRANSFER_ITEMS"), engine.StyleYellow)
+	items := sortedStoreItems(from)
+	if len(items) == 0 {
+		ctx.DrawString(4, 5, language.String("SECTION_NO_ITEMS"), engine.StyleGray)
+	}
+	for i, item := range items {
+		if 5+i >= h-2 {
+			break
+		}
+		style := engine.StyleDefault
+		if i == ts.SelItem {
+			style = engine.StyleHighlight
+		}
+		qty := from.CountItem(item)
+		line := fmt.Sprintf(language.String("TRANSFER_ITEM_LINE"), item, qty)
+		ctx.DrawString(4, 5+i, line, style)
+	}
 }
 
 func (ts *TransferScreen) HandleKey(e *tcell.EventKey) {

@@ -14,13 +14,14 @@ import (
 
 const numTabs = 6
 
+// BaseScreen renders the base management view with multiple tabs.
 type BaseScreen struct {
-	Game        *engine.Game
-	Base        *Base
-	Tab         int
-	Selection   int
-	Message     string
-	storesItems []string
+	Game        *engine.Game // Game state
+	Base        *Base        // The base being managed
+	Tab         int          // Active tab index (0=facilities, 1=soldiers, 2=research, 3=manufacture, 4=stores, 5=hangars)
+	Selection   int          // Selected row in the active tab
+	Message     string       // Status message displayed at bottom
+	storesItems []string     // Cached sorted item keys for the stores tab
 }
 
 func NewBaseScreen(g *engine.Game, b *Base) *BaseScreen {

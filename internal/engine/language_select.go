@@ -24,6 +24,16 @@ var langList = []langEntry{
 	{"ko", "한국어"},
 }
 
+const (
+	langTitleY   = 9
+	langListY    = 13
+	langCols     = 4
+	langRowH     = 4
+	langFlagW    = 6
+	langLeftCol  = -26
+	langRightCol = 3
+)
+
 type LanguageSelectScreen struct {
 	Game      *Game
 	Selection int
@@ -78,35 +88,31 @@ func (ls *LanguageSelectScreen) Render(ctx *ScreenCtx) {
 	// ── 3. Prompt ────────────────────────────────────────────────────────
 	prompt := language.String("LANGUAGE_SELECT_TITLE")
 	px := (w - StringWidth(prompt)) / 2
-	ctx.DrawString(px, 9, prompt, StyleCyanBold)
+	ctx.DrawString(px, langTitleY, prompt, StyleCyanBold)
 
 	// ── 4. Two-column language list with flags ────────────────────────────
-	const flagW = 6
-	startLangY := 13
-	colX := []int{w/2 - 26, w/2 + 3}
+	colX := []int{w/2 + langLeftCol, w/2 + langRightCol}
 
 	for i, lang := range langList {
 		col := 0
 		row := i
-		if i >= 4 {
+		if i >= langCols {
 			col = 1
-			row = i - 4
+			row = i - langCols
 		}
-		y := startLangY + row*4
+		y := langListY + row*langRowH
 		label := "[" + lang.Code + "] " + lang.Name
 		labelLen := StringWidth(label)
-		entryW := 1 + flagW + 1 + labelLen
+		entryW := 1 + langFlagW + 1 + labelLen
 		xx := colX[col]
 
 		if i == ls.Selection {
-			// Background clear for selection highlight
 			pad := 3
 			for dx := -pad; dx < entryW+pad; dx++ {
 				if xx+dx >= 0 && xx+dx < w {
 					ctx.SetCell(xx+dx, y, ' ', StyleDefault)
 				}
 			}
-			// Bracket animation (same style as main menu)
 			bPhase := nowSec * 3.0
 			expansion := int(math.Round((math.Sin(bPhase) + 1.0) / 2.0 * 2.0))
 			bSin := math.Sin(nowSec * 2.7)
@@ -127,11 +133,11 @@ func (ls *LanguageSelectScreen) Render(ctx *ScreenCtx) {
 			ctx.SetCell(xx-1-expansion, y, '[', bracketStyle)
 			ctx.SetCell(xx+entryW+expansion, y, ']', bracketStyle)
 			drawFlag(ctx, xx+1, y-1, lang.Code)
-			ctx.DrawString(xx+1+flagW+1, y, label, selStyle)
+			ctx.DrawString(xx+1+langFlagW+1, y, label, selStyle)
 		} else {
 			dimStyle := StyleDefault.Foreground(tcell.NewRGBColor(0x88, 0x88, 0x98))
 			drawFlag(ctx, xx+1, y-1, lang.Code)
-			ctx.DrawString(xx+1+flagW+1, y, label, dimStyle)
+			ctx.DrawString(xx+1+langFlagW+1, y, label, dimStyle)
 		}
 	}
 
@@ -167,21 +173,19 @@ func (ls *LanguageSelectScreen) HandleMouse(e *tcell.EventMouse) {
 	x, y := e.Position()
 	w, _ := ls.Game.ScreenSize()
 
-	const flagW = 6
-	colX := []int{w/2 - 26, w/2 + 3}
-	startLangY := 13
+	colX := []int{w/2 + langLeftCol, w/2 + langRightCol}
 
 	for i, lang := range langList {
 		col := 0
 		row := i
-		if i >= 4 {
+		if i >= langCols {
 			col = 1
-			row = i - 4
+			row = i - langCols
 		}
-		yy := startLangY + row*4
+		yy := langListY + row*langRowH
 		label := "[" + lang.Code + "] " + lang.Name
 		labelLen := StringWidth(label)
-		entryW := 1 + flagW + 1 + labelLen
+		entryW := 1 + langFlagW + 1 + labelLen
 		xx := colX[col]
 
 		if y >= yy-1 && y <= yy+1 && x >= xx+1 && x < xx+1+entryW-1 {

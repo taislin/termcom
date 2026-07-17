@@ -32,38 +32,40 @@ func NewPixelImage(w, h int) *PixelImage {
 	}
 }
 
+func drawPixelCell(screen tcell.Screen, x, col, y, row int, img *PixelImage) (tcell.Color, tcell.Color, bool) {
+	if x+col < 0 || x+col >= screenW(screen) || y+row/2 < 0 || y+row/2 >= screenH(screen) {
+		return 0, 0, true
+	}
+	topColor := img.Pixels[row][col]
+	bottomColor := ColorBlackTcell
+	if row+1 < img.Height {
+		bottomColor = img.Pixels[row+1][col]
+	}
+	if topColor == tcell.ColorDefault && bottomColor == tcell.ColorDefault {
+		return 0, 0, true
+	}
+	resolvedTop := topColor
+	if topColor == tcell.ColorDefault {
+		resolvedTop = ColorBlackTcell
+	}
+	resolvedBottom := bottomColor
+	if bottomColor == tcell.ColorDefault {
+		resolvedBottom = ColorBlackTcell
+	}
+	return resolvedTop, resolvedBottom, false
+}
+
+func screenW(s tcell.Screen) int { w, _ := s.Size(); return w }
+func screenH(s tcell.Screen) int { _, h := s.Size(); return h }
+
 // DrawPixelImage draws the PixelImage onto a tcell.Screen.
-	// Each cell at (x + col, y + row/2) uses halfBlockRune with
-	// FG = top pixel (row) and BG = bottom pixel (row+1).
-// If the height is odd, the bottom pixel of the last cell row defaults to color.Black.
 func DrawPixelImage(screen tcell.Screen, x, y int, img *PixelImage) {
-	w, h := screen.Size()
 	for row := 0; row < img.Height; row += 2 {
 		for col := 0; col < img.Width; col++ {
-			if x+col < 0 || x+col >= w || y+row/2 < 0 || y+row/2 >= h {
+			resolvedTop, resolvedBottom, skip := drawPixelCell(screen, x, col, y, row, img)
+			if skip {
 				continue
 			}
-			topColor := img.Pixels[row][col]
-			bottomColor := ColorBlackTcell
-			if row+1 < img.Height {
-				bottomColor = img.Pixels[row+1][col]
-			}
-
-			// If both are default/transparent, we skip drawing to support transparent images.
-			if topColor == tcell.ColorDefault && bottomColor == tcell.ColorDefault {
-				continue
-			}
-
-			// If one of them is transparent, we handle it by blending or drawing against a black fallback.
-			resolvedTop := topColor
-			if topColor == tcell.ColorDefault {
-				resolvedTop = ColorBlackTcell
-			}
-			resolvedBottom := bottomColor
-			if bottomColor == tcell.ColorDefault {
-				resolvedBottom = ColorBlackTcell
-			}
-
 			style := tcell.StyleDefault.Foreground(resolvedTop).Background(resolvedBottom)
 			screen.SetContent(x+col, y+row/2, halfBlockRune, nil, style)
 		}
@@ -150,55 +152,38 @@ func (s *ScreenRaw) DrawPixelImage(x, y int, img *PixelImage) {
 }
 
 // DrawPixelImageFramed draws a PixelImage with a box-drawing frame around it.
-// The frame uses: ┌─┐ │ └─┘ characters.
 func DrawPixelImageFramed(screen tcell.Screen, x, y int, img *PixelImage, frameStyle tcell.Style) {
 	fw := img.Width + 2
 	fh := img.Height/2 + 2
 
-	// Top border
-	screen.SetContent(x, y, '┌', nil, frameStyle)
-	for i := 0; i < fw-2; i++ {
-		screen.SetContent(x+1+i, y, '─', nil, frameStyle)
-	}
-	screen.SetContent(x+fw-1, y, '┐', nil, frameStyle)
+	drawFrameEdge(screen, x, y, fw, fh, '┌', '┐', '└', '┘', '─', '│', frameStyle)
 
-	// Sides + portrait
 	for row := 0; row < img.Height; row += 2 {
 		cellRow := y + 1 + row/2
-		screen.SetContent(x, cellRow, '│', nil, frameStyle)
-
 		for col := 0; col < img.Width; col++ {
-			topColor := img.Pixels[row][col]
-			bottomColor := ColorBlackTcell
-			if row+1 < img.Height {
-				bottomColor = img.Pixels[row+1][col]
+			resolvedTop, resolvedBottom, skip := drawPixelCell(screen, x+1+col, 0, cellRow, row, img)
+			if skip {
+				continue
 			}
-
-			resolvedTop := topColor
-			if topColor == tcell.ColorDefault {
-				resolvedTop = ColorBlackTcell
-			}
-			resolvedBottom := bottomColor
-			if bottomColor == tcell.ColorDefault {
-				resolvedBottom = ColorBlackTcell
-			}
-
-
-				style := tcell.StyleDefault.Foreground(resolvedTop).Background(resolvedBottom)
-				screen.SetContent(x+1+col, cellRow, halfBlockRune, nil, style)
-			}
-
-
-		screen.SetContent(x+fw-1, cellRow, '│', nil, frameStyle)
+			style := tcell.StyleDefault.Foreground(resolvedTop).Background(resolvedBottom)
+			screen.SetContent(x+1+col, cellRow, halfBlockRune, nil, style)
+		}
 	}
+}
 
-	// Bottom border
-	bottomY := y + fh - 1
-	screen.SetContent(x, bottomY, '└', nil, frameStyle)
-	for i := 0; i < fw-2; i++ {
-		screen.SetContent(x+1+i, bottomY, '─', nil, frameStyle)
+func drawFrameEdge(s tcell.Screen, x, y, w, h int, tl, tr, bl, br, hRune, vRune rune, style tcell.Style) {
+	s.SetContent(x, y, tl, nil, style)
+	s.SetContent(x+w-1, y, tr, nil, style)
+	s.SetContent(x, y+h-1, bl, nil, style)
+	s.SetContent(x+w-1, y+h-1, br, nil, style)
+	for i := 1; i < w-1; i++ {
+		s.SetContent(x+i, y, hRune, nil, style)
+		s.SetContent(x+i, y+h-1, hRune, nil, style)
 	}
-	screen.SetContent(x+fw-1, bottomY, '┘', nil, frameStyle)
+	for i := 1; i < h-1; i++ {
+		s.SetContent(x, y+i, vRune, nil, style)
+		s.SetContent(x+w-1, y+i, vRune, nil, style)
+	}
 }
 
 // DrawPixelImageFramed helper for drawing inside the engine on ScreenRaw.

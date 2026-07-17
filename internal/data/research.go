@@ -18,11 +18,14 @@ type ResearchTopic struct {
 	AlienLore   bool
 }
 
+func (t *ResearchTopic) displayKey() string {
+	return "RESEARCH_" + strings.ToUpper(strings.ReplaceAll(t.ID, " ", "_"))
+}
+
 func (t *ResearchTopic) DisplayName() string {
-	key := "RESEARCH_" + strings.ToUpper(strings.ReplaceAll(t.ID, " ", "_"))
-	display := language.String(key)
-	if display == key {
-		return t.Name // fallback to English
+	display := language.String(t.displayKey())
+	if display == t.displayKey() {
+		return t.Name
 	}
 	return display
 }

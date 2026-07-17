@@ -222,10 +222,22 @@ func (u *Unit) FireAt(target *Unit, m *BattleMap, weather *Weather) (int, bool, 
 		}
 	}
 
-	totalDamage := 0
-	stunDamage := 0
-	anyHit := false
-	anyCover := false
+	totalDamage, stunDamage, anyHit, anyCover := u.resolveHits(rounds, hitChance, w, target, m, dist)
+	if u.Soldier != nil && anyHit {
+		weapDMG := WeaponDamageType(u.Weapon)
+		switch weapDMG {
+		case data.DMG_MELEE:
+			u.Soldier.AddMeleeExp()
+		case data.DMG_EXPLOSIVE:
+			u.Soldier.AddThrowingExp()
+		default:
+			u.Soldier.AddFiringExp()
+		}
+	}
+	return totalDamage + stunDamage, anyHit, anyCover, nil
+}
+
+func (u *Unit) resolveHits(rounds, hitChance int, w data.RuleItem, target *Unit, m *BattleMap, dist float64) (totalDamage, stunDamage int, anyHit, anyCover bool) {
 	for i := 0; i < rounds; i++ {
 		if rand.Intn(100) >= hitChance {
 			continue
@@ -289,40 +301,27 @@ func (u *Unit) FireAt(target *Unit, m *BattleMap, weather *Weather) (int, bool, 
 	if totalDamage > 0 {
 		target.HP -= totalDamage
 	}
-	if u.Soldier != nil && anyHit {
-		weapDMG := WeaponDamageType(u.Weapon)
-		switch weapDMG {
-		case data.DMG_MELEE:
-			u.Soldier.AddMeleeExp()
-		case data.DMG_EXPLOSIVE:
-			u.Soldier.AddThrowingExp()
-		default:
-			u.Soldier.AddFiringExp()
-		}
-	}
 	if target.HP <= 0 {
 		target.HP = 0
 		target.Alive = false
 	}
-	return totalDamage + stunDamage, anyHit, anyCover, nil
+	return
+}
+
+var weaponDamageMap = map[string]int{
+	"plasma_pistol": data.DMG_PLASMA, "plasma_rifle": data.DMG_PLASMA, "heavy_plasma": data.DMG_PLASMA, "alien_grenade": data.DMG_PLASMA, "alien_rocket": data.DMG_PLASMA,
+	"laser_pistol": data.DMG_LASER, "laser_rifle": data.DMG_LASER, "alien_laser": data.DMG_LASER, "alien_heavy_laser": data.DMG_LASER,
+	"rocket":        data.DMG_EXPLOSIVE,
+	"chryssalid_claw": data.DMG_MELEE, "reaper_claw": data.DMG_MELEE, "stun_rod": data.DMG_MELEE, "alien_claw": data.DMG_MELEE, "alien_fang": data.DMG_MELEE,
+	"alien_psi_bolt": data.DMG_PSIONIC,
 }
 
 // WeaponDamageType returns the damage type for a given weapon ID.
 func WeaponDamageType(weapon string) int {
-	switch weapon {
-	case "plasma_pistol", "plasma_rifle", "heavy_plasma", "alien_grenade", "alien_rocket":
-		return data.DMG_PLASMA
-	case "laser_pistol", "laser_rifle", "alien_laser", "alien_heavy_laser":
-		return data.DMG_LASER
-	case "rocket":
-		return data.DMG_EXPLOSIVE
-	case "chryssalid_claw", "reaper_claw", "stun_rod", "alien_claw", "alien_fang":
-		return data.DMG_MELEE
-	case "alien_psi_bolt":
-		return data.DMG_PSIONIC
-	default:
-		return data.DMG_KINETIC
+	if dmg, ok := weaponDamageMap[weapon]; ok {
+		return dmg
 	}
+	return data.DMG_KINETIC
 }
 
 func (u *Unit) MoveTo(x, y int, m *BattleMap) bool {

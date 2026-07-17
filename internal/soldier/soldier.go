@@ -256,49 +256,30 @@ func improveStat(exp int) int {
 	}
 }
 
+func calcStatGain(exp int, xpMult float64, current, cap int) int {
+	if exp <= 0 || current >= cap {
+		return 0
+	}
+	gain := int(float64(improveStat(exp)) * xpMult)
+	if current+gain > cap {
+		return cap - current
+	}
+	return gain
+}
+
 func (s *Soldier) PostMission() {
 	xpMult := 1.0
 	if s.HasPerk("quick_learner") {
 		xpMult = 1.5
 	}
 
-	if s.ExpFiring > 0 && s.Accuracy < StatCaps.Acc {
-		s.Accuracy += int(float64(improveStat(s.ExpFiring)) * xpMult)
-		if s.Accuracy > StatCaps.Acc {
-			s.Accuracy = StatCaps.Acc
-		}
-	}
-	if s.ExpThrowing > 0 && s.Strength < StatCaps.Str {
-		s.Strength += int(float64(improveStat(s.ExpThrowing)) * xpMult)
-		if s.Strength > StatCaps.Str {
-			s.Strength = StatCaps.Str
-		}
-	}
-	if s.ExpMelee > 0 && s.Strength < StatCaps.Str {
-		s.Strength += int(float64(improveStat(s.ExpMelee)) * xpMult)
-		if s.Strength > StatCaps.Str {
-			s.Strength = StatCaps.Str
-		}
-	}
-	if s.ExpReactions > 0 && s.Reactions < StatCaps.React {
-		s.Reactions += int(float64(improveStat(s.ExpReactions)) * xpMult)
-		if s.Reactions > StatCaps.React {
-			s.Reactions = StatCaps.React
-		}
-	}
-	if s.ExpPsiSkill > 0 && s.PsiSkill < StatCaps.Psi {
-		s.PsiSkill += int(float64(improveStat(s.ExpPsiSkill)) * xpMult)
-		if s.PsiSkill > StatCaps.Psi {
-			s.PsiSkill = StatCaps.Psi
-		}
-	}
-	if s.ExpPsiStr > 0 && s.PsiStr < StatCaps.Psi {
-		s.PsiStr += int(float64(improveStat(s.ExpPsiStr)) * xpMult)
-		if s.PsiStr > StatCaps.Psi {
-			s.PsiStr = StatCaps.Psi
-		}
-	}
-	// Bravery gain: 50% chance (rand.Intn(11) threshold averages 5.5), +10 per trigger
+	s.Accuracy += calcStatGain(s.ExpFiring, xpMult, s.Accuracy, StatCaps.Acc)
+	s.Strength += calcStatGain(s.ExpThrowing, xpMult, s.Strength, StatCaps.Str)
+	s.Strength += calcStatGain(s.ExpMelee, xpMult, s.Strength, StatCaps.Str)
+	s.Reactions += calcStatGain(s.ExpReactions, xpMult, s.Reactions, StatCaps.React)
+	s.PsiSkill += calcStatGain(s.ExpPsiSkill, xpMult, s.PsiSkill, StatCaps.Psi)
+	s.PsiStr += calcStatGain(s.ExpPsiStr, xpMult, s.PsiStr, StatCaps.Psi)
+	// Bravery gain: 50% chance, +10 per trigger
 	if s.ExpBravery > rand.Intn(11) && s.Bravery < 100 {
 		s.Bravery += int(10 * xpMult)
 		if s.Bravery > 100 {
@@ -309,25 +290,9 @@ func (s *Soldier) PostMission() {
 		if s.Rank == Rookie {
 			s.Rank = Squaddie
 		}
-		// TU/HP/Str post-mission: (StatCaps.X - s.X)/10 + 2 base gain, capped by StatCaps
-		if s.TU < StatCaps.TU {
-			s.TU += int(float64(rand.Intn((StatCaps.TU-s.TU)/10+2)) * xpMult)
-			if s.TU > StatCaps.TU {
-				s.TU = StatCaps.TU
-			}
-		}
-		if s.HP < StatCaps.HP {
-			s.HP += int(float64(rand.Intn((StatCaps.HP-s.HP)/10+2)) * xpMult)
-			if s.HP > StatCaps.HP {
-				s.HP = StatCaps.HP
-			}
-		}
-		if s.Strength < StatCaps.Str {
-			s.Strength += int(float64(rand.Intn((StatCaps.Str-s.Strength)/10+2)) * xpMult)
-			if s.Strength > StatCaps.Str {
-				s.Strength = StatCaps.Str
-			}
-		}
+		s.TU += calcStatGain(rand.Intn((StatCaps.TU-s.TU)/10+2), xpMult, s.TU, StatCaps.TU)
+		s.HP += calcStatGain(rand.Intn((StatCaps.HP-s.HP)/10+2), xpMult, s.HP, StatCaps.HP)
+		s.Strength += calcStatGain(rand.Intn((StatCaps.Str-s.Strength)/10+2), xpMult, s.Strength, StatCaps.Str)
 	}
 	s.ExpFiring = 0
 	s.ExpThrowing = 0

@@ -154,12 +154,20 @@ func (s *Soldier) HasPerk(id string) bool {
 	return false
 }
 
+func buildPerkMap() map[string]*Perk {
+	m := make(map[string]*Perk, len(AllPerks))
+	for i := range AllPerks {
+		m[AllPerks[i].ID] = &AllPerks[i]
+	}
+	return m
+}
+
+var AllPerksMap = buildPerkMap()
+
 func (s *Soldier) HasBattleMod(mod BattleModifier) bool {
 	for _, pID := range s.Perks {
-		for _, p := range AllPerks {
-			if p.ID == pID && p.BattleMod == mod {
-				return true
-			}
+		if p, ok := AllPerksMap[pID]; ok && p.BattleMod == mod {
+			return true
 		}
 	}
 	return false
@@ -185,30 +193,25 @@ func (p *Perk) LangDesc() string {
 	return p.Description
 }
 
-func (s *Soldier) PerkNames() []string {
-	var names []string
-	for _, pID := range s.Perks {
-		for _, p := range AllPerks {
-			if p.ID == pID {
-				names = append(names, p.LangName())
-			}
+func perkNamesFromIDs(ids []string) []string {
+	names := make([]string, 0, len(ids))
+	for _, pID := range ids {
+		if p, ok := AllPerksMap[pID]; ok {
+			names = append(names, p.LangName())
 		}
 	}
 	return names
+}
+
+func (s *Soldier) PerkNames() []string {
+	return perkNamesFromIDs(s.Perks)
 }
 
 func FormatPerks(perks []string) string {
 	if len(perks) == 0 {
 		return language.String("NONE")
 	}
-	names := make([]string, 0, len(perks))
-	for _, pID := range perks {
-		for _, p := range AllPerks {
-			if p.ID == pID {
-				names = append(names, p.LangName())
-			}
-		}
-	}
+	names := perkNamesFromIDs(perks)
 	result := ""
 	for i, n := range names {
 		if i > 0 {

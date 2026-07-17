@@ -22,11 +22,12 @@ const (
 	FacHangar
 )
 
+// FacilityInfo describes a buildable facility type.
 type FacilityInfo struct {
-	Name      string
-	Short     string
-	Cost      int
-	BuildDays int
+	Name      string // Display name
+	Short     string // Short abbreviation (e.g. "LAB")
+	Cost      int    // Purchase cost in funds
+	BuildDays int    // Days to construct
 }
 
 var FacilityDefs = map[FacilityType]FacilityInfo{
@@ -602,21 +603,7 @@ func (b *Base) InterrogateAlien(alienName string) (string, bool) {
 		topicName = topic.DisplayName()
 	} else {
 		b.CompletedResearch = append(b.CompletedResearch, autopsyID)
-		b.UnlockedWeapons = append(b.UnlockedWeapons, topic.UnlockWeap...)
-		b.UnlockedArmor = append(b.UnlockedArmor, topic.UnlockArmor...)
-		for _, item := range topic.UnlockItems {
-			b.AddItem(item, 1)
-		}
-		for _, wpn := range topic.UnlockWeap {
-			if _, ok := data.RuleItems[wpn]; ok {
-				b.AddItem(wpn, 1)
-			}
-		}
-		for _, arm := range topic.UnlockArmor {
-			if _, ok := data.Armors[arm]; ok {
-				b.AddItem(arm, 1)
-			}
-		}
+		b.applyResearchUnlocks(topic)
 		benefit = true
 		topicName = topic.DisplayName()
 	}
@@ -628,6 +615,24 @@ func (b *Base) InterrogateAlien(alienName string) (string, bool) {
 	// Now consume the alien
 	b.LiveAliens = append(b.LiveAliens[:idx], b.LiveAliens[idx+1:]...)
 	return topicName, true
+}
+
+func (b *Base) applyResearchUnlocks(topic *data.ResearchTopic) {
+	b.UnlockedWeapons = append(b.UnlockedWeapons, topic.UnlockWeap...)
+	b.UnlockedArmor = append(b.UnlockedArmor, topic.UnlockArmor...)
+	for _, item := range topic.UnlockItems {
+		b.AddItem(item, 1)
+	}
+	for _, wpn := range topic.UnlockWeap {
+		if _, ok := data.RuleItems[wpn]; ok {
+			b.AddItem(wpn, 1)
+		}
+	}
+	for _, arm := range topic.UnlockArmor {
+		if _, ok := data.Armors[arm]; ok {
+			b.AddItem(arm, 1)
+		}
+	}
 }
 
 func (b *Base) HasResearch(topicID string) bool {
@@ -706,21 +711,7 @@ func (b *Base) AdvanceResearch() []string {
 		b.CompletedResearch = append(b.CompletedResearch, b.ActiveResearch.TopicID)
 		name := b.ActiveResearch.TopicID
 		if topic != nil {
-			b.UnlockedWeapons = append(b.UnlockedWeapons, topic.UnlockWeap...)
-			b.UnlockedArmor = append(b.UnlockedArmor, topic.UnlockArmor...)
-			for _, item := range topic.UnlockItems {
-				b.AddItem(item, 1)
-			}
-			for _, wpn := range topic.UnlockWeap {
-				if _, ok := data.RuleItems[wpn]; ok {
-					b.AddItem(wpn, 1)
-				}
-			}
-			for _, arm := range topic.UnlockArmor {
-				if _, ok := data.Armors[arm]; ok {
-					b.AddItem(arm, 1)
-				}
-			}
+			b.applyResearchUnlocks(topic)
 			if b.ActiveResearch.TopicID == "mind_control" {
 				for _, s := range b.Soldiers {
 					s.PsiSkill += 20

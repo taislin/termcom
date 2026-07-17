@@ -246,10 +246,13 @@ func (wr *WebRenderer) Render(scr *ScreenRaw) string {
 
 // sgrCode returns the ANSI SGR escape sequence for the given fg/bg/attr.
 func sgrCode(fg, bg tcell.Color, attr tcell.AttrMask) string {
+	parts := append(sgrAttrs(attr), colorSGR(fg, true), colorSGR(bg, false))
+	return "\x1b[" + strings.Join(parts, ";") + "m"
+}
+
+func sgrAttrs(attr tcell.AttrMask) []string {
 	var parts []string
-
 	parts = append(parts, "0") // reset
-
 	if attr&tcell.AttrBold != 0 {
 		parts = append(parts, "1")
 	}
@@ -268,11 +271,7 @@ func sgrCode(fg, bg tcell.Color, attr tcell.AttrMask) string {
 	if attr&tcell.AttrStrikeThrough != 0 {
 		parts = append(parts, "9")
 	}
-
-	parts = append(parts, colorSGR(fg, true))
-	parts = append(parts, colorSGR(bg, false))
-
-	return "\x1b[" + strings.Join(parts, ";") + "m"
+	return parts
 }
 
 // colorSGR returns the SGR parameter(s) for a tcell.Color.

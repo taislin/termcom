@@ -438,16 +438,30 @@ func generateMorphology(rng *rand.Rand, dmgType int) *Morphology {
 	}
 }
 
+func weightedIndex(rng *rand.Rand, cumThresholds []int) int {
+	total := cumThresholds[len(cumThresholds)-1]
+	roll := rng.Intn(total)
+	for i, t := range cumThresholds {
+		if roll < t {
+			return i
+		}
+	}
+	return len(cumThresholds) - 1
+}
+
+var organicDefaultWeights = []int{4, 6, 7, 9, 10} // carbon, silicon, gaseous, crystalline, amorphous
+var syntheticDefaultWeights = []int{5, 8, 10}       // mechanical, bio_synthetic, nanotech
+
+var organicSubtypes = []string{SubtypeCarbonFlesh, SubtypeSilicon, SubtypeGaseous, SubtypeCrystalline, SubtypeAmorphous}
+var syntheticSubtypes = []string{SubtypeMechanical, SubtypeBioSynthetic, SubtypeNanotech}
+
 func pickOrganicSubtype(rng *rand.Rand, dmgType int) string {
-	// Damage type biases
 	switch dmgType {
 	case DMG_MELEE:
-		// Melee aliens more likely amorphous or carbon_flesh
 		if rng.Intn(3) == 0 {
 			return SubtypeAmorphous
 		}
 	case DMG_PSIONIC:
-		// Psionic aliens more likely amorphous or gaseous
 		roll := rng.Intn(4)
 		if roll == 0 {
 			return SubtypeAmorphous
@@ -456,30 +470,15 @@ func pickOrganicSubtype(rng *rand.Rand, dmgType int) string {
 			return SubtypeGaseous
 		}
 	case DMG_KINETIC:
-		// Kinetic aliens more likely crystalline or silicon
 		if rng.Intn(3) == 0 {
 			return SubtypeCrystalline
 		}
 	case DMG_LASER:
-		// Laser aliens more likely silicon (light interaction)
 		if rng.Intn(3) == 0 {
 			return SubtypeSilicon
 		}
 	}
-	// Default weighted roll
-	roll := rng.Intn(10)
-	switch {
-	case roll < 4:
-		return SubtypeCarbonFlesh
-	case roll < 6:
-		return SubtypeSilicon
-	case roll < 7:
-		return SubtypeGaseous
-	case roll < 9:
-		return SubtypeCrystalline
-	default:
-		return SubtypeAmorphous
-	}
+	return organicSubtypes[weightedIndex(rng, organicDefaultWeights)]
 }
 
 func pickSyntheticSubtype(rng *rand.Rand, dmgType int) string {
@@ -489,22 +488,13 @@ func pickSyntheticSubtype(rng *rand.Rand, dmgType int) string {
 			return SubtypeBioSynthetic
 		}
 	case DMG_PSIONIC:
-		// Psionic + synthetic = bio_synthetic (organic core)
 		return SubtypeBioSynthetic
 	case DMG_KINETIC:
 		if rng.Intn(3) == 0 {
 			return SubtypeNanotech
 		}
 	}
-	roll := rng.Intn(10)
-	switch {
-	case roll < 5:
-		return SubtypeMechanical
-	case roll < 8:
-		return SubtypeBioSynthetic
-	default:
-		return SubtypeNanotech
-	}
+	return syntheticSubtypes[weightedIndex(rng, syntheticDefaultWeights)]
 }
 
 func generateArmCount(rng *rand.Rand, subtype string) int {
@@ -885,18 +875,21 @@ func subtypeResistMod(subtype string, dmgType int) int {
 	return 0
 }
 
+func rankStat(base, perRank, variance int) int {
+	return base + perRank + variance
+}
+
 func generateVariant(rng *rand.Rand, sp *AlienSpecies, rank int, usedIcons map[rune]bool) *AlienType {
-	// Base stats scale with rank
-	hpBase := 8 + rank*5 + rng.Intn(4)
-	tuBase := 45 + rank*5 + rng.Intn(6)
-	accBase := 50 + rank*5 + rng.Intn(8)
-	braveBase := 35 + rank*10 + rng.Intn(10)
-	reactBase := 45 + rank*6 + rng.Intn(8)
-	strBase := 6 + rank*4 + rng.Intn(5)
+	hpBase := rankStat(8, rank*5, rng.Intn(4))
+	tuBase := rankStat(45, rank*5, rng.Intn(6))
+	accBase := rankStat(50, rank*5, rng.Intn(8))
+	braveBase := rankStat(35, rank*10, rng.Intn(10))
+	reactBase := rankStat(45, rank*6, rng.Intn(8))
+	strBase := rankStat(6, rank*4, rng.Intn(5))
 	psiBase := rng.Intn(30 + rank*15)
-	armBase := 3 + rank*4 + rng.Intn(4)
-	ptsBase := 4 + rank*6 + rng.Intn(5)
-	aggroBase := 3 + rank + rng.Intn(3)
+	armBase := rankStat(3, rank*4, rng.Intn(4))
+	ptsBase := rankStat(4, rank*6, rng.Intn(5))
+	aggroBase := rankStat(3, rank, rng.Intn(3))
 
 	// Apply morphology modifiers
 	m := sp.Morphology

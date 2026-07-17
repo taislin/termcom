@@ -11,6 +11,26 @@ type PlaneConfig struct {
 	Armor    int // 0-3 index into PlaneArmors
 }
 
+func clampInt(v, lo, hi int) int {
+	if v < lo {
+		return lo
+	}
+	if v > hi {
+		return hi
+	}
+	return v
+}
+
+// ClampPlaneConfig clamps all fields to their valid ranges.
+func ClampPlaneConfig(cfg *PlaneConfig) {
+	cfg.Length = clampInt(cfg.Length, 3, 7)
+	cfg.Wingspan = clampInt(cfg.Wingspan, 1, 4)
+	cfg.Engines = clampInt(cfg.Engines, 1, 3)
+	cfg.Fuel = clampInt(cfg.Fuel, 20, 100)
+	cfg.Weapon = clampInt(cfg.Weapon, 0, len(PlaneWeapons)-1)
+	cfg.Armor = clampInt(cfg.Armor, 0, len(PlaneArmors)-1)
+}
+
 // DefaultPlaneConfig returns a balanced starter design.
 func DefaultPlaneConfig() PlaneConfig {
 	return PlaneConfig{

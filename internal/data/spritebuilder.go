@@ -806,132 +806,14 @@ func GenerateAlienPixels(seed int64, m *Morphology) AlienPixels {
 
 	var result AlienPixels
 
-	headOffset := centerOffset(head[0], SpriteW)
-	for y, row := range head {
-		for x, ch := range row {
-			if ch == 'X' || ch == 'm' || ch == 'a' || ch == 'h' || ch == 'd' {
-				result.Body[y][x+headOffset] = true
-			}
-			if ch == 'm' {
-				result.Mouth[y][x+headOffset] = true
-			}
-			if ch == 'a' {
-				result.Accent[y][x+headOffset] = true
-			}
-			if ch == 'h' {
-				result.Highlight[y][x+headOffset] = true
-			}
-			if ch == 'd' {
-				result.Shadow[y][x+headOffset] = true
-			}
-		}
+	stampHead(&result, head, centerOffset(head[0], SpriteW), 0)
+	stampEyes(&result, eyes, centerOffset(eyes[0], SpriteW))
+	arms := manip != ManipNone
+	stampTorso(&result, torso, centerOffset(torso[0], SpriteW), torsoRow, arms)
+	if arms {
+		stampWeapon(&result, weapon, centerOffset(weapon[0], SpriteW), torsoRow)
 	}
-
-	// Eye masking: overlay eyes template on the head area.
-	// For each 'X' in the eye template, carve a hole in the body
-	// and mark it on the Eyes layer for white/glowing rendering.
-	if eyes != nil {
-		eyeOffset := centerOffset(eyes[0], SpriteW)
-		for y := 0; y < headRows && y < len(eyes); y++ {
-			for x := 0; x < len(eyes[y]) && x < SpriteW; x++ {
-				if eyes[y][x] == '.' {
-					continue
-				}
-			ex := x + eyeOffset
-			ey := y
-			if ex < 0 || ex >= SpriteW || ey < 0 || ey >= headRows {
-				continue
-			}
-			result.Body[ey][ex] = false
-			result.Mouth[ey][ex] = false
-			result.Eyes[ey][ex] = true
-			switch eyes[y][x] {
-			case 'h':
-				result.Highlight[ey][ex] = true
-			case 'a':
-				result.Accent[ey][ex] = true
-			case 'd':
-				result.Shadow[ey][ex] = true
-			}
-			}
-		}
-	}
-
-	torsoOffset := centerOffset(torso[0], SpriteW)
-	for y, row := range torso {
-		ty := torsoRow + y
-		for x, ch := range row {
-			switch ch {
-			case 'X':
-				result.Body[ty][x+torsoOffset] = true
-			case 'W':
-				if manip != ManipNone {
-					result.Weapon[ty][x+torsoOffset] = true
-				}
-			case 'a':
-				result.Body[ty][x+torsoOffset] = true
-				result.Accent[ty][x+torsoOffset] = true
-			case 'h':
-				result.Body[ty][x+torsoOffset] = true
-				result.Highlight[ty][x+torsoOffset] = true
-			case 'd':
-				result.Body[ty][x+torsoOffset] = true
-				result.Shadow[ty][x+torsoOffset] = true
-			}
-		}
-	}
-
-	// Weapon mask: a separate silhouette drawn over the torso's right side.
-	// Only armed aliens (manip != none) carry a weapon.
-	if manip != ManipNone {
-		for y, row := range weapon {
-			ty := torsoRow + y
-			for x, ch := range row {
-				switch ch {
-				case 'X':
-					result.Weapon[ty][x+torsoOffset] = true
-				case 'h':
-					result.Weapon[ty][x+torsoOffset] = true
-					result.Highlight[ty][x+torsoOffset] = true
-				case 'a':
-					result.Weapon[ty][x+torsoOffset] = true
-					result.Accent[ty][x+torsoOffset] = true
-				case 'd':
-					result.Weapon[ty][x+torsoOffset] = true
-					result.Shadow[ty][x+torsoOffset] = true
-				}
-			}
-		}
-	}
-
-	legsOffset := centerOffset(legs[0], SpriteW)
-	for y, row := range legs {
-		ly := legsRow + y
-		if ly >= SpriteH {
-			break
-		}
-		for x, ch := range row {
-			lx := x + legsOffset
-			if lx < 0 || lx >= SpriteW {
-				continue
-			}
-			switch ch {
-			case 'X':
-				result.Body[ly][lx] = true
-			case 'W':
-				result.Weapon[ly][lx] = true
-			case 'a':
-				result.Body[ly][lx] = true
-				result.Accent[ly][lx] = true
-			case 'h':
-				result.Body[ly][lx] = true
-				result.Highlight[ly][lx] = true
-			case 'd':
-				result.Body[ly][lx] = true
-				result.Shadow[ly][lx] = true
-			}
-		}
-	}
+	stampLegs(&result, legs, centerOffset(legs[0], SpriteW), legsRow)
 
 	// Edge detection for 3D shading
 	texRng := rand.New(rand.NewSource(seed ^ 0xF0F0F0F0F0))
@@ -984,67 +866,194 @@ func GenerateAlienPixels(seed int64, m *Morphology) AlienPixels {
 		}
 	}
 
-	// Biology-specific rendering pass
-	switch m.BodySubtype {
-	case SubtypeGaseous:
-		for y := 0; y < SpriteH; y++ {
-			for x := 0; x < SpriteW; x++ {
-				if result.Body[y][x] && !result.Weapon[y][x] && texRng.Intn(100) < 40 {
-					result.Body[y][x] = false
-					result.Texture[y][x] = true
-				}
+	applyBiologyPass(&result, m.BodySubtype, texRng)
+
+	return result
+}
+
+func stampHead(result *AlienPixels, template []string, ox, oy int) {
+	for y, row := range template {
+		dy := oy + y
+		for x, ch := range row {
+			dx := x + ox
+			if ch == 'X' || ch == 'm' || ch == 'a' || ch == 'h' || ch == 'd' {
+				result.Body[dy][dx] = true
 			}
-		}
-	case SubtypeCrystalline:
-		for y := 0; y < SpriteH; y++ {
-			for x := 0; x < SpriteW; x++ {
-				if result.Body[y][x] && !result.Weapon[y][x] && !result.Highlight[y][x] && !result.Shadow[y][x] {
-					if texRng.Intn(100) < 15 {
-						result.Accent[y][x] = true
-					}
-				}
-			}
-		}
-	case SubtypeMechanical, SubtypeSilicon:
-		for y := 0; y < SpriteH; y++ {
-			for x := 0; x < SpriteW; x++ {
-				if result.Body[y][x] && !result.Weapon[y][x] && texRng.Intn(100) < 10 {
-					result.Highlight[y][x] = true
-				}
-			}
-		}
-	case SubtypeAmorphous:
-		for y := 0; y < SpriteH; y++ {
-			for x := 0; x < SpriteW; x++ {
-				if result.Body[y][x] && !result.Weapon[y][x] && texRng.Intn(100) < 25 {
-					result.Texture[y][x] = true
-				}
-			}
-		}
-	case SubtypeNanotech:
-		for y := 0; y < SpriteH; y++ {
-			for x := 0; x < SpriteW; x++ {
-				if result.Body[y][x] && !result.Weapon[y][x] && texRng.Intn(100) < 30 {
-					result.Highlight[y][x] = true
-				}
-				if result.Body[y][x] && !result.Weapon[y][x] && texRng.Intn(100) < 15 {
-					result.Texture[y][x] = true
-				}
-			}
-		}
-	case SubtypeBioSynthetic:
-		for y := 0; y < SpriteH; y++ {
-			for x := 0; x < SpriteW; x++ {
-				if result.Body[y][x] && !result.Weapon[y][x] && !result.Highlight[y][x] && !result.Shadow[y][x] {
-					if texRng.Intn(100) < 10 {
-						result.Accent[y][x] = true
-					}
-				}
+			switch ch {
+			case 'm':
+				result.Mouth[dy][dx] = true
+			case 'a':
+				result.Accent[dy][dx] = true
+			case 'h':
+				result.Highlight[dy][dx] = true
+			case 'd':
+				result.Shadow[dy][dx] = true
 			}
 		}
 	}
+}
 
-	return result
+func stampEyes(result *AlienPixels, template []string, ox int) {
+	if template == nil {
+		return
+	}
+	eyeOffset := ox
+	for y := 0; y < headRows && y < len(template); y++ {
+		for x := 0; x < len(template[y]) && x < SpriteW; x++ {
+			if template[y][x] == '.' {
+				continue
+			}
+			ex := x + eyeOffset
+			ey := y
+			if ex < 0 || ex >= SpriteW || ey < 0 || ey >= headRows {
+				continue
+			}
+			result.Body[ey][ex] = false
+			result.Mouth[ey][ex] = false
+			result.Eyes[ey][ex] = true
+			switch template[y][x] {
+			case 'h':
+				result.Highlight[ey][ex] = true
+			case 'a':
+				result.Accent[ey][ex] = true
+			case 'd':
+				result.Shadow[ey][ex] = true
+			}
+		}
+	}
+}
+
+func stampTorso(result *AlienPixels, template []string, ox, oy int, allowWeapon bool) {
+	for y, row := range template {
+		ty := oy + y
+		for x, ch := range row {
+			dx := x + ox
+			switch ch {
+			case 'X':
+				result.Body[ty][dx] = true
+			case 'W':
+				if allowWeapon {
+					result.Weapon[ty][dx] = true
+				}
+			case 'a':
+				result.Body[ty][dx] = true
+				result.Accent[ty][dx] = true
+			case 'h':
+				result.Body[ty][dx] = true
+				result.Highlight[ty][dx] = true
+			case 'd':
+				result.Body[ty][dx] = true
+				result.Shadow[ty][dx] = true
+			}
+		}
+	}
+}
+
+func stampWeapon(result *AlienPixels, template []string, ox, oy int) {
+	for y, row := range template {
+		ty := oy + y
+		for x, ch := range row {
+			dx := x + ox
+			switch ch {
+			case 'X':
+				result.Weapon[ty][dx] = true
+			case 'h':
+				result.Weapon[ty][dx] = true
+				result.Highlight[ty][dx] = true
+			case 'a':
+				result.Weapon[ty][dx] = true
+				result.Accent[ty][dx] = true
+			case 'd':
+				result.Weapon[ty][dx] = true
+				result.Shadow[ty][dx] = true
+			}
+		}
+	}
+}
+
+func stampLegs(result *AlienPixels, template []string, ox, oy int) {
+	for y, row := range template {
+		ly := oy + y
+		if ly >= SpriteH {
+			break
+		}
+		for x, ch := range row {
+			dx := x + ox
+			if dx < 0 || dx >= SpriteW {
+				continue
+			}
+			switch ch {
+			case 'X':
+				result.Body[ly][dx] = true
+			case 'W':
+				result.Weapon[ly][dx] = true
+			case 'a':
+				result.Body[ly][dx] = true
+				result.Accent[ly][dx] = true
+			case 'h':
+				result.Body[ly][dx] = true
+				result.Highlight[ly][dx] = true
+			case 'd':
+				result.Body[ly][dx] = true
+				result.Shadow[ly][dx] = true
+			}
+		}
+	}
+}
+
+func forEachBodyPixel(result *AlienPixels, texRng *rand.Rand, fn func(x, y int, rngVal int)) {
+	for y := 0; y < SpriteH; y++ {
+		for x := 0; x < SpriteW; x++ {
+			if result.Body[y][x] && !result.Weapon[y][x] {
+				fn(x, y, texRng.Intn(100))
+			}
+		}
+	}
+}
+
+func applyBiologyPass(result *AlienPixels, subtype string, texRng *rand.Rand) {
+	switch subtype {
+	case SubtypeGaseous:
+		forEachBodyPixel(result, texRng, func(x, y, rngVal int) {
+			if rngVal < 40 {
+				result.Body[y][x] = false
+				result.Texture[y][x] = true
+			}
+		})
+	case SubtypeCrystalline:
+		forEachBodyPixel(result, texRng, func(x, y, rngVal int) {
+			if !result.Highlight[y][x] && !result.Shadow[y][x] && rngVal < 15 {
+				result.Accent[y][x] = true
+			}
+		})
+	case SubtypeMechanical, SubtypeSilicon:
+		forEachBodyPixel(result, texRng, func(x, y, rngVal int) {
+			if rngVal < 10 {
+				result.Highlight[y][x] = true
+			}
+		})
+	case SubtypeAmorphous:
+		forEachBodyPixel(result, texRng, func(x, y, rngVal int) {
+			if rngVal < 25 {
+				result.Texture[y][x] = true
+			}
+		})
+	case SubtypeNanotech:
+		forEachBodyPixel(result, texRng, func(x, y, rngVal int) {
+			if rngVal < 30 {
+				result.Highlight[y][x] = true
+			}
+			if rngVal < 15 {
+				result.Texture[y][x] = true
+			}
+		})
+	case SubtypeBioSynthetic:
+		forEachBodyPixel(result, texRng, func(x, y, rngVal int) {
+			if !result.Highlight[y][x] && !result.Shadow[y][x] && rngVal < 10 {
+				result.Accent[y][x] = true
+			}
+		})
+	}
 }
 
 func centerOffset(row string, width int) int {

@@ -70,16 +70,24 @@ func (cm *ControlMenu) buttonRects() []Rect {
 	if w == 0 || h == 0 {
 		return nil
 	}
-	btnH := 3
-	btnMinW := 10
-	padX := 1
-	padY := 1
+	const (
+		defaultBtnH  = 3
+		defaultBtnW  = 10
+		defaultPadX  = 1
+		defaultPadY  = 1
+		thresh3Col   = 60
+		thresh2Col   = 40
+	)
+	btnH := defaultBtnH
+	btnMinW := defaultBtnW
+	padX := defaultPadX
+	padY := defaultPadY
 
 	cols := 3
-	if w < 60 {
+	if w < thresh3Col {
 		cols = 2
 	}
-	if w < 40 {
+	if w < thresh2Col {
 		cols = 1
 	}
 

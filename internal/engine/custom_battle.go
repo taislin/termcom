@@ -95,10 +95,7 @@ func (cs *CustomBattleScreen) Render(ctx *ScreenCtx) {
 
 	// Left panel: list
 	maxVisible := h - 6
-	scrollOffset := 0
-	if cs.Selection >= maxVisible {
-		scrollOffset = cs.Selection - maxVisible + 1
-	}
+	scrollOffset := cs.scrollOffset(maxVisible)
 
 	for i := 0; i < maxVisible && i+scrollOffset < len(cs.Entries); i++ {
 		idx := i + scrollOffset
@@ -108,10 +105,11 @@ func (cs *CustomBattleScreen) Render(ctx *ScreenCtx) {
 		if idx == cs.Selection {
 			style = StyleHighlight
 		}
+		truncW := leftW - 7
 		label := entry.Name
 		if StringWidth(label) > leftW-4 {
 			runes := []rune(label)
-			for len(runes) > 0 && StringWidth(string(runes)) > leftW-7 {
+			for len(runes) > 0 && StringWidth(string(runes)) > truncW {
 				runes = runes[:len(runes)-1]
 			}
 			label = string(runes) + "..."
@@ -175,6 +173,13 @@ func (cs *CustomBattleScreen) Render(ctx *ScreenCtx) {
 	// Status bar
 	ctx.DrawPanel(0, h-3, w, 3, "", StyleGray)
 	ctx.DrawMarkupString(1, h-2, language.String("CUSTOM_HELP"), StyleGray, StyleHotkey)
+}
+
+func (cs *CustomBattleScreen) scrollOffset(maxVisible int) int {
+	if cs.Selection >= maxVisible {
+		return cs.Selection - maxVisible + 1
+	}
+	return 0
 }
 
 func (cs *CustomBattleScreen) HandleKey(e *tcell.EventKey) {

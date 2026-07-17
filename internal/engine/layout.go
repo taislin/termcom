@@ -179,9 +179,5 @@ func (lm *LayoutManager) CustomBattleRightX(w int) int {
 }
 
 func (lm *LayoutManager) MinSidebarWidth(w int) int {
-	sw := w / 3
-	if sw < 30 {
-		sw = 30
-	}
-	return sw
+	return lm.BattleSidebarWidth(w)
 }

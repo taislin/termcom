@@ -17,6 +17,8 @@ type WeaponDesignerScreen struct {
 	Param     int
 	Message   string
 	nextID    int
+	cachedArt   []weaponCell
+	cachedDesign data.WeaponDesign
 }
 
 func NewWeaponDesignerScreen(g *engine.Game, b *Base) *WeaponDesignerScreen {
@@ -93,81 +95,84 @@ type weaponCell struct {
 	Style tcell.Style
 }
 
-func (wd *WeaponDesignerScreen) renderWeaponArt() []weaponCell {
+func drawWeaponCell(x, y int, r rune, style tcell.Style) weaponCell {
+	return weaponCell{X: x, Y: y, Rune: r, Style: style}
+}
+
+func (wd *WeaponDesignerScreen) buildWeaponArt() []weaponCell {
 	var cells []weaponCell
 	barrel := wd.Design.Barrel
 	optics := wd.Design.Optics
 	isAuto := wd.Design.Auto
 	stock := wd.Design.Stock
 
-	// Muzzle (2 rows high: Y=0 top, Y=1 bottom)
 	muzzleLen := 1 + barrel
 	for i := 0; i < muzzleLen; i++ {
-		cells = append(cells, weaponCell{X: i, Y: 0, Rune: '\u2588', Style: engine.StyleCyan})
-		cells = append(cells, weaponCell{X: i, Y: 1, Rune: '\u2588', Style: engine.StyleCyan})
+		cells = append(cells, drawWeaponCell(i, 0, '\u2588', engine.StyleCyan))
+		cells = append(cells, drawWeaponCell(i, 1, '\u2588', engine.StyleCyan))
 	}
-	// Muzzle tip (flat right-cap)
-	cells = append(cells, weaponCell{X: muzzleLen, Y: 0, Rune: '\u2590', Style: engine.StyleCyanBold})
-	cells = append(cells, weaponCell{X: muzzleLen, Y: 1, Rune: '\u2590', Style: engine.StyleCyanBold})
+	cells = append(cells, drawWeaponCell(muzzleLen, 0, '\u2590', engine.StyleCyanBold))
+	cells = append(cells, drawWeaponCell(muzzleLen, 1, '\u2590', engine.StyleCyanBold))
 
-	// Barrel body (handguard, 2 rows, seamless continuation)
 	barrelStart := muzzleLen + 1
 	barrelEnd := barrelStart + 2
 	for x := barrelStart; x <= barrelEnd; x++ {
-		cells = append(cells, weaponCell{X: x, Y: 0, Rune: '\u2588', Style: engine.StyleCyan})
-		cells = append(cells, weaponCell{X: x, Y: 1, Rune: '\u2588', Style: engine.StyleCyan})
+		cells = append(cells, drawWeaponCell(x, 0, '\u2588', engine.StyleCyan))
+		cells = append(cells, drawWeaponCell(x, 1, '\u2588', engine.StyleCyan))
 	}
 
-	// Optics (on top of receiver)
 	receiverStart := barrelEnd + 1
 	if optics > 0 {
-		opticChar := '\u25C9' // ◉
+		opticChar := '\u25C9'
 		if optics >= 2 {
-			opticChar = '\u25CE' // ◎
+			opticChar = '\u25CE'
 		}
 		if optics >= 3 {
-			opticChar = '\u2605' // ★
+			opticChar = '\u2605'
 		}
-		cells = append(cells, weaponCell{X: receiverStart + 1, Y: 0, Rune: opticChar, Style: engine.StyleYellow})
+		cells = append(cells, drawWeaponCell(receiverStart+1, 0, opticChar, engine.StyleYellow))
 	}
 
-	// Receiver (2 rows high, solid blocks in bold)
 	receiverEnd := receiverStart + 2
 	for x := receiverStart; x <= receiverEnd; x++ {
-		cells = append(cells, weaponCell{X: x, Y: 0, Rune: '\u2588', Style: engine.StyleCyanBold})
-		cells = append(cells, weaponCell{X: x, Y: 1, Rune: '\u2588', Style: engine.StyleCyanBold})
+		cells = append(cells, drawWeaponCell(x, 0, '\u2588', engine.StyleCyanBold))
+		cells = append(cells, drawWeaponCell(x, 1, '\u2588', engine.StyleCyanBold))
 	}
 
-	// Grip (solid blocks below receiver)
-	cells = append(cells, weaponCell{X: receiverEnd - 1, Y: 2, Rune: '\u2588', Style: engine.StyleCyan})
-	cells = append(cells, weaponCell{X: receiverEnd - 1, Y: 3, Rune: '\u2588', Style: engine.StyleCyan})
+	cells = append(cells, drawWeaponCell(receiverEnd-1, 2, '\u2588', engine.StyleCyan))
+	cells = append(cells, drawWeaponCell(receiverEnd-1, 3, '\u2588', engine.StyleCyan))
 
-	// Stock (2 rows high)
 	stockStart := receiverEnd + 1
 	stockLen := 2 + stock
 	for i := 0; i < stockLen; i++ {
-		cells = append(cells, weaponCell{X: stockStart + i, Y: 0, Rune: '\u2588', Style: engine.StyleCyan})
-		cells = append(cells, weaponCell{X: stockStart + i, Y: 1, Rune: '\u2588', Style: engine.StyleCyan})
+		cells = append(cells, drawWeaponCell(stockStart+i, 0, '\u2588', engine.StyleCyan))
+		cells = append(cells, drawWeaponCell(stockStart+i, 1, '\u2588', engine.StyleCyan))
 	}
-	// Buttplate (at end of stock, 2 rows, bold vertical cap)
 	if stock > 0 {
 		buttX := stockStart + stockLen - 1
-		cells = append(cells, weaponCell{X: buttX, Y: 0, Rune: '\u2590', Style: engine.StyleCyanBold})
-		cells = append(cells, weaponCell{X: buttX, Y: 1, Rune: '\u2590', Style: engine.StyleCyanBold})
+		cells = append(cells, drawWeaponCell(buttX, 0, '\u2590', engine.StyleCyanBold))
+		cells = append(cells, drawWeaponCell(buttX, 1, '\u2590', engine.StyleCyanBold))
 	}
 
-	// Magazine (single solid block below receiver, only if ammo type > 0)
 	if wd.Design.AmmoType > 0 {
-		cells = append(cells, weaponCell{X: receiverStart + 1, Y: 2, Rune: '\u2588', Style: engine.StyleRed})
+		cells = append(cells, drawWeaponCell(receiverStart+1, 2, '\u2588', engine.StyleRed))
 	}
 
-	// Auto indicator: two solid blocks above the stock area.
 	if isAuto {
-		cells = append(cells, weaponCell{X: receiverEnd + 1, Y: 0, Rune: '\u25A0', Style: engine.StyleGreen})
-		cells = append(cells, weaponCell{X: receiverEnd + 2, Y: 0, Rune: '\u25A0', Style: engine.StyleGreen})
+		cells = append(cells, drawWeaponCell(receiverEnd+1, 0, '\u25A0', engine.StyleGreen))
+		cells = append(cells, drawWeaponCell(receiverEnd+2, 0, '\u25A0', engine.StyleGreen))
 	}
 
 	return cells
+}
+
+func (wd *WeaponDesignerScreen) renderWeaponArt() []weaponCell {
+	if wd.cachedDesign == wd.Design {
+		return wd.cachedArt
+	}
+	wd.cachedArt = wd.buildWeaponArt()
+	wd.cachedDesign = wd.Design
+	return wd.cachedArt
 }
 
 func (wd *WeaponDesignerScreen) renderStats(ctx *engine.ScreenCtx, sx, sy, sw, sh int) {

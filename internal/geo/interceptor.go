@@ -181,21 +181,16 @@ func (i *Interceptor) Update(cities []*City, ufos UFOList) bool {
 }
 
 // moveToWithTarget moves toward target but stops at a percentage of max range.
-func (i *Interceptor) moveToWithTarget(tx, ty float64, rangeFraction float64) bool {
-	dx := tx - i.X
-	dy := ty - i.Y
-	dist := math.Sqrt(dx*dx + dy*dy)
-	
-	// Stop at fraction of weapon range
-	stopDist := float64(i.Range) * rangeFraction
-	
-	if dist <= stopDist+0.5 {
-		return true
+func (i *Interceptor) moveStep(tx, ty, maxDist float64) (dx, dy, dist float64, reached bool) {
+	dx = tx - i.X
+	dy = ty - i.Y
+	dist = math.Sqrt(dx*dx + dy*dy)
+	if maxDist >= 0 && dist <= maxDist+0.5 {
+		return dx, dy, dist, true
 	}
-
 	speed := float64(i.Speed) * 0.015
-	if speed > dist-stopDist {
-		speed = dist - stopDist
+	if maxDist >= 0 && speed > dist-maxDist {
+		speed = dist - maxDist
 	}
 	if speed < 0 {
 		speed = 0
@@ -205,16 +200,20 @@ func (i *Interceptor) moveToWithTarget(tx, ty float64, rangeFraction float64) bo
 		i.Y += (dy / dist) * speed
 		i.recordTrail()
 	}
-
 	i.RangeLeft--
 	if i.RangeLeft <= 0 {
 		i.TargetNode = -1
 		i.TargetUFO = nil
 		i.Launching = false
-		return false
+		return dx, dy, dist, false
 	}
+	return dx, dy, dist, false
+}
 
-	return false
+func (i *Interceptor) moveToWithTarget(tx, ty float64, rangeFraction float64) bool {
+	stopDist := float64(i.Range) * rangeFraction
+	_, _, _, reached := i.moveStep(tx, ty, stopDist)
+	return reached
 }
 
 func (i *Interceptor) recordTrail() {
@@ -238,33 +237,8 @@ func (i *Interceptor) recordTrail() {
 }
 
 func (i *Interceptor) moveTo(tx, ty float64) bool {
-	dx := tx - i.X
-	dy := ty - i.Y
-	dist := math.Sqrt(dx*dx + dy*dy)
-
-	if dist < 1.5 {
-		return true
-	}
-
-	speed := float64(i.Speed) * 0.015
-	if speed > dist {
-		speed = dist
-	}
-	if dist > 0 {
-		i.X += (dx / dist) * speed
-		i.Y += (dy / dist) * speed
-		i.recordTrail()
-	}
-
-	i.RangeLeft--
-	if i.RangeLeft <= 0 {
-		i.TargetNode = -1
-		i.TargetUFO = nil
-		i.Launching = false
-		return false
-	}
-
-	return false
+	_, _, _, reached := i.moveStep(tx, ty, 1.5)
+	return reached
 }
 
 func (i *Interceptor) Disengage() {

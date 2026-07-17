@@ -121,12 +121,8 @@ func smoothstep(t float64) float64 {
 	return t * t * (3 - 2*t)
 }
 
-func ApplyLightSource(s *ScreenRaw, fb *FrameBuffer, sourceX, sourceY int, radius float64, lightColor tcell.Color) {
-	scrW, scrH := s.Size()
-	lR, lG, lB := colorRGB(lightColor)
+func forEachRadiusTile(sourceX, sourceY int, radius float64, scrW, scrH int, fn func(x, y int, dist float64)) {
 	radiusInt := int(math.Ceil(radius))
-	count := 0
-
 	for dy := -radiusInt; dy <= radiusInt; dy++ {
 		for dx := -radiusInt; dx <= radiusInt; dx++ {
 			x, y := sourceX+dx, sourceY+dy
@@ -137,70 +133,58 @@ func ApplyLightSource(s *ScreenRaw, fb *FrameBuffer, sourceX, sourceY int, radiu
 			if dist > radius {
 				continue
 			}
-			count++
+			fn(x, y, dist)
 		}
 	}
+}
+
+func ApplyLightSource(s *ScreenRaw, fb *FrameBuffer, sourceX, sourceY int, radius float64, lightColor tcell.Color) {
+	scrW, scrH := s.Size()
+	lR, lG, lB := colorRGB(lightColor)
+	count := 0
+
+	forEachRadiusTile(sourceX, sourceY, radius, scrW, scrH, func(_, _ int, _ float64) { count++ })
 
 	if count == 0 {
 		return
 	}
 
-	for dy := -radiusInt; dy <= radiusInt; dy++ {
-		for dx := -radiusInt; dx <= radiusInt; dx++ {
-			x, y := sourceX+dx, sourceY+dy
-			if x < 0 || x >= scrW || y < 0 || y >= scrH {
-				continue
-			}
-			dist := math.Sqrt(float64(dx*dx + dy*dy))
-			if dist > radius {
-				continue
-			}
-			falloff := smoothstep(1 - dist/radius)
-			cell := fb.Get(x, y)
-			bgR, bgG, bgB := colorRGB(cell.Bg)
-			blended := lerpColor([3]float64{bgR, bgG, bgB}, [3]float64{lR, lG, lB}, falloff)
-			newBg := tcell.NewRGBColor(int32(blended[0]), int32(blended[1]), int32(blended[2]))
-			fgR, fgG, fgB := colorRGB(cell.Fg)
-			fgBlend := lerpColor([3]float64{fgR, fgG, fgB}, [3]float64{lR, lG, lB}, falloff*0.5)
-			newFg := tcell.NewRGBColor(int32(fgBlend[0]), int32(fgBlend[1]), int32(fgBlend[2]))
-			style := tcell.StyleDefault.Foreground(newFg).Background(newBg)
-			s.SetCell(x, y, cell.Ch, style)
-		}
-	}
+	forEachRadiusTile(sourceX, sourceY, radius, scrW, scrH, func(x, y int, dist float64) {
+		falloff := smoothstep(1 - dist/radius)
+		cell := fb.Get(x, y)
+		bgR, bgG, bgB := colorRGB(cell.Bg)
+		blended := lerpColor([3]float64{bgR, bgG, bgB}, [3]float64{lR, lG, lB}, falloff)
+		newBg := tcell.NewRGBColor(int32(blended[0]), int32(blended[1]), int32(blended[2]))
+		fgR, fgG, fgB := colorRGB(cell.Fg)
+		fgBlend := lerpColor([3]float64{fgR, fgG, fgB}, [3]float64{lR, lG, lB}, falloff*0.5)
+		newFg := tcell.NewRGBColor(int32(fgBlend[0]), int32(fgBlend[1]), int32(fgBlend[2]))
+		style := tcell.StyleDefault.Foreground(newFg).Background(newBg)
+		s.SetCell(x, y, cell.Ch, style)
+	})
 }
 
 func ApplyBloom(s *ScreenRaw, fb *FrameBuffer, centerX, centerY int, bloomColor tcell.Color) {
-	radius := 1.5
+	const (
+		bloomRadius  = 1.5
+		bloomForce   = 0.3
+		bloomRadiusI = 2
+	)
 	lR, lG, lB := colorRGB(bloomColor)
-	radiusInt := 2
 	scrW, scrH := s.Size()
 
-	for dy := -radiusInt; dy <= radiusInt; dy++ {
-		for dx := -radiusInt; dx <= radiusInt; dx++ {
-			x, y := centerX+dx, centerY+dy
-			if x < 0 || x >= scrW || y < 0 || y >= scrH {
-				continue
-			}
-			dist := math.Sqrt(float64(dx*dx + dy*dy))
-			if dist > radius {
-				continue
-			}
-			// Gentle falloff for bloom
-			falloff := 0.3 * (1 - dist/radius)
-			cell := fb.Get(x, y)
-			bgR, bgG, bgB := colorRGB(cell.Bg)
-			blended := [3]float64{
-				bgR + (lR-bgR)*falloff,
-				bgG + (lG-bgG)*falloff,
-				bgB + (lB-bgB)*falloff,
-			}
-			newBg := tcell.NewRGBColor(int32(blended[0]), int32(blended[1]), int32(blended[2]))
-			
-			// Maintain existing foreground, just blend background
-			style := tcell.StyleDefault.Foreground(cell.Fg).Background(newBg)
-			s.SetCell(x, y, cell.Ch, style)
+	forEachRadiusTile(centerX, centerY, bloomRadius, scrW, scrH, func(x, y int, dist float64) {
+		falloff := bloomForce * (1 - dist/bloomRadius)
+		cell := fb.Get(x, y)
+		bgR, bgG, bgB := colorRGB(cell.Bg)
+		blended := [3]float64{
+			bgR + (lR-bgR)*falloff,
+			bgG + (lG-bgG)*falloff,
+			bgB + (lB-bgB)*falloff,
 		}
-	}
+		newBg := tcell.NewRGBColor(int32(blended[0]), int32(blended[1]), int32(blended[2]))
+		style := tcell.StyleDefault.Foreground(cell.Fg).Background(newBg)
+		s.SetCell(x, y, cell.Ch, style)
+	})
 }
 
 func ApplyDistortion(s *ScreenRaw, fb *FrameBuffer, timeVal float64) {

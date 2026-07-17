@@ -64,16 +64,8 @@ func (ts *TutorialScreen) Render(ctx *ScreenCtx) {
 	msg := language.String(tutorialSteps[ts.step].msgKey)
 	wrapDrawString(ctx, x+2, y+2, boxW-4, msg, StyleDefault)
 
-	progress := ""
-	for i := 0; i < len(tutorialSteps); i++ {
-		if i <= ts.step {
-			progress += "\u2588 "
-		} else {
-			progress += "\u2591 "
-		}
-	}
-	progW := len(progress)
-	ctx.DrawString(x+(boxW-progW)/2, y+boxH-4, progress, StyleGray)
+	progress := buildTutorialProgress(ts.step, len(tutorialSteps))
+	ctx.DrawString(x+(boxW-len(progress))/2, y+boxH-4, progress, StyleGray)
 
 	if ts.step < len(tutorialSteps)-1 {
 		hint := language.String("TUTORIAL_NEXT")
@@ -125,6 +117,18 @@ func (ts *TutorialScreen) dismiss() {
 	if ts.OnDismiss != nil {
 		ts.OnDismiss()
 	}
+}
+
+func buildTutorialProgress(step, total int) string {
+	p := ""
+	for i := 0; i < total; i++ {
+		if i <= step {
+			p += "\u2588 "
+		} else {
+			p += "\u2591 "
+		}
+	}
+	return p
 }
 
 func wrapDrawString(ctx *ScreenCtx, x, y, maxWidth int, s string, style tcell.Style) {

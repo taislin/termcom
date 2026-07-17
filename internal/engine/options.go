@@ -199,44 +199,10 @@ func (os *OptionsScreen) HandleKey(e *tcell.EventKey) {
 		os.toggle()
 	case tcell.KeyLeft:
 		audio.PlayMenuNav()
-		switch os.Selection {
-		case 9:
-			os.cycleTheme(-1)
-		case 10:
-			Config.ActionDelay--
-			if Config.ActionDelay < 1 {
-				Config.ActionDelay = 1
-			}
-			os.Game.ActionDelay = Config.ActionDelay
-		case 11:
-			Config.SfxVolume--
-			if Config.SfxVolume < 0 {
-				Config.SfxVolume = 0
-			}
-			audio.SetSfxVolume(Config.SfxVolume)
-		case 12:
-			os.cycleLang(-1)
-		}
+		os.applyOptionDelta(os.Selection, -1)
 	case tcell.KeyRight:
 		audio.PlayMenuNav()
-		switch os.Selection {
-		case 9:
-			os.cycleTheme(1)
-		case 10:
-			Config.ActionDelay++
-			if Config.ActionDelay > 20 {
-				Config.ActionDelay = 20
-			}
-			os.Game.ActionDelay = Config.ActionDelay
-		case 11:
-			Config.SfxVolume++
-			if Config.SfxVolume > 10 {
-				Config.SfxVolume = 10
-			}
-			audio.SetSfxVolume(Config.SfxVolume)
-		case 12:
-			os.cycleLang(1)
-		}
+		os.applyOptionDelta(os.Selection, 1)
 	case tcell.KeyEsc:
 		os.Game.PopState()
 		SaveConfig()
@@ -269,24 +235,22 @@ func (os *OptionsScreen) toggle() {
 	}
 }
 
-func (os *OptionsScreen) cycleLang(dir int) {
-	langs := language.Available()
+func cycleOption(dir int, options []string, current string, setter func(string)) {
 	idx := 0
-	for i, l := range langs {
-		if l == language.Current() {
+	for i, o := range options {
+		if o == current {
 			idx = i
 			break
 		}
 	}
 	idx += dir
 	if idx < 0 {
-		idx = len(langs) - 1
+		idx = len(options) - 1
 	}
-	if idx >= len(langs) {
+	if idx >= len(options) {
 		idx = 0
 	}
-	language.SetLanguage(langs[idx])
-	Config.Language = langs[idx]
+	setter(options[idx])
 }
 
 var themes = []string{"default", "high_contrast", "amber", "green", "paper"}
@@ -300,22 +264,17 @@ var themeDisplayNames = map[string]string{
 }
 
 func (os *OptionsScreen) cycleTheme(dir int) {
-	idx := 0
-	for i, t := range themes {
-		if t == Config.Theme {
-			idx = i
-			break
-		}
-	}
-	idx += dir
-	if idx < 0 {
-		idx = len(themes) - 1
-	}
-	if idx >= len(themes) {
-		idx = 0
-	}
-	Config.Theme = themes[idx]
-	os.Game.screen.SetTheme(Config.Theme)
+	cycleOption(dir, themes, Config.Theme, func(t string) {
+		Config.Theme = t
+		os.Game.screen.SetTheme(Config.Theme)
+	})
+}
+
+func (os *OptionsScreen) cycleLang(dir int) {
+	cycleOption(dir, language.Available(), language.Current(), func(l string) {
+		language.SetLanguage(l)
+		Config.Language = l
+	})
 }
 
 func (os *OptionsScreen) HandleMouse(e *tcell.EventMouse) {
@@ -358,50 +317,45 @@ func (os *OptionsScreen) HandleMouse(e *tcell.EventMouse) {
 	audio.PlayMenuNav()
 
 	if buttons&tcell.Button2 != 0 {
-		// Right click = decrease/previous
-		switch optIndex {
-		case 0, 1, 2, 3, 4, 5, 6, 7, 8:
+		if optIndex >= 0 && optIndex < 9 {
 			os.toggle()
-		case 9:
-			os.cycleTheme(-1)
-		case 10:
-			Config.ActionDelay--
-			if Config.ActionDelay < 1 {
-				Config.ActionDelay = 1
-			}
-			os.Game.ActionDelay = Config.ActionDelay
-		case 11:
-			Config.SfxVolume--
-			if Config.SfxVolume < 0 {
-				Config.SfxVolume = 0
-			}
-			audio.SetSfxVolume(Config.SfxVolume)
-		case 12:
-			os.cycleLang(-1)
+		} else {
+			os.applyOptionDelta(optIndex, -1)
 		}
 		return
 	}
 
-	// Left click = toggle/increase
-	switch optIndex {
-	case 0, 1, 2, 3, 4, 5, 6, 7, 8:
+	if optIndex >= 0 && optIndex < 9 {
 		os.toggle()
+	} else {
+		os.applyOptionDelta(optIndex, 1)
+	}
+}
+
+func (os *OptionsScreen) applyOptionDelta(idx, dir int) {
+	switch idx {
 	case 9:
-		os.cycleTheme(1)
+		os.cycleTheme(dir)
 	case 10:
-		Config.ActionDelay++
+		Config.ActionDelay += dir
+		if Config.ActionDelay < 1 {
+			Config.ActionDelay = 1
+		}
 		if Config.ActionDelay > 20 {
 			Config.ActionDelay = 20
 		}
 		os.Game.ActionDelay = Config.ActionDelay
 	case 11:
-		Config.SfxVolume++
+		Config.SfxVolume += dir
+		if Config.SfxVolume < 0 {
+			Config.SfxVolume = 0
+		}
 		if Config.SfxVolume > 10 {
 			Config.SfxVolume = 10
 		}
 		audio.SetSfxVolume(Config.SfxVolume)
 	case 12:
-		os.cycleLang(1)
+		os.cycleLang(dir)
 	}
 }
 

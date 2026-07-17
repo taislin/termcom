@@ -135,23 +135,37 @@ func (ps *ParticleSystem) Clear() {
 	ps.particles = ps.particles[:0]
 }
 
+type explosionParams struct {
+	vx, vy float64
+	ch     rune
+	life   float64
+	fade   float64
+}
+
+func randomExplosionParticle() explosionParams {
+	angle := rand.Float64() * 2 * math.Pi
+	speed := 2 + rand.Float64()*6
+	ch := '*'
+	if rand.Intn(2) == 0 {
+		ch = '+'
+	}
+	return explosionParams{
+		vx:   math.Cos(angle) * speed,
+		vy:   math.Sin(angle)*speed - 4,
+		ch:   ch,
+		life: 0.4 + rand.Float64()*0.6,
+		fade: 0.8,
+	}
+}
+
 func SpawnExplosion(ps *ParticleSystem, x, y int, color tcell.Color, count int) {
 	r, g, b := colorRGB(color)
 	fg := tcell.NewRGBColor(int32(r), int32(g), int32(b))
 
 	for i := 0; i < count; i++ {
-		angle := rand.Float64() * 2 * math.Pi
-		speed := 2 + rand.Float64()*6
-		vx := math.Cos(angle) * speed
-		vy := math.Sin(angle) * speed - 4
-
-		ch := '*'
-		if rand.Intn(2) == 0 {
-			ch = '+'
-		}
-
+		p := randomExplosionParticle()
 		style := StyleDefault.Foreground(fg)
-		ps.Spawn(float64(x), float64(y), vx, vy, ch, style, 0.4+rand.Float64()*0.6, 0.8)
+		ps.Spawn(float64(x), float64(y), p.vx, p.vy, p.ch, style, p.life, p.fade)
 	}
 }
 

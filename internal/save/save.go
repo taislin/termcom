@@ -235,6 +235,35 @@ func LoadSaveInfo(slot int) (string, error) {
 	return fmt.Sprintf(language.String("SLOT_FORMAT"), slot, sd.GameTime.Format("2006 Jan 02"), sd.Funds/fundsDivK), nil
 }
 
+func toSoldierSave(s *soldier.Soldier) *SoldierSave {
+	return &SoldierSave{
+		Name: s.Name, Rank: int(s.Rank), HP: s.HP, MaxHP: s.MaxHP,
+		TU: s.TU, MaxTU: s.MaxTU, Accuracy: s.Accuracy, Bravery: s.Bravery,
+		Reactions: s.Reactions, Strength: s.Strength, PsiSkill: s.PsiSkill, PsiStr: s.PsiStr,
+		Weapon: s.Weapon, Armor: s.Armor, Kills: s.Kills, Missions: s.Missions,
+		Wounds: s.Wounds, Fatigue: s.Fatigue, WeaponAmmo: s.WeaponAmmo, Perks: s.Perks,
+	}
+}
+
+func toFacilitySave(f *base.Facility) *FacilitySave {
+	return &FacilitySave{
+		Type: int(f.Type), Building: f.Building, DaysLeft: f.DaysLeft, Row: f.Row, Col: f.Col,
+	}
+}
+
+func toManufJobSave(j *base.ManufactureJob) *ManufJobSave {
+	return &ManufJobSave{
+		ItemKey: j.ItemKey, Count: j.Count, Progress: j.Progress, CostDays: j.CostDays,
+		Materials: j.Materials, Engineers: j.Engineers, Completed: j.Completed,
+	}
+}
+
+func toResearchSave(r *base.ResearchProject) *ResearchSave {
+	return &ResearchSave{
+		TopicID: r.TopicID, Progress: r.Progress, Cost: r.Cost, Scientists: r.Scientists, Completed: r.Completed,
+	}
+}
+
 func FromBase(b *base.Base) *BaseSave {
 	bs := &BaseSave{
 		Name:                 b.Name,
@@ -252,59 +281,61 @@ func FromBase(b *base.Base) *BaseSave {
 		Hangars:              b.Hangars,
 	}
 	for _, s := range b.Soldiers {
-		bs.Soldiers = append(bs.Soldiers, &SoldierSave{
-			Name:       s.Name,
-			Rank:       int(s.Rank),
-			HP:         s.HP,
-			MaxHP:      s.MaxHP,
-			TU:         s.TU,
-			MaxTU:      s.MaxTU,
-			Accuracy:   s.Accuracy,
-			Bravery:    s.Bravery,
-			Reactions:  s.Reactions,
-			Strength:   s.Strength,
-			PsiSkill:   s.PsiSkill,
-			PsiStr:     s.PsiStr,
-			Weapon:     s.Weapon,
-			Armor:      s.Armor,
-			Kills:      s.Kills,
-			Missions:   s.Missions,
-			Wounds:     s.Wounds,
-			Fatigue:    s.Fatigue,
-			WeaponAmmo: s.WeaponAmmo,
-			Perks:      s.Perks,
-		})
+		bs.Soldiers = append(bs.Soldiers, toSoldierSave(s))
 	}
 	for _, f := range b.Facilities {
-		bs.Facilities = append(bs.Facilities, &FacilitySave{
-			Type:     int(f.Type),
-			Building: f.Building,
-			DaysLeft: f.DaysLeft,
-			Row:      f.Row,
-			Col:      f.Col,
-		})
+		bs.Facilities = append(bs.Facilities, toFacilitySave(f))
 	}
 	for _, j := range b.ManufactureQueue {
-		bs.ManufactureQueue = append(bs.ManufactureQueue, &ManufJobSave{
-			ItemKey:   j.ItemKey,
-			Count:     j.Count,
-			Progress:  j.Progress,
-			CostDays:  j.CostDays,
-			Materials: j.Materials,
-			Engineers: j.Engineers,
-			Completed: j.Completed,
-		})
+		bs.ManufactureQueue = append(bs.ManufactureQueue, toManufJobSave(j))
 	}
 	if b.ActiveResearch != nil {
-		bs.ActiveResearch = &ResearchSave{
-			TopicID:    b.ActiveResearch.TopicID,
-			Progress:   b.ActiveResearch.Progress,
-			Cost:       b.ActiveResearch.Cost,
-			Scientists: b.ActiveResearch.Scientists,
-			Completed:  b.ActiveResearch.Completed,
-		}
+		bs.ActiveResearch = toResearchSave(b.ActiveResearch)
 	}
 	return bs
+}
+
+func fromSoldierSave(ss *SoldierSave) *soldier.Soldier {
+	s := soldier.NewSoldier(ss.Name)
+	s.Rank = soldier.Rank(ss.Rank)
+	s.HP = ss.HP
+	s.MaxHP = ss.MaxHP
+	s.TU = ss.TU
+	s.MaxTU = ss.MaxTU
+	s.Accuracy = ss.Accuracy
+	s.Bravery = ss.Bravery
+	s.Reactions = ss.Reactions
+	s.Strength = ss.Strength
+	s.PsiSkill = ss.PsiSkill
+	s.PsiStr = ss.PsiStr
+	s.Weapon = ss.Weapon
+	s.Armor = ss.Armor
+	s.Kills = ss.Kills
+	s.Missions = ss.Missions
+	s.Wounds = ss.Wounds
+	s.Fatigue = ss.Fatigue
+	s.Perks = ss.Perks
+	s.WeaponAmmo = ss.WeaponAmmo
+	return s
+}
+
+func fromFacilitySave(fs *FacilitySave) *base.Facility {
+	return &base.Facility{
+		Type: base.FacilityType(fs.Type), Building: fs.Building, DaysLeft: fs.DaysLeft, Row: fs.Row, Col: fs.Col,
+	}
+}
+
+func fromManufJobSave(js *ManufJobSave) *base.ManufactureJob {
+	return &base.ManufactureJob{
+		ItemKey: js.ItemKey, Count: js.Count, Progress: js.Progress, CostDays: js.CostDays,
+		Materials: js.Materials, Engineers: js.Engineers, Completed: js.Completed,
+	}
+}
+
+func fromResearchSave(rs *ResearchSave) *base.ResearchProject {
+	return &base.ResearchProject{
+		TopicID: rs.TopicID, Progress: rs.Progress, Cost: rs.Cost, Scientists: rs.Scientists, Completed: rs.Completed,
+	}
 }
 
 func ToBase(bs *BaseSave) *base.Base {
@@ -333,56 +364,16 @@ func ToBase(bs *BaseSave) *base.Base {
 		b.Hangars = make([]*data.InterceptorState, 0)
 	}
 	for _, ss := range bs.Soldiers {
-		s := soldier.NewSoldier(ss.Name)
-		s.Rank = soldier.Rank(ss.Rank)
-		s.HP = ss.HP
-		s.MaxHP = ss.MaxHP
-		s.TU = ss.TU
-		s.MaxTU = ss.MaxTU
-		s.Accuracy = ss.Accuracy
-		s.Bravery = ss.Bravery
-		s.Reactions = ss.Reactions
-		s.Strength = ss.Strength
-		s.PsiSkill = ss.PsiSkill
-		s.PsiStr = ss.PsiStr
-		s.Weapon = ss.Weapon
-		s.Armor = ss.Armor
-		s.Kills = ss.Kills
-		s.Missions = ss.Missions
-		s.Wounds = ss.Wounds
-		s.Fatigue = ss.Fatigue
-		s.Perks = ss.Perks
-		s.WeaponAmmo = ss.WeaponAmmo
-		b.Soldiers = append(b.Soldiers, s)
+		b.Soldiers = append(b.Soldiers, fromSoldierSave(ss))
 	}
 	for _, fs := range bs.Facilities {
-		b.Facilities = append(b.Facilities, &base.Facility{
-			Type:     base.FacilityType(fs.Type),
-			Building: fs.Building,
-			DaysLeft: fs.DaysLeft,
-			Row:      fs.Row,
-			Col:      fs.Col,
-		})
+		b.Facilities = append(b.Facilities, fromFacilitySave(fs))
 	}
 	for _, js := range bs.ManufactureQueue {
-		b.ManufactureQueue = append(b.ManufactureQueue, &base.ManufactureJob{
-			ItemKey:   js.ItemKey,
-			Count:     js.Count,
-			Progress:  js.Progress,
-			CostDays:  js.CostDays,
-			Materials: js.Materials,
-			Engineers: js.Engineers,
-			Completed: js.Completed,
-		})
+		b.ManufactureQueue = append(b.ManufactureQueue, fromManufJobSave(js))
 	}
 	if bs.ActiveResearch != nil {
-		b.ActiveResearch = &base.ResearchProject{
-			TopicID:    bs.ActiveResearch.TopicID,
-			Progress:   bs.ActiveResearch.Progress,
-			Cost:       bs.ActiveResearch.Cost,
-			Scientists: bs.ActiveResearch.Scientists,
-			Completed:  bs.ActiveResearch.Completed,
-		}
+		b.ActiveResearch = fromResearchSave(bs.ActiveResearch)
 	}
 	return b
 }
