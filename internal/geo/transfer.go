@@ -2,6 +2,7 @@ package geo
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/taislin/termcom/internal/base"
 	"github.com/taislin/termcom/internal/engine"
@@ -250,11 +251,6 @@ func sortedStoreItems(b *base.Base) []string {
 			items = append(items, k)
 		}
 	}
-	// simple insertion sort to avoid import
-	for i := 1; i < len(items); i++ {
-		for j := i; j > 0 && items[j-1] > items[j]; j-- {
-			items[j-1], items[j] = items[j], items[j-1]
-		}
-	}
+	sort.Strings(items)
 	return items
 }

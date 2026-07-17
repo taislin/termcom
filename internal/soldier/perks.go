@@ -104,6 +104,8 @@ var AllPerks = []Perk{
 	{
 		ID: "quick_learner", Name: "Quick Learner",
 		Description: "+50% XP from battles",
+		// StatBonuses is empty because its +50% XP bonus is dynamically applied
+		// as a 1.5x multiplier in (*Soldier).PostMission().
 		StatBonuses: StatBonus{},
 	},
 }
