@@ -3001,6 +3001,13 @@ func (gs *Geoscape) clickHelpKey(key string) {
 			gs.Game.SetScreen(engine.StateManufacture, base.NewManufactureScreen(gs.Game, sb))
 			gs.Game.PushState(engine.StateBase)
 		}
+	case key == "R":
+		if !gs.Game.Paused {
+			gs.Game.Paused = true
+			gs.Message = language.String("GEOSCAPE_TIME_PAUSED")
+			gs.MessageTimer = time.Now()
+		}
+		gs.sendTransportToNearest()
 	case key == "?":
 		gs.Game.PushState(engine.StateHelp)
 	case isPauseKeyLabel(key):

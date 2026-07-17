@@ -37,7 +37,7 @@ func init() {
 		"GEOSCAPE_TIME_SPEED":   "Velocidad del tiempo: %dx",
 		"GEOSCAPE_NO_UFO":       "No se han detectado OVNIs en el radar.",
 		"GEOSCAPE_CURSOR":       "Cursor en [%d,%d]",
-		"HELP_GEOSCAPE":         "[\u2191\u2193\u2190\u2192]=Seleccionar [1-4]=Velocidad [Espacio]=Pausa [L]=Lanzar [B]=Base [?]=Ayuda",
+		"HELP_GEOSCAPE":         "[\u2191\u2193\u2190\u2192]=Seleccionar [1-4]=Velocidad [Espacio]=Pausa [L]=Lanzar [B]=Base [R]=Recuperar [?]=Ayuda",
 
 		// Multi-base
 		"MSG_ONLY_ONE_BASE":    "Solo existe una base.",

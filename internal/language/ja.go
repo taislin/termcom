@@ -37,7 +37,7 @@ func init() {
 		"GEOSCAPE_TIME_SPEED":   "時間速度: %dx",
 		"GEOSCAPE_NO_UFO":       "レーダーにUFOを検知しません。",
 		"GEOSCAPE_CURSOR":       "カーソル [%d,%d]",
-		"HELP_GEOSCAPE":         "[\u2191\u2193\u2190\u2192]=\u9078\u629e [1-4]=\u901f\u5ea6 [Space]=\u4e00\u6642\u505c\u6b62 [L]=\u767a\u9032 [B]=\u57fa\u5730 [?]=\u30d8\u30eb\u30d7",
+		"HELP_GEOSCAPE":         "[\u2191\u2193\u2190\u2192]=\u9078\u629e [1-4]=\u901f\u5ea6 [Space]=\u4e00\u6642\u505c\u6b62 [L]=\u767a\u9032 [B]=\u57fa\u5730 [R]=\u56de\u53ce [?]=\u30d8\u30eb\u30d7",
 
 		// Multi-base
 		"MSG_ONLY_ONE_BASE":    "ベースは1つしかありません。",

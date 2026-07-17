@@ -35,7 +35,7 @@ func init() {
 		"GEOSCAPE_TIME_SPEED":   "\u65f6\u95f4\u901f\u5ea6\uff1a%dx",
 		"GEOSCAPE_NO_UFO":       "\u96f7\u8fbe\u672a\u68c0\u6d4b\u5230\u4e0d\u660e\u98de\u884c\u7269\u3002",
 		"GEOSCAPE_CURSOR":       "\u5149\u6807\u4f4d\u7f6e [%d,%d]",
-		"HELP_GEOSCAPE":         "[\u2191\u2193\u2190\u2192]=\u9009\u62e9 [1-4]=\u901f\u5ea6 [\u7a7a\u683c]=\u6682\u505c [L]=\u51fa\u51fb [B]=\u57fa\u5730 [?]=\u5e2e\u52a9",
+		"HELP_GEOSCAPE":         "[\u2191\u2193\u2190\u2192]=\u9009\u62e9 [1-4]=\u901f\u5ea6 [\u7a7a\u683c]=\u6682\u505c [L]=\u51fa\u51fb [B]=\u57fa\u5730 [R]=\u56de\u6536 [?]=\u5e2e\u52a9",
 
 		// \u591a\u57fa\u5730
 		"MSG_ONLY_ONE_BASE":    "\u53ea\u6709\u4e00\u4e2a\u57fa\u5730\u3002",

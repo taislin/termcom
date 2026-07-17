@@ -37,7 +37,7 @@ func init() {
 		"GEOSCAPE_TIME_SPEED":   "시간 속도: %dx",
 		"GEOSCAPE_NO_UFO":       "레이더에 탐지된 UFO 없음.",
 		"GEOSCAPE_CURSOR":       "[%d,%d]에 커서",
-		"HELP_GEOSCAPE":         "[\u2191\u2193\u2190\u2192]=선택 [1-4]=속도 [Space]=일시정지 [L]=발진 [B]=기지 [?]=도움",
+		"HELP_GEOSCAPE":         "[\u2191\u2193\u2190\u2192]=선택 [1-4]=속도 [Space]=일시정지 [L]=발진 [B]=기지 [R]=회수 [?]=도움",
 
 		// Multi-base
 		"MSG_ONLY_ONE_BASE":    "기지가 하나만 존재합니다.",

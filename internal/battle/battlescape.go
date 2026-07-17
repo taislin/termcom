@@ -188,32 +188,25 @@ type Battlescape struct {
 }
 
 // The following setters mutate Battlescape fields that are also read by the
-// input handlers (which hold bs.State.mu via HandleEvent). Writers must go
-// through these to honour the same lock, keeping shared-state access free of
-// data races even if a writer ever runs on a different goroutine.
+// render path (ApplyCursorStyles holds bs.State.mu via RLock). They must NOT
+// take bs.State.mu themselves: input handlers already hold it via HandleEvent,
+// and Update() takes it for the duration of its mutation pass. Re-locking here
+// would deadlock (sync.RWMutex is not reentrant).
 func (bs *Battlescape) SetPhase(p BattlePhase) {
-	bs.State.mu.Lock()
 	bs.Phase = p
-	bs.State.mu.Unlock()
 }
 
 func (bs *Battlescape) SetSelected(u *Unit) {
-	bs.State.mu.Lock()
 	bs.Selected = u
-	bs.State.mu.Unlock()
 }
 
 func (bs *Battlescape) SetHovered(u *Unit) {
-	bs.State.mu.Lock()
 	bs.HoveredUnit = u
-	bs.State.mu.Unlock()
 }
 
 func (bs *Battlescape) SetScroll(x, y int) {
-	bs.State.mu.Lock()
 	bs.ScrollX = x
 	bs.ScrollY = y
-	bs.State.mu.Unlock()
 }
 
 type CustomVictory struct {
