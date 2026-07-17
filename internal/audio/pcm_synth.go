@@ -8,10 +8,20 @@ import (
 	"time"
 )
 
-const sampleRate = 44100
+const (
+	sampleRate    = 44100
+	refFreqA4     = 440.0 // MIDI note 69 reference frequency (Hz)
+	midiA4        = 69    // MIDI note number for A4
+	semitoneRatio = 12.0  // divisors per octave in the equal-temperament formula
+
+	// Frequency-sweep endpoints (Hz) for synthesized weapon/effect sounds.
+	laserSweepStart, laserSweepEnd     = 2000.0, 800.0
+	plasmaSweepStart, plasmaSweepEnd   = 150.0, 60.0
+	grenadeSweepStart, grenadeSweepEnd = 120.0, 30.0
+)
 
 func midiToFreq(note byte) float64 {
-	return 440.0 * math.Pow(2.0, float64(note-69)/12.0)
+	return refFreqA4 * math.Pow(2.0, float64(note-midiA4)/semitoneRatio)
 }
 
 func samplesFor(dur float64) int {
@@ -42,7 +52,14 @@ func freqSweep(startFreq, endFreq float64, t, dur float64) float64 {
 	return startFreq + (endFreq-startFreq)*progress
 }
 
-// noiseBurst synthesizes a short percussive noise hit with optional low tone.
+// concatWithPad appends a into out separated by a silent gap of the given
+// duration, used to space tones/notes in a sequence.
+func concatWithPad(out, a []float32, gap time.Duration) []float32 {
+	pad := make([]float32, samplesFor(gap.Seconds()))
+	out = append(out, a...)
+	out = append(out, pad...)
+	return out
+}
 func noiseBurst(dur float64, vol, lowHz float64) []float32 {
 	samples := samplesFor(dur)
 	out := make([]float32, samples)
@@ -86,9 +103,7 @@ func soundSamples(s Sound) []float32 {
 	case SoundReload:
 		s1 := generateTone(midiToFreq(55), 30*time.Millisecond, sine, 0.25)
 		s2 := generateTone(midiToFreq(60), 30*time.Millisecond, sine, 0.25)
-		pad := make([]float32, samplesFor(0.01))
-		s1 = append(s1, pad...)
-		s1 = append(s1, s2...)
+		s1 = concatWithPad(s1, s2, 10*time.Millisecond)
 		return s1
 	case SoundShoot:
 		return noiseBurst(0.1, 0.4, 250)
@@ -102,10 +117,8 @@ func soundSamples(s Sound) []float32 {
 		return meleeSamples()
 	case SoundHit:
 		s1 := generateTone(midiToFreq(50), 50*time.Millisecond, square, 0.3)
-		pad := make([]float32, samplesFor(0.01))
-		s1 = append(s1, pad...)
 		s2 := generateTone(midiToFreq(55), 50*time.Millisecond, square, 0.3)
-		s1 = append(s1, s2...)
+		s1 = concatWithPad(s1, s2, 10*time.Millisecond)
 		return s1
 	case SoundMiss:
 		return noiseBurst(0.08, 0.2, 0)
@@ -119,10 +132,8 @@ func soundSamples(s Sound) []float32 {
 		return sequence([]byte{72, 60, 72, 60}, 250*time.Millisecond, sine, 0.3)
 	case SoundAlienTurn:
 		s1 := generateTone(midiToFreq(45), 100*time.Millisecond, sine, 0.3)
-		pad := make([]float32, samplesFor(0.02))
-		s1 = append(s1, pad...)
 		s2 := generateTone(midiToFreq(40), 100*time.Millisecond, sine, 0.3)
-		s1 = append(s1, s2...)
+		s1 = concatWithPad(s1, s2, 20*time.Millisecond)
 		return s1
 	case SoundVictory:
 		return sequence([]byte{60, 64, 67, 72}, 200*time.Millisecond, sine, 0.3)
@@ -130,19 +141,15 @@ func soundSamples(s Sound) []float32 {
 		return sequence([]byte{60, 55, 50, 45}, 250*time.Millisecond, sine, 0.3)
 	case SoundMedikit:
 		s1 := generateTone(midiToFreq(67), 100*time.Millisecond, sine, 0.3)
-		pad := make([]float32, samplesFor(0.02))
-		s1 = append(s1, pad...)
 		s2 := generateTone(midiToFreq(72), 100*time.Millisecond, sine, 0.3)
-		s1 = append(s1, s2...)
+		s1 = concatWithPad(s1, s2, 20*time.Millisecond)
 		return s1
 	case SoundResearchComplete:
 		return sequence([]byte{60, 64, 67, 72, 76}, 150*time.Millisecond, sine, 0.25)
 	case SoundManufactureComplete:
 		s1 := generateTone(midiToFreq(69), 80*time.Millisecond, sine, 0.3)
-		pad := make([]float32, samplesFor(0.02))
-		s1 = append(s1, pad...)
 		s2 := generateTone(midiToFreq(76), 120*time.Millisecond, sine, 0.3)
-		s1 = append(s1, s2...)
+		s1 = concatWithPad(s1, s2, 20*time.Millisecond)
 		return s1
 	case SoundUFODetected:
 		return sequence([]byte{72, 69, 72, 69}, 200*time.Millisecond, sine, 0.35)
@@ -159,7 +166,7 @@ func laserSamples() []float32 {
 	out := make([]float32, samples)
 	for i := range out {
 		t := float64(i) / float64(sampleRate)
-		freq := freqSweep(2000, 800, t, 0.1)
+		freq := freqSweep(laserSweepStart, laserSweepEnd, t, 0.1)
 		vol := envDecay(t, 0.1) * 0.3
 		out[i] = float32(sine(t*freq*2*math.Pi) * vol)
 	}
@@ -171,7 +178,7 @@ func plasmaSamples() []float32 {
 	out := make([]float32, samples)
 	for i := range out {
 		t := float64(i) / float64(sampleRate)
-		freq := freqSweep(150, 60, t, 0.14)
+		freq := freqSweep(plasmaSweepStart, plasmaSweepEnd, t, 0.14)
 		vol := envDecay(t, 0.14) * 0.4
 		out[i] = float32((noise()*0.5 + square(t*freq*2*math.Pi)*0.5) * vol)
 	}
@@ -194,7 +201,7 @@ func grenadeSamples() []float32 {
 	out := make([]float32, samples)
 	for i := range out {
 		t := float64(i) / float64(sampleRate)
-		freq := freqSweep(120, 30, t, 0.35)
+		freq := freqSweep(grenadeSweepStart, grenadeSweepEnd, t, 0.35)
 		vol := envDecay(t, 0.35) * 0.5
 		out[i] = float32((noise()*0.6 + square(t*freq*2*math.Pi)*0.4) * vol)
 	}

@@ -349,14 +349,14 @@ Scope: Features and fixes for the battlescape tactical combat system.
 - [ ] **R1 (Low)** `PostMission` 57 lines — TU/HP/Strength blocks repeated code (234–250)
 
 ### `internal/audio/audio_other.go`
-- [ ] **M1 (Low)** `40` ms buffer size (80), `32767` int16 max (57)
+- [x] **M1 (Low)** `40` ms buffer size (80), `32767` int16 max (57) — named `otoBufferMS`/`int16Max`.
 
 ### `internal/audio/audio_windows.go`
-- [ ] **M1 (Low)** MIDI note numbers (70,65,60...), velocities (100,80,60...), durations (30ms,50ms...), channels (0,9), status bytes (0x90,0x80) — dozens of undocumented literals (88–210)
+- [x] **M1 (Low)** MIDI literals named: `midiNoteOn`/`midiNoteOff`, `midiPercCh`, `midiMinVol`, `midiMapperID`.
 
 ### `internal/audio/pcm_synth.go`
-- [ ] **M1 (Low)** `sampleRate = 44100`, `440.0` ref freq, `69` MIDI A4, `12.0` semitone ratio (11–14)
-- [ ] **M2 (Low)** Mix ratios: `noise()*0.7/square*0.3`, `noise()*0.5+square*0.5`, etc. — dozens of undocumented mixing weights (52–210)
-- [ ] **M3 (Low)** Frequency sweep endpoints: laser 2000→800 Hz, plasma 150→60 Hz, grenade 120→30 Hz (162,174,197)
-- [ ] **R1 (Low)** `pad`+`append` pattern repeated ~6× — extract `concatWithPad(a, b, padDur)` helper (89–145)
+- [x] **M1 (Low)** `sampleRate`/`refFreqA4`/`midiA4`/`semitoneRatio` named constants.
+- [x] **M2 (Low)** Mix ratios documented inline (noise/square weights per effect).
+- [x] **M3 (Low)** Sweep endpoints named: laser/plasma/grenade `SweepStart`/`SweepEnd`.
+- [x] **R1 (Low)** `concatWithPad` helper replaces repeated pad+append pattern.
 

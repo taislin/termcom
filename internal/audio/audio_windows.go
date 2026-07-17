@@ -21,6 +21,15 @@ var (
 	midiOnce sync.Once
 )
 
+// MIDI message status bytes and constants.
+const (
+	midiNoteOn   = 0x90 // status byte: note on (channel in low nibble)
+	midiNoteOff  = 0x80 // status byte: note off (channel in low nibble)
+	midiPercCh   = 9    // General MIDI percussion channel
+	midiMinVol   = 10   // minimum note velocity so quiet sounds remain audible
+	midiMapperID = 0xFFFFFFFF
+)
+
 func ensureMIDI() {
 	if audioDisabled {
 		return
@@ -34,7 +43,7 @@ func ensureMIDI() {
 		// Open MIDI Mapper (Device ID -1).
 		// Call returns (r1, r2, err); on Windows r1 is the HRESULT. A zero
 		// result (MMSYSERR_NOERROR) indicates success, regardless of err text.
-		r1, _, _ := midiOutOpen.Call(uintptr(unsafe.Pointer(&handle)), 0xFFFFFFFF, 0, 0, 0)
+		r1, _, _ := midiOutOpen.Call(uintptr(unsafe.Pointer(&handle)), midiMapperID, 0, 0, 0)
 		if r1 != 0 {
 			audioDisabled = true
 		}
@@ -70,17 +79,17 @@ func playNote(note byte, velocity byte, channel byte, duration time.Duration) {
 	}
 	ensureMIDI()
 	vol := byte(float64(velocity) * sfxVolume)
-	if vol < 10 {
-		vol = 10
+	if vol < midiMinVol {
+		vol = midiMinVol
 	}
 	// Note On
-	msgOn := uint32(0x90|channel) | (uint32(note) << 8) | (uint32(vol) << 16)
+	msgOn := uint32(midiNoteOn|channel) | (uint32(note) << 8) | (uint32(vol) << 16)
 	sendMIDI(msgOn)
 
 	// Note Off
 	go func() {
 		time.Sleep(duration)
-		msgOff := uint32(0x80|channel) | (uint32(note) << 8) | (uint32(0) << 16)
+		msgOff := uint32(midiNoteOff|channel) | (uint32(note) << 8) | (uint32(0) << 16)
 		sendMIDI(msgOff)
 	}()
 }
@@ -104,9 +113,9 @@ func (b *midiBackend) Play(s Sound) {
 			playNote(60, 80, 0, 30*time.Millisecond)
 		}()
 	case SoundShoot:
-		playNote(38, 120, 9, 100*time.Millisecond)
+		playNote(38, 120, midiPercCh, 100*time.Millisecond)
 	case SoundBallisticFire:
-		playNote(42, 120, 9, 50*time.Millisecond)
+		playNote(42, 120, midiPercCh, 50*time.Millisecond)
 	case SoundLaserFire:
 		playNote(80, 100, 0, 60*time.Millisecond)
 		go func() {
@@ -114,35 +123,35 @@ func (b *midiBackend) Play(s Sound) {
 			playNote(84, 80, 0, 40*time.Millisecond)
 		}()
 	case SoundPlasmaFire:
-		playNote(38, 120, 9, 80*time.Millisecond)
+		playNote(38, 120, midiPercCh, 80*time.Millisecond)
 		go func() {
 			time.Sleep(40 * time.Millisecond)
-			playNote(42, 100, 9, 60*time.Millisecond)
+			playNote(42, 100, midiPercCh, 60*time.Millisecond)
 		}()
 	case SoundMeleeFire:
-		playNote(48, 110, 9, 40*time.Millisecond)
+		playNote(48, 110, midiPercCh, 40*time.Millisecond)
 		go func() {
 			time.Sleep(30 * time.Millisecond)
-			playNote(44, 120, 9, 50*time.Millisecond)
+			playNote(44, 120, midiPercCh, 50*time.Millisecond)
 		}()
 	case SoundHit:
-		playNote(50, 100, 9, 50*time.Millisecond)
+		playNote(50, 100, midiPercCh, 50*time.Millisecond)
 		go func() {
 			time.Sleep(60 * time.Millisecond)
-			playNote(55, 100, 9, 50*time.Millisecond)
+			playNote(55, 100, midiPercCh, 50*time.Millisecond)
 		}()
 	case SoundMiss:
-		playNote(40, 80, 9, 80*time.Millisecond)
+		playNote(40, 80, midiPercCh, 80*time.Millisecond)
 	case SoundExplosion:
-		playNote(35, 127, 9, 300*time.Millisecond)
+		playNote(35, 127, midiPercCh, 300*time.Millisecond)
 	case SoundGrenade:
-		playNote(35, 127, 9, 150*time.Millisecond)
+		playNote(35, 127, midiPercCh, 150*time.Millisecond)
 		go func() {
 			time.Sleep(160 * time.Millisecond)
-			playNote(30, 127, 9, 200*time.Millisecond)
+			playNote(30, 127, midiPercCh, 200*time.Millisecond)
 		}()
 	case SoundDistantExplosion:
-		playNote(28, 80, 9, 400*time.Millisecond)
+		playNote(28, 80, midiPercCh, 400*time.Millisecond)
 	case SoundAlert:
 		notes := []byte{72, 60, 72, 60}
 		for i, note := range notes {

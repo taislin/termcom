@@ -12,6 +12,11 @@ import (
 const (
 	channels = 1
 	format   = oto.FormatSignedInt16LE
+
+	// otoBufferMS is the output buffer size for the Oto PCM stream.
+	otoBufferMS = 40
+	// int16Max is the largest magnitude of a signed 16-bit PCM sample.
+	int16Max = 32767
 )
 
 var (
@@ -62,7 +67,7 @@ func (m *mixerStream) Read(buf []byte) (int, error) {
 	m.buffers = remaining
 
 	for i, s := range f32 {
-		v := int16(s * 32767)
+		v := int16(s * int16Max)
 		buf[i*2] = byte(v)
 		buf[i*2+1] = byte(v >> 8)
 	}
@@ -85,7 +90,7 @@ func ensureOto() {
 			SampleRate:   sampleRate,
 			ChannelCount: channels,
 			Format:       format,
-			BufferSize:   time.Duration(40) * time.Millisecond,
+			BufferSize:   time.Duration(otoBufferMS) * time.Millisecond,
 		}
 		var err error
 		otoCtx, _, err = oto.NewContext(op)
