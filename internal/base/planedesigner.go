@@ -138,8 +138,8 @@ func (pd *PlaneDesignerScreen) renderStats(ctx *engine.ScreenCtx, sx, sy, sw, sh
 		{language.String("PLANE_STAT_SPEED"), fmt.Sprintf("%.1f", stats.Speed), engine.StyleGreen},
 		{language.String("PLANE_STAT_FIREPOWER"), fmt.Sprintf("%.0f", stats.Firepower), engine.StyleRed},
 		{language.String("PLANE_STAT_HULL"), fmt.Sprintf("%d", stats.Hull), engine.StyleYellow},
-		{language.String("PLANE_STAT_MASS"), fmt.Sprintf("%.1f t", stats.Mass), engine.StyleGray},
-		{language.String("PLANE_STAT_THRUST"), fmt.Sprintf("%.0f kN", stats.Thrust), engine.StyleGreen},
+		{language.String("PLANE_STAT_MASS"), fmt.Sprintf("%.1f%s", stats.Mass, language.String("UNIT_TONNES")), engine.StyleGray},
+		{language.String("PLANE_STAT_THRUST"), fmt.Sprintf("%.0f%s", stats.Thrust, language.String("UNIT_KILONEWTON")), engine.StyleGreen},
 		{language.String("PLANE_STAT_RANGE"), fmt.Sprintf("%d", stats.Range), engine.StyleCyan},
 	}
 	for i, r := range rows {
@@ -212,7 +212,7 @@ func (pd *PlaneDesignerScreen) paramList() []paramInfo {
 	}
 	return []paramInfo{
 		{language.String("PLANE_PARAM_LENGTH"), fmt.Sprintf("[%d] %s", cfg.Length, pd.bar(cfg.Length, 3, 7))},
-		{language.String("PLANE_PARAM_WINGSPAN"), fmt.Sprintf("[%d] %s (%d cells)", cfg.Wingspan, pd.bar(cfg.Wingspan, 1, 4), cfg.Wingspan*2+1)},
+		{language.String("PLANE_PARAM_WINGSPAN"), fmt.Sprintf("[%d] %s (%d %s)", cfg.Wingspan, pd.bar(cfg.Wingspan, 1, 4), cfg.Wingspan*2+1, language.String("UNIT_CELLS"))},
 		{language.String("PLANE_PARAM_ENGINES"), fmt.Sprintf("[%d] %s", cfg.Engines, pd.bar(cfg.Engines, 1, 3))},
 		{language.String("PLANE_PARAM_FUEL"), fmt.Sprintf("[%d] %s", cfg.Fuel, pd.bar(cfg.Fuel/10, 2, 10))},
 		{language.String("PLANE_PARAM_WEAPON"), fmt.Sprintf("< %s >", wpn)},

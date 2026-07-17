@@ -435,6 +435,9 @@ func init() {
 		"PLANE_CLASS_MEDIUM":    "Medium",
 		"PLANE_CLASS_HEAVY":     "Heavy",
 		"PLANE_NAME_FIGHTER":    "Fighter",
+		"UNIT_TONNES":           "t",
+		"UNIT_KILONEWTON":       "kN",
+		"UNIT_CELLS":            "cells",
 
 		// ── Weapon Designer ──────────────────────────────────
 		"WEAPON_DESIGNER_TITLE":  "WEAPON DESIGNER",
@@ -459,6 +462,24 @@ func init() {
 		"WEAPON_LABEL_COST":     "Cost: $%dk",
 		"WEAPON_DESIGNER_HELP":  "[\u2191\u2193] Nav  [\u2190\u2192] Adjust  [Tab] Next  [Enter] Build  [Esc] Cancel",
 		"PLANE_DESIGNER_HELP":   "[\u2191\u2193] Nav  [\u2190\u2192] Adjust  [Tab] Next  [Enter] Save  [Esc] Cancel  [R] Reset",
+		"BARREL_SHORT":             "Short",
+		"BARREL_STANDARD":          "Standard",
+		"BARREL_LONG":              "Long",
+		"BARREL_EXTENDED":          "Extended",
+		"OPTICS_NONE":              "None",
+		"OPTICS_IRON_SIGHTS":       "Iron Sights",
+		"OPTICS_SCOPE":             "Scope",
+		"OPTICS_ADVANCED_OPTICS":   "Advanced Optics",
+		"AMMO_STANDARD":            "Standard",
+		"AMMO_AP":                  "AP",
+		"AMMO_INCENDIARY":          "Incendiary",
+		"AMMO_EXPLOSIVE":           "Explosive",
+		"STOCK_NONE":               "None",
+		"STOCK_LIGHT":              "Light",
+		"STOCK_HEAVY":              "Heavy",
+		"WPN_SUFFIX_SCOPED":        "Scoped",
+		"WPN_MODE_SEMI":            "Semi",
+		"WPN_DESIGN_NONE":          "---",
 
 		// ── Equipment ──────────────────────────────────────
 		"EQUIP_TITLE":        "EQUIP SOLDIERS",
@@ -667,6 +688,13 @@ func init() {
 		"UFO_HARVESTER":    "Harvester",
 		"UFO_BOMBER":       "Bomber",
 		"UFO_TRANSPORT":    "Transport",
+
+		"UFO_UNKNOWN":             "UFO (Unknown Type)",
+		"UFO_CLASS_DRONE":         "Drone",
+		"UFO_CLASS_SCOUT":         "Scout",
+		"UFO_CLASS_INTERCEPTOR":   "Interceptor",
+		"UFO_CLASS_BOMBER":        "Bomber",
+		"UFO_CLASS_CARRIER":       "Carrier",
 
 		// ── Help pages ────────────────────────────────────
 		"HELP_TITLE": "HELP",

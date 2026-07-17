@@ -1,6 +1,10 @@
 package data
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/taislin/termcom/internal/language"
+)
 
 // WeaponDesign defines a player-designed modular weapon.
 type WeaponDesign struct {
@@ -23,6 +27,10 @@ type BarrelDef struct {
 	CostMod    int
 }
 
+func (b BarrelDef) LangName() string {
+	return language.String("BARREL_" + b.Name)
+}
+
 var Barrels = []BarrelDef{
 	{"Short", -3, -5, -2, -1.0, -200},
 	{"Standard", 0, 0, 0, 0.0, 0},
@@ -37,6 +45,10 @@ type OpticsDef struct {
 	TUMod      int
 	WeightMod  float64
 	CostMod    int
+}
+
+func (o OpticsDef) LangName() string {
+	return language.String("OPTICS_" + strings.ToUpper(strings.ReplaceAll(o.Name, " ", "_")))
 }
 
 var OpticsList = []OpticsDef{
@@ -71,6 +83,10 @@ type AmmoTypeDef struct {
 	IsAlien   bool
 }
 
+func (a AmmoTypeDef) LangName() string {
+	return language.String("AMMO_" + strings.ToUpper(a.Name))
+}
+
 var AmmoTypes = []AmmoTypeDef{
 	{"Standard", 0, 0, 0.0, 0, false},
 	{"AP", +5, +2, +0.5, +400, false},
@@ -85,6 +101,10 @@ type StockDef struct {
 	TUMod      int
 	WeightMod  float64
 	CostMod    int
+}
+
+func (s StockDef) LangName() string {
+	return language.String("STOCK_" + strings.ToUpper(s.Name))
 }
 
 var Stocks = []StockDef{
@@ -105,6 +125,10 @@ type baseWeaponTemplate struct {
 	Cost      int
 	Weight    float64
 	BattleType int
+}
+
+func (t baseWeaponTemplate) LangName() string {
+	return language.String("WPN_" + strings.ToUpper(t.Name))
 }
 
 var baseTemplates = map[string]baseWeaponTemplate{
@@ -239,23 +263,23 @@ func WeaponDesignName(d WeaponDesign) string {
 	var parts []string
 
 	// Barrel prefix
-	if d.Barrel >= 0 && d.Barrel < len(Barrels) && Barrels[d.Barrel].Name != "Standard" {
-		parts = append(parts, Barrels[d.Barrel].Name)
+	if d.Barrel >= 0 && d.Barrel < len(Barrels) && d.Barrel != 1 {
+		parts = append(parts, Barrels[d.Barrel].LangName())
 	}
 
 	// Base weapon name
-	parts = append(parts, base.Name)
+	parts = append(parts, base.LangName())
 
 	// Suffixes
 	var suffix []string
 	if d.Optics >= 2 {
-		suffix = append(suffix, "Scoped")
+		suffix = append(suffix, language.String("WPN_SUFFIX_SCOPED"))
 	}
 	if d.Auto {
-		suffix = append(suffix, "Auto")
+		suffix = append(suffix, language.String("FIRE_MODE_AUTO"))
 	}
 	if d.AmmoType >= 1 && d.AmmoType < len(AmmoTypes) {
-		suffix = append(suffix, AmmoTypes[d.AmmoType].Name)
+		suffix = append(suffix, AmmoTypes[d.AmmoType].LangName())
 	}
 	if len(suffix) > 0 {
 		parts = append(parts, "("+strings.Join(suffix, "/")+")")
@@ -277,25 +301,25 @@ func joinParts(parts []string) string {
 
 // WeaponDesignBarLabels returns display strings for each parameter's options.
 func WeaponDesignBarLabels(d WeaponDesign) []string {
-	barrel := "---"
+	barrel := language.String("WPN_DESIGN_NONE")
 	if d.Barrel >= 0 && d.Barrel < len(Barrels) {
-		barrel = Barrels[d.Barrel].Name
+		barrel = Barrels[d.Barrel].LangName()
 	}
-	optics := "---"
+	optics := language.String("WPN_DESIGN_NONE")
 	if d.Optics >= 0 && d.Optics < len(OpticsList) {
-		optics = OpticsList[d.Optics].Name
+		optics = OpticsList[d.Optics].LangName()
 	}
-	auto := "Semi"
+	auto := language.String("WPN_MODE_SEMI")
 	if d.Auto {
-		auto = "Auto"
+		auto = language.String("FIRE_MODE_AUTO")
 	}
-	ammo := "---"
+	ammo := language.String("WPN_DESIGN_NONE")
 	if d.AmmoType >= 0 && d.AmmoType < len(AmmoTypes) {
-		ammo = AmmoTypes[d.AmmoType].Name
+		ammo = AmmoTypes[d.AmmoType].LangName()
 	}
-	stock := "---"
+	stock := language.String("WPN_DESIGN_NONE")
 	if d.Stock >= 0 && d.Stock < len(Stocks) {
-		stock = Stocks[d.Stock].Name
+		stock = Stocks[d.Stock].LangName()
 	}
 	return []string{barrel, optics, auto, ammo, stock}
 }

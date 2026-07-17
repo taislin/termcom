@@ -410,10 +410,10 @@ func init() {
 		"LINE_HANGAR_INFO":           "Hangar %d: [%s] HP:%d/%d %s (Ar:%d)",
 
 		// ── Plane Designer ──────────────────────────────────
-		"PLANE_DESIGNER_TITLE":  "PLANE DESIGNER",
-		"PLANE_PREVIEW":         "PREVIEW",
-		"PLANE_STATS":           "STATS",
-		"PLANE_PARAMETERS":      "PARAMETERS",
+		"PLANE_DESIGNER_TITLE":  "DISEÑO DE AVIONES",
+		"PLANE_PREVIEW":         "VISTA PREVIA",
+		"PLANE_STATS":           "ESTADÍSTICAS",
+		"PLANE_PARAMETERS":      "PARÁMETROS",
 		"PLANE_PARAM_LENGTH":    "Longitud",
 		"PLANE_PARAM_WINGSPAN":  "Envergadura",
 		"PLANE_PARAM_ENGINES":   "Motores",
@@ -437,6 +437,9 @@ func init() {
 		"PLANE_CLASS_MEDIUM":    "Medio",
 		"PLANE_CLASS_HEAVY":     "Pesado",
 		"PLANE_NAME_FIGHTER":    "Caza",
+		"UNIT_TONNES":           "t",
+		"UNIT_KILONEWTON":       "kN",
+		"UNIT_CELLS":            "celdas",
 
 		// ── Weapon Designer
 		"WEAPON_DESIGNER_TITLE":  "DISEÑO DE ARMAS",
@@ -461,6 +464,24 @@ func init() {
 		"WEAPON_LABEL_COST":     "Coste: $%dk",
 		"WEAPON_DESIGNER_HELP":  "[\u2191\u2193] Naveg  [\u2190\u2192] Ajust  [Tab] Sig  [Enter] Const  [Esc] Cancel",
 		"PLANE_DESIGNER_HELP":   "[\u2191\u2193] Naveg  [\u2190\u2192] Ajust  [Tab] Sig  [Enter] Guard  [Esc] Cancel  [R] Rest",
+		"BARREL_SHORT":             "Corto",
+		"BARREL_STANDARD":          "Estándar",
+		"BARREL_LONG":              "Largo",
+		"BARREL_EXTENDED":          "Extendido",
+		"OPTICS_NONE":              "Ninguno",
+		"OPTICS_IRON_SIGHTS":       "Miras de Hierro",
+		"OPTICS_SCOPE":             "Visor",
+		"OPTICS_ADVANCED_OPTICS":   "Óptica Avanzada",
+		"AMMO_STANDARD":            "Estándar",
+		"AMMO_AP":                  "Perforante",
+		"AMMO_INCENDIARY":          "Incendiaria",
+		"AMMO_EXPLOSIVE":           "Explosiva",
+		"STOCK_NONE":               "Ninguno",
+		"STOCK_LIGHT":              "Ligera",
+		"STOCK_HEAVY":              "Pesada",
+		"WPN_SUFFIX_SCOPED":        "Con Visor",
+		"WPN_MODE_SEMI":            "Semi",
+		"WPN_DESIGN_NONE":          "---",
 
 		// ── Equipamiento ──────────────────────────────────────
 		"EQUIP_TITLE":        "EQUIPAR SOLDADOS",
@@ -648,6 +669,12 @@ func init() {
 		"UFO_HARVESTER":    "Cosechador",
 		"UFO_BOMBER":       "Bombardero",
 		"UFO_TRANSPORT":    "Transporte",
+		"UFO_UNKNOWN":             "OVNI (Tipo Desconocido)",
+		"UFO_CLASS_DRONE":         "Dron",
+		"UFO_CLASS_SCOUT":         "Explorador",
+		"UFO_CLASS_INTERCEPTOR":   "Interceptor",
+		"UFO_CLASS_BOMBER":        "Bombardero",
+		"UFO_CLASS_CARRIER":       "Portaovnis",
 
 		// ── P\u00e1ginas de ayuda ────────────────────────────
 		"HELP_TITLE": "AYUDA",

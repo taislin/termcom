@@ -410,10 +410,10 @@ func init() {
 		"LINE_HANGAR_INFO":           "격납고 %d: [%s] HP:%d/%d %s (탄:%d)",
 
 		// ── Plane Designer ──────────────────────────────────
-		"PLANE_DESIGNER_TITLE":  "PLANE DESIGNER",
-		"PLANE_PREVIEW":         "PREVIEW",
-		"PLANE_STATS":           "STATS",
-		"PLANE_PARAMETERS":      "PARAMETERS",
+		"PLANE_DESIGNER_TITLE":  "비행기 설계기",
+		"PLANE_PREVIEW":         "미리보기",
+		"PLANE_STATS":           "능력",
+		"PLANE_PARAMETERS":      "매개변수",
 		"PLANE_PARAM_LENGTH":    "길이",
 		"PLANE_PARAM_WINGSPAN":  "날개폭",
 		"PLANE_PARAM_ENGINES":   "엔진",
@@ -437,6 +437,9 @@ func init() {
 		"PLANE_CLASS_MEDIUM":    "중",
 		"PLANE_CLASS_HEAVY":     "중무장",
 		"PLANE_NAME_FIGHTER":    "전투기",
+		"UNIT_TONNES":           "t",
+		"UNIT_KILONEWTON":       "kN",
+		"UNIT_CELLS":            "셀",
 
 		// ── Weapon Designer
 		"WEAPON_DESIGNER_TITLE":  "무기 설계기",
@@ -461,6 +464,24 @@ func init() {
 		"WEAPON_LABEL_COST":     "비용: $%dk",
 		"WEAPON_DESIGNER_HELP":  "[\u2191\u2193] 이동  [\u2190\u2192] 조정  [Tab] 다음  [Enter] 제조  [Esc] 취소",
 		"PLANE_DESIGNER_HELP":   "[\u2191\u2193] 이동  [\u2190\u2192] 조정  [Tab] 다음  [Enter] 저장  [Esc] 취소  [R] 초기화",
+		"BARREL_SHORT":             "짧은 총열",
+		"BARREL_STANDARD":          "표준 총열",
+		"BARREL_LONG":              "긴 총열",
+		"BARREL_EXTENDED":          "연장 총열",
+		"OPTICS_NONE":              "없음",
+		"OPTICS_IRON_SIGHTS":       "철제 조준기",
+		"OPTICS_SCOPE":             "조준경",
+		"OPTICS_ADVANCED_OPTICS":   "고급 광학장비",
+		"AMMO_STANDARD":            "표준",
+		"AMMO_AP":                  "철갑",
+		"AMMO_INCENDIARY":          "소이",
+		"AMMO_EXPLOSIVE":           "폭발",
+		"STOCK_NONE":               "없음",
+		"STOCK_LIGHT":              "경량 개머리판",
+		"STOCK_HEAVY":              "중량 개머리판",
+		"WPN_SUFFIX_SCOPED":        "조준경 부착",
+		"WPN_MODE_SEMI":            "반자동",
+		"WPN_DESIGN_NONE":          "---",
 
 		// ── Equipment ──────────────────────────────────────
 		"EQUIP_TITLE":        "병사 장비",
@@ -649,6 +670,12 @@ func init() {
 		"UFO_HARVESTER":    "수확선",
 		"UFO_BOMBER":       "폭격기",
 		"UFO_TRANSPORT":    "수송선",
+		"UFO_UNKNOWN":             "UFO (알 수 없는 유형)",
+		"UFO_CLASS_DRONE":         "드론",
+		"UFO_CLASS_SCOUT":         "정찰기",
+		"UFO_CLASS_INTERCEPTOR":   "요격기",
+		"UFO_CLASS_BOMBER":        "폭격기",
+		"UFO_CLASS_CARRIER":       "모선",
 
 		// ── Help pages ────────────────────────────────────
 		"HELP_TITLE": "도움말",

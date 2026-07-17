@@ -5,6 +5,7 @@ import (
 	"image"
 
 	"github.com/gdamore/tcell/v3"
+	"github.com/taislin/termcom/internal/language"
 )
 
 // PartCategory classifies a vehicle component.
@@ -301,7 +302,7 @@ func (pp *PlacedPart) LootID() string {
 // or the blueprint name once identified.
 func (vb *VehicleBlueprint) DisplayName(scouted bool) string {
 	if !scouted {
-		return "UFO (Unknown Type)"
+		return language.String("UFO_UNKNOWN")
 	}
 	return vb.Name
 }
@@ -424,7 +425,25 @@ const (
 	TierCarrier               // 7x7, endgame
 )
 
-// UFOClassNames maps tiers to display names.
+// UFOTierLangName returns the translated display name for a UFO tier.
+func UFOTierLangName(tier UFOTier) string {
+	switch tier {
+	case TierDrone:
+		return language.String("UFO_CLASS_DRONE")
+	case TierScout:
+		return language.String("UFO_CLASS_SCOUT")
+	case TierInterceptor:
+		return language.String("UFO_CLASS_INTERCEPTOR")
+	case TierBomber:
+		return language.String("UFO_CLASS_BOMBER")
+	case TierCarrier:
+		return language.String("UFO_CLASS_CARRIER")
+	default:
+		return language.String("UFO_UNKNOWN")
+	}
+}
+
+// UFOClassNames maps tiers to internal names.
 var UFOClassNames = map[UFOTier]string{
 	TierDrone:       "Drone",
 	TierScout:       "Scout",
@@ -498,7 +517,7 @@ var tierConfigs = map[UFOTier]tierConfig{
 func GenerateProceduralUFO(seed int64, tier UFOTier) *VehicleBlueprint {
 	rng := newRand(seed)
 	cfg := tierConfigs[tier]
-	name := UFOClassNames[tier]
+	name := UFOTierLangName(tier)
 
 	vb := NewVehicleBlueprint(name, cfg.width, cfg.height)
 

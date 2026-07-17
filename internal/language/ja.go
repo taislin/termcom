@@ -410,10 +410,10 @@ func init() {
 		"LINE_HANGAR_INFO":           "格納庫 %d: [%s] HP:%d/%d %s (A:%d)",
 
 		// ── Plane Designer ──────────────────────────────────
-		"PLANE_DESIGNER_TITLE":  "PLANE DESIGNER",
-		"PLANE_PREVIEW":         "PREVIEW",
-		"PLANE_STATS":           "STATS",
-		"PLANE_PARAMETERS":      "PARAMETERS",
+		"PLANE_DESIGNER_TITLE":  "航空機設計室",
+		"PLANE_PREVIEW":         "プレビュー",
+		"PLANE_STATS":           "ステータス",
+		"PLANE_PARAMETERS":      "パラメータ",
 		"PLANE_PARAM_LENGTH":    "全長",
 		"PLANE_PARAM_WINGSPAN":  "翼幅",
 		"PLANE_PARAM_ENGINES":   "エンジン",
@@ -437,6 +437,9 @@ func init() {
 		"PLANE_CLASS_MEDIUM":    "中",
 		"PLANE_CLASS_HEAVY":     "重",
 		"PLANE_NAME_FIGHTER":    "戦闘機",
+		"UNIT_TONNES":           "t",
+		"UNIT_KILONEWTON":       "kN",
+		"UNIT_CELLS":            "セル",
 
 		// ── Weapon Designer
 		"WEAPON_DESIGNER_TITLE":  "武器設計室",
@@ -461,6 +464,24 @@ func init() {
 		"WEAPON_LABEL_COST":     "コスト: $%dk",
 		"WEAPON_DESIGNER_HELP":  "[\u2191\u2193] 移動  [\u2190\u2192] 調整  [Tab] 次  [Enter] 建造  [Esc] 取消",
 		"PLANE_DESIGNER_HELP":   "[\u2191\u2193] 移動  [\u2190\u2192] 調整  [Tab] 次  [Enter] 保存  [Esc] 取消  [R] リセット",
+		"BARREL_SHORT":             "短銃身",
+		"BARREL_STANDARD":          "標準銃身",
+		"BARREL_LONG":              "長銃身",
+		"BARREL_EXTENDED":          "延長銃身",
+		"OPTICS_NONE":              "なし",
+		"OPTICS_IRON_SIGHTS":       "アイアンサイト",
+		"OPTICS_SCOPE":             "スコープ",
+		"OPTICS_ADVANCED_OPTICS":   "先進光学機器",
+		"AMMO_STANDARD":            "標準",
+		"AMMO_AP":                  "徹甲",
+		"AMMO_INCENDIARY":          "焼夷",
+		"AMMO_EXPLOSIVE":           "炸裂",
+		"STOCK_NONE":               "なし",
+		"STOCK_LIGHT":              "軽量ストック",
+		"STOCK_HEAVY":              "重量ストック",
+		"WPN_SUFFIX_SCOPED":        "スコープ付",
+		"WPN_MODE_SEMI":            "セミ",
+		"WPN_DESIGN_NONE":          "---",
 
 		// ── Equipment ──────────────────────────────────────
 		"EQUIP_TITLE":        "兵士装備",
@@ -649,6 +670,12 @@ func init() {
 		"UFO_HARVESTER":    "ハーベスター",
 		"UFO_BOMBER":       "ボンバー",
 		"UFO_TRANSPORT":    "輸送機",
+		"UFO_UNKNOWN":             "UFO（未知の型）",
+		"UFO_CLASS_DRONE":         "ドローン",
+		"UFO_CLASS_SCOUT":         "スカウト",
+		"UFO_CLASS_INTERCEPTOR":   "迎撃機",
+		"UFO_CLASS_BOMBER":        "爆撃機",
+		"UFO_CLASS_CARRIER":       "母艦",
 
 		// ── Help pages ────────────────────────────────────
 		"HELP_TITLE": "ヘルプ",

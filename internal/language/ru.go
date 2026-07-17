@@ -410,10 +410,10 @@ func init() {
 		"LINE_HANGAR_INFO":           "Ангар %d: [%s] ОЗ:%d/%d %s (Пат:%d)",
 
 		// ── Plane Designer ──────────────────────────────────
-		"PLANE_DESIGNER_TITLE":  "PLANE DESIGNER",
-		"PLANE_PREVIEW":         "PREVIEW",
-		"PLANE_STATS":           "STATS",
-		"PLANE_PARAMETERS":      "PARAMETERS",
+		"PLANE_DESIGNER_TITLE":  "ПРОЕКТИРОВАНИЕ САМОЛЁТОВ",
+		"PLANE_PREVIEW":         "ПРЕДПРОСМОТР",
+		"PLANE_STATS":           "ХАРАКТЕРИСТИКИ",
+		"PLANE_PARAMETERS":      "ПАРАМЕТРЫ",
 		"PLANE_PARAM_LENGTH":    "Длина",
 		"PLANE_PARAM_WINGSPAN":  "Размах крыльев",
 		"PLANE_PARAM_ENGINES":   "Двигатели",
@@ -437,6 +437,9 @@ func init() {
 		"PLANE_CLASS_MEDIUM":    "Средний",
 		"PLANE_CLASS_HEAVY":     "Тяжёлый",
 		"PLANE_NAME_FIGHTER":    "Истребитель",
+		"UNIT_TONNES":           "т",
+		"UNIT_KILONEWTON":       "кН",
+		"UNIT_CELLS":            "ячеек",
 
 		// ── Weapon Designer
 		"WEAPON_DESIGNER_TITLE":  "ПРОЕКТИРОВАНИЕ ОРУЖИЯ",
@@ -461,6 +464,24 @@ func init() {
 		"WEAPON_LABEL_COST":     "Цена: $%dk",
 		"WEAPON_DESIGNER_HELP":  "[\u2191\u2193] Навиг  [\u2190\u2192] Регул  [Tab] След  [Enter] Строй  [Esc] Отмена",
 		"PLANE_DESIGNER_HELP":   "[\u2191\u2193] Навиг  [\u2190\u2192] Регул  [Tab] След  [Enter] Сохр  [Esc] Отмена  [R] Сброс",
+		"BARREL_SHORT":             "Короткий",
+		"BARREL_STANDARD":          "Стандартный",
+		"BARREL_LONG":              "Длинный",
+		"BARREL_EXTENDED":          "Удлинённый",
+		"OPTICS_NONE":              "Нет",
+		"OPTICS_IRON_SIGHTS":       "Открытый прицел",
+		"OPTICS_SCOPE":             "Оптический прицел",
+		"OPTICS_ADVANCED_OPTICS":   "Продвинутая оптика",
+		"AMMO_STANDARD":            "Стандартный",
+		"AMMO_AP":                  "Бронебойный",
+		"AMMO_INCENDIARY":          "Зажигательный",
+		"AMMO_EXPLOSIVE":           "Разрывной",
+		"STOCK_NONE":               "Нет",
+		"STOCK_LIGHT":              "Лёгкий",
+		"STOCK_HEAVY":              "Тяжёлый",
+		"WPN_SUFFIX_SCOPED":        "С прицелом",
+		"WPN_MODE_SEMI":            "Полуавтомат",
+		"WPN_DESIGN_NONE":          "---",
 
 		// ── Equipment ──────────────────────────────────────
 		"EQUIP_TITLE":        "ЭКИПИРОВКА СОЛДАТ",
@@ -649,6 +670,12 @@ func init() {
 		"UFO_HARVESTER":    "Сборщик",
 		"UFO_BOMBER":       "Бомбардировщик",
 		"UFO_TRANSPORT":    "Транспорт",
+		"UFO_UNKNOWN":             "НЛО (Неизвестный тип)",
+		"UFO_CLASS_DRONE":         "Дрон",
+		"UFO_CLASS_SCOUT":         "Разведчик",
+		"UFO_CLASS_INTERCEPTOR":   "Перехватчик",
+		"UFO_CLASS_BOMBER":        "Бомбардировщик",
+		"UFO_CLASS_CARRIER":       "Носитель",
 
 		// ── Help pages ────────────────────────────────────
 		"HELP_TITLE": "СПРАВКА",

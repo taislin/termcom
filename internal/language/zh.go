@@ -408,10 +408,10 @@ func init() {
 		"LINE_HANGAR_INFO":           "\u673a\u5e93 %d: [%s] \u751f\u547d:%d/%d %s (\u62a4\u7532:%d)",
 
 		// ── Plane Designer ──────────────────────────────────
-		"PLANE_DESIGNER_TITLE":  "PLANE DESIGNER",
-		"PLANE_PREVIEW":         "PREVIEW",
-		"PLANE_STATS":           "STATS",
-		"PLANE_PARAMETERS":      "PARAMETERS",
+		"PLANE_DESIGNER_TITLE":  "飞机设计室",
+		"PLANE_PREVIEW":         "预览",
+		"PLANE_STATS":           "属性",
+		"PLANE_PARAMETERS":      "参数",
 		"PLANE_PARAM_LENGTH":    "长度",
 		"PLANE_PARAM_WINGSPAN":  "翼展",
 		"PLANE_PARAM_ENGINES":   "引擎",
@@ -435,6 +435,9 @@ func init() {
 		"PLANE_CLASS_MEDIUM":    "中型",
 		"PLANE_CLASS_HEAVY":     "重型",
 		"PLANE_NAME_FIGHTER":    "战斗机",
+		"UNIT_TONNES":           "吨",
+		"UNIT_KILONEWTON":       "千牛",
+		"UNIT_CELLS":            "格",
 
 		// ── Weapon Designer
 		"WEAPON_DESIGNER_TITLE":  "武器设计室",
@@ -459,6 +462,24 @@ func init() {
 		"WEAPON_LABEL_COST":     "造价: $%dk",
 		"WEAPON_DESIGNER_HELP":  "[↑↓] 导航  [←→] 调整  [Tab] 下一个  [Enter] 建造  [Esc] 取消",
 		"PLANE_DESIGNER_HELP":   "[↑↓] 导航  [←→] 调整  [Tab] 下一个  [Enter] 保存  [Esc] 取消  [R] 重置",
+		"BARREL_SHORT":             "短枪管",
+		"BARREL_STANDARD":          "标准枪管",
+		"BARREL_LONG":              "长枪管",
+		"BARREL_EXTENDED":          "加长枪管",
+		"OPTICS_NONE":              "无",
+		"OPTICS_IRON_SIGHTS":       "机械瞄具",
+		"OPTICS_SCOPE":             "瞄准镜",
+		"OPTICS_ADVANCED_OPTICS":   "先进光学",
+		"AMMO_STANDARD":            "标准",
+		"AMMO_AP":                  "穿甲",
+		"AMMO_INCENDIARY":          "燃烧",
+		"AMMO_EXPLOSIVE":           "爆炸",
+		"STOCK_NONE":               "无",
+		"STOCK_LIGHT":              "轻型枪托",
+		"STOCK_HEAVY":              "重型枪托",
+		"WPN_SUFFIX_SCOPED":        "带镜",
+		"WPN_MODE_SEMI":            "半自动",
+		"WPN_DESIGN_NONE":          "---",
 
 		// ── \u88c5\u5907 ──────────────────────────────────────
 		"EQUIP_TITLE":        "\u88c5\u5907\u58eb\u5175",
@@ -646,6 +667,12 @@ func init() {
 		"UFO_HARVESTER":    "\u6536\u5272\u673a",
 		"UFO_BOMBER":       "\u8f70\u70b8\u673a",
 		"UFO_TRANSPORT":    "\u8fd0\u8f93\u673a",
+		"UFO_UNKNOWN":             "\u98de\u789f\uff08\u672a\u77e5\u7c7b\u578b\uff09",
+		"UFO_CLASS_DRONE":         "\u65e0\u4eba\u673a",
+		"UFO_CLASS_SCOUT":         "\u4fa6\u5bdf\u673a",
+		"UFO_CLASS_INTERCEPTOR":   "\u62e6\u622a\u673a",
+		"UFO_CLASS_BOMBER":        "\u8f70\u70b8\u673a",
+		"UFO_CLASS_CARRIER":       "\u6bcd\u8230",
 
 		// ── \u5e2e\u52a9\u9875\u9762 ────────────────────────────
 		"HELP_TITLE": "\u5e2e\u52a9",
