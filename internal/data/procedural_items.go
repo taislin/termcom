@@ -101,24 +101,26 @@ func GenerateProceduralItems(seed int64, aliens []*AlienSpecies) ([]ProceduralWe
 	return weapons, armors
 }
 
+const procWeaponStr = 10
+
 func generateProceduralWeapon(rng *rand.Rand, idx int, dmgType int) ProceduralWeapon {
 	prefixPool := weaponPrefixes[dmgType]
 	prefix := prefixPool[rng.Intn(len(prefixPool))]
 	suffix := weaponSuffixes[rng.Intn(len(weaponSuffixes))]
 	name := prefix + " " + suffix
 
-	damage := 20 + rng.Intn(40)
-	accuracy := 55 + rng.Intn(30)
-	tu := 15 + rng.Intn(15)
-	ammoMax := 6 + rng.Intn(15)
-	rangeVal := 10 + rng.Intn(20)
+	damage := 20 + rng.Intn(40)   // 20..59
+	accuracy := 55 + rng.Intn(30) // 55..84
+	tu := 15 + rng.Intn(15)       // 15..29
+	ammoMax := 6 + rng.Intn(15)   // 6..20
+	rangeVal := 10 + rng.Intn(20) // 10..29
 	burstSize := 1
 	if rng.Intn(3) == 0 {
 		burstSize = 3
 		ammoMax *= 3
 	}
-	weight := 2 + rng.Intn(8)
-	costBuy := 5000 + rng.Intn(10000)
+	weight := 2 + rng.Intn(8)     // 2..9
+	costBuy := 5000 + rng.Intn(10000) // 5000..14999
 
 	shortName := fmt.Sprintf("PW%d", idx+1)
 	id := fmt.Sprintf("proc_weapon_%d", idx)
@@ -185,7 +187,7 @@ func RegisterProceduralItems(seed int64, aliens []*AlienSpecies) {
 			AmmoMax:    w.AmmoMax,
 			AmmoCur:    w.AmmoMax,
 			BurstSize:  w.BurstSize,
-			Strength:   10,
+			Strength:   procWeaponStr,
 		}
 		Weapons[w.ID] = RuleItems[w.ID]
 	}

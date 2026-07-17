@@ -431,7 +431,7 @@ type UFOTier int
 const (
 	TierDrone   UFOTier = iota // 3x3, light armament
 	TierScout                 // 5x5, moderate
-	TierInterceptor           // 5x7, heavy
+	TierInterceptor           // 7x5, heavy
 	TierBomber                // 7x5, devastating
 	TierCarrier               // 7x7, endgame
 )

@@ -38,12 +38,12 @@ type GlobalConfig struct {
 	Theme              string `json:"theme"`
 	ConfirmDialogs     bool   `json:"confirm_dialogs"`
 	PauseOnAlienDetect bool   `json:"pause_on_alien_detect"`
-	ActionDelay        int    `json:"action_delay"`
-	SfxVolume          int    `json:"sfx_volume"`
+	ActionDelay        int    `json:"action_delay"`        // ms between frames; 8 = ~120fps cap
+	SfxVolume          int    `json:"sfx_volume"`          // 0..10
 	Language           string `json:"language"`
 	TutorialShown      bool   `json:"tutorial_shown"`
 	TouchMode          bool   `json:"touch_mode"`
-	TouchButtonSize    int    `json:"touch_button_size"`
+	TouchButtonSize    int    `json:"touch_button_size"`   // rows per touch button; 4 = compact
 }
 
 // Config is the live configuration. It is a pointer so that LoadConfig can

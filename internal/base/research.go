@@ -116,9 +116,7 @@ func (rs *ResearchScreen) Render(ctx *engine.ScreenCtx) {
 		}
 
 		if i == rs.Selection {
-			if entry.status == topicDone {
-				style = engine.StyleGray.Bold(true)
-			} else if entry.status == topicLocked {
+			if entry.status == topicDone || entry.status == topicLocked {
 				style = engine.StyleGray.Bold(true)
 			} else {
 				style = engine.StyleHighlight
@@ -344,11 +342,7 @@ func (rs *ResearchScreen) startResearch() {
 	}
 	entry := entries[rs.Selection]
 	if entry.status != topicAvailable {
-		if entry.status == topicDone {
-			rs.Message = language.String("MSG_CANNOT_RESEARCH")
-		} else {
-			rs.Message = language.String("MSG_CANNOT_RESEARCH")
-		}
+		rs.Message = language.String("MSG_CANNOT_RESEARCH")
 		return
 	}
 	if rs.Base.StartResearch(entry.topic.ID) {

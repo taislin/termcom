@@ -12,7 +12,12 @@ import (
 	"github.com/taislin/termcom/internal/soldier"
 )
 
-const CurrentVersion = 4
+const (
+	CurrentVersion = 4
+	saveFilePerm   = 0644 // owner read/write, group/other read
+	maxSlots       = 10
+	fundsDivK      = 1000
+)
 
 type AlienBaseSave struct {
 	CityID          int
@@ -138,7 +143,7 @@ func SaveGame(path string, data *SaveData) error {
 	// Write to a temp file first, then rename, so a failure never leaves a
 	// truncated/corrupt save behind.
 	tmp := path + ".tmp"
-	if err := os.WriteFile(tmp, buf, 0644); err != nil {
+	if err := os.WriteFile(tmp, buf, saveFilePerm); err != nil {
 		return err
 	}
 	os.Remove(path)
@@ -214,7 +219,7 @@ func AutoSavePath() string {
 
 func ListSlots() []int {
 	var slots []int
-	for slot := 1; slot <= 10; slot++ {
+	for slot := 1; slot <= maxSlots; slot++ {
 		if _, err := os.Stat(SavePath(slot)); err == nil {
 			slots = append(slots, slot)
 		}
@@ -227,7 +232,7 @@ func LoadSaveInfo(slot int) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf(language.String("SLOT_FORMAT"), slot, sd.GameTime.Format("2006 Jan 02"), sd.Funds/1000), nil
+	return fmt.Sprintf(language.String("SLOT_FORMAT"), slot, sd.GameTime.Format("2006 Jan 02"), sd.Funds/fundsDivK), nil
 }
 
 func FromBase(b *base.Base) *BaseSave {

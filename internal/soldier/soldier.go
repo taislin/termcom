@@ -239,6 +239,8 @@ func (s *Soldier) AddMeleeExp() {
 	s.GainedXP = true
 }
 
+// improveStat returns a stat gain based on experience points earned in a mission.
+// Thresholds: >10→2+d4, >5→1+d4, >2→1+d3, >0→d2.
 func improveStat(exp int) int {
 	switch {
 	case exp > 10:
@@ -296,6 +298,7 @@ func (s *Soldier) PostMission() {
 			s.PsiStr = StatCaps.Psi
 		}
 	}
+	// Bravery gain: 50% chance (rand.Intn(11) threshold averages 5.5), +10 per trigger
 	if s.ExpBravery > rand.Intn(11) && s.Bravery < 100 {
 		s.Bravery += int(10 * xpMult)
 		if s.Bravery > 100 {
@@ -306,6 +309,7 @@ func (s *Soldier) PostMission() {
 		if s.Rank == Rookie {
 			s.Rank = Squaddie
 		}
+		// TU/HP/Str post-mission: (StatCaps.X - s.X)/10 + 2 base gain, capped by StatCaps
 		if s.TU < StatCaps.TU {
 			s.TU += int(float64(rand.Intn((StatCaps.TU-s.TU)/10+2)) * xpMult)
 			if s.TU > StatCaps.TU {

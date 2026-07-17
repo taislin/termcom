@@ -35,16 +35,22 @@ func (wd *WeaponDesignerScreen) Render(ctx *engine.ScreenCtx) {
 	w, h := ctx.Size()
 	ctx.DrawPanel(0, 0, w, h-3, language.String("WEAPON_DESIGNER_TITLE"), engine.StyleDefault)
 
-	leftW := w * 45 / 100
-	rightX := leftW + 4
-	rightW := w - rightX - 2
+	const (
+		leftColPct   = 45
+		colGap       = 4
+		rightMargin  = 2
+		paramOffsetY = 8
+	)
+	leftW := w * leftColPct / 100
+	rightX := leftW + colGap
+	rightW := w - rightX - rightMargin
 
-	paramY := h - 8
+	paramY := h - paramOffsetY
 	wd.renderPreview(ctx, 2, 3, leftW, paramY-4)
 	wd.renderStats(ctx, rightX, 3, rightW, paramY-4)
 	wd.renderParams(ctx, 2, paramY, rightX)
 
-	fundsStr := fmt.Sprintf(language.String("GEOSCAPE_FUNDS"), wd.Game.Funds/1000)
+	fundsStr := fmt.Sprintf(language.String("GEOSCAPE_FUNDS"), wd.Game.Funds/engine.FundsDisplayK)
 	ctx.DrawString(w/2, h-3, fundsStr, engine.StyleGreen)
 	if wd.Message != "" {
 		ctx.DrawString(w*3/4, h-3, wd.Message, engine.StyleYellow)
@@ -74,7 +80,11 @@ func (wd *WeaponDesignerScreen) renderPreview(ctx *engine.ScreenCtx, px, py, pw,
 
 	// Show base type
 	ctx.DrawString(px+1, py+ph-2, fmt.Sprintf("%s %s", language.String("WEAPON_LABEL_BASE"), wd.Design.BaseType), engine.StyleGray)
-	ctx.DrawString(px+1, py+ph-1, fmt.Sprintf(language.String("WEAPON_LABEL_COST"), wd.cost()/1000), engine.StyleGray)
+	costDisplay := wd.cost() / 1000
+	if costDisplay < 1 {
+		costDisplay = 1
+	}
+	ctx.DrawString(px+1, py+ph-1, fmt.Sprintf(language.String("WEAPON_LABEL_COST"), costDisplay), engine.StyleGray)
 }
 
 type weaponCell struct {

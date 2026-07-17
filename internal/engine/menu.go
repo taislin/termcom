@@ -381,7 +381,9 @@ func (ms *MenuScreen) confirm() {
 		if ms.Game.IsWeb() {
 			ms.Game.WebNotice = WebsiteURL
 		} else {
-			openBrowser(WebsiteURL)
+			if err := openBrowser(WebsiteURL); err != nil {
+			// Silently ignore; most terminals can't open URLs anyway
+		}
 		}
 	}
 }

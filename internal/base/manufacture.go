@@ -178,6 +178,7 @@ func (ms *ManufactureScreen) startManufacture() {
 }
 
 func (ms *ManufactureScreen) HandleKey(e *tcell.EventKey) {
+	plansLen := len(ms.getBuildablePlans())
 	switch e.Key() {
 	case tcell.KeyUp:
 		ms.Selection--
@@ -185,22 +186,21 @@ func (ms *ManufactureScreen) HandleKey(e *tcell.EventKey) {
 			ms.Selection = 0
 		}
 	case tcell.KeyDown:
-		plans := ms.getBuildablePlans()
 		ms.Selection++
-		if ms.Selection >= len(plans) {
-			ms.Selection = len(plans) - 1
+		if ms.Selection >= plansLen {
+			ms.Selection = plansLen - 1
 		}
 	}
 	switch e.Str() {
 	case "\r":
 		ms.startManufacture()
 	case "+":
-		if ms.Selection >= len(ms.getBuildablePlans()) {
-			ms.Base.AssignEngineers(ms.Selection-len(ms.getBuildablePlans()), 1)
+		if ms.Selection >= plansLen {
+			ms.Base.AssignEngineers(ms.Selection-plansLen, 1)
 		}
 	case "-":
-		if ms.Selection >= len(ms.getBuildablePlans()) {
-			ms.Base.AssignEngineers(ms.Selection-len(ms.getBuildablePlans()), -1)
+		if ms.Selection >= plansLen {
+			ms.Base.AssignEngineers(ms.Selection-plansLen, -1)
 		}
 	}
 }

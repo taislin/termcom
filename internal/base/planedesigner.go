@@ -53,7 +53,7 @@ func (pd *PlaneDesignerScreen) Render(ctx *engine.ScreenCtx) {
 	pd.renderStats(ctx, rightX, 3, rightW, paramY-4)
 	pd.renderParams(ctx, 2, paramY, rightX)
 
-	fundsStr := fmt.Sprintf(language.String("GEOSCAPE_FUNDS"), pd.Game.Funds/1000)
+	fundsStr := fmt.Sprintf(language.String("GEOSCAPE_FUNDS"), pd.Game.Funds/engine.FundsDisplayK)
 	ctx.DrawString(w/2, h-3, fundsStr, engine.StyleGreen)
 	if pd.Message != "" {
 		ctx.DrawString(w*3/4, h-3, pd.Message, engine.StyleYellow)
@@ -357,9 +357,14 @@ func (pd *PlaneDesignerScreen) HandleMouse(e *tcell.EventMouse) {
 	x, y := e.Position()
 	w, h := pd.Game.ScreenSize()
 
-	leftW := w * 45 / 100
-	rightX := leftW + 4
-	paramY := h - 8
+	const (
+		leftColPct   = 45
+		colGap       = 4
+		paramOffsetY = 8
+	)
+	leftW := w * leftColPct / 100
+	rightX := leftW + colGap
+	paramY := h - paramOffsetY
 
 	if y >= paramY+1 && y <= paramY+3 {
 		var idx int
@@ -370,7 +375,7 @@ func (pd *PlaneDesignerScreen) HandleMouse(e *tcell.EventMouse) {
 		}
 		if idx >= 0 && idx < 6 {
 			pd.Param = idx
-			if x > 20 {
+			if x > paramOffsetY*2+4 {
 				pd.adjustParam(1)
 			} else {
 				pd.adjustParam(-1)

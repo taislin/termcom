@@ -75,12 +75,12 @@ var AutoFireMods = struct {
 
 // Ammo type definitions
 type AmmoTypeDef struct {
-	Name      string
-	DamageMod int
-	TUMod    int
-	WeightMod float64
-	CostMod   int
-	IsAlien   bool
+	Name       string
+	DamageMod  int
+	TUMod      int
+	WeightMod  float64
+	CostMod    int
+	IsAlien    bool // reserved for future alien-tech ammo; currently all false
 }
 
 func (a AmmoTypeDef) LangName() string {
@@ -203,26 +203,35 @@ func CalcDesignStats(d WeaponDesign) (damage, accuracy, tu, rng, ammoMax, streng
 		cost += s.CostMod
 	}
 
-	// Clamp minimums
-	if damage < 1 {
-		damage = 1
+	// Clamp minimums (prevent zero/negative stats from extreme mod combinations)
+	const (
+		minDamage  = 1
+		minAcc     = 10
+		minTU      = 5
+		minRange   = 1
+		minAmmo    = 1
+		minStr     = 5
+		strToWtRat = 2.5
+	)
+	if damage < minDamage {
+		damage = minDamage
 	}
-	if accuracy < 10 {
-		accuracy = 10
+	if accuracy < minAcc {
+		accuracy = minAcc
 	}
-	if tu < 5 {
-		tu = 5
+	if tu < minTU {
+		tu = minTU
 	}
-	if rng < 1 {
-		rng = 1
+	if rng < minRange {
+		rng = minRange
 	}
-	if ammoMax < 1 {
-		ammoMax = 1
+	if ammoMax < minAmmo {
+		ammoMax = minAmmo
 	}
 	// Strength requirement scales with weight
-	strength = int(weight * 2.5)
-	if strength < 5 {
-		strength = 5
+	strength = int(weight * strToWtRat)
+	if strength < minStr {
+		strength = minStr
 	}
 
 	return

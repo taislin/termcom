@@ -59,7 +59,11 @@ func (es *EquipScreen) Render(ctx *engine.ScreenCtx) {
 
 	s := es.Base.Soldiers[es.SelectedSol]
 
-	soldierImg := engine.MakeSoldierPortrait(s.Name, 20, 24)
+	const (
+		portraitW = 20
+		portraitH = 24
+	)
+	soldierImg := engine.MakeSoldierPortrait(s.Name, portraitW, portraitH)
 	ctx.DrawPixelImageFramed(2, h-16, soldierImg, engine.StyleCyan)
 
 	ctx.DrawString(rightX, 2, language.String("SECTION_EQUIPMENT"), engine.StyleCyanBold)
@@ -273,12 +277,14 @@ func (es *EquipScreen) HandleKey(e *tcell.EventKey) {
 			es.SelectedSol = len(es.Base.Soldiers) - 1
 		}
 		es.CycleIdx = 0
+		es.Message = ""
 	case tcell.KeyDown:
 		es.SelectedSol++
 		if es.SelectedSol >= len(es.Base.Soldiers) {
 			es.SelectedSol = 0
 		}
 		es.CycleIdx = 0
+		es.Message = ""
 	case tcell.KeyTab:
 		available := es.getAvailableItems()
 		if len(available) > 0 {
@@ -287,14 +293,17 @@ func (es *EquipScreen) HandleKey(e *tcell.EventKey) {
 				es.CycleIdx = 0
 			}
 		}
+		es.Message = ""
 	}
 	switch e.Str() {
 	case "1":
 		es.SelectedSlot = 0
 		es.CycleIdx = 0
+		es.Message = ""
 	case "2":
 		es.SelectedSlot = 1
 		es.CycleIdx = 0
+		es.Message = ""
 	case " ":
 		es.equipSelected()
 	case "a", "A":
