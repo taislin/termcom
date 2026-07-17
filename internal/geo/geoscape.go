@@ -547,17 +547,17 @@ func (gs *Geoscape) Update() {
 		if gameMonth < 0 {
 			gameMonth = 0
 		}
-		ufoSpawnRate := 600 - gameMonth*20
-		if ufoSpawnRate < 200 {
-			ufoSpawnRate = 200
+		ufoSpawnRate := ufoSpawnRateBase - gameMonth*ufoSpawnRateDecay
+		if ufoSpawnRate < ufoSpawnRateFloorSoft {
+			ufoSpawnRate = ufoSpawnRateFloorSoft
 		}
 		diffUFOScale := 1.0
 		if gs.Game.Difficulty >= 0 && gs.Game.Difficulty < len(engine.Difficulties) {
 			diffUFOScale = engine.Difficulties[gs.Game.Difficulty].UFOScale
 		}
 		ufoSpawnRate = int(float64(ufoSpawnRate) / diffUFOScale)
-		if ufoSpawnRate < 100 {
-			ufoSpawnRate = 100
+		if ufoSpawnRate < ufoSpawnRateFloor {
+			ufoSpawnRate = ufoSpawnRateFloor
 		}
 		if gs.TickCounter%ufoSpawnRate == 0 {
 			maxUFOs := 5 + gameMonth/2
@@ -577,23 +577,23 @@ func (gs *Geoscape) Update() {
 		}
 
 		// Mission Spawning: Trigger events based on AlienActivity and game time.
-		spawnRate := 1800 - (gs.AlienActivity * 15) - gameMonth*30
-		if spawnRate < 300 {
-			spawnRate = 300
+		spawnRate := missionSpawnBase - (gs.AlienActivity * missionSpawnActWt) - gameMonth*missionSpawnDecay
+		if spawnRate < missionSpawnFloor {
+			spawnRate = missionSpawnFloor
 		}
 		if gs.TickCounter%spawnRate == 0 {
 			gs.spawnMission()
 		}
 
 		// Periodic increase in overall alien activity.
-		if gs.TickCounter%7200 == 0 { // ~2 hours at speed 1
+		if gs.TickCounter%activityTickRate == 0 {
 			gs.AlienActivity++
 		}
 
 		// Alien Base Establishment: attempt to build new bases periodically.
-		baseSpawnRate := 3600 - gameMonth*60
-		if baseSpawnRate < 1200 {
-			baseSpawnRate = 1200
+		baseSpawnRate := baseSpawnRateBase - gameMonth*baseSpawnRateDecay
+		if baseSpawnRate < baseSpawnRateFloor {
+			baseSpawnRate = baseSpawnRateFloor
 		}
 		if gs.TickCounter%baseSpawnRate == 0 {
 			gs.tryEstablishBase(gameMonth)
@@ -899,7 +899,7 @@ func (gs *Geoscape) ShortestPath(from, to int) []int {
 	}
 	queue := []item{{id: from, path: []int{from}}}
 	visited := map[int]bool{from: true}
-	maxEdgeDist := 50.0
+	maxEdgeDist := maxEdgePathDist
 
 	for len(queue) > 0 {
 		cur := queue[0]
@@ -1232,14 +1232,14 @@ func (gs *Geoscape) tickAlienBases(gameMonth int) {
 		ab.TurnsAlive++
 
 		// Periodically escalate base threat
-		if ab.TurnsAlive%2400 == 0 && ab.Threat < 100 {
+		if ab.TurnsAlive%alienActivityTick == 0 && ab.Threat < 100 {
 			ab.Threat += 5
 		}
 
 		// Spawn missions from this base
-		missionInterval := 1800 - gameMonth*30
-		if missionInterval < 600 {
-			missionInterval = 600
+		missionInterval := missionIntervalBase - gameMonth*missionIntervalDecay
+		if missionInterval < missionIntervalFloor {
+			missionInterval = missionIntervalFloor
 		}
 		if gs.TickCounter-ab.LastMissionTick >= missionInterval {
 			gs.spawnMissionFromBase(ab)
@@ -2369,7 +2369,7 @@ func (gs *Geoscape) renderMinimap(ctx *engine.ScreenCtx, x, y, w, h int) {
 				continue
 			}
 			radarCount := b.CountFacility(base.FacRadar)
-			radarRange := 24 + radarCount*10
+			radarRange := baseRadarRange + radarCount*perRadarRange
 			for dy := -radarRange; dy <= radarRange; dy++ {
 				for dx := -radarRange; dx <= radarRange; dx++ {
 					if dx*dx+dy*dy > radarRange*radarRange {
@@ -2819,7 +2819,7 @@ func (gs *Geoscape) sendTransportToNearest() {
 		return
 	}
 	var nearest *CrashSite
-	bestDist := 999999
+	bestDist := transportSentinel
 	for _, cs := range gs.CrashSites {
 		if cs.Looted {
 			continue
@@ -2925,7 +2925,7 @@ func (gs *Geoscape) HandleMouse(e *tcell.EventMouse) {
 			for _, u := range gs.UFOs.Active() {
 				dx := int(u.X) - worldX
 				dy := int(u.Y) - worldY
-				if dx*dx+dy*dy < 25 {
+				if dx*dx+dy*dy < minimapClickRadius {
 					gs.Message = fmt.Sprintf(language.String("GEOSCAPE_UFO_SELECTED"), localizeUFOName(u.Type.Name))
 					gs.MessageTimer = time.Now()
 					break

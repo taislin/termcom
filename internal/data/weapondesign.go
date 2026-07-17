@@ -154,7 +154,6 @@ func CalcDesignStats(d WeaponDesign) (damage, accuracy, tu, rng, ammoMax, streng
 	tu = base.TU
 	rng = base.Range
 	ammoMax = base.AmmoMax
-	strength = base.Strength
 	weight = base.Weight
 	cost = base.Cost
 
