@@ -591,11 +591,10 @@ func GenerateProceduralUFO(seed int64, tier UFOTier) *VehicleBlueprint {
 			placed++
 		}
 
-		if vb.IsValid() == nil && vb.HasWeapon() {
+		if vb.IsValid() == nil && vb.HasWeapon() && vb.HasEngine() {
 			return vb
 		}
 	}
-	// Fallback to minimal valid blueprint
 	return GenerateScoutUFO()
 }
 

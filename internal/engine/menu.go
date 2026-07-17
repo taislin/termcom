@@ -13,6 +13,8 @@ import (
 
 const SaveFile = "xcom_save.json"
 
+var starRunes = [3]rune{'.', '+', '*'}
+
 type menuStar struct {
 	angle   float64
 	dist    float64
@@ -140,8 +142,6 @@ func (ms *MenuScreen) Render(ctx *ScreenCtx) {
 	const starOriginY = 5
 	halfW := float64(w) / 2.0
 	halfH := float64(h) / 2.0
-	starRunes := [3]rune{'.', '+', '*'}
-
 	for _, st := range ms.stars {
 		bri := st.dist * st.baseBri
 		sx := w/2 + int(math.Cos(st.angle)*st.dist*halfW)

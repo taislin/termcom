@@ -156,6 +156,9 @@ func SpawnExplosion(ps *ParticleSystem, x, y int, color tcell.Color, count int) 
 }
 
 func SpawnRain(ps *ParticleSystem, x, y int, w, h int) {
+	if w <= 0 || h <= 0 {
+		return
+	}
 	for i := 0; i < 3; i++ {
 		rx := float64(x + rand.Intn(w))
 		ry := float64(y - 1)
@@ -211,6 +214,9 @@ func SpawnMuzzleFlash(ps *ParticleSystem, x, y int) {
 }
 
 func SpawnSnow(ps *ParticleSystem, x, y int, w, h int) {
+	if w <= 0 || h <= 0 {
+		return
+	}
 	for i := 0; i < 2; i++ {
 		rx := float64(x + rand.Intn(w))
 		ry := float64(y - 1)
@@ -224,6 +230,9 @@ func SpawnSnow(ps *ParticleSystem, x, y int, w, h int) {
 }
 
 func SpawnDust(ps *ParticleSystem, x, y int, w, h int) {
+	if w <= 0 || h <= 0 {
+		return
+	}
 	for i := 0; i < 2; i++ {
 		rx := float64(x + rand.Intn(w))
 		ry := float64(y + rand.Intn(h))
@@ -237,6 +246,9 @@ func SpawnDust(ps *ParticleSystem, x, y int, w, h int) {
 }
 
 func SpawnEmbers(ps *ParticleSystem, x, y int, w, h int) {
+	if w <= 0 || h <= 0 {
+		return
+	}
 	for i := 0; i < 2; i++ {
 		rx := float64(x + rand.Intn(w))
 		ry := float64(y + rand.Intn(h))

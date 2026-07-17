@@ -25,25 +25,17 @@ Scope: Features and fixes for the battlescape tactical combat system.
   repetitive. Split / table-drive.
 
 ### `internal/battle/ai.go`
-- [x] **R1 (Low)** `disperseFrom`/`moveTowardTargetCover` dup candidate construction.
-  Extracted `getOrthogonalCandidates`.
-- [x] **R2 (Low)** Move-action append pattern copy-pasted ~8×. Extracted
-  `appendMove(...)` helper.
-- [x] **R3 (Low)** `Update` ~300 lines, 7-case switch. Split into `handlePatrol`/
-  `handleSearch`/`handleRetreat`/`handleSuppress`/`handleFlank`.
-- [x] **R4 (Low)** Faction literals 0/1/2 repeated. Named `FactionHuman/Alien/Civilian`.
+
 - [~] **U1 (Low)** Magic TU/sight thresholds. Constants begun (`VisualRangeThreshold`,
   etc.); remaining `dist`/`TU` magic numbers still to be named.
 
 ### `internal/engine/game.go`
-- [ ] **B2 (Low)** Quit-confirm mouse rects only set in TouchMode (524–546) →
+- [x] **B2 (Low)** Quit-confirm mouse rects only set in TouchMode (524–546) →
   unclickable on desktop (424–430). Always compute rects or guard handler.
-- [x] **B3 (Low)** `lastState` defaults to `StateMenu` (125,338–343) → first screen
-  transition may skip `OnScreenChange`. Init to -1.
+
 - [ ] **M1 (Low)** `NewGameWeb` re-inlines full Game literal (193–208) instead of
   calling `newGameWithScreen` → drift risk. Consolidate.
-- [x] **M2 (Low)** `GetAlienTypes` fallback returns `&data.AlienTypes[i]` (262–271)
-  → mutating caller corrupts shared global. Now copies values.
+
 - [ ] **M3 (Low)** `setupControlMenu` uses positional button indices (589–593,
   633–640) → brittle. Use named refs/map.
 - [ ] **U2 (Low)** Magic numbers: boxW/H 46/7, btnW 16, gap 4, frameSleep 16ms,
@@ -54,8 +46,7 @@ Scope: Features and fixes for the battlescape tactical combat system.
   guards (282–303). Drop.
 
 ### `internal/base/facility.go`
-- [x] **D3 (Low)** `FacilityInfo.Size` set everywhere but ignored — removed field.
-  hardcodes 8-col grid, 250–251). Use or drop.
+
 - [ ] **M1 (Low)** `ChangeInterceptorWeapon` cycle includes "cannon" not sold via
   BuyInterceptor; curIdx -1 silently resets to avalanche (215,232–237).
 - [ ] **U1 (Low)** `HireCost=50000`, `interceptorWeaponOrder` undocumented; ammo
@@ -64,8 +55,7 @@ Scope: Features and fixes for the battlescape tactical combat system.
   (613–630,717–739). Extract `applyUnlocks(topic)`.
 
 ### `internal/base/base.go`
-- [x] **B2 (Low/Med)** Magic tab count `6` / wrap `>6` (362,381) but valid max idx 5
-  → selection 6 momentarily reachable. Replaced with `numTabs` constant.
+
 - [ ] **M1 (Low)** `HandleMouse` vs `HandleKey` hotkey dispatch dup'd (465–551 vs
   349–456); they already differ ('g' opens different designers). Extract
   `dispatchHotkey`.
@@ -73,24 +63,21 @@ Scope: Features and fixes for the battlescape tactical combat system.
   render. Comment.
 
 ### `internal/data/vehicle.go`
-- [ ] **B1 (Low/Med)** `simpleRand.intn` overflows int64 and masks high bits →
-  biased, poor distribution (579–587). Use `math/rand.NewSource(seed).Intn(n)`.
-- [ ] **B2 (Low)** `seed 0` silently remapped to 42 (573–576) → breaks determinism
-  if 0 is a legit seed. Comment or handle.
+- [x] **B1 (Low/Med)** `simpleRand.intn` overflows int64 — already uses `math/rand.NewSource`.
+- [x] **B2 (Low)** `seed 0` silently remapped to 42 — already handled in `newRand`.
 - [ ] **M1 (Low)** `UFOTier` comment says Interceptor 5x7 but tierConfigs has
   7x5 (420–424,467). Fix comment/dims.
-- [ ] **B3 (Low)** Generated UFO can end with 0 engines/weapons if edge slots
+- [x] **B3 (Low)** Generated UFO can end with 0 engines/weapons if edge slots
   pre-filled (443–444,521–547). Assert `GetTotalFirepower()>0 && HasEngine()`.
 - [ ] **R1 (Low)** 4 preset generators dup'd coordinate lists (312–412). Fold into
   tierConfigs/seed tables.
 - [ ] **U1 (Low)** `simpleRand` undocumented custom RNG — explain why not math/rand.
 
 ### `internal/data/items.go`
-- [x] **B1 (Medium)** `"alien_grenade"` collides between RuleItems weapon (487) and Items loot (590) — already renamed to `alien_grenade_item` in Items.
-- [ ] **B2 (Low)** ShortName collisions MSC/PRM/PSI across RuleItems vs Items
+
+- [x] **B2 (Low)** ShortName collisions MSC/PRM/PSI across RuleItems vs Items
   (504–507). Document or avoid cross-index by ShortName.
-- [x] **D1 (Low)** `Weapons` map is write-only (AmmoCur never read, 49–51,663–668).
-  Documented as reserved for future runtime tracking.
+
 - [ ] **U1 (Low)** `BT_*` constants undocumented (11–23). Add doc.
 - [ ] **R1 (Low)** 3 near-identical `DisplayName*` methods (634–661). Extract
   `localizedName(langKey, fallback)`.
@@ -100,52 +87,17 @@ Scope: Features and fixes for the battlescape tactical combat system.
 ### `internal/battle/crash.go`
 
 ### `internal/battle/gas.go`
-- [x] **U1 (Low)** `3` used as max-gas-density sentinel — `MaxGasDensity` const.
-- [x] **U2 (Low)** `40`, `20` cover penalty values — `GasCoverDensity3/2`.
-- [x] **U3 (Low)** `v.Density <= 1` diffusion threshold — `MinDiffuseDensity`.
-- [x] **U4 (Low)** RGB color literals in `Draw` — named `gasSmokeFg/Bg`, `gasPoisonFg/Bg`, `gasRune`.
-- [x] **R1 (Low)** `Draw` dup color blocks — extracted `gasStyle(density, gType)`.
 
 ### `internal/battle/input.go`
-- [x] **U1 (Low)** `3` camera pan — `CamPanStep` const (66–72, 121–142).
-- [x] **U2 (Low)** `1` help-bar column offset — `helpBarCol` const (204).
 
 ### `internal/battle/modifiers.go`
-- [x] **U1 (Low)** Probability denominators — named `nightOpsChance` etc.
-- [x] **U2 (Low)** `5`,`3`,`2` accuracy/sight — named `rainAccPenalty` etc.
-- [x] **U3 (Low)** `5`,`30`,`20` fire spread — `fireSpreadRain/Wind/Base`.
-- [x] **U4 (Low)** `1 + rng.Intn(2)` fog range — `fogRangeMin`/`fogRangeSpan`.
-- [x] **R1 (Low)** `rng.Intn(N)==0` ×7 — extracted `roll(rng, chance)`.
 
 ### `internal/battle/path.go`
-- [x] **U1 (Low)** `15` TU threshold — `MinReactionTU` (battlescape.go).
-- [x] **U2 (Low)** `20` distance cutoff — `SightRange`.
-- [x] **U3 (Low)** `2`,`3`,`5` multipliers — `ReactionMult/AccDiv/DistPen`.
-- [x] **U4 (Low)** `1` min chance — `ReactionMinChance`.
 
 ### `internal/battle/terrain.go`
-- [x] **U1 (Low)** `0.25` bg darkening — `bgDarkenFactor`.
-- [x] **U2 (Low)** `0.08` AO factor — `aoPerNeighbor`.
-- [x] **U3 (Low)** `0.6` AO clamp — `aoMinFactor`.
-- [x] **U4 (Low)** `0.92` dither — `ditherFactor`.
-- [x] **U5 (Low)** `0.45` fog dim — `fogOfWarDim`.
-- [x] **U6 (Low)** RGB triples — `tilePalette` (existing), `bloodPalette`, `firePalette`.
-- [x] **R1 (Low)** `isOpaqueTile` switch — `opaqueTiles` map at init.
 
 ### `internal/battle/unit.go`
-- [x] **U1 (Low)** `99` infinite-ammo sentinel — `InfAmmoThreshold`.
-- [x] **U2 (Low)** `3` dist accuracy penalty — `distAccPenalty`.
-- [x] **U3 (Low)** `10` min accuracy-mod — `minAccMod`.
-- [x] **U4 (Low)** `5` min hit-chance — `minHitChance`.
-- [x] **U5 (Low)** crouch/night/marksman/close/steady/overwatch bonuses — named consts.
-- [x] **U6 (Low)** `8` marksman range — `marksmanDist`.
-- [x] **U7 (Low)** `4` close-combat range — `closeCombatDist`.
-- [x] **U8 (Low)** `1.5` melee cover dist — `meleeCoverDist`.
-- [x] **U9 (Low)** `15` fatal wound chance — `fatalWoundChance`.
-- [x] **U10 (Low)** `4` bleed divisor — `bleedDivisor`.
-- [x] **U11 (Low)** `5` max bleed — `maxBleedRate`.
-- [x] **U12 (Low)** `7/10` crouch dmg reduce — `crouchDmgReduce`.
-- [x] **U13 (Low)** `4` TU/tile — `moveTUCostPerTile`.
+
 - [ ] **R1 (Low)** `FireAt` nested conditionals — extract helpers (deferred).
 - [ ] **R2 (Low)** `WeaponDamageType` switch hardcoded strings — drive from item field (deferred).
 
@@ -198,10 +150,8 @@ Scope: Features and fixes for the battlescape tactical combat system.
 - [ ] **D1 (Low)** `AmmoTypes` entries all have `IsAlien: false` — dead field or future-use marker (75–79)
 ### `internal/engine/camera.go`
 
-- [x] **U1 (Low)** Hardcoded `decay: 8.0` — extracted `shakeDecay` constant.
-
 ### `internal/engine/config.go`
-- [x] **D1 (Low)** `WebsiteURL` exported — has callers in menu.go, kept.
+
 - [ ] **U1 (Low)** Magic numbers: `ActionDelay: 8`, `SfxVolume: 10`, `TouchButtonSize: 4` undocumented
 
 ### `internal/engine/control_menu.go`
@@ -218,18 +168,16 @@ Scope: Features and fixes for the battlescape tactical combat system.
 - [ ] **U1 (Low)** `d.FundsEarned/1000` — undocumented divisor; extract `const FundsDisplayK` (132)
 ### `internal/engine/difficulty.go`
 
-- [x] **U1 (Low)** `500000` starting funds repeated ×3 — extracted `startingFunds` constant.
-
 ### `internal/engine/encyclopedia.go`
-- [ ] **B3 (Low)** Description text wraps by byte slice — `desc[:end]` splits multi-byte runes for CJK (181–188)
+- [x] **B3 (Low)** Description text wraps by byte slice — now uses `[]rune` slicing for CJK safety.
 - [ ] **U1 (Low)** Magic number `3` for tab spacing, list positions `5`, info panel height `4` (137,141,178)
 
 ### `internal/engine/filters.go`
-- [ ] **U1 (Low)** Luminance coefficients `0.299`, `0.587`, `0.114` — name as ITU-R BT.601 constant (19)
+- [x] **U1 (Low)** Luminance coefficients `0.299`, `0.587`, `0.114` — named `lumR`/`lumG`/`lumB` constants.
 - [ ] **U2 (Low)** Thresholds `128`, `40` in night vision (47,49) and thermal (86,89)
 
 ### `internal/engine/game_over.go`
-- [x] **B1 (Low)** Only `Escape` dismisses the screen; now also accepts Enter/Space.
+
 
 ### `internal/engine/help.go`
 - [ ] **R1 (Low)** `getPages()` called multiple times in `HandleKey` — cache result (195,203,273,278)
@@ -244,7 +192,7 @@ Scope: Features and fixes for the battlescape tactical combat system.
 
 ### `internal/engine/menu.go`
 - [ ] **M1 (Low)** `menuY = 13` hardcodes title line count (6) + gap (1) + subtitle offset (4) — fragile if title changes (121)
-- [ ] **M2 (Low)** Star runes `[3]rune{'.','+','*'}` allocated every render — use package-level var (143)
+- [x] **M2 (Low)** Star runes `[3]rune{'.','+','*'}` allocated every render — moved to package-level `starRunes`.
 - [ ] **M3 (Low)** `0.55` spread, `0.15` min-dist, `180.0`/`175.0` brightness — magic numbers (149,153–157)
 - [ ] **R1 (Low)** Numeric shortcuts `"1"`–`"6"` nearly identical — extract loop/helper (319–346)
 
@@ -259,7 +207,7 @@ Scope: Features and fixes for the battlescape tactical combat system.
 - [ ] **R2 (Low)** `cycleTheme` and `cycleLang` structurally identical — extract generic `cycleSlice` helper (274,304)
 
 ### `internal/engine/particles.go`
-- [ ] **B1 (Low)** `SpawnRain`/`SpawnSnow`/`SpawnDust`/`SpawnEmbers` use `rand.Intn(w)`/`rand.Intn(h)` — panics if width or height is 0 or negative
+- [x] **B1 (Low)** `SpawnRain`/`SpawnSnow`/`SpawnDust`/`SpawnEmbers` use `rand.Intn(w)`/`rand.Intn(h)` — added `w<=0||h<=0` early return.
 - [ ] **M1 (Low)** `Gravity = 9.8` is Earth's gravitational constant in m/s², used as pixel-velocity — misleading name/units (23)
 - [ ] **M2 (Low)** Over 40 distinct undocumented numeric literals across spawn functions (144–251): RGB triplets, velocities, life ranges, fade speeds
 - [ ] **R1 (Low)** `SpawnRain`/`SpawnSnow`/`SpawnDust`/`SpawnEmbers` differ only in parameters — use single parametric spawn helper
@@ -327,7 +275,7 @@ Scope: Features and fixes for the battlescape tactical combat system.
 - [ ] **R1 (Low)** Difficulty-weighted type selection duplicated in `SpawnUFOOnCities` (62–70) and `SpawnUFOAtCity` (108–115) — extract `pickUFOType`
 
 ### `internal/geo/vehicle.go`
-- [x] **D1 (Low)** Empty file (only `package geo`) — removed.
+
 
 ### `internal/geo/world.go`
 - [ ] **M1 (Low)** City coordinates (50–74) bare literals in `init()`
@@ -343,21 +291,16 @@ Scope: Features and fixes for the battlescape tactical combat system.
 - [ ] **R2 (Low)** `PerkNames` and `FormatPerks` have identical iteration — `FormatPerks` should call `PerkNames` then join (186,198)
 
 ### `internal/soldier/soldier.go`
-- [ ] **M1 (Low)** Stat ranges in `NewSoldier`: `20+rand.Intn(6)`, `45+rand.Intn(11)`, `40+rand.Intn(21)`, etc. — undocumented (110–124)
+- [x] **M1 (Low)** Stat ranges in `NewSoldier`: `20+rand.Intn(6)`, `45+rand.Intn(11)`, `40+rand.Intn(21)`, etc. — documented with range comments.
 - [ ] **M2 (Low)** `improveStat` thresholds `10, 5, 2` and gains `2+rand.Intn(5)`, `1+rand.Intn(4)` — undocumented (192–202)
 - [ ] **M3 (Low)** Bravery gain `10` with `rand.Intn(11)` threshold (224–225)
 - [ ] **M4 (Low)** TU/HP/Str post-mission formula `(StatCaps.X-s.X)/10 + 2` (235–249)
 - [ ] **R1 (Low)** `PostMission` 57 lines — TU/HP/Strength blocks repeated code (234–250)
 
 ### `internal/audio/audio_other.go`
-- [x] **M1 (Low)** `40` ms buffer size (80), `32767` int16 max (57) — named `otoBufferMS`/`int16Max`.
+
 
 ### `internal/audio/audio_windows.go`
-- [x] **M1 (Low)** MIDI literals named: `midiNoteOn`/`midiNoteOff`, `midiPercCh`, `midiMinVol`, `midiMapperID`.
+
 
 ### `internal/audio/pcm_synth.go`
-- [x] **M1 (Low)** `sampleRate`/`refFreqA4`/`midiA4`/`semitoneRatio` named constants.
-- [x] **M2 (Low)** Mix ratios documented inline (noise/square weights per effect).
-- [x] **M3 (Low)** Sweep endpoints named: laser/plasma/grenade `SweepStart`/`SweepEnd`.
-- [x] **R1 (Low)** `concatWithPad` helper replaces repeated pad+append pattern.
-

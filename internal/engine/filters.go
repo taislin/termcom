@@ -19,8 +19,14 @@ const (
 	VisionThermal
 )
 
+const (
+	lumR = 0.299
+	lumG = 0.587
+	lumB = 0.114
+)
+
 func luminance(r, g, b float64) float64 {
-	return 0.299*r + 0.587*g + 0.114*b
+	return lumR*r + lumG*g + lumB*b
 }
 
 func ApplyNightVision(s *ScreenRaw) {

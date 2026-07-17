@@ -176,14 +176,14 @@ func (es *EncyclopediaScreen) Render(ctx *ScreenCtx) {
 		e := tabEntries[es.Selection]
 		if e.Discovered {
 			ctx.DrawPanel(infoX, listY, infoW, 4, e.Name, StyleCyanBold)
-			desc := e.Desc
+			desc := []rune(e.Desc)
 			line := listY + 2
 			for len(desc) > 0 {
 				end := infoW - 2
 				if end > len(desc) {
 					end = len(desc)
 				}
-				ctx.DrawString(infoX+1, line, desc[:end], StyleDefault)
+				ctx.DrawString(infoX+1, line, string(desc[:end]), StyleDefault)
 				desc = desc[end:]
 				line++
 			}

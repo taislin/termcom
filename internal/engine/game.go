@@ -516,18 +516,18 @@ func (g *Game) renderQuitConfirm(ctx *ScreenCtx) {
 	hint := language.String("CONFIRM_QUIT_HINT")
 	ctx.DrawMarkupString(x+(boxW-StringWidth(hint))/2, y+4, hint, StyleGray, StyleHotkey)
 
+	yesLabel := language.String("CTRL_YES")
+	noLabel := language.String("CTRL_NO")
+	btnW := 16
+	gap := 4
+	totalW := btnW*2 + gap
+	by := y + boxH - 2
+	bx := x + (boxW-totalW)/2
+	yesRect := Rect{bx, by, btnW, 1}
+	noRect := Rect{bx + btnW + gap, by, btnW, 1}
+	g.confirmYesRect = yesRect
+	g.confirmNoRect = noRect
 	if Config.TouchMode {
-		yesLabel := language.String("CTRL_YES")
-		noLabel := language.String("CTRL_NO")
-		btnW := 16
-		gap := 4
-		totalW := btnW*2 + gap
-		by := y + boxH - 2
-		bx := x + (boxW-totalW)/2
-		yesRect := Rect{bx, by, btnW, 1}
-		noRect := Rect{bx + btnW + gap, by, btnW, 1}
-		g.confirmYesRect = yesRect
-		g.confirmNoRect = noRect
 		for _, r := range []Rect{yesRect, noRect} {
 			for dy := 0; dy < r.H; dy++ {
 				for dx := 0; dx < r.W; dx++ {

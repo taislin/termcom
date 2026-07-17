@@ -136,6 +136,8 @@ type RuleItem struct {
 var Weapons = map[string]RuleItem{}
 
 // RuleItems contains the full definition of all items in the game.
+// Note: ShortName values (MSC, PRM, PSI) are shared with Items map below.
+// Code that indexes by ShortName across both maps will find both entries.
 var RuleItems = map[string]RuleItem{
 	"pistol": {
 		Type:       "STR_PISTOL",

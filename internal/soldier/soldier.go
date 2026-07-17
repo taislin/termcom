@@ -159,8 +159,8 @@ func (s *Soldier) CountItem(item string) int {
 }
 
 func NewSoldier(name string) *Soldier {
-	hp := 20 + rand.Intn(6)
-	tu := 45 + rand.Intn(11)
+	hp := 20 + rand.Intn(6)    // 20..25
+	tu := 45 + rand.Intn(11)   // 45..55
 	return &Soldier{
 		Name:       name,
 		Rank:       Rookie,
@@ -168,12 +168,12 @@ func NewSoldier(name string) *Soldier {
 		MaxHP:      hp,
 		TU:         tu,
 		MaxTU:      tu,
-		Accuracy:   40 + rand.Intn(21),
-		Bravery:    30 + rand.Intn(41),
-		Reactions:  30 + rand.Intn(21),
-		Strength:   10 + rand.Intn(11),
+		Accuracy:   40 + rand.Intn(21), // 40..60
+		Bravery:    30 + rand.Intn(41), // 30..70
+		Reactions:  30 + rand.Intn(21), // 30..50
+		Strength:   10 + rand.Intn(11), // 10..20
 		PsiSkill:   0,
-		PsiStr:     rand.Intn(40),
+		PsiStr:     rand.Intn(40), // 0..39
 		Weapon:     "rifle",
 		WeaponAmmo: data.RuleItems["rifle"].AmmoMax,
 		Armor:      "none",
