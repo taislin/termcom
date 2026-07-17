@@ -15,6 +15,16 @@ jobs:
       - name: Install Pandoc and LaTeX
         run: sudo apt-get update && sudo apt-get install -y pandoc texlive-xetex texlive-fonts-recommended
 
+      - name: Install typography fonts
+        # The PDF build requests "Space Grotesk" and "Nova Mono" via fontspec;
+        # neither ships with texlive, so fetch the TTFs and register them with
+        # fontconfig so xelatex can resolve them by family name.
+        run: |
+          mkdir -p "$HOME/.fonts"
+          curl -fsSL -o "$HOME/.fonts/SpaceGrotesk.ttf" "https://github.com/google/fonts/raw/main/ofl/spacegrotesk/SpaceGrotesk%5Bwght%5D.ttf"
+          curl -fsSL -o "$HOME/.fonts/NovaMono.ttf" "https://github.com/google/fonts/raw/main/ofl/novamono/NovaMono.ttf"
+          fc-cache -f "$HOME/.fonts"
+
       - name: Build PDFs
         run: |
           mkdir -p pdfs
