@@ -20,6 +20,100 @@ import (
 	"github.com/taislin/termcom/internal/soldier"
 )
 
+// Geoscape timing constants.
+const (
+	baseSpawnRateFloor  = 1200 // minimum ticks between alien base attempts
+	missionSpawnFloor   = 300  // minimum ticks between mission spawns
+	activityTickRate    = 7200 // ticks between alien activity increases (~2h at speed 1)
+	ufoSpawnRateFloor   = 100  // hard floor for UFO spawn interval
+	ufoSpawnRateBase    = 600  // base UFO spawn interval
+	ufoSpawnRateDecay   = 20   // monthly decay of spawn interval
+	ufoSpawnRateFloorSoft = 200 // soft floor for UFO spawn interval
+	missionSpawnBase    = 1800 // base mission spawn interval
+	missionSpawnActWt   = 15   // alien activity weight in spawn formula
+	missionSpawnDecay   = 30   // monthly decay of mission spawn interval
+	baseSpawnRateBase   = 3600 // base alien-base spawn interval
+	baseSpawnRateDecay  = 60   // monthly decay of alien-base spawn interval
+	alienActivityTick   = 2400 // ticks between alien base threat escalation
+	missionIntervalBase = 1800 // base interval for alien-base missions
+	missionIntervalDecay = 30  // monthly decay of alien-base mission interval
+	missionIntervalFloor = 600 // floor for alien-base mission interval
+	baseRadarRange      = 24   // base detection range tiles
+	perRadarRange       = 10   // extra range per radar facility
+	minimapClickRadius  = 25   // click detection radius on minimap
+	maxEdgePathDist     = 50.0 // max edge distance for BFS pathfinding
+	transportSentinel   = 999999 // large sentinel for "no nearest" in transport routing
+
+	// World map dimensions used for day/night rendering.
+	worldMapW = 180
+	worldMapH = 90
+)
+
+// cityName returns the localized name of the city at the given node ID,
+// or "?" if the ID is invalid.
+func (gs *Geoscape) cityName(id int) string {
+	if c := gs.CityByID(id); c != nil {
+		return c.LangName()
+	}
+	return "?"
+}
+
+// resumeRealtime unpauses the game and ensures time is flowing.
+func (gs *Geoscape) resumeRealtime() {
+	gs.Game.Paused = false
+	if gs.Game.TimeSpeed == 0 {
+		gs.Game.TimeSpeed = 1
+	}
+}
+
+// calcAlienPower returns the total alien threat level for autoresolve.
+func (gs *Geoscape) calcAlienPower(alienCount int) int {
+	diffMult := 1.0
+	if gs.Game.Difficulty >= 0 && gs.Game.Difficulty < len(engine.Difficulties) {
+		diffMult = engine.Difficulties[gs.Game.Difficulty].AlienScale
+	}
+	return int(float64(alienCount*(40+gs.MissionsWon*3)) * diffMult)
+}
+
+// calcSquadPower returns the total power of the given soldiers (includes perk bonuses).
+func calcSquadPower(healthy []*soldier.Soldier) int {
+	power := 0
+	for _, s := range healthy {
+		power += s.HP + s.Accuracy/2 + s.Strength + s.Reactions/2
+		if s.HasPerk("marksman") {
+			power += 15
+		}
+		if s.HasPerk("tough") {
+			power += 20
+		}
+		if s.HasPerk("close_combat") {
+			power += 10
+		}
+		if s.HasPerk("overwatch") {
+			power += 10
+		}
+	}
+	return power
+}
+
+// calcWinChance returns the clamped [10,70] win probability for autoresolve.
+func (gs *Geoscape) calcWinChance(healthy []*soldier.Soldier, missionTypeMod int) int {
+	alienCount := 5 + gs.MissionsWon/2
+	if alienCount > 10 {
+		alienCount = 10
+	}
+	squadPower := calcSquadPower(healthy)
+	alienPower := gs.calcAlienPower(alienCount)
+	winChance := 30 + (squadPower-alienPower)/5 + missionTypeMod
+	if winChance > 70 {
+		winChance = 70
+	}
+	if winChance < 10 {
+		winChance = 10
+	}
+	return winChance
+}
+
 // AlienMission describes an active UFO threat that must be responded to.
 type AlienMission struct {
 	Type      string
@@ -473,12 +567,7 @@ func (gs *Geoscape) Update() {
 			if gs.UFOs.Count() < maxUFOs {
 				ufo := SpawnUFOOnCities(gs.Cities, gameMonth)
 				gs.UFOs = append(gs.UFOs, ufo)
-				city := gs.CityByID(ufo.CurrentNode())
-				cityName := "?"
-				if city != nil {
-					cityName = city.LangName()
-				}
-				gs.Message = fmt.Sprintf(language.String("MSG_UFO_DETECTED"), ufo.Type.DisplayName(), cityName)
+				gs.Message = fmt.Sprintf(language.String("MSG_UFO_DETECTED"), ufo.Type.DisplayName(), gs.cityName(ufo.CurrentNode()))
 				gs.MessageTimer = time.Now()
 				audio.PlayAlert()
 				if engine.Config.PauseOnAlienDetect {
@@ -518,18 +607,14 @@ func (gs *Geoscape) Update() {
 		for _, m := range gs.Missions {
 			m.HoursLeft -= float64(minutes) / 60.0
 			if m.HoursLeft <= 0 {
-				city := gs.CityByID(m.NodeID)
-				cityName := "?"
-				if city != nil {
-					cityName = city.LangName()
-				}
+				cityNameStr := gs.cityName(m.NodeID)
 				// Base defense mission that expired: the aliens overrun the base
 				if defBase := gs.HasBaseAt(m.NodeID); defBase != nil {
 					gs.Message = fmt.Sprintf(language.String("MSG_BASE_DESTROYED"), defBase.Name)
 					gs.MessageTimer = time.Now()
 					gs.destroyBase(defBase)
 				} else {
-					gs.Message = fmt.Sprintf(language.String("MSG_ATTACK_CITY"), m.Type, cityName)
+					gs.Message = fmt.Sprintf(language.String("MSG_ATTACK_CITY"), m.Type, cityNameStr)
 					gs.MessageTimer = time.Now()
 					gs.AlienActivity += 10
 				}
@@ -1313,10 +1398,7 @@ func (gs *Geoscape) RespondToMission(idx int) {
 	}
 	mission := gs.Missions[idx]
 	gs.Missions = append(gs.Missions[:idx], gs.Missions[idx+1:]...)
-	city := gs.CityByID(mission.NodeID)
-	cityName := "?"
-	if city != nil {
-		cityName = city.LangName()
+	if city := gs.CityByID(mission.NodeID); city != nil {
 		city.MissionHere = false
 	}
 
@@ -1324,7 +1406,7 @@ func (gs *Geoscape) RespondToMission(idx int) {
 	if defBase := gs.HasBaseAt(mission.NodeID); defBase != nil {
 		gs.ActiveBaseDefense = defBase
 	}
-	gs.Message = fmt.Sprintf(language.String("MSG_SQUAD_DEPLOYED"), mission.Type, cityName)
+	gs.Message = fmt.Sprintf(language.String("MSG_SQUAD_DEPLOYED"), mission.Type, gs.cityName(mission.NodeID))
 	gs.MessageTimer = time.Now()
 	gs.Game.Paused = true
 
@@ -1395,48 +1477,13 @@ func (gs *Geoscape) AutoresolveMission(idx int) {
 		return
 	}
 
-	city := gs.CityByID(mission.NodeID)
-	cityName := "?"
-	if city != nil {
-		cityName = city.LangName()
+	if city := gs.CityByID(mission.NodeID); city != nil {
 		city.MissionHere = false
 	}
 
 	alienCount := 5 + gs.MissionsWon/2
 	if alienCount > 10 {
 		alienCount = 10
-	}
-
-	diffMult := 1.0
-	if gs.Game.Difficulty >= 0 && gs.Game.Difficulty < len(engine.Difficulties) {
-		diffMult = engine.Difficulties[gs.Game.Difficulty].AlienScale
-	}
-
-	squadPower := 0
-	for _, s := range healthy {
-		squadPower += s.HP + s.Accuracy/2 + s.Strength + s.Reactions/2
-		if s.HasPerk("marksman") {
-			squadPower += 15
-		}
-		if s.HasPerk("tough") {
-			squadPower += 20
-		}
-		if s.HasPerk("close_combat") {
-			squadPower += 10
-		}
-		if s.HasPerk("overwatch") {
-			squadPower += 10
-		}
-	}
-
-	alienPower := int(float64(alienCount*(40+gs.MissionsWon*3)) * diffMult)
-
-	winChance := 30 + (squadPower-alienPower)/5
-	if winChance > 70 {
-		winChance = 70
-	}
-	if winChance < 10 {
-		winChance = 10
 	}
 
 	missionTypeMod := 0
@@ -1448,13 +1495,7 @@ func (gs *Geoscape) AutoresolveMission(idx int) {
 	case language.String("MISSION_ALIEN_BASE"):
 		missionTypeMod = -15
 	}
-	winChance += missionTypeMod
-	if winChance > 70 {
-		winChance = 70
-	}
-	if winChance < 10 {
-		winChance = 10
-	}
+	winChance := gs.calcWinChance(healthy, missionTypeMod)
 
 	won := rand.Intn(100) < winChance
 
@@ -1492,7 +1533,7 @@ func (gs *Geoscape) AutoresolveMission(idx int) {
 		}
 
 		gs.Message = fmt.Sprintf(language.String("GEO_AUTORESOLVE_VICTORY"),
-			cityName, reward/1000, alienCount)
+			gs.cityName(mission.NodeID), reward/1000, alienCount)
 	} else {
 		casualtyCount := 1 + rand.Intn(min(3, len(healthy)))
 		if casualtyCount > len(healthy) {
@@ -1516,7 +1557,7 @@ func (gs *Geoscape) AutoresolveMission(idx int) {
 		}
 
 		gs.Message = fmt.Sprintf(language.String("GEO_AUTORESOLVE_DEFEAT"),
-			cityName, casualtyCount, strings.Join(killed, ", "))
+			gs.cityName(mission.NodeID), casualtyCount, strings.Join(killed, ", "))
 	}
 
 	gs.ActiveMissionType = ""
@@ -1550,38 +1591,7 @@ func (gs *Geoscape) enterMissionSelectMode() {
 		return
 	}
 
-	alienCount := 5 + gs.MissionsWon/2
-	if alienCount > 10 {
-		alienCount = 10
-	}
-	diffMult := 1.0
-	if gs.Game.Difficulty >= 0 && gs.Game.Difficulty < len(engine.Difficulties) {
-		diffMult = engine.Difficulties[gs.Game.Difficulty].AlienScale
-	}
-	squadPower := 0
-	for _, s := range healthy {
-		squadPower += s.HP + s.Accuracy/2 + s.Strength + s.Reactions/2
-		if s.HasPerk("marksman") {
-			squadPower += 15
-		}
-		if s.HasPerk("tough") {
-			squadPower += 20
-		}
-		if s.HasPerk("close_combat") {
-			squadPower += 10
-		}
-		if s.HasPerk("overwatch") {
-			squadPower += 10
-		}
-	}
-	alienPower := int(float64(alienCount*(40+gs.MissionsWon*3)) * diffMult)
-	winChance := 30 + (squadPower-alienPower)/5
-	if winChance > 70 {
-		winChance = 70
-	}
-	if winChance < 10 {
-		winChance = 10
-	}
+	winChance := gs.calcWinChance(healthy, 0)
 
 	gs.MissionSelectMode = true
 	gs.MissionSelectIdx = 0
@@ -1952,10 +1962,7 @@ func (gs *Geoscape) confirmLaunch(target interface{}) {
 		inter.LaunchAtUFO(t)
 		gs.Interceptors = append(gs.Interceptors, inter)
 		// Resume real-time simulation so the interceptor actually flies to the UFO.
-		gs.Game.Paused = false
-		if gs.Game.TimeSpeed == 0 {
-			gs.Game.TimeSpeed = 1
-		}
+		gs.resumeRealtime()
 		gs.Message = fmt.Sprintf(language.String("MSG_INTERCEPTOR_LAUNCHED"), t.Type.DisplayName())
 	case *CrashSite:
 		gs.DispatchTransport(t)
@@ -2069,18 +2076,15 @@ func (gs *Geoscape) renderMissionSelect(ctx *engine.ScreenCtx, w, h int) {
 	opt3 := language.String("GEO_OPTION_IGNORE")
 
 	idx := gs.missionIndexAtCursor()
-	cityName := "?"
 	missionType := ""
+	missionNode := -1
 	if idx >= 0 && idx < len(gs.Missions) {
 		mission := gs.Missions[idx]
-		city := gs.CityByID(mission.NodeID)
-		if city != nil {
-			cityName = city.LangName()
-		}
 		missionType = mission.Type
+		missionNode = mission.NodeID
 	}
 
-	fmt1 := fmt.Sprintf(missionFmt, missionType, cityName)
+	fmt1 := fmt.Sprintf(missionFmt, missionType, gs.cityName(missionNode))
 	fmt2 := fmt.Sprintf(oddsFmt, gs.MissionOdds)
 
 	// Compute required width from all text lines
@@ -2288,8 +2292,8 @@ func (gs *Geoscape) renderMinimap(ctx *engine.ScreenCtx, x, y, w, h int) {
 	}
 
 	// World map is 180x90
-	worldW := 180
-	worldH := 90
+	worldW := worldMapW
+	worldH := worldMapH
 
 	// Day/night terminator calculation
 	totalMin := float64(gs.Game.GameTime.Hour())*60 + float64(gs.Game.GameTime.Minute())
@@ -2317,9 +2321,9 @@ func (gs *Geoscape) renderMinimap(ctx *engine.ScreenCtx, x, y, w, h int) {
 
 			// Night side: darken with a blue tint
 			relX := (worldX - sunX + worldW) % worldW
-			latRad := float64(worldY-45) / 45.0 * math.Pi / 2
+			latRad := float64(worldY-worldH/2) / float64(worldH/2) * math.Pi / 2
 			wobble := int(seasonOff * math.Sin(latRad))
-			nightBoundary := 45 + wobble
+			nightBoundary := worldW/4 + wobble
 			if nightBoundary < 0 {
 				nightBoundary = 0
 			}
@@ -3039,10 +3043,7 @@ func (gs *Geoscape) DispatchTransport(cs *CrashSite) {
 		SourceBaseCity: gs.SelectedBase().CityID,
 	}
 	// Resume real-time simulation so the transport actually travels to the site.
-	gs.Game.Paused = false
-	if gs.Game.TimeSpeed == 0 {
-		gs.Game.TimeSpeed = 1
-	}
+	gs.resumeRealtime()
 	gs.Message = fmt.Sprintf(language.String("MSG_TRANSPORT_DISPATCHED"), localizeUFOName(cs.UFOName))
 	gs.MessageTimer = time.Now()
 }

@@ -833,6 +833,134 @@ func (bs *Battlescape) Update() {
 	}
 }
 
+// spawnShotFX creates the visual projectile and hit/miss effects for a shot.
+// shooter is the unit firing, target is the unit being shot at, damage/hit/coverHit
+// are the FireAt results, and missMsg/killMsg are the message keys for misses and kills.
+func (bs *Battlescape) spawnShotFX(shooter, target *Unit, damage int, hit, coverHit bool, style tcell.Style, missMsg, hitMsg, killMsg string) {
+	dx := target.X - shooter.X
+	dy := target.Y - shooter.Y
+	length := int(math.Sqrt(float64(dx*dx + dy*dy)))
+	if length < 1 {
+		length = 1
+	}
+	symbol := '*'
+	if data.RuleItems[shooter.Weapon].AmmoMax >= 99 {
+		symbol = '|'
+	}
+	bs.Projectile = &Projectile{
+		FromX: shooter.X, FromY: shooter.Y,
+		ToX: target.X, ToY: target.Y,
+		Progress: 0, Length: length,
+		Symbol: symbol,
+		Style:  style,
+	}
+	engine.SpawnMuzzleFlash(bs.Particles, shooter.X-bs.ScrollX+1, shooter.Y-bs.ScrollY+1)
+	if hit {
+		engine.SpawnExplosion(bs.Particles, target.X-bs.ScrollX+1, target.Y-bs.ScrollY+1, color.NewRGBColor(255, 80, 30), 8)
+		if engine.Config.ScreenShake {
+			bs.Camera.TriggerShake(0.5)
+		}
+		bs.SpawnBloodSplatter(target)
+		bs.spawnFloater(target.X, target.Y, fmt.Sprintf("-%d", damage), color.XTerm9)
+		name := target.Name()
+		bs.AddMessage(fmt.Sprintf(language.String(hitMsg), name, damage))
+		if !target.Alive {
+			bs.AddMessage(fmt.Sprintf(language.String(killMsg), name))
+		}
+	} else {
+		if coverHit {
+			bs.AddMessage(language.String("MSG_HIT_COVER"))
+		} else {
+			bs.AddMessage(language.String(missMsg))
+		}
+	}
+}
+
+// spawnAlienWave creates a group of alien units spawned from map edges with
+// difficulty-scaled stats. Returns the number of aliens actually spawned.
+func (bs *Battlescape) spawnAlienWave(count int) int {
+	g := bs.Game
+	alienTypes := g.GetAlienTypes()
+	gameMonth := int(g.GameTime.Month()) - 3 + (g.GameTime.Year()-1999)*12
+	if gameMonth < 0 {
+		gameMonth = 0
+	}
+	diffMult := 1.0
+	if g.Difficulty >= 0 && g.Difficulty < len(engine.Difficulties) {
+		diffMult = engine.Difficulties[g.Difficulty].AlienScale
+	}
+	alienRank := gameMonth / 3
+	if alienRank > 3 {
+		alienRank = 3
+	}
+	if bs.Turn > 6 {
+		alienRank++
+	}
+	if bs.Turn > 12 {
+		alienRank++
+	}
+	if alienRank > 5 {
+		alienRank = 5
+	}
+	equipTier := data.GetAlienEquipTier(gameMonth)
+	tierHP, tierArmor := data.GetTierStatBonus(equipTier)
+	spawned := 0
+	for i := 0; i < count; i++ {
+		at := getAlienByRank(alienTypes, alienRank)
+		if at == nil {
+			continue
+		}
+		u := NewAlienUnit(at)
+		u.HP += int(float64(gameMonth*2)*diffMult) + tierHP
+		u.MaxHP += int(float64(gameMonth*2)*diffMult) + tierHP
+		u.Armour += tierArmor
+		u.Accuracy += int(float64(gameMonth*3) * diffMult)
+		u.Weapon = data.GetTierWeapon(equipTier, at.Rank)
+		if ammo, ok := data.RuleItems[u.Weapon]; ok {
+			u.WeaponAmmo = ammo.AmmoMax
+		}
+		side := rand.Intn(4)
+		switch side {
+		case 0:
+			u.X = 0
+			u.Y = rand.Intn(bs.Map.Height)
+		case 1:
+			u.X = bs.Map.Width - 1
+			u.Y = rand.Intn(bs.Map.Height)
+		case 2:
+			u.X = rand.Intn(bs.Map.Width)
+			u.Y = 0
+		case 3:
+			u.X = rand.Intn(bs.Map.Width)
+			u.Y = bs.Map.Height - 1
+		}
+		if !bs.Map.Passable(u.X, u.Y) {
+			for dy := -2; dy <= 2; dy++ {
+				for dx := -2; dx <= 2; dx++ {
+					nx, ny := u.X+dx, u.Y+dy
+					if nx >= 0 && nx < bs.Map.Width && ny >= 0 && ny < bs.Map.Height && bs.Map.Passable(nx, ny) {
+						u.X, u.Y = nx, ny
+						dy = 3
+						dx = 3
+					}
+				}
+			}
+		}
+		u.IsNight = bs.IsNight
+		bs.Units = append(bs.Units, u)
+		ai := NewAlienAI(u)
+		ai.State = AIAttack
+		nearest, _ := ai.findNearest(bs.Units.Faction(0), bs.Map)
+		if nearest != nil {
+			ai.LastSeenX = nearest.X
+			ai.LastSeenY = nearest.Y
+		}
+		bs.AlienAIs = append(bs.AlienAIs, ai)
+		spawned++
+	}
+	return spawned
+}
+
 func (bs *Battlescape) executeAlienAction(action AlienAction) {
 	if action.Unit.TU <= 0 || !action.Unit.Alive {
 		return
@@ -847,43 +975,7 @@ func (bs *Battlescape) executeAlienAction(action AlienAction) {
 			return
 		}
 		audio.PlayWeaponFire(action.Unit.Weapon)
-		dx := action.Target.X - action.Unit.X
-		dy := action.Target.Y - action.Unit.Y
-		length := int(math.Sqrt(float64(dx*dx + dy*dy)))
-		if length < 1 {
-			length = 1
-		}
-		symbol := '*'
-		if data.RuleItems[action.Unit.Weapon].AmmoMax >= 99 {
-			symbol = '|'
-		}
-		bs.Projectile = &Projectile{
-			FromX: action.Unit.X, FromY: action.Unit.Y,
-			ToX: action.Target.X, ToY: action.Target.Y,
-			Progress: 0, Length: length,
-			Symbol: symbol,
-			Style:  engine.StyleYellow,
-		}
-		engine.SpawnMuzzleFlash(bs.Particles, action.Unit.X-bs.ScrollX+1, action.Unit.Y-bs.ScrollY+1)
-		if hit {
-			engine.SpawnExplosion(bs.Particles, action.Target.X-bs.ScrollX+1, action.Target.Y-bs.ScrollY+1, color.NewRGBColor(255, 80, 30), 8)
-			if engine.Config.ScreenShake {
-				bs.Camera.TriggerShake(0.5)
-			}
-			bs.SpawnBloodSplatter(action.Target)
-			bs.spawnFloater(action.Target.X, action.Target.Y, fmt.Sprintf("-%d", damage), color.XTerm9)
-			name := action.Target.Name()
-			bs.AddMessage(fmt.Sprintf(language.String("MSG_ALIEN_HIT"), name, damage))
-			if !action.Target.Alive {
-				bs.AddMessage(fmt.Sprintf(language.String("MSG_ALIEN_KILL"), name))
-			}
-		} else {
-			if coverHit {
-				bs.AddMessage(language.String("MSG_HIT_COVER"))
-			} else {
-				bs.AddMessage(language.String("MSG_ALIEN_MISS"))
-			}
-		}
+		bs.spawnShotFX(action.Unit, action.Target, damage, hit, coverHit, engine.StyleYellow, "MSG_ALIEN_MISS", "MSG_ALIEN_HIT", "MSG_ALIEN_KILL")
 	case "melee":
 		if action.Target == nil || !action.Target.Alive {
 			return
@@ -1077,29 +1169,7 @@ func (bs *Battlescape) checkHumanReactionFire(movedAlien *Unit) {
 		if hit && u.Soldier != nil {
 			u.Soldier.AddReactionsExp()
 		}
-		bs.Projectile = &Projectile{
-			FromX: u.X, FromY: u.Y,
-			ToX: movedAlien.X, ToY: movedAlien.Y,
-			Progress: 0, Length: dist,
-			Symbol: '*', Style: engine.StyleCyanBold,
-		}
-		if hit {
-			engine.SpawnExplosion(bs.Particles, movedAlien.X-bs.ScrollX+1, movedAlien.Y-bs.ScrollY+1, color.NewRGBColor(255, 80, 30), 8)
-			if engine.Config.ScreenShake {
-				bs.Camera.TriggerShake(0.3)
-			}
-			bs.SpawnBloodSplatter(movedAlien)
-			bs.AddMessage(fmt.Sprintf(language.String("MSG_REACTION_HIT"), damage, movedAlien.Name(), movedAlien.HP))
-			if !movedAlien.Alive {
-				bs.AddMessage(fmt.Sprintf(language.String("MSG_REACTION_KILL"), movedAlien.Name()))
-			}
-		} else {
-			if coverHit {
-				bs.AddMessage(language.String("MSG_HIT_COVER"))
-			} else {
-				bs.AddMessage(language.String("MSG_REACTION_MISS"))
-			}
-		}
+		bs.spawnShotFX(u, movedAlien, damage, hit, coverHit, engine.StyleCyanBold, "MSG_REACTION_MISS", "MSG_REACTION_HIT", "MSG_REACTION_KILL")
 		return
 	}
 }
@@ -1150,29 +1220,7 @@ func (bs *Battlescape) checkAlienReactionFire(movedHuman *Unit) {
 		if hit && u.Soldier != nil {
 			u.Soldier.AddReactionsExp()
 		}
-		bs.Projectile = &Projectile{
-			FromX: u.X, FromY: u.Y,
-			ToX: movedHuman.X, ToY: movedHuman.Y,
-			Progress: 0, Length: dist,
-			Symbol: '*', Style: engine.StyleRedBold,
-		}
-		if hit {
-			engine.SpawnExplosion(bs.Particles, movedHuman.X-bs.ScrollX+1, movedHuman.Y-bs.ScrollY+1, color.NewRGBColor(255, 80, 30), 8)
-			if engine.Config.ScreenShake {
-				bs.Camera.TriggerShake(0.3)
-			}
-			bs.SpawnBloodSplatter(movedHuman)
-			bs.AddMessage(fmt.Sprintf(language.String("MSG_REACTION_HIT"), damage, movedHuman.Name(), movedHuman.HP))
-			if !movedHuman.Alive {
-				bs.AddMessage(fmt.Sprintf(language.String("MSG_REACTION_KILL"), movedHuman.Name()))
-			}
-		} else {
-			if coverHit {
-				bs.AddMessage(language.String("MSG_HIT_COVER"))
-			} else {
-				bs.AddMessage(language.String("MSG_REACTION_MISS"))
-			}
-		}
+		bs.spawnShotFX(u, movedHuman, damage, hit, coverHit, engine.StyleRedBold, "MSG_REACTION_MISS", "MSG_REACTION_HIT", "MSG_REACTION_KILL")
 		return
 	}
 }
@@ -1460,14 +1508,15 @@ func (bs *Battlescape) processAbduction() {
 }
 
 func (bs *Battlescape) checkReinforcements() {
-	// Check for ModReinforcements: spawn on turn 4 regardless of mission type
 	if HasModifier(bs.MissionModifiers, ModReinforcements) && bs.Turn == 4 && !bs.ReinforcementsSpawned {
 		bs.ReinforcementsSpawned = true
-		bs.spawnReinforcementWave(2)
+		spawned := bs.spawnAlienWave(2)
+		if spawned > 0 {
+			bs.AddMessage(language.Sprintf("BATTLE_REINFORCEMENTS", spawned))
+		}
 		return
 	}
 
-	// Standard reinforcements only on terror and alien base missions
 	if bs.UFOName != "Terror" && bs.UFOName != "Alien Base Assault" {
 		return
 	}
@@ -1487,161 +1536,19 @@ func (bs *Battlescape) checkReinforcements() {
 	}
 	bs.ReinforceTimer = 0
 
-	g := bs.Game
-	alienTypes := g.GetAlienTypes()
-	gameMonth := int(g.GameTime.Month()) - 3 + (g.GameTime.Year()-1999)*12
-	if gameMonth < 0 {
-		gameMonth = 0
-	}
-
-	diffMult := 1.0
-	if g.Difficulty >= 0 && g.Difficulty < len(engine.Difficulties) {
-		diffMult = engine.Difficulties[g.Difficulty].AlienScale
-	}
-
-	alienRank := gameMonth / 3
-	if alienRank > 3 {
-		alienRank = 3
-	}
-	if bs.Turn > 6 {
-		alienRank++
-	}
-	if bs.Turn > 12 {
-		alienRank++
-	}
-	if alienRank > 5 {
-		alienRank = 5
-	}
-
-	equipTier := data.GetAlienEquipTier(gameMonth)
-	tierHP, tierArmor := data.GetTierStatBonus(equipTier)
-
 	count := 1 + rand.Intn(2)
-	for i := 0; i < count; i++ {
-		at := getAlienByRank(alienTypes, alienRank)
-		if at == nil {
-			continue
-		}
-		u := NewAlienUnit(at)
-		u.HP += int(float64(gameMonth*2)*diffMult) + tierHP
-		u.MaxHP += int(float64(gameMonth*2)*diffMult) + tierHP
-		u.Armour += tierArmor
-		u.Accuracy += int(float64(gameMonth*3) * diffMult)
-		u.Weapon = data.GetTierWeapon(equipTier, at.Rank)
-		if ammo, ok := data.RuleItems[u.Weapon]; ok {
-			u.WeaponAmmo = ammo.AmmoMax
-		}
-		side := rand.Intn(4)
-		switch side {
-		case 0:
-			u.X = 0
-			u.Y = rand.Intn(bs.Map.Height)
-		case 1:
-			u.X = bs.Map.Width - 1
-			u.Y = rand.Intn(bs.Map.Height)
-		case 2:
-			u.X = rand.Intn(bs.Map.Width)
-			u.Y = 0
-		case 3:
-			u.X = rand.Intn(bs.Map.Width)
-			u.Y = bs.Map.Height - 1
-		}
-		if !bs.Map.Passable(u.X, u.Y) {
-			for dy := -2; dy <= 2; dy++ {
-				for dx := -2; dx <= 2; dx++ {
-					nx, ny := u.X+dx, u.Y+dy
-					if nx >= 0 && nx < bs.Map.Width && ny >= 0 && ny < bs.Map.Height && bs.Map.Passable(nx, ny) {
-						u.X, u.Y = nx, ny
-						dy = 3
-						dx = 3
-					}
-				}
-			}
-		}
-		u.IsNight = bs.IsNight
-		bs.Units = append(bs.Units, u)
-		ai := NewAlienAI(u)
-		ai.State = AIAttack
-		nearest, _ := ai.findNearest(bs.Units.Faction(0), bs.Map)
-		if nearest != nil {
-			ai.LastSeenX = nearest.X
-			ai.LastSeenY = nearest.Y
-		}
-		bs.AlienAIs = append(bs.AlienAIs, ai)
+	spawned := bs.spawnAlienWave(count)
+	if spawned > 0 {
+		bs.AddMessage(fmt.Sprintf(language.String("MSG_REINFORCEMENTS"), spawned))
 	}
-	bs.AddMessage(fmt.Sprintf(language.String("MSG_REINFORCEMENTS"), count))
 }
 
+// spawnReinforcementWave creates alien reinforcements and posts a message.
 func (bs *Battlescape) spawnReinforcementWave(count int) {
-	g := bs.Game
-	alienTypes := g.GetAlienTypes()
-	gameMonth := int(g.GameTime.Month()) - 3 + (g.GameTime.Year()-1999)*12
-	if gameMonth < 0 {
-		gameMonth = 0
+	spawned := bs.spawnAlienWave(count)
+	if spawned > 0 {
+		bs.AddMessage(language.Sprintf("BATTLE_REINFORCEMENTS", spawned))
 	}
-	alienRank := gameMonth / 3
-	if alienRank > 3 {
-		alienRank = 3
-	}
-	diffMult := 1.0
-	if g.Difficulty >= 0 && g.Difficulty < len(engine.Difficulties) {
-		diffMult = engine.Difficulties[g.Difficulty].AlienScale
-	}
-	equipTier := data.GetAlienEquipTier(gameMonth)
-	tierHP, tierArmor := data.GetTierStatBonus(equipTier)
-	for i := 0; i < count; i++ {
-		at := getAlienByRank(alienTypes, alienRank)
-		if at == nil {
-			continue
-		}
-		u := NewAlienUnit(at)
-		u.HP += int(float64(gameMonth*2)*diffMult) + tierHP
-		u.MaxHP += int(float64(gameMonth*2)*diffMult) + tierHP
-		u.Armour += tierArmor
-		u.Accuracy += int(float64(gameMonth*3) * diffMult)
-		u.Weapon = data.GetTierWeapon(equipTier, at.Rank)
-		if ammo, ok := data.RuleItems[u.Weapon]; ok {
-			u.WeaponAmmo = ammo.AmmoMax
-		}
-		side := rand.Intn(4)
-		switch side {
-		case 0:
-			u.X = 0
-			u.Y = rand.Intn(bs.Map.Height)
-		case 1:
-			u.X = bs.Map.Width - 1
-			u.Y = rand.Intn(bs.Map.Height)
-		case 2:
-			u.X = rand.Intn(bs.Map.Width)
-			u.Y = 0
-		case 3:
-			u.X = rand.Intn(bs.Map.Width)
-			u.Y = bs.Map.Height - 1
-		}
-		if !bs.Map.Passable(u.X, u.Y) {
-			for dy := -2; dy <= 2; dy++ {
-				for dx := -2; dx <= 2; dx++ {
-					nx, ny := u.X+dx, u.Y+dy
-					if nx >= 0 && nx < bs.Map.Width && ny >= 0 && ny < bs.Map.Height && bs.Map.Passable(nx, ny) {
-						u.X, u.Y = nx, ny
-						dy = 3
-						dx = 3
-					}
-				}
-			}
-		}
-		u.IsNight = bs.IsNight
-		bs.Units = append(bs.Units, u)
-		ai := NewAlienAI(u)
-		ai.State = AIAttack
-		nearest, _ := ai.findNearest(bs.Units.Faction(0), bs.Map)
-		if nearest != nil {
-			ai.LastSeenX = nearest.X
-			ai.LastSeenY = nearest.Y
-		}
-		bs.AlienAIs = append(bs.AlienAIs, ai)
-	}
-	bs.AddMessage(language.Sprintf("BATTLE_REINFORCEMENTS", count))
 }
 
 // learnFromKills scans dead aliens and increases knowledge level for each.
@@ -1782,6 +1689,7 @@ func (bs *Battlescape) MoveCursor(dx, dy int) {
 	bs.Camera.SetTarget(bs.CursorX, bs.CursorY)
 }
 
+// SelectUnit selects the unit at the cursor position or cycles to the next one.
 func (bs *Battlescape) SelectUnit() {
 	if bs.Phase != PhasePlayerTurn {
 		return
@@ -1796,6 +1704,7 @@ func (bs *Battlescape) SelectUnit() {
 	}
 }
 
+// LeftClick handles a left-click on the battlescape, selecting units or interacting with the UI.
 func (bs *Battlescape) LeftClick() {
 	if bs.Phase != PhasePlayerTurn {
 		return
@@ -1815,6 +1724,8 @@ func (bs *Battlescape) LeftClick() {
 	bs.State.CursorState = StateInspect
 }
 
+// RightClick handles a right-click: in targeting mode fires, in move mode confirms movement,
+// otherwise enters move-planning mode.
 func (bs *Battlescape) RightClick() {
 	if bs.Phase != PhasePlayerTurn {
 		return
@@ -1833,6 +1744,7 @@ func (bs *Battlescape) RightClick() {
 	bs.updateMovePath()
 }
 
+// MoveSelected moves the selected unit along the calculated path toward the cursor.
 func (bs *Battlescape) MoveSelected() {
 	if bs.Selected == nil || bs.Phase != PhasePlayerTurn {
 		return
@@ -1888,6 +1800,7 @@ func (bs *Battlescape) MoveSelected() {
 	bs.checkAlienReactionFire(u)
 }
 
+// FireWeapon fires the selected unit's weapon at the target under the cursor.
 func (bs *Battlescape) FireWeapon() {
 	if bs.Selected == nil || bs.Phase != PhasePlayerTurn {
 		return
@@ -1963,6 +1876,7 @@ func (bs *Battlescape) recordPlayerShot(shooter, target *Unit) {
 	}
 }
 
+// Reload reloads the selected unit's weapon to full ammo.
 func (bs *Battlescape) Reload() {
 	if bs.Selected == nil || bs.Phase != PhasePlayerTurn {
 		return
@@ -1986,6 +1900,7 @@ func (bs *Battlescape) Reload() {
 	bs.AddMessage(fmt.Sprintf(language.String("MSG_RELOADED"), w.DisplayName(), bs.Selected.WeaponAmmo, w.AmmoMax))
 }
 
+// CycleFireMode cycles the selected unit's weapon between available fire modes.
 func (bs *Battlescape) CycleFireMode() {
 	if bs.Selected == nil || bs.Phase != PhasePlayerTurn {
 		return

@@ -1,6 +1,7 @@
 package battle
 
 import (
+	"math"
 	"math/rand"
 
 	"github.com/gdamore/tcell/v3"
@@ -542,25 +543,14 @@ func (m *BattleMap) IsSeen(x, y int) bool {
 	return t.Seen
 }
 
-// fillRect fills a rectangle with a tile type
+// fillRect fills a rectangle with a tile type on the current level.
 func (m *BattleMap) fillRect(x, y, w, h int, t TileType) {
-	for dy := 0; dy < h; dy++ {
-		for dx := 0; dx < w; dx++ {
-			m.Set(x+dx, y+dy, t)
-		}
-	}
+	m.fillRectLevel(x, y, w, h, m.CurrentLevel, t)
 }
 
-// drawRect draws a rectangle outline with a tile type
+// drawRect draws a rectangle outline with a tile type on the current level.
 func (m *BattleMap) drawRect(x, y, w, h int, t TileType) {
-	for dx := 0; dx < w; dx++ {
-		m.Set(x+dx, y, t)
-		m.Set(x+dx, y+h-1, t)
-	}
-	for dy := 0; dy < h; dy++ {
-		m.Set(x, y+dy, t)
-		m.Set(x+w-1, y+dy, t)
-	}
+	m.drawRectLevel(x, y, w, h, m.CurrentLevel, t)
 }
 
 func (m *BattleMap) fillRectLevel(x, y, w, h, level int, t TileType) {
@@ -582,14 +572,16 @@ func (m *BattleMap) drawRectLevel(x, y, w, h, level int, t TileType) {
 	}
 }
 
-func (m *BattleMap) corridorLevel(x1, y1, x2, y2, w, level int) {
+// corridorImpl is the shared L-shaped corridor implementation.
+// guardTile is the tile type that prevents carving; fillTile is the replacement.
+func (m *BattleMap) corridorImpl(x1, y1, x2, y2, w, level int, guardTile, fillTile TileType) {
 	if rand.Intn(2) == 0 {
 		start := min(x1, x2)
 		end := max(x1, x2)
 		for x := start; x <= end; x++ {
 			for dy := 0; dy < w; dy++ {
-				if m.AtLevel(x, y1+dy, level).Type != TileUFOWall {
-					m.SetLevel(x, y1+dy, level, TileUFOFloor)
+				if m.AtLevel(x, y1+dy, level).Type != guardTile {
+					m.SetLevel(x, y1+dy, level, fillTile)
 				}
 			}
 		}
@@ -597,8 +589,8 @@ func (m *BattleMap) corridorLevel(x1, y1, x2, y2, w, level int) {
 		end = max(y1, y2)
 		for y := start; y <= end; y++ {
 			for dx := 0; dx < w; dx++ {
-				if m.AtLevel(x2+dx, y, level).Type != TileUFOWall {
-					m.SetLevel(x2+dx, y, level, TileUFOFloor)
+				if m.AtLevel(x2+dx, y, level).Type != guardTile {
+					m.SetLevel(x2+dx, y, level, fillTile)
 				}
 			}
 		}
@@ -607,8 +599,8 @@ func (m *BattleMap) corridorLevel(x1, y1, x2, y2, w, level int) {
 		end := max(y1, y2)
 		for y := start; y <= end; y++ {
 			for dx := 0; dx < w; dx++ {
-				if m.AtLevel(x1+dx, y, level).Type != TileUFOWall {
-					m.SetLevel(x1+dx, y, level, TileUFOFloor)
+				if m.AtLevel(x1+dx, y, level).Type != guardTile {
+					m.SetLevel(x1+dx, y, level, fillTile)
 				}
 			}
 		}
@@ -616,57 +608,21 @@ func (m *BattleMap) corridorLevel(x1, y1, x2, y2, w, level int) {
 		end = max(x1, x2)
 		for x := start; x <= end; x++ {
 			for dy := 0; dy < w; dy++ {
-				if m.AtLevel(x, y2+dy, level).Type != TileUFOWall {
-					m.SetLevel(x, y2+dy, level, TileUFOFloor)
+				if m.AtLevel(x, y2+dy, level).Type != guardTile {
+					m.SetLevel(x, y2+dy, level, fillTile)
 				}
 			}
 		}
 	}
 }
 
-// generateCorridor creates an L-shaped corridor between two points
+func (m *BattleMap) corridorLevel(x1, y1, x2, y2, w, level int) {
+	m.corridorImpl(x1, y1, x2, y2, w, level, TileUFOWall, TileUFOFloor)
+}
+
+// generateCorridor creates an L-shaped corridor between two points on the current level.
 func (m *BattleMap) generateCorridor(x1, y1, x2, y2 int, w int) {
-	if rand.Intn(2) == 0 {
-		// Horizontal first, then vertical
-		start := min(x1, x2)
-		end := max(x1, x2)
-		for x := start; x <= end; x++ {
-			for dy := 0; dy < w; dy++ {
-				if m.At(x, y1+dy).Type != TileWall {
-					m.Set(x, y1+dy, TileFloor)
-				}
-			}
-		}
-		start = min(y1, y2)
-		end = max(y1, y2)
-		for y := start; y <= end; y++ {
-			for dx := 0; dx < w; dx++ {
-				if m.At(x2+dx, y).Type != TileWall {
-					m.Set(x2+dx, y, TileFloor)
-				}
-			}
-		}
-	} else {
-		// Vertical first, then horizontal
-		start := min(y1, y2)
-		end := max(y1, y2)
-		for y := start; y <= end; y++ {
-			for dx := 0; dx < w; dx++ {
-				if m.At(x1+dx, y).Type != TileWall {
-					m.Set(x1+dx, y, TileFloor)
-				}
-			}
-		}
-		start = min(x1, x2)
-		end = max(x1, x2)
-		for x := start; x <= end; x++ {
-			for dy := 0; dy < w; dy++ {
-				if m.At(x, y2+dy).Type != TileWall {
-					m.Set(x, y2+dy, TileFloor)
-				}
-			}
-		}
-	}
+	m.corridorImpl(x1, y1, x2, y2, w, m.CurrentLevel, TileWall, TileFloor)
 }
 
 type MapCommandType int
@@ -762,82 +718,6 @@ func ApplyCommands(m *BattleMap, cmds []MapCommand) {
 	for _, cmd := range cmds {
 		m.ApplyCommand(cmd)
 	}
-}
-
-// Biome defines a terrain generation preset.
-type Biome struct {
-	DefaultTile TileType
-	TileProbs   map[TileType]int // percentage chances that sum to ~100
-}
-
-// Biomes is the registry of named biomes for procedural map generation.
-var Biomes = map[string]*Biome{
-	"forest": {
-		DefaultTile: TileGrass,
-		TileProbs: map[TileType]int{
-			TileTree:  35,
-			TileBush:  15,
-			TileRock:  5,
-			TileFence: 2,
-		},
-	},
-	"urban": {
-		DefaultTile: TilePavement,
-		TileProbs: map[TileType]int{
-			TileWall:    20,
-			TileRubble:  5,
-			TileFence:   3,
-		},
-	},
-	"desert": {
-		DefaultTile: TileSand,
-		TileProbs: map[TileType]int{
-			TileRock: 12,
-			TileBush: 3,
-		},
-	},
-	"snow": {
-		DefaultTile: TileSnow,
-		TileProbs: map[TileType]int{
-			TileRock: 8,
-			TileTree: 5,
-		},
-	},
-	"marsh": {
-		DefaultTile: TileMarsh,
-		TileProbs: map[TileType]int{
-			TileWater: 15,
-			TileBush:  10,
-			TileTree:  5,
-		},
-	},
-}
-
-// GenerateProcedural creates a map based on a terrain biome definition.
-func GenerateProcedural(biomeName string, w, h int) *BattleMap {
-	biome, ok := Biomes[biomeName]
-	if !ok {
-		m, _ := GenerateCrashSite(w, h, 42)
-		return m
-	}
-	m := NewBattleMap(w, h)
-
-	for y := 0; y < h; y++ {
-		for x := 0; x < w; x++ {
-			m.Set(x, y, biome.DefaultTile)
-
-			r := rand.Intn(100)
-			cumulative := 0
-			for tileType, prob := range biome.TileProbs {
-				cumulative += prob
-				if r < cumulative {
-					m.Set(x, y, tileType)
-					break
-				}
-			}
-		}
-	}
-	return m
 }
 
 // GenerateCrashSite creates a crash site map with a procedural UFO blueprint
@@ -1141,6 +1021,21 @@ func GenerateUFOInterior(w, h int) *BattleMap {
 	return m
 }
 
+// placeDoor places a door on side `side` (0=south, 1=east, 2=north, 3=west)
+// of an axis-aligned rectangle at (x,y) with the given size.
+func (m *BattleMap) placeDoor(x, y, size, side int) {
+	switch side {
+	case 0:
+		m.Set(x+size/2, y-1, TileDoor)
+	case 1:
+		m.Set(x+size/2, y+size, TileDoor)
+	case 2:
+		m.Set(x-1, y+size/2, TileDoor)
+	case 3:
+		m.Set(x+size, y+size/2, TileDoor)
+	}
+}
+
 // GenerateCydonia creates an alien base map (OpenXcom: 50x50, 2 levels)
 func GenerateCydonia(w, h int) *BattleMap {
 	m := NewBattleMap(w, h)
@@ -1184,24 +1079,14 @@ func GenerateCydonia(w, h int) *BattleMap {
 	brainX := ccX + ccSize/2 - brainSize/2
 	brainY := ccY + ccSize/2 - brainSize/2
 	m.fillRect(brainX, brainY, brainSize, brainSize, TileObject)
-	brainDoorSide := rand.Intn(4)
-	switch brainDoorSide {
-	case 0:
-		m.Set(brainX+brainSize/2, brainY-1, TileDoor)
-	case 1:
-		m.Set(brainX+brainSize/2, brainY+brainSize, TileDoor)
-	case 2:
-		m.Set(brainX-1, brainY+brainSize/2, TileDoor)
-	case 3:
-		m.Set(brainX+brainSize, brainY+brainSize/2, TileDoor)
-	}
+	m.placeDoor(brainX, brainY, brainSize, rand.Intn(4))
 
 	// Pods: 3-6 rooms around command center
 	podCount := 3 + rand.Intn(4)
 	podSize := 5 + rand.Intn(2) // 5-6
 	var podPositions [][2]int
 	for i := 0; i < podCount; i++ {
-		angle := float64(i) * (2 * 3.14159 / float64(podCount))
+		angle := float64(i) * (2 * math.Pi / float64(podCount))
 		radius := float64(ccSize/2+podSize+2)
 		px := w/2 + int(angle*radius*0.7) - podSize/2
 		py := h/2 + int(angle*radius*0.5) - podSize/2
@@ -1210,18 +1095,7 @@ func GenerateCydonia(w, h int) *BattleMap {
 		py = max(2, min(py, h-podSize-2))
 		m.drawRect(px, py, podSize, podSize, TileUFOWall)
 		m.fillRect(px+1, py+1, podSize-2, podSize-2, TileUFOFloor)
-		// Door on a random side
-		doorSide := rand.Intn(4)
-		switch doorSide {
-		case 0:
-			m.Set(px+podSize/2, py-1, TileDoor)
-		case 1:
-			m.Set(px+podSize/2, py+podSize, TileDoor)
-		case 2:
-			m.Set(px-1, py+podSize/2, TileDoor)
-		case 3:
-			m.Set(px+podSize, py+podSize/2, TileDoor)
-		}
+		m.placeDoor(px, py, podSize, rand.Intn(4))
 		// Random furniture
 		furniture := rand.Intn(4)
 		switch furniture {
