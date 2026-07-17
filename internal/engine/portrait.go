@@ -8,10 +8,12 @@ import (
 	"github.com/taislin/termcom/internal/data"
 )
 
-var alienSpriteCache sync.Map
+var (
+	alienSpriteCache sync.Map
+	portraitBg       = tcell.NewRGBColor(20, 20, 28)
+)
 
-// sqrt64 is a small helper to avoid importing math at every call site.
-func sqrt64(x float64) float64 { return math.Sqrt(x) }
+
 
 type spriteCacheKey struct {
 	seed          int64
@@ -40,36 +42,17 @@ func hashStr(s string) uint64 {
 	return h
 }
 
-type PortraitLayer int
-
-const (
-	LayerSkin PortraitLayer = iota
-	LayerEyes
-	LayerNose
-	LayerMouth
-	LayerHair
-	LayerMarkings
-	LayerHelmet
-	LayerArmour
-	LayerDecal
-	LayerCount
-)
-
 type PortraitSpec struct {
-	Width         int
-	Height        int
-	SkinColor     tcell.Color
-	EyeColor      tcell.Color
-	HairColor     tcell.Color
-	MarkingsColor tcell.Color // tcell.ColorDefault = none
-	HelmetColor   tcell.Color // tcell.ColorDefault = none
-	ArmourColor   tcell.Color // tcell.ColorDefault = none
-	DecalColor    tcell.Color
-	Seed          int64
+	Width     int
+	Height    int
+	SkinColor tcell.Color
+	EyeColor  tcell.Color
+	HairColor tcell.Color
+	Seed      int64
 }
 
-// MakeSoldierPortrait builds a portrait from a soldier's name and armor string.
-func MakeSoldierPortrait(name, armor string, w, h int) *PixelImage {
+// MakeSoldierPortrait builds a portrait from a soldier's name.
+func MakeSoldierPortrait(name string, w, h int) *PixelImage {
 	var nameSeed int64
 	for _, r := range name {
 		nameSeed += int64(r)
@@ -102,39 +85,13 @@ func MakeSoldierPortrait(name, armor string, w, h int) *PixelImage {
 	}
 	hairColor := hairColors[(nameSeed/7)%int64(len(hairColors))]
 
-	markingsColors := []tcell.Color{
-		tcell.ColorDefault,
-		tcell.ColorDefault,
-		tcell.ColorDefault,
-		tcell.NewRGBColor(200, 40, 40),
-		tcell.NewRGBColor(40, 120, 200),
-		tcell.NewRGBColor(220, 180, 40),
-	}
-	markingsColor := markingsColors[(nameSeed/11)%int64(len(markingsColors))]
-
-	var armourColor tcell.Color = tcell.ColorDefault
-	var helmetColor tcell.Color = tcell.ColorDefault
-	if armor != "" && armor != "none" {
-		if armor == "personal_armor" {
-			armourColor = tcell.NewRGBColor(50, 120, 50)
-		} else if armor == "power_suit" {
-			armourColor = tcell.NewRGBColor(120, 120, 120)
-		} else {
-			armourColor = tcell.NewRGBColor(80, 80, 150)
-		}
-	}
-
 	return GenerateSoldierPortrait(PortraitSpec{
-		Width:         w,
-		Height:        h,
-		SkinColor:     skinColor,
-		EyeColor:      eyeColor,
-		HairColor:     hairColor,
-		MarkingsColor: markingsColor,
-		HelmetColor:   helmetColor,
-		ArmourColor:   armourColor,
-		DecalColor:    tcell.NewRGBColor(255, 215, 0),
-		Seed:          nameSeed,
+		Width:     w,
+		Height:    h,
+		SkinColor: skinColor,
+		EyeColor:  eyeColor,
+		HairColor: hairColor,
+		Seed:      nameSeed,
 	})
 }
 
@@ -150,7 +107,7 @@ func GenerateSoldierPortrait(spec PortraitSpec) *PixelImage {
 
 	rng := rngFromSeed(spec.Seed)
 
-	bgColor := tcell.NewRGBColor(20, 20, 28)
+	bgColor := portraitBg
 	skin := generateSkinLayer(w, h, spec.SkinColor, bgColor)
 	eyes := generateEyeLayer(w, h, spec.EyeColor, spec.SkinColor)
 	nose := generateNoseLayer(w, h, spec.SkinColor)
@@ -162,11 +119,6 @@ func GenerateSoldierPortrait(spec PortraitSpec) *PixelImage {
 	res = CompositeImages(res, nose)
 	res = CompositeImages(res, mouth)
 	res = CompositeImages(res, hair)
-
-	if spec.HelmetColor != tcell.ColorDefault {
-		helmet := generateHelmetLayer(w, h, spec.HelmetColor)
-		res = CompositeImages(res, helmet)
-	}
 
 	applyPortraitDithering(res, spec)
 
@@ -184,14 +136,12 @@ func applyPortraitDithering(img *PixelImage, spec PortraitSpec) {
 	for y := 0; y < h; y++ {
 		for x := 0; x < w; x++ {
 			c := img.Pixels[y][x]
-			if c == tcell.ColorDefault || c == tcell.NewRGBColor(20, 20, 28) {
+			if c == tcell.ColorDefault || c == portraitBg {
 				continue
 			}
 			isSkin := isSkinTone(c) && inHead(x, y, g)
 			isHair := isHairColor(c, spec.HairColor)
-			isHelm := spec.HelmetColor != tcell.ColorDefault && isHelmetColor(c, spec.HelmetColor)
-			isArm := spec.ArmourColor != tcell.ColorDefault && isArmorColor(c, spec.ArmourColor)
-			if !isSkin && !isHair && !isHelm && !isArm {
+			if !isSkin && !isHair {
 				continue
 			}
 
@@ -267,29 +217,11 @@ func applyPortraitDithering(img *PixelImage, spec PortraitSpec) {
 					img.Pixels[y][x] = LightenColor(c, 1.12)
 				}
 			}
-
-			// --- HELMET EFFECTS ---
-			if isHelm {
-				if x%2 == 0 && y%2 == 0 {
-					img.Pixels[y][x] = DarkenColor(c, 0.75)
-				} else {
-					img.Pixels[y][x] = LightenColor(c, 1.08)
-				}
-			}
-
-			// --- ARMOR EFFECTS ---
-			if isArm {
-				if (x+y)%3 == 0 {
-					img.Pixels[y][x] = DarkenColor(c, 0.72)
-				} else if (x+y)%4 == 0 {
-					img.Pixels[y][x] = LightenColor(c, 1.08)
-				}
-			}
 		}
 	}
 
 	// Border darkening pass — darkens ALL non-background pixels near head edge
-	bg := tcell.NewRGBColor(20, 20, 28)
+	bg := portraitBg
 	for y := 0; y < h; y++ {
 		for x := 0; x < w; x++ {
 			c := img.Pixels[y][x]
@@ -317,62 +249,27 @@ func isSkinTone(c tcell.Color) bool {
 	return r > 100 && r > b && r >= g-20
 }
 
+// colorClose reports whether two colors differ by less than tol in total RGB distance.
+func colorClose(c, ref tcell.Color, tol int) bool {
+	cr, cg, cb := c.RGB()
+	rr, rg, rb := ref.RGB()
+	dr := cr - rr
+	if dr < 0 {
+		dr = -dr
+	}
+	dg := cg - rg
+	if dg < 0 {
+		dg = -dg
+	}
+	db := cb - rb
+	if db < 0 {
+		db = -db
+	}
+	return int(dr+dg+db) < tol
+}
+
 // isHairColor checks if a pixel color matches the given hair color closely.
-func isHairColor(c, hair tcell.Color) bool {
-	cr, cg, cb := c.RGB()
-	hr, hg, hb := hair.RGB()
-	dr := cr - hr
-	dg := cg - hg
-	db := cb - hb
-	if dr < 0 {
-		dr = -dr
-	}
-	if dg < 0 {
-		dg = -dg
-	}
-	if db < 0 {
-		db = -db
-	}
-	return dr+dg+db < 80
-}
-
-// isHelmetColor checks if a pixel matches the helmet color.
-func isHelmetColor(c, helmet tcell.Color) bool {
-	cr, cg, cb := c.RGB()
-	hr, hg, hb := helmet.RGB()
-	dr := cr - hr
-	dg := cg - hg
-	db := cb - hb
-	if dr < 0 {
-		dr = -dr
-	}
-	if dg < 0 {
-		dg = -dg
-	}
-	if db < 0 {
-		db = -db
-	}
-	return dr+dg+db < 60
-}
-
-// isArmorColor checks if a pixel matches the armor color.
-func isArmorColor(c, armor tcell.Color) bool {
-	cr, cg, cb := c.RGB()
-	ar, ag, ab := armor.RGB()
-	dr := cr - ar
-	dg := cg - ag
-	db := cb - ab
-	if dr < 0 {
-		dr = -dr
-	}
-	if dg < 0 {
-		dg = -dg
-	}
-	if db < 0 {
-		db = -db
-	}
-	return dr+dg+db < 60
-}
+func isHairColor(c, hair tcell.Color) bool { return colorClose(c, hair, 80) }
 
 func rngFromSeed(seed int64) *rng {
 	return &rng{seed: seed}
@@ -387,7 +284,7 @@ func (r *rng) Intn(n int) int {
 		return 0
 	}
 	r.seed = r.seed*6364136223846793005 + 1442695040888963407
-	return int((r.seed >> 33) % int64(n))
+	return int((uint64(r.seed) >> 33) % uint64(n))
 }
 
 // faceGeom returns head geometry proportions scaled to w,h.
@@ -405,6 +302,8 @@ type faceGeom struct {
 }
 
 func computeFaceGeom(w, h int) faceGeom {
+	// Head proportions: cy at 45% of height, radii at 42% of width/height.
+	// These model a front-facing human head on a 16x24 or 20x24 canvas.
 	cx := w / 2
 	cy := h * 45 / 100
 	rx := w * 42 / 100
@@ -417,7 +316,7 @@ func computeFaceGeom(w, h int) faceGeom {
 	}
 
 	eyeY := cy - ry/6
-	eyeOff := rx * 5 / 8
+	eyeOff := rx * 5 / 8 // eyes at 5/8 of head radius from center
 	if eyeOff < 1 {
 		eyeOff = 1
 	}
@@ -438,9 +337,20 @@ func computeFaceGeom(w, h int) faceGeom {
 }
 
 func inHead(x, y int, g faceGeom) bool {
-	dx := float64(x - g.cx)
-	dy := float64(y - g.cy)
-	return (dx*dx)/(float64(g.rx*g.rx))+(dy*dy)/(float64(g.ry*g.ry)) <= 1.0
+	return inEllipse(x, y, g.cx, g.cy, g.rx, g.ry)
+}
+
+// inEllipse reports whether (x,y) is inside the ellipse centered at (cx,cy)
+// with radii rx, ry (all integers, converted to float internally).
+func inEllipse(x, y, cx, cy, rx, ry int) bool {
+	dx := float64(x - cx)
+	dy := float64(y - cy)
+	return inEllipseF(dx, dy, float64(rx), float64(ry))
+}
+
+// inEllipseF is the float64 version of inEllipse.
+func inEllipseF(dx, dy, rx, ry float64) bool {
+	return (dx*dx)/(rx*rx)+(dy*dy)/(ry*ry) <= 1.0
 }
 
 func generateSkinLayer(w, h int, baseColor tcell.Color, bgColor tcell.Color) *PixelImage {
@@ -500,9 +410,6 @@ func generateEyeLayer(w, h int, irisColor tcell.Color, skinColor tcell.Color) *P
 	black := tcell.NewRGBColor(15, 15, 15)
 	irisHighlight := LightenColor(irisColor, 1.4)
 	browColor := DarkenColor(irisColor, 0.3)
-	if browColor == tcell.ColorDefault {
-		browColor = tcell.NewRGBColor(60, 50, 40)
-	}
 	eyeShadow := DarkenColor(skinColor, 0.8)
 
 	eyeW := g.rx / 3
@@ -804,7 +711,7 @@ func generateHairLayer(w, h int, color tcell.Color, style int) *PixelImage {
 		if t < 0 {
 			t = 0
 		}
-		return int(float64(g.cy)-float64(g.ry)*sqrt64(t) + 0.5)
+		return int(float64(g.cy)-float64(g.ry)*math.Sqrt(t) + 0.5)
 	}
 
 	// setHairCol paints one vertical column of hair from topY downward, depth pixels.
@@ -904,8 +811,7 @@ func generateHairLayer(w, h int, color tcell.Color, style int) *PixelImage {
 				}
 				dx := float64(x - g.cx)
 				dy := float64(y) - afroCY
-				if (dx*dx)/(afroRX*afroRX)+(dy*dy)/(afroRY*afroRY) <= 1.0 {
-					inHead := (dx*dx)/float64(g.rx*g.rx)+(dy*dy)/float64(g.ry*g.ry) <= 1.0
+				if inEllipseF(dx, dy, afroRX, afroRY) {
 					rx2, ry2 := float64(g.rx-4), float64(g.ry-4)
 					if rx2 < 1 {
 						rx2 = 1
@@ -913,8 +819,9 @@ func generateHairLayer(w, h int, color tcell.Color, style int) *PixelImage {
 					if ry2 < 1 {
 						ry2 = 1
 					}
-					innerShell := (dx*dx)/(rx2*rx2)+(dy*dy)/(ry2*ry2) <= 1.0
-					if !inHead || !innerShell {
+					insideHead := inEllipseF(dx, float64(y-g.cy), float64(g.rx), float64(g.ry))
+					insideInner := inEllipseF(dx, float64(y-g.cy), rx2, ry2)
+					if !insideHead || !insideInner {
 						img.Pixels[y][x] = strandColor(x, y)
 					}
 				}
@@ -1061,42 +968,6 @@ func generateHairLayer(w, h int, color tcell.Color, style int) *PixelImage {
 	return img
 }
 
-
-func generateHelmetLayer(w, h int, color tcell.Color) *PixelImage {
-	img := NewPixelImage(w, h)
-	g := computeFaceGeom(w, h)
-
-	dark := DarkenColor(color, 0.7)
-	light := LightenColor(color, 1.2)
-
-	helmetBottom := g.eyeY - 2
-
-	for y := g.cy - g.ry - 3; y <= helmetBottom; y++ {
-		for x := g.cx - g.rx - 2; x <= g.cx+g.rx+2; x++ {
-			if x >= 0 && x < w && y >= 0 && y < h {
-				dx := float64(x - g.cx)
-				dy := float64(y - g.cy)
-				val := (dx*dx)/(float64(g.rx*g.rx)) + (dy*dy)/(float64(g.ry*g.ry))
-				if val <= 1.5 && y < g.cy {
-					img.Pixels[y][x] = color
-				}
-			}
-		}
-	}
-
-	// Rim
-	for x := g.cx - g.rx - 1; x <= g.cx+g.rx+1; x++ {
-		if x >= 0 && x < w && helmetBottom >= 0 && helmetBottom < h {
-			img.Pixels[helmetBottom][x] = dark
-		}
-		if x >= 0 && x < w && helmetBottom-1 >= 0 && helmetBottom-1 < h {
-			img.Pixels[helmetBottom-1][x] = light
-		}
-	}
-
-	return img
-}
-
 // GenerateAlienPixelsImage converts an AlienPixels grid to a PixelImage,
 // rendering body and weapon layers in distinct colors.
 func GenerateAlienPixelsImage(ap data.AlienPixels, fgColor, bgColor tcell.Color) *PixelImage {
@@ -1123,9 +994,9 @@ func GenerateAlienPixelsImage(ap data.AlienPixels, fgColor, bgColor tcell.Color)
 	mouthColor := tcell.NewRGBColor(clampColor(bR-40), clampColor(bG-35), clampColor(bB-30))
 	pupilColor := tcell.NewRGBColor(60, 60, 70)
 
-	img := NewPixelImage(20, 24)
-	for y := 0; y < 24; y++ {
-		for x := 0; x < 20; x++ {
+	img := NewPixelImage(data.SpriteW, data.SpriteH)
+	for y := 0; y < data.SpriteH; y++ {
+		for x := 0; x < data.SpriteW; x++ {
 			switch {
 			case ap.Weapon[y][x] && ap.Highlight[y][x]:
 				img.Pixels[y][x] = lightColor

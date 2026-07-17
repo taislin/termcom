@@ -59,7 +59,7 @@ func (es *EquipScreen) Render(ctx *engine.ScreenCtx) {
 
 	s := es.Base.Soldiers[es.SelectedSol]
 
-	soldierImg := engine.MakeSoldierPortrait(s.Name, s.Armor, 20, 24)
+	soldierImg := engine.MakeSoldierPortrait(s.Name, 20, 24)
 	ctx.DrawPixelImageFramed(2, h-16, soldierImg, engine.StyleCyan)
 
 	ctx.DrawString(rightX, 2, language.String("SECTION_EQUIPMENT"), engine.StyleCyanBold)

@@ -261,7 +261,7 @@ func (bs *BaseScreen) renderSoldiers(ctx *engine.ScreenCtx, x, y, w, h int) {
 
 	if bs.Selection >= 0 && bs.Selection < len(squad) {
 		s := squad[bs.Selection]
-		portraitImg := engine.MakeSoldierPortrait(s.Name, s.Armor, 20, 24)
+		portraitImg := engine.MakeSoldierPortrait(s.Name, 20, 24)
 		portX := x + w - portraitImg.Width - 4
 		ctx.DrawPixelImageFramed(portX, y+2, portraitImg, engine.StyleCyan)
 	}

@@ -31,30 +31,30 @@ Scope: Features and fixes for the battlescape tactical combat system.
   biology passes.
 
 ### `internal/engine/portrait.go`
-- [ ] **B1 (Medium)** `ArmourColor` set (lines 115–124) but no `generateArmourLayer`
-  composited → armour has no visual effect; `isArm`/armour-dither branch dead
-  (lines 193, 281–287). Add armour layer or remove the field.
-- [ ] **B2 (Low)** `MarkingsColor`/`DecalColor` and `LayerMarkings`/`LayerArmour`/
-  `LayerDecal`/`LayerCount` enum (lines 43–56, 64, 67) never used. Remove or impl.
-- [ ] **B3 (Low)** Magic bg color `tcell.NewRGBColor(20,20,28)` duplicated at lines
-  153, 187, 292. Extract `portraitBg` package var.
-- [ ] **B4 (Low)** `rng.Intn` can return negative for negative seed (lines 385–391)
-  → panic on index. Use `uint64` shift or abs result.
-- [ ] **M1 (Low)** `browColor==ColorDefault` guard unreachable (input always RGB,
-  lines 502–505). Remove guard + fallback.
-- [ ] **D3 (Low)** `isHairColor`/`isHelmetColor`/`isArmorColor` are near-identical
-  (lines 320–375). Factor `colorClose(c, ref, tol)`.
-- [ ] **U2 (Low)** Undocumented face-proportion fractions (45%, 42%, 5/8, 5/10…,
-  lines 409–428). Name constants or comment the model.
-- [ ] **U3 (Low)** Hardcoded `NewPixelImage(20,24)` (line 1126) disconnected from
-  `AlienPixels` `[24][20]`. Derive from `len(ap.Body)`.
+- [x] **B1 (Medium)** `ArmourColor` set (lines 115–124) but no `generateArmourLayer`
+  composited → armour has no visual effect; `isArm`/armour-dither branch dead.
+  Removed dead armour/helm code and unused PortraitSpec fields.
+- [x] **B2 (Low)** `MarkingsColor`/`DecalColor` and `LayerMarkings`/`LayerArmour`/
+  `LayerDecal`/`LayerCount` enum never used. Removed entire PortraitLayer enum and
+  unused PortraitSpec fields.
+- [x] **B3 (Low)** Magic bg color `tcell.NewRGBColor(20,20,28)` duplicated at lines
+  153, 187, 292. Extracted `portraitBg` package var.
+- [x] **B4 (Low)** `rng.Intn` can return negative for negative seed → panic on index.
+  Fixed by using `uint64` shift.
+- [x] **M1 (Low)** `browColor==ColorDefault` guard unreachable (input always RGB).
+  Removed guard + fallback.
+- [x] **D3 (Low)** `isHairColor`/`isHelmetColor`/`isArmorColor` are near-identical.
+  Factored `colorClose(c, ref, tol)`.
+- [x] **U2 (Low)** Undocumented face-proportion fractions (45%, 42%, 5/8, 5/10…).
+  Added comments explaining model.
+- [x] **U3 (Low)** Hardcoded `NewPixelImage(20,24)` disconnected from `AlienPixels`.
+  Derived from `data.SpriteW` / `data.SpriteH`.
 - [ ] **R1 (Low)** 8 hair-style switch cases share scaffolding (lines 835–1058).
   Table-drive with `{k,d}` per style.
-- [ ] **R2 (Low)** Redundant `sqrt64` wrapper (lines 13–14, 807). Inline `math.Sqrt`.
-- [ ] **R3 (Low)** Ellipse-test `(dx*dx)/(RX*RX)+(dy*dy)/(RY*RY)` dup'd 4×
-  (443,907,916,1079). Add `inEllipse(dx,dy,rx,ry)`.
-- [ ] **Note** Helmets intentionally removed earlier (helmetColor forced ColorDefault
-  in MakeSoldierPortrait); keep helmet code dormant or delete.
+- [x] **R2 (Low)** Redundant `sqrt64` wrapper. Inlined `math.Sqrt`.
+- [x] **R3 (Low)** Ellipse-test `(dx*dx)/(RX*RX)+(dy*dy)/(RY*RY)` dup'd 4×.
+  Added `inEllipse` / `inEllipseF` helpers.
+- [x] **Note** Helmets intentionally removed earlier; helmet code deleted.
 
 ### `internal/data/procedural.go`
 - [ ] **D2 (Low)** `generateLore(name, ...)` `name` param unused (line 1017). Remove

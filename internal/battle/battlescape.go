@@ -3087,7 +3087,7 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 				sy++
 
 				// Draw portrait aligned right at top of sidebar
-				portraitImg := engine.MakeSoldierPortrait(bs.Selected.Soldier.Name, bs.Selected.Soldier.Armor, 20, 24)
+				portraitImg := engine.MakeSoldierPortrait(bs.Selected.Soldier.Name, 20, 24)
 				portW := portraitImg.Width + 2
 				portX := sideX + bs.SidebarW - portW
 				ctx.DrawPixelImageFramed(portX, sideY0, portraitImg, engine.StyleCyan)
