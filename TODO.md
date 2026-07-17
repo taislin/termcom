@@ -25,15 +25,15 @@ Scope: Features and fixes for the battlescape tactical combat system.
   repetitive. Split / table-drive.
 
 ### `internal/battle/ai.go`
-- [ ] **R1 (Low)** `disperseFrom`/`moveTowardTargetCover` dup candidate construction
-  (846–862 vs 791–807). Extract `orthogonalCandidates`.
-- [ ] **R2 (Low)** Move-action append pattern copy-pasted ~8× (181–390). Extract
+- [x] **R1 (Low)** `disperseFrom`/`moveTowardTargetCover` dup candidate construction.
+  Extracted `getOrthogonalCandidates`.
+- [x] **R2 (Low)** Move-action append pattern copy-pasted ~8×. Extracted
   `appendMove(...)` helper.
-- [ ] **R3 (Low)** `Update` ~300 lines, 7-case switch. Split per-state handlers.
-- [ ] **R4 (Low)** Faction literals 0/1/2 repeated (lines 532,777,970). Name
-  `FactionHuman/Alien/Civilian`.
-- [ ] **U1 (Low)** Magic TU/sight thresholds (20,18,16,14,15,3, dist<12, <=8, …)
-  undocumented. Name constants.
+- [x] **R3 (Low)** `Update` ~300 lines, 7-case switch. Split into `handlePatrol`/
+  `handleSearch`/`handleRetreat`/`handleSuppress`/`handleFlank`.
+- [x] **R4 (Low)** Faction literals 0/1/2 repeated. Named `FactionHuman/Alien/Civilian`.
+- [~] **U1 (Low)** Magic TU/sight thresholds. Constants begun (`VisualRangeThreshold`,
+  etc.); remaining `dist`/`TU` magic numbers still to be named.
 
 ### `internal/engine/game.go`
 - [ ] **B2 (Low)** Quit-confirm mouse rects only set in TouchMode (524–546) →

@@ -737,7 +737,7 @@ func NewCustomBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier
 	}
 
 	for _, u := range bs.Units {
-		if u.Faction == 0 && u.Alive {
+		if u.Faction == FactionHuman && u.Alive {
 			bs.CursorX = u.X
 			bs.CursorY = u.Y
 			bs.Camera.SetTarget(u.X, u.Y)
@@ -759,12 +759,12 @@ func (bs *Battlescape) ComputeFOVForTeam() {
 		sightRange = 3
 	}
 	for _, u := range bs.Units {
-		if u.Faction == 0 && u.Alive && u.Level == bs.Map.CurrentLevel {
+		if u.Faction == FactionHuman && u.Alive && u.Level == bs.Map.CurrentLevel {
 			bs.Map.ComputeFOV(u.X, u.Y, sightRange)
 		}
 	}
 	for _, u := range bs.Units {
-		if u.Faction == 1 && u.Alive && u.AlienType != nil && u.Level == bs.Map.CurrentLevel && bs.Map.IsVisible(u.X, u.Y) {
+		if u.Faction == FactionAlien && u.Alive && u.AlienType != nil && u.Level == bs.Map.CurrentLevel && bs.Map.IsVisible(u.X, u.Y) {
 			bs.Game.LearnAlien(u.AlienType.Name, 1)
 		}
 	}
@@ -1281,7 +1281,7 @@ func (bs *Battlescape) finishBattle() {
 
 	// Sync soldier HP back to roster
 	for _, u := range bs.Units {
-		if u.Faction == 0 && u.Soldier != nil {
+		if u.Faction == FactionHuman && u.Soldier != nil {
 			u.Soldier.HP = u.HP
 			if u.HP <= 0 {
 				u.Soldier.HP = 0
@@ -1321,14 +1321,14 @@ func (bs *Battlescape) finishBattle() {
 	// Count alien kills
 	alienKills := 0
 	for _, u := range bs.Units {
-		if u.Faction == 1 && !u.Alive {
+		if u.Faction == FactionAlien && !u.Alive {
 			alienKills++
 		}
 	}
 
 	// Award XP to surviving soldiers
 	for _, u := range bs.Units {
-		if u.Faction == 0 && u.Soldier != nil {
+		if u.Faction == FactionHuman && u.Soldier != nil {
 			u.Soldier.Kills += alienKills
 			u.Soldier.PostMission()
 			u.Soldier.Missions++
@@ -1360,7 +1360,7 @@ func (bs *Battlescape) finishBattle() {
 		corpses := make(map[string]bool)
 		weaponDrops := make(map[string]bool)
 		for _, u := range bs.Units {
-			if u.Faction == 1 {
+			if u.Faction == FactionAlien {
 				if u.Stunned {
 					stunnedAliens = append(stunnedAliens, u.AlienType.Name)
 				} else if !u.Alive && u.AlienType != nil {
@@ -1398,7 +1398,7 @@ func (bs *Battlescape) finishBattle() {
 	var surviving []*soldier.Soldier
 	for _, s := range bs.Squad {
 		for _, u := range bs.Units {
-			if u.Faction == 0 && u.Soldier == s {
+			if u.Faction == FactionHuman && u.Soldier == s {
 				surviving = append(surviving, u.Soldier)
 				break
 			}
@@ -1504,7 +1504,7 @@ func (bs *Battlescape) finishAlienTurn() {
 				u.Alive = false
 			}
 		}
-		if u.Faction == 0 && u.HP > 0 {
+		if u.Faction == FactionHuman && u.HP > 0 {
 			if u.Morale < 100 {
 				u.Morale += 10
 				if u.Morale > 100 {
@@ -1527,7 +1527,7 @@ func (bs *Battlescape) finishAlienTurn() {
 		bs.SetSelected(oldSelected)
 	} else {
 		for _, u := range bs.Units {
-			if u.Faction == 0 && u.Alive && u.HP > 0 && u.Level == bs.Map.CurrentLevel {
+			if u.Faction == FactionHuman && u.Alive && u.HP > 0 && u.Level == bs.Map.CurrentLevel {
 				bs.SetSelected(u)
 				break
 			}
@@ -1538,7 +1538,7 @@ func (bs *Battlescape) finishAlienTurn() {
 func (bs *Battlescape) processAbduction() {
 	aliveAliens := 0
 	for _, u := range bs.Units {
-		if u.Faction == 1 && u.Alive {
+		if u.Faction == FactionAlien && u.Alive {
 			aliveAliens++
 		}
 	}
@@ -1547,7 +1547,7 @@ func (bs *Battlescape) processAbduction() {
 	}
 	// Each turn, aliens abduct 1 civilian if any are alive
 	for _, u := range bs.Units {
-		if u.Faction == 2 && u.Alive {
+		if u.Faction == FactionCivilian && u.Alive {
 			if rand.Intn(100) < 30+aliveAliens*10 {
 				u.Alive = false
 				bs.AbductionCivs++
@@ -1573,7 +1573,7 @@ func (bs *Battlescape) checkReinforcements() {
 	}
 	aliveAliens := 0
 	for _, u := range bs.Units {
-		if u.Faction == 1 && u.Alive {
+		if u.Faction == FactionAlien && u.Alive {
 			aliveAliens++
 		}
 	}
@@ -1614,7 +1614,7 @@ func (bs *Battlescape) learnFromKills() {
 
 func (bs *Battlescape) restorePlayerTU() {
 	for _, u := range bs.Units {
-		if u.Faction == 0 && u.Alive {
+		if u.Faction == FactionHuman && u.Alive {
 			u.HasMoved = false
 			if u.Panicked {
 				u.Panicked = false
@@ -1694,7 +1694,7 @@ func (bs *Battlescape) checkVictory() {
 		if bs.UFOName == "Terror" {
 			totalCiv := 0
 			for _, u := range bs.Units {
-				if u.Faction == 2 {
+				if u.Faction == FactionCivilian {
 					totalCiv++
 				}
 			}
@@ -2471,7 +2471,7 @@ func (bs *Battlescape) UseMotionScanner() {
 	bs.scannerPings = nil
 
 	for _, u := range bs.Units {
-		if u.Faction == 1 && u.Alive {
+		if u.Faction == FactionAlien && u.Alive {
 			dx := u.X - bs.Selected.X
 			dy := u.Y - bs.Selected.Y
 			dist := int(math.Sqrt(float64(dx*dx + dy*dy)))
@@ -2761,12 +2761,12 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 		if sx < 1 || sx >= viewW+1 || sy < 1 || sy >= viewH+1 {
 			continue
 		}
-		if u.Faction == 1 && !bs.Map.IsVisible(u.X, u.Y) {
+		if u.Faction == FactionAlien && !bs.Map.IsVisible(u.X, u.Y) {
 			continue
 		}
 		ch := '\u127E' // human
 		style := engine.StyleCyanBold
-		if u.Faction == 1 {
+		if u.Faction == FactionAlien {
 			ch = '\u03A9' // Ω alien (default)
 			if u.AlienType != nil {
 				ch = u.AlienType.Icon
@@ -2791,7 +2791,7 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 				}
 				engine.ApplyBloom(ctx.ScreenRaw, ctx.FrameBuffer(), sx, sy, bloomColor)
 			}
-		} else if u.Faction == 2 {
+		} else if u.Faction == FactionCivilian {
 			ch = '\u1276' // civilian
 			style = engine.StyleGreen
 		}
@@ -3077,11 +3077,11 @@ func (bs *Battlescape) drawTargetInfo(ctx *engine.ScreenCtx, u *Unit, sideX, sid
 	ctx.DrawString(sideX, sy, language.String("SIDE_TARGET_INFO"), engine.StyleRedBold)
 	sy++
 	name := ""
-	if u.Faction == 1 && u.AlienType != nil {
+	if u.Faction == FactionAlien && u.AlienType != nil {
 		name = u.AlienType.LangName()
-	} else if u.Faction == 0 && u.Soldier != nil {
+	} else if u.Faction == FactionHuman && u.Soldier != nil {
 		name = u.Soldier.Name
-	} else if u.Faction == 2 {
+	} else if u.Faction == FactionCivilian {
 		name = u.CivName
 	}
 	if engine.StringWidth(name) > halfSide-1 {
@@ -3135,7 +3135,7 @@ func (bs *Battlescape) drawTargetInfo(ctx *engine.ScreenCtx, u *Unit, sideX, sid
 		sy++
 	}
 
-	if u.Faction == 1 && u.AlienType != nil {
+	if u.Faction == FactionAlien && u.AlienType != nil {
 		bgColor := tcell.NewRGBColor(20, 20, 28)
 		alienImg := engine.GenerateAlienSpriteFromSeed(int64(u.AlienType.Icon), u.AlienType.Morphology, bgColor)
 		portW := alienImg.Width + 2
@@ -3446,7 +3446,7 @@ func tileTypeName(t TileType) string {
 	return language.String("TILE_UNKNOWN")
 }
 
-func (ul UnitList) Faction(f int) UnitList {
+func (ul UnitList) Faction(f Faction) UnitList {
 	var result UnitList
 	for _, u := range ul {
 		if u.Faction == f {

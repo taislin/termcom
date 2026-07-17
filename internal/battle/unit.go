@@ -10,6 +10,15 @@ import (
 	"github.com/taislin/termcom/internal/soldier"
 )
 
+// Faction defines the team allegiance of a unit.
+type Faction int
+
+const (
+	FactionHuman    Faction = 0
+	FactionAlien    Faction = 1
+	FactionCivilian Faction = 2
+)
+
 type Unit struct {
 	Type        int
 	Soldier     *soldier.Soldier
@@ -35,7 +44,7 @@ type Unit struct {
 	StunPoints  int
 	Crouching   bool
 	Panicked    bool
-	Faction     int
+	Faction     Faction
 	IsNight     bool
 	ReservedTU  int
 	FatalWounds int

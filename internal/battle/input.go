@@ -147,7 +147,7 @@ func (bs *Battlescape) handleMouse(e *tcell.EventMouse) {
 	if buttons&tcell.Button1 != 0 {
 		unit := bs.Units.At(mx, my)
 
-		if unit != nil && unit.Faction == 0 && unit.Alive {
+		if unit != nil && unit.Faction == FactionHuman && unit.Alive {
 			bs.Selected = unit
 			bs.CursorX, bs.CursorY = mx, my
 			bs.State.CursorState = StateInspect
@@ -157,7 +157,7 @@ func (bs *Battlescape) handleMouse(e *tcell.EventMouse) {
 			return
 		}
 
-		if unit != nil && unit.Faction == 1 && unit.Alive {
+		if unit != nil && unit.Faction == FactionAlien && unit.Alive {
 			bs.HoveredUnit = unit
 			if bs.State.CursorState == StateTargeting && bs.CursorX == mx && bs.CursorY == my {
 				bs.FireWeapon()

@@ -11,7 +11,17 @@ import (
 
 var globalRNG = rand.New(rand.NewSource(42))
 
-// AIState defines the current behavioral mode of an alien unit.
+// Game balance constants for alien behavior.
+const (
+	VisualRangeThreshold = 12
+	FlankDistThreshold   = 3
+	FlankTUThreshold     = 20
+	PsiSkillThreshold    = 40
+	PsiTUThreshold       = 20
+	GrenadeTUThreshold   = 18
+	GrenadeRangeMax      = 8
+	GrenadeRangeMin      = 1
+)
 type AIState int
 
 const (
@@ -184,23 +194,15 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList, pla
 
 	switch ai.State {
 	case AIPatrol:
-		// Patrol: Unit moves between random patrol points until a target is detected.
-		if nearest != nil && dist < 12 {
-			// Transition to Attack if a player is spotted within visual range.
+		if nearest != nil && dist < VisualRangeThreshold {
 			ai.State = AIAttack
 			ai.LastSeenX = nearest.X
 			ai.LastSeenY = nearest.Y
 			ai.TurnsSince = 0
 		} else {
-			px, py := ai.patrolTarget(m)
-			if m.Passable(px, py) {
-				actions = append(actions, AlienAction{
-					Type: "move", Unit: ai.Unit,
-					FromX: ai.Unit.X, FromY: ai.Unit.Y,
-					ToX: px, ToY: py,
-				})
-			}
+			actions = append(actions, ai.handlePatrol(m)...)
 		}
+
 
 	case AIAttack:
 		// Attack: The core combat state. The alien targets a player, fires, or maneuvers.
@@ -268,32 +270,20 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList, pla
 		if role == RoleFlanker && dist > 3 && ai.Unit.TU >= 20 {
 			fx, fy := ai.findFlankPosition(target, nearest, m, humanUnits)
 			if (fx != ai.Unit.X || fy != ai.Unit.Y) && m.Passable(fx, fy) {
-				actions = append(actions, AlienAction{
-					Type: "move", Unit: ai.Unit,
-					FromX: ai.Unit.X, FromY: ai.Unit.Y,
-					ToX: fx, ToY: fy,
-				})
+				actions = ai.appendMove(actions, fx, fy)
 			}
 		} else if !ai.InCover && dist > 3 && (ai.Unit.TU >= 16 || (longRange && dist > 4 && ai.Unit.TU >= 18)) {
 			if longRange && dist > 4 {
 				// Adapt to long-range players: close distance aggressively.
 				ax, ay := ai.advanceToward(nearest.X, nearest.Y, m, units)
 				if (ax != ai.Unit.X || ay != ai.Unit.Y) && m.Passable(ax, ay) {
-					actions = append(actions, AlienAction{
-						Type: "move", Unit: ai.Unit,
-						FromX: ai.Unit.X, FromY: ai.Unit.Y,
-						ToX: ax, ToY: ay,
-					})
+					actions = ai.appendMove(actions, ax, ay)
 				}
 			} else {
 				// Standard maneuver: seek cover while facing the target.
 				cx, cy := ai.findCoverTowardTarget(nearest.X, nearest.Y, m, humanUnits)
 				if (cx != ai.Unit.X || cy != ai.Unit.Y) && m.Passable(cx, cy) {
-					actions = append(actions, AlienAction{
-						Type: "move", Unit: ai.Unit,
-						FromX: ai.Unit.X, FromY: ai.Unit.Y,
-						ToX: cx, ToY: cy,
-					})
+					actions = ai.appendMove(actions, cx, cy)
 				}
 			}
 		} else if grenadeHeavy && ai.Unit.TU >= 14 {
@@ -301,11 +291,7 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList, pla
 			if buddy := ai.nearestAlly(units); buddy != nil {
 				fx, fy := ai.disperseFrom(buddy, m, humanUnits)
 				if (fx != ai.Unit.X || fy != ai.Unit.Y) && m.Passable(fx, fy) {
-					actions = append(actions, AlienAction{
-						Type: "move", Unit: ai.Unit,
-						FromX: ai.Unit.X, FromY: ai.Unit.Y,
-						ToX: fx, ToY: fy,
-					})
+					actions = ai.appendMove(actions, fx, fy)
 				}
 			}
 		} else if ai.Unit.TU >= 20 && ai.Unit.TU < ai.Unit.MaxTU && target != nil && ai.canFireAt(target) {
@@ -319,97 +305,19 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList, pla
 		}
 
 	case AISuppress:
-		// Suppress: Fire at the target while staying in cover to keep the player pinned down.
-		if nearest == nil {
-			ai.State = AIAttack
-			break
-		}
-		target := ai.selectTarget(nearest, humanUnits, plan, m)
-		if target != nil && ai.canFireAt(target) {
-			ai.selectFireMode(int(dist))
-			actions = append(actions, AlienAction{
-				Type: "fire", Unit: ai.Unit, Target: target,
-				FromX: ai.Unit.X, FromY: ai.Unit.Y,
-				ToX: target.X, ToY: target.Y,
-			})
-		}
-		ai.TurnsSince++
-		if ai.TurnsSince > 3 || !ai.InCover {
-			// Transition back to Attack if target is gone, duration elapsed, or cover is lost.
-			ai.State = AIAttack
-			ai.TurnsSince = 0
-		}
+		actions = ai.handleSuppress(nearest, humanUnits, plan, m, dist)
+
 
 	case AISearch:
-		// Search: Move toward the last known player position to re-establish contact.
-		if nearest != nil {
-			ai.LastSeenX = nearest.X
-			ai.LastSeenY = nearest.Y
-			ai.State = AIAttack
-			ai.TurnsSince = 0
-		} else {
-			// Prefer the freshest squad-shared sighting over our own stale memory.
-			sx, sy := ai.LastSeenX, ai.LastSeenY
-			if ai.Memory != nil {
-				if s, ok := ai.Memory.Latest(); ok {
-					if s.Turn >= ai.Memory.turn-3 {
-						sx, sy = s.X, s.Y
-					}
-				}
-			}
-			nx, ny := ai.moveTowardTargetCover(sx, sy, m, humanUnits)
-			if (nx != ai.Unit.X || ny != ai.Unit.Y) && m.Passable(nx, ny) {
-				actions = append(actions, AlienAction{
-					Type: "move", Unit: ai.Unit,
-					FromX: ai.Unit.X, FromY: ai.Unit.Y,
-					ToX: nx, ToY: ny,
-				})
-			}
-			ai.TurnsSince++
-			if ai.TurnsSince > 6 {
-				// Transition back to Patrol if no one is found after several turns.
-				ai.State = AIPatrol
-			}
-		}
+		actions = ai.handleSearch(nearest, m, humanUnits)
 
 	case AIFlank:
-		// Flank: Move toward a position that provides a side-on angle to the target.
-		if nearest == nil {
-			ai.State = AIAttack
-			break
-		}
-		fx, fy := ai.findFlankPosition(nearest, nearest, m, humanUnits)
-		if (fx != ai.Unit.X || fy != ai.Unit.Y) && m.Passable(fx, fy) {
-			actions = append(actions, AlienAction{
-				Type: "move", Unit: ai.Unit,
-				FromX: ai.Unit.X, FromY: ai.Unit.Y,
-				ToX: fx, ToY: fy,
-			})
-		}
-		ai.TurnsSince++
-		if ai.TurnsSince > 2 {
-			// Return to Attack state after a short flanking maneuver.
-			ai.State = AIAttack
-			ai.TurnsSince = 0
-		}
+		actions = ai.handleFlank(nearest, m, humanUnits)
+
 
 	case AIRetreat:
-		// Retreat: Move away from the nearest threat to safer ground.
-		if nearest != nil {
-			fx, fy := ai.retreatTarget(nearest, m, units)
-			if m.Passable(fx, fy) {
-				actions = append(actions, AlienAction{
-					Type: "move", Unit: ai.Unit,
-					FromX: ai.Unit.X, FromY: ai.Unit.Y,
-					ToX: fx, ToY: fy,
-				})
-			}
-		}
-		ai.TurnsSince++
-		if ai.TurnsSince > 3 {
-			// Stop retreating and return to patrol after some distance is gained.
-			ai.State = AIPatrol
-		}
+		actions = ai.handleRetreat(nearest, m, units)
+
 	}
 
 	// Dynamic retreat logic: determine if the alien should flee based on HP and bravery.
@@ -1039,6 +947,117 @@ func (cai *CivilianAI) GenerateActions(units UnitList, m *BattleMap) []AlienActi
 		FromX: cai.Unit.X, FromY: cai.Unit.Y,
 		ToX: fx, ToY: fy,
 	}}
+}
+
+func (ai *AlienAI) appendMove(actions []AlienAction, toX, toY int) []AlienAction {
+	return append(actions, AlienAction{
+		Type:  "move",
+		Unit:  ai.Unit,
+		FromX: ai.Unit.X,
+		FromY: ai.Unit.Y,
+		ToX:   toX,
+		ToY:   toY,
+	})
+}
+
+func (ai *AlienAI) handlePatrol(m *BattleMap) []AlienAction {
+	var actions []AlienAction
+	px, py := ai.patrolTarget(m)
+	if m.Passable(px, py) {
+		actions = ai.appendMove(actions, px, py)
+	}
+	return actions
+}
+
+func (ai *AlienAI) handleSearch(nearest *Unit, m *BattleMap, humanUnits UnitList) []AlienAction {
+	var actions []AlienAction
+	if nearest != nil {
+		ai.LastSeenX = nearest.X
+		ai.LastSeenY = nearest.Y
+		ai.State = AIAttack
+		ai.TurnsSince = 0
+	} else {
+		// Prefer the freshest squad-shared sighting over our own stale memory.
+		sx, sy := ai.LastSeenX, ai.LastSeenY
+		if ai.Memory != nil {
+			if s, ok := ai.Memory.Latest(); ok {
+				if s.Turn >= ai.Memory.turn-3 {
+					sx, sy = s.X, s.Y
+				}
+			}
+		}
+		nx, ny := ai.moveTowardTargetCover(sx, sy, m, humanUnits)
+		if (nx != ai.Unit.X || ny != ai.Unit.Y) && m.Passable(nx, ny) {
+			actions = ai.appendMove(actions, nx, ny)
+		}
+		ai.TurnsSince++
+		if ai.TurnsSince > 6 {
+			// Transition back to Patrol if no one is found after several turns.
+			ai.State = AIPatrol
+		}
+	}
+	return actions
+}
+
+func (ai *AlienAI) handleRetreat(nearest *Unit, m *BattleMap, units UnitList) []AlienAction {
+	var actions []AlienAction
+	if nearest != nil {
+		fx, fy := ai.retreatTarget(nearest, m, units)
+		if m.Passable(fx, fy) {
+			actions = ai.appendMove(actions, fx, fy)
+		}
+	}
+	ai.TurnsSince++
+	if ai.TurnsSince > 3 {
+		// Stop retreating and return to patrol after some distance is gained.
+		ai.State = AIPatrol
+	}
+	return actions
+}
+
+func (ai *AlienAI) handleSuppress(nearest *Unit, humanUnits UnitList, plan *SquadPlan, m *BattleMap, dist float64) []AlienAction {
+	var actions []AlienAction
+	// Suppress: Fire at the target while staying in cover to keep the player pinned down.
+	if nearest == nil {
+		ai.State = AIAttack
+		return actions
+	}
+	target := ai.selectTarget(nearest, humanUnits, plan, m)
+	if target != nil && ai.canFireAt(target) {
+		ai.selectFireMode(int(dist))
+		actions = append(actions, AlienAction{
+			Type: "fire", Unit: ai.Unit, Target: target,
+			FromX: ai.Unit.X, FromY: ai.Unit.Y,
+			ToX: target.X, ToY: target.Y,
+		})
+	}
+	ai.TurnsSince++
+	if ai.TurnsSince > 3 || !ai.InCover {
+		// Transition back to Attack if target is gone, duration elapsed, or cover is lost.
+		ai.State = AIAttack
+		ai.TurnsSince = 0
+	}
+	return actions
+}
+
+func (ai *AlienAI) handleFlank(nearest *Unit, m *BattleMap, humanUnits UnitList) []AlienAction {
+	var actions []AlienAction
+	// Flank: Move toward a position that provides a side-on angle to the target.
+	if nearest == nil {
+		ai.State = AIAttack
+		return actions
+	}
+	fx, fy := ai.findFlankPosition(nearest, nearest, m, humanUnits)
+	if (fx != ai.Unit.X || fy != ai.Unit.Y) && m.Passable(fx, fy) {
+		actions = ai.appendMove(actions, fx, fy)
+	}
+	ai.TurnsSince++
+	if ai.TurnsSince > 2 {
+		// Return to Attack state after a short flanking maneuver.
+		ai.State = AIAttack
+		ai.TurnsSince = 0
+	}
+	return actions
 }
 
 func (ai *AlienAI) selectFireMode(dist int) {
