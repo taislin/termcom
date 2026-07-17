@@ -28,8 +28,8 @@ const (
 	GlyphBuildingWin  rune = '┼'
 )
 
-// TilePalette maps TileType to a curated true-color RGB value.
-var TilePalette = map[TileType]tcell.Color{
+// tilePalette maps TileType to a curated true-color RGB value.
+var tilePalette = map[TileType]tcell.Color{
 	TileFloor:       tcell.NewRGBColor(95, 90, 85),
 	TileWall:        tcell.NewRGBColor(160, 155, 150),
 	TileDoor:        tcell.NewRGBColor(140, 100, 50),
@@ -69,7 +69,7 @@ func TileBaseColor(t Tile) tcell.Color {
 	if t.BaseColor != tcell.ColorDefault {
 		return t.BaseColor
 	}
-	if col, ok := TilePalette[t.Type]; ok {
+	if col, ok := tilePalette[t.Type]; ok {
 		return col
 	}
 	return tcell.NewRGBColor(128, 128, 128) // neutral grey fallback

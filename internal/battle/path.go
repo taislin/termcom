@@ -134,20 +134,20 @@ func (ai *AlienAI) reactionFirePenalty(x, y int, m *BattleMap, units UnitList) f
 		if !u.Alive || u.Faction != 0 || u == ai.Unit {
 			continue
 		}
-		if u.TU < 15 || u.Weapon == "" {
+		if u.TU < MinReactionTU || u.Weapon == "" {
 			continue
 		}
 		dx := float64(x - u.X)
 		dy := float64(y - u.Y)
 		dist := math.Sqrt(dx*dx + dy*dy)
-		if dist > 20 {
+		if dist > float64(SightRange) {
 			continue
 		}
 		if !u.CanSee(x, y, m) {
 			continue
 		}
-		chance := u.Reactions*2 + u.Accuracy/3 - int(dist)*5
-		if chance < 1 {
+		chance := u.Reactions*ReactionMult + u.Accuracy/ReactionAccDiv - int(dist)*ReactionDistPen
+		if chance < ReactionMinChance {
 			chance = 1
 		}
 		penalty += float64(chance)

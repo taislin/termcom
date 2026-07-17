@@ -129,6 +129,7 @@ func StampVehicleOnMap(
 		interiorSet[pt] = true
 	}
 	adj := [][2]int{{1, 0}, {-1, 0}, {0, 1}, {0, -1}, {1, 1}, {1, -1}, {-1, 1}, {-1, -1}}
+	exteriorSet := make(map[image.Point]bool)
 	for pt := range interiorSet {
 		for _, d := range adj {
 			ex, ey := pt.X+d[0], pt.Y+d[1]
@@ -139,6 +140,10 @@ func StampVehicleOnMap(
 			if interiorSet[ep] {
 				continue
 			}
+			if exteriorSet[ep] {
+				continue
+			}
+			exteriorSet[ep] = true
 			if battleMap.Passable(ex, ey) {
 				result.ExteriorTiles = append(result.ExteriorTiles, ep)
 			}

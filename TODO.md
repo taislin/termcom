@@ -5,24 +5,12 @@ Scope: Features and fixes for the battlescape tactical combat system.
 ---
 
 ### `internal/battle/battlescape.go`
-- [ ] **R2 (Low)** `Render` ~550 lines. Extract sidebar drawers.
-- [ ] **U2 (Low)** Magic numbers (reaction 15, OverwatchFlash 30, grenade TU 20,
-  damage 40+Str*2, mine 60+rng20, scanner 15). Extract constants.
+- [x] **R2 (Low)** `Render` ~550 lines. Extracted `drawSidebar`, `drawTargetInfo`,
+  `drawUnitInfo`, `drawBattleLog`, `drawCompactBanner`, `sidebarLayout` methods.
+- [x] **U2 (Low)** Magic numbers (reaction 15, OverwatchFlash 30, grenade TU 20,
+  damage 40+Str*2, mine 60+rng20, scanner 15). Extracted game-balance constants.
 
 ### `internal/data/spritebuilder.go`
-- [x] **B3 (Low)** `Morphology.BodyType` ("organic"/"synthetic") never consulted by
-  builder; `BodySubtype` is sole driver. Document or wire in.
-- [x] **D1 (Low)** Unreachable `break` in torso loop (`ty>=18`, line 838). Remove.
-- [x] **D2 (Low)** Unreachable `break` in weapon loop (`ty>=18`, line 867). Remove.
-- [x] **D3 (Low)** Unreachable `break` in head loop (`y>=10`, line 784). Remove.
-- [x] **U1 (Low)** Grid dims 24/20 bare literals everywhere. Add `SpriteW/SpriteH`.
-- [x] **U2 (Low)** Exported ids (Sense, Manipulators, Locomotion, EyeStyle, Tagged*,
-  AlienPixels, SpriteRegistry, AlienColorFromSeed, AlienWeaponColor) lack doc
-  comments. Add per AGENTS.md.
-- [x] **M1 (Low)** 0-leg Silicon/Crystalline/BioSynthetic fall to LocomSlither
-  (lines 736–753). Decide if synthetic should float.
-- [x] **M3 (Low)** Eye mask doesn't carve `Mouth` layer (lines 809–833) → mouth
-  pixel remains under eye. Carve Mouth too.
 - [ ] **R1 (Low)** 4 duplicated layer-stamp switch blocks (head/torso/legs/weapon).
   Extract `stampLayer(ch, dst, y, x, allowWeapon)`.
 - [ ] **R2 (Low)** 6 repeated biology post-pass loops (lines 973–1029). Use config
@@ -31,40 +19,13 @@ Scope: Features and fixes for the battlescape tactical combat system.
   biology passes.
 
 ### `internal/engine/portrait.go`
-- [x] **B1 (Medium)** `ArmourColor` set (lines 115–124) but no `generateArmourLayer`
-  composited → armour has no visual effect; `isArm`/armour-dither branch dead.
-  Removed dead armour/helm code and unused PortraitSpec fields.
-- [x] **B2 (Low)** `MarkingsColor`/`DecalColor` and `LayerMarkings`/`LayerArmour`/
-  `LayerDecal`/`LayerCount` enum never used. Removed entire PortraitLayer enum and
-  unused PortraitSpec fields.
-- [x] **B3 (Low)** Magic bg color `tcell.NewRGBColor(20,20,28)` duplicated at lines
-  153, 187, 292. Extracted `portraitBg` package var.
-- [x] **B4 (Low)** `rng.Intn` can return negative for negative seed → panic on index.
-  Fixed by using `uint64` shift.
-- [x] **M1 (Low)** `browColor==ColorDefault` guard unreachable (input always RGB).
-  Removed guard + fallback.
-- [x] **D3 (Low)** `isHairColor`/`isHelmetColor`/`isArmorColor` are near-identical.
-  Factored `colorClose(c, ref, tol)`.
-- [x] **U2 (Low)** Undocumented face-proportion fractions (45%, 42%, 5/8, 5/10…).
-  Added comments explaining model.
-- [x] **U3 (Low)** Hardcoded `NewPixelImage(20,24)` disconnected from `AlienPixels`.
-  Derived from `data.SpriteW` / `data.SpriteH`.
-- [x] **R1 (Low)** 8 hair-style switch cases share scaffolding (lines 835–1058).
-  Table-drove with `hairStyle{k,d,crownW}` + `forEachCrownCol` helper; spiky/afro/curly
-  kept as special branches.
-- [x] **R2 (Low)** Redundant `sqrt64` wrapper. Inlined `math.Sqrt`.
-- [x] **R3 (Low)** Ellipse-test `(dx*dx)/(RX*RX)+(dy*dy)/(RY*RY)` dup'd 4×.
-  Added `inEllipse` / `inEllipseF` helpers.
-- [x] **Note** Helmets intentionally removed earlier; helmet code deleted.
 
 ### `internal/data/procedural.go`
-- [ ] **D2 (Low)** `generateLore(name, ...)` `name` param unused (line 1017). Remove
-  or use it.
-- [ ] **B1/D1 (Low)** `midSyllIdx` is a no-op wrapper (lines 342, 363–365),
-  misleadingly named. Inline as `rng.Intn(len(p))`.
-- [ ] **M2 (Low)** `generateLegCount` Silicon comment says "2 or 4" but code yields
-  2/4/6 (line 558). Fix comment or `rng.Intn(2)`.
-- [ ] **U1 (Low)** Exported `clamp` lacks doc comment (line 1046). Add.
+- [x] **D2 (Low)** `generateLore(name, ...)` `name` param unused. Removed.
+- [x] **B1/D1 (Low)** `midSyllIdx` is a no-op wrapper, misleadingly named. Inlined.
+- [x] **M2 (Low)** `generateLegCount` Silicon comment says "2 or 4" but code yields
+  2/4/6. Fixed code to produce "2 or 4".
+- [x] **U1 (Low)** Exported `clamp` lacks doc comment. Added.
 - [ ] **U2 (Low)** Magic tuning numbers (speciesCount 5+rng3, maxRank 1+rng4,
   `rng.Intn(3)==0` synthetic, sense rolls) undocumented. Name constants.
 - [ ] **R1 (Low)** Five duplicated `rng.Intn(10)` weighted-roll switches (464–616).
