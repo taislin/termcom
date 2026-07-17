@@ -47,11 +47,12 @@ type CrashSite struct {
 
 // Transport handles the movement of soldiers between bases.
 type Transport struct {
-	FromNode  int
-	ToNode    int
-	Progress  float64
-	Returning bool
-	CrashSite *CrashSite
+	FromNode       int
+	ToNode         int
+	Progress       float64
+	Returning      bool
+	CrashSite      *CrashSite
+	SourceBaseCity int // city ID of the base that dispatched this transport
 }
 
 // Geoscape is the main state controller for the strategic world map.
@@ -619,9 +620,7 @@ func (gs *Geoscape) Update() {
 									gs.MessageTimer = time.Now()
 								}
 								t.Returning = true
-								if sb := gs.SelectedBase(); sb != nil {
-									t.ToNode = sb.CityID
-								}
+								t.ToNode = t.SourceBaseCity
 							}
 						}
 					}
@@ -1655,16 +1654,22 @@ func (gs *Geoscape) Autoresolve() {
 	if won {
 		gs.Game.Funds += int64(nearest.Type.Points * 1000)
 		gs.Message = fmt.Sprintf(language.String("MSG_AUTO_VICTORY"), nearest.Type.DisplayName(), nearest.Type.Points)
-	} else {
-		if squadSize > 0 {
-			// build list of alive soldiers
-			var alive []*soldier.Soldier
-			for _, s := range gs.SelectedBase().Soldiers {
-				if s.HP > 0 {
-					alive = append(alive, s)
+		} else {
+			if squadSize > 0 {
+				// build list of alive soldiers
+				var alive []*soldier.Soldier
+				for _, s := range gs.SelectedBase().Soldiers {
+					if s.HP > 0 {
+						alive = append(alive, s)
+					}
 				}
-			}
-			idx := rand.Intn(len(alive))
+				if len(alive) == 0 {
+					gs.Message = fmt.Sprintf(language.String("MSG_AUTO_DEFEAT"), nearest.Type.DisplayName())
+					gs.MessageTimer = time.Now()
+					nearest.Active = false
+					return
+				}
+				idx := rand.Intn(len(alive))
 			alive[idx].HP = 0
 			gs.SelectedBase().RemoveDeadSoldiers()
 			gs.Message = fmt.Sprintf(language.String("MSG_AUTO_DEFEAT"), nearest.Type.DisplayName())
@@ -1954,7 +1959,9 @@ func (gs *Geoscape) confirmLaunch(target interface{}) {
 		gs.Message = fmt.Sprintf(language.String("MSG_INTERCEPTOR_LAUNCHED"), t.Type.DisplayName())
 	case *CrashSite:
 		gs.DispatchTransport(t)
-		gs.Message = fmt.Sprintf(language.String("MSG_TRANSPORT_DISPATCHED"), gs.CityByID(t.NodeID).LangName())
+		if city := gs.CityByID(t.NodeID); city != nil {
+			gs.Message = fmt.Sprintf(language.String("MSG_TRANSPORT_DISPATCHED"), city.LangName())
+		}
 	}
 	gs.MessageTimer = time.Now()
 }
@@ -2777,9 +2784,6 @@ func (gs *Geoscape) HandleKey(e *tcell.EventKey) {
 }
 
 func (gs *Geoscape) moveCursor(dx, dy int) {
-	// Move based on list index instead of spatial position
-	// dx is ignored as we move linearly through the Cities list
-
 	curIdx := -1
 	for i, c := range gs.Cities {
 		if c.ID == gs.CursorNode {
@@ -2792,7 +2796,11 @@ func (gs *Geoscape) moveCursor(dx, dy int) {
 		return
 	}
 
-	newIdx := curIdx + dy
+	delta := dy
+	if dx != 0 {
+		delta = dx * 10 // page left/right by 10
+	}
+	newIdx := curIdx + delta
 	if newIdx < 0 {
 		newIdx = len(gs.Cities) - 1
 	} else if newIdx >= len(gs.Cities) {
@@ -3024,10 +3032,11 @@ func (gs *Geoscape) DispatchTransport(cs *CrashSite) {
 		return
 	}
 	gs.Transport = &Transport{
-		FromNode:  gs.SelectedBase().CityID,
-		ToNode:    cs.NodeID,
-		Progress:  0,
-		CrashSite: cs,
+		FromNode:       gs.SelectedBase().CityID,
+		ToNode:         cs.NodeID,
+		Progress:       0,
+		CrashSite:      cs,
+		SourceBaseCity: gs.SelectedBase().CityID,
 	}
 	// Resume real-time simulation so the transport actually travels to the site.
 	gs.Game.Paused = false

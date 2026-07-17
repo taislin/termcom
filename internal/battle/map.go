@@ -515,7 +515,7 @@ func (m *BattleMap) hasLOS(x1, y1, x2, y2 int) bool {
 		if x == x2 && y == y2 {
 			return true
 		}
-		if m.Opaque(x, y) && !(x == x1 && y == y1) {
+		if m.Opaque(x, y) && !((x == x1 && y == y1) || (x == x2 && y == y2)) {
 			return false
 		}
 		e2 := 2 * err
@@ -711,6 +711,7 @@ func (m *BattleMap) ApplyCommand(cmd MapCommand) {
 	case CmdCorridor:
 		m.generateCorridor(cmd.X, cmd.Y, cmd.X2, cmd.Y2, max(1, cmd.W))
 	case CmdClearArea:
+		// identical to CmdFillRect; kept for semantic clarity only
 		m.fillRect(cmd.X, cmd.Y, cmd.W, cmd.H, cmd.Tile)
 	}
 }
