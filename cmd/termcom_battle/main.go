@@ -371,10 +371,12 @@ func main() {
 			if selected > 0 {
 				selected--
 			}
+			continue
 		case "down", "j":
 			if selected < len(entries)-1 {
 				selected++
 			}
+			continue
 		case "enter":
 			// fall through to launch below
 		default:
