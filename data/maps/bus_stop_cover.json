@@ -1,6 +1,8 @@
 {
   "id": "bus_stop_cover",
-  "tags": ["urban"],
+  "tags": [
+    "urban"
+  ],
   "width": 3,
   "height": 2,
   "rows": [
@@ -11,5 +13,6 @@
     "W": "TileWall",
     ".": "TileFloor"
   },
-  "furniture": {}
+  "furniture": {},
+  "weight": 3
 }

@@ -1,6 +1,8 @@
 {
   "id": "desert_rocky_formation",
-  "tags": ["desert"],
+  "tags": [
+    "desert"
+  ],
   "width": 4,
   "height": 4,
   "rows": [
@@ -14,5 +16,6 @@
     ".": "TileFloor",
     "r": "TileRock"
   },
-  "furniture": {}
+  "furniture": {},
+  "weight": 2
 }

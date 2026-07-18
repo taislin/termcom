@@ -92,6 +92,7 @@ type Wave struct {
 	rules  *WFCRules
 	w, h   int
 	cells  [][]superposition
+	compat [4][]bool // reusable across propagate calls
 }
 
 func newWave(rules *WFCRules, w, h int) *Wave {
@@ -106,7 +107,13 @@ func newWave(rules *WFCRules, w, h int) *Wave {
 			cells[y][x] = superposition{allowed: allowed, count: rules.numTiles, collapsed: -1}
 		}
 	}
-	return &Wave{rules: rules, w: w, h: h, cells: cells}
+	compat := [4][]bool{
+		make([]bool, rules.numTiles),
+		make([]bool, rules.numTiles),
+		make([]bool, rules.numTiles),
+		make([]bool, rules.numTiles),
+	}
+	return &Wave{rules: rules, w: w, h: h, cells: cells, compat: compat}
 }
 
 // minEntropyCell returns the coordinates of the uncollapsed cell with the
@@ -166,11 +173,10 @@ func (wv *Wave) propagate(x, y int) bool {
 		src := &wv.cells[cy][cx]
 
 		// compat[d][b] = does b have at least one allowed source neighbor in d.
-		compat := [4][]bool{
-			make([]bool, wv.rules.numTiles),
-			make([]bool, wv.rules.numTiles),
-			make([]bool, wv.rules.numTiles),
-			make([]bool, wv.rules.numTiles),
+		for d := 0; d < 4; d++ {
+			for b := 0; b < wv.rules.numTiles; b++ {
+				wv.compat[d][b] = false
+			}
 		}
 		for a := 0; a < wv.rules.numTiles; a++ {
 			if !src.allowed[a] {
@@ -179,7 +185,7 @@ func (wv *Wave) propagate(x, y int) bool {
 			for d := 0; d < 4; d++ {
 				for b := 0; b < wv.rules.numTiles; b++ {
 					if wv.rules.compatible[a][d][b] {
-						compat[d][b] = true
+						wv.compat[d][b] = true
 					}
 				}
 			}
@@ -201,7 +207,7 @@ func (wv *Wave) propagate(x, y int) bool {
 				if !nb.allowed[b] {
 					continue
 				}
-				if !compat[d][b] {
+				if !wv.compat[d][b] {
 					nb.allowed[b] = false
 					nb.count--
 					removed = true
@@ -230,29 +236,138 @@ func (wv *Wave) fullyCollapsed() bool {
 	return true
 }
 
-// Solve runs the WFC observation/propagation loop with restart-on-contradiction.
-// maxRestarts bounds the number of retries; on exhaustion it returns the best
-// (most-collapsed) wave found so far.
+// wfcCheckpoint stores a full superposition snapshot for a single cell.
+type wfcCheckpoint struct {
+	allowed  []bool
+	count    int
+	collapsed int
+}
+
+// wfcSnapshot stores the entire wave at one point in time.
+type wfcSnapshot struct {
+	cells [][]wfcCheckpoint
+}
+
+func (wv *Wave) saveSnapshot() wfcSnapshot {
+	s := wfcSnapshot{cells: make([][]wfcCheckpoint, wv.h)}
+	for y := 0; y < wv.h; y++ {
+		s.cells[y] = make([]wfcCheckpoint, wv.w)
+		for x := 0; x < wv.w; x++ {
+			src := &wv.cells[y][x]
+			cp := wfcCheckpoint{
+				allowed:   append([]bool{}, src.allowed...),
+				count:     src.count,
+				collapsed: src.collapsed,
+			}
+			s.cells[y][x] = cp
+		}
+	}
+	return s
+}
+
+func (wv *Wave) restoreSnapshot(s wfcSnapshot) {
+	for y := 0; y < wv.h; y++ {
+		for x := 0; x < wv.w; x++ {
+			src := &s.cells[y][x]
+			dst := &wv.cells[y][x]
+			copy(dst.allowed, src.allowed)
+			dst.count = src.count
+			dst.collapsed = src.collapsed
+		}
+	}
+}
+
+// Solve runs the WFC observation/propagation loop with backtracking.
+// Before each observation a snapshot is saved. If propagation hits a
+// contradiction the snapshot is restored and a different tile is chosen for
+// that cell. If no tile remains valid at that cell we backtrack one level.
+// maxRestarts is a safety cap for full resets.
 func (wv *Wave) Solve(rng *rand.Rand, maxRestarts int) *Wave {
 	best := wv
 	bestCollapsed := 0
+
+	type btFrame struct {
+		snap    wfcSnapshot
+		x, y    int
+		tried   []int
+	}
 
 	for restart := 0; restart <= maxRestarts; restart++ {
 		if restart > 0 {
 			wv = newWave(wv.rules, wv.w, wv.h)
 		}
-		contradiction := false
+
+		var stack []btFrame
+		contradict := false
+
+	mainLoop:
 		for {
+			if contradict {
+				// Backtrack: pop frames until we find a cell with an untried tile.
+				for len(stack) > 0 {
+					top := &stack[len(stack)-1]
+					wv.restoreSnapshot(top.snap)
+
+					// Find a valid tile at top's cell not yet tried.
+					cell := &wv.cells[top.y][top.x]
+				scan:
+					for i := 0; i < len(cell.allowed); i++ {
+						if !cell.allowed[i] {
+							continue
+						}
+						for _, t := range top.tried {
+							if i == t {
+								continue scan
+							}
+						}
+						// Found an untried valid tile.
+						top.tried = append(top.tried, i)
+						cell.collapseTo(i)
+						if wv.propagate(top.x, top.y) {
+							// Backtrack succeeded — resume forward.
+							contradict = false
+							continue mainLoop
+						}
+						// Still a contradiction — try next tile at same cell.
+					}
+
+					// No untried tile at this cell — pop frame and backtrack further.
+					stack = stack[:len(stack)-1]
+				}
+
+				if len(stack) == 0 {
+					contradict = false
+				}
+				break
+			}
+
 			x, y, ok := wv.minEntropyCell(rng)
 			if !ok {
 				break
 			}
+
+			snap := wv.saveSnapshot()
 			wv.observe(x, y, rng)
 			if !wv.propagate(x, y) {
-				contradiction = true
-				break
+				// Contradiction: push a backtrack frame and retry.
+				stack = append(stack, btFrame{
+					snap:  snap,
+					x:     x,
+					y:     y,
+					tried: []int{wv.cells[y][x].collapsed},
+				})
+				contradict = true
+				continue
 			}
+			// Successful observation — push frame so future steps can backtrack here.
+			stack = append(stack, btFrame{
+				snap:  snap,
+				x:     x,
+				y:     y,
+				tried: []int{wv.cells[y][x].collapsed},
+			})
 		}
+
 		count := 0
 		for y := 0; y < wv.h; y++ {
 			for x := 0; x < wv.w; x++ {
@@ -261,7 +376,7 @@ func (wv *Wave) Solve(rng *rand.Rand, maxRestarts int) *Wave {
 				}
 			}
 		}
-		if !contradiction && wv.fullyCollapsed() {
+		if !contradict && wv.fullyCollapsed() {
 			return wv
 		}
 		if count > bestCollapsed {
@@ -846,12 +961,21 @@ func hardcodedUrbanTiles() []WFCTile {
 // Tiled Model. Small 3x3 pieces combine with large multi-room blocks (6x6 and
 // 9x9) to produce varied building layouts. rng must be seeded for reproducibility.
 func GenerateUrbanBuildingWFC(w, h int, rng *rand.Rand) *BattleMap {
-	m := NewBattleMap(w, h)
+	return GenerateUrbanBuildingWFCLevels(w, h, 1, rng)
+}
+
+// GenerateUrbanBuildingWFCLevels builds an urban building with the specified
+// number of floors. Floors are generated independently using the same WFC tile
+// set; stairs connect each pair of adjacent levels.
+func GenerateUrbanBuildingWFCLevels(w, h, numLevels int, rng *rand.Rand) *BattleMap {
+	if numLevels < 1 {
+		numLevels = 1
+	}
+
+	m := NewMultiLevelBattleMap(w, h, numLevels)
 
 	rules := NewWFCRules(urbanWFCTiles())
 
-	// Cell sizes vary; pick a uniform cell dimension equal to the largest
-	// tile (9) so big blocks fit, capping to map bounds.
 	cell := 9
 	gw := w / cell
 	gh := h / cell
@@ -862,13 +986,226 @@ func GenerateUrbanBuildingWFC(w, h int, rng *rand.Rand) *BattleMap {
 		gh = 1
 	}
 
-	m.fillRect(0, 0, w, h, TilePavement)
+	for level := 0; level < numLevels; level++ {
+		// Fill with pavement (y is level-relative).
+		m.fillRectLevel(0, 0, w, h, level, TilePavement)
 
-	wv := newWave(rules, gw, gh)
-	wv = wv.Solve(rng, 30)
-	wv.CompileToBattleMap(m, 0, 0, 0)
+		// Run WFC with a seeded offset so each level gets a different layout.
+		levelRng := rand.New(rand.NewSource(int64(rng.Int())))
+		wv := newWave(rules, gw, gh)
+		wv = wv.Solve(levelRng, 30)
+		wv.CompileToBattleMap(m, 0, 0, level)
 
-	// Enclose the building with a perimeter wall.
-	m.drawRect(0, 0, w, h, TileWall)
+		// Enclose with a perimeter wall (y is level-relative).
+		m.drawRectLevel(0, 0, w, h, level, TileWall)
+	}
+
+	// Add stairs between levels at a random interior position.
+	for level := 0; level < numLevels-1; level++ {
+		sx := 1 + rng.Intn(w-2)
+		sy := 1 + rng.Intn(h-2)
+		m.SetLevel(sx, sy, level, TileStairsDown)
+		m.SetLevel(sx, sy, level+1, TileStairs)
+	}
+
 	return m
+}
+
+// alienBaseWFCTiles loads the alien base WFC tile library from
+// data/wfc/alien_base.json, falling back to hardcoded tiles.
+func alienBaseWFCTiles() []WFCTile {
+	if t := loadWFCLibrary("alien_base"); t != nil {
+		return t
+	}
+	return hardcodedAlienBaseTiles()
+}
+
+// GenerateAlienBaseWFC builds an alien base interior map using WFC.
+// The base has 2 levels with alien-themed rooms (consoles, machinery,
+// containment pods, power sources, alien tech). Stairs connect the levels.
+func GenerateAlienBaseWFC(w, h int, rng *rand.Rand) *BattleMap {
+	levelH := h / 2
+	if levelH < 12 {
+		levelH = 12
+	}
+	m := NewMultiLevelBattleMap(w, levelH, 2)
+
+	rules := NewWFCRules(alienBaseWFCTiles())
+
+	gw := w / 3
+	gh := levelH / 3
+	if gw < 1 {
+		gw = 1
+	}
+	if gh < 1 {
+		gh = 1
+	}
+
+	buildLevel := func(level int) {
+		m.fillRectLevel(0, 0, w, levelH, level, TileUFOFloor)
+
+		levelRng := rand.New(rand.NewSource(int64(rng.Int())))
+		wv := newWave(rules, gw, gh)
+		wv = wv.Solve(levelRng, 20)
+		wv.CompileToBattleMap(m, 0, 0, level)
+
+		m.drawRectLevel(0, 0, w, levelH, level, TileUFOWall)
+	}
+
+	buildLevel(0)
+	buildLevel(1)
+
+	// Connect levels with stairs.
+	stairsX := (w / 2) & ^1
+	stairsY := (levelH / 2) & ^1
+	if stairsX+1 >= w {
+		stairsX = w - 2
+	}
+	if stairsY+1 >= levelH {
+		stairsY = levelH - 2
+	}
+	m.SetLevel(stairsX, stairsY, 0, TileStairsDown)
+	m.SetLevel(stairsX+1, stairsY, 0, TileUFOFloor)
+	m.SetLevel(stairsX, stairsY+1, 0, TileUFOFloor)
+	m.SetLevel(stairsX+1, stairsY+1, 0, TileUFOFloor)
+	m.SetLevel(stairsX, stairsY, 1, TileStairs)
+	m.SetLevel(stairsX+1, stairsY, 1, TileUFOFloor)
+	m.SetLevel(stairsX, stairsY+1, 1, TileUFOFloor)
+	m.SetLevel(stairsX+1, stairsY+1, 1, TileUFOFloor)
+
+	return m
+}
+
+// hardcodedAlienBaseTiles provides an embedded alien base tile library
+// used when data/wfc/alien_base.json cannot be loaded.
+func hardcodedAlienBaseTiles() []WFCTile {
+	floor := [][]rune{
+		{'.', '.', '.'},
+		{'.', '.', '.'},
+		{'.', '.', '.'},
+	}
+	wallN := [][]rune{
+		{'#', '#', '#'},
+		{'.', '.', '.'},
+		{'.', '.', '.'},
+	}
+	wallE := [][]rune{
+		{'.', '.', '#'},
+		{'.', '.', '#'},
+		{'.', '.', '#'},
+	}
+	wallS := [][]rune{
+		{'.', '.', '.'},
+		{'.', '.', '.'},
+		{'#', '#', '#'},
+	}
+	wallW := [][]rune{
+		{'#', '.', '.'},
+		{'#', '.', '.'},
+		{'#', '.', '.'},
+	}
+	cornerNE := [][]rune{
+		{'#', '#', '#'},
+		{'#', '.', '.'},
+		{'.', '.', '.'},
+	}
+	cornerSE := [][]rune{
+		{'.', '.', '.'},
+		{'#', '.', '.'},
+		{'#', '#', '#'},
+	}
+	cornerSW := [][]rune{
+		{'.', '.', '.'},
+		{'.', '.', '#'},
+		{'#', '#', '#'},
+	}
+	cornerNW := [][]rune{
+		{'#', '#', '#'},
+		{'.', '.', '#'},
+		{'.', '.', '.'},
+	}
+	consoleRoom := [][]rune{
+		{'.', 'C', '.'},
+		{'C', 'C', 'C'},
+		{'.', '.', '.'},
+	}
+	consoleRoom90 := [][]rune{
+		{'.', 'C', '.'},
+		{'.', 'C', '.'},
+		{'.', 'C', '.'},
+	}
+	machineryNW := [][]rune{
+		{'M', '.', '.'},
+		{'.', '#', '.'},
+		{'.', '.', '.'},
+	}
+	machinerySE := [][]rune{
+		{'.', '.', '.'},
+		{'.', '#', '.'},
+		{'.', '.', 'M'},
+	}
+	podRoom := [][]rune{
+		{'P', 'P', 'P'},
+		{'.', '.', '.'},
+		{'P', 'P', 'P'},
+	}
+	powerRoom := [][]rune{
+		{'.', 'S', '.'},
+		{'S', 'S', 'S'},
+		{'.', '#', '.'},
+	}
+	alienTechRoom := [][]rune{
+		{'T', '.', 'T'},
+		{'.', '.', '.'},
+		{'T', '.', 'T'},
+	}
+	storageRoom := [][]rune{
+		{'S', '.', '.'},
+		{'.', '.', '.'},
+		{'.', '.', 'S'},
+	}
+	corridorT := [][]rune{
+		{'#', '#', '#'},
+		{'.', '#', '.'},
+		{'.', '#', '.'},
+	}
+	corridorB := [][]rune{
+		{'.', '#', '.'},
+		{'.', '#', '.'},
+		{'#', '#', '#'},
+	}
+	corridorL := [][]rune{
+		{'.', '#', '.'},
+		{'#', '#', '#'},
+		{'.', '#', '.'},
+	}
+	corridorR := [][]rune{
+		{'#', '.', '.'},
+		{'#', '.', '.'},
+		{'#', '.', '.'},
+	}
+
+	return []WFCTile{
+		{ID: 0, Name: "Floor", RuneGrid: floor},
+		{ID: 1, Name: "WallN", RuneGrid: wallN},
+		{ID: 2, Name: "WallE", RuneGrid: wallE},
+		{ID: 3, Name: "WallS", RuneGrid: wallS},
+		{ID: 4, Name: "WallW", RuneGrid: wallW},
+		{ID: 5, Name: "CornerNE", RuneGrid: cornerNE},
+		{ID: 6, Name: "CornerSE", RuneGrid: cornerSE},
+		{ID: 7, Name: "CornerSW", RuneGrid: cornerSW},
+		{ID: 8, Name: "CornerNW", RuneGrid: cornerNW},
+		{ID: 9, Name: "ConsoleRoom", RuneGrid: consoleRoom},
+		{ID: 10, Name: "ConsoleRoom90", RuneGrid: consoleRoom90},
+		{ID: 11, Name: "MachineryNW", RuneGrid: machineryNW},
+		{ID: 12, Name: "MachinerySE", RuneGrid: machinerySE},
+		{ID: 13, Name: "PodRoom", RuneGrid: podRoom},
+		{ID: 14, Name: "PowerRoom", RuneGrid: powerRoom},
+		{ID: 15, Name: "AlienTechRoom", RuneGrid: alienTechRoom},
+		{ID: 16, Name: "StorageRoom", RuneGrid: storageRoom},
+		{ID: 17, Name: "CorridorT", RuneGrid: corridorT},
+		{ID: 18, Name: "CorridorB", RuneGrid: corridorB},
+		{ID: 19, Name: "CorridorL", RuneGrid: corridorL},
+		{ID: 20, Name: "CorridorR", RuneGrid: corridorR},
+	}
 }

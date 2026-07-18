@@ -45,6 +45,7 @@ func TestWFCJSONMatchesHardcoded(t *testing.T) {
 	}
 	cmp(ufoWFCTiles(), hardcodedUFOTiles())
 	cmp(urbanWFCTiles(), hardcodedUrbanTiles())
+	cmp(alienBaseWFCTiles(), hardcodedAlienBaseTiles())
 }
 
 func TestWFCSolveCollapsesFully(t *testing.T) {
@@ -185,6 +186,95 @@ func TestGenerateUrbanBuildingWFC(t *testing.T) {
 	}
 	if furniture == 0 {
 		t.Fatal("no furniture/door tiles produced")
+	}
+}
+
+func TestGenerateUrbanBuildingWFCLevels(t *testing.T) {
+	rng := rand.New(rand.NewSource(7))
+	m := GenerateUrbanBuildingWFCLevels(45, 45, 2, rng)
+	if m == nil {
+		t.Fatal("nil map")
+	}
+	if m.NumLevels != 2 {
+		t.Fatalf("NumLevels=%d, want 2", m.NumLevels)
+	}
+	if m.LevelHeight != 45 {
+		t.Fatalf("LevelHeight=%d, want 45", m.LevelHeight)
+	}
+	// Each level must be enclosed by walls.
+	for level := 0; level < m.NumLevels; level++ {
+		for x := 0; x < m.Width; x++ {
+			if m.AtLevel(x, 0, level).Type != TileWall || m.AtLevel(x, m.LevelHeight-1, level).Type != TileWall {
+				t.Fatalf("level %d top/bottom perimeter not wall at x=%d", level, x)
+			}
+		}
+		for y := 0; y < m.LevelHeight; y++ {
+			if m.AtLevel(0, y, level).Type != TileWall || m.AtLevel(m.Width-1, y, level).Type != TileWall {
+				t.Fatalf("level %d left/right perimeter not wall at y=%d", level, y)
+			}
+		}
+	}
+	// Must have stairs connecting levels.
+	stairsDown, stairsUp := 0, 0
+	for level := 0; level < m.NumLevels; level++ {
+		for y := 0; y < m.LevelHeight; y++ {
+			for x := 0; x < m.Width; x++ {
+				switch m.AtLevel(x, y, level).Type {
+				case TileStairsDown:
+					stairsDown++
+				case TileStairs:
+					stairsUp++
+				}
+			}
+		}
+	}
+	if stairsDown == 0 {
+		t.Fatal("no stairs down tiles")
+	}
+	if stairsUp == 0 {
+		t.Fatal("no stairs up tiles")
+	}
+	if stairsDown != stairsUp {
+		t.Fatalf("stairs down (%d) != stairs up (%d)", stairsDown, stairsUp)
+	}
+}
+
+func TestGenerateAlienBaseWFC(t *testing.T) {
+	rng := rand.New(rand.NewSource(7))
+	m := GenerateAlienBaseWFC(50, 50, rng)
+	if m == nil {
+		t.Fatal("nil map")
+	}
+	if m.NumLevels != 2 {
+		t.Fatalf("NumLevels=%d, want 2", m.NumLevels)
+	}
+	// Each level must be enclosed by alien walls.
+	for level := 0; level < m.NumLevels; level++ {
+		for x := 0; x < m.Width; x++ {
+			if m.AtLevel(x, 0, level).Type != TileUFOWall || m.AtLevel(x, m.LevelHeight-1, level).Type != TileUFOWall {
+				t.Fatalf("level %d top/bottom perimeter not wall at x=%d", level, x)
+			}
+		}
+		for y := 0; y < m.LevelHeight; y++ {
+			if m.AtLevel(0, y, level).Type != TileUFOWall || m.AtLevel(m.Width-1, y, level).Type != TileUFOWall {
+				t.Fatalf("level %d left/right perimeter not wall at y=%d", level, y)
+			}
+		}
+	}
+	// Must have stairs.
+	stairs := 0
+	for level := 0; level < m.NumLevels; level++ {
+		for y := 0; y < m.LevelHeight; y++ {
+			for x := 0; x < m.Width; x++ {
+				t := m.AtLevel(x, y, level).Type
+				if t == TileStairsDown || t == TileStairs {
+					stairs++
+				}
+			}
+		}
+	}
+	if stairs == 0 {
+		t.Fatal("no stairs found")
 	}
 }
 

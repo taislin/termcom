@@ -1,6 +1,8 @@
 {
   "id": "urban_apartment",
-  "tags": ["urban"],
+  "tags": [
+    "urban"
+  ],
   "width": 7,
   "height": 6,
   "rows": [
@@ -18,5 +20,6 @@
   "furniture": {
     "b": "TileBed",
     "c": "TileCabinet"
-  }
+  },
+  "weight": 1
 }

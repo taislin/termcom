@@ -1,6 +1,8 @@
 {
   "id": "rural_farm_house",
-  "tags": ["rural"],
+  "tags": [
+    "rural"
+  ],
   "width": 7,
   "height": 5,
   "rows": [
@@ -18,5 +20,6 @@
     "d": "TileDesk",
     "a": "TileCabinet",
     "l": "TileLocker"
-  }
+  },
+  "weight": 1
 }

@@ -1,6 +1,8 @@
 {
   "id": "urban_shop",
-  "tags": ["urban"],
+  "tags": [
+    "urban"
+  ],
   "width": 7,
   "height": 5,
   "rows": [
@@ -19,5 +21,6 @@
     "c": "TileComputer",
     "l": "TileLocker",
     "s": "TileStorage"
-  }
+  },
+  "weight": 1
 }

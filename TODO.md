@@ -44,3 +44,24 @@ Scope: Features and fixes for the battlescape tactical combat system.
 - [x] `docs/dev.md` fully rewritten — now documents both mapgen systems
       (AssembleMap + WFC), fragment/WFC tile schema, adding generators,
       adding missions, WFC tile rune table, and search paths.
+- [x] **Multi-level ValidateMap fix** — flood-fill now scans all `NumLevels`,
+      connects levels via `TileStairsDown` ↔ `TileStairs`; `isPassableLevel`
+      helper skips non-passable tiles per level.
+- [x] **Fragment weighting** — `Weight` field on `MapgenChunk` (default 1),
+      `EffectiveWeight()` method; `AssembleMap` uses weighted random selection
+      instead of uniform; all 32 JSONs annotated by area (small=3, med=2, large=1).
+- [x] **WFC backtracking** — `saveSnapshot`/`restoreSnapshot` checkpoint system;
+      `Solve` now uses depth-first backtracking with a frame stack instead of
+      immediate full restarts on contradiction; `maxRestarts` safety cap retained.
+- [x] **Multi-level urban building WFC** — new `GenerateUrbanBuildingWFCLevels`
+      supports N floors with stairs; `Building Assault` uses 2-level version.
+- [x] **Alien Base WFC** — `data/wfc/alien_base.json` (21 tiles: organic walls,
+      console rooms, machinery, containment pods, power sources, alien tech);
+      `GenerateAlienBaseWFC` with 2-level layout + stairs; `hardcodedAlienBaseTiles`
+      fallback; wired into `Alien Base Assault` mission replacing hand-crafted.
+- [x] **Pool compat allocations** — `compat [4][]bool` moved from per-call
+      allocation in `propagate` to `Wave` struct, allocated once in `newWave`.
+- [x] **More biome fragments** — `desert_campfire`, `desert_canyon`,
+      `polar_ice_cave`, `polar_snow_dunes` added (36 total fragments).
+
+---

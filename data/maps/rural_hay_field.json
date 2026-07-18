@@ -1,6 +1,9 @@
 {
   "id": "rural_hay_field",
-  "tags": ["rural", "forest"],
+  "tags": [
+    "rural",
+    "forest"
+  ],
   "width": 6,
   "height": 4,
   "rows": [
@@ -14,5 +17,6 @@
     ".": "TileFloor",
     "b": "TileBush"
   },
-  "furniture": {}
+  "furniture": {},
+  "weight": 2
 }

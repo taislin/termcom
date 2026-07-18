@@ -1,6 +1,8 @@
 {
   "id": "urban_warehouse",
-  "tags": ["urban"],
+  "tags": [
+    "urban"
+  ],
   "width": 9,
   "height": 6,
   "rows": [
@@ -18,5 +20,6 @@
   "furniture": {
     "m": "TileMachinery",
     "s": "TileStorage"
-  }
+  },
+  "weight": 1
 }

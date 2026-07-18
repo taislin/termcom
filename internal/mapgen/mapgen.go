@@ -10,14 +10,24 @@ import (
 
 // MapgenChunk represents a CDDA-style map definition loaded from JSON.
 // Rows are ASCII art; terrain/furniture map each character to a tile type name.
+// Weight controls how often the chunk appears relative to others of the same
+// tag (higher = more frequent, default 1).
 type MapgenChunk struct {
 	ID        string            `json:"id"`
 	Tags      []string          `json:"tags"`
 	Width     int               `json:"width"`
 	Height    int               `json:"height"`
+	Weight    int               `json:"weight,omitempty"`
 	Rows      []string          `json:"rows"`
 	Terrain   map[string]string `json:"terrain"`
 	Furniture map[string]string `json:"furniture"`
+}
+
+func (c *MapgenChunk) EffectiveWeight() int {
+	if c.Weight < 1 {
+		return 1
+	}
+	return c.Weight
 }
 
 // registry holds all loaded chunks keyed by ID.

@@ -358,11 +358,11 @@ func NewBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, ufoN
 	case "Supply Raid":
 		m = GenerateUFOInteriorWFC(50, 50, mapRng)
 	case "Alien Base Assault":
-		m = GenerateAlienBase(50, 50)
+		m = GenerateAlienBaseWFC(50, 50, mapRng)
 	case "Alien Research":
 		m = GenerateUFOInteriorWFC(50, 50, mapRng)
 	case "Building Assault":
-		m = GenerateUrbanBuildingWFC(50, 50, mapRng)
+		m = GenerateUrbanBuildingWFCLevels(50, 50, 2, mapRng)
 	case "Council":
 		m = GenerateTerrorSite(50, 50)
 	case "Cydonia":

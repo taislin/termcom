@@ -1,6 +1,8 @@
 {
   "id": "urban_rubble",
-  "tags": ["urban"],
+  "tags": [
+    "urban"
+  ],
   "width": 5,
   "height": 5,
   "rows": [
@@ -14,5 +16,6 @@
     ".": "TileFloor",
     "r": "TileRubble"
   },
-  "furniture": {}
+  "furniture": {},
+  "weight": 2
 }

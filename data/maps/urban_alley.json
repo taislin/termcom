@@ -1,6 +1,8 @@
 {
   "id": "urban_alley",
-  "tags": ["urban"],
+  "tags": [
+    "urban"
+  ],
   "width": 4,
   "height": 8,
   "rows": [
@@ -19,5 +21,6 @@
   },
   "furniture": {
     "d": "TileDesk"
-  }
+  },
+  "weight": 1
 }

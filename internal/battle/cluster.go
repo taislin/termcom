@@ -71,17 +71,39 @@ func (m *BattleMap) Poisson(t TileType, radius, count int, rng *rand.Rand) {
 
 // ValidateMap checks that the map has reachable open space and is not fully
 // walled off. Returns true if the map passes basic sanity checks.
+// isPassable is a multi-level-aware passability check.
+func (m *BattleMap) isPassableLevel(x, y, level int) bool {
+	t := m.AtLevel(x, y, level)
+	switch t.Type {
+	case TileFloor, TileDoor, TileGrass, TileUFOFloor, TileStairs, TileStairsDown,
+		TilePavement, TileSand, TileSnow, TileMarsh, TileBush, TileRubble, TileObject,
+		TileConsole, TileMachinery, TilePod, TilePowerSource, TileStorage, TileAlienTech,
+		TileDesk, TileChair, TileComputer, TileBed, TileLocker, TileCabinet:
+		return t.Level == level
+	}
+	return false
+}
+
+// ValidateMap checks the map for basic playability:
+// - At least one passable tile exists.
+// - At least 75% of passable tiles are reachable via flood-fill.
+// Multi-level maps validate stair connectivity between levels.
 func (m *BattleMap) ValidateMap() bool {
 	open := 0
-	var start [2]int
-	found := false
-	for y := 0; y < m.LevelHeight && !found; y++ {
-		for x := 0; x < m.Width; x++ {
-			if m.Passable(x, y) {
-				open++
-				if !found {
-					start = [2]int{x, y}
-					found = true
+	type pos struct{ x, y, level int }
+	var start *pos
+	for level := 0; level < m.NumLevels; level++ {
+		h := m.LevelHeight
+		if m.NumLevels <= 1 {
+			h = m.Height
+		}
+		for y := 0; y < h; y++ {
+			for x := 0; x < m.Width; x++ {
+				if m.isPassableLevel(x, y, level) {
+					open++
+					if start == nil {
+						start = &pos{x, y, level}
+					}
 				}
 			}
 		}
@@ -89,10 +111,12 @@ func (m *BattleMap) ValidateMap() bool {
 	if open == 0 {
 		return false
 	}
-	// Flood fill from first open tile; ensure most open tiles are reachable.
-	seen := map[[2]int]bool{}
-	stack := [][2]int{start}
+
+	seen := map[pos]bool{}
+	stack := []pos{*start}
 	reachable := 0
+	dirs := [][2]int{{0, -1}, {0, 1}, {-1, 0}, {1, 0}}
+
 	for len(stack) > 0 {
 		c := stack[len(stack)-1]
 		stack = stack[:len(stack)-1]
@@ -101,17 +125,37 @@ func (m *BattleMap) ValidateMap() bool {
 		}
 		seen[c] = true
 		reachable++
-		dirs := [][2]int{{0, -1}, {0, 1}, {-1, 0}, {1, 0}}
+
+		// Cardinal neighbors on same level.
 		for _, d := range dirs {
-			nx, ny := c[0]+d[0], c[1]+d[1]
+			nx, ny := c.x+d[0], c.y+d[1]
 			if nx < 0 || nx >= m.Width || ny < 0 || ny >= m.LevelHeight {
 				continue
 			}
-			if m.Passable(nx, ny) && !seen[[2]int{nx, ny}] {
-				stack = append(stack, [2]int{nx, ny})
+			if !m.isPassableLevel(nx, ny, c.level) {
+				continue
+			}
+			if !seen[pos{nx, ny, c.level}] {
+				stack = append(stack, pos{nx, ny, c.level})
+			}
+		}
+
+		// Stair traversal between levels.
+		t := m.AtLevel(c.x, c.y, c.level)
+		if t.Type == TileStairsDown && c.level+1 < m.NumLevels {
+			below := m.AtLevel(c.x, c.y, c.level+1)
+			if below.Type == TileStairs && !seen[pos{c.x, c.y, c.level + 1}] {
+				stack = append(stack, pos{c.x, c.y, c.level + 1})
+			}
+		}
+		if t.Type == TileStairs && c.level-1 >= 0 {
+			above := m.AtLevel(c.x, c.y, c.level-1)
+			if above.Type == TileStairsDown && !seen[pos{c.x, c.y, c.level - 1}] {
+				stack = append(stack, pos{c.x, c.y, c.level - 1})
 			}
 		}
 	}
+
 	return reachable >= open*3/4
 }
 

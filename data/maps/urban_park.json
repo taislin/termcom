@@ -1,6 +1,8 @@
 {
   "id": "urban_park",
-  "tags": ["urban"],
+  "tags": [
+    "urban"
+  ],
   "width": 7,
   "height": 5,
   "rows": [
@@ -15,5 +17,6 @@
     ".": "TileGrass",
     "t": "TileTree"
   },
-  "furniture": {}
+  "furniture": {},
+  "weight": 1
 }

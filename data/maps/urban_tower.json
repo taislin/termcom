@@ -1,6 +1,8 @@
 {
   "id": "urban_tower",
-  "tags": ["urban"],
+  "tags": [
+    "urban"
+  ],
   "width": 9,
   "height": 9,
   "rows": [
@@ -22,5 +24,6 @@
     "a": "TileCabinet",
     "c": "TileComputer",
     "l": "TileLocker"
-  }
+  },
+  "weight": 1
 }

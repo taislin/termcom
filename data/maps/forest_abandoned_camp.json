@@ -1,6 +1,9 @@
 {
   "id": "forest_abandoned_camp",
-  "tags": ["forest", "rural"],
+  "tags": [
+    "forest",
+    "rural"
+  ],
   "width": 5,
   "height": 4,
   "rows": [
@@ -14,5 +17,6 @@
     ".": "TileFloor",
     "R": "TileRubble"
   },
-  "furniture": {}
+  "furniture": {},
+  "weight": 2
 }

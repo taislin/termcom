@@ -1,6 +1,8 @@
 {
   "id": "polar_ice_ridge",
-  "tags": ["polar"],
+  "tags": [
+    "polar"
+  ],
   "width": 4,
   "height": 4,
   "rows": [
@@ -14,5 +16,6 @@
     ".": "TileSnow",
     "r": "TileRock"
   },
-  "furniture": {}
+  "furniture": {},
+  "weight": 2
 }

@@ -153,7 +153,33 @@ func AssembleMap(biome string, w, h int, rng *rand.Rand) *BattleMap {
 		return m
 	}
 
-	anchor := chunks[rng.Intn(len(chunks))]
+	// weightedPick returns a random chunk from candidates, respecting each
+	// chunk's weight. Higher-weight chunks appear proportionally more often.
+	weightedPick := func(candidates []*mapgen.MapgenChunk) *mapgen.MapgenChunk {
+		total := 0
+		for _, c := range candidates {
+			w := c.EffectiveWeight()
+			if w < 1 {
+				w = 1
+			}
+			total += w
+		}
+		pick := rng.Intn(total)
+		accum := 0
+		for _, c := range candidates {
+			w := c.EffectiveWeight()
+			if w < 1 {
+				w = 1
+			}
+			accum += w
+			if pick < accum {
+				return c
+			}
+		}
+		return candidates[len(candidates)-1]
+	}
+
+	anchor := weightedPick(chunks)
 	rot := rng.Intn(4)
 	ax, ay := w/2-anchor.Width/2, h/2-anchor.Height/2
 	ApplyMapgenChunkRotated(m, ax, ay, rot, anchor)
@@ -165,7 +191,7 @@ func AssembleMap(biome string, w, h int, rng *rand.Rand) *BattleMap {
 	target := 6 + rng.Intn(4)
 	for len(positions) < target && attempts < 200 {
 		attempts++
-		c := chunks[rng.Intn(len(chunks))]
+		c := weightedPick(chunks)
 		r := rng.Intn(4)
 		cw, ch := c.Width, c.Height
 		for i := 0; i < r; i++ {

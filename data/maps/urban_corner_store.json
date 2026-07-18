@@ -1,6 +1,8 @@
 {
   "id": "urban_corner_store",
-  "tags": ["urban"],
+  "tags": [
+    "urban"
+  ],
   "width": 6,
   "height": 5,
   "rows": [
@@ -18,5 +20,6 @@
     "d": "TileDesk",
     "s": "TileStorage",
     "c": "TileComputer"
-  }
+  },
+  "weight": 2
 }
