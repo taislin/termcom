@@ -183,7 +183,33 @@ func (ps *ParticleSystem) Update(dt float64) {
 	ps.particles = ps.particles[:n]
 }
 
-func (ps *ParticleSystem) Draw(s *ScreenRaw) {
+func (ps *ParticleSystem) Draw(s *ScreenRaw, scrollX, scrollY, viewW, viewH int, tileBg func(mx, my int) tcell.Color) {
+	ps.mu.RLock()
+	defer ps.mu.RUnlock()
+
+	for _, p := range ps.particles {
+		if !p.Active {
+			continue
+		}
+		ix, iy := int(math.Round(p.X)), int(math.Round(p.Y))
+		sx := ix - scrollX + 1
+		sy := iy - scrollY + 1
+		if sx < 1 || sx > viewW || sy < 1 || sy > viewH {
+			continue
+		}
+		style := p.Style
+		if tileBg != nil {
+			if bg := tileBg(ix, iy); bg != tcell.ColorDefault {
+				style = style.Background(bg)
+			}
+		}
+		s.SetCell(sx, sy, p.Rune, style)
+	}
+}
+
+// DrawScreen draws particles at their raw coordinates without map-to-screen
+// conversion. Used for menu/decorative particles that are already in screen space.
+func (ps *ParticleSystem) DrawScreen(s *ScreenRaw) {
 	ps.mu.RLock()
 	defer ps.mu.RUnlock()
 

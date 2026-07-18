@@ -828,23 +828,6 @@ func (bs *Battlescape) Update() {
 		audio.PlayWind()
 	}
 
-	if bs.FrameCount%12 == 0 && bs.Phase != PhaseVictory && bs.Phase != PhaseDefeat {
-		w, h := bs.Game.ScreenSize()
-		viewW := engine.Layout.BattleViewWidth(w)
-		viewH := engine.Layout.BattleViewHeight(h)
-		switch bs.UFOName {
-		case "Polar":
-			engine.SpawnSnow(bs.Particles, bs.ScrollX, bs.ScrollY, viewW, 1)
-		case "Desert":
-			engine.SpawnDust(bs.Particles, bs.ScrollX, bs.ScrollY, viewW, viewH)
-		case "Cydonia", "Alien Base Assault":
-			engine.SpawnEmbers(bs.Particles, bs.ScrollX, bs.ScrollY, viewW, viewH)
-		}
-	}
-
-	// If a projectile is mid-flight, advance it every frame regardless of phase
-	// (alien reaction fire is spawned during the player's own turn, so gating this
-	// on PhaseAlienTurn would leave the tracer frozen on the map).
 	if bs.Projectile != nil {
 		bs.Projectile.Progress++
 		if bs.Projectile.Progress >= bs.Projectile.Length {
@@ -2696,6 +2679,7 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 	}
 
 	blackStyle := engine.StyleDefault
+	tileBgs := make(map[[2]int]tcell.Color, viewW*viewH)
 
 	for y := 0; y < viewH; y++ {
 		for x := 0; x < viewW; x++ {
@@ -2724,6 +2708,7 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 			}
 
 			style = bs.ApplyCursorStyles(mx, my, style)
+			tileBgs[[2]int{mx, my}] = style.GetBackground()
 			ctx.SetCell(x+1, y+1, ch, style)
 		}
 	}
@@ -2876,7 +2861,12 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 		}
 	}
 
-	bs.Particles.Draw(ctx.ScreenRaw)
+	bs.Particles.Draw(ctx.ScreenRaw, bs.ScrollX, bs.ScrollY, viewW, viewH, func(mx, my int) tcell.Color {
+		if c, ok := tileBgs[[2]int{mx, my}]; ok {
+			return c
+		}
+		return tcell.ColorDefault
+	})
 
 	if bs.VisionMode != engine.VisionNormal {
 		var entities []engine.ThermalEntity

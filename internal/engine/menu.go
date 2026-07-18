@@ -195,7 +195,7 @@ func (ms *MenuScreen) Render(ctx *ScreenCtx) {
 	}
 
 	// ── 2. Drift particles (render behind title) ──────────────────────────────
-	ms.menuParticles.Draw(ctx.ScreenRaw)
+	ms.menuParticles.DrawScreen(ctx.ScreenRaw)
 
 	// ── 3. Title (existing per-character glow wave, unchanged) ────────────────
 	title := []string{
