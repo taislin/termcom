@@ -18,9 +18,6 @@ const (
 var wfcDirDX = [4]int{0, 1, 0, -1}
 var wfcDirDY = [4]int{-1, 0, 1, 0}
 
-// wfcOpposite returns the opposite direction index.
-func wfcOpposite(d int) int { return d ^ 2 }
-
 // WFCTile is a single modular building piece. RuneGrid is the footprint
 // (rows x cols) where '.' denotes empty/floor-fill space. Tiles may be any
 // size (small 3x3 pieces up to large multi-room blocks). Neighbors[d] lists
@@ -49,8 +46,6 @@ type superposition struct {
 	count    int // number of true entries; cached for entropy
 	collapsed int // -1 if uncollapsed, otherwise the chosen tile ID
 }
-
-func (s *superposition) entropy() int { return s.count }
 
 func (s *superposition) collapseTo(id int) {
 	for i := range s.allowed {

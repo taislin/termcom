@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gdamore/tcell/v3"
+	"github.com/gdamore/tcell/v3/color"
 	"github.com/taislin/termcom/internal/battle"
 	"github.com/taislin/termcom/internal/mapgen"
 )
@@ -230,7 +231,7 @@ func drawMap(m *battle.BattleMap, label string) {
 		}
 		for i, ch := range info {
 			if i < sw {
-				s.SetContent(i, 0, ch, nil, tcell.StyleDefault.Foreground(tcell.ColorWhite).Background(tcell.ColorBlack))
+				s.SetContent(i, 0, ch, nil, tcell.StyleDefault.Foreground(color.White).Background(color.Black))
 			}
 		}
 
@@ -241,7 +242,7 @@ func drawMap(m *battle.BattleMap, label string) {
 		}
 		for i, ch := range help {
 			if i < sw {
-				s.SetContent(i, sh-1, ch, nil, tcell.StyleDefault.Foreground(tcell.ColorGray).Background(tcell.ColorBlack))
+				s.SetContent(i, sh-1, ch, nil, tcell.StyleDefault.Foreground(color.Gray).Background(color.Black))
 			}
 		}
 
