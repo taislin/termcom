@@ -112,7 +112,7 @@ func AStar(sx, sy, ex, ey int, level int, m *BattleMap, units UnitList, ignore *
 			if !passableFor(m, units, ignore, nx, ny, level) {
 				continue
 			}
-			ng := cur.g + pathMoveCost
+			ng := cur.g + m.MoveCost(nx, ny, nil)
 			k := key(nx, ny)
 			if existing, ok := best[k]; ok && existing.g <= ng {
 				continue

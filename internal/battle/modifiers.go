@@ -38,6 +38,7 @@ const (
 	fireSpreadBase   = 20
 	fogRangeMin      = 1
 	fogRangeSpan     = 2
+	movePenaltyRain  = 2
 )
 
 // MissionModifier defines mission-specific environment rules.
@@ -243,6 +244,15 @@ func (w Weather) FireSpreadChance() int {
 		return fireSpreadWind
 	}
 	return fireSpreadBase
+}
+
+// MovePenalty returns extra TU added per tile stepped on while the ground
+// is muddy. Rain turns grass/dirt to mud (slower); cold+wind does not.
+func (w Weather) MovePenalty() int {
+	if w.Rain {
+		return movePenaltyRain
+	}
+	return 0
 }
 
 func (w Weather) IsClear() bool {

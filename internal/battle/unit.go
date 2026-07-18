@@ -38,7 +38,6 @@ const (
 	fatalWoundChance    = 15    // % chance per hit to inflict a fatal wound
 	bleedDivisor        = 4     // bleed rate = damage / bleedDivisor
 	maxBleedRate        = 5     // cap on bleed rate
-	moveTUCostPerTile   = 4     // TU cost per tile moved (matches pathMoveCost)
 )
 
 type Unit struct {
@@ -331,8 +330,34 @@ func WeaponDamageType(weapon string) int {
 }
 
 func (u *Unit) MoveTo(x, y int, m *BattleMap) bool {
-	dist := math.Abs(float64(x-u.X)) + math.Abs(float64(y-u.Y))
-	tuCost := int(dist) * moveTUCostPerTile
+	// Per-step TU cost varies by terrain; sum along a Manhattan path.
+	dx := x - u.X
+	if dx < 0 {
+		dx = -dx
+	}
+	dy := y - u.Y
+	if dy < 0 {
+		dy = -dy
+	}
+	sx, sy := 1, 1
+	if x < u.X {
+		sx = -1
+	}
+	if y < u.Y {
+		sy = -1
+	}
+	// Walk the longer axis first, then the shorter (Manhattan order).
+	cx, cy := u.X, u.Y
+	stepCost := 0
+	for i := 0; i < dx; i++ {
+		cx += sx
+		stepCost += m.MoveCost(cx, cy, nil)
+	}
+	for i := 0; i < dy; i++ {
+		cy += sy
+		stepCost += m.MoveCost(cx, cy, nil)
+	}
+	tuCost := stepCost
 	if u.Crouching {
 		tuCost += 4
 	}

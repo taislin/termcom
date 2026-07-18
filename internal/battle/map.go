@@ -94,6 +94,37 @@ type Tile struct {
 	Rune      rune
 }
 
+// MoveCost returns the TU cost for a unit to step onto the tile at
+// (x,y). Base cost varies by terrain: pavement is fastest, grass/indoor
+// normal, sand/marsh/water are slow. Rain makes soft ground muddy
+// (extra cost). Heavy/special terrain is handled by the caller via per-tile
+// tile type; crouch cost is added by the caller.
+func (m *BattleMap) MoveCost(x, y int, w *Weather) int {
+	t := m.At(x, y)
+	base := 4
+	switch t.Type {
+	case TilePavement:
+		base = 3
+	case TileSand, TileMarsh:
+		base = 6
+	case TileWater:
+		base = 8
+	case TileTree, TileRock:
+		base = 8
+	case TileSnow, TileIce:
+		base = 5
+	case TileBush:
+		base = 5
+	}
+	if w != nil && w.MovePenalty() > 0 {
+		switch t.Type {
+		case TileGrass, TileSand, TileMarsh:
+			base += w.MovePenalty()
+		}
+	}
+	return base
+}
+
 // TileCover returns the base cover value for a tile type.
 func TileCover(t TileType) int {
 	switch t {

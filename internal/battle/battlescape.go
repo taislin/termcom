@@ -275,16 +275,12 @@ func (bs *Battlescape) GetMovementRange() map[[2]int]bool {
 				continue
 			}
 
-			tile := bs.Map.At(nx, ny)
 			if !bs.Map.Passable(nx, ny) {
 				continue
 			}
 
-			// TU cost: 4 for normal terrain, 8 for difficult terrain
-			cost := 4
-			if tile.Type == TileTree || tile.Type == TileRock || tile.Type == TileWater {
-				cost = 8
-			}
+			// TU cost varies by terrain type and weather.
+			cost := bs.Map.MoveCost(nx, ny, &bs.Weather)
 
 			remainingTU := current.tu - cost
 			if remainingTU >= 0 {
@@ -1837,11 +1833,7 @@ func (bs *Battlescape) MoveSelected() {
 	best := 0
 	totalCost := 0
 	for i := 1; i < len(path); i++ {
-		tile := bs.Map.At(path[i][0], path[i][1])
-		stepCost := 4
-		if tile.Type == TileTree || tile.Type == TileRock || tile.Type == TileWater {
-			stepCost = 8
-		}
+		stepCost := bs.Map.MoveCost(path[i][0], path[i][1], &bs.Weather)
 		totalCost += stepCost
 		if totalCost+crouchExtra <= u.TU {
 			best = i
@@ -1855,11 +1847,7 @@ func (bs *Battlescape) MoveSelected() {
 	}
 	totalCost = 0
 	for i := 1; i <= best; i++ {
-		tile := bs.Map.At(path[i][0], path[i][1])
-		stepCost := 4
-		if tile.Type == TileTree || tile.Type == TileRock || tile.Type == TileWater {
-			stepCost = 8
-		}
+		stepCost := bs.Map.MoveCost(path[i][0], path[i][1], &bs.Weather)
 		totalCost += stepCost
 	}
 	dest := path[best]
