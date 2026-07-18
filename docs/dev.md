@@ -90,7 +90,36 @@ go run ./cmd/termcom_battle building_assault
 - Launches the selected map type
 - Drops straight into player turn
 
-### Alien Roster Viewer (`cmd/test_aliens`)
+### Map Viewer (`cmd/test_map`)
+
+Generates a map from any generator and renders it on the terminal with full colour, correct tile characters, and multi-level support.
+
+```bash
+# List available generators
+go run ./cmd/test_map --list
+
+# Generate and view a specific map type
+go run ./cmd/test_map crash               # Crash site
+go run ./cmd/test_map ufo_wfc 60 60       # WFC UFO interior (60×60)
+go run ./cmd/test_map building2           # 2-level urban building (WFC)
+go run ./cmd/test_map terror 50 50 42     # Terror site with seed 42
+go run ./cmd/test_map all                 # All-biome assembled map
+```
+
+**Available map types:** `crash`, `terror`, `abduction`, `ufo_interior`, `ufo_wfc`, `alien_base`, `alien_base_wfc`, `building`, `building2`, `cydonia`, `forest`, `desert`, `polar`, `all`
+
+**Controls:**
+| Key | Action |
+|-----|--------|
+| `q` | Quit |
+| `n` / `p` | Next / previous level (multi-level maps) |
+| Arrows | Scroll when map exceeds terminal size |
+
+**What it does:**
+- Creates a tcell screen and renders the selected map using the same `RenderTile` / `TileChar` / `tilePalette` pipeline as the game
+- Computes proper 3×3 tile context for geometry-aware glyphs (UFO hull corners, building corners, etc.)
+- Supports multi-level maps with keyboard level switching
+- Accepts optional width, height, and seed arguments for reproducible viewing
 
 Generates the full procedural alien roster and prints each alien to the console with colored portraits, stats, and morphology info.
 
@@ -210,6 +239,7 @@ cmd/
   termcom/              Main game entry point
   termcom_battle/       Test script: interactive battle launcher
   test_aliens/          Alien roster viewer (console output)
+  test_map/             Map visualiser (tcell render of any generator)
   webserver/            Web server (for remote play)
 maps/
   *.json                Custom battle definitions
