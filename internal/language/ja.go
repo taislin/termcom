@@ -1084,6 +1084,13 @@ func init() {
 		"LANGUAGE_SELECT_TITLE": "言語を選択",
 		"LANGUAGE_SELECT_HELP":  "[↑]/[↓]=選択  [Enter]=確認  [Esc]=戻る",
 
+		// ── シードダイアログ ────────────────────────────
+		"SEED_TITLE":       "新規ゲーム - マップシード",
+		"SEED_PROMPT":      "このシードで今回のエイリアン構成が生成されます。",
+		"SEED_VALUE":       "シード：",
+		"SEED_EDIT_LABEL":  "任意：",
+		"SEED_HELP":        "[R]=再生成  [/ または E]=編集  [入力]=設定  [Enter]=決定  [Esc]=戻る",
+
 		// ── Interceptor Status ───────────────────────────
 		"INTERCEPTOR_STATUS_ACTIVE": "稼働中",
 

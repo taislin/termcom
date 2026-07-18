@@ -35,20 +35,24 @@ func main() {
 	}
 
 	g.OnNewGame = func() {
-		picker := engine.NewDifficultyScreen(g, func(difficulty int) {
-			gs := geo.NewGeoscape(g)
-			g.RegisterScreen(engine.StateGeoscape, gs)
-			g.RegisterScreen(engine.StateBase, base.NewBaseScreen(g, gs.SelectedBase()))
-			g.RegisterScreen(engine.StateEquip, base.NewEquipScreen(g, gs.SelectedBase()))
-			g.RegisterScreen(engine.StateResearch, base.NewResearchScreen(g, gs.SelectedBase()))
-			g.RegisterScreen(engine.StateManufacture, base.NewManufactureScreen(g, gs.SelectedBase()))
-			g.SetState(engine.StateGeoscape)
-			if !engine.Config.TutorialShown && !engine.HasSave() {
-				g.RegisterScreen(engine.StateTutorial, engine.NewTutorialScreen(g, nil))
-				g.PushState(engine.StateTutorial)
-			}
+		seedScreen := engine.NewSeedScreen(g, func(seed int64) {
+			_ = seed
+			picker := engine.NewDifficultyScreen(g, func(difficulty int) {
+				gs := geo.NewGeoscape(g)
+				g.RegisterScreen(engine.StateGeoscape, gs)
+				g.RegisterScreen(engine.StateBase, base.NewBaseScreen(g, gs.SelectedBase()))
+				g.RegisterScreen(engine.StateEquip, base.NewEquipScreen(g, gs.SelectedBase()))
+				g.RegisterScreen(engine.StateResearch, base.NewResearchScreen(g, gs.SelectedBase()))
+				g.RegisterScreen(engine.StateManufacture, base.NewManufactureScreen(g, gs.SelectedBase()))
+				g.SetState(engine.StateGeoscape)
+				if !engine.Config.TutorialShown && !engine.HasSave() {
+					g.RegisterScreen(engine.StateTutorial, engine.NewTutorialScreen(g, nil))
+					g.PushState(engine.StateTutorial)
+				}
+			})
+			g.PushScreen(picker)
 		})
-		g.PushScreen(picker)
+		g.PushScreen(seedScreen)
 	}
 
 	g.OnContinue = func() {

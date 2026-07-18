@@ -1056,6 +1056,13 @@ func init() {
 		"LANGUAGE_SELECT_TITLE": "SELECIONAR IDIOMA",
 		"LANGUAGE_SELECT_HELP":  "[↑]/[↓]=Selecionar  [Enter]=Confirmar  [Esc]=Voltar",
 
+		// ── Diálogo da seed ──────────────────────────────
+		"SEED_TITLE":       "NOVO JOGO - SEED DO MAPA",
+		"SEED_PROMPT":      "Esta seed gera o roster de aliens desta partida.",
+		"SEED_VALUE":       "Seed:",
+		"SEED_EDIT_LABEL":  "Personalizada:",
+		"SEED_HELP":        "[R]=Gerar nova  [/ ou E]=Editar  [Escrever]=Definir  [Enter]=Confirmar  [Esc]=Voltar",
+
 		// ── Interceptor Status ───────────────────────────
 		"INTERCEPTOR_STATUS_ACTIVE": "Ativo",
 

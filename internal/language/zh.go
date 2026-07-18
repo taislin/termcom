@@ -1051,6 +1051,13 @@ func init() {
 		"LANGUAGE_SELECT_TITLE": "选择语言",
 		"LANGUAGE_SELECT_HELP":  "[↑]/[↓]=选择  [Enter]=确认  [Esc]=返回",
 
+		// ── 种子对话框 ───────────────────────────────────
+		"SEED_TITLE":       "新游戏 - 地图种子",
+		"SEED_PROMPT":      "该种子将生成本周目的外星人阵容。",
+		"SEED_VALUE":       "种子：",
+		"SEED_EDIT_LABEL":  "自定义：",
+		"SEED_HELP":        "[R]=重摇  [/ 或 E]=编辑  [输入]=设定  [Enter]=确认  [Esc]=返回",
+
 		// ── Interceptor Status ───────────────────────────
 		"INTERCEPTOR_STATUS_ACTIVE": "活跃",
 

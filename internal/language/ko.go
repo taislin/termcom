@@ -1056,6 +1056,13 @@ func init() {
 		"LANGUAGE_SELECT_TITLE": "언어 선택",
 		"LANGUAGE_SELECT_HELP":  "[↑]/[↓]=선택  [Enter]=확인  [Esc]=뒤로",
 
+		// ── 시드 대화상자 ────────────────────────────────
+		"SEED_TITLE":       "새 게임 - 맵 시드",
+		"SEED_PROMPT":      "이 시드로 이번 플레이의 외계인 편성이 생성됩니다.",
+		"SEED_VALUE":       "시드:",
+		"SEED_EDIT_LABEL":  "사용자 지정:",
+		"SEED_HELP":        "[R]=재굴림  [/ 또는 E]=편집  [입력]=설정  [Enter]=확인  [Esc]=뒤로",
+
 		// ── Interceptor Status ───────────────────────────
 		"INTERCEPTOR_STATUS_ACTIVE": "활성",
 

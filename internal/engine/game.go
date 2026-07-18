@@ -45,6 +45,7 @@ const (
 	StateLanguageSelect
 	StatePlaneDesigner
 	StateWeaponDesigner
+	StateSeed
 )
 
 type Screen interface {
@@ -244,8 +245,21 @@ func (g *Game) WebScreen() *ScreenRaw {
 	return g.screen
 }
 
+// RandomSeed returns a fresh pseudo-random seed for a new run.
+func RandomSeed() int64 {
+	return time.Now().UnixNano()
+}
+
+// initSpecies generates the procedural alien roster from a random seed.
 func (g *Game) initSpecies() {
-	g.SpeciesSeed = time.Now().UnixNano()
+	g.initSpeciesWithSeed(RandomSeed())
+}
+
+// initSpeciesWithSeed regenerates the procedural alien roster and research
+// tree using the provided seed. Passing the same seed reproduces the same
+// aliens, so players can share or replay specific runs.
+func (g *Game) initSpeciesWithSeed(seed int64) {
+	g.SpeciesSeed = seed
 	g.AlienSpecies, g.AlienTypes = data.GenerateSpecies(g.SpeciesSeed)
 	g.AlienKnowledge = make(map[string]int)
 	data.InitResearchTree(g.SpeciesSeed, g.AlienSpecies)

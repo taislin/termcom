@@ -1054,6 +1054,13 @@ func init() {
 		"LANGUAGE_SELECT_TITLE": "ВЫБЕРИТЕ ЯЗЫК",
 		"LANGUAGE_SELECT_HELP":  "[↑]/[↓]=Выбор  [Enter]=Подтвердить  [Esc]=Назад",
 
+		// ── Диалог seed ──────────────────────────────────
+		"SEED_TITLE":       "НОВАЯ ИГРА — СИД КАРТЫ",
+		"SEED_PROMPT":      "Этот сид генерирует ростер пришельцев для этого прохождения.",
+		"SEED_VALUE":       "Сид:",
+		"SEED_EDIT_LABEL":  "Свой:",
+		"SEED_HELP":        "[R]=Заново  [/ или E]=Править  [Ввод]=Задать  [Enter]=Подтвердить  [Esc]=Назад",
+
 		// ── Interceptor Status ───────────────────────────
 		"INTERCEPTOR_STATUS_ACTIVE": "Активен",
 

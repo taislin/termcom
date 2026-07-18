@@ -953,6 +953,13 @@ func init() {
 		"LANGUAGE_SELECT_TITLE": "SELECT LANGUAGE",
 		"LANGUAGE_SELECT_HELP":  "[\u2191]/[\u2193]=Select  [Enter]=Confirm  [Esc]=Back",
 
+		// ── Seed dialog ───────────────────────────────────
+		"SEED_TITLE":       "NEW GAME - MAP SEED",
+		"SEED_PROMPT":      "This seed generates the alien roster for this run.",
+		"SEED_VALUE":       "Seed:",
+		"SEED_EDIT_LABEL":  "Custom:",
+		"SEED_HELP":        "[R]=Reroll  [/ or E]=Edit  [Type]=Set  [Enter]=Confirm  [Esc]=Back",
+
 		// ── Encyclopedia ──────────────────────────────────
 		"ENCYCLO_MORPH_BODY":   "Body: %s %s | Arms: %d | Legs: %d",
 		"ENCYCLO_MORPH_PSI":    "PsiSense: %s | ChemSense: %s",

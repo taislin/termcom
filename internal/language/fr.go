@@ -1056,6 +1056,13 @@ func init() {
 		"LANGUAGE_SELECT_TITLE": "SÉLECTIONNER LA LANGUE",
 		"LANGUAGE_SELECT_HELP":  "[↑]/[↓]=Sélectionner  [Enter]=Confirmer  [Esc]=Retour",
 
+		// ── Boîte de dialogue de graine ───────────────────
+		"SEED_TITLE":       "NOUVELLE PARTIE - GRAINE DE LA CARTE",
+		"SEED_PROMPT":      "Cette graine génère le roster d'aliens de cette partie.",
+		"SEED_VALUE":       "Graine :",
+		"SEED_EDIT_LABEL":  "Personnalisée :",
+		"SEED_HELP":        "[R]=Régénérer  [/ ou E]=Éditer  [Saisir]=Définir  [Enter]=Confirmer  [Esc]=Retour",
+
 		// ── Interceptor Status ───────────────────────────
 		"INTERCEPTOR_STATUS_ACTIVE": "Actif",
 
