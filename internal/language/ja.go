@@ -259,6 +259,8 @@ func init() {
 		"MSG_MISSED":                "外れた！",
 		"MSG_HIT_COVER":             "弾が遮蔽物に命中！",
 		"MSG_MOVED":                 "%s を [%d,%d] に移動",
+		"MSG_NOISE_ALERT":           "近くで物音が響いた…",
+		"MSG_CRYO_VENT":             "冷却パイプが破裂し、凍てつくガスが噴き出した！",
 		"MSG_CANNOT_MOVE":           "そこには移動できません。",
 		"MSG_NO_TARGET":             "ターゲットがいません。",
 		"MSG_NOT_ENOUGH_TU":         "TUが足りません。",
@@ -302,6 +304,8 @@ func init() {
 		"MSG_REACTION_HIT":          "反応射撃命中！%[2]s に %[1]d ダメージ (HP:%[3]d)",
 		"MSG_REACTION_MISS":         "反応射撃が外れた！",
 		"MSG_REACTION_KILL":         "%s が反応射撃で撃たれた！",
+		"MSG_SKYLIGHT_FALL":         "%s が割れた天窓から落下！",
+		"MSG_UNIT_DIED":             "%s は死亡した。",
 		"MSG_REINFORCEMENTS":        "エイリアンの増援 %d 体が接近中！",
 		"MSG_BATTLE_EXITED":         "任務放棄！全隊員が失われた。",
 

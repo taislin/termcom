@@ -87,6 +87,10 @@ var tileTypeNames = map[battle.TileType]string{
 	battle.TileTruck:         "Supply Truck",
 	battle.TileIce:           "Frozen Ice",
 	battle.TileStreetlamp:    "Streetlamp",
+	battle.TileGlass:         "Broken Glass",
+	battle.TileDebris:        "Debris",
+	battle.TileCryoPipe:      "Cryo Pipe",
+	battle.TileSkylight:      "Skylight",
 }
 
 const infoPanelWidth = 22

@@ -257,6 +257,8 @@ func init() {
 		"MSG_MISSED":                "Missed!",
 		"MSG_HIT_COVER":             "Shot hit cover!",
 		"MSG_MOVED":                 "Moved %s to [%d,%d]",
+		"MSG_NOISE_ALERT":           "A noise echoes nearby...",
+		"MSG_CRYO_VENT":             "Coolant pipe ruptures — freezing gas floods out!",
 		"MSG_CANNOT_MOVE":           "Cannot move there.",
 		"MSG_NO_TARGET":             "No target.",
 		"MSG_NOT_ENOUGH_TU":         "Not enough TU.",
@@ -300,6 +302,8 @@ func init() {
 		"MSG_REACTION_HIT":          "Reaction hit! %d damage to %s (HP:%d)",
 		"MSG_REACTION_MISS":         "Reaction shot misses!",
 		"MSG_REACTION_KILL":         "%s killed by reaction fire!",
+		"MSG_SKYLIGHT_FALL":         "%s falls through a shattered skylight!",
+		"MSG_UNIT_DIED":             "%s has died.",
 		"MSG_REINFORCEMENTS":        "%d alien reinforcements incoming!",
 		"MSG_BATTLE_EXITED":         "Mission abandoned! All squad members lost.",
 

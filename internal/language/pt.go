@@ -259,6 +259,8 @@ func init() {
 		"MSG_MISSED":                "Falhou!",
 		"MSG_HIT_COVER":             "Tiro acertou a cobertura!",
 		"MSG_MOVED":                 "%s movido para [%d,%d]",
+		"MSG_NOISE_ALERT":           "Um ruído ecoa por perto...",
+		"MSG_CRYO_VENT":             "A tubulação de refrigerante rompe — gás congelante jorra!",
 		"MSG_CANNOT_MOVE":           "N\u00e3o \u00e9 poss\u00edvel mover-se para a\u00ed.",
 		"MSG_NO_TARGET":             "Sem alvo.",
 		"MSG_NOT_ENOUGH_TU":         "UT insuficiente.",
@@ -302,6 +304,8 @@ func init() {
 		"MSG_REACTION_HIT":          "Acerto de rea\u00e7\u00e3o! %d de dano a %s (HP:%d)",
 		"MSG_REACTION_MISS":         "Disparo de rea\u00e7\u00e3o falha!",
 		"MSG_REACTION_KILL":         "%s eliminado por fogo de rea\u00e7\u00e3o!",
+		"MSG_SKYLIGHT_FALL":         "%s cai através de uma claraboia estilhaçada!",
+		"MSG_UNIT_DIED":             "%s morreu.",
 		"MSG_REINFORCEMENTS":        "%d refor\u00e7os alien em caminho!",
 		"MSG_BATTLE_EXITED":         "Miss\u00e3o abandonada! Todos os membros da equipe perdidos.",
 

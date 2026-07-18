@@ -259,6 +259,8 @@ func init() {
 		"MSG_MISSED":                "조준 실패!",
 		"MSG_HIT_COVER":             "사격이 엄폐물에 맞았다!",
 		"MSG_MOVED":                 "%s을(를) [%d,%d]로 이동",
+		"MSG_NOISE_ALERT":           "근처에서 소리가 울려 퍼진다...",
+		"MSG_CRYO_VENT":             "냉각 파이프가 파열되어 냉기 가스가 쏟아진다!",
 		"MSG_CANNOT_MOVE":           "그곳으로 이동할 수 없습니다.",
 		"MSG_NO_TARGET":             "표적 없음.",
 		"MSG_NOT_ENOUGH_TU":         "TU가 부족합니다.",
@@ -302,6 +304,8 @@ func init() {
 		"MSG_REACTION_HIT":          "반응 사격 타격! %2$s에게 %1$d 데미지 (HP:%3$d)",
 		"MSG_REACTION_MISS":         "반응 사격 조준 실패!",
 		"MSG_REACTION_KILL":         "%s이(가) 반응 사격에 사살됨!",
+		"MSG_SKYLIGHT_FALL":         "%s이(가) 부서진 채광창 아래로 추락!",
+		"MSG_UNIT_DIED":             "%s이(가) 사망했습니다.",
 		"MSG_REINFORCEMENTS":        "외계인 증원 %d마리 접근 중!",
 		"MSG_BATTLE_EXITED":         "임무 포기! 모든 팀원이 손실되었습니다.",
 

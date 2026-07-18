@@ -79,6 +79,10 @@ const (
 	TileTruck    // military supply truck (vehicle, full cover)
 	TileIce      // frozen lake ice (passable, zero cover)
 	TileStreetlamp // streetlamp / floodlight pole (emits light, shootable)
+	TileGlass     // broken glass / debris on floor (noisy when stepped on)
+	TileDebris    // scattered debris / rubble-strewn floor (noisy when stepped on)
+	TileCryoPipe  // cryo-coolant pipe (shootable, vents freezing gas)
+	TileSkylight  // translucent glass floor on upper levels (collapses under weight)
 )
 
 // Tile represents a single cell on the tactical map.
@@ -142,6 +146,8 @@ func TileCover(t TileType) int {
 		return 40
 	case TileFence:
 		return 30
+	case TileCryoPipe:
+		return 30
 	case TileObject, TileConsole, TileMachinery, TilePod, TilePowerSource, TileStorage, TileAlienTech,
 		TileDesk, TileChair, TileChairLeft, TileChairRight, TileComputer, TileBed, TileLocker, TileCabinet,
 		TileCar, TileCarRight, TileCarMid, TileForklift, TileForkliftRight,
@@ -150,6 +156,10 @@ func TileCover(t TileType) int {
 	case TileRubble:
 		return 20
 	case TileDoor:
+		return 0
+	case TileGlass, TileDebris:
+		return 0
+	case TileSkylight:
 		return 0
 	default:
 		return 0
@@ -296,6 +306,10 @@ var tileChars = map[TileType]rune{
 	TileTruck:    '▄', // military truck (top half)
 	TileIce:      '≈', // frozen lake ice
 	TileStreetlamp: '⌖', // lamp/floodlight fixture
+	TileGlass:     ',', // broken glass / debris (noisy step)
+	TileDebris:    '`', // scattered debris (noisy step)
+	TileCryoPipe:  '╪', // cryo-coolant pipe
+	TileSkylight:  '⊙', // glass skylight floor
 }
 
 func TileChar(t TileType) rune {
@@ -426,7 +440,8 @@ func (m *BattleMap) Passable(x, y int) bool {
 	t := m.At(x, y)
 	switch t.Type {
 	case TileFloor, TileDoor, TileGrass, TileUFOFloor, TileStairs, TileStairsDown, TilePavement, TileSand, TileSnow,
-		TileIce,
+		TileIce, TileGlass, TileDebris,
+		TileSkylight,
 		TileConsole, TileMachinery, TilePod, TilePowerSource, TileStorage, TileAlienTech,
 		TileDesk, TileChair, TileChairLeft, TileChairRight, TileComputer, TileBed, TileLocker, TileCabinet,
 		TileRubble:
@@ -455,7 +470,7 @@ func (m *BattleMap) IsDestructible(x, y int) bool {
 	case TileWall, TileUFOWall, TileTree, TileRock, TileFence, TileDoor,
 		TileDesk, TileChair, TileChairLeft, TileChairRight, TileComputer, TileBed, TileLocker, TileCabinet,
 		TileCar, TileCarRight, TileCarMid, TileForklift, TileForkliftRight,
-		TileFuelPump, TileStreetlamp:
+		TileFuelPump, TileStreetlamp, TileCryoPipe, TileSkylight:
 		return true
 	}
 	return false
@@ -483,6 +498,26 @@ func (m *BattleMap) DestroyWall(x, y int) bool {
 		tile.Type = TileRubble
 		tile.Cover = TileCover(TileRubble)
 	}
+	return true
+}
+
+// CollapseSkylight destroys the skylight at (x,y) on the current level and
+// returns true if a collapse occurred. Only acts on upper levels (not ground).
+func (m *BattleMap) CollapseSkylight(x, y int) bool {
+	if m.NumLevels <= 1 || m.CurrentLevel == 0 {
+		return false
+	}
+	arrayY := y + m.CurrentLevel*m.LevelHeight
+	if x < 0 || x >= m.Width || arrayY < 0 || arrayY >= m.LevelHeight*m.NumLevels {
+		return false
+	}
+	tile := &m.Tiles[arrayY][x]
+	if tile.Type != TileSkylight {
+		return false
+	}
+	tile.Type = TileRubble
+	tile.Cover = TileCover(TileRubble)
+	tile.Rune = tileChars[TileRubble]
 	return true
 }
 
@@ -818,7 +853,7 @@ func isUrbanProtected(t TileType) bool {
 		TileObject, TileTree, TileBush, TileFence,
 		TileFuelPump, TileContainerRed, TileContainerBlue, TileContainerYellow,
 		TileAdobe, TileMetalWall, TileWreck, TileTimber, TileDish, TileTruck,
-		TileStreetlamp:
+		TileStreetlamp, TileCryoPipe, TileGlass, TileDebris, TileSkylight:
 		return true
 	}
 	return false

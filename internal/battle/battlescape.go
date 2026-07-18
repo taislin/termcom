@@ -1054,6 +1054,9 @@ func (bs *Battlescape) executeAlienAction(action AlienAction) {
 		}
 	case "move":
 		action.Unit.MoveTo(action.ToX, action.ToY, bs.Map)
+		if bs.Map.CollapseSkylight(action.Unit.X, action.Unit.Y) {
+			bs.UnitFallsThroughSkylight(action.Unit)
+		}
 		bs.ComputeFOVForTeam()
 		bs.checkHumanReactionFire(action.Unit)
 	case "patrol":
@@ -1479,6 +1482,7 @@ func (bs *Battlescape) finishAlienTurn() {
 	bs.learnFromKills()
 	bs.Gas.Diffuse()
 	bs.Map.SpreadFire()
+	bs.applyFreezeToUnits()
 	if bs.UFOName == "Abduction" {
 		bs.processAbduction()
 	}
@@ -1856,6 +1860,16 @@ func (bs *Battlescape) MoveSelected() {
 	u.TU -= totalCost + crouchExtra
 	audio.PlayMove()
 	bs.AddMessage(fmt.Sprintf(language.String("MSG_MOVED"), u.Soldier.Name, u.X, u.Y))
+	// Stepping on broken glass / debris alerts nearby aliens.
+	for i := 1; i <= best; i++ {
+		if t := bs.Map.At(path[i][0], path[i][1]).Type; t == TileGlass || t == TileDebris {
+			bs.EmitNoise(path[i][0], path[i][1], noiseAlertRadius)
+			break
+		}
+	}
+	if bs.Map.CollapseSkylight(u.X, u.Y) {
+		bs.UnitFallsThroughSkylight(u)
+	}
 	bs.ComputeFOVForTeam()
 	bs.checkAlienReactionFire(u)
 }
@@ -1878,11 +1892,23 @@ func (bs *Battlescape) FireWeapon() {
 		}
 		bs.Selected.TU -= 4
 		audio.PlayWeaponFire(bs.Selected.Weapon)
+		origType := bs.Map.At(bs.CursorX, bs.CursorY).Type
+		explRadius := bs.Map.ExplodesOnDestruction(bs.CursorX, bs.CursorY)
 		if bs.Map.DestroyWall(bs.CursorX, bs.CursorY) {
 			SpawnRubble(bs.Particles, bs.CursorX-bs.ScrollX+1, bs.CursorY-bs.ScrollY+1)
 		}
-		if radius := bs.Map.ExplodesOnDestruction(bs.CursorX, bs.CursorY); radius > 0 {
+		if explRadius > 0 {
 			bs.TriggerFuelPumpExplosions(bs.CursorX, bs.CursorY)
+		}
+		if origType == TileCryoPipe {
+			bs.VentFreezeGas(bs.CursorX, bs.CursorY)
+		}
+		if origType == TileSkylight {
+			for _, u := range bs.Units {
+				if u.Alive && u.X == bs.CursorX && u.Y == bs.CursorY && u.Level == bs.Map.CurrentLevel {
+					bs.UnitFallsThroughSkylight(u)
+				}
+			}
 		}
 		bs.ComputeFOVForTeam()
 		bs.PlayerLock = bs.Game.ActionDelay / 2
@@ -2418,6 +2444,56 @@ func (bs *Battlescape) Grenade() {
 // that were just destroyed and detonates them, dealing splash damage to units
 // and destroying nearby tiles. Called after any tile destruction that might
 // have hit a fuel pump.
+// VentFreezeGas releases a cloud of freezing coolant gas in a 3x3 area around
+// (cx,cy). Units caught in it are chilled and lose time units. Also turns
+// underlying floor tiles into ice.
+func (bs *Battlescape) VentFreezeGas(cx, cy int) {
+	for dy := -1; dy <= 1; dy++ {
+		for dx := -1; dx <= 1; dx++ {
+			nx, ny := cx+dx, cy+dy
+			if nx < 0 || nx >= bs.Map.Width || ny < 0 || ny >= bs.Map.Height {
+				continue
+			}
+			density := freezeGasCoreDensity
+			if dx != 0 || dy != 0 {
+				density = freezeGasEdgeDensity
+			}
+			bs.Gas.Set(nx, ny, density, GasFreeze)
+			// Coat passable floor tiles with slippery ice.
+			tile := &bs.Map.Tiles[ny][nx]
+			if tile.Type == TileFloor || tile.Type == TilePavement ||
+				tile.Type == TileGrass || tile.Type == TileSnow ||
+				tile.Type == TileSand || tile.Type == TileGlass ||
+				tile.Type == TileDebris {
+				tile.Type = TileIce
+				tile.Cover = TileCover(TileIce)
+				tile.Rune = tileChars[TileIce]
+			}
+		}
+	}
+	engine.SpawnSmoke(bs.Particles, cx-bs.ScrollX+1, cy-bs.ScrollY+1, 10)
+	bs.AddMessage(language.String("MSG_CRYO_VENT"))
+	// Apply immediate chill to anyone standing in the burst.
+	bs.applyFreezeToUnits()
+}
+
+// applyFreezeToUnits drains TU (and a little morale) from every living unit
+// currently standing in freeze gas. Called when gas is vented and each turn.
+func (bs *Battlescape) applyFreezeToUnits() {
+	for _, u := range bs.Units {
+		if !u.Alive {
+			continue
+		}
+		if d, gt, ok := bs.Gas.Get(u.X, u.Y); ok && gt == GasFreeze {
+			drain := d * freezeTUDrainPerDensity
+			u.TU -= drain
+			if u.TU < 0 {
+				u.TU = 0
+			}
+		}
+	}
+}
+
 func (bs *Battlescape) TriggerFuelPumpExplosions(cx, cy int) {
 	radius := FuelPumpExplosionRadius
 	type blastTarget struct {
@@ -2476,6 +2552,63 @@ func (bs *Battlescape) TriggerFuelPumpExplosions(cx, cy int) {
 	engine.SpawnExplosion(bs.Particles, cx-bs.ScrollX+1, cy-bs.ScrollY+1, tcell.NewRGBColor(255, 100, 30), 32)
 	engine.SpawnSmoke(bs.Particles, cx-bs.ScrollX+1, cy-bs.ScrollY+1, 12)
 	bs.ComputeFOVForTeam()
+}
+
+// EmitNoise alerts every alien within `radius` tiles of (x,y) by forcing
+// them into search state aimed at the noise source. Used when a unit steps
+// onto broken glass / debris.
+func (bs *Battlescape) EmitNoise(x, y, radius int) {
+	for _, ai := range bs.AlienAIs {
+		u := ai.Unit
+		if u == nil || !u.Alive {
+			continue
+		}
+		dx := u.X - x
+		if dx < 0 {
+			dx = -dx
+		}
+		dy := u.Y - y
+		if dy < 0 {
+			dy = -dy
+		}
+		if dx > radius || dy > radius || dx*dx+dy*dy > radius*radius {
+			continue
+		}
+		if ai.State == AIAttack {
+			continue // already engaged, don't downgrade
+		}
+		ai.State = AISearch
+		ai.TurnsSince = 0
+		ai.LastSeenX = x
+		ai.LastSeenY = y
+	}
+	bs.AddMessage(language.String("MSG_NOISE_ALERT"))
+}
+
+// UnitFallsThroughSkylight drops a unit one level down after a skylight
+// collapses under them. Deals fall damage and turns the landing tile to
+// rubble if it's solid.
+func (bs *Battlescape) UnitFallsThroughSkylight(u *Unit) {
+	if bs.Map.NumLevels <= 1 || u.Level < 1 {
+		return
+	}
+	u.Level = u.Level - 1
+	if !bs.Map.Passable(u.X, u.Y) {
+		u.HP -= skylightFallDamage * 2 // crushed in debris
+	} else {
+		u.HP -= skylightFallDamage
+	}
+	if u.HP <= 0 {
+		u.HP = 0
+		u.Alive = false
+		bs.AddMessage(fmt.Sprintf(language.String("MSG_UNIT_DIED"), u.Name()))
+	}
+	SpawnRubble(bs.Particles, u.X-bs.ScrollX+1, u.Y-bs.ScrollY+1)
+	name := u.Name()
+	bs.AddMessage(fmt.Sprintf(language.String("MSG_SKYLIGHT_FALL"), name))
+	if u == bs.Selected && u.Level != bs.Map.CurrentLevel {
+		bs.SetSelected(nil)
+	}
 }
 
 func (bs *Battlescape) UseMedikit() {

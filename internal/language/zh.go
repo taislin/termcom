@@ -257,6 +257,8 @@ func init() {
 		"MSG_MISSED":                "\u672a\u547d\u4e2d\uff01",
 		"MSG_HIT_COVER":             "\u5c04\u4e2d\u63a9\u4f53\uff01",
 		"MSG_MOVED":                 "\u5c06 %s \u79fb\u52a8\u81f3 [%d,%d]",
+		"MSG_NOISE_ALERT":           "\u9644\u8fd1\u4f20\u6765\u4e00\u9635\u566a\u97f3……",
+		"MSG_CRYO_VENT":             "\u51b7\u5374\u7ba1\u9053\u7834\u88c2\u2014\u2014\u51b0\u51bb\u6c14\u4f53\u55b7\u6d8c\u800c\u51fa\uff01",
 		"MSG_CANNOT_MOVE":           "\u65e0\u6cd5\u79fb\u52a8\u5230\u8be5\u4f4d\u7f6e\u3002",
 		"MSG_NO_TARGET":             "\u6ca1\u6709\u76ee\u6807\u3002",
 		"MSG_NOT_ENOUGH_TU":         "TU\u4e0d\u8db3\u3002",
@@ -300,6 +302,8 @@ func init() {
 		"MSG_REACTION_HIT":          "\u53cd\u5e94\u5c04\u51fb\u547d\u4e2d\uff01\u5bf9 %[2]s \u9020\u6210 %[1]d \u4f24\u5bb3\uff08\u751f\u547d:%[3]d\uff09",
 		"MSG_REACTION_MISS":         "\u53cd\u5e94\u5c04\u51fb\u672a\u547d\u4e2d\uff01",
 		"MSG_REACTION_KILL":         "%s \u88ab\u53cd\u5e94\u5c04\u51fb\u51fb\u6740\uff01",
+		"MSG_SKYLIGHT_FALL":         "%s\u4ece\u7834\u788e\u7684\u5929\u7a97\u5760\u843d\uff01",
+		"MSG_UNIT_DIED":             "%s\u5df2\u6b7b\u4ea1\u3002",
 		"MSG_REINFORCEMENTS":        "%d \u540d\u5916\u661f\u63a5\u5175\u5df2\u5230\u8fbe\uff01",
 		"MSG_BATTLE_EXITED":         "\u4efb\u52a1\u653e\u5f03\uff01\u6240\u6709\u961f\u5458\u5168\u90e8\u4e27\u5931\u3002",
 

@@ -259,6 +259,8 @@ func init() {
 		"MSG_MISSED":                "Raté !",
 		"MSG_HIT_COVER":             "Le tir touche la couverture !",
 		"MSG_MOVED":                 "%s déplacé à [%d,%d]",
+		"MSG_NOISE_ALERT":           "Un bruit résonne à proximité...",
+		"MSG_CRYO_VENT":             "Le tuyau de refroidissement se rompt — un gaz glacial jaillit !",
 		"MSG_CANNOT_MOVE":           "Déplacement impossible.",
 		"MSG_NO_TARGET":             "Aucune cible.",
 		"MSG_NOT_ENOUGH_TU":         "Pas assez d'UT.",
@@ -302,6 +304,8 @@ func init() {
 		"MSG_REACTION_HIT":          "Touche de réaction ! %d dégâts à %s (PV:%d)",
 		"MSG_REACTION_MISS":         "Le tir de réaction rate !",
 		"MSG_REACTION_KILL":         "%s tué par le tir de réaction !",
+		"MSG_SKYLIGHT_FALL":         "%s tombe à travers la verrière brisée !",
+		"MSG_UNIT_DIED":             "%s est mort.",
 		"MSG_REINFORCEMENTS":        "%d renforts extraterrestres en approche !",
 		"MSG_BATTLE_EXITED":         "Mission abandonnée ! Tous les membres de l'équipe perdus.",
 

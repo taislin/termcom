@@ -24,7 +24,17 @@ const (
 	ditherFactor        = 0.92 // checkerboard dither darkening on even-parity tiles
 	fogOfWarDim         = 0.45 // foreground/background dim for remembered (seen) tiles
 	lampLightFactor     = 0.8  // background lightening inside a lamp's radius
+	noiseAlertRadius    = 15   // tiles within which broken glass/debris alerts aliens
 )
+
+// Cryo-coolant freeze gas tuning.
+const (
+	freezeGasCoreDensity     = 3 // density at the vent tile
+	freezeGasEdgeDensity     = 2 // density on the 8 surrounding tiles
+	freezeTUDrainPerDensity  = 6  // TU lost per gas density level while chilled
+)
+
+const skylightFallDamage = 15 // HP damage when unit falls through a skylight
 
 // Blood palette by blood type (1=human red, 2/3=alien green/purple).
 var bloodPalette = map[int]tcell.Color{
@@ -127,6 +137,10 @@ var tilePalette = map[TileType]tcell.Color{
 	TileTruck:         tcell.NewRGBColor(90, 110, 70),   // olive military truck
 	TileIce:           tcell.NewRGBColor(180, 220, 235), // frozen lake ice (cyan-white)
 	TileStreetlamp:    tcell.NewRGBColor(220, 210, 120), // lamp fixture (warm)
+	TileGlass:         tcell.NewRGBColor(190, 200, 210), // broken glass (pale)
+	TileDebris:        tcell.NewRGBColor(150, 140, 130), // scattered debris
+	TileCryoPipe:      tcell.NewRGBColor(140, 200, 230), // cryo-coolant pipe (icy blue)
+	TileSkylight:      tcell.NewRGBColor(180, 210, 240), // glass skylight (pale blue)
 }
 
 // TileBaseColor returns the resolved color for a tile.

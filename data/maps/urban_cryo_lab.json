@@ -1,0 +1,23 @@
+{
+  "id": "urban_cryo_lab",
+  "tags": ["urban", "ufo"],
+  "width": 7,
+  "height": 5,
+  "weight": 3,
+  "rows": [
+    "WWWWWWW",
+    "W...P.W",
+    "WPPPp.W",
+    "W...P.W",
+    "WWWWWWW"
+  ],
+  "terrain": {
+    ".": "TileFloor",
+    "W": "TileWall"
+  },
+  "furniture": {
+    "P": "TileCryoPipe",
+    "p": "TileCryoPipe"
+  }
+}
+

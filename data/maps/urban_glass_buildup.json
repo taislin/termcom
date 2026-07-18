@@ -1,0 +1,21 @@
+{
+  "id": "urban_glass_buildup",
+  "tags": ["urban", "rural"],
+  "width": 6,
+  "height": 3,
+  "weight": 3,
+  "rows": [
+    "......",
+    ".g`d`.",
+    "......"
+  ],
+  "terrain": {
+    ".": "TileFloor"
+  },
+  "furniture": {
+    "g": "TileGlass",
+    "d": "TileDebris",
+    "`": "TileDebris"
+  }
+}
+
