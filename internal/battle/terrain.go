@@ -23,6 +23,7 @@ const (
 	aoMinFactor         = 0.6  // clamp for accumulated AO darkening
 	ditherFactor        = 0.92 // checkerboard dither darkening on even-parity tiles
 	fogOfWarDim         = 0.45 // foreground/background dim for remembered (seen) tiles
+	lampLightFactor     = 0.8  // background lightening inside a lamp's radius
 )
 
 // Blood palette by blood type (1=human red, 2/3=alien green/purple).
@@ -125,6 +126,7 @@ var tilePalette = map[TileType]tcell.Color{
 	TileDish:          tcell.NewRGBColor(170, 175, 185), // satellite dish
 	TileTruck:         tcell.NewRGBColor(90, 110, 70),   // olive military truck
 	TileIce:           tcell.NewRGBColor(180, 220, 235), // frozen lake ice (cyan-white)
+	TileStreetlamp:    tcell.NewRGBColor(220, 210, 120), // lamp fixture (warm)
 }
 
 // TileBaseColor returns the resolved color for a tile.
@@ -294,10 +296,18 @@ func RenderTile(t Tile, ctx [3][3]TileType, visible, seen bool, frame int, tileX
 		bg = engine.DarkenColor(bg, ditherFactor)
 	}
 
+	// Streetlamp / floodlight illumination: brighten background so the
+	// lit radius reads as a pool of light against the dark map.
+	if t.LitByLamp {
+		bg = engine.LightenColor(baseCol, 1.0+lampLightFactor)
+	}
+
 	if !visible && seen {
 		// Fog of War: dim both foreground and background
 		fg = engine.DarkenColor(fg, fogOfWarDim)
-		bg = engine.DarkenColor(bg, fogOfWarDim)
+		if !t.LitByLamp {
+			bg = engine.DarkenColor(bg, fogOfWarDim)
+		}
 	} else {
 		// Overlay effects (blood, fire) only visible when tile is currently in line of sight
 		if t.Blood > 0 {

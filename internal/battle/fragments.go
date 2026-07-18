@@ -56,8 +56,9 @@ var tileTypeByName = map[string]TileType{
 	"TileWreck":       TileWreck,
 	"TileTimber":      TileTimber,
 	"TileDish":        TileDish,
-	"TileTruck":       TileTruck,
-	"TileIce":         TileIce,
+	"TileTruck":         TileTruck,
+	"TileIce":           TileIce,
+	"TileStreetlamp":    TileStreetlamp,
 }
 
 func resolveTileType(name string) TileType {
@@ -82,10 +83,18 @@ func ApplyMapgenChunk(m *BattleMap, startX, startY int, chunk *mapgen.MapgenChun
 				continue
 			}
 			if tt, ok := chunk.Terrain[ch]; ok {
-				m.Set(tx, ty, resolveTileType(tt))
+				tt2 := resolveTileType(tt)
+				m.Set(tx, ty, tt2)
+				if tt2 == TileStreetlamp {
+					m.Tiles[ty][tx].Lit = true
+				}
 			}
 			if ft, ok := chunk.Furniture[ch]; ok {
-				m.Set(tx, ty, resolveTileType(ft))
+				ft2 := resolveTileType(ft)
+				m.Set(tx, ty, ft2)
+				if ft2 == TileStreetlamp {
+					m.Tiles[ty][tx].Lit = true
+				}
 			}
 		}
 	}
@@ -140,6 +149,9 @@ func ApplyMapgenChunkRotated(m *BattleMap, startX, startY, rot int, chunk *mapge
 				continue
 			}
 			m.Set(tx, ty, tt)
+			if tt == TileStreetlamp {
+				m.Tiles[ty][tx].Lit = true
+			}
 		}
 	}
 }

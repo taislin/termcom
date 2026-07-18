@@ -766,6 +766,7 @@ func (bs *Battlescape) ComputeFOVForTeam() {
 			bs.Map.ComputeFOV(u.X, u.Y, sightRange)
 		}
 	}
+	bs.Map.applyLampLight()
 	for _, u := range bs.Units {
 		if u.Faction == FactionAlien && u.Alive && u.AlienType != nil && u.Level == bs.Map.CurrentLevel && bs.Map.IsVisible(u.X, u.Y) {
 			bs.Game.LearnAlien(u.AlienType.Name, 1)
@@ -1862,6 +1863,29 @@ func (bs *Battlescape) MoveSelected() {
 // FireWeapon fires the selected unit's weapon at the target under the cursor.
 func (bs *Battlescape) FireWeapon() {
 	if bs.Selected == nil || bs.Phase != PhasePlayerTurn {
+		return
+	}
+	// Allow shooting a destructible terrain tile (streetlamp, pipe, fuel pump…)
+	// even when no unit is standing on it.
+	if bs.Map.IsDestructible(bs.CursorX, bs.CursorY) && bs.Units.At(bs.CursorX, bs.CursorY) == nil {
+		if bs.Selected.TU < 4 {
+			bs.AddMessage(language.String("MSG_NOT_ENOUGH_TU"))
+			return
+		}
+		if !bs.Selected.CanSee(bs.CursorX, bs.CursorY, bs.Map) {
+			bs.AddMessage(language.String("MSG_TARGET_NO_LOS"))
+			return
+		}
+		bs.Selected.TU -= 4
+		audio.PlayWeaponFire(bs.Selected.Weapon)
+		if bs.Map.DestroyWall(bs.CursorX, bs.CursorY) {
+			SpawnRubble(bs.Particles, bs.CursorX-bs.ScrollX+1, bs.CursorY-bs.ScrollY+1)
+		}
+		if radius := bs.Map.ExplodesOnDestruction(bs.CursorX, bs.CursorY); radius > 0 {
+			bs.TriggerFuelPumpExplosions(bs.CursorX, bs.CursorY)
+		}
+		bs.ComputeFOVForTeam()
+		bs.PlayerLock = bs.Game.ActionDelay / 2
 		return
 	}
 	target := bs.Units.At(bs.CursorX, bs.CursorY)

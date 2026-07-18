@@ -78,6 +78,7 @@ const (
 	TileDish     // satellite/comms dish (metal, indestructible)
 	TileTruck    // military supply truck (vehicle, full cover)
 	TileIce      // frozen lake ice (passable, zero cover)
+	TileStreetlamp // streetlamp / floodlight pole (emits light, shootable)
 )
 
 // Tile represents a single cell on the tactical map.
@@ -90,6 +91,8 @@ type Tile struct {
 	Seen      bool
 	Blood     int // 0=none, 1=human(red), 2=alien_green, 3=alien_purple
 	Fire      int // 0=none, >0=turns of fire remaining
+	Lit       bool // lamp is currently emitting light
+	LitByLamp bool // tile is inside a lamp's light radius
 	BaseColor tcell.Color
 	Rune      rune
 }
@@ -292,6 +295,7 @@ var tileChars = map[TileType]rune{
 	TileDish:     '◗', // satellite dish
 	TileTruck:    '▄', // military truck (top half)
 	TileIce:      '≈', // frozen lake ice
+	TileStreetlamp: '⌖', // lamp/floodlight fixture
 }
 
 func TileChar(t TileType) rune {
@@ -451,7 +455,7 @@ func (m *BattleMap) IsDestructible(x, y int) bool {
 	case TileWall, TileUFOWall, TileTree, TileRock, TileFence, TileDoor,
 		TileDesk, TileChair, TileChairLeft, TileChairRight, TileComputer, TileBed, TileLocker, TileCabinet,
 		TileCar, TileCarRight, TileCarMid, TileForklift, TileForkliftRight,
-		TileFuelPump:
+		TileFuelPump, TileStreetlamp:
 		return true
 	}
 	return false
@@ -466,6 +470,7 @@ func (m *BattleMap) DestroyWall(x, y int) bool {
 			return false
 		}
 		tile := &m.Tiles[y][x]
+		tile.Lit = false
 		tile.Type = TileRubble
 		tile.Cover = TileCover(TileRubble)
 	} else {
@@ -474,6 +479,7 @@ func (m *BattleMap) DestroyWall(x, y int) bool {
 			return false
 		}
 		tile := &m.Tiles[arrayY][x]
+		tile.Lit = false
 		tile.Type = TileRubble
 		tile.Cover = TileCover(TileRubble)
 	}
@@ -554,6 +560,43 @@ func (m *BattleMap) ClearVisibility() {
 	for y := startY; y < endY; y++ {
 		for x := 0; x < m.Width; x++ {
 			m.Tiles[y][x].Visible = false
+			m.Tiles[y][x].Seen = false
+			m.Tiles[y][x].LitByLamp = false
+		}
+	}
+}
+
+// applyLampLight forces visibility on tiles within the light radius of any
+// lit streetlamp. Called after unit-based FOV so lamplit areas stay
+// visible even without a unit having direct line-of-sight. Radius 3 = 7x7.
+func (m *BattleMap) applyLampLight() {
+	const r = 3
+	startY := 0
+	endY := m.Height
+	if m.NumLevels > 1 {
+		startY = m.CurrentLevel * m.LevelHeight
+		endY = startY + m.LevelHeight
+	}
+	for y := startY; y < endY; y++ {
+		for x := 0; x < m.Width; x++ {
+			t := &m.Tiles[y][x]
+			if t.Type != TileStreetlamp || !t.Lit {
+				continue
+			}
+			for dy := -r; dy <= r; dy++ {
+				for dx := -r; dx <= r; dx++ {
+					if dx*dx+dy*dy > r*r {
+						continue
+					}
+					tx, ty := x+dx, y+dy
+					if tx < 0 || tx >= m.Width || ty < startY || ty >= endY {
+						continue
+					}
+					m.Tiles[ty][tx].Visible = true
+					m.Tiles[ty][tx].Seen = true
+					m.Tiles[ty][tx].LitByLamp = true
+				}
+			}
 		}
 	}
 }
@@ -774,7 +817,8 @@ func isUrbanProtected(t TileType) bool {
 		TileCar, TileCarRight, TileForklift, TileForkliftRight,
 		TileObject, TileTree, TileBush, TileFence,
 		TileFuelPump, TileContainerRed, TileContainerBlue, TileContainerYellow,
-		TileAdobe, TileMetalWall, TileWreck, TileTimber, TileDish, TileTruck:
+		TileAdobe, TileMetalWall, TileWreck, TileTimber, TileDish, TileTruck,
+		TileStreetlamp:
 		return true
 	}
 	return false
