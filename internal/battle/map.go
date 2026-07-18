@@ -978,7 +978,8 @@ func GenerateTerrorSite(w, h int, seed int64) *BattleMap {
 		"urban_rubble", "bus_stop_cover", "ruined_shack",
 	}
 
-	// Attempt to fill each lot with a building (large lots) or leave as park.
+	// Fill each lot with one or more buildings (a block holds a cluster of
+	// houses) or leave it as a park.
 	type placed struct{ x, y, w, h int }
 	var placedBuildings []placed
 	parkLots := map[int]bool{}
@@ -986,41 +987,72 @@ func GenerateTerrorSite(w, h int, seed int64) *BattleMap {
 		if l.w < 3 || l.h < 3 {
 			continue
 		}
-		// Reserve ~1 in 4 sizeable lots as parks (green space) so the city is
+		// Reserve ~1 in 5 sizeable lots as parks (green space) so the city is
 		// not wall-to-wall buildings.
-		if l.w >= 5 && l.h >= 5 && rng.Intn(4) == 0 {
+		if l.w >= 6 && l.h >= 6 && rng.Intn(5) == 0 {
 			parkLots[li] = true
 			continue
 		}
-		// Pick a building whose footprint fits the lot with a 1-tile setback.
-		var candidates []string
-		for _, id := range buildingIDs {
+		// Subdivide the block and pack several fitting buildings with spacing.
+		// setback = gap from lot edge to first building; gap = spacing between
+		// neighbouring buildings (keeps yards/alleys between houses).
+		const setback = 1
+		const gap = 1
+		attempts := 0
+		placedInLot := 0
+		for attempts < 60 {
+			attempts++
+			// Randomly choose a building that could fit somewhere in the lot.
+			id := buildingIDs[rng.Intn(len(buildingIDs))]
 			c := mapgen.Get(id)
 			if c == nil {
 				continue
 			}
-			if c.Width+2 <= l.w && c.Height+2 <= l.h {
-				candidates = append(candidates, id)
+			if c.Width+2*setback > l.w || c.Height+2*setback > l.h {
+				continue
+			}
+			// Random free anchor inside the lot (with setback).
+			maxX := l.x + l.w - c.Width - setback
+			maxY := l.y + l.h - c.Height - setback
+			if maxX < l.x+setback || maxY < l.y+setback {
+				continue
+			}
+			ax := l.x + setback + rng.Intn(maxX-(l.x+setback)+1)
+			ay := l.y + setback + rng.Intn(maxY-(l.y+setback)+1)
+			// Reject if it overlaps an already-placed building (incl. gap).
+			overlap := false
+			for _, p := range placedBuildings {
+				if ax < p.x+p.w+gap && ax+c.Width+gap > p.x &&
+					ay < p.y+p.h+gap && ay+c.Height+gap > p.y {
+					overlap = true
+					break
+				}
+			}
+			if overlap {
+				continue
+			}
+			// Reject if it overlaps a road (shouldn't happen inside a lot, but
+			// be safe at lot edges).
+			hitRoad := false
+			for dy := 0; dy < c.Height && !hitRoad; dy++ {
+				for dx := 0; dx < c.Width; dx++ {
+					if m.At(ax+dx, ay+dy).Type == TilePavement {
+						hitRoad = true
+						break
+					}
+				}
+			}
+			if hitRoad {
+				continue
+			}
+			ApplyMapgenChunkRotated(m, ax, ay, 0, c)
+			placedBuildings = append(placedBuildings, placed{ax, ay, c.Width, c.Height})
+			placedInLot++
+			// Stop early once the block is reasonably filled.
+			if placedInLot >= 6 {
+				break
 			}
 		}
-		if len(candidates) == 0 {
-			continue
-		}
-		id := candidates[rng.Intn(len(candidates))]
-		c := mapgen.Get(id)
-		// Choose an anchor along a sidewalk edge of the lot so the entrance
-		// faces the road. Default: centered.
-		ax := l.x + (l.w-c.Width)/2
-		ay := l.y + (l.h-c.Height)/2
-		// Jitter toward a road-adjacent edge when possible.
-		if l.x > 0 && m.At(l.x-1, l.y+l.h/2).Type == TilePavement && ax > l.x {
-			ax = l.x + 1
-		} else if l.x+l.w < w && m.At(l.x+l.w, l.y+l.h/2).Type == TilePavement && ax+c.Width < l.x+l.w-1 {
-			ax = l.x + l.w - c.Width - 1
-		}
-		// No rotate for simplicity/consistency.
-		ApplyMapgenChunkRotated(m, ax, ay, 0, c)
-		placedBuildings = append(placedBuildings, placed{ax, ay, c.Width, c.Height})
 	}
 
 	// ---- 4a. Cars: only on road/sidewalk tiles ----
