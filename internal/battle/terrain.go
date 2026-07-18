@@ -49,8 +49,11 @@ var opaqueTiles = map[TileType]bool{
 	TileCar:           true,
 	TileCarMid:        true,
 	TileCarRight:      true,
-	TileForklift:      true,
+	TileForklift:     true,
 	TileForkliftRight: true,
+	TileContainerRed:    true,
+	TileContainerBlue:   true,
+	TileContainerYellow: true,
 }
 
 // Human building box-drawing glyphs
@@ -104,8 +107,12 @@ var tilePalette = map[TileType]tcell.Color{
 	TileCar:          tcell.NewRGBColor(50, 100, 180),
 	TileCarMid:       tcell.NewRGBColor(50, 100, 180),
 	TileCarRight:     tcell.NewRGBColor(50, 100, 180),
-	TileForklift:     tcell.NewRGBColor(200, 160, 40), // yellow forklift
+	TileForklift:      tcell.NewRGBColor(200, 160, 40), // yellow forklift
 	TileForkliftRight: tcell.NewRGBColor(200, 160, 40),
+	TileFuelPump:      tcell.NewRGBColor(200, 60, 40), // red fuel pump
+	TileContainerRed:    tcell.NewRGBColor(180, 50, 40), // red shipping container
+	TileContainerBlue:   tcell.NewRGBColor(50, 80, 180), // blue shipping container
+	TileContainerYellow: tcell.NewRGBColor(200, 170, 40), // yellow shipping container
 }
 
 // TileBaseColor returns the resolved color for a tile.

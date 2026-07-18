@@ -73,8 +73,12 @@ var tileTypeNames = map[battle.TileType]string{
 	battle.TileCar:         "Car (L)",
 	battle.TileCarMid:      "Car (Mid)",
 	battle.TileCarRight:    "Car (R)",
-	battle.TileForklift:    "Forklift (L)",
+	battle.TileForklift:      "Forklift (L)",
 	battle.TileForkliftRight: "Forklift (R)",
+	battle.TileFuelPump:       "Fuel Pump",
+	battle.TileContainerRed:    "Container (R)",
+	battle.TileContainerBlue:   "Container (B)",
+	battle.TileContainerYellow: "Container (Y)",
 }
 
 const infoPanelWidth = 22
@@ -471,7 +475,7 @@ func drawInfoPanel(s tcell.Screen, x, y, w, maxH int, m *battle.BattleMap, t bat
 	row := y
 
 	// Title
-	title := fmt.Sprintf(" Tile Info")
+	title := " Tile Info"
 	for i, ch := range title {
 		if i < w {
 			s.SetContent(x+i, row, ch, nil, cyan)

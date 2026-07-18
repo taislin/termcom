@@ -1,25 +1,5 @@
 [
   {
-    "id": "urban_gas_station",
-    "tags": ["urban"],
-    "width": 5,
-    "height": 3,
-    "weight": 2,
-    "no_rotate": true,
-    "rows": [
-      "..D..",
-      ".OOO.",
-      "....."
-    ],
-    "terrain": {
-      ".": "TilePavement",
-      "D": "TileDoor"
-    },
-    "furniture": {
-      "O": "TileObject"
-    }
-  },
-  {
     "id": "urban_dumpsters",
     "tags": ["urban"],
     "width": 3,
@@ -152,24 +132,5 @@
       ".": "TileGrass"
     },
     "furniture": {}
-  },
-  {
-    "id": "urban_construction",
-    "tags": ["urban"],
-    "width": 4,
-    "height": 3,
-    "weight": 2,
-    "rows": [
-      "RRRR",
-      "ROOR",
-      "RRRR"
-    ],
-    "terrain": {
-      "R": "TileRubble",
-      ".": "TilePavement"
-    },
-    "furniture": {
-      "O": "TileObject"
-    }
   }
 ]

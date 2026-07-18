@@ -62,8 +62,14 @@ const (
 	TileCar          // Car left half: ▄ (top), º (bottom)
 	TileCarMid       // Car middle roof: █ (top), empty bottom
 	TileCarRight     // Car right half: ▄ (top), º (bottom)
-	TileForklift     // Forklift left half: █ (top), º (bottom)
+	TileForklift      // Forklift left half: █ (top), º (bottom)
 	TileForkliftRight // Forklift right half: ▄ (top), empty (bottom-right)
+	// Urban hazard tiles
+	TileFuelPump // Fuel pump — explodes on destruction (5x5 blast)
+	// Shipping container tiles (indestructible, full LOS block)
+	TileContainerRed
+	TileContainerBlue
+	TileContainerYellow
 )
 
 // Tile represents a single cell on the tactical map.
@@ -83,7 +89,7 @@ type Tile struct {
 // TileCover returns the base cover value for a tile type.
 func TileCover(t TileType) int {
 	switch t {
-	case TileWall, TileUFOWall:
+	case TileWall, TileUFOWall, TileContainerRed, TileContainerBlue, TileContainerYellow:
 		return 80
 	case TileTree:
 		return 60
@@ -95,7 +101,8 @@ func TileCover(t TileType) int {
 		return 30
 	case TileObject, TileConsole, TileMachinery, TilePod, TilePowerSource, TileStorage, TileAlienTech,
 		TileDesk, TileChair, TileChairLeft, TileChairRight, TileComputer, TileBed, TileLocker, TileCabinet,
-		TileCar, TileCarRight, TileCarMid, TileForklift, TileForkliftRight:
+		TileCar, TileCarRight, TileCarMid, TileForklift, TileForkliftRight,
+		TileFuelPump:
 		return 50
 	case TileRubble:
 		return 20
@@ -231,6 +238,12 @@ var tileChars = map[TileType]rune{
 	TileCarRight:     '▄', // Car right half (top)
 	TileForklift:     '█', // Forklift left half (top)
 	TileForkliftRight: '⊏', // Forklift right half (top)
+	// Urban hazard characters
+	TileFuelPump: '8', // Fuel pump (looks like nozzle)
+	// Shipping container characters
+	TileContainerRed:    '█',
+	TileContainerBlue:   '█',
+	TileContainerYellow: '█',
 }
 
 func TileChar(t TileType) rune {
@@ -386,7 +399,8 @@ func (m *BattleMap) IsDestructible(x, y int) bool {
 	switch t.Type {
 	case TileWall, TileUFOWall, TileTree, TileRock, TileFence, TileDoor,
 		TileDesk, TileChair, TileChairLeft, TileChairRight, TileComputer, TileBed, TileLocker, TileCabinet,
-		TileCar, TileCarRight, TileCarMid, TileForklift, TileForkliftRight:
+		TileCar, TileCarRight, TileCarMid, TileForklift, TileForkliftRight,
+		TileFuelPump:
 		return true
 	}
 	return false
@@ -413,6 +427,20 @@ func (m *BattleMap) DestroyWall(x, y int) bool {
 		tile.Cover = TileCover(TileRubble)
 	}
 	return true
+}
+
+// FuelPumpExplosionRadius returns the blast radius for fuel pump explosions.
+const FuelPumpExplosionRadius = 5
+
+// ExplodesOnDestruction returns the explosion radius if the tile at (x,y)
+// should chain-explode when destroyed, or 0 if it does not explode.
+func (m *BattleMap) ExplodesOnDestruction(x, y int) int {
+	tile := m.At(x, y)
+	switch tile.Type {
+	case TileFuelPump:
+		return FuelPumpExplosionRadius
+	}
+	return 0
 }
 
 // CoverAlongLine returns the maximum cover value (%) of tiles between (x1,y1)
@@ -693,7 +721,8 @@ func isUrbanProtected(t TileType) bool {
 		TileConsole, TileMachinery, TilePod, TilePowerSource, TileStorage, TileAlienTech,
 		TileDesk, TileChair, TileChairLeft, TileChairRight, TileComputer, TileBed, TileLocker, TileCabinet,
 		TileCar, TileCarRight, TileForklift, TileForkliftRight,
-		TileObject, TileTree, TileBush, TileFence:
+		TileObject, TileTree, TileBush, TileFence,
+		TileFuelPump, TileContainerRed, TileContainerBlue, TileContainerYellow:
 		return true
 	}
 	return false

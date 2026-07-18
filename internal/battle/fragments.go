@@ -45,8 +45,12 @@ var tileTypeByName = map[string]TileType{
 	"TileCar":         TileCar,
 	"TileCarMid":      TileCarMid,
 	"TileCarRight":    TileCarRight,
-	"TileForklift":    TileForklift,
+	"TileForklift":      TileForklift,
 	"TileForkliftRight": TileForkliftRight,
+	"TileFuelPump":      TileFuelPump,
+	"TileContainerRed":   TileContainerRed,
+	"TileContainerBlue":  TileContainerBlue,
+	"TileContainerYellow": TileContainerYellow,
 }
 
 func resolveTileType(name string) TileType {

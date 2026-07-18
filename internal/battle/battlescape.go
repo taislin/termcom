@@ -2402,6 +2402,70 @@ func (bs *Battlescape) Grenade() {
 	engine.SpawnSmoke(bs.Particles, ax-bs.ScrollX+1, ay-bs.ScrollY+1, 8)
 }
 
+// TriggerFuelPumpExplosions checks for fuel pumps in a radius around (cx,cy)
+// that were just destroyed and detonates them, dealing splash damage to units
+// and destroying nearby tiles. Called after any tile destruction that might
+// have hit a fuel pump.
+func (bs *Battlescape) TriggerFuelPumpExplosions(cx, cy int) {
+	radius := FuelPumpExplosionRadius
+	type blastTarget struct {
+		x, y int
+		dist int
+	}
+	var targets []blastTarget
+	for dy := -radius; dy <= radius; dy++ {
+		for dx := -radius; dx <= radius; dx++ {
+			nx, ny := cx+dx, cy+dy
+			if nx < 0 || nx >= bs.Map.Width || ny < 0 || ny >= bs.Map.Height {
+				continue
+			}
+			dist := abs(dx) + abs(dy)
+			if dist > radius {
+				continue
+			}
+			targets = append(targets, blastTarget{nx, ny, dist})
+		}
+	}
+
+	for _, t := range targets {
+		tile := &bs.Map.Tiles[t.y][t.x]
+		tile.Type = TileRubble
+		tile.Cover = TileCover(TileRubble)
+		tile.Rune = tileChars[TileRubble]
+		tile.BaseColor = tcell.ColorDefault
+	}
+
+	for _, u := range bs.Units {
+		if !u.Alive {
+			continue
+		}
+		dx := u.X - cx
+		dy := u.Y - cy
+		dist := dx*dx + dy*dy
+		if dist <= radius*radius {
+			dmg := 60 - dist*3
+			if dmg < 10 {
+				dmg = 10
+			}
+			u.HP -= dmg
+			if u.HP <= 0 {
+				u.HP = 0
+				u.Alive = false
+				bs.SpawnBloodSplatter(u)
+			}
+		}
+	}
+
+	audio.PlayExplosion()
+	bs.AddMessage(fmt.Sprintf(language.String("MSG_GRENADE_DETONATED"), cx, cy))
+	if engine.Config.ScreenShake {
+		bs.Camera.TriggerShake(4.0)
+	}
+	engine.SpawnExplosion(bs.Particles, cx-bs.ScrollX+1, cy-bs.ScrollY+1, tcell.NewRGBColor(255, 100, 30), 32)
+	engine.SpawnSmoke(bs.Particles, cx-bs.ScrollX+1, cy-bs.ScrollY+1, 12)
+	bs.ComputeFOVForTeam()
+}
+
 func (bs *Battlescape) UseMedikit() {
 	if bs.Selected == nil || bs.Phase != PhasePlayerTurn {
 		return
