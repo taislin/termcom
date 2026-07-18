@@ -11,6 +11,7 @@ require (
 require (
 	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
 	github.com/ebitengine/purego v0.9.0 // indirect
+	github.com/mattn/go-runewidth v0.0.24 // indirect
 	golang.org/x/mobile v0.0.0-20260709172247-6129f5bee9d5 // indirect
 	golang.org/x/mod v0.38.0 // indirect
 	golang.org/x/sync v0.22.0 // indirect

@@ -1,0 +1,22 @@
+{
+  "id": "polar_supply_cache",
+  "tags": [
+    "polar",
+    "rural"
+  ],
+  "width": 4,
+  "height": 4,
+  "rows": [
+    "WWWW",
+    "W.sW",
+    "WssW",
+    "WWWW"
+  ],
+  "terrain": {
+    "W": "TileWall",
+    ".": "TileSnow",
+    "s": "TileStorage"
+  },
+  "furniture": {},
+  "weight": 2
+}

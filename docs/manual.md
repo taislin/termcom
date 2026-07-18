@@ -1,261 +1,180 @@
-# termcom — ASCII X-COM Roguelike-ified Demake Manual (v0.48.9)
+# termcom — ASCII X-COM Roguelike-ified Demake Manual (v0.49.15)
 
 ## Table of Contents
 
 1. [Overview](#overview)
 2. [Getting Started](#getting-started)
-3. [Geoscape](#geoscape)
-4. [Base Management](#base-management)
-5. [Research](#research)
-6. [Manufacturing](#manufacturing)
+3. [Tutorial / Onboarding](#tutorial--onboarding)
+4. [Geoscape](#geoscape)
+5. [Base Management](#base-management)
+6. [Research & Manufacturing](#research--manufacturing)
 7. [Equipping Soldiers](#equipping-soldiers)
 8. [Battlescape](#battlescape)
 9. [Weapons & Equipment](#weapons--equipment)
 10. [Armour](#armour)
 11. [Aliens](#aliens)
-12. [Soldier Ranks & Stats](#soldier-ranks--stats)
+12. [Soldier Ranks & Progression](#soldier-ranks--progression)
 13. [Save/Load](#saveload)
 14. [Key Bindings Reference](#key-bindings-reference)
 15. [Tips & Strategy](#tips--strategy)
-16. [Tutorial / Onboarding](#tutorial--onboarding)
-17. [Annex: Reference Tables](#annex-reference-tables)
-    - [Tile Types](#tile-types)
-    - [Visual Effects](#visual-effects)
-    - [Blood Splatter](#blood-splatter)
-    - [Fire Mechanics](#fire-mechanics)
-    - [Gas Mechanics](#gas-mechanics)
-    - [Destructible Terrain](#destructible-terrain)
-    - [Auto-Resolve System](#auto-resolve-system)
-    - [Alien Biology](#alien-biology)
-    - [Alien Roster](#alien-roster)
 
 ---
 
 ## Overview
 
 **termcom** is a roguelike-ified ASCII demake of X-COM: UFO Defense (1994), rendered
-entirely in a terminal. You command the X-COM organization — an international
-effort to combat an alien invasion.
+entirely in a terminal. You command X-COM — an international task force defending
+Earth from an alien invasion.
 
-**Your mission:** Research alien technology, manufacture advanced weapons and armour,
+**Your goal:** Research alien technology, manufacture weapons and armour,
 and lead squads into tactical combat to eliminate the alien threat.
 
-**Victory condition:** Win 10 battles to trigger the Cydonia final mission, then win it.
+**Victory:** Win enough battles to trigger the Cydonia final mission, then win it.
 
-**Defeat condition:** Alien Activity reaches 100%.
+**Defeat:** Alien Activity reaches 100% — the invasion overwhelms Earth.
 
-**Difficulty selection:**
-Before the game begins, you choose a difficulty level that affects alien strength,
-UFO spawn rates, and starting funds:
+**Difficulty:** Choose a level before starting. Higher difficulties make aliens
+tougher, UFOs more frequent, and starting funds tighter.
 
-- **Beginner** — Weaker aliens (0.7× stats), slower UFOs (0.7× spawns), 1.5× funds
-- **Experienced** — Standard challenge
-- **Veteran** — Stronger aliens (1.2×), faster UFOs (1.3×), reduced funds (0.8×)
-- **Genius** — Much harder combat and economy (1.5× aliens, 1.6× UFOs, 0.6× funds)
-- **Superhuman** — Maximum alien threat (2.0× all)
+- **Beginner** — Weaker aliens, slower UFOs, more starting funds
+- **Experienced** — Standard
+- **Veteran** — Tougher aliens, faster UFOs, less cash
+- **Genius** — Much harder across the board
+- **Superhuman** — Maximum alien threat
 
-**Starting resources:**
-- $500,000 (× funds scale from difficulty)
-- 10 scientists, 10 engineers
-- Starting base with Living Quarters, Laboratory, Workshop, Storage, and Radar
-- Several Rifles and Pistols
+**Language:** 8 languages available — switch in the Options screen.
+English, Chinese, Spanish, French, Russian, Portuguese, Japanese, Korean.
 
-**Language support:**
-The game can be switched between 8 languages in the Options screen (Right/Left arrows to cycle, Esc to save):
-- **English** (en)
-- **Chinese** (zh)
-- **Spanish** (es)
-- **French** (fr)
-- **Russian** (ru)
-- **Portuguese** (pt)
-- **Japanese** (ja)
-- **Korean** (ko)
+**Options:** Press `?` on any screen to open help, or navigate to the Options
+screen to adjust bloom, lighting, sound, autosave, screen shake, mouse support,
+grid lines, confirm dialogs, theme, resolution speed, volume, and language.
+
+---
+
+## Tutorial / Onboarding
+
+On your first playthrough (no save files detected), a step-by-step Commander
+**Briefing** appears automatically after you select your difficulty. It covers:
+
+1. **Welcome** — Introduction to X-COM
+2. **Geoscape & Time** — Pause (`Space`), speed (`1`–`4`)
+3. **UFO Detection** — Radar and UFO markers
+4. **Interceptor Launch** — Press `L` to engage
+5. **Mission Response** — Press `M` to deploy
+6. **Base Management** — Press `B` to manage your base
+7. **Battlescape** — Time Units, movement, and combat
+8. **Done** — You're ready
+
+**Controls:** Enter advances, S skips, Esc dismisses.
+
+**Replay:** Open the Options screen and select "Replay Tutorial" at any time.
 
 ---
 
 ## Getting Started
 
-Run the game:
-```bash
-go run ./cmd/termcom
-# or
-make run
-```
+You begin on the **Geoscape** — the world map. Time advances automatically.
+UFOs appear on radar as they come into range.
 
-**Game data:** The `maps/` folder (containing mission definitions) must be placed
-alongside the executable at the same directory level. When building from source
-with `go run`, it is resolved relative to the working directory.
+**Starting resources:**
+- $500,000 (modified by difficulty)
+- 10 scientists, 10 engineers
+- A base with Living Quarters, Laboratory, Workshop, Storage, and Radar
+- Several rifles and pistols
 
-You begin on the **Geoscape** — the world map view. Time advances as you watch UFOs
-appear and move across the globe. Your radar detects them as they come into range.
+**When a UFO is detected:**
 
-When a UFO is detected, you can:
-- **Launch interceptor** (`L`) to shoot it down
-- **Autoresolve** (`A`) for an automatic interception
-- **Respond to missions** (`M`) when alien terror or supply missions appear
-
-### Mission Response Options
-
-When pressing `M` to respond to a mission, you have three choices:
-
-| Option | Description |
-|--------|-------------|
-| Deploy squad | Enter tactical combat (full rewards, full risk) |
-| Auto-resolve | Statistical outcome (reduced rewards, alien-favored odds) |
-| Ignore | Skip the mission (increases alien activity) |
-
-**Auto-resolve odds** are calculated based on:
-- Squad power (HP + Accuracy + Strength + perks)
-- Alien count and difficulty
-- Mission type (Terror/Council modifiers)
-- Win chance is capped at 70% maximum (aliens always have a chance)
-
-**Auto-resolve rewards:**
-- 50% XP compared to tactical combat
-- No corpse loot (only 25% weapon drop chance)
-- Alloy/Elerium rewards remain full
-- Soldiers gain fatigue (2-3 days)
-
-After shooting down a UFO or engaging an alien mission, you deploy your soldiers for
-**tactical combat** on the Battlescape.
+| Action | Key | What happens |
+|--------|-----|-------------|
+| Launch interceptor | `L` | Send a fighter to shoot it down |
+| Dispatch transport | `R` | Send troops to investigate a crash site |
+| Autoresolve | `A` | Quick automatic interception result |
+| Respond to mission | `M` | Deploy to alien terror/supply missions |
 
 ---
 
 ## Geoscape
 
-The Geoscape uses a **regional dashboard** layout:
+The Geoscape shows a **regional dashboard** with threat levels for each region:
 
-- **Left pane (60%):** Table of all regions with status columns
-- **Right pane (40%):** ASCII minimap showing node positions and connections
-
-### Region Table Columns
-
-| Column | Description |
-|--------|-------------|
-| REGION | City name (j/k to select) |
-| THREAT | Visual bar: `█` = threat level, `░` = safe |
-| RADAR | `R` if you have radar coverage, `-` otherwise |
-| SQD | Number of interceptors stationed |
-| STATUS | BASE, clear, ALERT, DANGER, or MISSION |
+- **Left pane:** list of regions with threat bars and radar status
+- **Right pane:** ASCII minimap showing bases, UFOs, interceptors, and routes
 
 ### Minimap Symbols
 
 | Symbol | Meaning |
 |--------|---------|
-| ◆ | A base (any base node) |
+| ◆ | Your base |
 | ◉ | Currently selected node |
 | ○ | Regional hub (green=safe, yellow=threat, red=danger) |
-| · | Radar coverage (faint dots around each base) |
+| · | Radar coverage ring |
 | ! | UFO (red, bold) |
-| > | Interceptor patrolling (cyan) |
-| ► | Interceptor engaging a UFO (cyan, bold) |
-| ✕ | Destroyed interceptor or UFO (during combat animation) |
-| * | Crash site (yellow = unlooted, gray = looted) |
+| > | Interceptor patrolling |
+| ► | Interceptor engaging a UFO |
+| ✕ | Destroyed interceptor or UFO |
+| * | Crash site (yellow=unlooted, gray=looted) |
 | ≈ | Transport en route (green) |
-
-### Controls
-
-| Key | Action |
-|-----|--------|
-| j/k | Navigate region list |
-| L | Launch interceptor at selected node |
-| A | Autoresolve interception |
-| M | Respond to alien mission |
-| B | Open base management |
-| R | Dispatch transport to crash site |
-| C | Cycle to the next base |
-| N | Build a new base at the selected node ($500K) |
-| T | Open the transfer screen (move soldiers/items between bases) |
-| Space | Pause/unpause time |
-| 1-4 | Time compression |
-
-### Multiple Bases
-
-You can build additional bases to expand radar coverage and split your forces.
-Each base is constructed at a regional node for $500,000 and comes with Living
-Quarters, Storage, and a Radar facility. Press `N` while the cursor is on an
-empty node to build there.
-
-- **Radar coverage** is drawn as a faint `·` ring around every base on the minimap (toggle with `V`).
-- Press `C` to cycle the *active* base. All base screens (management, research,
-  manufacture, equipment) operate on the active base.
-- Press `T` to open the **Transfer** screen and move soldiers or items between
-  bases. Use `Tab` to choose the destination base, `Space` to move the selected
-  soldier, and `Enter` to move one unit of the selected item.
-
-### Base Defense
-
-If an alien mission targets a node that hosts one of your bases, responding with
-`M` launches a **Base Defense** battle on that base's map. Each base defends with
-its own stationed squad. If you **lose** a base defense battle — or let a base
-defense mission expire — the base is **destroyed** and all its personnel are lost.
-Losing your last remaining base ends the game.
 
 ### Time Controls
 
-| Key | Speed | Description |
-|-----|-------|-------------|
-| Space | Pause | Toggle pause |
-| 1 | 1x | 1 minute per tick |
-| 2 | 5x | 5 minutes per tick |
-| 3 | 20x | 20 minutes per tick |
-| 4 | 60x | 60 minutes per tick |
-
-### UFO Interception
-
-UFOs travel along edges between nodes. You can:
-
-1. **Target a specific UFO** — press `L`, interceptor pursues the nearest UFO
-2. **Patrol a node** — move cursor to a node, press `L`, interceptor flies there and engages any UFOs
-
-**Interceptor stats:** 60 HP, 8 missiles, speed 36, damage 15–34 per shot.
-**UFO retaliation:** 30% chance per tick, 5–14 damage.
-
-**Combat visuals:** When an interceptor engages a UFO, a multi-frame
-animation plays on the minimap:
-- Interceptor icon changes from `>` (patrol) to `►` (engaging).
-- Icons flash red/yellow during hit exchanges.
-- An HP bar overlay appears at the bottom-right of the minimap showing
-  interceptor and UFO HP with color-coded bars (green > yellow > red).
-- Combat result text (HIT/MISS/DESTROYED) and damage numbers appear
-  alongside the HP bars.
-- On destruction, the destroyed icon displays as `✕`.
-
-### Alien Missions
-
-Every ~30 minutes (game time), alien missions spawn targeting random nodes.
-Mission types are weighted so common raids appear more often than rare,
-high-value assaults:
-
-| Mission | Response | Map | Reward on victory |
-|---------|----------|-----|-------------------|
-| Terror | 24h | Urban (Terror) | Standard loot |
-| Supply Raid | 24h | UFO Interior | Bonus alloys/elerium/nav data |
-| Abduction | 24h | Rural (Abduction) | Rescue civilians |
-| Alien Research | 24h | UFO Interior | Bonus alien tech (power/weapon) |
-| Council | 36h | Urban (Council) | **Bonus funding +$100K** and loot |
-| Alien Base Assault | 12h | Rocky Alien Base | Major alien tech haul |
-
-When multiple missions are active, move the cursor onto a region and press `M`
-to respond to the mission at that node; otherwise `M` responds to the first
-available mission.
-
-If the timer expires without response, Alien Activity increases by 10%.
-
-Press `M` to respond and deploy your squad.
-
-### UFO Retrieval
-
-After shooting down a UFO, a crash site marker appears at the destination node.
-Press `R` to dispatch a transport to the nearest crash site and recover salvage.
+| Key | Speed | Use |
+|-----|-------|-----|
+| Space | Pause | Stop time to plan |
+| 1 | 1x | Slow advance |
+| 2 | 5x | Normal patrol speed |
+| 3 | 20x | Fast-forward |
+| 4 | 60x | Maximum speed |
 
 ### Monthly Budget
 
-Each month (calendar month, ~28-30 game days):
 - **Income:** $200,000 base + $50,000 per Radar facility
 - **Expenses:** $2,000 per soldier, scientist, and engineer
 
-Keep your budget positive — running out of funds means you can't hire or manufacture.
+### Multiple Bases
+
+Press `N` on an empty node to build a new base ($500K). Each base has its own
+facilities, soldiers, and stores. Press `C` to cycle the active base.
+Press `T` to open the Transfer screen and move soldiers or items between bases.
+
+### Mission Response
+
+When a mission appears (terror, supply raid, abduction, etc.), press `M` to respond:
+
+| Option | Result |
+|--------|--------|
+| **Deploy squad** | Full tactical combat — best rewards, highest risk |
+| **Auto-resolve** | Quick outcome — reduced XP, no corpses, but safe |
+| **Ignore** | Skip it — alien activity rises |
+
+Auto-resolve gives about half the XP of a real fight, no alien corpses,
+and a small chance of casualties on loss.
+
+### Base Defense
+
+If a mission targets a node with your base, responding launches a **Base Defense**
+battle. Losing a base defense destroys the base and its personnel.
+Losing your last base ends the game.
+
+### UFO Interception
+
+Press `L` to launch an interceptor at the nearest UFO. The interceptor pursues
+and engages in a short auto-resolved dogfight. The minimap shows the engagement
+with HP bars and hit/miss feedback.
+
+### Alien Missions
+
+Missions appear every ~30 game-minutes with a timer of 12–36 hours:
+
+| Mission | Timer | What to expect |
+|---------|-------|----------------|
+| Terror | 24h | Urban map, many civilians in danger |
+| Supply Raid | 24h | UFO interior, bonus alloys/elerium |
+| Abduction | 24h | Rural map, rescue civilians |
+| Alien Research | 24h | UFO interior, bonus alien tech |
+| Council | 36h | Urban map, bonus $100K funding |
+| Alien Base Assault | 12h | Rocky alien base, major tech haul |
+
+Letting a mission expire increases Alien Activity by 10%.
 
 ---
 
@@ -274,8 +193,6 @@ Press `B` from the Geoscape to open your base.
 | 5 | Transfer |
 | 6 | Hangars |
 
-Navigate with `j`/`k` or arrow keys. Use `Enter` to select.
-
 ### Facilities
 
 | Facility | Cost | Build Time | Effect |
@@ -285,129 +202,75 @@ Navigate with `j`/`k` or arrow keys. Use `Enter` to select.
 | Workshop | $60K | 7 days | Enables manufacturing |
 | Storage | $40K | 3 days | +50 item storage |
 | Radar | $80K | 5 days | +$50K monthly funding |
-| Alien Containment | $100K | 10 days | Live alien capture (capacity: 10 per facility) |
-| Psi-Lab | $150K | 14 days | Trains psi skill (probabilistic, only once a soldier has psi skill > 0, max 80) |
-| Hangar | $120K | 8 days | Houses interceptors |
+| Alien Containment | $100K | 10 days | Hold up to 10 live aliens |
+| Psi-Lab | $150K | 14 days | Train psi ability |
+| Hangar | $120K | 8 days | Houses one interceptor |
 
-**Facility adjacency bonuses:** Placing same-type facilities next to each
-other on the base grid provides stacking bonuses (shown in the base screen):
-- **Adjacent Laboratories:** +10% research speed per connection (max +30%).
-- **Adjacent Workshops:** +10% manufacturing speed per connection (max +30%).
-- **Adjacent Living Quarters:** +1 HP/day healing per connection (max +3).
+**Adjacency bonuses:** Placing same-type facilities next to each other helps:
+- Adjacent Labs: faster research (up to +30%)
+- Adjacent Workshops: faster manufacturing (up to +30%)
+- Adjacent Living Quarters: faster soldier healing (up to +3 HP/day)
 
-**Controls:**
-- `B` — Build selected facility
-- `S` — Sell selected facility (50% refund)
+**Controls:** `B` to build, `S` to sell (50% refund).
 
-### Soldiers
+### Soldiers Tab
 
-Hire soldiers at $50,000 each. Capacity limited by Living Quarters.
+Hire soldiers at $50K each.
 
-- `H` — Hire soldier
-- `E` — Open equip screen
-- `G` — Open weapon designer
-- `D` — Dismiss soldier
+| Key | Action |
+|-----|--------|
+| H | Hire soldier |
+| E | Open equip screen |
+| G | Open weapon designer |
+| D | Dismiss soldier |
 
-### Hangars
+### Hangars Tab
 
-Press `6` to view your interceptors. Each Hangar facility houses one interceptor.
+Each Hangar holds one interceptor. Manage your air force here.
 
-- `B` — Buy interceptor
-- `W` — Equip weapon
-- `G` — Open weapon designer
-- `D` — Open plane designer for selected interceptor
-- `↑`/`↓` — Navigate hangars
-- `Esc` — Back
-
----
-
-## Research
-
-From the Research tab, assign scientists to research topics. Research progresses
-automatically as time runs.
-
-### Procedural Tech Tree
-
-Each playthrough generates a unique tech tree from a seeded random algorithm.
-The tree always contains core technologies (Alien Alloys, Elerium-115, weapons,
-armour), but prerequisites and costs vary between runs. Alien autopsies are
-dynamically generated based on the procedural species spawned in your game.
-
-Key mechanics:
-- **Tiered DAG:** Technologies are organized in Tiers 1-5. Higher-tier techs
-  always require lower-tier prerequisites, guaranteeing no circular dependencies.
-- **Dynamic Autopsies:** Each procedural alien species gets a unique autopsy
-  topic. Some weapon techs require a specific autopsy as a biological catalyst.
-- **Cost Variance:** Non-tier-1 tech costs are multiplied by a random factor
-  (0.85x - 1.15x) each run. Laser Weapons might cost 102 one run and 138 the
-  next.
-- **Reachability:** Every Tier 2+ tech always has at least one prerequisite from
-  the tier directly below, guaranteeing the tree is fully reachable from Tier 1.
-
-### Core Technologies (always present)
-
-| Tier | Topic | Base Cost | Unlocks |
-|------|-------|-----------|---------|
-| 1 | Alien Alloys | 60 | Alloys item |
-| 1 | Elerium-115 | 80 | Elerium item |
-| 1 | UFO Navigation | 100 | Alien lore |
-| 1 | UFO Power Source | 120 | Alien lore |
-| 1 | Alien Communications | 90 | Alien lore |
-| 1 | [Species] Autopsy | 40-70 | Alien lore |
-| 2 | [Species] Xenobiology/Study | 60-110 | Alien lore (requires autopsy) |
-| 2 | Laser Weapons | 120 | Laser Pistol, Laser Rifle |
-| 2 | Personal Armour | 80 | Personal Armour |
-| 3 | Plasma Weapons | 200 | Plasma Pistol, Plasma Rifle |
-| 3 | Light Suit | 150 | Light Suit |
-| 3 | UFO Propulsion | 110 | Alien lore |
-| 4 | Heavy Plasma | 250 | Heavy Plasma |
-| 4 | Medium Suit | 200 | Medium Suit |
-| 4 | Mind Control | 150 | Alien lore |
-| 5 | Heavy Suit | 280 | Heavy Suit |
-| 5 | Power Suit | 400 | Power Suit |
-| 5 | Flying Suit | 500 | Flying Suit |
-
-### Procedural Species Studies
-
-Each procedural species unlocks a unique study topic after autopsy. These topics
-have randomized names (Xenobiology, Behavioral Analysis, Tactical Study, etc.)
-and provide additional lore about the species. They're optional but help build
-your encyclopedia and may provide strategic insights.
-
-### Recommended Early Research
-
-Alien Alloys and Elerium-115 are always available at Tier 1 and should be
-researched first. After that, check which autopsies your scientists can
-perform — some weapon techs require a specific alien autopsy as a catalyst.
-Species studies are optional but provide valuable intelligence.
+| Key | Action |
+|-----|--------|
+| B | Buy interceptor |
+| W | Equip weapon |
+| G | Open weapon designer |
+| D | Open plane designer |
 
 ---
 
-## Manufacturing
+## Research & Manufacturing
+
+### Research
+
+From the Research tab, assign scientists to topics. Research progresses
+automatically as game time passes.
+
+The tech tree is **procedural** — each playthrough generates a unique tree
+from a seeded algorithm. Core technologies (Laser Weapons, Personal Armour,
+Plasma Weapons) are always present, but prerequisites and costs vary.
+
+**Priorities:**
+- **Alien Alloys** and **Elerium-115** should be researched first
+- Autopsies of alien species unlock lore and may gate weapon techs
+- Interrogate captured aliens (`I` key) to complete research faster
+
+### Manufacturing
 
 From the Manufacture tab, assign engineers to produce items.
+This produces **stock weapons and armour** — for more powerful custom gear,
+use the Weapon Designer and Plane Designer.
 
-### Manufacturable Items
+**Manufacturable items** (build multiple at once):
 
 | Item | Time | Materials |
 |------|------|-----------|
-| Pistol | 3 days | 1 alloy |
-| Rifle | 5 days | 2 alloys |
-| Heavy Cannon | 7 days | 3 alloys |
-| Auto Cannon | 6 days | 3 alloys |
-| Rocket Launcher | 8 days | 4 alloys, 1 elerium |
-| Stun Rod | 2 days | 1 alloy |
-| Personal Armour | 6 days | 2 alloys |
-| Light Suit | 10 days | 4 alloys, 1 elerium |
-| Medium Suit | 14 days | 6 alloys, 2 elerium |
-| Heavy Suit | 18 days | 8 alloys, 3 elerium |
-| Medi-Kit | 3 days | 1 alloy |
+| Pistol, Rifle, Heavy Cannon, Auto Cannon | 3–8 days | Alloys |
+| Rocket Launcher, Stun Rod | 2–8 days | Alloys + Elerium |
+| Personal Armour, Light/Medium/Heavy/Power/Flying Suit | 6–18 days | Alloys + Elerium |
+| Medi-Kit | 3 days | Alloys |
 
-Manufacturing time scales with quantity: `5 + count × 2` days. More engineers
-speed up production.
-
-**Note:** Plasma weapons and Power/Flying Suits cannot be manufactured — they must
-be researched and recovered from alien corpses.
+More engineers = faster production. Energy weapons (Laser, Plasma) cannot be
+manufactured — they must be researched, designed, and built through the
+Weapon Designer, or recovered from aliens.
 
 ---
 
@@ -421,350 +284,280 @@ From the Soldiers tab, press `E` to open the equip screen.
 |-----|--------|
 | ↑/↓ | Select soldier |
 | Tab | Cycle available items |
-| 1 | Select weapon slot |
-| 2 | Select armour slot |
+| 1 | Weapon slot |
+| 2 | Armour slot |
+| 3 | Inventory slot |
 | Space | Equip selected item |
 | G | Open weapon designer |
-| A | Auto-equip all soldiers (best weapon + armour) |
+| A | Auto-equip all soldiers |
 | Esc | Back |
 
-Each soldier has a weapon slot and an armour slot. You can only equip items you
-have manufactured or recovered.
+### Slots
+
+- **Slot 1 (Weapon):** Main weapon — custom-designed or a stock rifle/pistol
+- **Slot 2 (Armour):** Body armour — personal, light suit, etc.
+- **Slot 3 (Inventory):** Extra items — grenades, medikits, scanners,
+  proximity mines, psi-amps, melee weapons
+
+### Encumbrance
+
+Every item has weight. The total weight of weapon + armour + inventory
+is your **encumbrance**. Higher encumbrance reduces your Time Units in battle
+(roughly 1 TU penalty per 5 weight units). Keep your soldiers lightly loaded
+for maximum mobility.
 
 ### Auto-Equip
 
-Pressing `A` on the equip screen scans the base stores and equips every soldier
-with the best available weapon (highest damage their Strength stat permits) and
-the best available armour (highest defence rating). Existing equipment is
-returned to stores. This is a fast way to regear your entire squad after
-researching or manufacturing new equipment.
+Press `A` to automatically equip every soldier with the best available weapon
+and armour from stores. Existing gear is returned to stores — a fast way to
+regear your squad after researching new tech.
 
 ---
 
 ## Battlescape
 
-The Battlescape is the tactical combat layer. You control a squad of soldiers
-against alien forces.
+The Battlescape is turn-based tactical combat. You control a squad of soldiers
+against alien forces on a 50×50 grid map.
 
 ### Turn Structure
 
-1. **Player Turn** — You spend Time Units (TU) to move, shoot, reload, etc.
-2. **Alien Turn** — Aliens act using their TU pool and AI.
-3. Repeat until one side is eliminated.
-
-### Mission Modifiers
-
-Missions can have random modifiers that change gameplay:
-
-| Modifier | Effect |
-|----------|--------|
-| Night Ops | Forced night battle. +20% loot reward. |
-| Reinforcements | Extra alien wave arrives on turn 4. |
-| Time Limit | 15 turns to eliminate all aliens or you lose. |
-| VIP Rescue | Protect the VIP. Bonus $50K if VIP survives. |
-| Booby Trapped | More grenades and proximity mines on the map. |
-| Heavy Fog | Sight range reduced by 40%. Smoke lingers longer. |
-| Alien Ambush | Aliens start in overwatch positions. |
-| Low Visibility | Reduced accuracy (-10%) for all units. |
-| High Ground | Map has elevated positions with accuracy bonus. |
-
-### Weather
-
-Weather conditions affect combat based on the mission location:
-
-| Weather | Effect |
-|---------|--------|
-| Rain | -5% accuracy, fire spreads slower |
-| Wind | +10% fire spread, grenades may drift |
-| Snow | Movement costs +1 TU in deep snow |
-| Fog | -5-10% accuracy, reduced sight range |
-| Storm | Combined rain + wind effects |
-| Cold | -3% accuracy, reduced sight in wind |
-
-### Victory & Defeat
-
- - **Victory:** All aliens eliminated. Soldiers earn XP, you recover loot, and
-   receive $50,000.
- - **Defeat:** All soldiers killed. Soldiers are lost. Time limit exceeded (if applicable).
-
-### Soldier Progression
-
-Soldiers improve through **per-action experience** earned during battle
-(firing, throwing, melee, reactions, bravery, psi skill, psi strength). At
-mission end `PostMission()` converts accumulated XP into stat gains (capped at
-TU 80, HP 60, ACC 120, Reactions 100, Bravery 100, Strength 70, Psi 100) and
-applies **halo growth**: any soldier who gained XP auto-promotes
-Rookie→Squaddie and grows TU/HP/Strength toward their caps.
-
-**Ranks** are awarded by total roster size (Corporal opens at 4 soldiers,
-Sergeant at 8, Lieutenant 14, Captain 22, Major 30, Colonel 40). Each promotion
-rolls a perk. Perks are wired into combat: Marksman (+15% acc at range >8),
-Close Combat (+15% at range ≤4), Overwatch (+20% reaction-fire acc), Steady Aim
-(+10% when unmoved), Grenadier (+2 grenade splash), Demolitions (+50% grenade
-damage), Field Medic (15 HP heal).
-
-**Fatal wounds & bleeding:** hits have a chance to cause fatal wounds and a
-bleed rate; bleeding drains HP each turn. Surviving wounds become recovery days
-(Wounds) on the soldier.
-
-**Morale:** wounded soldiers recover morale each turn and may panic (or gain
-bravery XP by holding). Fallen soldiers are recorded in the in-game Memorial.
-
-### After-Action Report
-
-After every tactical battle an **After-Action Report** (debrief screen) is
-displayed showing:
-
-- Battle outcome (Victory / Defeat)
-- Aliens eliminated and soldiers lost
-- Loot recovered and aliens captured
-- Funds earned
-- Per-soldier breakdown: name, rank, and stat gains (HP, ACC, REA, STR, BRA, TU)
-  or "KIA" for fallen soldiers
-
-Press **Enter**, **Space**, or **Esc** to dismiss and return to the Geoscape.
+1. **Player Turn** — Move and act with each soldier using Time Units (TU)
+2. **Alien Turn** — Aliens act using their own TU pools
+3. Repeat until one side is eliminated
 
 ### Time Units (TU)
 
-Every action costs TU from your soldier's pool. TU restore fully at the start of
-each player turn.
+Every action costs TU. TU restore fully at the start of each player turn.
 
-| Action | TU Cost |
-|--------|---------|
-| Move (per tile) | 4 (+4 if crouching) |
-| Fire weapon | 15 |
-| Reload | 8 |
+| Action | Approx. TU Cost |
+|--------|-----------------|
+| Move (per tile) | 4 |
 | Crouch | 4 |
+| Fire weapon | Varies by weapon (aimed=base, burst=1.5×, auto=2×) |
+| Reload | 8 |
 | Throw grenade | 20 |
 | Use medikit | 25 |
+| Psi attack | 20 |
 
-TU pool varies by rank: 45–55 at Rookie, increasing with promotions.
+A soldier's TU pool starts at 45–55 and can grow through experience (max ~80).
+
+### Fire Modes
+
+Weapons can have multiple fire modes. Press **Tab** to cycle, and check the
+mode shown in the sidebar.
+
+| Mode | Cost | Accuracy | Rounds | When to use |
+|------|------|----------|--------|-------------|
+| **Aimed** | Base TU | Best | 1 shot | Long range, high-value targets |
+| **Burst** | 1.5× TU | -10% | 3 shots | Mid range, supression |
+| **Auto** | 2× TU | -20% | All remaining ammo | Close range, emergencies |
+
+Not all weapons support all modes. Rifles and laser rifles support burst;
+only a few weapons support auto fire.
 
 ### Combat
 
-#### Hit Chance
-
-```
-distance = tiles to target
-accMod = 100 - (distance × 3), minimum 10
-hitChance = (attacker.Accuracy × accMod) / 100
-Crouch bonus: × 110 / 100
-```
-
-#### Damage
-
-```
-damage = weapon.Damage + random(0 to weapon.Damage / 3)
-damage -= target.Armour value
-Crouching: × 70 / 100
-Cover from objects: × (100 - cover%) / 100
-Minimum: 1
-```
-
-#### Object Cover
-
-Shots passing through tiles with cover values have their damage reduced.
-The highest cover value along the line of fire (excluding shooter and target)
-is applied as damage reduction.
-
-| Object | Cover % | Tile Symbol |
-|--------|---------|-------------|
-| Wall / UFO Wall | 80% | # / █ |
-| Rock | 70% | ∩ |
-| Tree | 60% | ♣ |
-| UFO Furniture | 50% | ░ ⚙ ◈ ⌁ ▤ ⊕ |
-| Bush | 40% | † |
-| Heavy Smoke | 40% | ▓ |
-| Fence | 30% | ║ |
-| Medium Smoke | 20% | ▒ |
-| Rubble | 20% | ▒ |
-
-**Strategy:** Position soldiers behind walls (80% reduction) for maximum protection.
-Trees (60%) are decent cover. Fences (30%) provide minimal protection.
-
-#### Damage Types & Resistance
-
-Each alien species has a primary damage type and unique resistance/weakness
-spread. These are discovered as you encounter and autopsy aliens.
-
-| Damage Type | Weapons |
-|-------------|---------|
-| Plasma | Plasma Pistol, Plasma Rifle, Heavy Plasma, Alien Grenade |
-| Laser | Laser Pistol, Laser Rifle |
-| Explosive | Rocket Launcher |
-| Melee | Chryssalid Claw, Reaper Claw, Stun Rod |
-| Kinetic | Pistol, Rifle, Heavy Cannon, Auto Cannon |
-| Psionic | Ethereal attacks |
-
-Alien resistance values: positive = damage reduced, negative = damage increased.
+Combat factors:
+- **Accuracy** depends on soldier skill, distance to target, cover, and fire mode
+  being used
+- **Crouching** gives an accuracy bonus and reduces incoming damage
+- **Cover** — walls block 80% of damage, trees 60%, bushes 40%,
+  fences 30%. Position your soldiers behind solid cover
+- **Bypass cover** with grenades — they explode in an area and ignore
+  cover damage reduction
 
 ### Line of Sight
 
-Uses Bresenham's line algorithm. Blocked by opaque tiles:
-- Walls, Trees, Rocks, UFO Walls
+Soldiers can only see in a straight line. Walls, trees, and rocks block LOS.
+Floors, doors, and grass do not.
 
-Passable (transparent) tiles:
-- Floors, Doors, Grass, UFO Floors
+### Objects & Cover
+
+Shots passing through objects have damage reduced by the object's cover value.
+The highest cover along the line of fire is applied.
+
+| Object | Cover % |
+|--------|---------|
+| Wall / UFO Wall | 80% |
+| Rock | 70% |
+| Tree | 60% |
+| UFO Furniture | 50% |
+| Bush | 40% |
+| Heavy Smoke | 40% |
+| Fence | 30% |
+| Rubble | 20% |
 
 ### Grenades
 
-- Range: 6 tiles (Euclidean)
-- Base damage: `40 + Strength × 2`
-- Splash: enemies within distance² ≤ 4 of impact
-- Splash damage: `base - (distance² × 5)`, minimum 5
-- **Destruction:** Destroys walls, trees, rocks, fences within blast radius (radius 2),
-  converting them to rubble with reduced cover
-- **Smoke:** Creates a smoke cloud (density 3 center, density 2 adjacent) that
-  expands and thins each turn, blocking LOS at heavy density
+- Range: ~6 tiles
+- Damage: based on strength, with area splash
+- Destroys walls, trees, rocks, and fences within blast radius
+- Creates smoke clouds that block LOS at high density
 
 ### Medikit
 
-Heals 10 HP per use, costs 25 TU. Must target a friendly unit.
+Heals 10 HP per use (15 HP with Field Medic perk), costs 25 TU.
 
-### Out-of-Battle Healing
+### Night Missions
 
-- Wounded soldiers heal 2 HP per day
-- Wounds decrement by 1 per day
-- Max wound time: 30 days
+Night (before 6:00 or after 18:00):
+- Lower accuracy (roughly 75% of daytime)
+- Reduced sight range (from 20 to ~10 tiles)
+- Soldiers glow warm, aliens glow faint blue
 
-### Crouching
+### Vision Modes
 
-- Costs 4 TU to crouch, free to stand
-- +10% accuracy bonus
-- 30% damage reduction when hit
-
-### Night/Day Missions
-
-Battles occur in real-time. The game hour determines whether it's night:
-- **Night:** Before 6:00 or after 18:00
-- **Day:** 6:00 to 18:00
-
-Night penalties:
-- **Accuracy:** 75% of daytime accuracy
-- **Sight range:** Reduced from 20 to 10 tiles
-- **Visual effects:** Soldiers emit a warm glow, aliens emit a faint blue glow
+Press `V` to cycle: **Normal → Night Vision → Thermal → Normal**
+- Night Vision: green phosphor overlay with static
+- Thermal: living entities glow hot, terrain is cold blue
 
 ### Psi Combat
 
-Requires a **Psi-Amplifier** weapon and the **Psi-Lab** facility.
+Requires a Psi-Amplifier weapon and a Psi-Lab facility. Success depends on
+your soldier's psi skill vs the target's psi strength. A successful psi attack
+panics the target — they lose their turn.
 
-| Action | TU Cost |
-|--------|---------|
-| Psi attack | 20 |
+Soldiers in a base with a Psi-Lab may gain psi skill over time (up to ~80).
+Mind Control research grants a significant psi boost to all soldiers.
 
-**Formula:** `success chance = attacker.PsiSkill - (target.PsiStr / 3)` (min 5%)
+### Mission Modifiers
 
-Success: Target is **panicked** — loses all TU and skips their next turn. Psi resistance
-varies by alien species (Ethereals are highly resistant, Chryssalids have none).
+Random modifiers that change each battle:
 
-**Training:** Soldiers in a base with a Psi-Lab gain +1 PsiSkill per day (max 80).
+| Modifier | What happens |
+|----------|--------------|
+| Night Ops | Forced night battle, bonus loot |
+| Reinforcements | Extra aliens arrive on turn 4 |
+| Time Limit | 15 turns to eliminate all aliens |
+| VIP Rescue | Protect a VIP, bonus cash if they survive |
+| Booby Trapped | More grenades and mines on the map |
+| Heavy Fog | Sight range reduced by 40% |
+| Alien Ambush | Aliens start in overwatch positions |
+| Low Visibility | Reduced accuracy for all units |
+| High Ground | Elevated positions give accuracy bonus |
 
-**Mind Control research:** Completing this topic grants +20 PsiSkill to all soldiers
-at that base.
+### Weather
 
-### Visual Effects
+Weather affects combat based on mission location:
 
-The Battlescape includes dynamic visual effects:
-- **Explosions:** Grenade detonations and weapon impacts spawn particle bursts
-- **Screen shake:** Camera shakes on explosions (intensity scales with damage)
-- **Smoke particles:** Grenade impacts produce lingering smoke particles
-- **Night lighting:** Units emit subtle radial glow in dark missions
-- **Volumetric gas:** Grenades create expanding smoke clouds (density 3→2→1→dissipate)
-  that block LOS at heavy density and provide cover penalties. Diffuses each turn.
-- **Destructible terrain:** Grenades destroy walls/trees/rocks in their blast radius,
-  converting them to rubble. Rubble particles fly in parabolic arcs on destruction.
-- **Vision modes:** Press `V` to cycle Normal → Night Vision → Thermal → Normal.
-  - Night Vision: green phosphor overlay with static noise
-  - Thermal: living entities glow hot (red/orange/yellow), terrain is cold (dark blue)
-- **Blood splatter:** Damage leaves persistent blood decals on floor tiles.
-  Humans bleed dark red; Mutons/Chryssalids bleed neon green; others bleed purple.
-- **Animated fire:** Plasma and explosive weapons ignite flammable tiles.
-  Fire cycles between `^`/`w`/`*` in yellow/orange/red, spreads 20% chance per turn
-  to adjacent grass/trees/bushes, and consumes the tile to ash after 3 turns.
+| Weather | Effect |
+|---------|--------|
+| Rain | Lower accuracy, fire spreads slower |
+| Wind | Fire spreads faster, grenades may drift |
+| Snow | Movement costs more in deep snow |
+| Fog | Lower accuracy, reduced sight |
+| Storm | Rain + wind combined |
+| Cold | Slight accuracy penalty |
 
-### Map Types
+### After-Action Report
 
-| Map | Description |
-|-----|-------------|
-| Crash Site | Outdoor terrain with UFO wreckage |
-| Terror Site | Urban map with buildings |
-| Supply (UFO Interior) | Inside a UFO, multiple rooms |
-| Alien Base | Rocky terrain with alien structure |
+After each battle, you see:
+- Outcome (Victory / Defeat)
+- Aliens killed and soldiers lost
+- Loot recovered and prisoners captured
+- Funds earned
+- Per-soldier stat gains or "KIA" marker
+
+Press **Enter**, **Space**, or **Esc** to dismiss.
 
 ---
 
 ## Weapons & Equipment
 
-### Weapons
+### Custom Weapon Designer
 
-| Weapon | Code | DMG | ACC | TU | Range | Ammo | Notes |
-|--------|------|-----|-----|-----|-------|------|-------|
-| Pistol | PIS | 15 | 65% | 15 | 8 | 12 | Starting weapon |
-| Rifle | RIF | 22 | 70% | 20 | 20 | 20 | Standard issue |
-| Heavy Cannon | HVC | 35 | 55% | 25 | 15 | 6 | High damage |
-| Auto Cannon | AUC | 20 | 60% | 25 | 18 | 18 | 3-round burst |
-| Rocket Launcher | RKT | 80 | 45% | 30 | 30 | 1 | Devastating |
-| Laser Pistol | LSP | 28 | 75% | 12 | 12 | ∞ | Energy weapon |
-| Laser Rifle | LSR | 40 | 80% | 18 | 25 | ∞ | Energy weapon |
-| Plasma Rifle | PLR | 55 | 75% | 22 | 28 | ∞ | Alien tech |
-| Plasma Pistol | PLP | 30 | 70% | 14 | 10 | ∞ | Alien tech |
-| Stun Rod | STR | 10 | 90% | 20 | 1 | ∞ | Melee only |
+Press `G` from the Base, Soldiers, or Equip screen to open the **Weapon Designer**.
+This is the primary way to create weapons for your soldiers. Pick a base template
+and customize each component:
 
-### Ammo & Energy Weapons
+| Component | Options | What it affects |
+|-----------|---------|-----------------|
+| **Base** | Pistol / Rifle | Starting damage, range, accuracy, TU cost |
+| **Barrel** | Short / Standard / Long / Extended | Range, accuracy, TU cost, weight |
+| **Optics** | None / Iron Sights / Scope / Advanced Optics | Accuracy, TU cost, weight |
+| **Fire Mode** | Semi-Auto / Full-Auto | Full-auto mode (fires faster, less accurate) |
+| **Ammo** | Standard / AP / Incendiary / Explosive | Damage mod, TU cost, weight |
+| **Stock** | None / Light / Heavy | Accuracy, TU cost, weight |
 
-- **Ammo-based** weapons (Pistol, Rifle, Heavy Cannon, Auto Cannon, Rocket) need
-  reloading — press `R` in combat.
-- **Energy weapons** (Laser, Plasma) have unlimited ammo — no reload needed.
+Each component affects the weapon's damage, accuracy, TU cost, range, and weight.
+The preview panel shows the assembled weapon as colored ASCII art and displays
+its final stats. Designs are saved as custom items available in the Equip screen.
 
-### Items
+**Tip:** Start with a Rifle base for most purposes. Long barrels and scopes
+improve ranged accuracy. Explosive ammo hits hard but costs extra TU.
 
-| Item | Code | Weight | Value |
-|------|------|--------|-------|
-| Aluminium Alloys | ALY | 2 | $8,000 |
-| Elerium-115 | ELR | 3 | $12,000 |
-| Alien Corpse | ALC | 10 | $2,000 |
-| Sectoid Corpse | SEC | 10 | $3,000 |
-| Floater Corpse | FLT | 10 | $4,000 |
-| Muton Corpse | MUT | 15 | $6,000 |
-| Ethereal Corpse | ETH | 10 | $8,000 |
-| Alien Grenade | AGR | 1 | $4,000 |
-| Medi-Kit | MDK | 2 | $6,000 |
-| Motion Scanner | MSC | 3 | $5,000 |
-| Psi-Amplifier | PSI | 2 | $30,000 |
+### Stock Weapons
+
+These base items are available from the start and can be manufactured:
+
+| Type | Damage | Ammo | Notes |
+|------|--------|------|-------|
+| Pistol | Light | Ballistic | Needs reloading, low weight |
+| Rifle | Medium | Ballistic | Standard issue, supports burst |
+| Heavy Cannon | High | Ballistic | Slow, heavy, hits hard |
+| Auto Cannon | Medium | Ballistic | Full-auto option |
+| Rocket Launcher | Very High | Explosive | Area damage |
+
+### Energy Weapons
+
+Researched later — never need reloading:
+
+| Type | Damage | Notes |
+|------|--------|-------|
+| Laser Pistol | Light | Early energy weapon |
+| Laser Rifle | Medium | Supports burst fire, never reloads |
+| Plasma Pistol | Medium | Alien weapon, never reloads |
+| Plasma Rifle | High | Alien weapon, never reloads |
+| Heavy Plasma | Very High | Top-tier alien weapon |
+
+### Ammo & Reloading
+
+- **Ballistic weapons** need reloading — press `R` in combat
+- **Energy weapons** (Laser, Plasma) never need reloading
+- **Consumables** (grenades, medikits) are used from your inventory
+
+### Fire Modes
+
+See [Battlescape → Fire Modes](#fire-modes) for details.
+
+### Inventory Items
+
+Soldiers can carry extra items in their inventory slot:
+- **Grenades** — thrown explosive with area damage
+- **Medikits** — heal yourself or an adjacent ally
+- **Motion Scanners** — detect nearby enemies
+- **Proximity Mines** — place on the ground, detonates when an enemy walks over it
+- **Psi-Amps** — enable psi attacks (requires psi skill)
+- **Melee weapons** — Stun Rod for non-lethal takedowns
+
+Each inventory item adds weight and increases encumbrance, reducing your
+available TU in battle. Pack wisely.
 
 ### Procedural Items
 
-Each playthrough generates unique weapons and armor based on the procedural alien
-species. These items have randomized stats and names, making every game different.
+Each playthrough generates unique weapons and armour based on the alien species
+encountered. These have randomized names and stats — every game is different.
 
-**Procedural Weapons:** 2-3 weapons with damage types matching the alien species.
-Names combine prefixes (Plasma, Laser, Rail, Psi, etc.) with weapon types (Pistol,
-Rifle, Carbine, Blaster, Cannon, Emitter).
+**Procedural weapons:** 2–3 weapons with damage types matching the alien species.
+**Procedural armour:** 1–2 armour pieces with protection matching alien damage types.
 
-**Procedural Armor:** 1-2 armor pieces with protection matching alien damage types.
-Names combine prefixes (Plasma-Shielded, Reflective, Ballistic, Psi-Shielded, etc.)
-with armor types (Vest, Suit, Plating, Armour, Guard).
-
-These items are automatically added to your stores when the game starts and can be
-equipped like any other item.
-
-**Storage:** Weight varies by item (weapons 2–12, armour 8 per unit). Capacity = 50 per Storage facility.
+These items are automatically added to your stores at game start.
 
 ---
 
 ## Armour
 
-| Armour | Code | Defence | TU Penalty | Cost |
-|--------|------|---------|------------|------|
-| None | --- | 0 | 0% | — |
-| Personal Armour | PSA | 10 | 0% | $15,000 |
-| Light Suit | LIS | 20 | -5% | $35,000 |
-| Medium Suit | MDS | 30 | -10% | $55,000 |
-| Heavy Suit | HVS | 40 | -15% | $75,000 |
-| Power Suit | PWS | 50 | -10% | $100,000 |
-| Flying Suit | FLS | 45 | -5% | $140,000 |
+| Armour | Defence | TU Penalty | Notes |
+|--------|---------|------------|-------|
+| None | 0 | None | Default |
+| Personal Armour | 10 | None | Early game standard |
+| Light Suit | 20 | -5% TU | Good mid-game option |
+| Medium Suit | 30 | -10% TU | Strong protection |
+| Heavy Suit | 40 | -15% TU | Max defence, heavy penalty |
+| Power Suit | 50 | -10% TU | Endgame armour |
+| Flying Suit | 45 | -5% TU | Near-endgame, lighter than Power |
 
-Higher armour reduces damage but imposes a TU penalty, reducing actions per turn.
+Higher defence reduces damage taken, but heavier suits cost Time Units.
 
 ---
 
@@ -772,172 +565,154 @@ Higher armour reduces damage but imposes a TU penalty, reducing actions per turn
 
 ### Procedural Species
 
-Each game session generates 5–7 unique alien species from a seed. Every species
-has 2–5 rank variants (Soldier → Navigator → Commander → Elite → Overlord).
+Each game generates 5–7 unique alien species from a seed. Every species has
+2–5 rank variants (Soldier → Navigator → Commander → Elite → Overlord).
 
-Species traits are determined at generation:
-- **Primary damage type** — the damage type the species deals
-- **Resistance spread** — each species has unique resistances and weaknesses
+Species differ in:
+- **Damage type** — the kind of damage they deal
+- **Resistances & weaknesses** — some are weak to plasma, others to explosives
 - **Weapon preference** — lower ranks use pistols, higher ranks use heavy weapons
-- **Morphology** — physical form that determines stats, resistances, and portrait
+- **Morphology** — physical body plan affecting stats and resistances
 
-This means every playthrough features different alien threats. One run may have
-a psionic-heavy species resistant to plasma, while another has melee predators
-weak to explosives.
+This means **every playthrough features different alien threats**. One run may
+have a psionic-heavy species, another may have melee predators weak to explosives.
 
 ### Morphology
 
-Every procedural species has a morphology — its physical body plan — that affects
-combat stats, damage resistances, and visual appearance.
+Morphology determines an alien's physical form. Key factors:
 
-#### Limbs
+**Limbs:**
+- Arms (0–6): Fewer arms = worse accuracy, more arms = better stability or dual-wield
+- Legs (0–8): More legs = faster but larger target; zero legs = floating, harder to hit
 
-| Variable | Range | Effect |
-|----------|-------|--------|
-| Arms (manipulative) | 0–6 | 0 = no arms (-15 Acc, pistol-only), 2 = baseline, 3–4 = extra stability (+5 Acc), 5–6 = dual-wield |
-| Legs (locomotive) | 0–8 | 0 = floating (+10 Reactions, harder to hit), 2 = baseline, 4 = fast (+10 TU), 6–8 = very fast but large target |
+**Body types and their resistances:**
+- **Carbon Flesh:** +Kinetic resistance, -Explosive weakness
+- **Silicon Based:** +Laser/+Plasma resistance, -Explosive weakness, reflective
+- **Gaseous:** Immune to kinetic, weak to plasma, can phase through walls
+- **Crystalline:** Good all-round resistance, very weak to explosives, shatters on death
+- **Amorphous:** +Psi resistance, regenerates HP each turn
+- **Mechanical:** Immune to psi, +Plasma resistance, -Laser weakness, self-destructs
+- **Bio-Synthetic:** Balanced resistances, heals adjacent aliens
+- **Nanotech:** +Kinetic resistance, can revive on death
 
-#### Body Type & Subtype
-
-| Body Type | Subtype | Resistances | Special |
-|-----------|---------|-------------|---------|
-| Organic | Carbon Flesh | +10 Kinetic, -10 Explosive | None |
-| Organic | Silicon Based | +20 Laser, +10 Plasma, -15 Explosive | Reflective |
-| Organic | Gaseous | Immune Kinetic, -20 Plasma | Phasing (move through walls) |
-| Organic | Crystalline | +15 all except Explosive (-25) | Shatter (AoE on death) |
-| Organic | Amorphous | +10 Psionic | Regenerate (2 HP/turn) |
-| Synthetic | Mechanical | Immune Psionic, +15 Plasma, -15 Laser | Overload (self-destruct AoE) |
-| Synthetic | Bio-Synthetic | +5 all | Healer (heal adjacent aliens) |
-| Synthetic | Nanotech | +20 Kinetic, -10 energy | Disperse (50% revive on death) |
-
-#### Senses
-
-| Sense | Qualities | Combat Effect |
-|-------|-----------|---------------|
-| Eyesight | none / poor / normal / excellent / multi-spectrum | Affects accuracy and reaction fire. Multi-spectrum ignores smoke/darkness. |
-| Hearing | none / poor / normal / excellent / echolocation | Echolocation detects units through smoke within 6 tiles. |
-| Thermal Sense | none / low / high | High detects any living unit within 10 tiles regardless of cover/smoke. |
-| Psionic Sense | none / low / high | High grants +15 Psi and detects mind-controlled humans. |
-| Chemical Sense | none / low / high | High grants +10 Accuracy vs wounded targets. |
-
-#### Morphology & Stats
-
-Morphology modifies base stats before rank scaling:
-- Floating aliens: -5 TU, +10 Reactions, -3 HP
-- Multi-armed aliens: +5–10 Accuracy, +5–10 Strength
-- Many-legged aliens: +10–15 TU, +5–10 Reactions, +5 Strength
-- Blind aliens (Eyesight=none): -20 Accuracy, +10 Psi (compensates)
-- Crystalline: +5 HP, +5 Armour, -10 TU
+**Senses:**
+- **Eyesight:** Affects accuracy — multi-spectrum ignores smoke/darkness
+- **Hearing:** Echolocation detects units through smoke at close range
+- **Thermal Sense:** Detects living units regardless of cover at close range
+- **Psionic Sense:** Boosts psi, detects mind-controlled humans
+- **Chemical Sense:** Bonus accuracy vs wounded targets
 
 ### Knowledge Levels
 
-As you encounter aliens, your knowledge increases:
+As you encounter aliens, intel improves:
 
-| Level | Trigger | Effect |
-|-------|---------|--------|
-| 0 — Unknown | Never seen | Name appears as "???" in encyclopedia |
-| 1 — Sighted | Alien visible in FOV | Name and icon revealed |
-| 2 — Killed | Alien killed in combat | Stats and resistances revealed |
-| 3 — Autopsied | Research completed | Full lore and detailed weaknesses |
+| Level | What you learn |
+|-------|----------------|
+| Unknown | Name appears as "???" |
+| Sighted | Name and icon revealed |
+| Killed | Stats and resistances revealed |
+| Autopsied | Full lore and detailed weaknesses |
 
-### Alien AI Behavior
+### Alien AI
 
-- **Patrol:** Wander until a human is detected, then switch to Attack.
-- **Attack:** Fire at target. High-aggression aliens (>5) charge if distance > 3 tiles.
-- **Search:** Move toward last-seen position for 5 turns, then resume Patrol.
-- **Flee:** Triggered when HP < 25% AND Bravery < 50. Runs for 3 turns.
-- **Senses:** Aliens with thermal sense or echolocation can detect units they
-  cannot see directly (through smoke, around corners). Chemical sense prioritises
-  wounded targets. Excellent eyesight grants accuracy bonuses at long range.
-- **Adaptive:** Across missions the aliens study your habits (stored in `Game.Tactics`).
-  If you snipe from long range they rush to close distance; if you lean on grenades
-  they spread out to avoid clusters; if you flank often they post more suppressors
-  to pin you; if they are losing badly they retreat sooner, and if they dominate
-  they fight on aggressively.
+Aliens patrol until they spot a human, then attack. Behaviors include:
+- **Search** — move toward last known position for a few turns
+- **Flee** — run away when badly hurt and low on bravery
+- **Adapt** — aliens study your tactics across missions.
+  Snipe from range? They'll rush you. Use grenades? They'll spread out.
+  Flank often? They'll post suppressors.
 
-**Equipment escalation:** As the campaign progresses, aliens deploy with
-better weapons and equipment. The escalation is tied to the campaign month:
-- **Month 0–2 (Tier 0):** Plasma pistols, basic armour.
-- **Month 3–5 (Tier 1):** Plasma rifles and light heavy plasma; +2 HP & armour.
-- **Month 6–8 (Tier 2):** Heavy plasma, alien cannons, alien lasers; +4 HP & armour.
-- **Month 9+ (Tier 3):** Top-tier alien weaponry; +6 HP & armour.
+### Equipment Escalation
 
-Alien stat scaling (HP, Accuracy) still applies on top of equipment tiers.
+Aliens get better equipment as the campaign progresses:
+- **Early months:** Plasma pistols, basic armour
+- **Mid campaign:** Plasma rifles, heavy plasma, alien cannons
+- **Late campaign:** Top-tier alien weapons and armour
+
+### Alien Capture
+
+Use a **Stun Rod** (melee, $2K to manufacture) to knock aliens unconscious.
+If the stun damage exceeds their HP, they fall unconscious and can be collected
+after the mission — provided you have Alien Containment with free capacity.
+
+Captured aliens can be interrogated from the Research screen (`I` key):
+- Interrogation can complete an active autopsy instantly
+- Or grant a progress bonus to current research
+- Requires at least one Laboratory
 
 ---
 
-## Soldier Ranks & Stats
+## Soldier Ranks & Progression
 
 ### Ranks
 
-| Rank | Roster Size Required |
-|------|----------------------|
-| Rookie | 0 |
-| Squaddie | 10 |
-| Corporal | 25 |
-| Sergeant | 50 |
-| Lieutenant | 80 |
-| Captain | 120 |
-| Major | 170 |
-| Colonel | 230 |
+Ranks unlock as your total roster grows:
 
-### Per Rank-Up Bonuses
+| Rank | Unlocks when roster reaches |
+|------|----------------------------|
+| Rookie | Always available |
+| Squaddie | Always available |
+| Corporal | 4 soldiers |
+| Sergeant | 8 soldiers |
+| Lieutenant | 14 soldiers |
+| Captain | 22 soldiers |
+| Major | 30 soldiers |
+| Colonel | 40 soldiers |
 
-+2 HP, +1 MaxTU, +2 Accuracy, +1 Strength, +1 Reactions
+### Stat Growth
 
-### Perks
+Soldiers improve through **per-action experience** during battle:
+- **Firing** → improves Accuracy
+- **Reactions** → improves Reactions
+- **Melee** → improves Strength
+- **Bravery** → improves Bravery (from resisting panic)
+- **Psi skill** → improves Psi Skill and Psi Strength
 
-Soldiers gain a random perk on each rank-up. Perks provide special abilities:
-
-| Perk | Effect |
-|------|--------|
-| Lightning Reflexes | +10 Reactions |
-| Marksman | +15% accuracy at range > 8 tiles |
-| Grenadier | +2 grenade splash radius |
-| Field Medic | Medikit heals 15 HP instead of 10 |
-| Iron Will | +10 Psi Skill, +20 Psi Strength |
-| Steady Aim | +10% accuracy when not moving |
-| Close Combat Specialist | +15% accuracy at range ≤ 4 tiles |
-| Overwatch Expert | +20% reaction fire accuracy |
-| Demolitions | +50% grenade damage |
-| Scavenger | +25% loot from battles |
-| Tough | +5 MaxHP |
-| Quick Learner | +50% XP from battles |
+After each mission, accumulated XP is converted to stat gains. Soldiers who
+gained XP also get general "halo" growth toward their HP, TU, and Strength
+caps. Caps are roughly: TU 80, HP 60, Accuracy 120, Reactions 100,
+Bravery 100, Strength 70, Psi 100.
 
 ### Fatigue & Wounds
 
 - **Wounded soldiers** cannot deploy until healed (2 HP/day recovery)
-- **Fatigue:** Surviving battles causes 1-5 days of fatigue
-- Fatigue and wounds stack — a soldier may need multiple days off
-- Build Living Quarters to maintain a deep roster
+- **Fatigue:** Battles cause 1–5 days of fatigue
+- Healing facilities and Living Quarters speed recovery
 
-### XP Earning
+### Fatal Wounds
 
-`(alien_kills × 5) + 10` (if battle won), applied to all surviving deployed soldiers.
+In battle, hits may cause fatal wounds and bleeding. Bleeding drains HP each
+turn — get a medikit on them fast. Surviving wounds become recovery days
+after the mission.
 
-### New Soldier Stat Ranges
+### Morale
 
-| Stat | Min | Max |
-|------|-----|-----|
-| HP | 20 | 25 |
-| TU | 45 | 55 |
-| Accuracy | 40 | 60 |
-| Bravery | 30 | 70 |
-| Reactions | 30 | 50 |
-| Strength | 10 | 20 |
-| Psi Strength | 0 | 39 |
+Soldiers recover morale each turn. Low morale can trigger panic (skip turn).
+Resisting panic builds bravery XP.
 
-### Combat Stats
+### Perks
 
-| Stat | Description |
-|------|-------------|
-| HP | Health points — reach 0 and the soldier dies |
-| TU | Time Units — pool for all actions each turn |
-| Accuracy | Base hit chance % (modified by distance, crouching) |
-| Bravery | Determines if alien flees when low HP |
-| Reactions | Used for reaction shots |
-| Strength | Affects melee and grenade damage |
-| Psi Skill | Psychic ability |
+Each rank-up grants a random perk:
+
+| Perk | Effect |
+|------|--------|
+| Lightning Reflexes | +10 Reactions |
+| Marksman | +Accuracy at long range |
+| Grenadier | Larger grenade splash |
+| Field Medic | Medikit heals more |
+| Iron Will | +Psi Skill and +Psi Strength |
+| Steady Aim | +Accuracy when stationary |
+| Close Combat Specialist | +Accuracy at close range |
+| Overwatch Expert | +Reaction fire accuracy |
+| Demolitions | +Grenade damage |
+| Scavenger | +Loot from battles |
+| Tough | +5 Max HP |
+| Quick Learner | +XP gain |
+
+### Memorial
+
+Soldiers killed in action are recorded in the in-game Memorial.
+You can view it to honour the fallen.
 
 ---
 
@@ -945,13 +720,14 @@ Soldiers gain a random perk on each rank-up. Perks provide special abilities:
 
 | Key | Action |
 |-----|--------|
-| F5 | Save game to `xcom_save.json` |
-| F9 | Load game from `xcom_save.json` |
+| F5 | Open save slot picker |
+| F9 | Open load slot picker |
 
-Saves include: game time, funds, pausing, speed, alien activity, base state, UFOs,
-active missions, procedural species seed, and alien knowledge levels.
+Saves include: game time, funds, pause state, alien activity, base state,
+UFOs, active missions, procedural species seed, and alien knowledge levels.
+The seed ensures the same alien species regenerate on reload.
 
-The species seed ensures the same alien species are regenerated when loading a save.
+**Autosave:** If enabled in Options, the game auto-saves periodically.
 
 ---
 
@@ -962,6 +738,7 @@ The species seed ensures the same alien species are regenerated when loading a s
 | Key | Action |
 |-----|--------|
 | Arrow keys | Move camera |
+| j/k | Navigate region list |
 | Space | Pause/unpause |
 | 1–4 | Time speed |
 | B | Open base |
@@ -969,8 +746,11 @@ The species seed ensures the same alien species are regenerated when loading a s
 | A | Autoresolve nearest UFO |
 | M | Respond to mission |
 | R | Dispatch transport to crash site |
+| C | Cycle to next base |
+| N | Build new base ($500K) |
+| T | Open transfer screen |
 | E | Open encyclopedia |
-| V | Toggle radar coverage overlay on minimap |
+| V | Toggle radar overlay |
 | F5 | Save |
 | F9 | Load |
 | Q | Quit |
@@ -985,8 +765,8 @@ The species seed ensures the same alien species are regenerated when loading a s
 | B | Build facility |
 | S | Sell facility |
 | H | Hire soldier |
-| E | Equip screen |
-| G | Weapon designer |
+| E | Open equip screen |
+| G | Open weapon designer |
 | D | Dismiss soldier / Plane designer (Hangars) |
 | Esc | Back to geoscape |
 
@@ -995,8 +775,10 @@ The species seed ensures the same alien species are regenerated when loading a s
 | Key | Action |
 |-----|--------|
 | ↑/↓ | Select soldier |
-| 1 / 2 | Weapon / Armour slot |
 | Tab | Cycle available items |
+| 1 | Weapon slot |
+| 2 | Armour slot |
+| 3 | Inventory slot |
 | Space | Equip selected item |
 | G | Open weapon designer |
 | A | Auto-equip all soldiers |
@@ -1004,59 +786,63 @@ The species seed ensures the same alien species are regenerated when loading a s
 
 ### Weapon Designer
 
-Press `G` from the Base, Soldiers, or Equip screen to open the weapon designer.
-Design custom modular weapons for your soldiers. Each weapon has 5 parameters:
+Press `G` from Base, Soldiers, or Equip screen.
 
 | Parameter | Options | Effect |
 |-----------|---------|--------|
-| Barrel Length | Short / Medium / Long | Range +, Accuracy +, TU cost +, Weight + |
-| Optics | None / Iron / Scope / Advanced | Accuracy +, TU cost +, Weight + |
-| Fire Mode | Semi-Auto / Full-Auto | Burst capability |
-| Ammo | Standard / AP / Incendiary / Explosive | Damage type |
-| Stock | None / Light / Heavy | Accuracy +, Weight + |
+| Barrel | Short / Standard / Long / Extended | Range, accuracy, weight, TU cost |
+| Optics | None / Iron Sights / Scope / Advanced | Accuracy, weight, TU cost |
+| Fire Mode | Semi-Auto / Full-Auto | Full-auto mode |
+| Ammo | Standard / AP / Incendiary / Explosive | Damage, weight, TU cost |
+| Stock | None / Light / Heavy | Accuracy, weight, TU cost |
 
-Custom weapons are automatically registered and available in the Equip screen.
-The weapon preview renders as colored ASCII art (muzzle, barrel, receiver, stock).
+### Plane Designer (Custom Interceptors)
 
-### Plane Designer
+All interceptors are designed and built through the **Plane Designer**.
+Press `D` from the Hangars tab to open it. Configure your aircraft:
 
-Press `D` from the Hangars tab to open the plane designer.
-Configure interceptors with 4 parameters:
+| Parameter | Range | What it affects |
+|-----------|-------|-----------------|
+| **Length** | Short (3) → Long (7) | Hull points, mass, speed |
+| **Wingspan** | Short (1) → Wide (4) | Maneuverability, mass |
+| **Engines** | 1–3 | Speed, fuel capacity, mass |
+| **Fuel** | 20–100 | Operational range |
+| **Weapon** | Cannon / Stingray / Avalanche / Plasma | Firepower, weight, cost |
+| **Armor** | None / Light Alloy / Heavy Alloy / Alien Plating | Hull bonus, damage reduction, mass |
 
-| Parameter | Options | Effect |
-|-----------|---------|--------|
-| Length | Short / Medium / Long | Hull +, Weight + |
-| Wingspan | Short / Medium / Long | Maneuverability + |
-| Engines | 1–3 | Speed +, Fuel + |
-| Weapon | Cannon / Stingray / Avalanche / Plasma | Firepower |
-| Armor | None / Light / Heavy / Alien | Hull +, Weight + |
+The designer computes derived stats (speed, firepower, hull, mass-to-thrust ratio)
+from your configuration and displays a colored ASCII preview. Heavier designs
+are tougher but slower — balance durability against interception speed.
 
-Plane stats are derived from mass/thrust/weight ratios. Design is saved on the interceptor.
+**Plane weapons:**
 
-### After-Action Report (Debrief)
+| Weapon | Damage | Accuracy | Range | Fire Rate | Cost |
+|--------|--------|----------|-------|-----------|------|
+| Cannon | 15 | 85% | 25 | 3 shots | $5K |
+| Stingray | 25 | 70% | 45 | 2 shots | $8K |
+| Avalanche | 40 | 55% | 60 | 1 shot | $12K |
+| Plasma | 60 | 50% | 50 | 1 shot | $20K |
 
-| Key | Action |
-|-----|--------|
-| Enter / Space / Esc | Dismiss |
+**Plane armour:**
+
+| Armour | Hull Bonus | Damage Reduction | Cost |
+|--------|------------|------------------|------|
+| None | 0 | 0% | Free |
+| Light Alloy | +10 | 10% | $8K |
+| Heavy Alloy | +25 | 25% | $18K |
+| Alien Plating | +40 | 40% | $35K |
 
 ### Battlescape
 
-The tactical view shows a grid-based map with your soldiers and alien enemies.
-The right sidebar displays information on the selected or hovered unit:
-
-- **Soldiers** show their name, rank, HP, and the soldier's portrait (colored 20×24 half-block face).
-- **Aliens** after autopsy shows their HP, accuracy, TU, strength, and a procedurally-generated 7×7 colored ASCII sprite showing the alien's head, torso, and limbs in species-specific colors. Before autopsy, the alien appears as "???" with no stats.
-
-The sidebar also contains the battle log (attack results, damage, kills).
-
 | Key | Action |
 |-----|--------|
-| Arrow keys | Move cursor |
-| Space / Enter | Select / Confirm |
+| Arrow keys / WASD / hjkl | Move cursor |
+| Space / Enter | Select unit / confirm |
 | q | Cycle soldiers |
 | f | Fire weapon |
+| Tab | Cycle fire mode |
 | r | Reload |
-| e | End turn |
+| e / n | End turn |
 | c | Crouch |
 | g | Throw grenade |
 | m | Move mode |
@@ -1064,35 +850,22 @@ The sidebar also contains the battle log (attack results, damage, kills).
 | p | Psi attack |
 | y | Motion scanner |
 | t | Place proximity mine |
+| v | Cycle vision mode |
 | o | Options |
 | ? | Help |
+| Esc | Cancel / deselect |
 
 ### Mobile Touch Controls
 
-Mobile layout activates automatically when the browser connects with `cols < 100`.
-`TouchMode` can also be set manually in config.json (`"touch_mode": true`).
-
-**Touch gestures:**
+On browser with narrow screen (cols < 100) or when `touch_mode` is enabled:
 
 | Gesture | Action |
 |---------|--------|
-| Tap | Left click (select, move, fire) |
-| Long press (500ms) | Right click (cancel) |
-| Vertical drag | Scroll (mouse wheel) |
+| Tap | Select, move, fire |
+| Long press (500ms) | Cancel |
+| Vertical drag | Scroll |
 
-**On-screen control menu:**
-The `[=]` hamburger button in the top-right corner opens a touch-friendly button overlay.
-The menu auto-shows on first touch of each screen. Context-sensitive buttons per screen:
-
-- **Geoscape:** Pause, Speed 1-4, Base, Launch, Save, Load, Help
-- **Battlescape:** Select, Move, Fire, Reload, End Turn, Grenade, Medikit, Crouch, Cycle, Help
-- **Base:** Facilities, Soldiers, Research, Manufacture, Transfer, Hangars, Back, Help
-- **Other screens:** Back, Help
-
-**Responsive layouts (cols < 100):**
-- Battlescape: sidebar collapses, full-width viewport with compact unit banner
-- Geoscape: minimap hidden, region table full-width
-- Encyclopedia/CustomBattle: panels stacked vertically
+A `[=]` button opens a touch-friendly on-screen control menu.
 
 ---
 
@@ -1100,304 +873,44 @@ The menu auto-shows on first touch of each screen. Context-sensitive buttons per
 
 ### Early Game
 
-1. Research **Alien Alloys** first — unlocks Laser Weapons and Armour.
-2. Build a second **Radar** to increase detection range and monthly funding.
+1. Research **Alien Alloys** first — it unlocks Laser Weapons and Armour.
+2. Build a second **Radar** — more detection, more monthly funding.
 3. Hire 2–4 extra soldiers to fill your squads.
-4. Manufacture **Laser Rifles** as soon as researched — they outclass ballistics
-   and never need reloading.
+4. Use the **Weapon Designer** to create custom rifles — you can build
+   better guns than the stock models with the right components.
+5. Don't ignore autopsies — some weapon techs require them.
+6. Custom-design your interceptors in the **Plane Designer** — a balanced
+   design (medium length/wingspan, 2 engines, Stingray missiles) outperforms
+   default interceptors.
 
-### Combat Tips
+### Combat
 
-- **Use object cover** — position behind walls (80% reduction) or trees (60%).
-- **Crouch before firing** — +10% accuracy and 30% damage reduction.
-- **Reload early** — don't wait until empty.
-- **Grenades** bypass cover — useful against enemies behind walls.
-- **Learn alien weaknesses** — each species has unique resistances. Use the right weapon.
-- **Medikits** — keep one on a dedicated medic. 25 TU is expensive, but saves lives.
-- **Don't overextend** — advance cautiously; aliens get reaction shots.
-
-### Base Building
-
-- **Radar** facilities are worth it: +$50K monthly funding each.
-- **Storage** is essential — you'll fill up fast with corpses and alloys.
-- **Alien Containment** is needed for live captures (research bonuses).
-  Each facility holds 10 captured aliens. Build multiple for larger rosters.
-- Build **Hangars** to field multiple interceptors.
-- **Psi-Lab** trains psi skill (+1/day, max 80). Build it early if you want psi
-  capabilities. Mind Control research grants +20 PsiSkill to all soldiers.
-
-### Alien Capture & Interrogation
-
-Use the **Stun Rod** (melee weapon, $2K) to stun aliens instead of killing them.
-When an alien's stun points exceed their HP, they fall unconscious and can be
-collected after the mission — provided you have an Alien Containment facility
-with available capacity.
-
-Captured aliens are listed in the Research screen. Press **I** to interrogate
-a captured alien:
-- If the matching autopsy topic is active, interrogation completes it instantly.
-- If the autopsy is not yet started, interrogation auto-completes it and
-  grants all associated unlocks.
-- If the autopsy is already done, interrogation grants a 25% progress bonus
-  to your current active research topic.
-- Interrogation requires at least one Laboratory.
-
-### Research Priorities
-
-1. Alien Alloys → Laser Weapons (always Tier 1 → Tier 2)
-2. Personal Armour (always Tier 2)
-3. Autopsies of encountered species (Tier 1 — unlocks alien lore and may gate weapon techs)
-4. Elerium-115 → Plasma Weapons (check autopsy requirement)
-5. Mid-game: Medium Suit, Heavy Plasma, UFO Propulsion
-6. Late-game: Power Suit, Flying Suit, Mind Control
+- **Use cover** — walls (80%) > rocks (70%) > trees (60%) > bushes (40%)
+- **Crouch** before firing for better accuracy and damage reduction
+- **Grenades** bypass cover and destroy walls — perfect for entrenched enemies
+- **Learn alien resistances** — check the encyclopedia after first kills
+- **Don't overextend** — aliens get reaction shots when you move in their LOS
+- **Keep a medic** — one soldier with a medikit can save lives
+- **Manage encumbrance** — don't overload soldiers with heavy gear
 
 ### Economy
 
-- Sell alien corpses and excess loot for quick cash.
-- Monthly salary costs add up — balance soldiers vs. income.
-- $50K reward per battle win helps offset expenses.
-- Early game is tight on funds — manufacture and sell items for profit.
+- Sell excess alien corpses and loot for cash
+- Monthly salaries add up — balance your roster against income
+- Council missions pay $100K bonus — prioritize them
+- Manufacture items to sell for profit in the early game
 
----
+### Research Path
 
-## Tutorial / Onboarding
+Alloys → Laser Weapons → Personal Armour → Autopsies → Elerium → Plasma Weapons
 
-On your first playthrough (no save files detected), the game automatically presents
-a step-by-step **Commander Briefing** after you select your difficulty. The tutorial
-covers:
+Mid game: Medium Suit, Heavy Plasma.
+Late game: Power/Flying Suit, Mind Control.
 
-1. **Welcome** — Introduction to X-COM and your role as Commander
-2. **Geoscape & Time Controls** — Pause (`Space`), time compression (`1`–`4`)
-3. **UFO Detection** — How radar and UFO markers work
-4. **Interceptor Launch** — Press `L` to engage hostile craft
-5. **Mission Response** — Press `M` to deploy, auto-resolve, or ignore
-6. **Base Management** — Press `B` to manage facilities and soldiers
-7. **Battlescape** — Time Units, movement, and combat basics
-8. **Completion** — Reminder that `?` opens the full manual at any time
+### Base Building
 
-### Controls
-
-| Key | Action |
-|-----|--------|
-| Enter | Advance to next step |
-| S | Skip tutorial |
-| Esc | Dismiss tutorial |
-
-The tutorial only appears once. You can replay it by resetting your config
-(delete `config.json`) or by removing the `"tutorial_shown"` flag.
-
----
-
-## Annex: Reference Tables
-
-### Tile Types
-
-All tactical maps use a 50×50 grid of tiles. Each tile has a rendering character,
-a cover value, and optional flammability.
-
-| Type | Char | Cover | Flammable | Notes |
-|------|------|-------|-----------|-------|
-| Floor | `.` | 0% | No | Default ground |
-| Wall | `#` | 80% | No | Impassable, blocks LOS |
-| Door | `+` | 0% | Yes | Passable, opens on contact |
-| Window | `¤` | 0% | No | Passable, blocks LOS |
-| Grass | `·` | 0% | Yes | Open terrain |
-| Tree | `♣` | 60% | Yes | Blocks LOS, decent cover |
-| Rock | `∩` | 70% | No | Blocks LOS, good cover |
-| Water | `≈` | 0% | No | Impassable |
-| UFO Floor | `≡` | 0% | No | Interior flooring |
-| UFO Wall | `█` | 80% | No | Impassable, blocks LOS |
-| Stairs Down | `▓` | 0% | No | Level transition |
-| Stairs | `▒` | 0% | No | Level transition |
-| Pavement | `░` | 0% | No | Road/landing pad |
-| Sand | `·` | 0% | No | Desert terrain |
-| Snow | `∗` | 0% | No | Polar terrain |
-| Marsh | `≋` | 0% | No | Swamp terrain |
-| Bush | `†` | 40% | Yes | Light cover |
-| Fence | `║` | 30% | Yes | Minimal cover |
-| Rubble | `▒` | 20% | No | Destroyed terrain |
-| Object | `■` | 50% | No | Furniture, crates |
-| Console | `░` | 50% | No | UFO console panel |
-| Machinery | `⚙` | 50% | No | UFO machinery |
-| Pod | `◈` | 50% | No | Alien pod |
-| Power Source | `⌁` | 50% | No | UFO power source |
-| Storage | `▤` | 50% | No | UFO storage container |
-| Alien Tech | `⊕` | 50% | No | Alien technology |
-| Desk | `⎔` | 50% | No | Building furniture |
-| Chair | `⊟` | 50% | No | Building furniture |
-| Computer | `⌨` | 50% | No | Building furniture |
-| Bed | `□` | 50% | No | Building furniture |
-| Locker | `◫` | 50% | No | Building furniture |
-| Cabinet | `⊞` | 50% | No | Building furniture |
-
-### Visual Effects
-
-| Effect | Trigger | Description |
-|--------|---------|-------------|
-| Explosion particles | Grenade / weapon hit | Burst of `*` / `+` chars with color fade |
-| Screen shake | Explosions | Camera shake scaled by damage |
-| Smoke particles | Grenade impact | `~` / `:` chars drifting upward |
-| Night lighting | Night missions | Radial glow around units |
-| Volumetric gas | Grenade | Expanding `▓`/`▒`/`░` clouds, blocks LOS at density 3 |
-| Rubble particles | Wall destruction | `.` `*` `,` `'` in parabolic arcs |
-| Night vision filter | `V` key | Green phosphor overlay with static noise |
-| Thermal filter | `V` key | Entities glow hot, terrain is cold blue |
-| Blood splatter | Damage | `,` `%` `:` runes in red/green/purple on floor tiles |
-| Animated fire | Plasma/explosive | Cycles `^` `w` `*` in yellow/orange/red |
-
-### Blood Splatter
-
-| Source | Color | Rune |
-|--------|-------|------|
-| Human damage | Dark red (140,10,10) | `,` `%` `:` |
-| Muton/Chryssalid/Hyperworm | Neon green (20,180,20) | `,` `%` `:` |
-| Other aliens | Purple (160,30,200) | `,` `%` `:` |
-
-Splatter appears on the hit tile and 1 adjacent floor tile (33% chance).
-
-### Fire Mechanics
-
-| Property | Value |
-|----------|-------|
-| Animation | Cycles `^` → `w` → `*` every 4 frames |
-| Colors | Yellow → Orange → Red background |
-| Spread chance | 20% per turn to adjacent flammable tile (5% rain, 30% wind) |
-| Flammable tiles | Grass, Tree, Bush, Fence, Door |
-| Duration | 3 turns, then tile becomes Floor |
-| Ignition sources | Plasma weapons, explosives, grenades |
-
-Fire converts flammable terrain to bare Floor when it spreads or burns out.
-
-### Gas Mechanics
-
-| Density | Char | LOS Block | Cover Penalty |
-|---------|------|-----------|---------------|
-| 3 (Heavy) | ▓ | Yes | 40% |
-| 2 (Medium) | ▒ | No | 20% |
-| 1 (Thin) | ░ | No | 0% |
-
-Gas spreads to adjacent tiles and reduces density by 1 each turn until dissipation.
-
-### Destructible Terrain
-
-| Tile | Converts To | Cover Before | Cover After |
-|------|-------------|-------------|-------------|
-| Wall / UFO Wall | Rubble | 80% | 20% |
-| Tree | Rubble | 60% | 20% |
-| Rock | Rubble | 70% | 20% |
-| Fence | Rubble | 30% | 20% |
-
-Grenades destroy terrain within blast radius (2 tiles). Rubble retains 20% cover.
-
-### Auto-Resolve System
-
-#### Win Chance Calculation
-
-| Factor | Effect |
-|--------|--------|
-| Base | 30% |
-| Squad power | +1 per 5 points above alien power |
-| Alien power | alienCount × (40 + missionsWon×3) × difficultyScale |
-| Terror mission | -10% |
-| Council mission | +10% |
-| Alien Base | -15% |
-| Maximum cap | 70% |
-| Minimum floor | 10% |
-
-#### Rewards Comparison
-
-| Reward | Tactical | Auto-Resolve |
-|--------|----------|--------------|
-| XP | 100% | 50% |
-| Corpses | Yes | No |
-| Weapon drops | 15-55% | 25% |
-| Alloys/Elerium | Full | Full |
-| Fatigue | 1-5 days | 2-3 days |
-| Casualties (loss) | All die | 1-3 die |
-
-### Alien Biology
-
-Alien species are defined by morphology — their physical body plan — which
-affects combat stats, damage resistances, and visual appearance.
-
-#### Morphology
-
-**Limbs:**
-
-| Variable | Range | Effect |
-|----------|-------|--------|
-| Arms (manipulative) | 0–6 | 0 = no arms (-15 Acc, pistol-only), 2 = baseline, 3–4 = extra stability (+5 Acc), 5–6 = dual-wield |
-| Legs (locomotive) | 0–8 | 0 = floating (+10 Reactions, harder to hit), 2 = baseline, 4 = fast (+10 TU), 6–8 = very fast but large target |
-
-**Body Types:**
-
-| Body Type | Subtype | Resistances | Special |
-|-----------|---------|-------------|---------|
-| Organic | Carbon Flesh | +10 Kinetic, -10 Explosive | None |
-| Organic | Silicon Based | +20 Laser, +10 Plasma, -15 Explosive | Reflective |
-| Organic | Gaseous | Immune Kinetic, -20 Plasma | Phasing (move through walls) |
-| Organic | Crystalline | +15 all except Explosive (-25) | Shatter (AoE on death) |
-| Organic | Amorphous | +10 Psionic | Regenerate (2 HP/turn) |
-| Synthetic | Mechanical | Immune Psionic, +15 Plasma, -15 Laser | Overload (self-destruct AoE) |
-| Synthetic | Bio-Synthetic | +5 all | Healer (heal adjacent aliens) |
-| Synthetic | Nanotech | +20 Kinetic, -10 energy | Disperse (50% revive on death) |
-
-**Senses:**
-
-| Sense | Qualities | Combat Effect |
-|-------|-----------|---------------|
-| Eyesight | none / poor / normal / excellent / multi-spectrum | Affects accuracy and reaction fire. Multi-spectrum ignores smoke/darkness. |
-| Hearing | none / poor / normal / excellent / echolocation | Echolocation detects units through smoke within 6 tiles. |
-| Thermal Sense | none / low / high | High detects any living unit within 10 tiles regardless of cover/smoke. |
-| Psionic Sense | none / low / high | High grants +15 Psi and detects mind-controlled humans. |
-| Chemical Sense | none / low / high | High grants +10 Accuracy vs wounded targets. |
-
-#### Morphology & Stats
-
-Morphology modifies base stats before rank scaling:
-- Floating aliens: -5 TU, +10 Reactions, -3 HP
-- Multi-armed aliens: +5–10 Accuracy, +5–10 Strength
-- Many-legged aliens: +10–15 TU, +5–10 Reactions, +5 Strength
-- Blind aliens (Eyesight=none): -20 Accuracy, +10 Psi (compensates)
-- Crystalline: +5 HP, +5 Armour, -10 TU
-
-#### Knowledge Levels
-
-As you encounter aliens, your knowledge increases:
-
-| Level | Trigger | Effect |
-|-------|---------|--------|
-| 0 — Unknown | Never seen | Name appears as "???" in encyclopedia |
-| 1 — Sighted | Alien visible in FOV | Name and icon revealed |
-| 2 — Killed | Alien killed in combat | Stats and resistances revealed |
-| 3 — Autopsied | Research completed | Full lore and detailed weaknesses |
-
-#### Equipment Escalation
-
-As the campaign progresses, aliens deploy with better weapons:
-
-| Month | Tier | Equipment |
-|-------|------|-----------|
-| 0–2 | Tier 0 | Plasma pistols, basic armour |
-| 3–5 | Tier 1 | Plasma rifles, light heavy plasma; +2 HP & armour |
-| 6–8 | Tier 2 | Heavy plasma, alien cannons, alien lasers; +4 HP & armour |
-| 9+ | Tier 3 | Top-tier alien weaponry; +6 HP & armour |
-
-### Alien Roster
-
-Hardcoded alien species encountered in tactical combat. Procedural species are
-generated per-game from a seed and vary each playthrough.
-
-| Name | Icon | Rank Variants | Role |
-|------|------|---------------|------|
-| Sectoid | ◈ | Navigator, Commander | Psi-focused, low HP |
-| Floater | ◇ | Navigator, Commander | Balanced, mid-range |
-| Chryssalid | ᚠ | Queen | Melee only, high aggression |
-| Hyperworm | ᚨ | — | Fast, low HP, pack tactics |
-| Silacoid | Ф | — | Heavy armour, slow, tank |
-| Muton | ⊛ | Navigator, Commander | Heavy hitter, high HP |
-| Cyberdisc | ◉ | — | Flying, heavy plasma |
-| Celatid | ⌖ | — | Ranged acid attack |
-| Ethereal | Ψ | Navigator, Commander | Psi master, high stats |
-| Reaper | ᚱ | — | Boss, very high HP |
-| Sectopod | ⬡ | — | Endgame, massive HP + armour |
+- Radars pay for themselves (+$50K/month each)
+- Build Storage early — you'll fill up fast
+- Alien Containment is needed for live captures and interrogation bonuses
+- Adjacent facilities boost each other — plan your base layout
+- Build a Psi-Lab if you want psi capabilities

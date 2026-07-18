@@ -1,0 +1,22 @@
+{
+  "id": "forest_abandoned_camp",
+  "tags": [
+    "forest",
+    "rural"
+  ],
+  "width": 5,
+  "height": 4,
+  "rows": [
+    "g...g",
+    ".R.R.",
+    "..R..",
+    "g...g"
+  ],
+  "terrain": {
+    "g": "TileGrass",
+    ".": "TileFloor",
+    "R": "TileRubble"
+  },
+  "furniture": {},
+  "weight": 2
+}

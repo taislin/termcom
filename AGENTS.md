@@ -23,6 +23,14 @@ make build          # Build binary
 make clean          # Remove binary and coverage
 ```
 
+**Windows (no make):**
+```powershell
+go test ./... -v                    # Run all tests
+go vet ./...                        # Run go vet
+staticcheck ./...                   # Run staticcheck
+go build -ldflags="-X github.com/taislin/termcom/internal/engine.GameVersion=$(Get-Content VERSION)" -o termcom.exe ./cmd/termcom
+```
+
 ### Coverage
 - `internal/data` — 78%
 - `internal/soldier` — 65%
@@ -107,6 +115,7 @@ internal/
 - Always update `docs/manual.md` whenever game data, balance, or mechanics change.
 - **Translations**: Every language file in `internal/language/` must be kept in sync. When adding or changing a string key, add/change it in ALL language files (en, zh, es, fr, ru, pt, ja, ko). The language files are: `en.go`, `zh.go`, `es.go`, `fr.go`, `ru.go`, `pt.go`, `ja.go`, `ko.go`. Never add a key to only one file.
 - **Version bumps**: Before every push (unless told otherwise), increment `VERSION` by +0.0.1 (e.g. 0.45 → 0.45.1). Only change the middle field when explicitly told. `GameVersion` in `internal/engine/config.go` reads from the `VERSION` file at startup via `init()`; the menu displays it as the centered subtitle. There is no per-language version string to update.
+- **Pre-commit checks**: Before committing, always run `make lint` (go vet + staticcheck). On Windows, run `go vet ./... && staticcheck ./...`. staticcheck MUST pass. Never commit code that staticcheck reports warnings on.
 
 ### Game Conventions (faithful to original X-COM)
 - Time Units (TU) for all actions in Battlescape

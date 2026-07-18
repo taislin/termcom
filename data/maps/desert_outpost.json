@@ -1,0 +1,21 @@
+{
+  "id": "desert_outpost",
+  "tags": [
+    "desert"
+  ],
+  "width": 5,
+  "height": 4,
+  "rows": [
+    "sssss",
+    "s.W.s",
+    "s...s",
+    "sssss"
+  ],
+  "terrain": {
+    "s": "TileSand",
+    ".": "TileFloor",
+    "W": "TileWall"
+  },
+  "furniture": {},
+  "weight": 2
+}

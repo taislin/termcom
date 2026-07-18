@@ -1,0 +1,31 @@
+{
+  "id": "urban_cemetery",
+  "tags": ["urban"],
+  "width": 15,
+  "height": 15,
+  "weight": 2,
+  "rows": [
+    "...............",
+    "F...F...F...F..",
+    "F.T.R.T.R.T.F..",
+    "F.R.R.R.R.R.F..",
+    "F.T.R.T.R.T.F..",
+    "...............",
+    "F...F...F...F..",
+    ".T.R.T.R.T.R.T.",
+    ".R.R.R.R.R.R.R.",
+    ".T.R.T.R.T.R.T.",
+    "...............",
+    "F...F...F...F..",
+    "F.T.R.T.R.T.F..",
+    "F.R.R.R.R.R.F..",
+    "F.T.R.T.R.T.F.."
+  ],
+  "terrain": {
+    ".": "TileGrass",
+    "F": "TileFence",
+    "T": "TileTree",
+    "R": "TileRock"
+  },
+  "furniture": {}
+}

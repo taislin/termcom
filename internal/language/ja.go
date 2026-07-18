@@ -144,12 +144,14 @@ func init() {
 		"MISSION_ABDUCTION":      "拉致",
 		"MISSION_RESEARCH":       "エイリアン研究",
 		"MISSION_COUNCIL":        "協会",
+		"MISSION_BUILDING":       "建物突襲",
 		"MISSION_TYPE_TERROR":    "テラー",
 		"MISSION_TYPE_SUPPLY":    "補給襲撃",
 		"MISSION_TYPE_BASE":      "エイリアン基地強襲",
 		"MISSION_TYPE_ABDUCTION": "拉致",
 		"MISSION_TYPE_RESEARCH":  "エイリアン研究",
 		"MISSION_TYPE_COUNCIL":   "協会",
+		"MISSION_TYPE_BUILDING":  "建物突襲",
 		"MSG_ABDUCTION_TIMER":    "拉致された民間人: %d/%d (ターン %d)",
 		"MSG_ABDUCTION_COMPLETE": "拉致を阻止！民間人 %d 名を救出しました。",
 		"MSG_COUNCIL_REWARD":     "協会から評価！ボーナス資金 +$%dK。",
@@ -292,7 +294,7 @@ func init() {
 		"MSG_PSI_ATTACK":            "%s へのサイ攻撃を試みます...",
 		"MSG_PSI_SUCCESS":           "サイ攻撃成功！%s がパニックに陥った！",
 		"MSG_PSI_FAIL":              "サイ攻撃が失敗しました。",
-		"MSG_ALIEN_HIT":             "エイリアンが %s に %d ダメージ！",
+		"MSG_ALIEN_HIT":             "エイリアンが %[2]s に %[1]d ダメージ！(HP:%[3]d)",
 		"MSG_ALIEN_KILL":            "%s を排除！",
 		"MSG_ALIEN_MISS":            "エイリアンの射撃が外れた！",
 		"MSG_ALIEN_MELEE":           "%s が %s に %d ダメージ！",
@@ -301,6 +303,7 @@ func init() {
 		"MSG_REACTION_MISS":         "反応射撃が外れた！",
 		"MSG_REACTION_KILL":         "%s が反応射撃で撃たれた！",
 		"MSG_REINFORCEMENTS":        "エイリアンの増援 %d 体が接近中！",
+		"MSG_BATTLE_EXITED":         "任務放棄！全隊員が失われた。",
 
 		// Status bar
 		"STATUS_TURN":             "ターン: %d | %s",
@@ -858,8 +861,11 @@ func init() {
 		"OPTIONS_ON":               "ON ",
 		"OPTIONS_OFF":              "OFF",
 		"OPTIONS_HELP":             "[\u2190]/[\u2192]=\u8abf\u6574  [\u2191]/[\u2193]=\u9078\u629e  [Enter]=\u5207\u308a\u66ff\u3048  [Esc]=\u623b\u308b",
+		"OPTIONS_REPLAY_TUTORIAL":  "チュートリアルを再生",
 		"CONFIRM_QUIT":             "終了してもよろしいですか？",
 		"CONFIRM_QUIT_HINT":        "[Y] = はい   [N] = いいえ",
+		"CONFIRM_BATTLE_EXIT":      "全隊員が失われます。任務を放棄しますか？",
+		"CONFIRM_BATTLE_EXIT_HINT": "[Y] = 放棄   [N] = キャンセル",
 
 		"BATTLE_COVER_FMT":          " (\u25C8 %d%%)",
 		"BATTLE_LEVEL_FMT":          " [L%d]",
@@ -1077,6 +1083,13 @@ func init() {
 		// ── Language Select ──────────────────────────────
 		"LANGUAGE_SELECT_TITLE": "言語を選択",
 		"LANGUAGE_SELECT_HELP":  "[↑]/[↓]=選択  [Enter]=確認  [Esc]=戻る",
+
+		// ── シードダイアログ ────────────────────────────
+		"SEED_TITLE":       "新規ゲーム - マップシード",
+		"SEED_PROMPT":      "このシードで今回のエイリアン構成が生成されます。",
+		"SEED_VALUE":       "シード：",
+		"SEED_EDIT_LABEL":  "任意：",
+		"SEED_HELP":        "[R]=再生成  [/ または E]=編集  [入力]=設定  [Enter]=決定  [Esc]=戻る",
 
 		// ── Interceptor Status ───────────────────────────
 		"INTERCEPTOR_STATUS_ACTIVE": "稼働中",

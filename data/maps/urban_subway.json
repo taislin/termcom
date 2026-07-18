@@ -1,0 +1,28 @@
+{
+  "id": "urban_subway",
+  "tags": ["urban"],
+  "width": 5,
+  "height": 10,
+  "weight": 2,
+  "no_rotate": true,
+  "rows": [
+    "WWWWW",
+    "W...W",
+    "W.F.W",
+    "W.M.W",
+    "W.M.W",
+    "W.M.W",
+    "W.M.W",
+    "W.M.W",
+    "W.M.W",
+    "WWWWW"
+  ],
+  "terrain": {
+    ".": "TilePavement",
+    "W": "TileWall",
+    "M": "TileStairsDown"
+  },
+  "furniture": {
+    "F": "TileFence"
+  }
+}

@@ -41,21 +41,29 @@ var firePalette = []tcell.Color{
 
 // opaqueTiles is the set of tile types that block line of sight.
 var opaqueTiles = map[TileType]bool{
-	TileWall:    true,
-	TileTree:    true,
-	TileRock:    true,
-	TileUFOWall: true,
-	TileFence:   true,
+	TileWall:          true,
+	TileTree:          true,
+	TileRock:          true,
+	TileUFOWall:       true,
+	TileFence:         true,
+	TileCar:           true,
+	TileCarMid:        true,
+	TileCarRight:      true,
+	TileForklift:     true,
+	TileForkliftRight: true,
+	TileContainerRed:    true,
+	TileContainerBlue:   true,
+	TileContainerYellow: true,
 }
 
 // Human building box-drawing glyphs
 const (
-	GlyphBuildingTL   rune = '╔'
-	GlyphBuildingTR   rune = '╗'
-	GlyphBuildingBL   rune = '╚'
-	GlyphBuildingBR   rune = '╝'
-	GlyphBuildingH    rune = '═'
-	GlyphBuildingV    rune = '║'
+	GlyphBuildingTL   rune = '┌'
+	GlyphBuildingTR   rune = '┐'
+	GlyphBuildingBL   rune = '└'
+	GlyphBuildingBR   rune = '┘'
+	GlyphBuildingH    rune = '─'
+	GlyphBuildingV    rune = '│'
 	GlyphBuildingDoor rune = '▒'
 	GlyphBuildingWin  rune = '┼'
 )
@@ -90,10 +98,21 @@ var tilePalette = map[TileType]tcell.Color{
 	TileAlienTech:   tcell.NewRGBColor(230, 70, 70),
 	TileDesk:        tcell.NewRGBColor(160, 120, 80),
 	TileChair:       tcell.NewRGBColor(150, 100, 60),
+	TileChairLeft:   tcell.NewRGBColor(150, 100, 60),
+	TileChairRight:  tcell.NewRGBColor(150, 100, 60),
 	TileComputer:    tcell.NewRGBColor(70, 180, 210),
 	TileBed:         tcell.NewRGBColor(200, 200, 200),
-	TileLocker:      tcell.NewRGBColor(140, 160, 180),
-	TileCabinet:     tcell.NewRGBColor(170, 130, 90),
+	TileLocker:       tcell.NewRGBColor(140, 160, 180),
+	TileCabinet:      tcell.NewRGBColor(170, 130, 90),
+	TileCar:          tcell.NewRGBColor(50, 100, 180),
+	TileCarMid:       tcell.NewRGBColor(50, 100, 180),
+	TileCarRight:     tcell.NewRGBColor(50, 100, 180),
+	TileForklift:      tcell.NewRGBColor(200, 160, 40), // yellow forklift
+	TileForkliftRight: tcell.NewRGBColor(200, 160, 40),
+	TileFuelPump:      tcell.NewRGBColor(200, 60, 40), // red fuel pump
+	TileContainerRed:    tcell.NewRGBColor(180, 50, 40), // red shipping container
+	TileContainerBlue:   tcell.NewRGBColor(50, 80, 180), // blue shipping container
+	TileContainerYellow: tcell.NewRGBColor(200, 170, 40), // yellow shipping container
 }
 
 // TileBaseColor returns the resolved color for a tile.
@@ -123,6 +142,17 @@ func TileGeomRune(t Tile, ctx [3][3]TileType) rune {
 	e := ctx[1][2]
 
 	switch t.Type {
+	case TileCar, TileCarRight, TileForklift, TileForkliftRight:
+		if n == t.Type {
+			return 'º'
+		}
+		return TileChar(t.Type)
+	case TileCarMid:
+		if n == TileCarMid {
+			return '▄'
+		}
+		return '█'
+
 	case TileUFOWall:
 		// Corner calculations
 		nIsUFO := n == TileUFOWall
@@ -148,7 +178,7 @@ func TileGeomRune(t Tile, ctx [3][3]TileType) rune {
 		if nIsUFO && sIsUFO {
 			return GlyphUFOHullV
 		}
-		return '█' // Default block
+		return '#' // Default hash for isolated walls
 
 	case TileWall:
 		// Human building corners and lines
@@ -168,6 +198,12 @@ func TileGeomRune(t Tile, ctx [3][3]TileType) rune {
 		}
 		if !sIsWall && !eIsWall && wIsWall && nIsWall {
 			return GlyphBuildingBR
+		}
+		if nIsWall && sIsWall {
+			return GlyphBuildingV
+		}
+		if wIsWall && eIsWall {
+			return GlyphBuildingH
 		}
 		if wIsWall || eIsWall {
 			return GlyphBuildingH

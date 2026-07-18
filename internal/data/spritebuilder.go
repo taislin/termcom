@@ -2,6 +2,8 @@ package data
 
 import (
 	"math/rand"
+
+	"github.com/taislin/termcom/internal/mapgen"
 )
 
 // Sprite dimensions for alien pixel art.
@@ -182,6 +184,116 @@ func NewAlienSpriteRegistry() *SpriteRegistry {
 		}
 	}
 	return defaultSpriteRegistry
+}
+
+// RebuildFromTemplates replaces the registry contents with the provided
+// template data. Falls back to hardcoded defaults for any empty slice.
+func (reg *SpriteRegistry) RebuildFromTemplates(heads, eyes, torsos, legs, weapons []mapgen.AlienTemplateData) {
+	if len(heads) > 0 {
+		reg.Heads = nil
+		for _, h := range heads {
+			reg.Heads = append(reg.Heads, TaggedHead{
+				Pixels: h.Pixels,
+				Sense:  parseSense(h.Sense),
+			})
+		}
+	}
+	if len(eyes) > 0 {
+		reg.Eyes = nil
+		for _, e := range eyes {
+			reg.Eyes = append(reg.Eyes, TaggedEyes{
+				Pixels: e.Pixels,
+				Style:  parseEyeStyle(e.Style),
+			})
+		}
+	}
+	if len(torsos) > 0 {
+		reg.Torsos = nil
+		for _, t := range torsos {
+			reg.Torsos = append(reg.Torsos, TaggedTorso{
+				Pixels:   t.Pixels,
+				Manip:    parseManipulators(t.Manip),
+				BodyType: t.BodyType,
+			})
+		}
+	}
+	if len(legs) > 0 {
+		reg.Legs = nil
+		for _, l := range legs {
+			reg.Legs = append(reg.Legs, TaggedLegs{
+				Pixels:     l.Pixels,
+				Locomotion: parseLocomotion(l.Locomotion),
+			})
+		}
+	}
+	if len(weapons) > 0 {
+		reg.Weapons = nil
+		for _, w := range weapons {
+			reg.Weapons = append(reg.Weapons, TaggedWeapon{
+				Pixels:     w.Pixels,
+				DamageType: w.DamageType,
+			})
+		}
+	}
+}
+
+func parseSense(s string) Sense {
+	switch s {
+	case "echolocation":
+		return SenseEcholocation
+	case "omni":
+		return SenseOmni
+	default:
+		return SenseStandard
+	}
+}
+
+func parseEyeStyle(s string) EyeStyle {
+	switch s {
+	case "cyclops":
+		return EyeCyclops
+	case "arachnid":
+		return EyeArachnid
+	case "visor":
+		return EyeVisor
+	case "none":
+		return EyeNone
+	default:
+		return EyeClassic
+	}
+}
+
+func parseManipulators(strs []string) []Manipulators {
+	var out []Manipulators
+	for _, s := range strs {
+		switch s {
+		case "bipedal":
+			out = append(out, ManipBipedal)
+		case "multiarmed":
+			out = append(out, ManipMultiArmed)
+		default:
+			out = append(out, ManipNone)
+		}
+	}
+	return out
+}
+
+func parseLocomotion(s string) Locomotion {
+	switch s {
+	case "arachnid":
+		return LocomArachnid
+	case "slither":
+		return LocomSlither
+	case "floating":
+		return LocomFloating
+	default:
+		return LocomBipedal
+	}
+}
+
+// ResetRegistry forces the next call to NewAlienSpriteRegistry to rebuild.
+func ResetRegistry() {
+	defaultSpriteRegistry = nil
 }
 
 // --- Head templates (10 rows x 20 wide) ---

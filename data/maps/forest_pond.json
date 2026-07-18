@@ -1,0 +1,23 @@
+{
+  "id": "forest_pond",
+  "tags": [
+    "forest"
+  ],
+  "width": 5,
+  "height": 5,
+  "rows": [
+    "ggggg",
+    "g.t.g",
+    "t.~.t",
+    "g.t.g",
+    "ggggg"
+  ],
+  "terrain": {
+    "g": "TileGrass",
+    ".": "TileGrass",
+    "t": "TileTree",
+    "~": "TileWater"
+  },
+  "furniture": {},
+  "weight": 2
+}

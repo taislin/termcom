@@ -1,0 +1,29 @@
+{
+  "id": "urban_bodega",
+  "tags": ["urban"],
+  "width": 10,
+  "height": 10,
+  "weight": 2,
+  "no_rotate": true,
+  "rows": [
+    "WWWWWWWWWW",
+    "W¤....¤..W",
+    "W¤.DDD.¤.W",
+    "W¤....¤..W",
+    "W¤....¤..W",
+    "W........W",
+    "W¤.CCC.¤.W",
+    "W¤.CCC.¤.W",
+    "W¤....¤..W",
+    "WWWWWWWWWW"
+  ],
+  "terrain": {
+    ".": "TileFloor",
+    "W": "TileWall",
+    "¤": "TileWindow"
+  },
+  "furniture": {
+    "D": "TileDesk",
+    "C": "TileComputer"
+  }
+}

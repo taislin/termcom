@@ -1,0 +1,25 @@
+{
+  "id": "urban_warehouse",
+  "tags": [
+    "urban"
+  ],
+  "width": 9,
+  "height": 6,
+  "rows": [
+    "WWWWWWWWW",
+    "W.m...m.W",
+    "W.......W",
+    "W...s...W",
+    "W.m...m.W",
+    "WWWWWWWWW"
+  ],
+  "terrain": {
+    "W": "TileWall",
+    ".": "TileFloor"
+  },
+  "furniture": {
+    "m": "TileMachinery",
+    "s": "TileStorage"
+  },
+  "weight": 1
+}

@@ -144,12 +144,14 @@ func init() {
 		"MISSION_ABDUCTION":      "Enlèvement",
 		"MISSION_RESEARCH":       "Recherche Extraterrestre",
 		"MISSION_COUNCIL":        "Conseil",
+		"MISSION_BUILDING":       "Assaut de b\u00e2timent",
 		"MISSION_TYPE_TERROR":    "Terreur",
 		"MISSION_TYPE_SUPPLY":    "Raid d'Approvisionnement",
 		"MISSION_TYPE_BASE":      "Assaut de Base Extraterrestre",
-		"MISSION_TYPE_ABDUCTION": "Enlèvement",
+		"MISSION_TYPE_ABDUCTION": "Enl\u00e8vement",
 		"MISSION_TYPE_RESEARCH":  "Recherche Extraterrestre",
 		"MISSION_TYPE_COUNCIL":   "Conseil",
+		"MISSION_TYPE_BUILDING":  "Assaut de b\u00e2timent",
 		"MSG_ABDUCTION_TIMER":    "Civils enlevés : %d/%d (Tour %d)",
 		"MSG_ABDUCTION_COMPLETE": "Enlèvement repoussé ! %d civils sauvés.",
 		"MSG_COUNCIL_REWARD":     "Le Conseil est satisfait ! Prime de financement +$%dK.",
@@ -292,7 +294,7 @@ func init() {
 		"MSG_PSI_ATTACK":            "Tentative d'attaque psi sur %s...",
 		"MSG_PSI_SUCCESS":           "ATTAQUE PSI RÉUSSIE ! %s est en panique !",
 		"MSG_PSI_FAIL":              "Ataque psi échouée.",
-		"MSG_ALIEN_HIT":             "Extraterrestre touche %s pour %d dégâts !",
+		"MSG_ALIEN_HIT":             "Extraterrestre touche %2$s pour %1$d dégâts ! (PV:%3$d)",
 		"MSG_ALIEN_KILL":            "%s éliminé !",
 		"MSG_ALIEN_MISS":            "Le tir extraterrestre rate !",
 		"MSG_ALIEN_MELEE":           "%s attaque %s pour %d dégâts !",
@@ -301,6 +303,7 @@ func init() {
 		"MSG_REACTION_MISS":         "Le tir de réaction rate !",
 		"MSG_REACTION_KILL":         "%s tué par le tir de réaction !",
 		"MSG_REINFORCEMENTS":        "%d renforts extraterrestres en approche !",
+		"MSG_BATTLE_EXITED":         "Mission abandonnée ! Tous les membres de l'équipe perdus.",
 
 		// Status bar
 		"STATUS_TURN":             "Tour : %d | %s",
@@ -855,11 +858,14 @@ func init() {
 		"OPTIONS_PAUSE_ALIEN":      "Pause sur alien",
 		"CONFIRM_QUIT":             "ÊTES-VOUS SÛR DE VOULOIR QUITTER ?",
 		"CONFIRM_QUIT_HINT":        "[Y] = Oui   [N] = Non",
+		"CONFIRM_BATTLE_EXIT":      "TOUS LES MEMBRES DE L'ÉQUIPE SERONT PERDUS. ABANDONNER LA MISSION ?",
+		"CONFIRM_BATTLE_EXIT_HINT": "[Y] = Abandonner   [N] = Annuler",
 		"OPTIONS_VOLUME":           "Volume SFX",
 		"OPTIONS_RESOLUTION_SPEED": "Vitesse de Résolution",
 		"OPTIONS_ON":               "ACT ",
 		"OPTIONS_OFF":              "ÉTE",
 		"OPTIONS_HELP":             "[\u2190]/[\u2192]=R\u00e9gler  [\u2191]/[\u2193]=S\u00e9lectionner  [Enter]=Basculer  [Esc]=Retour",
+		"OPTIONS_REPLAY_TUTORIAL":  "Revoir le Tutoriel",
 
 		"BATTLE_COVER_FMT":          " (\u25C8 %d%%)",
 		"BATTLE_LEVEL_FMT":          " [N%d]",
@@ -1049,6 +1055,13 @@ func init() {
 		// ── Language Select ──────────────────────────────
 		"LANGUAGE_SELECT_TITLE": "SÉLECTIONNER LA LANGUE",
 		"LANGUAGE_SELECT_HELP":  "[↑]/[↓]=Sélectionner  [Enter]=Confirmer  [Esc]=Retour",
+
+		// ── Boîte de dialogue de graine ───────────────────
+		"SEED_TITLE":       "NOUVELLE PARTIE - GRAINE DE LA CARTE",
+		"SEED_PROMPT":      "Cette graine génère le roster d'aliens de cette partie.",
+		"SEED_VALUE":       "Graine :",
+		"SEED_EDIT_LABEL":  "Personnalisée :",
+		"SEED_HELP":        "[R]=Régénérer  [/ ou E]=Éditer  [Saisir]=Définir  [Enter]=Confirmer  [Esc]=Retour",
 
 		// ── Interceptor Status ───────────────────────────
 		"INTERCEPTOR_STATUS_ACTIVE": "Actif",

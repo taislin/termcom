@@ -48,9 +48,10 @@ Lose if Alien Activity reaches 100%.
 ## Quick Strategy
 
 - **Early:** Hire soldiers, research Alien Alloys, build Lab + Workshop
-- **Mid:** Laser weapons -> Personal Armour, expand bases
-- **Late:** Plasma weapons, Power/Flying Suits, psi training
+- **Mid:** Custom laser weapons (Weapon Designer) → Personal Armour, expand bases
+- **Late:** Custom plasma weapons, Power/Flying Suits, psi training
 - Always equip soldiers before battle. Wounded heal 2 HP/day.
+- Design custom interceptors in the Plane Designer — Stingray missiles + Light Alloy armour is a solid start.
 - Sell excess alien artifacts for cash. Radar facilities boost funding.
 
 ## Victory

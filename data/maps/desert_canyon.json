@@ -1,0 +1,20 @@
+{
+  "id": "desert_canyon",
+  "tags": ["desert"],
+  "width": 5,
+  "height": 6,
+  "rows": [
+    "rr..r",
+    "r....",
+    "....r",
+    "r....",
+    "....r",
+    "rr..r"
+  ],
+  "terrain": {
+    "r": "TileRock",
+    ".": "TileSand"
+  },
+  "furniture": {},
+  "weight": 2
+}

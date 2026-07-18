@@ -1,9 +1,9 @@
 package main
 
 import (
-	"bufio"
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -14,7 +14,9 @@ import (
 	"github.com/taislin/termcom/internal/battle"
 	"github.com/taislin/termcom/internal/data"
 	"github.com/taislin/termcom/internal/engine"
+	"github.com/taislin/termcom/internal/mapgen"
 	"github.com/taislin/termcom/internal/soldier"
+	"golang.org/x/term"
 )
 
 const (
@@ -38,6 +40,31 @@ type menuEntry struct {
 	label    string
 	ufoName  string // for builtins
 	filePath string // for customs
+}
+
+// readKey reads a single keypress from raw stdin and returns a descriptive string.
+func readKey() string {
+	var buf [3]byte
+	n, _ := os.Stdin.Read(buf[:])
+	if n == 0 {
+		return ""
+	}
+	if buf[0] == '\x1b' && n >= 3 && buf[1] == '[' {
+		switch buf[2] {
+		case 'A':
+			return "up"
+		case 'B':
+			return "down"
+		case 'C':
+			return "right"
+		case 'D':
+			return "left"
+		}
+	}
+	if buf[0] == '\r' || buf[0] == '\n' {
+		return "enter"
+	}
+	return string(buf[:n])
 }
 
 type customBattle struct {
@@ -181,7 +208,7 @@ func printMenu(left []menuEntry, selected int) {
 	fmt.Printf("  %s%-2d. %s%s\n", ansiDim, len(left)+1, "Quit", ansiReset)
 
 	// Right panel: details of selected
-	fmt.Printf("\033[%dA", len(left)+6) // move cursor up to details area
+	fmt.Printf("\033[%dA", len(left)+3) // move cursor up to header row level
 	rightX := 43
 	fmt.Printf("\033[%dC", rightX)
 
@@ -276,7 +303,16 @@ func printMenu(left []menuEntry, selected int) {
 }
 
 func main() {
-	reader := bufio.NewReader(os.Stdin)
+	if err := mapgen.Init(); err != nil {
+		fmt.Fprintf(os.Stderr, "Warning: mapgen init: %v\n", err)
+	}
+	data.NewAlienSpriteRegistry().RebuildFromTemplates(
+		mapgen.ToTemplateData("head"),
+		mapgen.ToTemplateData("eye"),
+		mapgen.ToTemplateData("torso"),
+		mapgen.ToTemplateData("leg"),
+		mapgen.ToTemplateData("weapon"),
+	)
 
 	// Build menu entries
 	var entries []menuEntry
@@ -327,31 +363,37 @@ func main() {
 
 	// Interactive menu
 	selected := 0
+
+	oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to enable raw mode: %v\n", err)
+		os.Exit(1)
+	}
+	defer term.Restore(int(os.Stdin.Fd()), oldState)
+
 	for {
 		printMenu(entries, selected)
 
-		input, _ := reader.ReadString('\n')
-		input = strings.TrimSpace(input)
+		key := readKey()
 
-		if input == "" {
-			// Default to selected
-		} else if input == "q" || input == "Q" {
+		switch key {
+		case "q", "Q":
 			fmt.Println("Goodbye.")
 			return
-		} else if input == "\x1b[A" || input == "k" {
-			// Up
+		case "up", "k":
 			if selected > 0 {
 				selected--
 			}
 			continue
-		} else if input == "\x1b[B" || input == "j" {
-			// Down
+		case "down", "j":
 			if selected < len(entries)-1 {
 				selected++
 			}
 			continue
-		} else {
-			n, err := strconv.Atoi(input)
+		case "enter":
+			// fall through to launch below
+		default:
+			n, err := strconv.Atoi(key)
 			if err != nil || n < 1 || n > len(entries)+1 {
 				continue
 			}
@@ -474,15 +516,17 @@ func launchCustom(path string) {
 	}
 	switch gen {
 	case "terror":
-		m = battle.GenerateTerrorSite(w, h)
+		m = battle.GenerateTerrorSite(w, h, time.Now().UnixNano())
 	case "supply_raid", "ufo_interior":
 		m = battle.GenerateUFOInterior(w, h)
+	case "building_assault":
+		m = battle.GenerateUrbanBuildingWFC(w, h, rand.New(rand.NewSource(42)))
 	case "alien_base":
 		m = battle.GenerateAlienBase(w, h)
 	case "alien_research":
 		m = battle.GenerateUFOInterior(w, h)
 	case "council":
-		m = battle.GenerateTerrorSite(w, h)
+		m = battle.GenerateTerrorSite(w, h, time.Now().UnixNano())
 	case "cydonia":
 		m = battle.GenerateCydonia(w, h)
 	case "abduction":

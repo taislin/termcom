@@ -144,12 +144,14 @@ func init() {
 		"MISSION_ABDUCTION":      "Abducci\u00f3n",
 		"MISSION_RESEARCH":       "Investigaci\u00f3n alien\u00edgena",
 		"MISSION_COUNCIL":        "Consejo",
+		"MISSION_BUILDING":       "Asalto al edificio",
 		"MISSION_TYPE_TERROR":    "Terror",
 		"MISSION_TYPE_SUPPLY":    "Asalto a suministros",
 		"MISSION_TYPE_BASE":      "Asalto a base alien\u00edgena",
 		"MISSION_TYPE_ABDUCTION": "Abducci\u00f3n",
 		"MISSION_TYPE_RESEARCH":  "Investigaci\u00f3n alien\u00edgena",
 		"MISSION_TYPE_COUNCIL":   "Consejo",
+		"MISSION_TYPE_BUILDING":  "Asalto al edificio",
 		"MSG_ABDUCTION_TIMER":    "Civiles abducidos: %d/%d (Turno %d)",
 		"MSG_ABDUCTION_COMPLETE": "\u00a1Abducci\u00f3n repelida! %d civiles salvados.",
 		"MSG_COUNCIL_REWARD":     "\u00a1El Consejo est\u00e1 satisfecho! Financiaci\u00f3n extra +$%dK.",
@@ -292,7 +294,7 @@ func init() {
 		"MSG_PSI_ATTACK":            "Intentando ataque psi sobre %s...",
 		"MSG_PSI_SUCCESS":           "\u00a1ATAQUE PSI EXITOSO! \u00a1%s entr\u00f3 en p\u00e1nico!",
 		"MSG_PSI_FAIL":              "Ataque psi fallido.",
-		"MSG_ALIEN_HIT":             "\u00a1El alien\u00edgena impacta a %s por %d de da\u00f1o!",
+		"MSG_ALIEN_HIT":             "\u00a1El alien\u00edgena impacta a %2$s por %1$d de da\u00f1o! (HP:%3$d)",
 		"MSG_ALIEN_KILL":            "\u00a1%s eliminado!",
 		"MSG_ALIEN_MISS":            "\u00a1El disparo alien\u00edgena falla!",
 		"MSG_ALIEN_MELEE":           "\u00a1%s ataca a %s por %d de da\u00f1o!",
@@ -301,6 +303,7 @@ func init() {
 		"MSG_REACTION_MISS":         "\u00a1El disparo de reacci\u00f3n falla!",
 		"MSG_REACTION_KILL":         "\u00a1%s muerto por fuego de reacci\u00f3n!",
 		"MSG_REINFORCEMENTS":        "\u00a1%d refuerzos alien\u00edgenas en camino!",
+		"MSG_BATTLE_EXITED":         "\u00a1Misi\u00f3n abandonada! Todos los miembros del escuadr\u00f3n perdidos.",
 
 		// Barra de estado
 		"STATUS_TURN":             "Turno: %d | %s",
@@ -854,11 +857,14 @@ func init() {
 		"OPTIONS_PAUSE_ALIEN":      "Pausa al detectar",
 		"CONFIRM_QUIT":             "¿ESTÁS SEGURO DE QUE QUIERES SALIR?",
 		"CONFIRM_QUIT_HINT":        "[Y] = Sí   [N] = No",
+		"CONFIRM_BATTLE_EXIT":      "TODOS LOS MIEMBROS DEL ESCUADRÓN SE PERDERÁN. ¿ABANDONAR MISIÓN?",
+		"CONFIRM_BATTLE_EXIT_HINT": "[Y] = Abandonar   [N] = Cancelar",
 		"OPTIONS_VOLUME":           "Volumen SFX",
 		"OPTIONS_RESOLUTION_SPEED": "Velocidad de resoluci\u00f3n",
 		"OPTIONS_ON":               "S\u00cd ",
 		"OPTIONS_OFF":              "NO",
 		"OPTIONS_HELP":             "[\u2190]/[\u2192]=Ajustar  [\u2191]/[\u2193]=Seleccionar  [Enter]=Alternar  [Esc]=Volver",
+		"OPTIONS_REPLAY_TUTORIAL":  "Repetir Tutorial",
 
 		// ── Batalla ──────────────────────────────────────
 		"BATTLE_COVER_FMT":          " (◈ %d%%)",
@@ -1077,6 +1083,13 @@ func init() {
 		// ── Language Select ──────────────────────────────
 		"LANGUAGE_SELECT_TITLE": "SELECCIONAR IDIOMA",
 		"LANGUAGE_SELECT_HELP":  "[↑]/[↓]=Seleccionar  [Enter]=Confirmar  [Esc]=Volver",
+
+		// ── Diálogo de semilla ───────────────────────────
+		"SEED_TITLE":       "NUEVA PARTIDA - SEMILLA DEL MAPA",
+		"SEED_PROMPT":      "Esta semilla genera el roster de aliens de esta partida.",
+		"SEED_VALUE":       "Semilla:",
+		"SEED_EDIT_LABEL":  "Personalizada:",
+		"SEED_HELP":        "[R]=Regenerar  [/ o E]=Editar  [Escribir]=Fijar  [Enter]=Confirmar  [Esc]=Volver",
 
 		// ── Interceptor Status ───────────────────────────
 		"INTERCEPTOR_STATUS_ACTIVE": "Activo",

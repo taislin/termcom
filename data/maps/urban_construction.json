@@ -1,0 +1,32 @@
+{
+  "id": "urban_construction",
+  "tags": ["urban"],
+  "width": 15,
+  "height": 15,
+  "weight": 2,
+  "rows": [
+    "...............",
+    "F...F...F...F..",
+    "F.O.F.R.F.O.F..",
+    "F.O.F.R.F.O.F..",
+    "F.O.F.R.F.O.F..",
+    "...............",
+    "F...F...F...F..",
+    ".R.F...F...F.R.",
+    ".R.F...F...F.R.",
+    ".R.F...F...F.R.",
+    "...............",
+    "F...F...F...F..",
+    "F.O.F.R.F.O.F..",
+    "F.O.F.R.F.O.F..",
+    "F.O.F.R.F.O.F.."
+  ],
+  "terrain": {
+    ".": "TileSand",
+    "F": "TileFence"
+  },
+  "furniture": {
+    "O": "TileObject",
+    "R": "TileRock"
+  }
+}

@@ -81,19 +81,19 @@ var VehiclePartDefs = map[string]*VehiclePartDef{
 	"power_fission": {
 		ID: "power_fission", Name: "Fission Core", Category: PartPowerCore,
 		Mass: 2.0, BattlescapeHP: 15, ExplodesOnDeath: true,
-		TacticalRune: '⚙', Color: tcell.NewRGBColor(255, 255, 0),
+		TacticalRune: '⊛', Color: tcell.NewRGBColor(255, 255, 0),
 		CostBuy: 5000, CostAlloys: 3,
 	},
 	"power_fusion": {
 		ID: "power_fusion", Name: "Fusion Core", Category: PartPowerCore,
 		Mass: 3.0, BattlescapeHP: 20, ExplodesOnDeath: true,
-		TacticalRune: '⚙', Color: tcell.NewRGBColor(255, 200, 0),
+		TacticalRune: '⊛', Color: tcell.NewRGBColor(255, 200, 0),
 		CostBuy: 12000, CostAlloys: 8,
 	},
 	"power_elirium": {
 		ID: "power_elirium", Name: "Elerium Reactor", Category: PartPowerCore,
 		Mass: 4.0, BattlescapeHP: 25, ExplodesOnDeath: true,
-		TacticalRune: '⚙', Color: tcell.NewRGBColor(0, 255, 200),
+		TacticalRune: '⊛', Color: tcell.NewRGBColor(0, 255, 200),
 		CostBuy: 20000, CostAlloys: 12,
 	},
 	"cockpit_standard": {

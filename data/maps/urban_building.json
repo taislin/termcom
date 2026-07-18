@@ -1,0 +1,30 @@
+{
+  "id": "urban_building",
+  "tags": [
+    "urban"
+  ],
+  "width": 7,
+  "height": 6,
+  "rows": [
+    "WWWWWWW",
+    "W.....W",
+    "W.c.C.W",
+    "W(ld)rW",
+    "Wl...aW",
+    "WWWWWWW"
+  ],
+  "terrain": {
+    "W": "TileWall",
+    ".": "TileFloor"
+  },
+  "furniture": {
+    "c": "TileChair",
+    "C": "TileComputer",
+    "d": "TileDesk",
+    "l": "TileLocker",
+    "a": "TileCabinet",
+    "(": "TileChairRight",
+    ")": "TileChairLeft"
+  },
+  "weight": 1
+}

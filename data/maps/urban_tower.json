@@ -1,0 +1,29 @@
+{
+  "id": "urban_tower",
+  "tags": [
+    "urban"
+  ],
+  "width": 9,
+  "height": 9,
+  "rows": [
+    "WWWWWWWWW",
+    "W.a...a.W",
+    "W.......W",
+    "W..ccc..W",
+    "W.......W",
+    "W..lll..W",
+    "W.......W",
+    "W.a...a.W",
+    "WWWWWWWWW"
+  ],
+  "terrain": {
+    "W": "TileWall",
+    ".": "TileFloor"
+  },
+  "furniture": {
+    "a": "TileCabinet",
+    "c": "TileComputer",
+    "l": "TileLocker"
+  },
+  "weight": 1
+}

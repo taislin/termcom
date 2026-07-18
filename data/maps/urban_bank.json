@@ -1,0 +1,32 @@
+{
+  "id": "urban_bank",
+  "tags": ["urban"],
+  "width": 15,
+  "height": 15,
+  "weight": 2,
+  "rows": [
+    "...............",
+    "...............",
+    ".W.W.W.W.W.W.W.",
+    "...............",
+    ".W.W.W.W.W.W.W.",
+    ".....DDDDD.....",
+    ".W.W.W.W.W.W.W.",
+    "...............",
+    ".W.W.W.W.W.W.W.",
+    ".....DDDDD.....",
+    ".W.W.W.W.W.W.W.",
+    "...............",
+    ".W.W.W.W.W.W.W.",
+    "...............",
+    "..............."
+  ],
+  "terrain": {
+    ".": "TileFloor",
+    "W": "TileWall",
+    "D": "TileDesk"
+  },
+  "furniture": {
+    "T": "TileTree"
+  }
+}

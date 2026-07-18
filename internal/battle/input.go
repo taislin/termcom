@@ -46,10 +46,27 @@ func (bs *Battlescape) HandleEvent(ev tcell.Event) {
 }
 
 func (bs *Battlescape) handleKey(e *tcell.EventKey) {
+	// Quit confirmation intercept
+	if bs.QuitConfirm {
+		switch {
+		case e.Str() == "y" || e.Str() == "Y" || e.Key() == tcell.KeyEnter:
+			bs.QuitConfirm = false
+			bs.exitBattle()
+		case e.Str() == "n" || e.Str() == "N" || e.Key() == tcell.KeyEscape:
+			bs.QuitConfirm = false
+		}
+		return
+	}
+
 	if bs.PlayerLock > 0 && bs.Phase == PhasePlayerTurn {
 		return
 	}
 	switch e.Key() {
+	case tcell.KeyEscape:
+		if bs.Phase == PhasePlayerTurn || bs.Phase == PhaseAlienTurn {
+			bs.QuitConfirm = true
+		}
+		return
 	case tcell.KeyUp: 
 		bs.MoveCursor(0, -1)
 		bs.updateMovePath()
@@ -192,6 +209,17 @@ func (bs *Battlescape) handleMouse(e *tcell.EventMouse) {
 			bs.CursorX, bs.CursorY = mx, my
 			bs.State.CursorState = StateInspect
 			bs.State.MovePath = nil
+			bs.HoveredUnit = nil
+		}
+		return
+	}
+
+	// Mouse hover (no button): show enemy info when hovering over aliens
+	if buttons == 0 {
+		unit := bs.Units.At(mx, my)
+		if unit != nil && unit.Faction == FactionAlien && unit.Alive {
+			bs.HoveredUnit = unit
+		} else {
 			bs.HoveredUnit = nil
 		}
 	}

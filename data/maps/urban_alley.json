@@ -1,0 +1,26 @@
+{
+  "id": "urban_alley",
+  "tags": [
+    "urban"
+  ],
+  "width": 4,
+  "height": 8,
+  "rows": [
+    "WWWW",
+    "W..W",
+    "W..W",
+    "W..W",
+    "W.dW",
+    "W..W",
+    "W..W",
+    "WWWW"
+  ],
+  "terrain": {
+    "W": "TileWall",
+    ".": "TileFloor"
+  },
+  "furniture": {
+    "d": "TileDesk"
+  },
+  "weight": 1
+}

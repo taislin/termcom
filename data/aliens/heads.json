@@ -1,0 +1,154 @@
+[
+  {
+    "id": "head_round",
+    "type": "head",
+    "sense": "standard",
+    "width": 20,
+    "height": 10,
+    "pixels": [
+      "....................",
+      ".......XXXXXX.......",
+      ".....XXXXXXXXXX.....",
+      "....XXXXXXXXXXXX....",
+      "....XXXXXXXXXXXX....",
+      "....XXXXXXXXXXXX....",
+      "....XXXmmmmmmXXX....",
+      ".....XXXXXXXXXX.....",
+      "......XXXXXXXX......",
+      ".......XXXXXX......."
+    ]
+  },
+  {
+    "id": "head_square",
+    "type": "head",
+    "sense": "standard",
+    "width": 20,
+    "height": 10,
+    "pixels": [
+      "....................",
+      "....XXXXXXXXXXXX....",
+      "...XXXXXXXXXXXXXXX..",
+      "...XXXXXXXXXXXXXXX..",
+      "...XXXXXXXXXXXXXXX..",
+      "...XXXXXXXXXXXXXXX..",
+      "...XXmmmmmmmmmmXXX..",
+      "...XXXXXXXXXXXXXXX..",
+      "...XXXXXXXXXXXXXXX..",
+      "....XXXXXXXXXXXX...."
+    ]
+  },
+  {
+    "id": "head_tall",
+    "type": "head",
+    "sense": "standard",
+    "width": 20,
+    "height": 10,
+    "pixels": [
+      ".......XXXX.........",
+      "......XXXXXX........",
+      "......XXXXXX........",
+      ".....XXXXXXXX.......",
+      ".....XXXXXXXX.......",
+      ".....XXXXXXXX.......",
+      ".....XXmmmmXX.......",
+      ".....XXXXXXXX.......",
+      "......XXXXXX........",
+      ".......XXXX........."
+    ]
+  },
+  {
+    "id": "head_skull",
+    "type": "head",
+    "sense": "standard",
+    "width": 20,
+    "height": 10,
+    "pixels": [
+      "....................",
+      "......XXXXXXXX......",
+      ".....XXXXXXXXXX.....",
+      "....XXddXXXXddXX....",
+      "....XddXXddXXddX....",
+      "....XXXXXXXXXXXX....",
+      "....XXXddXdddXXX....",
+      ".....XXXXddXXXX.....",
+      "......XXXXXXXX......",
+      ".......XXXXXX......."
+    ]
+  },
+  {
+    "id": "head_wide",
+    "type": "head",
+    "sense": "echolocation",
+    "width": 20,
+    "height": 10,
+    "pixels": [
+      "....................",
+      "aa................aa",
+      "hhh..............hhh",
+      "XXXh............hXXX",
+      "XXXXXXXXXXXXXXXXXXXX",
+      ".XXXXXXXXXXXXXXXXXX.",
+      ".XXXXXXXXXXXXXXXXXX.",
+      ".XXXXXXXXXXXXXXXXXX.",
+      ".dXXXXXmmmmmXXXXXXd.",
+      "..dXXXXXXXXXXXXXd..."
+    ]
+  },
+  {
+    "id": "head_antennae",
+    "type": "head",
+    "sense": "echolocation",
+    "width": 20,
+    "height": 10,
+    "pixels": [
+      "..a.............a...",
+      "..aa..........aa....",
+      "...aa........aa.....",
+      "...hhhXXXXXXhhh.....",
+      "....XXXXXXXXXX......",
+      "....XXXXXXXXXX......",
+      "....XXXmmmmXXX......",
+      ".....XXXXXXXX.......",
+      "......XXXXXX........",
+      ".......XXXX........."
+    ]
+  },
+  {
+    "id": "head_visor",
+    "type": "head",
+    "sense": "omni",
+    "width": 20,
+    "height": 10,
+    "pixels": [
+      "....................",
+      "......XXXXXXX.......",
+      ".....ddXXXXXXdd.....",
+      "....dddXhhhhXddd....",
+      "....dXXXhhhhXXXd....",
+      "....dXXXXXXXXXXd....",
+      "....XXXXXXXXXXX.....",
+      ".....XXXmmmmXXX.....",
+      "......XXXXXXXX......",
+      ".......XXXXXX......."
+    ]
+  },
+  {
+    "id": "head_cone",
+    "type": "head",
+    "sense": "omni",
+    "width": 20,
+    "height": 10,
+    "pixels": [
+      ".........hh.........",
+      "........hXXh........",
+      ".......hXXXXh.......",
+      "......XXXXXXXX......",
+      "......XXXXXXXX......",
+      ".....XXXXXXXXXX.....",
+      ".....XXXXXXXXXX.....",
+      "....XXXXmmmmXXXX....",
+      "....dXXXXXXXXXXd....",
+      ".....dXXXXXXXXd....."
+    ]
+  }
+]

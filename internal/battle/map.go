@@ -6,6 +6,7 @@ import (
 
 	"github.com/gdamore/tcell/v3"
 	"github.com/taislin/termcom/internal/data"
+	"github.com/taislin/termcom/internal/mapgen"
 )
 
 // randn returns rand.Intn(n) but safely yields 0 when n <= 0, avoiding a panic
@@ -49,12 +50,26 @@ const (
 	TileAlienTech   // Alien technology, artifacts
 	TileStairsDown  // stairs leading to lower level
 	// Human furniture tiles
-	TileDesk     // Desk/workstation
-	TileChair    // Chair/seating
-	TileComputer // Computer terminal
+	TileDesk        // Desk/workstation
+	TileChair       // Chair/seating (generic)
+	TileChairLeft   // Chair facing left (toward a table)
+	TileChairRight  // Chair facing right (toward a table)
+	TileComputer    // Computer terminal
 	TileBed      // Bed/cot
 	TileLocker   // Locker/storage
 	TileCabinet  // Cabinet/shelving
+	// Vehicle tiles
+	TileCar          // Car left half: ▄ (top), º (bottom)
+	TileCarMid       // Car middle roof: █ (top), empty bottom
+	TileCarRight     // Car right half: ▄ (top), º (bottom)
+	TileForklift      // Forklift left half: █ (top), º (bottom)
+	TileForkliftRight // Forklift right half: ▄ (top), empty (bottom-right)
+	// Urban hazard tiles
+	TileFuelPump // Fuel pump — explodes on destruction (5x5 blast)
+	// Shipping container tiles (indestructible, full LOS block)
+	TileContainerRed
+	TileContainerBlue
+	TileContainerYellow
 )
 
 // Tile represents a single cell on the tactical map.
@@ -74,7 +89,7 @@ type Tile struct {
 // TileCover returns the base cover value for a tile type.
 func TileCover(t TileType) int {
 	switch t {
-	case TileWall, TileUFOWall:
+	case TileWall, TileUFOWall, TileContainerRed, TileContainerBlue, TileContainerYellow:
 		return 80
 	case TileTree:
 		return 60
@@ -85,7 +100,9 @@ func TileCover(t TileType) int {
 	case TileFence:
 		return 30
 	case TileObject, TileConsole, TileMachinery, TilePod, TilePowerSource, TileStorage, TileAlienTech,
-		TileDesk, TileChair, TileComputer, TileBed, TileLocker, TileCabinet:
+		TileDesk, TileChair, TileChairLeft, TileChairRight, TileComputer, TileBed, TileLocker, TileCabinet,
+		TileCar, TileCarRight, TileCarMid, TileForklift, TileForkliftRight,
+		TileFuelPump:
 		return 50
 	case TileRubble:
 		return 20
@@ -197,23 +214,36 @@ var tileChars = map[TileType]rune{
 	TileSnow:       '∗',
 	TileMarsh:      '≋',
 	TileBush:       '†',
-	TileFence:      '║',
+	TileFence:      '│',
 	TileRubble:     '▒',
 	TileObject:     '■',
 	// UFO furniture characters
-	TileConsole:     '░', // Console panel
-	TileMachinery:   '⚙', // Machinery (U+2699 GEAR - BMP symbol)
+	TileConsole:     '⌸', // Console panel (U+2338 QUAD MINUS)
+	TileMachinery:   '⊛', // Machinery (U+229B CIRCLED ASTERISK)
 	TilePod:         '◈', // Alien pod
 	TilePowerSource: '⌁', // Power source (U+2301 ELECTRICAL ARC)
 	TileStorage:     '▤', // Storage container
 	TileAlienTech:   '⊕', // Alien technology
 	// Human furniture characters
-	TileDesk:     '⎔', // Desk (U+2394)
+	TileDesk:     '◊', // Desk (U+25CA LOZENGE)
 	TileChair:    '⊟', // Chair (U+229F)
-	TileComputer: '⌨', // Keyboard (U+2328)
-	TileBed:      '□', // Bed (U+25A1)
-	TileLocker:   '◫', // Locker (U+25EB)
-	TileCabinet:  '⊞', // Cabinet (U+229E)
+	TileChairLeft:  '⅃', // Chair facing left (toward a table)
+	TileChairRight: 'L', // Chair facing right (toward a table)
+	TileComputer: '⌸', // Console (U+2338 QUAD MINUS)
+	TileBed:          '□', // Bed (U+25A1)
+	TileLocker:       '◫', // Locker (U+25EB)
+	TileCabinet:      '⊞', // Cabinet (U+229E)
+	TileCar:          '▄', // Car left half (top)
+	TileCarMid:       '█', // Car middle roof (top only)
+	TileCarRight:     '▄', // Car right half (top)
+	TileForklift:     '█', // Forklift left half (top)
+	TileForkliftRight: '⊏', // Forklift right half (top)
+	// Urban hazard characters
+	TileFuelPump: '8', // Fuel pump (looks like nozzle)
+	// Shipping container characters
+	TileContainerRed:    '█',
+	TileContainerBlue:   '█',
+	TileContainerYellow: '█',
 }
 
 func TileChar(t TileType) rune {
@@ -345,7 +375,7 @@ func (m *BattleMap) Passable(x, y int) bool {
 	switch t.Type {
 	case TileFloor, TileDoor, TileGrass, TileUFOFloor, TileStairs, TileStairsDown, TilePavement, TileSand, TileSnow,
 		TileConsole, TileMachinery, TilePod, TilePowerSource, TileStorage, TileAlienTech,
-		TileDesk, TileChair, TileComputer, TileBed, TileLocker, TileCabinet,
+		TileDesk, TileChair, TileChairLeft, TileChairRight, TileComputer, TileBed, TileLocker, TileCabinet,
 		TileRubble:
 		return true
 	}
@@ -368,7 +398,9 @@ func (m *BattleMap) IsDestructible(x, y int) bool {
 	t := m.At(x, y)
 	switch t.Type {
 	case TileWall, TileUFOWall, TileTree, TileRock, TileFence, TileDoor,
-		TileDesk, TileChair, TileComputer, TileBed, TileLocker, TileCabinet:
+		TileDesk, TileChair, TileChairLeft, TileChairRight, TileComputer, TileBed, TileLocker, TileCabinet,
+		TileCar, TileCarRight, TileCarMid, TileForklift, TileForkliftRight,
+		TileFuelPump:
 		return true
 	}
 	return false
@@ -395,6 +427,20 @@ func (m *BattleMap) DestroyWall(x, y int) bool {
 		tile.Cover = TileCover(TileRubble)
 	}
 	return true
+}
+
+// FuelPumpExplosionRadius returns the blast radius for fuel pump explosions.
+const FuelPumpExplosionRadius = 5
+
+// ExplodesOnDestruction returns the explosion radius if the tile at (x,y)
+// should chain-explode when destroyed, or 0 if it does not explode.
+func (m *BattleMap) ExplodesOnDestruction(x, y int) int {
+	tile := m.At(x, y)
+	switch tile.Type {
+	case TileFuelPump:
+		return FuelPumpExplosionRadius
+	}
+	return 0
 }
 
 // CoverAlongLine returns the maximum cover value (%) of tiles between (x1,y1)
@@ -574,6 +620,48 @@ func (m *BattleMap) drawRectLevel(x, y, w, h, level int, t TileType) {
 
 // corridorImpl is the shared L-shaped corridor implementation.
 // guardTile is the tile type that prevents carving; fillTile is the replacement.
+func (m *BattleMap) corridorImplProtected(x1, y1, x2, y2, w, level int, fillTile TileType) {
+	corridorX := func(x, y int) {
+		for dy := 0; dy < w; dy++ {
+			t := m.AtLevel(x, y+dy, level)
+			if !isUrbanProtected(t.Type) {
+				m.SetLevel(x, y+dy, level, fillTile)
+			}
+		}
+	}
+	corridorY := func(x, y int) {
+		for dx := 0; dx < w; dx++ {
+			t := m.AtLevel(x+dx, y, level)
+			if !isUrbanProtected(t.Type) {
+				m.SetLevel(x+dx, y, level, fillTile)
+			}
+		}
+	}
+	if rand.Intn(2) == 0 {
+		start := min(x1, x2)
+		end := max(x1, x2)
+		for x := start; x <= end; x++ {
+			corridorX(x, y1)
+		}
+		start = min(y1, y2)
+		end = max(y1, y2)
+		for y := start; y <= end; y++ {
+			corridorY(x2, y)
+		}
+	} else {
+		start := min(y1, y2)
+		end := max(y1, y2)
+		for y := start; y <= end; y++ {
+			corridorY(x1, y)
+		}
+		start = min(x1, x2)
+		end = max(x1, x2)
+		for x := start; x <= end; x++ {
+			corridorX(x, y2)
+		}
+	}
+}
+
 func (m *BattleMap) corridorImpl(x1, y1, x2, y2, w, level int, guardTile, fillTile TileType) {
 	if rand.Intn(2) == 0 {
 		start := min(x1, x2)
@@ -625,6 +713,33 @@ func (m *BattleMap) generateCorridor(x1, y1, x2, y2 int, w int) {
 	m.corridorImpl(x1, y1, x2, y2, w, m.CurrentLevel, TileWall, TileFloor)
 }
 
+// isUrbanProtected returns true for tiles that should not be overwritten
+// by corridor generation (walls, furniture, vehicles, street objects).
+func isUrbanProtected(t TileType) bool {
+	switch t {
+	case TileWall, TileDoor, TileWindow,
+		TileConsole, TileMachinery, TilePod, TilePowerSource, TileStorage, TileAlienTech,
+		TileDesk, TileChair, TileChairLeft, TileChairRight, TileComputer, TileBed, TileLocker, TileCabinet,
+		TileCar, TileCarRight, TileForklift, TileForkliftRight,
+		TileObject, TileTree, TileBush, TileFence,
+		TileFuelPump, TileContainerRed, TileContainerBlue, TileContainerYellow:
+		return true
+	}
+	return false
+}
+
+// generateCorridorFill creates an L-shaped corridor using a specific fill tile.
+// Corridors respect walls, furniture, vegetation, and vehicles.
+func (m *BattleMap) generateCorridorFill(x1, y1, x2, y2, w int, fill TileType) {
+	m.corridorImplProtected(x1, y1, x2, y2, w, m.CurrentLevel, fill)
+}
+
+// generateCorridorUFO creates an L-shaped corridor that carves through
+// UFO walls (used by alien base / Cydonia-style maps).
+func (m *BattleMap) generateCorridorUFO(x1, y1, x2, y2 int, w int) {
+	m.corridorImpl(x1, y1, x2, y2, w, m.CurrentLevel, TileUFOWall, TileUFOFloor)
+}
+
 type MapCommandType int
 
 const (
@@ -634,6 +749,8 @@ const (
 	CmdPlaceBuilding
 	CmdCorridor
 	CmdClearArea
+	CmdBlob
+	CmdPoisson
 )
 
 type MapCommand struct {
@@ -645,6 +762,10 @@ type MapCommand struct {
 	Count    int // for Scatter: number of attempts
 	X2, Y2   int // for Corridor: endpoint
 	DoorSide int // for PlaceBuilding: 0=south, 1=east, 2=north, 3=west
+	Seeds    int // for Blob: number of clusters
+	Size     int // for Blob: target tiles per cluster
+	Radius   int // for Poisson: min spacing
+	Seed     int64 // for commands needing an RNG seed
 }
 
 func (m *BattleMap) ApplyCommand(cmd MapCommand) {
@@ -669,6 +790,12 @@ func (m *BattleMap) ApplyCommand(cmd MapCommand) {
 	case CmdClearArea:
 		// identical to CmdFillRect; kept for semantic clarity only
 		m.fillRect(cmd.X, cmd.Y, cmd.W, cmd.H, cmd.Tile)
+	case CmdBlob:
+		rng := rand.New(rand.NewSource(cmd.Seed + int64(cmd.X*73856093+cmd.Y*19349663)))
+		m.Blob(cmd.Tile, cmd.Seeds, cmd.Size, cmd.Prob, rng)
+	case CmdPoisson:
+		rng := rand.New(rand.NewSource(cmd.Seed + int64(cmd.X*83492791+cmd.Y*2654435761)))
+		m.Poisson(cmd.Tile, cmd.Radius, cmd.Count, rng)
 	}
 }
 
@@ -688,7 +815,7 @@ func (m *BattleMap) furnishBuilding(bx, by, bw, bh int) {
 	if numFurniture > len(interior) {
 		numFurniture = len(interior)
 	}
-	furnitureTypes := []TileType{TileDesk, TileChair, TileComputer, TileBed, TileLocker, TileCabinet}
+	furnitureTypes := []TileType{TileDesk, TileChair, TileChairLeft, TileChairRight, TileComputer, TileBed, TileLocker, TileCabinet}
 	for i := 0; i < numFurniture; i++ {
 		idx := rand.Intn(len(interior))
 		x, y := interior[idx][0], interior[idx][1]
@@ -721,16 +848,11 @@ func ApplyCommands(m *BattleMap, cmds []MapCommand) {
 }
 
 // GenerateCrashSite creates a crash site map with a procedural UFO blueprint
-// stamped onto the terrain. Returns both the map and crash result.
+// stamped onto clustered terrain. Returns both the map and crash result.
 func GenerateCrashSite(w, h int, seed int64) (*BattleMap, *CrashResult) {
-	m := NewBattleMap(w, h)
-
-	ApplyCommands(m, []MapCommand{
-		{Type: CmdScatter, X: 0, Y: 0, W: w, H: h, Tile: TileTree, Prob: 3, Count: w * h},
-		{Type: CmdScatter, X: 0, Y: 0, W: w, H: h, Tile: TileBush, Prob: 2, Count: w * h},
-		{Type: CmdScatter, X: 0, Y: 0, W: w, H: h, Tile: TileRock, Prob: 2, Count: w * h},
-		{Type: CmdScatter, X: 0, Y: 0, W: w, H: h, Tile: TileFence, Prob: 1, Count: w * h},
-	})
+	// Clustered forest terrain via AssembleMap, deterministic on seed.
+	rng := rand.New(rand.NewSource(seed))
+	m := AssembleMap("forest", w, h, rng)
 
 	// Pick a UFO tier based on seed (deterministic)
 	seed16 := seed
@@ -773,108 +895,277 @@ func GenerateCrashSite(w, h int, seed int64) (*BattleMap, *CrashResult) {
 	return m, &result
 }
 
-// GenerateTerrorSite creates a terror site map (OpenXcom: 50x50 urban)
-func GenerateTerrorSite(w, h int) *BattleMap {
+// GenerateTerrorSite creates a terror site map (OpenXcom: 50x50 urban) using a
+// strict "Grid and Zoning" (plots and parcels) pipeline so the result reads as a
+// planned human city rather than scattered fragments:
+//
+//  1. Road skeleton: one main vertical avenue + 1-2 horizontal cross-streets.
+//  2. Sidewalks: grass tiles adjacent to roads become paved walkways.
+//  3. City blocks: the roads divide the map into rectangular Lots. Buildings are
+//     sidewalk-anchored (entrance facing the road) and never overlap roads or
+//     each other.
+//  4. Contextual scatter (masking): cars only on road/sidewalk; trees confined
+//     to empty grass Lots (parks).
+//
+// All randomness is seeded so each mission layout is reproducible.
+func GenerateTerrorSite(w, h int, seed int64) *BattleMap {
+	rng := rand.New(rand.NewSource(seed))
 	m := NewBattleMap(w, h)
+	m.fillRect(0, 0, w, h, TileGrass)
 
-	// Fill with pavement (roads)
-	m.fillRect(0, 0, w, h, TilePavement)
-
-	// Generate roads (OpenXcom urban script pattern)
-	if rand.Intn(2) == 0 {
-		roadX := w/4 + rand.Intn(w/2)
-		m.fillRect(roadX-1, 0, 3, h, TilePavement)
+	// ---- 1. Road skeleton (bounding-box fills, no organic pathfinding) ----
+	roadW := 4 + rng.Intn(2) // 4-5
+	roadX := w/2 - roadW/2 + rng.Intn(3) - 1
+	if roadX < 1 {
+		roadX = 1
 	}
-	if rand.Intn(2) == 0 {
-		roadY := h/4 + rand.Intn(h/2)
-		m.fillRect(0, roadY-1, w, 3, TilePavement)
+	if roadX+roadW > w-1 {
+		roadX = w - roadW - 1
+	}
+	m.fillRect(roadX, 0, roadW, h, TilePavement)
+
+	numCross := 1 + rng.Intn(2) // 1-2 horizontal streets
+	crossWidths := []int{3 + rng.Intn(2)} // 3-4
+	if numCross == 2 {
+		crossWidths = append(crossWidths, 3+rng.Intn(2))
+	}
+	// Evenly distribute cross-streets down the map.
+	for i := 0; i < numCross; i++ {
+		cw := crossWidths[i]
+		cy := (h * (i + 1)) / (numCross + 1)
+		cy -= cw / 2
+		if cy < 1 {
+			cy = 1
+		}
+		if cy+cw > h-1 {
+			cy = h - cw - 1
+		}
+		m.fillRect(0, cy, w, cw, TilePavement)
 	}
 
-	// Generate buildings
-	buildings := 0
-	maxBuildings := 12
-	attempts := 0
-	for buildings < maxBuildings && attempts < 200 {
-		attempts++
-		bw := 6 + rand.Intn(8)
-		bh := 5 + rand.Intn(7)
-		bx := randn(w-bw-2) + 1
-		by := randn(h-bh-2) + 1
+	// ---- 2. Sidewalks: grass N/S/E/W adjacent to a road becomes walkway ----
+	for y := 0; y < h; y++ {
+		for x := 0; x < w; x++ {
+			if m.At(x, y).Type != TileGrass {
+				continue
+			}
+			adjRoad := false
+			for _, d := range [][2]int{{0, -1}, {0, 1}, {-1, 0}, {1, 0}} {
+				nx, ny := x+d[0], y+d[1]
+				if nx < 0 || nx >= w || ny < 0 || ny >= h {
+					continue
+				}
+				if m.At(nx, ny).Type == TilePavement {
+					adjRoad = true
+					break
+				}
+			}
+			if adjRoad {
+				m.Set(x, y, TileFloor)
+			}
+		}
+	}
 
-		// Ensure building doesn't overlap existing structures or map boundaries
-		overlap := false
-		for dy := -1; dy <= bh; dy++ {
-			for dx := -1; dx <= bw; dx++ {
-				if m.At(bx+dx, by+dy).Type == TileWall {
+	// ---- 3. City blocks & sidewalk-anchored building placement ----
+	type lot struct{ x, y, w, h int }
+	var lots []lot
+	// Decompose free (non-road) space into maximal rectangles.
+	used := make([][]bool, h)
+	for y := 0; y < h; y++ {
+		used[y] = make([]bool, w)
+	}
+	for gy := 0; gy < h; gy++ {
+		for gx := 0; gx < w; gx++ {
+			if used[gy][gx] || m.At(gx, gy).Type == TilePavement {
+				if m.At(gx, gy).Type == TilePavement {
+					used[gy][gx] = true
+				}
+				continue
+			}
+			rw := 1
+			for gx+rw < w && !used[gy][gx+rw] && m.At(gx+rw, gy).Type != TilePavement {
+				rw++
+			}
+			rh := 1
+		grow:
+			for gy+rh < h {
+				for cx := gx; cx < gx+rw; cx++ {
+					if used[gy+rh][cx] || m.At(cx, gy+rh).Type == TilePavement {
+						break grow
+					}
+				}
+				rh++
+			}
+			lots = append(lots, lot{gx, gy, rw, rh})
+			for yy := gy; yy < gy+rh; yy++ {
+				for xx := gx; xx < gx+rw; xx++ {
+					used[yy][xx] = true
+				}
+			}
+		}
+	}
+
+	buildingIDs := []string{
+		"urban_building", "urban_apartment", "urban_shop", "urban_corner_store",
+		"urban_warehouse", "urban_tower", "urban_parking_lot", "urban_rooftop",
+		"urban_rubble", "bus_stop_cover", "ruined_shack",
+	}
+
+	// Fill each lot with one or more buildings (a block holds a cluster of
+	// houses) or leave it as a park.
+	type placed struct{ x, y, w, h int }
+	var placedBuildings []placed
+	parkLots := map[int]bool{}
+	for li, l := range lots {
+		if l.w < 3 || l.h < 3 {
+			continue
+		}
+		// Reserve ~1 in 5 sizeable lots as parks (green space) so the city is
+		// not wall-to-wall buildings.
+		if l.w >= 6 && l.h >= 6 && rng.Intn(5) == 0 {
+			parkLots[li] = true
+			continue
+		}
+		// Subdivide the block and pack several fitting buildings with spacing.
+		// setback = gap from lot edge to first building; gap = spacing between
+		// neighbouring buildings (keeps yards/alleys between houses).
+		const setback = 1
+		const gap = 1
+		attempts := 0
+		placedInLot := 0
+		for attempts < 60 {
+			attempts++
+			// Randomly choose a building that could fit somewhere in the lot.
+			id := buildingIDs[rng.Intn(len(buildingIDs))]
+			c := mapgen.Get(id)
+			if c == nil {
+				continue
+			}
+			if c.Width+2*setback > l.w || c.Height+2*setback > l.h {
+				continue
+			}
+			// Random free anchor inside the lot (with setback).
+			maxX := l.x + l.w - c.Width - setback
+			maxY := l.y + l.h - c.Height - setback
+			if maxX < l.x+setback || maxY < l.y+setback {
+				continue
+			}
+			ax := l.x + setback + rng.Intn(maxX-(l.x+setback)+1)
+			ay := l.y + setback + rng.Intn(maxY-(l.y+setback)+1)
+			// Reject if it overlaps an already-placed building (incl. gap).
+			overlap := false
+			for _, p := range placedBuildings {
+				if ax < p.x+p.w+gap && ax+c.Width+gap > p.x &&
+					ay < p.y+p.h+gap && ay+c.Height+gap > p.y {
 					overlap = true
 					break
 				}
 			}
 			if overlap {
+				continue
+			}
+			// Reject if it overlaps a road (shouldn't happen inside a lot, but
+			// be safe at lot edges).
+			hitRoad := false
+			for dy := 0; dy < c.Height && !hitRoad; dy++ {
+				for dx := 0; dx < c.Width; dx++ {
+					if m.At(ax+dx, ay+dy).Type == TilePavement {
+						hitRoad = true
+						break
+					}
+				}
+			}
+			if hitRoad {
+				continue
+			}
+			ApplyMapgenChunkRotated(m, ax, ay, 0, c)
+			placedBuildings = append(placedBuildings, placed{ax, ay, c.Width, c.Height})
+			placedInLot++
+			// Stop early once the block is reasonably filled.
+			if placedInLot >= 6 {
 				break
 			}
 		}
-
-		if overlap {
-			continue
-		}
-
-		m.ApplyCommand(MapCommand{Type: CmdPlaceBuilding, X: bx, Y: by, W: bw, H: bh, DoorSide: 0})
-		buildings++
 	}
 
-	ApplyCommands(m, []MapCommand{
-		{Type: CmdScatter, X: 1, Y: 1, W: w - 2, H: h - 2, Tile: TileObject, Prob: 10, Count: 20},
-	})
+	// ---- 4a. Cars: only on road/sidewalk tiles ----
+	carChunk := mapgen.Get("urban_car")
+	if carChunk != nil {
+		carTries := 0
+		carsPlaced := 0
+		for carsPlaced < 6+w/12 && carTries < 200 {
+			carTries++
+			cx := 1 + rng.Intn(max(1, w-carChunk.Width-1))
+			cy := 1 + rng.Intn(max(1, h-carChunk.Height-1))
+			ok := true
+			for dy := 0; dy < carChunk.Height && ok; dy++ {
+				for dx := 0; dx < carChunk.Width; dx++ {
+					tt := m.At(cx+dx, cy+dy).Type
+					if tt != TilePavement && tt != TileFloor {
+						ok = false
+						break
+					}
+				}
+			}
+			if !ok {
+				continue
+			}
+			ApplyMapgenChunkRotated(m, cx, cy, 0, carChunk)
+			carsPlaced++
+		}
+	}
+
+	// ---- 4b. Parks: reserved grass lots get trees via masked Poisson ----
+	for li, l := range lots {
+		if !parkLots[li] {
+			continue
+		}
+		// Confine tree scatter to this lot rectangle (masking).
+		maskPoissonInRect(m, TileTree, 2, (l.w*l.h)/10+1, l.x, l.y, l.w, l.h, rng)
+	}
+
+	// Street furniture on sidewalks/roads.
+	maskPoissonInRect(m, TileObject, 3, w*h/250, 0, 0, w, h, rng)
 
 	return m
 }
 
-func GenerateAbductionSite(w, h int) *BattleMap {
-	m := NewBattleMap(w, h)
-
-	// Fill with grass
-	m.fillRect(0, 0, w, h, TileGrass)
-
-	// Scatter rocks
-	ApplyCommands(m, []MapCommand{
-		{Type: CmdScatter, X: 1, Y: 1, W: w - 2, H: h - 2, Tile: TileRock, Prob: 5, Count: 30},
-	})
-
-	// Scatter trees
-	ApplyCommands(m, []MapCommand{
-		{Type: CmdScatter, X: 1, Y: 1, W: w - 2, H: h - 2, Tile: TileTree, Prob: 8, Count: 40},
-	})
-
-	// A few small structures (rural buildings)
-	buildings := 3 + rand.Intn(3)
+// maskPoissonInRect scatters t using Poisson spacing but only onto tiles whose
+// current type is one of the allowed passable ground types, confined to the
+// given rectangle. Used to keep trees in parks and cars/furniture on pavement.
+func maskPoissonInRect(m *BattleMap, t TileType, radius, count, x0, y0, rw, rh int, rng *rand.Rand) {
+	placed := [][2]int{}
 	attempts := 0
-	for i := 0; i < buildings && attempts < 100; i++ {
+	for len(placed) < count && attempts < count*20 {
 		attempts++
-		bw := 4 + rand.Intn(4)
-		bh := 3 + rand.Intn(3)
-		bx := randn(w-bw-2) + 1
-		by := randn(h-bh-2) + 1
-		overlap := false
-		for dy := -1; dy <= bh; dy++ {
-			for dx := -1; dx <= bw; dx++ {
-				if m.At(bx+dx, by+dy).Type != TileGrass {
-					overlap = true
-				}
-			}
-		}
-		if overlap {
+		x := x0 + rng.Intn(max(1, rw-2)) + 1
+		y := y0 + rng.Intn(max(1, rh-2)) + 1
+		if x >= m.Width || y >= m.LevelHeight {
 			continue
 		}
-		m.ApplyCommand(MapCommand{Type: CmdPlaceBuilding, X: bx, Y: by, W: bw, H: bh, DoorSide: rand.Intn(4)})
+		switch m.At(x, y).Type {
+		case TileGrass, TileFloor, TilePavement:
+		default:
+			continue
+		}
+		ok := true
+		for _, p := range placed {
+			dx, dy := p[0]-x, p[1]-y
+			if dx*dx+dy*dy < radius*radius {
+				ok = false
+				break
+			}
+		}
+		if !ok {
+			continue
+		}
+		m.Set(x, y, t)
+		placed = append(placed, [2]int{x, y})
 	}
+}
 
-	// Scatter objects inside buildings
-	ApplyCommands(m, []MapCommand{
-		{Type: CmdScatter, X: 1, Y: 1, W: w - 2, H: h - 2, Tile: TileObject, Prob: 3, Count: 15},
-	})
-
-	return m
+func GenerateAbductionSite(w, h int) *BattleMap {
+	return AssembleMap("rural", w, h, rand.New(rand.NewSource(int64(w*32452843+h*456789))))
 }
 
 // GenerateUFOInterior creates a UFO interior map (OpenXcom: 50x50)
@@ -1113,19 +1404,19 @@ func GenerateCydonia(w, h int) *BattleMap {
 
 	// Connect command center to pods
 	for _, pos := range podPositions {
-		m.generateCorridor(ccX+ccSize/2, ccY+ccSize/2, pos[0], pos[1], 2)
+		m.generateCorridorUFO(ccX+ccSize/2, ccY+ccSize/2, pos[0], pos[1], 2)
 	}
 
 	// Connect entrance to command center
 	switch entranceSide {
 	case 0:
-		m.generateCorridor(w/2, 6, ccX+ccSize/2, ccY, 2)
+		m.generateCorridorUFO(w/2, 6, ccX+ccSize/2, ccY, 2)
 	case 1:
-		m.generateCorridor(w/2, h-6, ccX+ccSize/2, ccY+ccSize, 2)
+		m.generateCorridorUFO(w/2, h-6, ccX+ccSize/2, ccY+ccSize, 2)
 	case 2:
-		m.generateCorridor(6, h/2, ccX, ccY+ccSize/2, 2)
+		m.generateCorridorUFO(6, h/2, ccX, ccY+ccSize/2, 2)
 	case 3:
-		m.generateCorridor(w-6, h/2, ccX+ccSize, ccY+ccSize/2, 2)
+		m.generateCorridorUFO(w-6, h/2, ccX+ccSize, ccY+ccSize/2, 2)
 	}
 
 	// Scatter objects
@@ -1137,6 +1428,9 @@ func GenerateCydonia(w, h int) *BattleMap {
 			m.Set(x, y, TileObject)
 		}
 	}
+
+	// Guarantee the whole interior is reachable from the command center.
+	m.RepairConnectivity(ccX+ccSize/2, ccY+ccSize/2)
 
 	return m
 }
@@ -1221,7 +1515,7 @@ func GenerateAlienBase(w, h int) *BattleMap {
 	coreCx := cx + coreSize/2
 	coreCy := cy + coreSize/2
 	for _, p := range pods {
-		m.generateCorridor(coreCx, coreCy, p[0], p[1], 2)
+		m.generateCorridorUFO(coreCx, coreCy, p[0], p[1], 2)
 	}
 
 	// Entrance on a random side
@@ -1245,6 +1539,9 @@ func GenerateAlienBase(w, h int) *BattleMap {
 		m.Set(bx+baseSize, ey, TileDoor)
 	}
 
+	// Guarantee the whole interior and entrance area is reachable from the core.
+	m.RepairConnectivity(coreCx, coreCy)
+
 	// Scatter alien tech loot inside the structure
 	scatterCount := 8 + rand.Intn(12)
 	for i := 0; i < scatterCount; i++ {
@@ -1258,51 +1555,19 @@ func GenerateAlienBase(w, h int) *BattleMap {
 	return m
 }
 
-// GenerateForest creates a forest map (OpenXcom: 50x50)
+// GenerateForest creates a forest map (OpenXcom: 50x50) via AssembleMap.
 func GenerateForest(w, h int) *BattleMap {
-	m := NewBattleMap(w, h)
-	ApplyCommands(m, []MapCommand{
-		{Type: CmdScatter, X: 0, Y: 0, W: w, H: h, Tile: TileTree, Prob: 15, Count: w * h},
-		{Type: CmdScatter, X: 0, Y: 0, W: w, H: h, Tile: TileBush, Prob: 5, Count: w * h},
-		{Type: CmdScatter, X: 0, Y: 0, W: w, H: h, Tile: TileRock, Prob: 2, Count: w * h},
-	})
-	clearX := w/4 + rand.Intn(w/2)
-	clearY := h/4 + rand.Intn(h/2)
-	ApplyCommands(m, []MapCommand{
-		{Type: CmdClearArea, X: clearX - 3, Y: clearY - 3, W: 7, H: 7, Tile: TileGrass},
-	})
-	return m
+	return AssembleMap("forest", w, h, rand.New(rand.NewSource(int64(w*73856093+h*19349663))))
 }
 
-// GenerateDesert creates a desert map (OpenXcom: 50x50)
+// GenerateDesert creates a desert map (OpenXcom: 50x50) via AssembleMap.
 func GenerateDesert(w, h int) *BattleMap {
-	m := NewBattleMap(w, h)
-	for y := 0; y < h; y++ {
-		for x := 0; x < w; x++ {
-			m.Set(x, y, TilePavement)
-		}
-	}
-	ApplyCommands(m, []MapCommand{
-		{Type: CmdScatter, X: 0, Y: 0, W: w, H: h, Tile: TileRock, Prob: 5, Count: w * h},
-		{Type: CmdScatter, X: 0, Y: 0, W: w, H: h, Tile: TileSand, Prob: 3, Count: w * h},
-		{Type: CmdScatter, X: 0, Y: 0, W: w, H: h, Tile: TileBush, Prob: 2, Count: w * h},
-	})
-	return m
+	return AssembleMap("desert", w, h, rand.New(rand.NewSource(int64(w*19349663+h*83492791))))
 }
 
-// GeneratePolar creates a polar map (OpenXcom: 50x50)
+// GeneratePolar creates a polar map (OpenXcom: 50x50) via AssembleMap.
 func GeneratePolar(w, h int) *BattleMap {
-	m := NewBattleMap(w, h)
-	for y := 0; y < h; y++ {
-		for x := 0; x < w; x++ {
-			m.Set(x, y, TileSnow)
-		}
-	}
-	ApplyCommands(m, []MapCommand{
-		{Type: CmdScatter, X: 0, Y: 0, W: w, H: h, Tile: TileRock, Prob: 3, Count: w * h},
-		{Type: CmdScatter, X: 0, Y: 0, W: w, H: h, Tile: TileMarsh, Prob: 2, Count: w * h},
-	})
-	return m
+	return AssembleMap("polar", w, h, rand.New(rand.NewSource(int64(w*2654435761+h*19349663))))
 }
 
 func (m *BattleMap) neighbourhood(x, y int) [3][3]TileType {

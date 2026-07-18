@@ -14,6 +14,7 @@ import (
 	"github.com/taislin/termcom/internal/engine"
 	"github.com/taislin/termcom/internal/geo"
 	"github.com/taislin/termcom/internal/language"
+	"github.com/taislin/termcom/internal/mapgen"
 	"github.com/taislin/termcom/internal/save"
 	"github.com/taislin/termcom/internal/soldier"
 )
@@ -89,6 +90,18 @@ func NewGame(dataDir string, cols, rows int) *GameBridge {
 			// Fall back to CWD if dataDir is invalid
 		}
 	}
+
+	if err := mapgen.Init(); err != nil {
+		// Non-fatal: log and continue with hardcoded defaults
+		_ = err
+	}
+	data.NewAlienSpriteRegistry().RebuildFromTemplates(
+		mapgen.ToTemplateData("head"),
+		mapgen.ToTemplateData("eye"),
+		mapgen.ToTemplateData("torso"),
+		mapgen.ToTemplateData("leg"),
+		mapgen.ToTemplateData("weapon"),
+	)
 
 	engine.LoadConfig()
 	engine.Config.TouchMode = true
@@ -457,7 +470,7 @@ func (b *GameBridge) launchCustomBattle(path string) {
 	}
 	switch gen {
 	case "terror":
-		m = battle.GenerateTerrorSite(w, h)
+		m = battle.GenerateTerrorSite(w, h, time.Now().UnixNano())
 	case "supply_raid", "ufo_interior":
 		m = battle.GenerateUFOInterior(w, h)
 	case "alien_base":
@@ -465,7 +478,7 @@ func (b *GameBridge) launchCustomBattle(path string) {
 	case "alien_research":
 		m = battle.GenerateUFOInterior(w, h)
 	case "council":
-		m = battle.GenerateTerrorSite(w, h)
+		m = battle.GenerateTerrorSite(w, h, time.Now().UnixNano())
 	case "cydonia":
 		m = battle.GenerateCydonia(w, h)
 	case "abduction":

@@ -1,0 +1,23 @@
+{
+  "id": "ufo_command_room",
+  "tags": [
+    "ufo",
+    "alien"
+  ],
+  "width": 5,
+  "height": 5,
+  "rows": [
+    "WWWWW",
+    "W.C.W",
+    "WC.CW",
+    "W.C.W",
+    "WWWWW"
+  ],
+  "terrain": {
+    "W": "TileUFOWall",
+    ".": "TileUFOFloor",
+    "C": "TileConsole"
+  },
+  "furniture": {},
+  "weight": 2
+}

@@ -144,6 +144,7 @@ func (os *OptionsScreen) Render(ctx *ScreenCtx) {
 	speedIdx := themeIdx + 1
 	volIdx := speedIdx + 1
 	langIdx := volIdx + 1
+	tutorialIdx := langIdx + 1
 	themeStyle := StyleDefault
 	if os.Selection == themeIdx {
 		themeStyle = StyleHighlight
@@ -185,12 +186,19 @@ func (os *OptionsScreen) Render(ctx *ScreenCtx) {
 	drawFlag(ctx, baseX, flagY, language.Current())
 	ctx.DrawString(baseX+langFlagOffset, flagY+1, fmt.Sprintf("  %s: [%s]", language.String("OPTIONS_LANGUAGE"), langs[li]), langStyle)
 
+	// Replay Tutorial action
+	tutorialStyle := StyleDefault
+	if os.Selection == tutorialIdx {
+		tutorialStyle = StyleHighlight
+	}
+	ctx.DrawString(baseX, startY+tutorialIdx+1, fmt.Sprintf("  %s", language.String("OPTIONS_REPLAY_TUTORIAL")), tutorialStyle)
+
 	ctx.DrawPanel(0, h-1, w, 1, "", StyleGray)
 	ctx.DrawMarkupString(1, h-1, language.String("OPTIONS_HELP"), StyleGray, StyleHotkey)
 }
 
 func (os *OptionsScreen) HandleKey(e *tcell.EventKey) {
-	const totalOptions = 13
+	const totalOptions = 14
 	switch e.Key() {
 	case tcell.KeyUp:
 		audio.PlayMenuNav()
@@ -242,6 +250,11 @@ func (os *OptionsScreen) toggle() {
 		Config.PauseOnAlienDetect = !Config.PauseOnAlienDetect
 	case 9:
 		os.cycleTheme(1)
+	case 13:
+		Config.TutorialShown = false
+		SaveConfig()
+		os.Game.RegisterScreen(StateTutorial, NewTutorialScreen(os.Game, nil))
+		os.Game.PushState(StateTutorial)
 	}
 }
 
@@ -318,6 +331,8 @@ func (os *OptionsScreen) HandleMouse(e *tcell.EventMouse) {
 			optIndex = 11 // volume
 		} else if y == startY+15 && x >= baseX+langFlagOffset && x < baseX+langHitWidth {
 			optIndex = 12 // language
+		} else if y == startY+14 && x >= baseX && x < baseX+boolHitWidth {
+			optIndex = 13 // tutorial
 		}
 	}
 	if optIndex < 0 {
@@ -366,6 +381,8 @@ func (os *OptionsScreen) applyOptionDelta(idx, dir int) {
 		audio.SetSfxVolume(Config.SfxVolume)
 	case 12:
 		os.cycleLang(dir)
+	case 13:
+		// No left/right adjustment for tutorial action
 	}
 }
 

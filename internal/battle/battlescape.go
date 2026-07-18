@@ -184,6 +184,7 @@ type Battlescape struct {
 	// Input State
 	State          BattleState
 	mouseX, mouseY int // last mouse position for edge-scrolling
+	QuitConfirm    bool
 	mouseActive    bool
 }
 
@@ -344,17 +345,26 @@ func (bs *Battlescape) CalculatePath(startX, startY, endX, endY int) [][2]int {
 func NewBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, ufoName string, crashSeed int64) *Battlescape {
 	var m *BattleMap
 	var crashResult *CrashResult
+	// Deterministic RNG for WFC map generation, derived from the mission seed
+	// (or the game clock when none is supplied) so reloads are reproducible.
+	mapSeed := int64(crashSeed)
+	if mapSeed == 0 {
+		mapSeed = g.GameTime.UnixNano()
+	}
+	mapRng := rand.New(rand.NewSource(mapSeed))
 	switch ufoName {
 	case "Terror":
-		m = GenerateTerrorSite(50, 50)
+		m = GenerateTerrorSite(50, 50, mapSeed)
 	case "Supply Raid":
-		m = GenerateUFOInterior(50, 50)
+		m = GenerateUFOInteriorWFC(50, 50, mapRng)
 	case "Alien Base Assault":
-		m = GenerateAlienBase(50, 50)
+		m = GenerateAlienBaseWFC(50, 50, mapRng)
 	case "Alien Research":
-		m = GenerateUFOInterior(50, 50)
+		m = GenerateUFOInteriorWFC(50, 50, mapRng)
+	case "Building Assault":
+		m = GenerateUrbanBuildingWFCLevels(50, 50, 2, mapRng)
 	case "Council":
-		m = GenerateTerrorSite(50, 50)
+		m = GenerateTerrorSite(50, 50, mapSeed)
 	case "Cydonia":
 		m = GenerateCydonia(50, 50)
 	case "Abduction":
@@ -367,6 +377,10 @@ func NewBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, ufoN
 		m = GeneratePolar(50, 50)
 	default:
 		m, crashResult = GenerateCrashSite(50, 50, crashSeed)
+	}
+	if m != nil && !m.ValidateMap() {
+		// Fallback: clear to open ground so combat remains playable.
+		m = NewBattleMap(50, 50)
 	}
 
 	rng := rand.New(rand.NewSource(int64(g.GameTime.UnixNano())))
@@ -823,23 +837,6 @@ func (bs *Battlescape) Update() {
 		audio.PlayWind()
 	}
 
-	if bs.FrameCount%12 == 0 && bs.Phase != PhaseVictory && bs.Phase != PhaseDefeat {
-		w, h := bs.Game.ScreenSize()
-		viewW := engine.Layout.BattleViewWidth(w)
-		viewH := engine.Layout.BattleViewHeight(h)
-		switch bs.UFOName {
-		case "Polar":
-			engine.SpawnSnow(bs.Particles, bs.ScrollX, bs.ScrollY, viewW, 1)
-		case "Desert":
-			engine.SpawnDust(bs.Particles, bs.ScrollX, bs.ScrollY, viewW, viewH)
-		case "Cydonia", "Alien Base Assault":
-			engine.SpawnEmbers(bs.Particles, bs.ScrollX, bs.ScrollY, viewW, viewH)
-		}
-	}
-
-	// If a projectile is mid-flight, advance it every frame regardless of phase
-	// (alien reaction fire is spawned during the player's own turn, so gating this
-	// on PhaseAlienTurn would leave the tracer frozen on the map).
 	if bs.Projectile != nil {
 		bs.Projectile.Progress++
 		if bs.Projectile.Progress >= bs.Projectile.Length {
@@ -914,7 +911,7 @@ func (bs *Battlescape) spawnShotFX(shooter, target *Unit, damage int, hit, cover
 		bs.SpawnBloodSplatter(target)
 		bs.spawnFloater(target.X, target.Y, fmt.Sprintf("-%d", damage), color.XTerm9)
 		name := target.Name()
-		bs.AddMessage(fmt.Sprintf(language.String(hitMsg), name, damage))
+		bs.AddMessage(fmt.Sprintf(language.String(hitMsg), damage, name, target.HP))
 		if !target.Alive {
 			bs.AddMessage(fmt.Sprintf(language.String(killMsg), name))
 		}
@@ -1274,6 +1271,18 @@ func (bs *Battlescape) checkAlienReactionFire(movedHuman *Unit) {
 		bs.spawnShotFX(u, movedHuman, damage, hit, coverHit, engine.StyleRedBold, "MSG_REACTION_MISS", "MSG_REACTION_HIT", "MSG_REACTION_KILL")
 		return
 	}
+}
+
+// exitBattle aborts the mission — all human units are killed and the battle ends in defeat.
+func (bs *Battlescape) exitBattle() {
+	for _, u := range bs.Units {
+		if u.Faction == FactionHuman && u.Alive {
+			u.HP = 0
+			u.Alive = false
+		}
+	}
+	bs.SetPhase(PhaseDefeat)
+	bs.AddMessage(language.String("MSG_BATTLE_EXITED"))
 }
 
 func (bs *Battlescape) finishBattle() {
@@ -1738,6 +1747,17 @@ func (bs *Battlescape) MoveCursor(dx, dy int) {
 	}
 
 	bs.Camera.SetTarget(bs.CursorX, bs.CursorY)
+	bs.updateHoverFromCursor()
+}
+
+// updateHoverFromCursor sets HoveredUnit to the alien under the cursor (keyboard or mouse).
+func (bs *Battlescape) updateHoverFromCursor() {
+	unit := bs.Units.At(bs.CursorX, bs.CursorY)
+	if unit != nil && unit.Faction == FactionAlien && unit.Alive {
+		bs.HoveredUnit = unit
+	} else if unit == nil || unit.Faction != FactionAlien {
+		bs.HoveredUnit = nil
+	}
 }
 
 // SelectUnit selects the unit at the cursor position or cycles to the next one.
@@ -2382,6 +2402,70 @@ func (bs *Battlescape) Grenade() {
 	engine.SpawnSmoke(bs.Particles, ax-bs.ScrollX+1, ay-bs.ScrollY+1, 8)
 }
 
+// TriggerFuelPumpExplosions checks for fuel pumps in a radius around (cx,cy)
+// that were just destroyed and detonates them, dealing splash damage to units
+// and destroying nearby tiles. Called after any tile destruction that might
+// have hit a fuel pump.
+func (bs *Battlescape) TriggerFuelPumpExplosions(cx, cy int) {
+	radius := FuelPumpExplosionRadius
+	type blastTarget struct {
+		x, y int
+		dist int
+	}
+	var targets []blastTarget
+	for dy := -radius; dy <= radius; dy++ {
+		for dx := -radius; dx <= radius; dx++ {
+			nx, ny := cx+dx, cy+dy
+			if nx < 0 || nx >= bs.Map.Width || ny < 0 || ny >= bs.Map.Height {
+				continue
+			}
+			dist := abs(dx) + abs(dy)
+			if dist > radius {
+				continue
+			}
+			targets = append(targets, blastTarget{nx, ny, dist})
+		}
+	}
+
+	for _, t := range targets {
+		tile := &bs.Map.Tiles[t.y][t.x]
+		tile.Type = TileRubble
+		tile.Cover = TileCover(TileRubble)
+		tile.Rune = tileChars[TileRubble]
+		tile.BaseColor = tcell.ColorDefault
+	}
+
+	for _, u := range bs.Units {
+		if !u.Alive {
+			continue
+		}
+		dx := u.X - cx
+		dy := u.Y - cy
+		dist := dx*dx + dy*dy
+		if dist <= radius*radius {
+			dmg := 60 - dist*3
+			if dmg < 10 {
+				dmg = 10
+			}
+			u.HP -= dmg
+			if u.HP <= 0 {
+				u.HP = 0
+				u.Alive = false
+				bs.SpawnBloodSplatter(u)
+			}
+		}
+	}
+
+	audio.PlayExplosion()
+	bs.AddMessage(fmt.Sprintf(language.String("MSG_GRENADE_DETONATED"), cx, cy))
+	if engine.Config.ScreenShake {
+		bs.Camera.TriggerShake(4.0)
+	}
+	engine.SpawnExplosion(bs.Particles, cx-bs.ScrollX+1, cy-bs.ScrollY+1, tcell.NewRGBColor(255, 100, 30), 32)
+	engine.SpawnSmoke(bs.Particles, cx-bs.ScrollX+1, cy-bs.ScrollY+1, 12)
+	bs.ComputeFOVForTeam()
+}
+
 func (bs *Battlescape) UseMedikit() {
 	if bs.Selected == nil || bs.Phase != PhasePlayerTurn {
 		return
@@ -2668,6 +2752,7 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 	}
 
 	blackStyle := engine.StyleDefault
+	tileBgs := make(map[[2]int]tcell.Color, viewW*viewH)
 
 	for y := 0; y < viewH; y++ {
 		for x := 0; x < viewW; x++ {
@@ -2696,6 +2781,7 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 			}
 
 			style = bs.ApplyCursorStyles(mx, my, style)
+			tileBgs[[2]int{mx, my}] = style.GetBackground()
 			ctx.SetCell(x+1, y+1, ch, style)
 		}
 	}
@@ -2848,7 +2934,12 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 		}
 	}
 
-	bs.Particles.Draw(ctx.ScreenRaw)
+	bs.Particles.Draw(ctx.ScreenRaw, bs.ScrollX, bs.ScrollY, viewW, viewH, func(mx, my int) tcell.Color {
+		if c, ok := tileBgs[[2]int{mx, my}]; ok {
+			return c
+		}
+		return tcell.ColorDefault
+	})
 
 	if bs.VisionMode != engine.VisionNormal {
 		var entities []engine.ThermalEntity
@@ -2949,6 +3040,28 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 		}
 		ctx.DrawMarkupString(1, h-1, help, engine.StyleGray, engine.StyleHotkey)
 	}
+
+	// Quit confirmation dialog
+	if bs.QuitConfirm {
+		bs.renderQuitConfirm(ctx, w, h)
+	}
+}
+
+func (bs *Battlescape) renderQuitConfirm(ctx *engine.ScreenCtx, w, h int) {
+	boxW := 46
+	boxH := 5
+	x := (w - boxW) / 2
+	y := (h - boxH) / 2
+	for fy := y; fy < y+boxH; fy++ {
+		for fx := x; fx < x+boxW; fx++ {
+			ctx.SetCell(fx, fy, ' ', engine.StyleGray)
+		}
+	}
+	ctx.DrawPanel(x, y, boxW, boxH, "", engine.StyleGray)
+	msg := language.String("CONFIRM_BATTLE_EXIT")
+	ctx.DrawString(x+(boxW-engine.StringWidth(msg))/2, y+2, msg, engine.StyleYellow)
+	hint := language.String("CONFIRM_BATTLE_EXIT_HINT")
+	ctx.DrawString(x+(boxW-engine.StringWidth(hint))/2, y+3, hint, engine.StyleHotkey)
 }
 
 func (bs *Battlescape) phaseStr() string {
@@ -3424,6 +3537,10 @@ func tileTypeName(t TileType) string {
 	case TileDesk:
 		return language.String("TILE_DESK")
 	case TileChair:
+		return language.String("TILE_CHAIR")
+	case TileChairLeft:
+		return language.String("TILE_CHAIR")
+	case TileChairRight:
 		return language.String("TILE_CHAIR")
 	case TileComputer:
 		return language.String("TILE_COMPUTER")

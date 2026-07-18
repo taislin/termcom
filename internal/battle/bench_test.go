@@ -1,6 +1,7 @@
 package battle
 
 import (
+	"math/rand"
 	"testing"
 
 	"github.com/taislin/termcom/internal/data"
@@ -94,12 +95,17 @@ func BenchmarkMapGeneration(b *testing.B) {
 	})
 	b.Run("TerrorSite", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			GenerateTerrorSite(30, 24)
+			GenerateTerrorSite(30, 24, 42)
 		}
 	})
 	b.Run("UFOInterior", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
 			GenerateUFOInterior(30, 24)
+		}
+	})
+	b.Run("UFOInteriorWFC", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			GenerateUFOInteriorWFC(30, 24, rand.New(rand.NewSource(1)))
 		}
 	})
 	b.Run("Cydonia", func(b *testing.B) {

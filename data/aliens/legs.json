@@ -1,0 +1,137 @@
+[
+  {
+    "id": "legs_bipedal",
+    "type": "leg",
+    "locomotion": "bipedal",
+    "width": 20,
+    "height": 6,
+    "pixels": [
+      ".......XXXXXX.......",
+      "......XXX..XXX......",
+      "......XX....XX......",
+      ".....XX......XX.....",
+      ".....XX......XX.....",
+      "....ddd......ddd...."
+    ]
+  },
+  {
+    "id": "legs_long",
+    "type": "leg",
+    "locomotion": "bipedal",
+    "width": 20,
+    "height": 6,
+    "pixels": [
+      ".......XXXXXX.......",
+      ".......XX.XXX.......",
+      ".......XX..XX.......",
+      ".......XX..XX.......",
+      ".......XX..XX.......",
+      ".......dd..dd......."
+    ]
+  },
+  {
+    "id": "legs_wide",
+    "type": "leg",
+    "locomotion": "bipedal",
+    "width": 20,
+    "height": 6,
+    "pixels": [
+      ".......XXXXXX.......",
+      "......XXXXXXXX......",
+      ".....XX......XX.....",
+      "....XX........XX....",
+      "...XX..........XX...",
+      "..dd............dd.."
+    ]
+  },
+  {
+    "id": "legs_arachnid",
+    "type": "leg",
+    "locomotion": "arachnid",
+    "width": 20,
+    "height": 6,
+    "pixels": [
+      ".......XXXXXX.......",
+      "......XX.XX.XX......",
+      ".....XX..XX..XX.....",
+      "....XX...XX...XX....",
+      "...XX....XX....XX...",
+      "..dd.....dd.....dd.."
+    ]
+  },
+  {
+    "id": "legs_crab",
+    "type": "leg",
+    "locomotion": "arachnid",
+    "width": 20,
+    "height": 6,
+    "pixels": [
+      "hh...XXXXXXXX...hh..",
+      ".XX.XXXXXXXXXX.XX...",
+      "..XXX.XXXXXX.XXX....",
+      ".....XXXXXXXX.......",
+      "...XX........XX.....",
+      "..hh..........hh...."
+    ]
+  },
+  {
+    "id": "legs_serpentine",
+    "type": "leg",
+    "locomotion": "slither",
+    "width": 20,
+    "height": 6,
+    "pixels": [
+      ".........XXXXXXXX...",
+      ".........XXXXXXXX...",
+      "........XXXXXXXX....",
+      "......XXXXXXXXX.....",
+      "..ddXXXXXXdd........",
+      "dddddddddd.........."
+    ]
+  },
+  {
+    "id": "legs_tentacle",
+    "type": "leg",
+    "locomotion": "floating",
+    "width": 20,
+    "height": 6,
+    "pixels": [
+      "......XXXXXX........",
+      "......XX..XX........",
+      "......XX..XX........",
+      "hh...XX...XX...hh...",
+      ".XX.XX.....XX.XX....",
+      ".XXXX.......XXX....."
+    ]
+  },
+  {
+    "id": "legs_pillar",
+    "type": "leg",
+    "locomotion": "floating",
+    "width": 20,
+    "height": 6,
+    "pixels": [
+      ".......hXXXXh.......",
+      "........XXXX........",
+      "........XXXX........",
+      "........XXXX........",
+      "........hXXh........",
+      ".......dddddd......."
+    ]
+  },
+  {
+    "id": "legs_floating",
+    "type": "leg",
+    "locomotion": "floating",
+    "width": 20,
+    "height": 6,
+    "pixels": [
+      ".....XXXXXXXXXX.....",
+      ".......hXXXXh.......",
+      "........haah........",
+      "....................",
+      "....................",
+      "...................."
+    ]
+  }
+]

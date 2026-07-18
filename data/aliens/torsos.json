@@ -1,0 +1,272 @@
+[
+  {
+    "id": "torso_slim",
+    "type": "torso",
+    "manip": ["bipedal", "none"],
+    "body_type": "",
+    "width": 20,
+    "height": 8,
+    "pixels": [
+      ".......XXXXXX.......",
+      ".......XXXXXX.......",
+      "......XXXXXXXX......",
+      "......XXXXXXXXX.....",
+      ".......XXXXXXXX.....",
+      ".......XXXXXXXX.....",
+      ".......XXXXXX.......",
+      ".......XXXXXX......."
+    ]
+  },
+  {
+    "id": "torso_wide",
+    "type": "torso",
+    "manip": ["bipedal", "none"],
+    "body_type": "",
+    "width": 20,
+    "height": 8,
+    "pixels": [
+      ".....XXXXXXXXXX.....",
+      ".....XXXXXXXXXX.....",
+      "....XXXXXXXXXXXX....",
+      "....XXXXXXXXXXXX....",
+      ".....XXXXXXXXXXX....",
+      ".....XXXXXXXXXXX....",
+      ".....XXXXXXXXXX.....",
+      ".....XXXXXXXXXX....."
+    ]
+  },
+  {
+    "id": "torso_armored",
+    "type": "torso",
+    "manip": ["bipedal", "none"],
+    "body_type": "",
+    "width": 20,
+    "height": 8,
+    "pixels": [
+      ".....dddXXXXdd......",
+      "....dXXXXXXXXXXd....",
+      "...XXdXXXXXXXXdXX...",
+      "...XXdXXdXXdXXXX....",
+      "..XXXXdXXdXXXXXXX...",
+      "..XXXXdXXXXXXXXX....",
+      "..XXXXdXXXXXXXXX....",
+      "...XXXdXXXXdXXX....."
+    ]
+  },
+  {
+    "id": "torso_tentacle",
+    "type": "torso",
+    "manip": ["none"],
+    "body_type": "",
+    "width": 20,
+    "height": 8,
+    "pixels": [
+      "......XXXXXXXX......",
+      "......XXXXXXXX......",
+      "......XXXXXXXX......",
+      "......XXXXXXXX......",
+      "h......XXXXXX......h",
+      "XX..XXXXXXXXXXXX..XX",
+      ".XXXX..XXXXXX..XXXX.",
+      ".......XXXXXX......."
+    ]
+  },
+  {
+    "id": "torso_multiarmed",
+    "type": "torso",
+    "manip": ["multiarmed"],
+    "body_type": "",
+    "width": 20,
+    "height": 8,
+    "pixels": [
+      ".XXXXXXXXXXXXXXXXXX.",
+      ".XXX..XXXXXXXX..XXX.",
+      "..hh...XXXXXX...hh..",
+      ".......XXXXXX.......",
+      ".XXXXXXXXXXXXXXXXXX.",
+      ".XXX...XXXXXX...XXX.",
+      "..hh..XaaaaaaX..hh..",
+      ".....XXXXXXXXXX....."
+    ]
+  },
+  {
+    "id": "torso_multiarmed2",
+    "type": "torso",
+    "manip": ["multiarmed"],
+    "body_type": "",
+    "width": 20,
+    "height": 8,
+    "pixels": [
+      "a..aa..XXXXXX..aa..a",
+      "XX.XX..XXXXXX..XX.XX",
+      ".XXXX...XXXX...XXXX.",
+      "...XXXXXXXXXXXXXX...",
+      ".a...XXXXXXXXXX...a.",
+      ".aXXXXXXXXXXXXXXXXa.",
+      ".a..XXXXXXXXXXX...a.",
+      ".....XXXXXXXXX......"
+    ]
+  },
+  {
+    "id": "torso_floating",
+    "type": "torso",
+    "manip": ["none"],
+    "body_type": "",
+    "width": 20,
+    "height": 8,
+    "pixels": [
+      ".......dXXXXd.......",
+      ".....dXXXXXXXXd.....",
+      "....XXXhhXXhhXXX....",
+      "....XXhhXXXXhhXX....",
+      "....XXXXaaaaXXXX....",
+      ".....XXaaaaaaXX.....",
+      "......dXXXXXXd......",
+      ".......dhhhhd......."
+    ]
+  },
+  {
+    "id": "torso_gaseous",
+    "type": "torso",
+    "manip": ["bipedal", "multiarmed", "none"],
+    "body_type": "gaseous",
+    "width": 20,
+    "height": 8,
+    "pixels": [
+      ".....X..X..X..X....",
+      "....X.X.XXX.X.X....",
+      "....X.X.XXX.X.X.X..",
+      "..X.X.X.X.X.X.X.X..",
+      "....X.X.XXX.X.X....",
+      ".....X.XXXXX.X.....",
+      "......X.X.X.X.X....",
+      ".......X.X.X.X....."
+    ]
+  },
+  {
+    "id": "torso_amorphous",
+    "type": "torso",
+    "manip": ["bipedal", "multiarmed", "none"],
+    "body_type": "amorphous",
+    "width": 20,
+    "height": 8,
+    "pixels": [
+      "....XX.XXXX.XX.....",
+      "..XX..XXXXXX..XX...",
+      ".XXXXXXXXXXXXXXXX..",
+      "..XXXXXXXXXXXXX....",
+      "....XXXXXXXXXX.....",
+      "..XXXXXXXXXXXXXX...",
+      ".XXXXXXXXXXXXXXXX..",
+      "....XX.XXXX.XX....."
+    ]
+  },
+  {
+    "id": "torso_mechanical",
+    "type": "torso",
+    "manip": ["bipedal", "multiarmed", "none"],
+    "body_type": "mechanical",
+    "width": 20,
+    "height": 8,
+    "pixels": [
+      "..XXXXXXXXXXXXXXXX..",
+      "..XhhWWWWWWWWWhhX..",
+      "..XWWaaaaaaaaWWX...",
+      "..XaaXXXXXXXXaaX...",
+      "..XWWXXXXXXXXWWX...",
+      "..XhhWWWWWWWWWhhX..",
+      "..XaaXXXXXXXXaaX...",
+      "..XXXXXXXXXXXXXXXX.."
+    ]
+  },
+  {
+    "id": "torso_nanotech",
+    "type": "torso",
+    "manip": ["bipedal", "multiarmed", "none"],
+    "body_type": "nanotech",
+    "width": 20,
+    "height": 8,
+    "pixels": [
+      ".dXdXhXhXhXhXhXhX..",
+      "X.X.XhX.X.XhXhXhXh.",
+      ".XhXhXhXhXhXhXhXhXh",
+      "X.X.XaX.X.XaXhXhXhX",
+      ".XhXhXhXhXhXhX.XhX.",
+      "X.XhXhXhXhXhXhXhXh.",
+      ".X.X.XaX.X.XaXhXhXh",
+      "..XhXhXhXhXhXhXhX.."
+    ]
+  },
+  {
+    "id": "torso_crystalline",
+    "type": "torso",
+    "manip": ["bipedal", "multiarmed", "none"],
+    "body_type": "crystalline",
+    "width": 20,
+    "height": 8,
+    "pixels": [
+      ".......X....X......",
+      "......XXX..XXX.....",
+      ".....XXXXXaXXXXX...",
+      "....XXXXXXXXXXXXX..",
+      "....XXXXXhhXXXXX...",
+      ".....XXXXXaXXXXX...",
+      "......XXX..XXX.....",
+      ".......X....X......"
+    ]
+  },
+  {
+    "id": "torso_hollow",
+    "type": "torso",
+    "manip": ["bipedal", "none"],
+    "body_type": "",
+    "width": 20,
+    "height": 8,
+    "pixels": [
+      "......XXXXXXXX......",
+      ".....XXXXXXXXXX.....",
+      "....XXX....XXXX.....",
+      "....XX......XXX.....",
+      "....XXX....XXXX.....",
+      ".....XXXXXXXXXX.....",
+      "......XXXXXXXXXX....",
+      "........XXXXXXXX...."
+    ]
+  },
+  {
+    "id": "torso_asymmetric",
+    "type": "torso",
+    "manip": ["bipedal", "none"],
+    "body_type": "",
+    "width": 20,
+    "height": 8,
+    "pixels": [
+      ".....XXXXXXX........",
+      "....XXXXXXXXXX......",
+      "...XXXX.XX.XXXXX....",
+      "..XXXXX.XX.XXXXXX...",
+      "..XXXX.XX.XXXXXXX...",
+      "...XX.XX.XXXXXXXXXX.",
+      "......XXXXXXXXXX.....",
+      "........XXXXX......."
+    ]
+  },
+  {
+    "id": "torso_bladed",
+    "type": "torso",
+    "manip": ["bipedal"],
+    "body_type": "",
+    "width": 20,
+    "height": 8,
+    "pixels": [
+      "......XXXXXXXX......",
+      ".....XXXXXXXXXX.....",
+      "....XXXX.XX.XXXX....",
+      "..WWXXXX.XX.XXXXWW..",
+      "..WWXXXXXXXXXXXXWW..",
+      "......XX.XX.WWW.....",
+      ".......XX.XXWW......",
+      ".......XXXXX..WW...."
+    ]
+  }
+]

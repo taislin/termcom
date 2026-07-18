@@ -144,12 +144,14 @@ func init() {
 		"MISSION_ABDUCTION":      "Похищение",
 		"MISSION_RESEARCH":       "Исследование пришельцев",
 		"MISSION_COUNCIL":        "Совет",
+		"MISSION_BUILDING":       "Штурм здания",
 		"MISSION_TYPE_TERROR":    "Террор",
 		"MISSION_TYPE_SUPPLY":    "Рейд за припасами",
 		"MISSION_TYPE_BASE":      "Штурм базы пришельцев",
 		"MISSION_TYPE_ABDUCTION": "Похищение",
 		"MISSION_TYPE_RESEARCH":  "Исследование пришельцев",
 		"MISSION_TYPE_COUNCIL":   "Совет",
+		"MISSION_TYPE_BUILDING":  "Штурм здания",
 		"MSG_ABDUCTION_TIMER":    "Похищено гражданских: %d/%d (Ход %d)",
 		"MSG_ABDUCTION_COMPLETE": "Похищение отражено! Спасено %d гражданских.",
 		"MSG_COUNCIL_REWARD":     "Совет доволен! Бонусное финансирование +$%dK.",
@@ -292,7 +294,7 @@ func init() {
 		"MSG_PSI_ATTACK":            "Попытка пси-атаки на %s...",
 		"MSG_PSI_SUCCESS":           "ПСИ-АТАКА УСПЕШНА! %s в панике!",
 		"MSG_PSI_FAIL":              "Пси-атака провалилась.",
-		"MSG_ALIEN_HIT":             "Пришелец попал в %s! Урон: %d",
+		"MSG_ALIEN_HIT":             "Пришелец попал в %2$s! Урон: %1$d (ОЗ:%3$d)",
 		"MSG_ALIEN_KILL":            "%s уничтожен!",
 		"MSG_ALIEN_MISS":            "Выстрел пришельца промахнулся!",
 		"MSG_ALIEN_MELEE":           "%s атакует %s! Урон: %d",
@@ -301,6 +303,7 @@ func init() {
 		"MSG_REACTION_MISS":         "Реактивный выстрел промахнулся!",
 		"MSG_REACTION_KILL":         "%s убит реактивным огнём!",
 		"MSG_REINFORCEMENTS":        "Прибывает %d подкрепление пришельцев!",
+		"MSG_BATTLE_EXITED":         "Миссия брошена! Все члены отряда потеряны.",
 
 		// Status bar
 		"STATUS_TURN":             "Ход: %d | %s",
@@ -855,11 +858,14 @@ func init() {
 		"OPTIONS_PAUSE_ALIEN":      "Пауза при НЛО",
 		"CONFIRM_QUIT":             "ВЫ УВЕРЕНЫ, ЧТО ХОТИТЕ ВЫЙТИ?",
 		"CONFIRM_QUIT_HINT":        "[Y] = Да   [N] = Нет",
+		"CONFIRM_BATTLE_EXIT":      "ВСЕ ЧЛЕНЫ ОТРЯДА БУДУТ ПОТЕРЯНЫ. ПОКИНУТЬ МИССИЮ?",
+		"CONFIRM_BATTLE_EXIT_HINT": "[Y] = Покинуть   [N] = Отмена",
 		"OPTIONS_VOLUME":           "Громкость SFX",
 		"OPTIONS_RESOLUTION_SPEED": "Скорость разрешения",
 		"OPTIONS_ON":               "ВКЛ",
 		"OPTIONS_OFF":              "ВЫКЛ",
 		"OPTIONS_HELP":             "[\u2190]/[\u2192]=Изменить  [\u2191]/[\u2193]=Выбрать  [Enter]=Переключить  [Esc]=Назад",
+		"OPTIONS_REPLAY_TUTORIAL":  "Повторить обучение",
 
 		"CUSTOM_AUTHOR":                "Автор:  %s",
 		"CUSTOM_DATE":                  "Дата:    %s",
@@ -1047,6 +1053,13 @@ func init() {
 		// ── Language Select ──────────────────────────────
 		"LANGUAGE_SELECT_TITLE": "ВЫБЕРИТЕ ЯЗЫК",
 		"LANGUAGE_SELECT_HELP":  "[↑]/[↓]=Выбор  [Enter]=Подтвердить  [Esc]=Назад",
+
+		// ── Диалог seed ──────────────────────────────────
+		"SEED_TITLE":       "НОВАЯ ИГРА — СИД КАРТЫ",
+		"SEED_PROMPT":      "Этот сид генерирует ростер пришельцев для этого прохождения.",
+		"SEED_VALUE":       "Сид:",
+		"SEED_EDIT_LABEL":  "Свой:",
+		"SEED_HELP":        "[R]=Заново  [/ или E]=Править  [Ввод]=Задать  [Enter]=Подтвердить  [Esc]=Назад",
 
 		// ── Interceptor Status ───────────────────────────
 		"INTERCEPTOR_STATUS_ACTIVE": "Активен",

@@ -13,6 +13,7 @@ import (
 	"github.com/taislin/termcom/internal/data"
 	"github.com/taislin/termcom/internal/engine"
 	"github.com/taislin/termcom/internal/geo"
+	"github.com/taislin/termcom/internal/mapgen"
 	"github.com/taislin/termcom/internal/save"
 	"github.com/taislin/termcom/internal/soldier"
 	"github.com/taislin/termcom/web"
@@ -27,6 +28,17 @@ const (
 )
 
 func main() {
+	if err := mapgen.Init(); err != nil {
+		log.Printf("Warning: mapgen init: %v", err)
+	}
+	data.NewAlienSpriteRegistry().RebuildFromTemplates(
+		mapgen.ToTemplateData("head"),
+		mapgen.ToTemplateData("eye"),
+		mapgen.ToTemplateData("torso"),
+		mapgen.ToTemplateData("leg"),
+		mapgen.ToTemplateData("weapon"),
+	)
+
 	addr := ":8080"
 	if len(os.Args) > 1 {
 		addr = os.Args[1]
@@ -116,16 +128,20 @@ func main() {
 // wireGame sets up OnNewGame, OnContinue, etc. — same logic as cmd/termcom/main.go.
 func wireGame(g *engine.Game) {
 	g.OnNewGame = func() {
-		picker := engine.NewDifficultyScreen(g, func(difficulty int) {
-			gs := geo.NewGeoscape(g)
-			g.RegisterScreen(engine.StateGeoscape, gs)
-			g.RegisterScreen(engine.StateBase, base.NewBaseScreen(g, gs.SelectedBase()))
-			g.RegisterScreen(engine.StateEquip, base.NewEquipScreen(g, gs.SelectedBase()))
-			g.RegisterScreen(engine.StateResearch, base.NewResearchScreen(g, gs.SelectedBase()))
-			g.RegisterScreen(engine.StateManufacture, base.NewManufactureScreen(g, gs.SelectedBase()))
-			g.SetState(engine.StateGeoscape)
+		seedScreen := engine.NewSeedScreen(g, func(seed int64) {
+			_ = seed
+			picker := engine.NewDifficultyScreen(g, func(difficulty int) {
+				gs := geo.NewGeoscape(g)
+				g.RegisterScreen(engine.StateGeoscape, gs)
+				g.RegisterScreen(engine.StateBase, base.NewBaseScreen(g, gs.SelectedBase()))
+				g.RegisterScreen(engine.StateEquip, base.NewEquipScreen(g, gs.SelectedBase()))
+				g.RegisterScreen(engine.StateResearch, base.NewResearchScreen(g, gs.SelectedBase()))
+				g.RegisterScreen(engine.StateManufacture, base.NewManufactureScreen(g, gs.SelectedBase()))
+				g.SetState(engine.StateGeoscape)
+			})
+			g.PushScreen(picker)
 		})
-		g.PushScreen(picker)
+		g.PushScreen(seedScreen)
 	}
 
 	g.OnContinue = func() {
@@ -421,7 +437,7 @@ func launchCustomBattle(g *engine.Game, path string) {
 	}
 	switch gen {
 	case "terror":
-		m = battle.GenerateTerrorSite(w, h)
+		m = battle.GenerateTerrorSite(w, h, time.Now().UnixNano())
 	case "supply_raid", "ufo_interior":
 		m = battle.GenerateUFOInterior(w, h)
 	case "alien_base":
@@ -429,7 +445,7 @@ func launchCustomBattle(g *engine.Game, path string) {
 	case "alien_research":
 		m = battle.GenerateUFOInterior(w, h)
 	case "council":
-		m = battle.GenerateTerrorSite(w, h)
+		m = battle.GenerateTerrorSite(w, h, time.Now().UnixNano())
 	case "cydonia":
 		m = battle.GenerateCydonia(w, h)
 	case "abduction":

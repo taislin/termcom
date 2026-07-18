@@ -144,12 +144,14 @@ func init() {
 		"MISSION_ABDUCTION":      "Sequestro",
 		"MISSION_RESEARCH":       "Investiga\u00e7\u00e3o Aliens",
 		"MISSION_COUNCIL":        "Conselho",
+		"MISSION_BUILDING":       "Assalto ao pr\u00e9dio",
 		"MISSION_TYPE_TERROR":    "Terror",
 		"MISSION_TYPE_SUPPLY":    "Incurs\u00e3o de Abastecimento",
 		"MISSION_TYPE_BASE":      "Assalto a Base Aliens",
 		"MISSION_TYPE_ABDUCTION": "Sequestro",
 		"MISSION_TYPE_RESEARCH":  "Investiga\u00e7\u00e3o Aliens",
 		"MISSION_TYPE_COUNCIL":   "Conselho",
+		"MISSION_TYPE_BUILDING":  "Assalto ao pr\u00e9dio",
 		"MSG_ABDUCTION_TIMER":    "Civilianos sequestrados: %d/%d (Turno %d)",
 		"MSG_ABDUCTION_COMPLETE": "Sequestro repelido! %d civilianos salvos.",
 		"MSG_COUNCIL_REWARD":     "Conselho satisfeito! Financiamento extra +$%dK.",
@@ -292,7 +294,7 @@ func init() {
 		"MSG_PSI_ATTACK":            "A tentar ataque psi em %s...",
 		"MSG_PSI_SUCCESS":           "ATAQUE PSI BEM-SUCEDIDO! %s est\u00e1 em p\u00e2nico!",
 		"MSG_PSI_FAIL":              "Ataque psi falhou.",
-		"MSG_ALIEN_HIT":             "Alien acerta em %s com %d de dano!",
+		"MSG_ALIEN_HIT":             "Alien acerta em %2$s com %1$d de dano! (HP:%3$d)",
 		"MSG_ALIEN_KILL":            "%s eliminado!",
 		"MSG_ALIEN_MISS":            "Disparo alien falha!",
 		"MSG_ALIEN_MELEE":           "%s ataca %s com %d de dano!",
@@ -301,6 +303,7 @@ func init() {
 		"MSG_REACTION_MISS":         "Disparo de rea\u00e7\u00e3o falha!",
 		"MSG_REACTION_KILL":         "%s eliminado por fogo de rea\u00e7\u00e3o!",
 		"MSG_REINFORCEMENTS":        "%d refor\u00e7os alien em caminho!",
+		"MSG_BATTLE_EXITED":         "Miss\u00e3o abandonada! Todos os membros da equipe perdidos.",
 
 		// Status bar
 		"STATUS_TURN":             "Turno: %d | %s",
@@ -831,7 +834,7 @@ func init() {
 		"DIFF_BEGINNER":         "Iniciante",
 		"DIFF_EXPERIENCED":      "Experiente",
 		"DIFF_VETERAN":          "Veterano",
-		"DIFF_GENIUS":           "Gênio",
+		"DIFF_GENIUS":           "Génio",
 		"DIFF_SUPERHUMAN":       "Super-humano",
 		"DIFF_BEGINNER_DESC":    "Aliens fracos, OVNIs lentos, mais fundos",
 		"DIFF_EXPERIENCED_DESC": "Desafio padrão",
@@ -855,11 +858,14 @@ func init() {
 		"OPTIONS_PAUSE_ALIEN":      "Pausar ao detectar",
 		"CONFIRM_QUIT":             "TEM A CERTEZA QUE QUER SAIR?",
 		"CONFIRM_QUIT_HINT":        "[Y] = Sim   [N] = Não",
+		"CONFIRM_BATTLE_EXIT":      "TODOS OS MEMBROS DA EQUIPE SERÃO PERDIDOS. ABANDONAR MISSÃO?",
+		"CONFIRM_BATTLE_EXIT_HINT": "[Y] = Abandonar   [N] = Cancelar",
 		"OPTIONS_VOLUME":           "Volume SFX",
 		"OPTIONS_RESOLUTION_SPEED": "Velocidade de Resolu\u00e7\u00e3o",
 		"OPTIONS_ON":               "LIG ",
 		"OPTIONS_OFF":              "DESL",
 		"OPTIONS_HELP":             "[\u2190]/[\u2192]=Ajustar  [\u2191]/[\u2193]=Selecionar  [Enter]=Alternar  [Esc]=Voltar",
+		"OPTIONS_REPLAY_TUTORIAL":  "Repetir Tutorial",
 
 		// ── Weather ───────────────────────────────────────
 		"BATTLE_MOD_ALIEN_AMBUSH":   "MODIFICADOR DE MISS\u00c3O: Emboscada Alien - aliens em vigil\u00e2ncia",
@@ -990,14 +996,14 @@ func init() {
 
 		// ── Tutorial ──────────────────────────────────────
 		"TUTORIAL_TITLE":             "BRIEFING DO COMANDANTE",
-		"TUTORIAL_WELCOME":           "Bem-vindo, Comandante! Voc\u00ea foi selecionado para liderar a X-COM, uma for\u00e7a internacional dedicada a parar a invas\u00e3o alien\u00edgena.",
-		"TUTORIAL_TIME":              "Este \u00e9 o Geoscape, sua vis\u00e3o de comando global. O tempo avan\u00e7a automaticamente. Pressione [Space] para pausar e retomar. Use [1]-[4] para compress\u00e3o de tempo.",
-		"TUTORIAL_UFO":               "OVNIs aparecer\u00e3o no mapa. Marcadores vermelhos '!' indicam naves hostis em seu alcance de radar.",
-		"TUTORIAL_INTERCEPT":         "Pressione [L] para lan\u00e7ar um interceptador contra um OVNI. Ele perseguir\u00e1 e entrar\u00e1 em combate automaticamente.",
-		"TUTORIAL_MISSION":           "Quando alienigenas lan\u00e7arem uma miss\u00e3o, pressione [M] para responder. Voc\u00ea pode implantar seu esquadr\u00e3o, resolver automaticamente ou ignorar.",
-		"TUTORIAL_BASE":              "Pressione [B] para abrir sua base. Construa instala\u00e7\u00f5es, contrate soldados, equipe seu esquadr\u00e3o e gerencie a pesquisa.",
-		"TUTORIAL_BATTLE":            "Em combate t\u00e1tico, seus soldados usam Unidades de Tempo (TU) para cada a\u00e7\u00e3o. Mova, atire, agache, lan\u00e7e granadas \u2014 planeje cuidadosamente!",
-		"TUTORIAL_COMPLETE":          "Briefing completo. Pressione [?] a qualquer momento para o manual completo. Boa sorte, Comandante \u2014 a Terra conta com voc\u00ea!",
+		"TUTORIAL_WELCOME":           "Bem-vindo, Comandante! Foi selecionado para liderar a X-COM, uma for\u00e7a internacional dedicada a travar a invas\u00e3o alien\u00edgena.",
+		"TUTORIAL_TIME":              "Este \u00e9 o Geoscape, a sua vis\u00e3o de comando global. O tempo avan\u00e7a automaticamente. Prima [Space] para pausar e retomar. Use [1]-[4] para compress\u00e3o de tempo.",
+		"TUTORIAL_UFO":               "OVNIs aparecer\u00e3o no mapa. Marcadores vermelhos '!' indicam naves hostis no seu alcance de radar.",
+		"TUTORIAL_INTERCEPT":         "Prima [L] para lan\u00e7ar um interceptador contra um OVNI. Ele perseguir\u00e1 e entrar\u00e1 em combate automaticamente.",
+		"TUTORIAL_MISSION":           "Quando os alien\u00edgenas lan\u00e7arem uma miss\u00e3o, prima [M] para responder. Pode implantar o seu esquadr\u00e3o, resolver automaticamente ou ignorar.",
+		"TUTORIAL_BASE":              "Prima [B] para abrir a sua base. Construa instala\u00e7\u00f5es, recrute soldados, equipe o seu esquadr\u00e3o e fa\u00e7a a gest\u00e3o da investiga\u00e7\u00e3o.",
+		"TUTORIAL_BATTLE":            "Em combate t\u00e1tico, os seus soldados usam Unidades de Tempo (TU) para cada a\u00e7\u00e3o. Mova, atire, agache, lan\u00e7e granadas \u2014 planeie com cuidado!",
+		"TUTORIAL_COMPLETE":          "Briefing completo. Prima [?] a qualquer momento para o manual completo. Boa sorte, Comandante \u2014 a Terra conta consigo!",
 		"TUTORIAL_SKIP":              "[S] Pular Tutorial",
 		"TUTORIAL_NEXT":              "[Enter]=Pr\u00f3ximo  [S]=Pular",
 		"TUTORIAL_DISMISS":           "[Enter]=Fechar",
@@ -1049,6 +1055,13 @@ func init() {
 		// ── Language Select ──────────────────────────────
 		"LANGUAGE_SELECT_TITLE": "SELECIONAR IDIOMA",
 		"LANGUAGE_SELECT_HELP":  "[↑]/[↓]=Selecionar  [Enter]=Confirmar  [Esc]=Voltar",
+
+		// ── Diálogo da seed ──────────────────────────────
+		"SEED_TITLE":       "NOVO JOGO - SEED DO MAPA",
+		"SEED_PROMPT":      "Esta seed gera o roster de aliens desta partida.",
+		"SEED_VALUE":       "Seed:",
+		"SEED_EDIT_LABEL":  "Personalizada:",
+		"SEED_HELP":        "[R]=Gerar nova  [/ ou E]=Editar  [Escrever]=Definir  [Enter]=Confirmar  [Esc]=Voltar",
 
 		// ── Interceptor Status ───────────────────────────
 		"INTERCEPTOR_STATUS_ACTIVE": "Ativo",

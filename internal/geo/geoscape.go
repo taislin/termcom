@@ -1105,6 +1105,7 @@ func (gs *Geoscape) spawnMission() {
 		{language.String("MISSION_ABDUCTION"), 22},
 		{language.String("MISSION_RESEARCH"), 14},
 		{language.String("MISSION_COUNCIL"), 8},
+		{language.String("MISSION_BUILDING"), 8},
 		{language.String("MISSION_ALIEN_BASE"), 4},
 	}
 	total := 0
@@ -1285,6 +1286,7 @@ func (gs *Geoscape) spawnMissionFromBase(ab *AlienBase) {
 		language.String("MISSION_TERROR"),
 		language.String("MISSION_ABDUCTION"),
 		language.String("MISSION_RESEARCH"),
+		language.String("MISSION_BUILDING"),
 	}
 	chosen := missionTypes[rand.Intn(len(missionTypes))]
 	// Target a different city from the base city (or a random one)
@@ -1442,6 +1444,8 @@ func (gs *Geoscape) RespondToMission(idx int) {
 		ufoName = language.String("MISSION_TYPE_RESEARCH")
 	case language.String("MISSION_COUNCIL"):
 		ufoName = language.String("MISSION_TYPE_COUNCIL")
+	case language.String("MISSION_BUILDING"):
+		ufoName = language.String("MISSION_TYPE_BUILDING")
 	}
 	if mission.NodeID == 0 {
 		ufoName = language.String("GEO_CYDONIA")

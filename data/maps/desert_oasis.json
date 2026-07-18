@@ -1,0 +1,23 @@
+{
+  "id": "desert_oasis",
+  "tags": [
+    "desert"
+  ],
+  "width": 6,
+  "height": 5,
+  "rows": [
+    "ssssss",
+    "s.tt.s",
+    "s.~~.s",
+    "s.tt.s",
+    "ssssss"
+  ],
+  "terrain": {
+    "s": "TileSand",
+    ".": "TileGrass",
+    "t": "TileTree",
+    "~": "TileWater"
+  },
+  "furniture": {},
+  "weight": 2
+}

@@ -1,0 +1,23 @@
+{
+  "id": "ufo_engine_core",
+  "tags": [
+    "ufo"
+  ],
+  "width": 5,
+  "height": 5,
+  "rows": [
+    "WWWWW",
+    "W.M.W",
+    "WMXMW",
+    "W.M.W",
+    "WWWWW"
+  ],
+  "terrain": {
+    "W": "TileUFOWall",
+    ".": "TileUFOFloor",
+    "M": "TileMachinery",
+    "X": "TilePowerSource"
+  },
+  "furniture": {},
+  "weight": 2
+}
