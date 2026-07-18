@@ -139,7 +139,7 @@ func AssembleMap(biome string, w, h int, rng *rand.Rand) *BattleMap {
 	baseTile := TileGrass
 	switch biome {
 	case "urban":
-		baseTile = TilePavement
+		baseTile = TileGrass
 	case "desert":
 		baseTile = TileSand
 	case "polar":
@@ -152,6 +152,19 @@ func AssembleMap(biome string, w, h int, rng *rand.Rand) *BattleMap {
 	m.fillRect(0, 0, w, h, baseTile)
 
 	clusterBiome(m, biome, w, h, rng)
+
+	// Draw urban roads before placing buildings so roads don't overwrite
+	// building interior floors.
+	if biome == "urban" {
+		if rng.Intn(2) == 0 {
+			roadX := w/4 + rng.Intn(w/2)
+			m.fillRect(roadX-1, 0, 3, h, TilePavement)
+		}
+		if rng.Intn(2) == 0 {
+			roadY := h/4 + rng.Intn(h/2)
+			m.fillRect(0, roadY-1, w, 3, TilePavement)
+		}
+	}
 
 	chunks := mapgen.ByTag(biome)
 	if len(chunks) == 0 {

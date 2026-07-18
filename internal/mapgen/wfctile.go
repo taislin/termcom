@@ -54,12 +54,14 @@ func validateWFCLibrary(lib *WFCLibrary, path string) error {
 			return fmt.Errorf("mapgen: %s: duplicate tile id %d", path, t.ID)
 		}
 		ids[t.ID] = true
+	}
+	for _, t := range lib.Tiles {
 		if len(t.Rows) == 0 {
 			return fmt.Errorf("mapgen: %s: tile %q has no rows", path, t.Name)
 		}
-		w := len(t.Rows[0])
+		w := len([]rune(t.Rows[0]))
 		for _, r := range t.Rows {
-			if len(r) != w {
+			if len([]rune(r)) != w {
 				return fmt.Errorf("mapgen: %s: tile %q rows not uniform width", path, t.Name)
 			}
 		}

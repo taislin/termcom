@@ -869,16 +869,6 @@ func GenerateTerrorSite(w, h int, seed int64) *BattleMap {
 	rng := rand.New(rand.NewSource(seed))
 	m := AssembleMap("urban", w, h, rng)
 
-	// Roads drawn after chunks so buildings overwrite them.
-	if rng.Intn(2) == 0 {
-		roadX := w/4 + rng.Intn(w/2)
-		m.fillRect(roadX-1, 0, 3, h, TilePavement)
-	}
-	if rng.Intn(2) == 0 {
-		roadY := h/4 + rng.Intn(h/2)
-		m.fillRect(0, roadY-1, w, 3, TilePavement)
-	}
-
 	// Scatter street furniture: lamp posts, signs, fire hydrants
 	m.Poisson(TileObject, 3, w*h/300, rng)
 
