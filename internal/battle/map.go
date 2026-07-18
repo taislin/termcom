@@ -1160,9 +1160,6 @@ func GenerateAlienBase(w, h int) *BattleMap {
 		m.generateCorridorUFO(coreCx, coreCy, p[0], p[1], 2)
 	}
 
-	// Guarantee the whole interior is reachable from the core.
-	m.RepairConnectivity(coreCx, coreCy)
-
 	// Entrance on a random side
 	entranceSide := rand.Intn(4)
 	switch entranceSide {
@@ -1183,6 +1180,9 @@ func GenerateAlienBase(w, h int) *BattleMap {
 		m.fillRect(bx+baseSize-1, ey-1, 3, 3, TileUFOFloor)
 		m.Set(bx+baseSize, ey, TileDoor)
 	}
+
+	// Guarantee the whole interior and entrance area is reachable from the core.
+	m.RepairConnectivity(coreCx, coreCy)
 
 	// Scatter alien tech loot inside the structure
 	scatterCount := 8 + rand.Intn(12)
