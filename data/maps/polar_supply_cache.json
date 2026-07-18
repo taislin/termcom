@@ -7,7 +7,7 @@
   "width": 4,
   "height": 4,
   "rows": [
-    "WWWW",
+    "WW+W",
     "W.sW",
     "WssW",
     "WWWW"
@@ -15,7 +15,8 @@
   "terrain": {
     "W": "TileWall",
     ".": "TileSnow",
-    "s": "TileStorage"
+    "s": "TileStorage",
+    "+": "TileDoor"
   },
   "furniture": {},
   "weight": 2
