@@ -273,6 +273,8 @@ func TestTileTypeNames(t *testing.T) {
 		{TileAlienTech, "Alien Tech"},
 		{TileDesk, "Desk"},
 		{TileChair, "Chair"},
+		{TileChairLeft, "Chair"},
+		{TileChairRight, "Chair"},
 		{TileComputer, "Computer"},
 		{TileBed, "Bed"},
 		{TileLocker, "Locker"},

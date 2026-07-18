@@ -36,6 +36,8 @@ var tileTypeByName = map[string]TileType{
 	"TileStairsDown":  TileStairsDown,
 	"TileDesk":        TileDesk,
 	"TileChair":       TileChair,
+	"TileChairLeft":    TileChairLeft,
+	"TileChairRight":   TileChairRight,
 	"TileComputer":    TileComputer,
 	"TileBed":         TileBed,
 	"TileLocker":      TileLocker,

@@ -50,9 +50,11 @@ const (
 	TileAlienTech   // Alien technology, artifacts
 	TileStairsDown  // stairs leading to lower level
 	// Human furniture tiles
-	TileDesk     // Desk/workstation
-	TileChair    // Chair/seating
-	TileComputer // Computer terminal
+	TileDesk        // Desk/workstation
+	TileChair       // Chair/seating (generic)
+	TileChairLeft   // Chair facing left (toward a table)
+	TileChairRight  // Chair facing right (toward a table)
+	TileComputer    // Computer terminal
 	TileBed      // Bed/cot
 	TileLocker   // Locker/storage
 	TileCabinet  // Cabinet/shelving
@@ -92,7 +94,7 @@ func TileCover(t TileType) int {
 	case TileFence:
 		return 30
 	case TileObject, TileConsole, TileMachinery, TilePod, TilePowerSource, TileStorage, TileAlienTech,
-		TileDesk, TileChair, TileComputer, TileBed, TileLocker, TileCabinet,
+		TileDesk, TileChair, TileChairLeft, TileChairRight, TileComputer, TileBed, TileLocker, TileCabinet,
 		TileCar, TileCarRight, TileCarMid, TileForklift, TileForkliftRight:
 		return 50
 	case TileRubble:
@@ -218,6 +220,8 @@ var tileChars = map[TileType]rune{
 	// Human furniture characters
 	TileDesk:     '◊', // Desk (U+25CA LOZENGE)
 	TileChair:    '⊟', // Chair (U+229F)
+	TileChairLeft:  '⅃', // Chair facing left (toward a table)
+	TileChairRight: 'L', // Chair facing right (toward a table)
 	TileComputer: '⌸', // Console (U+2338 QUAD MINUS)
 	TileBed:          '□', // Bed (U+25A1)
 	TileLocker:       '◫', // Locker (U+25EB)
@@ -358,7 +362,7 @@ func (m *BattleMap) Passable(x, y int) bool {
 	switch t.Type {
 	case TileFloor, TileDoor, TileGrass, TileUFOFloor, TileStairs, TileStairsDown, TilePavement, TileSand, TileSnow,
 		TileConsole, TileMachinery, TilePod, TilePowerSource, TileStorage, TileAlienTech,
-		TileDesk, TileChair, TileComputer, TileBed, TileLocker, TileCabinet,
+		TileDesk, TileChair, TileChairLeft, TileChairRight, TileComputer, TileBed, TileLocker, TileCabinet,
 		TileRubble:
 		return true
 	}
@@ -381,7 +385,7 @@ func (m *BattleMap) IsDestructible(x, y int) bool {
 	t := m.At(x, y)
 	switch t.Type {
 	case TileWall, TileUFOWall, TileTree, TileRock, TileFence, TileDoor,
-		TileDesk, TileChair, TileComputer, TileBed, TileLocker, TileCabinet,
+		TileDesk, TileChair, TileChairLeft, TileChairRight, TileComputer, TileBed, TileLocker, TileCabinet,
 		TileCar, TileCarRight, TileCarMid, TileForklift, TileForkliftRight:
 		return true
 	}
@@ -687,7 +691,7 @@ func isUrbanProtected(t TileType) bool {
 	switch t {
 	case TileWall, TileDoor, TileWindow,
 		TileConsole, TileMachinery, TilePod, TilePowerSource, TileStorage, TileAlienTech,
-		TileDesk, TileChair, TileComputer, TileBed, TileLocker, TileCabinet,
+		TileDesk, TileChair, TileChairLeft, TileChairRight, TileComputer, TileBed, TileLocker, TileCabinet,
 		TileCar, TileCarRight, TileForklift, TileForkliftRight,
 		TileObject, TileTree, TileBush, TileFence:
 		return true
@@ -782,7 +786,7 @@ func (m *BattleMap) furnishBuilding(bx, by, bw, bh int) {
 	if numFurniture > len(interior) {
 		numFurniture = len(interior)
 	}
-	furnitureTypes := []TileType{TileDesk, TileChair, TileComputer, TileBed, TileLocker, TileCabinet}
+	furnitureTypes := []TileType{TileDesk, TileChair, TileChairLeft, TileChairRight, TileComputer, TileBed, TileLocker, TileCabinet}
 	for i := 0; i < numFurniture; i++ {
 		idx := rand.Intn(len(interior))
 		x, y := interior[idx][0], interior[idx][1]

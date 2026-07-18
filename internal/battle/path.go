@@ -68,7 +68,7 @@ func passableFor(m *BattleMap, units UnitList, ignore *Unit, x, y, level int) bo
 	switch t.Type {
 	case TileFloor, TileDoor, TileGrass, TileUFOFloor, TileStairs, TileStairsDown, TilePavement, TileSand, TileSnow,
 		TileConsole, TileMachinery, TilePod, TilePowerSource, TileStorage, TileAlienTech,
-		TileDesk, TileChair, TileComputer, TileBed, TileLocker, TileCabinet, TileRubble:
+		TileDesk, TileChair, TileChairLeft, TileChairRight, TileComputer, TileBed, TileLocker, TileCabinet, TileRubble:
 	default:
 		return false
 	}

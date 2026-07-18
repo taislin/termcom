@@ -9,7 +9,7 @@
     "WWWWWWW",
     "W.....W",
     "W.c.C.W",
-    "W..d..W",
+    "W(ld)rW",
     "Wl...aW",
     "WWWWWWW"
   ],
@@ -22,7 +22,9 @@
     "C": "TileComputer",
     "d": "TileDesk",
     "l": "TileLocker",
-    "a": "TileCabinet"
+    "a": "TileCabinet",
+    "(": "TileChairRight",
+    ")": "TileChairLeft"
   },
   "weight": 1
 }

@@ -95,6 +95,8 @@ var tilePalette = map[TileType]tcell.Color{
 	TileAlienTech:   tcell.NewRGBColor(230, 70, 70),
 	TileDesk:        tcell.NewRGBColor(160, 120, 80),
 	TileChair:       tcell.NewRGBColor(150, 100, 60),
+	TileChairLeft:   tcell.NewRGBColor(150, 100, 60),
+	TileChairRight:  tcell.NewRGBColor(150, 100, 60),
 	TileComputer:    tcell.NewRGBColor(70, 180, 210),
 	TileBed:         tcell.NewRGBColor(200, 200, 200),
 	TileLocker:       tcell.NewRGBColor(140, 160, 180),
