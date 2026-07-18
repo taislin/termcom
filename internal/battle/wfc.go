@@ -19,15 +19,25 @@ var wfcDirDY = [4]int{-1, 0, 1, 0}
 // wfcOpposite returns the opposite direction index.
 func wfcOpposite(d int) int { return d ^ 2 }
 
-// WFCTile is a single modular UFO piece. RuneGrid is the 3x3 footprint where
-// '.' denotes empty/hull-fill space. Neighbors[d] lists the tile IDs that may
-// legally sit in direction d relative to this tile.
+// WFCTile is a single modular building piece. RuneGrid is the footprint
+// (rows x cols) where '.' denotes empty/floor-fill space. Tiles may be any
+// size (small 3x3 pieces up to large multi-room blocks). Neighbors[d] lists
+// the tile IDs that may legally sit in direction d relative to this tile.
 type WFCTile struct {
 	ID       int
 	Name     string
-	RuneGrid [3][3]rune
+	RuneGrid [][]rune
 	// Neighbors[d] for d in {N,E,S,W} gives the set of allowed neighbor tile IDs.
 	Neighbors [4][]int
+}
+
+// gridRows/cols return the footprint dimensions of a tile.
+func (t WFCTile) gridRows() int { return len(t.RuneGrid) }
+func (t WFCTile) gridCols() int {
+	if len(t.RuneGrid) == 0 {
+		return 0
+	}
+	return len(t.RuneGrid[0])
 }
 
 // superposition is the set of still-possible tile IDs for one wave cell.
@@ -280,6 +290,8 @@ func tileRuneToType(ch rune) TileType {
 		return TilePowerSource
 	case 'S':
 		return TileStorage
+	case 'B':
+		return TileBed
 	case 'A':
 		return TileAlienTech
 	case 'T':
@@ -300,11 +312,13 @@ func (wv *Wave) CompileToBattleMap(m *BattleMap, ox, oy, level int) {
 				continue
 			}
 			tile := wv.rules.Tiles[id]
-			for ty := 0; ty < 3; ty++ {
-				for tx := 0; tx < 3; tx++ {
+			rows := tile.gridRows()
+			cols := tile.gridCols()
+			for ty := 0; ty < rows; ty++ {
+				for tx := 0; tx < cols; tx++ {
 					ch := tile.RuneGrid[ty][tx]
-					mx := ox + gx*3 + tx
-					my := oy + gy*3 + ty
+					mx := ox + gx*cols + tx
+					my := oy + gy*rows + ty
 					m.SetLevel(mx, my, level, tileRuneToType(ch))
 				}
 			}
@@ -315,93 +329,93 @@ func (wv *Wave) CompileToBattleMap(m *BattleMap, ox, oy, level int) {
 // ufoWFCTiles defines the modular UFO piece library for the Tiled Model.
 // Each piece is 3x3. '.' = floor, '#' = wall, other letters = furniture.
 func ufoWFCTiles() []WFCTile {
-	floor := [3][3]rune{
+		floor := [][]rune{
 		{'.', '.', '.'},
 		{'.', '.', '.'},
 		{'.', '.', '.'},
 	}
-	wallN := [3][3]rune{
+	wallN := [][]rune{
 		{'#', '#', '#'},
 		{'.', '.', '.'},
 		{'.', '.', '.'},
 	}
-	wallE := [3][3]rune{
+	wallE := [][]rune{
 		{'.', '.', '#'},
 		{'.', '.', '#'},
 		{'.', '.', '#'},
 	}
-	wallS := [3][3]rune{
+	wallS := [][]rune{
 		{'.', '.', '.'},
 		{'.', '.', '.'},
 		{'#', '#', '#'},
 	}
-	wallW := [3][3]rune{
+	wallW := [][]rune{
 		{'#', '.', '.'},
 		{'#', '.', '.'},
 		{'#', '.', '.'},
 	}
-	corridorNS := [3][3]rune{
+	corridorNS := [][]rune{
 		{'.', '.', '.'},
 		{'.', '.', '.'},
 		{'.', '.', '.'},
 	}
 	_ = corridorNS
-	cornerNE := [3][3]rune{
+	cornerNE := [][]rune{
 		{'#', '#', '#'},
 		{'#', '.', '.'},
 		{'.', '.', '.'},
 	}
-	cornerSE := [3][3]rune{
+	cornerSE := [][]rune{
 		{'.', '.', '.'},
 		{'#', '.', '.'},
 		{'#', '#', '#'},
 	}
-	cornerSW := [3][3]rune{
+	cornerSW := [][]rune{
 		{'.', '.', '.'},
 		{'.', '.', '#'},
 		{'#', '#', '#'},
 	}
-	cornerNW := [3][3]rune{
+	cornerNW := [][]rune{
 		{'#', '#', '#'},
 		{'.', '.', '#'},
 		{'.', '.', '.'},
 	}
-	engine := [3][3]rune{
+	engine := [][]rune{
 		{'.', '#', '.'},
 		{'#', 'M', '#'},
 		{'.', '#', '.'},
 	}
-	consoleRoom := [3][3]rune{
+	consoleRoom := [][]rune{
 		{'.', '.', '.'},
 		{'.', 'C', '.'},
 		{'.', '.', '.'},
 	}
-	podRoom := [3][3]rune{
+	podRoom := [][]rune{
 		{'.', 'P', '.'},
 		{'.', '.', '.'},
 		{'.', 'P', '.'},
 	}
-	powerCore := [3][3]rune{
+	powerCore := [][]rune{
 		{'#', '.', '#'},
 		{'.', 'X', '.'},
 		{'#', '.', '#'},
 	}
-	doorN := [3][3]rune{
+	doorN := [][]rune{
 		{'.', 'D', '.'},
 		{'.', '.', '.'},
 		{'.', '.', '.'},
 	}
-	doorE := [3][3]rune{
+	doorE := [][]rune{
 		{'.', '.', '.'},
 		{'.', '.', 'D'},
 		{'.', '.', '.'},
 	}
-	doorS := [3][3]rune{
+	doorS := [][]rune{
 		{'.', '.', '.'},
 		{'.', '.', '.'},
 		{'.', 'D', '.'},
 	}
-	doorW := [3][3]rune{
+	doorW := [][]rune{
 		{'.', '.', '.'},
 		{'D', '.', '.'},
 		{'.', '.', '.'},
@@ -552,5 +566,251 @@ func GenerateUFOInteriorWFC(w, h int, rng *rand.Rand) *BattleMap {
 	m.SetLevel(stairsX, stairsY+1, 1, TileUFOFloor)
 	m.SetLevel(stairsX+1, stairsY+1, 1, TileUFOFloor)
 
+	return m
+}
+
+// urbanWFCTiles defines a modular tile library for procedural urban buildings.
+// It mixes small 3x3 pieces (rooms, walls, corners, doors, furniture) with a
+// few LARGE multi-room blocks (6x6 and 9x9) so the solver can emit whole
+// building wings in a single collapsed cell. '.' = floor, '#' = wall,
+// letters = furniture, 'D' = door.
+func urbanWFCTiles() []WFCTile {
+	// --- Small 3x3 pieces ---
+	floor := [][]rune{
+		{'.', '.', '.'},
+		{'.', '.', '.'},
+		{'.', '.', '.'},
+	}
+	wallN := [][]rune{
+		{'#', '#', '#'},
+		{'.', '.', '.'},
+		{'.', '.', '.'},
+	}
+	wallE := [][]rune{
+		{'.', '.', '#'},
+		{'.', '.', '#'},
+		{'.', '.', '#'},
+	}
+	wallS := [][]rune{
+		{'.', '.', '.'},
+		{'.', '.', '.'},
+		{'#', '#', '#'},
+	}
+	wallW := [][]rune{
+		{'#', '.', '.'},
+		{'#', '.', '.'},
+		{'#', '.', '.'},
+	}
+	cornerNE := [][]rune{
+		{'#', '#', '#'},
+		{'#', '.', '.'},
+		{'.', '.', '.'},
+	}
+	cornerSE := [][]rune{
+		{'.', '.', '.'},
+		{'#', '.', '.'},
+		{'#', '#', '#'},
+	}
+	cornerSW := [][]rune{
+		{'.', '.', '.'},
+		{'.', '.', '#'},
+		{'#', '#', '#'},
+	}
+	cornerNW := [][]rune{
+		{'#', '#', '#'},
+		{'.', '.', '#'},
+		{'.', '.', '.'},
+	}
+	doorN := [][]rune{
+		{'.', 'D', '.'},
+		{'.', '.', '.'},
+		{'.', '.', '.'},
+	}
+	doorE := [][]rune{
+		{'.', '.', '.'},
+		{'.', '.', 'D'},
+		{'.', '.', '.'},
+	}
+	doorS := [][]rune{
+		{'.', '.', '.'},
+		{'.', '.', '.'},
+		{'.', 'D', '.'},
+	}
+	doorW := [][]rune{
+		{'.', '.', '.'},
+		{'D', '.', '.'},
+		{'.', '.', '.'},
+	}
+	roomOffice := [][]rune{
+		{'.', '.', '.'},
+		{'.', 'C', '.'},
+		{'.', '.', '.'},
+	}
+	roomBed := [][]rune{
+		{'.', '.', '.'},
+		{'.', 'B', '.'},
+		{'.', '.', '.'},
+	}
+	roomStorage := [][]rune{
+		{'.', '.', '.'},
+		{'.', 'S', '.'},
+		{'.', '.', '.'},
+	}
+
+	// --- Large 6x6 two-room apartment block (interior walls split it). ---
+	apartment6 := [][]rune{
+		{'#', '#', '#', '#', '#', '#'},
+		{'#', '.', '.', '.', '.', '#'},
+		{'#', '.', '#', '#', '.', '#'},
+		{'#', '.', '#', '#', '.', '#'},
+		{'#', '.', '.', '.', '.', '#'},
+		{'#', '#', '#', '#', '#', '#'},
+	}
+	// --- Large 6x6 warehouse with machinery and a door on the south wall. ---
+	warehouse6 := [][]rune{
+		{'#', '#', '#', '#', '#', '#'},
+		{'#', 'M', '.', '.', 'M', '#'},
+		{'#', '.', '.', '.', '.', '#'},
+		{'#', '.', '.', '.', '.', '#'},
+		{'#', 'M', '.', '.', 'M', '#'},
+		{'#', '#', '.', '.', '#', '#'},
+	}
+	// --- Large 9x9 office wing: open-plan floor with a central meeting room
+	// and furniture clusters, walled on the perimeter. ---
+	office9 := [][]rune{
+		{'#', '#', '#', '#', '#', '#', '#', '#', '#'},
+		{'#', '.', '.', '.', '.', '.', '.', '.', '#'},
+		{'#', '.', 'C', '.', '.', '.', 'C', '.', '#'},
+		{'#', '.', '.', '.', '#', '.', '.', '.', '#'},
+		{'#', '.', '.', '.', '#', '.', '.', '.', '#'},
+		{'#', '.', 'C', '.', '#', '.', 'C', '.', '#'},
+		{'#', '.', '.', '.', '.', '.', '.', '.', '#'},
+		{'#', '.', '.', '.', '.', '.', '.', 'D', '#'},
+		{'#', '#', '#', '#', '#', '#', '#', '#', '#'},
+	}
+	// --- Large 9x9 barracks: four small bunk rooms around a corridor. ---
+	barracks9 := [][]rune{
+		{'#', '#', '#', '#', '#', '#', '#', '#', '#'},
+		{'#', 'B', '.', '#', '.', '#', 'B', '.', '#'},
+		{'#', '.', '.', '#', '.', '#', '.', '.', '#'},
+		{'#', '#', '.', '#', '.', '#', '#', '.', '#'},
+		{'.', '.', '.', '.', '.', '.', '.', '.', '.'},
+		{'#', '#', '.', '#', '.', '#', '#', '.', '#'},
+		{'#', '.', '.', '#', '.', '#', '.', '.', '#'},
+		{'#', 'B', '.', '#', '.', '#', 'B', '.', '#'},
+		{'#', '#', '#', '#', '#', '#', '#', '#', '#'},
+	}
+
+	tiles := []WFCTile{
+		{ID: 0, Name: "Floor", RuneGrid: floor},
+		{ID: 1, Name: "WallN", RuneGrid: wallN},
+		{ID: 2, Name: "WallE", RuneGrid: wallE},
+		{ID: 3, Name: "WallS", RuneGrid: wallS},
+		{ID: 4, Name: "WallW", RuneGrid: wallW},
+		{ID: 5, Name: "CornerNE", RuneGrid: cornerNE},
+		{ID: 6, Name: "CornerSE", RuneGrid: cornerSE},
+		{ID: 7, Name: "CornerSW", RuneGrid: cornerSW},
+		{ID: 8, Name: "CornerNW", RuneGrid: cornerNW},
+		{ID: 9, Name: "DoorN", RuneGrid: doorN},
+		{ID: 10, Name: "DoorE", RuneGrid: doorE},
+		{ID: 11, Name: "DoorS", RuneGrid: doorS},
+		{ID: 12, Name: "DoorW", RuneGrid: doorW},
+		{ID: 13, Name: "RoomOffice", RuneGrid: roomOffice},
+		{ID: 14, Name: "RoomBed", RuneGrid: roomBed},
+		{ID: 15, Name: "RoomStorage", RuneGrid: roomStorage},
+		// Large multi-room blocks.
+		{ID: 16, Name: "Apartment6", RuneGrid: apartment6},
+		{ID: 17, Name: "Warehouse6", RuneGrid: warehouse6},
+		{ID: 18, Name: "Office9", RuneGrid: office9},
+		{ID: 19, Name: "Barracks9", RuneGrid: barracks9},
+	}
+
+	// Open tiles may sit adjacent to anything (they present floor/walls on
+	// their perimeter, so the enclosing/border logic handles closure).
+	open := []int{0, 9, 10, 11, 12, 13, 14, 15}
+	// Wall/corner pieces (solid perimeter) — used to close building edges.
+	structural := []int{1, 2, 3, 4, 5, 6, 7, 8, 16, 17, 18, 19}
+
+	// Floor: open on all sides (adjacent to walls, corners, rooms, doors).
+	for d := 0; d < 4; d++ {
+		tiles[0].Neighbors[d] = append([]int{}, open...)
+	}
+	// Walls: solid side faces structural, open side faces open.
+	tiles[1].Neighbors[dirN] = append([]int{}, structural...)
+	tiles[1].Neighbors[dirS] = append([]int{}, open...)
+	tiles[1].Neighbors[dirE] = append([]int{}, structural...)
+	tiles[1].Neighbors[dirW] = append([]int{}, structural...)
+	tiles[2].Neighbors[dirE] = append([]int{}, structural...)
+	tiles[2].Neighbors[dirW] = append([]int{}, open...)
+	tiles[2].Neighbors[dirN] = append([]int{}, structural...)
+	tiles[2].Neighbors[dirS] = append([]int{}, structural...)
+	tiles[3].Neighbors[dirS] = append([]int{}, structural...)
+	tiles[3].Neighbors[dirN] = append([]int{}, open...)
+	tiles[3].Neighbors[dirE] = append([]int{}, structural...)
+	tiles[3].Neighbors[dirW] = append([]int{}, structural...)
+	tiles[4].Neighbors[dirW] = append([]int{}, structural...)
+	tiles[4].Neighbors[dirE] = append([]int{}, open...)
+	tiles[4].Neighbors[dirN] = append([]int{}, structural...)
+	tiles[4].Neighbors[dirS] = append([]int{}, structural...)
+
+	cornerNbrs := func() [4][]int {
+		return [4][]int{
+			append([]int{}, structural...),
+			append([]int{}, structural...),
+			append([]int{}, structural...),
+			append([]int{}, structural...),
+		}
+	}
+	tiles[5].Neighbors = cornerNbrs()
+	tiles[6].Neighbors = cornerNbrs()
+	tiles[7].Neighbors = cornerNbrs()
+	tiles[8].Neighbors = cornerNbrs()
+
+	// Doors and rooms: open on all sides.
+	for _, id := range []int{9, 10, 11, 12, 13, 14, 15} {
+		for d := 0; d < 4; d++ {
+			tiles[id].Neighbors[d] = append([]int{}, open...)
+		}
+	}
+	// Large multi-room blocks: their perimeter is wall, so they connect to
+	// structural pieces (walls/corners/other blocks) on all sides. This keeps
+	// the building closed while letting big wings tile together.
+	for _, id := range []int{16, 17, 18, 19} {
+		for d := 0; d < 4; d++ {
+			tiles[id].Neighbors[d] = append([]int{}, structural...)
+		}
+	}
+
+	return tiles
+}
+
+// GenerateUrbanBuildingWFC builds an urban building interior map using the WFC
+// Tiled Model. Small 3x3 pieces combine with large multi-room blocks (6x6 and
+// 9x9) to produce varied building layouts. rng must be seeded for reproducibility.
+func GenerateUrbanBuildingWFC(w, h int, rng *rand.Rand) *BattleMap {
+	m := NewBattleMap(w, h)
+
+	rules := NewWFCRules(urbanWFCTiles())
+
+	// Cell sizes vary; pick a uniform cell dimension equal to the largest
+	// tile (9) so big blocks fit, capping to map bounds.
+	cell := 9
+	gw := w / cell
+	gh := h / cell
+	if gw < 1 {
+		gw = 1
+	}
+	if gh < 1 {
+		gh = 1
+	}
+
+	m.fillRect(0, 0, w, h, TilePavement)
+
+	wv := newWave(rules, gw, gh)
+	wv = wv.Solve(rng, 30)
+	wv.CompileToBattleMap(m, 0, 0, 0)
+
+	// Enclose the building with a perimeter wall.
+	m.drawRect(0, 0, w, h, TileWall)
 	return m
 }

@@ -108,3 +108,55 @@ func TestGenerateUFOInteriorWFC(t *testing.T) {
 		}
 	}
 }
+
+func TestGenerateUrbanBuildingWFC(t *testing.T) {
+	rng := rand.New(rand.NewSource(7))
+	m := GenerateUrbanBuildingWFC(45, 45, rng)
+	if m == nil {
+		t.Fatal("nil map")
+	}
+	// Perimeter must be enclosed by walls.
+	for x := 0; x < m.Width; x++ {
+		if m.At(x, 0).Type != TileWall || m.At(x, m.Height-1).Type != TileWall {
+			t.Fatalf("top/bottom perimeter not wall at x=%d", x)
+		}
+	}
+	for y := 0; y < m.Height; y++ {
+		if m.At(0, y).Type != TileWall || m.At(m.Width-1, y).Type != TileWall {
+			t.Fatalf("left/right perimeter not wall at y=%d", y)
+		}
+	}
+	// Map must contain interior floors and at least one furniture/door piece.
+	floors, furniture := 0, 0
+	for y := 0; y < m.Height; y++ {
+		for x := 0; x < m.Width; x++ {
+			switch m.At(x, y).Type {
+			case TileFloor, TilePavement:
+				floors++
+			case TileConsole, TileBed, TileStorage, TileMachinery, TileDoor:
+				furniture++
+			}
+		}
+	}
+	if floors == 0 {
+		t.Fatal("no interior floor tiles produced")
+	}
+	if furniture == 0 {
+		t.Fatal("no furniture/door tiles produced")
+	}
+}
+
+func TestUrbanWFCTilesHaveVariableSizes(t *testing.T) {
+	tiles := urbanWFCTiles()
+	sizes := map[int]int{}
+	for _, tdef := range tiles {
+		sizes[tdef.gridCols()]++
+	}
+	// Expect both 3x3 small pieces and larger multi-room blocks (6x6, 9x9).
+	if sizes[3] == 0 {
+		t.Fatal("expected 3x3 urban tiles")
+	}
+	if sizes[6] == 0 && sizes[9] == 0 {
+		t.Fatal("expected large multi-room urban blocks (6x6 or 9x9)")
+	}
+}

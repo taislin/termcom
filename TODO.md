@@ -19,3 +19,10 @@ Scope: Features and fixes for the battlescape tactical combat system.
       engine, console/pod/power rooms, 4 door variants) with adjacency rules.
 - [x] `GenerateUFOInteriorWFC(w,h,rng)` builds a 2-level UFO; wired with
       benchmark `UFOInteriorWFC` and tests in `wfc_test.go`.
+- [x] `urbanWFCTiles()`: small 3x3 urban pieces (floor, 4 walls, 4 corners,
+      4 doors, office/bed/storage rooms) PLUS large multi-room blocks —
+      `Apartment6` (6x6), `Warehouse6` (6x6), `Office9` (9x9), `Barracks9`
+      (9x9); `RuneGrid` generalized to variable size to support big modules.
+- [x] `GenerateUrbanBuildingWFC(w,h,rng)` builds an enclosed urban building
+      (perimeter wall, pavement base) from the mixed tile library; tests in
+      `wfc_test.go` verify enclosure + interior floors/furniture.
