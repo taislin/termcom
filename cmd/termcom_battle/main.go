@@ -516,7 +516,7 @@ func launchCustom(path string) {
 	}
 	switch gen {
 	case "terror":
-		m = battle.GenerateTerrorSite(w, h)
+		m = battle.GenerateTerrorSite(w, h, time.Now().UnixNano())
 	case "supply_raid", "ufo_interior":
 		m = battle.GenerateUFOInterior(w, h)
 	case "building_assault":
@@ -526,7 +526,7 @@ func launchCustom(path string) {
 	case "alien_research":
 		m = battle.GenerateUFOInterior(w, h)
 	case "council":
-		m = battle.GenerateTerrorSite(w, h)
+		m = battle.GenerateTerrorSite(w, h, time.Now().UnixNano())
 	case "cydonia":
 		m = battle.GenerateCydonia(w, h)
 	case "abduction":

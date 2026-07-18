@@ -95,7 +95,7 @@ func BenchmarkMapGeneration(b *testing.B) {
 	})
 	b.Run("TerrorSite", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			GenerateTerrorSite(30, 24)
+			GenerateTerrorSite(30, 24, 42)
 		}
 	})
 	b.Run("UFOInterior", func(b *testing.B) {

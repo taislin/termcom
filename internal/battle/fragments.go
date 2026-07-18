@@ -40,6 +40,11 @@ var tileTypeByName = map[string]TileType{
 	"TileBed":         TileBed,
 	"TileLocker":      TileLocker,
 	"TileCabinet":     TileCabinet,
+	"TileCar":         TileCar,
+	"TileCarMid":      TileCarMid,
+	"TileCarRight":    TileCarRight,
+	"TileForklift":    TileForklift,
+	"TileForkliftRight": TileForkliftRight,
 }
 
 func resolveTileType(name string) TileType {
@@ -188,11 +193,14 @@ func AssembleMap(biome string, w, h int, rng *rand.Rand) *BattleMap {
 	positions := []placed{{ax, ay, anchor.Width, anchor.Height}}
 
 	attempts := 0
-	target := 6 + rng.Intn(4)
+	target := 10 + rng.Intn(5)
 	for len(positions) < target && attempts < 200 {
 		attempts++
 		c := weightedPick(chunks)
-		r := rng.Intn(4)
+		r := 0
+		if !c.NoRotate {
+			r = rng.Intn(4)
+		}
 		cw, ch := c.Width, c.Height
 		for i := 0; i < r; i++ {
 			cw, ch = ch, cw
@@ -217,7 +225,7 @@ func AssembleMap(biome string, w, h int, rng *rand.Rand) *BattleMap {
 	for i := 0; i < len(positions)-1; i++ {
 		p1 := positions[i]
 		p2 := positions[i+1]
-		m.generateCorridor(p1.x+p1.w/2, p1.y+p1.h/2, p2.x+p2.w/2, p2.y+p2.h/2, 1)
+		m.generateCorridorFill(p1.x+p1.w/2, p1.y+p1.h/2, p2.x+p2.w/2, p2.y+p2.h/2, 1, baseTile)
 	}
 
 	return m
@@ -243,6 +251,8 @@ func clusterBiome(m *BattleMap, biome string, w, h int, rng *rand.Rand) {
 		m.Poisson(TileRock, 3, w*h/150, rng)
 	case "urban":
 		m.Poisson(TileObject, 4, w*h/200, rng)
+		m.Poisson(TileBush, 5, w*h/150, rng)
+		m.Poisson(TileTree, 3, w*h/250, rng)
 	case "rural":
 		m.Blob(TileRock, 5, w*h/60, 50, rng)
 		m.Blob(TileTree, 6, w*h/50, 55, rng)

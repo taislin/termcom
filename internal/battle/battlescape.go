@@ -354,7 +354,7 @@ func NewBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, ufoN
 	mapRng := rand.New(rand.NewSource(mapSeed))
 	switch ufoName {
 	case "Terror":
-		m = GenerateTerrorSite(50, 50)
+		m = GenerateTerrorSite(50, 50, mapSeed)
 	case "Supply Raid":
 		m = GenerateUFOInteriorWFC(50, 50, mapRng)
 	case "Alien Base Assault":
@@ -364,7 +364,7 @@ func NewBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, ufoN
 	case "Building Assault":
 		m = GenerateUrbanBuildingWFCLevels(50, 50, 2, mapRng)
 	case "Council":
-		m = GenerateTerrorSite(50, 50)
+		m = GenerateTerrorSite(50, 50, mapSeed)
 	case "Cydonia":
 		m = GenerateCydonia(50, 50)
 	case "Abduction":

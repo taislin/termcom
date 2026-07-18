@@ -1,6 +1,7 @@
 package battle
 
 import (
+	"log"
 	"math/rand"
 
 	"github.com/taislin/termcom/internal/mapgen"
@@ -408,9 +409,33 @@ func tileRuneToType(ch rune) TileType {
 		return TileAlienTech
 	case 'T':
 		return TileStairsDown
+	// Alien base display runes
+	case '⌸', '⊕', 'ꙮ', '☼', '◊', '╨':
+		return TileAlienTech
+	case '╓', '⊚', '╖':
+		return TileConsole
+	case '◢', '═', '◣', '║', '⍾', '◥', '◤':
+		return TilePowerSource
+	case '⊏', '≈', '⊐':
+		return TileMachinery
 	default:
 		return TileUFOFloor
 	}
+}
+
+// tileRuneToDisplay returns a display rune to store on the tile when the WFC
+// rune is a visual character (Unicode BMP > U+00FF) rather than a simple type
+// marker. It returns 0 for ASCII type markers so the standard tile glyph
+// pipeline handles them.
+func tileRuneToDisplay(ch rune) rune {
+	switch ch {
+	case '#', '.', 'D', 'C', 'M', 'P', 'X', 'S', 'B', 'A', 'T':
+		return 0
+	}
+	if ch > 0xFF {
+		return ch
+	}
+	return 0
 }
 
 // CompileToBattleMap stamps the collapsed wave (grid of 3x3 tiles) into the
@@ -428,198 +453,21 @@ func (wv *Wave) CompileToBattleMap(m *BattleMap, ox, oy, level int) {
 			cols := tile.gridCols()
 			for ty := 0; ty < rows; ty++ {
 				for tx := 0; tx < cols; tx++ {
-					ch := tile.RuneGrid[ty][tx]
-					mx := ox + gx*cols + tx
-					my := oy + gy*rows + ty
-					m.SetLevel(mx, my, level, tileRuneToType(ch))
+				ch := tile.RuneGrid[ty][tx]
+				mx := ox + gx*cols + tx
+				my := oy + gy*rows + ty
+				tt := tileRuneToType(ch)
+				m.SetLevel(mx, my, level, tt)
+				if dr := tileRuneToDisplay(ch); dr != 0 {
+					ary := my + level*m.LevelHeight
+					if mx >= 0 && mx < m.Width && ary >= 0 && ary < m.Height {
+						m.Tiles[ary][mx].Rune = dr
+					}
+				}
 				}
 			}
 		}
 	}
-}
-
-// ufoWFCTiles defines the modular UFO piece library for the Tiled Model.
-// Each piece is 3x3. '.' = floor, '#' = wall, other letters = furniture.
-func hardcodedUFOTiles() []WFCTile {
-		floor := [][]rune{
-		{'.', '.', '.'},
-		{'.', '.', '.'},
-		{'.', '.', '.'},
-	}
-	wallN := [][]rune{
-		{'#', '#', '#'},
-		{'.', '.', '.'},
-		{'.', '.', '.'},
-	}
-	wallE := [][]rune{
-		{'.', '.', '#'},
-		{'.', '.', '#'},
-		{'.', '.', '#'},
-	}
-	wallS := [][]rune{
-		{'.', '.', '.'},
-		{'.', '.', '.'},
-		{'#', '#', '#'},
-	}
-	wallW := [][]rune{
-		{'#', '.', '.'},
-		{'#', '.', '.'},
-		{'#', '.', '.'},
-	}
-	corridorNS := [][]rune{
-		{'.', '.', '.'},
-		{'.', '.', '.'},
-		{'.', '.', '.'},
-	}
-	_ = corridorNS
-	cornerNE := [][]rune{
-		{'#', '#', '#'},
-		{'#', '.', '.'},
-		{'.', '.', '.'},
-	}
-	cornerSE := [][]rune{
-		{'.', '.', '.'},
-		{'#', '.', '.'},
-		{'#', '#', '#'},
-	}
-	cornerSW := [][]rune{
-		{'.', '.', '.'},
-		{'.', '.', '#'},
-		{'#', '#', '#'},
-	}
-	cornerNW := [][]rune{
-		{'#', '#', '#'},
-		{'.', '.', '#'},
-		{'.', '.', '.'},
-	}
-	engine := [][]rune{
-		{'.', '#', '.'},
-		{'#', 'M', '#'},
-		{'.', '#', '.'},
-	}
-	consoleRoom := [][]rune{
-		{'.', '.', '.'},
-		{'.', 'C', '.'},
-		{'.', '.', '.'},
-	}
-	podRoom := [][]rune{
-		{'.', 'P', '.'},
-		{'.', '.', '.'},
-		{'.', 'P', '.'},
-	}
-	powerCore := [][]rune{
-		{'#', '.', '#'},
-		{'.', 'X', '.'},
-		{'#', '.', '#'},
-	}
-	doorN := [][]rune{
-		{'.', 'D', '.'},
-		{'.', '.', '.'},
-		{'.', '.', '.'},
-	}
-	doorE := [][]rune{
-		{'.', '.', '.'},
-		{'.', '.', 'D'},
-		{'.', '.', '.'},
-	}
-	doorS := [][]rune{
-		{'.', '.', '.'},
-		{'.', '.', '.'},
-		{'.', 'D', '.'},
-	}
-	doorW := [][]rune{
-		{'.', '.', '.'},
-		{'D', '.', '.'},
-		{'.', '.', '.'},
-	}
-
-	// Adjacency helper: a tile's neighbor set per direction. We allow floor to
-	// connect to floor/walls/corners/rooms/doors; walls/corners must meet
-	// walls/corners/floor (never open edge to open edge across a gap).
-	tiles := []WFCTile{
-		{ID: 0, Name: "Floor", RuneGrid: floor, Neighbors: [4][]int{}},
-		{ID: 1, Name: "WallN", RuneGrid: wallN, Neighbors: [4][]int{}},
-		{ID: 2, Name: "WallE", RuneGrid: wallE, Neighbors: [4][]int{}},
-		{ID: 3, Name: "WallS", RuneGrid: wallS, Neighbors: [4][]int{}},
-		{ID: 4, Name: "WallW", RuneGrid: wallW, Neighbors: [4][]int{}},
-		{ID: 5, Name: "CornerNE", RuneGrid: cornerNE, Neighbors: [4][]int{}},
-		{ID: 6, Name: "CornerSE", RuneGrid: cornerSE, Neighbors: [4][]int{}},
-		{ID: 7, Name: "CornerSW", RuneGrid: cornerSW, Neighbors: [4][]int{}},
-		{ID: 8, Name: "CornerNW", RuneGrid: cornerNW, Neighbors: [4][]int{}},
-		{ID: 9, Name: "Engine", RuneGrid: engine, Neighbors: [4][]int{}},
-		{ID: 10, Name: "ConsoleRoom", RuneGrid: consoleRoom, Neighbors: [4][]int{}},
-		{ID: 11, Name: "PodRoom", RuneGrid: podRoom, Neighbors: [4][]int{}},
-		{ID: 12, Name: "PowerCore", RuneGrid: powerCore, Neighbors: [4][]int{}},
-		{ID: 13, Name: "DoorN", RuneGrid: doorN, Neighbors: [4][]int{}},
-		{ID: 14, Name: "DoorE", RuneGrid: doorE, Neighbors: [4][]int{}},
-		{ID: 15, Name: "DoorS", RuneGrid: doorS, Neighbors: [4][]int{}},
-		{ID: 16, Name: "DoorW", RuneGrid: doorW, Neighbors: [4][]int{}},
-	}
-
-	// Define legal adjacencies.
-	// "Open" tiles (floor, rooms, doors, engine) may sit anywhere.
-	// Wall pieces only allow their open side to face an open tile or a door,
-	// and their solid side to face a wall/corner or the map boundary (handled
-	// by propagation ignoring out-of-bounds).
-	open := []int{0, 9, 10, 11, 12, 13, 14, 15, 16}
-
-	// Floor neighbors: any open tile, or a wall/corner (so rooms can be enclosed).
-	tiles[0].Neighbors = [4][]int{open, open, open, open}
-
-	// WallN: solid (wall) on North, open on South.
-	// North must face wall/corner; South must face open.
-	tiles[1].Neighbors[dirN] = []int{1, 2, 3, 4, 5, 6, 7, 8}
-	tiles[1].Neighbors[dirS] = open
-	tiles[1].Neighbors[dirE] = []int{0, 1, 2, 3, 4, 5, 6, 7, 8}
-	tiles[1].Neighbors[dirW] = []int{0, 1, 2, 3, 4, 5, 6, 7, 8}
-
-	// WallE: solid on East, open on West.
-	tiles[2].Neighbors[dirE] = []int{1, 2, 3, 4, 5, 6, 7, 8}
-	tiles[2].Neighbors[dirW] = open
-	tiles[2].Neighbors[dirN] = []int{0, 1, 2, 3, 4, 5, 6, 7, 8}
-	tiles[2].Neighbors[dirS] = []int{0, 1, 2, 3, 4, 5, 6, 7, 8}
-
-	// WallS: solid on South, open on North.
-	tiles[3].Neighbors[dirS] = []int{1, 2, 3, 4, 5, 6, 7, 8}
-	tiles[3].Neighbors[dirN] = open
-	tiles[3].Neighbors[dirE] = []int{0, 1, 2, 3, 4, 5, 6, 7, 8}
-	tiles[3].Neighbors[dirW] = []int{0, 1, 2, 3, 4, 5, 6, 7, 8}
-
-	// WallW: solid on West, open on East.
-	tiles[4].Neighbors[dirW] = []int{1, 2, 3, 4, 5, 6, 7, 8}
-	tiles[4].Neighbors[dirE] = open
-	tiles[4].Neighbors[dirN] = []int{0, 1, 2, 3, 4, 5, 6, 7, 8}
-	tiles[4].Neighbors[dirS] = []int{0, 1, 2, 3, 4, 5, 6, 7, 8}
-
-	// Corners (solid on two sides). They mostly face walls/corners; open
-	// diagonal-to-room. Keep permissive: allow walls/corners on all sides so
-	// the hull can close, plus open tiles facing inward.
-	cornerNeighbors := func() [4][]int {
-		return [4][]int{
-			[]int{1, 2, 3, 4, 5, 6, 7, 8},
-			[]int{1, 2, 3, 4, 5, 6, 7, 8},
-			[]int{1, 2, 3, 4, 5, 6, 7, 8},
-			[]int{1, 2, 3, 4, 5, 6, 7, 8},
-		}
-	}
-	tiles[5].Neighbors = cornerNeighbors()
-	tiles[6].Neighbors = cornerNeighbors()
-	tiles[7].Neighbors = cornerNeighbors()
-	tiles[8].Neighbors = cornerNeighbors()
-
-	// Engine, rooms, powercore: open on all sides.
-	for _, id := range []int{9, 10, 11, 12} {
-		tiles[id].Neighbors = [4][]int{open, open, open, open}
-	}
-
-	// Doors: open on the axis through the doorway, walls elsewhere implicitly
-	// via being open tiles; allow any open neighbor plus walls facing the
-	// solid sides. Keep permissive: open on all sides.
-	for _, id := range []int{13, 14, 15, 16} {
-		tiles[id].Neighbors = [4][]int{open, open, open, open}
-	}
-
-	return tiles
 }
 
 // wfcDirFromKey maps a JSON direction key to the internal direction index.
@@ -647,9 +495,8 @@ func wfcTilesFromLib(lib *mapgen.WFCLibrary) []WFCTile {
 // repo-root relative). The first existing file wins.
 var wfcSearchPaths = []string{"data/wfc", "../data/wfc", "../../data/wfc"}
 
-// loadWFCLibrary tries to load a WFC tile library by stem (e.g. "ufo") from
-// data/wfc/<stem>.json. On any error it returns nil so callers can fall back
-// to a hardcoded library, keeping generation working without the JSON files.
+// loadWFCLibrary loads a WFC tile library by stem (e.g. "ufo") from
+// data/wfc/<stem>.json. It panics if the file cannot be found or parsed.
 func loadWFCLibrary(stem string) []WFCTile {
 	for _, dir := range wfcSearchPaths {
 		path := dir + "/" + stem + ".json"
@@ -657,25 +504,18 @@ func loadWFCLibrary(stem string) []WFCTile {
 			return wfcTilesFromLib(lib)
 		}
 	}
+	log.Fatalf("wfc: required library %q not found in any search path: %v", stem, wfcSearchPaths)
 	return nil
 }
 
-// ufoWFCTiles loads the UFO WFC tile library from data/wfc/ufo.json, falling
-// back to the hardcoded library if the file is unavailable.
+// ufoWFCTiles loads the UFO WFC tile library from data/wfc/ufo.json.
 func ufoWFCTiles() []WFCTile {
-	if t := loadWFCLibrary("ufo"); t != nil {
-		return t
-	}
-	return hardcodedUFOTiles()
+	return loadWFCLibrary("ufo")
 }
 
-// urbanWFCTiles loads the urban WFC tile library from data/wfc/urban.json,
-// falling back to the hardcoded library if the file is unavailable.
+// urbanWFCTiles loads the urban WFC tile library from data/wfc/urban.json.
 func urbanWFCTiles() []WFCTile {
-	if t := loadWFCLibrary("urban"); t != nil {
-		return t
-	}
-	return hardcodedUrbanTiles()
+	return loadWFCLibrary("urban")
 }
 
 // GenerateUFOInteriorWFC builds a UFO interior map using the Wave Function
@@ -737,221 +577,6 @@ func GenerateUFOInteriorWFC(w, h int, rng *rand.Rand) *BattleMap {
 	return m
 }
 
-// urbanWFCTiles defines a modular tile library for procedural urban buildings.
-// It mixes small 3x3 pieces (rooms, walls, corners, doors, furniture) with a
-// few LARGE multi-room blocks (6x6 and 9x9) so the solver can emit whole
-// building wings in a single collapsed cell. '.' = floor, '#' = wall,
-// letters = furniture, 'D' = door.
-func hardcodedUrbanTiles() []WFCTile {
-	// --- Small 3x3 pieces ---
-	floor := [][]rune{
-		{'.', '.', '.'},
-		{'.', '.', '.'},
-		{'.', '.', '.'},
-	}
-	wallN := [][]rune{
-		{'#', '#', '#'},
-		{'.', '.', '.'},
-		{'.', '.', '.'},
-	}
-	wallE := [][]rune{
-		{'.', '.', '#'},
-		{'.', '.', '#'},
-		{'.', '.', '#'},
-	}
-	wallS := [][]rune{
-		{'.', '.', '.'},
-		{'.', '.', '.'},
-		{'#', '#', '#'},
-	}
-	wallW := [][]rune{
-		{'#', '.', '.'},
-		{'#', '.', '.'},
-		{'#', '.', '.'},
-	}
-	cornerNE := [][]rune{
-		{'#', '#', '#'},
-		{'#', '.', '.'},
-		{'.', '.', '.'},
-	}
-	cornerSE := [][]rune{
-		{'.', '.', '.'},
-		{'#', '.', '.'},
-		{'#', '#', '#'},
-	}
-	cornerSW := [][]rune{
-		{'.', '.', '.'},
-		{'.', '.', '#'},
-		{'#', '#', '#'},
-	}
-	cornerNW := [][]rune{
-		{'#', '#', '#'},
-		{'.', '.', '#'},
-		{'.', '.', '.'},
-	}
-	doorN := [][]rune{
-		{'.', 'D', '.'},
-		{'.', '.', '.'},
-		{'.', '.', '.'},
-	}
-	doorE := [][]rune{
-		{'.', '.', '.'},
-		{'.', '.', 'D'},
-		{'.', '.', '.'},
-	}
-	doorS := [][]rune{
-		{'.', '.', '.'},
-		{'.', '.', '.'},
-		{'.', 'D', '.'},
-	}
-	doorW := [][]rune{
-		{'.', '.', '.'},
-		{'D', '.', '.'},
-		{'.', '.', '.'},
-	}
-	roomOffice := [][]rune{
-		{'.', '.', '.'},
-		{'.', 'C', '.'},
-		{'.', '.', '.'},
-	}
-	roomBed := [][]rune{
-		{'.', '.', '.'},
-		{'.', 'B', '.'},
-		{'.', '.', '.'},
-	}
-	roomStorage := [][]rune{
-		{'.', '.', '.'},
-		{'.', 'S', '.'},
-		{'.', '.', '.'},
-	}
-
-	// --- Large 6x6 two-room apartment block (interior walls split it). ---
-	apartment6 := [][]rune{
-		{'#', '#', '#', '#', '#', '#'},
-		{'#', '.', '.', '.', '.', '#'},
-		{'#', '.', '#', '#', '.', '#'},
-		{'#', '.', '#', '#', '.', '#'},
-		{'#', '.', '.', '.', '.', '#'},
-		{'#', '#', '#', '#', '#', '#'},
-	}
-	// --- Large 6x6 warehouse with machinery and a door on the south wall. ---
-	warehouse6 := [][]rune{
-		{'#', '#', '#', '#', '#', '#'},
-		{'#', 'M', '.', '.', 'M', '#'},
-		{'#', '.', '.', '.', '.', '#'},
-		{'#', '.', '.', '.', '.', '#'},
-		{'#', 'M', '.', '.', 'M', '#'},
-		{'#', '#', '.', '.', '#', '#'},
-	}
-	// --- Large 9x9 office wing: open-plan floor with a central meeting room
-	// and furniture clusters, walled on the perimeter. ---
-	office9 := [][]rune{
-		{'#', '#', '#', '#', '#', '#', '#', '#', '#'},
-		{'#', '.', '.', '.', '.', '.', '.', '.', '#'},
-		{'#', '.', 'C', '.', '.', '.', 'C', '.', '#'},
-		{'#', '.', '.', '.', '#', '.', '.', '.', '#'},
-		{'#', '.', '.', '.', '#', '.', '.', '.', '#'},
-		{'#', '.', 'C', '.', '#', '.', 'C', '.', '#'},
-		{'#', '.', '.', '.', '.', '.', '.', '.', '#'},
-		{'#', '.', '.', '.', '.', '.', '.', 'D', '#'},
-		{'#', '#', '#', '#', '#', '#', '#', '#', '#'},
-	}
-	// --- Large 9x9 barracks: four small bunk rooms around a corridor. ---
-	barracks9 := [][]rune{
-		{'#', '#', '#', '#', '#', '#', '#', '#', '#'},
-		{'#', 'B', '.', '#', '.', '#', 'B', '.', '#'},
-		{'#', '.', '.', '#', '.', '#', '.', '.', '#'},
-		{'#', '#', '.', '#', '.', '#', '#', '.', '#'},
-		{'.', '.', '.', '.', '.', '.', '.', '.', '.'},
-		{'#', '#', '.', '#', '.', '#', '#', '.', '#'},
-		{'#', '.', '.', '#', '.', '#', '.', '.', '#'},
-		{'#', 'B', '.', '#', '.', '#', 'B', '.', '#'},
-		{'#', '#', '#', '#', '#', '#', '#', '#', '#'},
-	}
-
-	tiles := []WFCTile{
-		{ID: 0, Name: "Floor", RuneGrid: floor},
-		{ID: 1, Name: "WallN", RuneGrid: wallN},
-		{ID: 2, Name: "WallE", RuneGrid: wallE},
-		{ID: 3, Name: "WallS", RuneGrid: wallS},
-		{ID: 4, Name: "WallW", RuneGrid: wallW},
-		{ID: 5, Name: "CornerNE", RuneGrid: cornerNE},
-		{ID: 6, Name: "CornerSE", RuneGrid: cornerSE},
-		{ID: 7, Name: "CornerSW", RuneGrid: cornerSW},
-		{ID: 8, Name: "CornerNW", RuneGrid: cornerNW},
-		{ID: 9, Name: "DoorN", RuneGrid: doorN},
-		{ID: 10, Name: "DoorE", RuneGrid: doorE},
-		{ID: 11, Name: "DoorS", RuneGrid: doorS},
-		{ID: 12, Name: "DoorW", RuneGrid: doorW},
-		{ID: 13, Name: "RoomOffice", RuneGrid: roomOffice},
-		{ID: 14, Name: "RoomBed", RuneGrid: roomBed},
-		{ID: 15, Name: "RoomStorage", RuneGrid: roomStorage},
-		// Large multi-room blocks.
-		{ID: 16, Name: "Apartment6", RuneGrid: apartment6},
-		{ID: 17, Name: "Warehouse6", RuneGrid: warehouse6},
-		{ID: 18, Name: "Office9", RuneGrid: office9},
-		{ID: 19, Name: "Barracks9", RuneGrid: barracks9},
-	}
-
-	// Open tiles may sit adjacent to anything (they present floor/walls on
-	// their perimeter, so the enclosing/border logic handles closure).
-	open := []int{0, 9, 10, 11, 12, 13, 14, 15}
-	// Wall/corner pieces (solid perimeter) — used to close building edges.
-	structural := []int{1, 2, 3, 4, 5, 6, 7, 8, 16, 17, 18, 19}
-
-	// Floor: open on all sides (adjacent to walls, corners, rooms, doors).
-	for d := 0; d < 4; d++ {
-		tiles[0].Neighbors[d] = append([]int{}, open...)
-	}
-	// Walls: solid side faces structural, open side faces open.
-	tiles[1].Neighbors[dirN] = append([]int{}, structural...)
-	tiles[1].Neighbors[dirS] = append([]int{}, open...)
-	tiles[1].Neighbors[dirE] = append([]int{}, structural...)
-	tiles[1].Neighbors[dirW] = append([]int{}, structural...)
-	tiles[2].Neighbors[dirE] = append([]int{}, structural...)
-	tiles[2].Neighbors[dirW] = append([]int{}, open...)
-	tiles[2].Neighbors[dirN] = append([]int{}, structural...)
-	tiles[2].Neighbors[dirS] = append([]int{}, structural...)
-	tiles[3].Neighbors[dirS] = append([]int{}, structural...)
-	tiles[3].Neighbors[dirN] = append([]int{}, open...)
-	tiles[3].Neighbors[dirE] = append([]int{}, structural...)
-	tiles[3].Neighbors[dirW] = append([]int{}, structural...)
-	tiles[4].Neighbors[dirW] = append([]int{}, structural...)
-	tiles[4].Neighbors[dirE] = append([]int{}, open...)
-	tiles[4].Neighbors[dirN] = append([]int{}, structural...)
-	tiles[4].Neighbors[dirS] = append([]int{}, structural...)
-
-	cornerNbrs := func() [4][]int {
-		return [4][]int{
-			append([]int{}, structural...),
-			append([]int{}, structural...),
-			append([]int{}, structural...),
-			append([]int{}, structural...),
-		}
-	}
-	tiles[5].Neighbors = cornerNbrs()
-	tiles[6].Neighbors = cornerNbrs()
-	tiles[7].Neighbors = cornerNbrs()
-	tiles[8].Neighbors = cornerNbrs()
-
-	// Doors and rooms: open on all sides.
-	for _, id := range []int{9, 10, 11, 12, 13, 14, 15} {
-		for d := 0; d < 4; d++ {
-			tiles[id].Neighbors[d] = append([]int{}, open...)
-		}
-	}
-	// Large multi-room blocks: their perimeter is wall, so they connect to
-	// structural pieces (walls/corners/other blocks) on all sides. This keeps
-	// the building closed while letting big wings tile together.
-	for _, id := range []int{16, 17, 18, 19} {
-		for d := 0; d < 4; d++ {
-			tiles[id].Neighbors[d] = append([]int{}, structural...)
-		}
-	}
-
-	return tiles
-}
-
 // GenerateUrbanBuildingWFC builds an urban building interior map using the WFC
 // Tiled Model. Small 3x3 pieces combine with large multi-room blocks (6x6 and
 // 9x9) to produce varied building layouts. rng must be seeded for reproducibility.
@@ -1007,12 +632,9 @@ func GenerateUrbanBuildingWFCLevels(w, h, numLevels int, rng *rand.Rand) *Battle
 }
 
 // alienBaseWFCTiles loads the alien base WFC tile library from
-// data/wfc/alien_base.json, falling back to hardcoded tiles.
+// data/wfc/alien_base.json.
 func alienBaseWFCTiles() []WFCTile {
-	if t := loadWFCLibrary("alien_base"); t != nil {
-		return t
-	}
-	return hardcodedAlienBaseTiles()
+	return loadWFCLibrary("alien_base")
 }
 
 // GenerateAlienBaseWFC builds an alien base interior map using WFC.
@@ -1071,136 +693,3 @@ func GenerateAlienBaseWFC(w, h int, rng *rand.Rand) *BattleMap {
 	return m
 }
 
-// hardcodedAlienBaseTiles provides an embedded alien base tile library
-// used when data/wfc/alien_base.json cannot be loaded.
-func hardcodedAlienBaseTiles() []WFCTile {
-	floor := [][]rune{
-		{'.', '.', '.'},
-		{'.', '.', '.'},
-		{'.', '.', '.'},
-	}
-	wallN := [][]rune{
-		{'#', '#', '#'},
-		{'.', '.', '.'},
-		{'.', '.', '.'},
-	}
-	wallE := [][]rune{
-		{'.', '.', '#'},
-		{'.', '.', '#'},
-		{'.', '.', '#'},
-	}
-	wallS := [][]rune{
-		{'.', '.', '.'},
-		{'.', '.', '.'},
-		{'#', '#', '#'},
-	}
-	wallW := [][]rune{
-		{'#', '.', '.'},
-		{'#', '.', '.'},
-		{'#', '.', '.'},
-	}
-	cornerNE := [][]rune{
-		{'#', '#', '#'},
-		{'#', '.', '.'},
-		{'.', '.', '.'},
-	}
-	cornerSE := [][]rune{
-		{'.', '.', '.'},
-		{'#', '.', '.'},
-		{'#', '#', '#'},
-	}
-	cornerSW := [][]rune{
-		{'.', '.', '.'},
-		{'.', '.', '#'},
-		{'#', '#', '#'},
-	}
-	cornerNW := [][]rune{
-		{'#', '#', '#'},
-		{'.', '.', '#'},
-		{'.', '.', '.'},
-	}
-	consoleRoom := [][]rune{
-		{'.', 'C', '.'},
-		{'C', 'C', 'C'},
-		{'.', '.', '.'},
-	}
-	consoleRoom90 := [][]rune{
-		{'.', 'C', '.'},
-		{'.', 'C', '.'},
-		{'.', 'C', '.'},
-	}
-	machineryNW := [][]rune{
-		{'M', '.', '.'},
-		{'.', '#', '.'},
-		{'.', '.', '.'},
-	}
-	machinerySE := [][]rune{
-		{'.', '.', '.'},
-		{'.', '#', '.'},
-		{'.', '.', 'M'},
-	}
-	podRoom := [][]rune{
-		{'P', 'P', 'P'},
-		{'.', '.', '.'},
-		{'P', 'P', 'P'},
-	}
-	powerRoom := [][]rune{
-		{'.', 'S', '.'},
-		{'S', 'S', 'S'},
-		{'.', '#', '.'},
-	}
-	alienTechRoom := [][]rune{
-		{'T', '.', 'T'},
-		{'.', '.', '.'},
-		{'T', '.', 'T'},
-	}
-	storageRoom := [][]rune{
-		{'S', '.', '.'},
-		{'.', '.', '.'},
-		{'.', '.', 'S'},
-	}
-	corridorT := [][]rune{
-		{'#', '#', '#'},
-		{'.', '#', '.'},
-		{'.', '#', '.'},
-	}
-	corridorB := [][]rune{
-		{'.', '#', '.'},
-		{'.', '#', '.'},
-		{'#', '#', '#'},
-	}
-	corridorL := [][]rune{
-		{'.', '#', '.'},
-		{'#', '#', '#'},
-		{'.', '#', '.'},
-	}
-	corridorR := [][]rune{
-		{'#', '.', '.'},
-		{'#', '.', '.'},
-		{'#', '.', '.'},
-	}
-
-	return []WFCTile{
-		{ID: 0, Name: "Floor", RuneGrid: floor},
-		{ID: 1, Name: "WallN", RuneGrid: wallN},
-		{ID: 2, Name: "WallE", RuneGrid: wallE},
-		{ID: 3, Name: "WallS", RuneGrid: wallS},
-		{ID: 4, Name: "WallW", RuneGrid: wallW},
-		{ID: 5, Name: "CornerNE", RuneGrid: cornerNE},
-		{ID: 6, Name: "CornerSE", RuneGrid: cornerSE},
-		{ID: 7, Name: "CornerSW", RuneGrid: cornerSW},
-		{ID: 8, Name: "CornerNW", RuneGrid: cornerNW},
-		{ID: 9, Name: "ConsoleRoom", RuneGrid: consoleRoom},
-		{ID: 10, Name: "ConsoleRoom90", RuneGrid: consoleRoom90},
-		{ID: 11, Name: "MachineryNW", RuneGrid: machineryNW},
-		{ID: 12, Name: "MachinerySE", RuneGrid: machinerySE},
-		{ID: 13, Name: "PodRoom", RuneGrid: podRoom},
-		{ID: 14, Name: "PowerRoom", RuneGrid: powerRoom},
-		{ID: 15, Name: "AlienTechRoom", RuneGrid: alienTechRoom},
-		{ID: 16, Name: "StorageRoom", RuneGrid: storageRoom},
-		{ID: 17, Name: "CorridorT", RuneGrid: corridorT},
-		{ID: 18, Name: "CorridorB", RuneGrid: corridorB},
-		{ID: 19, Name: "CorridorL", RuneGrid: corridorL},
-		{ID: 20, Name: "CorridorR", RuneGrid: corridorR},
-	}
-}

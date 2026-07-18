@@ -41,21 +41,26 @@ var firePalette = []tcell.Color{
 
 // opaqueTiles is the set of tile types that block line of sight.
 var opaqueTiles = map[TileType]bool{
-	TileWall:    true,
-	TileTree:    true,
-	TileRock:    true,
-	TileUFOWall: true,
-	TileFence:   true,
+	TileWall:          true,
+	TileTree:          true,
+	TileRock:          true,
+	TileUFOWall:       true,
+	TileFence:         true,
+	TileCar:           true,
+	TileCarMid:        true,
+	TileCarRight:      true,
+	TileForklift:      true,
+	TileForkliftRight: true,
 }
 
 // Human building box-drawing glyphs
 const (
-	GlyphBuildingTL   rune = '╔'
-	GlyphBuildingTR   rune = '╗'
-	GlyphBuildingBL   rune = '╚'
-	GlyphBuildingBR   rune = '╝'
-	GlyphBuildingH    rune = '═'
-	GlyphBuildingV    rune = '║'
+	GlyphBuildingTL   rune = '┌'
+	GlyphBuildingTR   rune = '┐'
+	GlyphBuildingBL   rune = '└'
+	GlyphBuildingBR   rune = '┘'
+	GlyphBuildingH    rune = '─'
+	GlyphBuildingV    rune = '│'
 	GlyphBuildingDoor rune = '▒'
 	GlyphBuildingWin  rune = '┼'
 )
@@ -92,8 +97,13 @@ var tilePalette = map[TileType]tcell.Color{
 	TileChair:       tcell.NewRGBColor(150, 100, 60),
 	TileComputer:    tcell.NewRGBColor(70, 180, 210),
 	TileBed:         tcell.NewRGBColor(200, 200, 200),
-	TileLocker:      tcell.NewRGBColor(140, 160, 180),
-	TileCabinet:     tcell.NewRGBColor(170, 130, 90),
+	TileLocker:       tcell.NewRGBColor(140, 160, 180),
+	TileCabinet:      tcell.NewRGBColor(170, 130, 90),
+	TileCar:          tcell.NewRGBColor(50, 100, 180),
+	TileCarMid:       tcell.NewRGBColor(50, 100, 180),
+	TileCarRight:     tcell.NewRGBColor(50, 100, 180),
+	TileForklift:     tcell.NewRGBColor(200, 160, 40), // yellow forklift
+	TileForkliftRight: tcell.NewRGBColor(200, 160, 40),
 }
 
 // TileBaseColor returns the resolved color for a tile.
@@ -123,6 +133,17 @@ func TileGeomRune(t Tile, ctx [3][3]TileType) rune {
 	e := ctx[1][2]
 
 	switch t.Type {
+	case TileCar, TileCarRight, TileForklift, TileForkliftRight:
+		if n == t.Type {
+			return 'º'
+		}
+		return TileChar(t.Type)
+	case TileCarMid:
+		if n == TileCarMid {
+			return '▄'
+		}
+		return '█'
+
 	case TileUFOWall:
 		// Corner calculations
 		nIsUFO := n == TileUFOWall
@@ -148,7 +169,7 @@ func TileGeomRune(t Tile, ctx [3][3]TileType) rune {
 		if nIsUFO && sIsUFO {
 			return GlyphUFOHullV
 		}
-		return '█' // Default block
+		return '#' // Default hash for isolated walls
 
 	case TileWall:
 		// Human building corners and lines

@@ -18,6 +18,7 @@ type MapgenChunk struct {
 	Width     int               `json:"width"`
 	Height    int               `json:"height"`
 	Weight    int               `json:"weight,omitempty"`
+	NoRotate  bool              `json:"no_rotate,omitempty"`
 	Rows      []string          `json:"rows"`
 	Terrain   map[string]string `json:"terrain"`
 	Furniture map[string]string `json:"furniture"`

@@ -1,0 +1,44 @@
+[
+  {
+    "id": "urban_car",
+    "tags": [
+      "urban"
+    ],
+    "width": 3,
+    "height": 2,
+    "weight": 3,
+    "no_rotate": true,
+    "rows": [
+      "abc",
+      "d e"
+    ],
+    "terrain": {
+      "a": "TileCar",
+      "b": "TileCarMid",
+      "c": "TileCarRight",
+      "d": "TileCar",
+      "e": "TileCarRight"
+    },
+    "furniture": {}
+  },
+  {
+    "id": "urban_forklift",
+    "tags": [
+      "urban"
+    ],
+    "width": 2,
+    "height": 2,
+    "weight": 2,
+    "no_rotate": true,
+    "rows": [
+      "ab",
+      "c "
+    ],
+    "terrain": {
+      "a": "TileForklift",
+      "b": "TileForkliftRight",
+      "c": "TileForklift"
+    },
+    "furniture": {}
+  }
+]

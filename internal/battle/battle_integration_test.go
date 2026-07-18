@@ -171,7 +171,7 @@ func TestMapGeneration(t *testing.T) {
 		gen  func(int, int) *BattleMap
 	}{
 		{"CrashSite", func(w, h int) *BattleMap { m, _ := GenerateCrashSite(w, h, 42); return m }},
-		{"TerrorSite", GenerateTerrorSite},
+		{"TerrorSite", func(w, h int) *BattleMap { return GenerateTerrorSite(w, h, 42) }},
 		{"UFOInterior", GenerateUFOInterior},
 		{"Cydonia", GenerateCydonia},
 	}

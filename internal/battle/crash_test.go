@@ -108,7 +108,7 @@ func TestStampVehiclePreservesMapOutside(t *testing.T) {
 func TestExplodeTile(t *testing.T) {
 	m := NewBattleMap(20, 20)
 	// Place some vehicle parts
-	m.Tiles[10][10] = Tile{Type: TilePowerSource, Cover: 50, Rune: '⚙'}
+	m.Tiles[10][10] = Tile{Type: TilePowerSource, Cover: 50, Rune: '⊛'}
 	m.Tiles[10][11] = Tile{Type: TileUFOWall, Cover: 80, Rune: '█'}
 	m.Tiles[10][12] = Tile{Type: TileMachinery, Cover: 50, Rune: '⌖'}
 

@@ -55,6 +55,12 @@ const (
 	TileBed      // Bed/cot
 	TileLocker   // Locker/storage
 	TileCabinet  // Cabinet/shelving
+	// Vehicle tiles
+	TileCar          // Car left half: ▄ (top), º (bottom)
+	TileCarMid       // Car middle roof: █ (top), empty bottom
+	TileCarRight     // Car right half: ▄ (top), º (bottom)
+	TileForklift     // Forklift left half: █ (top), º (bottom)
+	TileForkliftRight // Forklift right half: ▄ (top), empty (bottom-right)
 )
 
 // Tile represents a single cell on the tactical map.
@@ -85,7 +91,8 @@ func TileCover(t TileType) int {
 	case TileFence:
 		return 30
 	case TileObject, TileConsole, TileMachinery, TilePod, TilePowerSource, TileStorage, TileAlienTech,
-		TileDesk, TileChair, TileComputer, TileBed, TileLocker, TileCabinet:
+		TileDesk, TileChair, TileComputer, TileBed, TileLocker, TileCabinet,
+		TileCar, TileCarRight, TileCarMid, TileForklift, TileForkliftRight:
 		return 50
 	case TileRubble:
 		return 20
@@ -197,23 +204,28 @@ var tileChars = map[TileType]rune{
 	TileSnow:       '∗',
 	TileMarsh:      '≋',
 	TileBush:       '†',
-	TileFence:      '║',
+	TileFence:      '│',
 	TileRubble:     '▒',
 	TileObject:     '■',
 	// UFO furniture characters
 	TileConsole:     '░', // Console panel
-	TileMachinery:   '⚙', // Machinery (U+2699 GEAR - BMP symbol)
+	TileMachinery:   '⊛', // Machinery (U+229B CIRCLED ASTERISK)
 	TilePod:         '◈', // Alien pod
 	TilePowerSource: '⌁', // Power source (U+2301 ELECTRICAL ARC)
 	TileStorage:     '▤', // Storage container
 	TileAlienTech:   '⊕', // Alien technology
 	// Human furniture characters
-	TileDesk:     '⎔', // Desk (U+2394)
+	TileDesk:     '◊', // Desk (U+25CA LOZENGE)
 	TileChair:    '⊟', // Chair (U+229F)
-	TileComputer: '⌨', // Keyboard (U+2328)
-	TileBed:      '□', // Bed (U+25A1)
-	TileLocker:   '◫', // Locker (U+25EB)
-	TileCabinet:  '⊞', // Cabinet (U+229E)
+	TileComputer: '⌸', // Console (U+2338 QUAD MINUS)
+	TileBed:          '□', // Bed (U+25A1)
+	TileLocker:       '◫', // Locker (U+25EB)
+	TileCabinet:      '⊞', // Cabinet (U+229E)
+	TileCar:          '▄', // Car left half (top)
+	TileCarMid:       '█', // Car middle roof (top only)
+	TileCarRight:     '▄', // Car right half (top)
+	TileForklift:     '█', // Forklift left half (top)
+	TileForkliftRight: '⊏', // Forklift right half (top)
 }
 
 func TileChar(t TileType) rune {
@@ -368,7 +380,8 @@ func (m *BattleMap) IsDestructible(x, y int) bool {
 	t := m.At(x, y)
 	switch t.Type {
 	case TileWall, TileUFOWall, TileTree, TileRock, TileFence, TileDoor,
-		TileDesk, TileChair, TileComputer, TileBed, TileLocker, TileCabinet:
+		TileDesk, TileChair, TileComputer, TileBed, TileLocker, TileCabinet,
+		TileCar, TileCarRight, TileCarMid, TileForklift, TileForkliftRight:
 		return true
 	}
 	return false
@@ -574,6 +587,48 @@ func (m *BattleMap) drawRectLevel(x, y, w, h, level int, t TileType) {
 
 // corridorImpl is the shared L-shaped corridor implementation.
 // guardTile is the tile type that prevents carving; fillTile is the replacement.
+func (m *BattleMap) corridorImplProtected(x1, y1, x2, y2, w, level int, fillTile TileType) {
+	corridorX := func(x, y int) {
+		for dy := 0; dy < w; dy++ {
+			t := m.AtLevel(x, y+dy, level)
+			if !isUrbanProtected(t.Type) {
+				m.SetLevel(x, y+dy, level, fillTile)
+			}
+		}
+	}
+	corridorY := func(x, y int) {
+		for dx := 0; dx < w; dx++ {
+			t := m.AtLevel(x+dx, y, level)
+			if !isUrbanProtected(t.Type) {
+				m.SetLevel(x+dx, y, level, fillTile)
+			}
+		}
+	}
+	if rand.Intn(2) == 0 {
+		start := min(x1, x2)
+		end := max(x1, x2)
+		for x := start; x <= end; x++ {
+			corridorX(x, y1)
+		}
+		start = min(y1, y2)
+		end = max(y1, y2)
+		for y := start; y <= end; y++ {
+			corridorY(x2, y)
+		}
+	} else {
+		start := min(y1, y2)
+		end := max(y1, y2)
+		for y := start; y <= end; y++ {
+			corridorY(x1, y)
+		}
+		start = min(x1, x2)
+		end = max(x1, x2)
+		for x := start; x <= end; x++ {
+			corridorX(x, y2)
+		}
+	}
+}
+
 func (m *BattleMap) corridorImpl(x1, y1, x2, y2, w, level int, guardTile, fillTile TileType) {
 	if rand.Intn(2) == 0 {
 		start := min(x1, x2)
@@ -623,6 +678,26 @@ func (m *BattleMap) corridorLevel(x1, y1, x2, y2, w, level int) {
 // generateCorridor creates an L-shaped corridor between two points on the current level.
 func (m *BattleMap) generateCorridor(x1, y1, x2, y2 int, w int) {
 	m.corridorImpl(x1, y1, x2, y2, w, m.CurrentLevel, TileWall, TileFloor)
+}
+
+// isUrbanProtected returns true for tiles that should not be overwritten
+// by corridor generation (walls, furniture, vehicles, street objects).
+func isUrbanProtected(t TileType) bool {
+	switch t {
+	case TileWall, TileDoor, TileWindow,
+		TileConsole, TileMachinery, TilePod, TilePowerSource, TileStorage, TileAlienTech,
+		TileDesk, TileChair, TileComputer, TileBed, TileLocker, TileCabinet,
+		TileCar, TileCarRight, TileForklift, TileForkliftRight,
+		TileObject, TileTree, TileBush, TileFence:
+		return true
+	}
+	return false
+}
+
+// generateCorridorFill creates an L-shaped corridor using a specific fill tile.
+// Corridors respect walls, furniture, vegetation, and vehicles.
+func (m *BattleMap) generateCorridorFill(x1, y1, x2, y2, w int, fill TileType) {
+	m.corridorImplProtected(x1, y1, x2, y2, w, m.CurrentLevel, fill)
 }
 
 // generateCorridorUFO creates an L-shaped corridor that carves through
@@ -788,12 +863,13 @@ func GenerateCrashSite(w, h int, seed int64) (*BattleMap, *CrashResult) {
 
 // GenerateTerrorSite creates a terror site map (OpenXcom: 50x50 urban)
 // via AssembleMap with the urban biome (pavement base, scattered objects,
-// and building fragments).
-func GenerateTerrorSite(w, h int) *BattleMap {
-	rng := rand.New(rand.NewSource(int64(w*19349663 + h*83492791)))
+// and building fragments). seed drives all randomness so each mission
+// produces a unique layout.
+func GenerateTerrorSite(w, h int, seed int64) *BattleMap {
+	rng := rand.New(rand.NewSource(seed))
 	m := AssembleMap("urban", w, h, rng)
 
-	// Roads (OpenXcom urban script pattern) overlaid on the assembled map.
+	// Roads drawn after chunks so buildings overwrite them.
 	if rng.Intn(2) == 0 {
 		roadX := w/4 + rng.Intn(w/2)
 		m.fillRect(roadX-1, 0, 3, h, TilePavement)
@@ -802,6 +878,9 @@ func GenerateTerrorSite(w, h int) *BattleMap {
 		roadY := h/4 + rng.Intn(h/2)
 		m.fillRect(0, roadY-1, w, 3, TilePavement)
 	}
+
+	// Scatter street furniture: lamp posts, signs, fire hydrants
+	m.Poisson(TileObject, 3, w*h/300, rng)
 
 	return m
 }

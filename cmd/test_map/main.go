@@ -11,6 +11,7 @@ import (
 	"github.com/gdamore/tcell/v3"
 	"github.com/gdamore/tcell/v3/color"
 	"github.com/taislin/termcom/internal/battle"
+	_ "github.com/taislin/termcom/internal/engine"
 	"github.com/taislin/termcom/internal/mapgen"
 )
 
@@ -36,8 +37,50 @@ var generators = []genEntry{
 	{"all", "All biomes (AssembleMap) — shows biome name"},
 }
 
+var tileTypeNames = map[battle.TileType]string{
+	battle.TileFloor:       "Floor",
+	battle.TileWall:        "Wall",
+	battle.TileDoor:        "Door",
+	battle.TileWindow:      "Window",
+	battle.TileGrass:       "Grass",
+	battle.TileTree:        "Tree",
+	battle.TileRock:        "Rock",
+	battle.TileWater:       "Water",
+	battle.TileUFOFloor:    "UFO Floor",
+	battle.TileUFOWall:     "UFO Wall",
+	battle.TileStairs:      "Stairs Up",
+	battle.TileStairsDown:  "Stairs Down",
+	battle.TilePavement:    "Pavement",
+	battle.TileSand:        "Sand",
+	battle.TileSnow:        "Snow",
+	battle.TileMarsh:       "Marsh",
+	battle.TileBush:        "Bush",
+	battle.TileFence:       "Fence",
+	battle.TileRubble:      "Rubble",
+	battle.TileObject:      "Object",
+	battle.TileConsole:     "Console",
+	battle.TileMachinery:   "Machinery",
+	battle.TilePod:         "Pod",
+	battle.TilePowerSource: "Power Source",
+	battle.TileStorage:     "Storage",
+	battle.TileAlienTech:   "Alien Tech",
+	battle.TileDesk:        "Desk",
+	battle.TileChair:       "Chair",
+	battle.TileComputer:    "Computer",
+	battle.TileBed:         "Bed",
+	battle.TileLocker:      "Locker",
+	battle.TileCabinet:     "Cabinet",
+	battle.TileCar:         "Car (L)",
+	battle.TileCarMid:      "Car (Mid)",
+	battle.TileCarRight:    "Car (R)",
+	battle.TileForklift:    "Forklift (L)",
+	battle.TileForkliftRight: "Forklift (R)",
+}
+
+const infoPanelWidth = 22
+
 func main() {
-	gen, w, h, seed := parseArgs()
+	gen, w, h, seed, dump := parseArgs()
 	if gen == "" {
 		printUsage()
 		return
@@ -62,7 +105,7 @@ func main() {
 		m, _ = battle.GenerateCrashSite(w, h, seed)
 		label = "Crash Site"
 	case "terror":
-		m = battle.GenerateTerrorSite(w, h)
+		m = battle.GenerateTerrorSite(w, h, seed)
 		label = "Terror Site"
 	case "abduction":
 		m = battle.GenerateAbductionSite(w, h)
@@ -99,25 +142,36 @@ func main() {
 		label = "Crash Site (fallback)"
 	}
 
+	if dump {
+		dumpMap(m, label)
+		return
+	}
 	drawMap(m, label)
 }
 
-func parseArgs() (gen string, w, h int, seed int64) {
+func parseArgs() (gen string, w, h int, seed int64, dump bool) {
 	gen = ""
 	w, h = 50, 50
 	seed = time.Now().UnixNano()
 
 	args := os.Args[1:]
 	if len(args) == 0 {
-		return "", 0, 0, 0
+		return "", 0, 0, 0, false
+	}
+
+	if args[0] == "--dump" || args[0] == "-d" {
+		dump = true
+		args = args[1:]
+		if len(args) == 0 {
+			return "", 0, 0, 0, false
+		}
 	}
 
 	gen = strings.ToLower(args[0])
 	if gen == "--list" || gen == "-l" {
-		return gen, 0, 0, 0
+		return gen, 0, 0, 0, false
 	}
 
-	// Check if the gen is valid, else treat as seed
 	valid := false
 	for _, g := range generators {
 		if gen == g.name {
@@ -126,7 +180,6 @@ func parseArgs() (gen string, w, h int, seed int64) {
 		}
 	}
 	if !valid {
-		// Maybe it's a seed, treat as crash with that seed
 		if s, err := strconv.ParseInt(gen, 10, 64); err == nil {
 			seed = s
 			gen = "crash"
@@ -152,7 +205,8 @@ func parseArgs() (gen string, w, h int, seed int64) {
 }
 
 func printUsage() {
-	fmt.Println("Usage: go run ./cmd/test_map <map_type> [width] [height] [seed]")
+	fmt.Println("Usage: go run ./cmd/test_map [--dump] <map_type> [width] [height] [seed]")
+	fmt.Println("  --dump      Print the generated map as ASCII to stdout (non-interactive)")
 	fmt.Println()
 	printGenerators()
 }
@@ -196,13 +250,25 @@ func drawMap(m *battle.BattleMap, label string) {
 
 	level := 0
 	camX, camY := 0, 0
+	cursorX, cursorY := -1, -1
 
 	draw := func() {
 		s.Clear()
 		sw, sh := s.Size()
 
-		// If map smaller than screen, centre it; else top-left
-		offX := (sw - m.Width) / 2
+		infoW := 0
+		infoX := sw
+		if sw >= m.Width+infoPanelWidth+2 {
+			infoW = infoPanelWidth
+			infoX = sw - infoW
+		}
+
+		mapAreaW := sw
+		if infoW > 0 {
+			mapAreaW = infoX
+		}
+
+		offX := (mapAreaW - m.Width) / 2
 		if offX < 0 {
 			offX = -camX
 		}
@@ -211,8 +277,9 @@ func drawMap(m *battle.BattleMap, label string) {
 			offY = -camY
 		}
 
+		// Draw tiles
 		for y := 0; y < m.LevelHeight && y+offY < sh; y++ {
-			for x := 0; x < m.Width && x+offX < sw; x++ {
+			for x := 0; x < m.Width && x+offX < mapAreaW; x++ {
 				sx, sy := x+offX, y+offY
 				if sx < 0 || sy < 0 {
 					continue
@@ -221,11 +288,16 @@ func drawMap(m *battle.BattleMap, label string) {
 				ctx := tileContext(m, x, y, level)
 				ch, style := battle.RenderTile(t, ctx, true, true, 0, x, y)
 				s.SetContent(sx, sy, ch, nil, style)
+
+				// Cursor highlight
+				if x == cursorX && y == cursorY && cursorX >= 0 {
+					s.SetContent(sx, sy, ch, nil, style.Reverse(true))
+				}
 			}
 		}
 
-		// Info bar at top
-		info := fmt.Sprintf(" %s | %dx%d | level %d/%d | seed used", label, m.Width, m.LevelHeight, level+1, m.NumLevels)
+		// Info bar at top (map area portion)
+		info := fmt.Sprintf(" %s | %dx%d | level %d/%d", label, m.Width, m.LevelHeight, level+1, m.NumLevels)
 		if m.NumLevels <= 1 {
 			info = fmt.Sprintf(" %s | %dx%d", label, m.Width, m.Height)
 		}
@@ -236,14 +308,17 @@ func drawMap(m *battle.BattleMap, label string) {
 		}
 
 		// Help bar at bottom
-		help := " q:quit  arrows:scroll  n/p:level  c:current-level overlay"
-		if m.NumLevels <= 1 {
-			help = " q:quit  arrows:scroll"
-		}
+		help := " q:quit | click:select tile | arrows/wasd:scroll | tab:cycle floor"
 		for i, ch := range help {
 			if i < sw {
 				s.SetContent(i, sh-1, ch, nil, tcell.StyleDefault.Foreground(color.Gray).Background(color.Black))
 			}
+		}
+
+		// Info panel on the right
+		if infoW > 0 && cursorX >= 0 && cursorY >= 0 && cursorX < m.Width && cursorY < m.LevelHeight {
+			t := m.AtLevel(cursorX, cursorY, level)
+			drawInfoPanel(s, infoX, 2, infoW, sh-3, m, t, cursorX, cursorY, level)
 		}
 
 		s.Show()
@@ -281,21 +356,67 @@ func drawMap(m *battle.BattleMap, label string) {
 					case tcell.KeyDown:
 						camY += 5
 						draw()
+					case tcell.KeyTab:
+						level = (level + 1) % m.NumLevels
+						draw()
+					case tcell.KeyBacktab:
+						level = (level + m.NumLevels - 1) % m.NumLevels
+						draw()
 					case tcell.KeyRune:
 						switch e.Str() {
 						case "q", "Q":
 							close(done)
 							return
-						case "n", "N":
-							if level < m.NumLevels-1 {
-								level++
-								draw()
+						case "w", "W":
+							camY -= 5
+							if camY < 0 {
+								camY = 0
 							}
-						case "p", "P":
-							if level > 0 {
-								level--
-								draw()
+							draw()
+						case "a", "A":
+							camX -= 5
+							if camX < 0 {
+								camX = 0
 							}
+							draw()
+						case "s", "S":
+							camY += 5
+							draw()
+						case "d", "D":
+							camX += 5
+							draw()
+						}
+					}
+				case *tcell.EventMouse:
+					mx, my := e.Position()
+					sw, sh := s.Size()
+
+					infoW := 0
+					infoX := sw
+					if sw >= m.Width+infoPanelWidth+2 {
+						infoW = infoPanelWidth
+						infoX = sw - infoW
+					}
+					mapAreaW := sw
+					if infoW > 0 {
+						mapAreaW = infoX
+					}
+
+					offX := (mapAreaW - m.Width) / 2
+					if offX < 0 {
+						offX = -camX
+					}
+					offY := (sh - m.LevelHeight) / 3
+					if offY < 0 {
+						offY = -camY
+					}
+
+					tx := mx - offX
+					ty := my - offY
+					if tx >= 0 && tx < m.Width && ty >= 0 && ty < m.LevelHeight {
+						if cursorX != tx || cursorY != ty {
+							cursorX, cursorY = tx, ty
+							draw()
 						}
 					}
 				case *tcell.EventResize:
@@ -307,4 +428,191 @@ func drawMap(m *battle.BattleMap, label string) {
 		}
 	}()
 	<-done
+}
+
+func dumpMap(m *battle.BattleMap, label string) {
+	fmt.Printf("%s | %dx%d | levels %d\n", label, m.Width, m.Height, m.NumLevels)
+	for level := 0; level < m.NumLevels; level++ {
+		if m.NumLevels > 1 {
+			fmt.Printf("\n=== Level %d/%d ===\n", level+1, m.NumLevels)
+		}
+		for y := 0; y < m.LevelHeight; y++ {
+			var sb strings.Builder
+			for x := 0; x < m.Width; x++ {
+				t := m.AtLevel(x, y, level)
+				ctx := tileContext(m, x, y, level)
+				ch, _ := battle.RenderTile(t, ctx, true, true, 0, x, y)
+				sb.WriteRune(ch)
+			}
+			fmt.Println(sb.String())
+		}
+	}
+}
+
+func drawInfoPanel(s tcell.Screen, x, y, w, maxH int, m *battle.BattleMap, t battle.Tile, tileX, tileY, level int) {
+	if w < 10 || maxH < 3 {
+		return
+	}
+
+	white := tcell.StyleDefault.Foreground(color.White).Background(color.Black)
+	gray := tcell.StyleDefault.Foreground(color.Gray).Background(color.Black)
+	cyan := tcell.StyleDefault.Foreground(color.LightCyan).Background(color.Black)
+	yellow := tcell.StyleDefault.Foreground(color.Yellow).Background(color.Black)
+	green := tcell.StyleDefault.Foreground(color.LightGreen).Background(color.Black)
+	red := tcell.StyleDefault.Foreground(color.Red).Background(color.Black)
+
+	// Draw panel border
+	s.SetContent(x, y-1, '┌', nil, gray)
+	for i := 1; i < w-1; i++ {
+		s.SetContent(x+i, y-1, '─', nil, gray)
+	}
+	s.SetContent(x+w-1, y-1, '┐', nil, gray)
+
+	row := y
+
+	// Title
+	title := fmt.Sprintf(" Tile Info")
+	for i, ch := range title {
+		if i < w {
+			s.SetContent(x+i, row, ch, nil, cyan)
+		}
+	}
+	row++
+
+	// Separator
+	for i := 0; i < w; i++ {
+		s.SetContent(x+i, row, '─', nil, gray)
+	}
+	row++
+
+	// Coordinates
+	coordStr := fmt.Sprintf(" (%d, %d, L%d)", tileX, tileY, level)
+	for i, ch := range coordStr {
+		if row < maxH && i < w {
+			s.SetContent(x+i, row, ch, nil, white)
+		}
+	}
+	row++
+
+	// Tile type name
+	name := tileTypeNames[t.Type]
+	if name == "" {
+		name = fmt.Sprintf("TileType(%d)", t.Type)
+	}
+	nameStr := fmt.Sprintf(" %s", name)
+	for i, ch := range nameStr {
+		if row < maxH && i < w {
+			s.SetContent(x+i, row, ch, nil, yellow)
+		}
+	}
+	row++
+
+	// Symbol
+	ctx := tileContext(m, tileX, tileY, level)
+	ch, style := battle.RenderTile(t, ctx, true, true, 0, tileX, tileY)
+	symStr := fmt.Sprintf(" Char: %c  (0x%04x)", ch, ch)
+	for i, c := range symStr {
+		if row < maxH && i < w {
+			s.SetContent(x+i, row, c, nil, style)
+		}
+	}
+	row++
+
+	// Cover %
+	covStr := fmt.Sprintf(" Cover: %d%%", t.Cover)
+	sty := white
+	if t.Cover >= 80 {
+		sty = green
+	} else if t.Cover >= 50 {
+		sty = yellow
+	} else if t.Cover > 0 {
+		sty = red
+	}
+	for i, c := range covStr {
+		if row < maxH && i < w {
+			s.SetContent(x+i, row, c, nil, sty)
+		}
+	}
+	row++
+
+	// Flammable
+	flamStr := " Flammable: no"
+	if t.IsFlammable() {
+		flamStr = " Flammable: yes"
+	}
+	fSty := gray
+	if t.IsFlammable() {
+		fSty = yellow
+	}
+	for i, c := range flamStr {
+		if row < maxH && i < w {
+			s.SetContent(x+i, row, c, nil, fSty)
+		}
+	}
+	row++
+
+	// Destroyed
+	if t.Destroyed {
+		destStr := " Destroyed"
+		for i, c := range destStr {
+			if row < maxH && i < w {
+				s.SetContent(x+i, row, c, nil, red)
+			}
+		}
+		row++
+	}
+
+	// Blood
+	if t.Blood > 0 {
+		bloodLabels := map[int]string{1: "Red", 2: "Alien", 3: "Alien"}
+		bl := bloodLabels[t.Blood]
+		bloodStr := fmt.Sprintf(" Blood: %s", bl)
+		for i, c := range bloodStr {
+			if row < maxH && i < w {
+				s.SetContent(x+i, row, c, nil, red)
+			}
+		}
+		row++
+	}
+
+	// Fire
+	if t.Fire > 0 {
+		fireStr := fmt.Sprintf(" Fire: %d turns", t.Fire)
+		for i, c := range fireStr {
+			if row < maxH && i < w {
+				s.SetContent(x+i, row, c, nil, yellow)
+			}
+		}
+		row++
+	}
+
+	// Opaque (blocks LOS)
+	opStr := " Opaque: yes"
+	if !m.Opaque(tileX, tileY) {
+		opStr = " Opaque: no"
+	}
+	for i, c := range opStr {
+		if row < maxH && i < w {
+			s.SetContent(x+i, row, c, nil, white)
+		}
+	}
+	row++
+
+	// Base color preview
+	if row < maxH {
+		colorStr := " Color: "
+		for i, c := range colorStr {
+			if i < w {
+				s.SetContent(x+i, row, c, nil, white)
+			}
+		}
+		// Draw a colored sample
+		bc := battle.TileBaseColor(t)
+		if len(colorStr) < w {
+			s.SetContent(x+len(colorStr), row, '█', nil, tcell.StyleDefault.Foreground(bc).Background(bc))
+		}
+		if len(colorStr)+1 < w {
+			s.SetContent(x+len(colorStr)+1, row, '█', nil, tcell.StyleDefault.Foreground(bc).Background(bc))
+		}
+	}
 }

@@ -6,7 +6,12 @@ import (
 	"github.com/clipperhouse/displaywidth"
 	"github.com/gdamore/tcell/v3"
 	"github.com/gdamore/tcell/v3/color"
+	runewidth "github.com/mattn/go-runewidth"
 )
+
+func init() {
+	runewidth.EastAsianWidth = false
+}
 
 func RuneWidth(ch rune) int {
 	return displaywidth.Rune(ch)

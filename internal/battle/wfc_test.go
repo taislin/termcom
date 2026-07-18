@@ -5,47 +5,33 @@ import (
 	"testing"
 )
 
-func TestWFCJSONMatchesHardcoded(t *testing.T) {
-	// JSON libraries (data/wfc) must stay in sync with the hardcoded
-	// fallback libraries, so generation is identical with or without files.
-	cmp := func(jsonTiles, hardcoded []WFCTile) {
-		if len(jsonTiles) != len(hardcoded) {
-			t.Fatalf("tile count mismatch: json=%d hardcoded=%d", len(jsonTiles), len(hardcoded))
+func TestWFCLibrariesLoad(t *testing.T) {
+	load := func(name string) []WFCTile {
+		t.Helper()
+		tiles := loadWFCLibrary(name)
+		if len(tiles) == 0 {
+			t.Fatalf("wfc library %q loaded zero tiles", name)
 		}
-		for i := range jsonTiles {
-			j, h := jsonTiles[i], hardcoded[i]
-			if j.ID != h.ID || j.Name != h.Name {
-				t.Fatalf("tile %d mismatch: %q vs %q", i, j.Name, h.Name)
+		ids := map[int]bool{}
+		for _, tile := range tiles {
+			if ids[tile.ID] {
+				t.Fatalf("wfc library %q: duplicate tile id %d", name, tile.ID)
 			}
-			if j.gridRows() != h.gridRows() || j.gridCols() != h.gridCols() {
-				t.Fatalf("tile %q size mismatch", h.Name)
-			}
-			for r := 0; r < j.gridRows(); r++ {
-				for c := 0; c < j.gridCols(); c++ {
-					if j.RuneGrid[r][c] != h.RuneGrid[r][c] {
-						t.Fatalf("tile %q glyph mismatch at (%d,%d)", h.Name, r, c)
-					}
-				}
+			ids[tile.ID] = true
+			if tile.gridRows() == 0 || tile.gridCols() == 0 {
+				t.Fatalf("wfc library %q: tile %q has zero-size grid", name, tile.Name)
 			}
 			for d := 0; d < 4; d++ {
-				if len(j.Neighbors[d]) != len(h.Neighbors[d]) {
-					t.Fatalf("tile %q dir %d neighbor count mismatch", h.Name, d)
-				}
-				seen := map[int]bool{}
-				for _, n := range j.Neighbors[d] {
-					seen[n] = true
-				}
-				for _, n := range h.Neighbors[d] {
-					if !seen[n] {
-						t.Fatalf("tile %q dir %d missing neighbor %d", h.Name, d, n)
-					}
+				if len(tile.Neighbors[d]) == 0 {
+					t.Fatalf("wfc library %q: tile %q dir %d has no neighbors", name, tile.Name, d)
 				}
 			}
 		}
+		return tiles
 	}
-	cmp(ufoWFCTiles(), hardcodedUFOTiles())
-	cmp(urbanWFCTiles(), hardcodedUrbanTiles())
-	cmp(alienBaseWFCTiles(), hardcodedAlienBaseTiles())
+	load("ufo")
+	load("urban")
+	load("alien_base")
 }
 
 func TestWFCSolveCollapsesFully(t *testing.T) {

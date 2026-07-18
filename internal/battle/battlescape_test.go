@@ -36,7 +36,7 @@ func TestTileChar(t *testing.T) {
 		{TileUFOFloor, '≡'},
 		{TileUFOWall, '█'},
 		{TileConsole, '░'},
-		{TileMachinery, '⚙'},
+		{TileMachinery, '⊛'},
 		{TilePod, '◈'},
 		{TilePowerSource, '⌁'},
 		{TileStorage, '▤'},
@@ -93,7 +93,7 @@ func TestGenerateCrashSite(t *testing.T) {
 }
 
 func TestGenerateTerrorSite(t *testing.T) {
-	m := GenerateTerrorSite(30, 24)
+	m := GenerateTerrorSite(30, 24, 42)
 	if m.Width != 30 || m.Height != 24 {
 		t.Errorf("expected 30x24, got %dx%d", m.Width, m.Height)
 	}
