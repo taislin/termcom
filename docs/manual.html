@@ -167,6 +167,36 @@
       text-decoration: underline;
     }
 
+    .lang-toggle {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4em;
+      margin-bottom: 1.5em;
+      padding-bottom: 0.8em;
+      border-bottom: 1px solid #444;
+    }
+
+    .lang-toggle button {
+      background: #111111;
+      color: #aaaaaa;
+      border: 1px solid #444444;
+      font-family: 'Space Grotesk', 'Courier New', Courier, monospace;
+      font-size: 0.9em;
+      padding: 0.3em 0.7em;
+      cursor: pointer;
+    }
+
+    .lang-toggle button:hover {
+      color: #FF8C00;
+      border-color: #FF8C00;
+    }
+
+    .lang-toggle button.active {
+      color: #8A2BE2;
+      border-color: #8A2BE2;
+      background: #1a0a2a;
+    }
+
     #loading {
       text-align: center;
       padding: 4em 0;
@@ -196,7 +226,17 @@
 <body>
   <div class="container">
     <div class="nav-bar">
-      <a href="./">&#8592; TERMCOM</a>
+      <a href="./">&larr; TERMCOM</a>
+    </div>
+    <div class="lang-toggle" role="group" aria-label="Language">
+      <button type="button" data-lang="en">English</button>
+      <button type="button" data-lang="zh">中文</button>
+      <button type="button" data-lang="es">Español</button>
+      <button type="button" data-lang="fr">Français</button>
+      <button type="button" data-lang="ru">Русский</button>
+      <button type="button" data-lang="pt">Português</button>
+      <button type="button" data-lang="ja">日本語</button>
+      <button type="button" data-lang="ko">한국어</button>
     </div>
     <div id="loading">Loading manual...</div>
     <div id="error">Failed to load manual. <a href="https://github.com/taislin/termcom/blob/master/docs/manual.md">View
@@ -204,32 +244,76 @@
     <div id="content"></div>
   </div>
   <script>
-    fetch('manual.md')
-      .then((r) => {
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        return r.text();
-      })
-      .then((md) => {
-        document.getElementById('loading').style.display = 'none';
-        var html = marked.parse(md, { breaks: true });
-        document.getElementById('content').innerHTML = html;
-        document.querySelectorAll('#content a').forEach((a) => {
-          var href = a.getAttribute('href');
-          if (href && href.startsWith('#') && href.length > 1) {
-            a.addEventListener('click', (e) => {
-              e.preventDefault();
-              var id = href.slice(1).toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-              var el = document.getElementById(id);
-              if (el) el.scrollIntoView({ behavior: 'smooth' });
-            });
-          }
+    var LANGS = ['en', 'zh', 'es', 'fr', 'ru', 'pt', 'ja', 'ko'];
+
+    function loadManual(lang) {
+      var file = lang === 'en' ? 'manual.md' : 'manual.' + lang + '.md';
+      document.getElementById('loading').style.display = 'block';
+      document.getElementById('error').style.display = 'none';
+      document.getElementById('content').innerHTML = '';
+      fetch(file)
+        .then((r) => {
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          return r.text();
+        })
+        .then((md) => {
+          document.getElementById('loading').style.display = 'none';
+          var html = marked.parse(md, { breaks: true });
+          document.getElementById('content').innerHTML = html;
+          document.querySelectorAll('#content a').forEach((a) => {
+            var href = a.getAttribute('href');
+            if (href && href.startsWith('#') && href.length > 1) {
+              a.addEventListener('click', (e) => {
+                e.preventDefault();
+                var id = href.slice(1).toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+                var el = document.getElementById(id);
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              });
+            }
+          });
+        })
+        .catch((err) => {
+          document.getElementById('loading').style.display = 'none';
+          document.getElementById('error').style.display = 'block';
+          console.error(err);
         });
-      })
-      .catch((err) => {
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('error').style.display = 'block';
-        console.error(err);
+    }
+
+    function apply(lang) {
+      if (LANGS.indexOf(lang) < 0) lang = 'en';
+      document.documentElement.lang = lang;
+      var btns = document.querySelectorAll('.lang-toggle button');
+      for (var i = 0; i < btns.length; i++) {
+        btns[i].classList.toggle('active', btns[i].getAttribute('data-lang') === lang);
+      }
+      try { localStorage.setItem('termcom-manual-lang', lang); } catch (e) { }
+      loadManual(lang);
+    }
+
+    var param = null;
+    try {
+      var q = new URLSearchParams(window.location.search);
+      param = q.get('lang');
+    } catch (e) { }
+    if (param && LANGS.indexOf(param) >= 0) {
+      try { localStorage.setItem('termcom-manual-lang', param); } catch (e) { }
+    }
+
+    var saved = null;
+    try { saved = localStorage.getItem('termcom-manual-lang'); } catch (e) { }
+    var nav = (navigator.language || 'en').slice(0, 2).toLowerCase();
+    var initial = (param && LANGS.indexOf(param) >= 0) ? param
+      : (saved && LANGS.indexOf(saved) >= 0 ? saved
+        : (LANGS.indexOf(nav) >= 0 ? nav : 'en'));
+
+    apply(initial);
+
+    var buttons = document.querySelectorAll('.lang-toggle button');
+    for (var i = 0; i < buttons.length; i++) {
+      buttons[i].addEventListener('click', function () {
+        apply(this.getAttribute('data-lang'));
       });
+    }
   </script>
 </body>
 
