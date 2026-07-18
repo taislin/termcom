@@ -11,11 +11,23 @@ import (
 	"github.com/taislin/termcom/internal/data"
 	"github.com/taislin/termcom/internal/engine"
 	"github.com/taislin/termcom/internal/geo"
+	"github.com/taislin/termcom/internal/mapgen"
 	"github.com/taislin/termcom/internal/save"
 	"github.com/taislin/termcom/internal/soldier"
 )
 
 func main() {
+	if err := mapgen.Init(); err != nil {
+		fmt.Fprintf(os.Stderr, "Warning: mapgen init: %v\n", err)
+	}
+	data.NewAlienSpriteRegistry().RebuildFromTemplates(
+		mapgen.ToTemplateData("head"),
+		mapgen.ToTemplateData("eye"),
+		mapgen.ToTemplateData("torso"),
+		mapgen.ToTemplateData("leg"),
+		mapgen.ToTemplateData("weapon"),
+	)
+
 	g, err := engine.NewGame()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to initialize: %v\n", err)

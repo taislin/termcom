@@ -3,49 +3,58 @@ package battle
 import (
 	"math/rand"
 	"testing"
+
+	"github.com/taislin/termcom/internal/mapgen"
 )
 
-func TestPlaceFragmentRotation(t *testing.T) {
-	m := NewBattleMap(20, 20)
-	f := fragmentLibrary["ruined_shack"]
-	if f == nil {
-		t.Fatalf("ruined_shack fragment not registered")
+func TestApplyMapgenChunkRotation(t *testing.T) {
+	mapgen.Reset()
+	if err := mapgen.LoadDir("../../data/maps"); err != nil {
+		t.Fatalf("load maps: %v", err)
+	}
+	chunk := mapgen.Get("ruined_shack")
+	if chunk == nil {
+		t.Fatalf("ruined_shack chunk not loaded")
 	}
 	for rot := 0; rot < 4; rot++ {
-		m2 := NewBattleMap(20, 20)
-		tiles, w, h := f.rotateTiles(rot)
-		if tiles == nil || w <= 0 || h <= 0 {
-			t.Errorf("rot %d: invalid rotated tiles", rot)
-		}
-		m2.PlaceFragment(f, 2, 2, rot)
-		// A floor should appear inside the fragment footprint.
+		m := NewBattleMap(20, 20)
+		ApplyMapgenChunkRotated(m, 2, 2, rot, chunk)
 		foundFloor := false
-		for y := 2; y < 2+h; y++ {
-			for x := 2; x < 2+w; x++ {
-				if m2.At(x, y).Type == TileFloor {
+		for y := 0; y < m.LevelHeight; y++ {
+			for x := 0; x < m.Width; x++ {
+				if m.At(x, y).Type == TileFloor {
 					foundFloor = true
 				}
 			}
 		}
 		if !foundFloor {
-			t.Errorf("rot %d: no floor stamped by fragment", rot)
+			t.Errorf("rot %d: no floor stamped by chunk", rot)
 		}
 	}
-	_ = m
 }
 
-func TestPlaceFragmentOverlapRejection(t *testing.T) {
+func TestApplyMapgenChunkOverlapPreservesUnderlying(t *testing.T) {
+	mapgen.Reset()
+	if err := mapgen.LoadDir("../../data/maps"); err != nil {
+		t.Fatalf("load maps: %v", err)
+	}
+	chunk := mapgen.Get("bus_stop_cover")
+	if chunk == nil {
+		t.Fatalf("bus_stop_cover chunk not loaded")
+	}
 	m := NewBattleMap(20, 20)
 	m.Set(5, 5, TileWall)
-	f := fragmentLibrary["bus_stop_cover"]
-	m.PlaceFragment(f, 4, 4, 0)
-	// The pre-existing wall at (5,5) should be preserved (not overwritten).
-	if m.At(5, 5).Type != TileWall {
-		t.Errorf("expected existing wall preserved, got %v", m.At(5, 5).Type)
+	ApplyMapgenChunk(m, 4, 4, chunk)
+	if m.At(5, 5).Type != TileFloor {
+		t.Errorf("expected chunk floor to overwrite underlying wall, got %v", m.At(5, 5).Type)
 	}
 }
 
 func TestAssembleMapBiomes(t *testing.T) {
+	mapgen.Reset()
+	if err := mapgen.LoadDir("../../data/maps"); err != nil {
+		t.Fatalf("load maps: %v", err)
+	}
 	rng := rand.New(rand.NewSource(12345))
 	for _, biome := range []string{"urban", "forest", "ufo", "alien", "desert", "polar"} {
 		m := AssembleMap(biome, 40, 40, rng)

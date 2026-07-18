@@ -1,0 +1,16 @@
+{
+  "id": "corridor_elbow",
+  "tags": ["ufo", "alien"],
+  "width": 3,
+  "height": 3,
+  "rows": [
+    "WWW",
+    "...",
+    "WWW"
+  ],
+  "terrain": {
+    "W": "TileUFOWall",
+    ".": "TileUFOFloor"
+  },
+  "furniture": {}
+}

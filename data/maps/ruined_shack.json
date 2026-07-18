@@ -1,0 +1,17 @@
+{
+  "id": "ruined_shack",
+  "tags": ["urban", "forest", "rural"],
+  "width": 5,
+  "height": 4,
+  "rows": [
+    "WWWWW",
+    "W...W",
+    "W...W",
+    "WW.WW"
+  ],
+  "terrain": {
+    "W": "TileWall",
+    ".": "TileFloor"
+  },
+  "furniture": {}
+}

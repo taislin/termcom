@@ -13,6 +13,7 @@ import (
 	"github.com/taislin/termcom/internal/data"
 	"github.com/taislin/termcom/internal/engine"
 	"github.com/taislin/termcom/internal/geo"
+	"github.com/taislin/termcom/internal/mapgen"
 	"github.com/taislin/termcom/internal/save"
 	"github.com/taislin/termcom/internal/soldier"
 	"github.com/taislin/termcom/web"
@@ -27,6 +28,17 @@ const (
 )
 
 func main() {
+	if err := mapgen.Init(); err != nil {
+		log.Printf("Warning: mapgen init: %v", err)
+	}
+	data.NewAlienSpriteRegistry().RebuildFromTemplates(
+		mapgen.ToTemplateData("head"),
+		mapgen.ToTemplateData("eye"),
+		mapgen.ToTemplateData("torso"),
+		mapgen.ToTemplateData("leg"),
+		mapgen.ToTemplateData("weapon"),
+	)
+
 	addr := ":8080"
 	if len(os.Args) > 1 {
 		addr = os.Args[1]

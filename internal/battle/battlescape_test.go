@@ -1,11 +1,18 @@
 package battle
 
 import (
+	"os"
 	"testing"
 
 	"github.com/taislin/termcom/internal/data"
+	"github.com/taislin/termcom/internal/mapgen"
 	"github.com/taislin/termcom/internal/soldier"
 )
+
+func TestMain(m *testing.M) {
+	_ = mapgen.Init()
+	os.Exit(m.Run())
+}
 
 func TestNewBattleMap(t *testing.T) {
 	m := NewBattleMap(30, 20)
