@@ -1,0 +1,30 @@
+{
+  "id": "polar_frozen_lake",
+  "tags": ["polar", "rural"],
+  "width": 15,
+  "height": 15,
+  "weight": 2,
+  "rows": [
+    "IIIIIIIIIIIII",
+    "IIIIIIIIIIIII",
+    "IIIIIIIIIIIII",
+    "IIIIIIIIIIIII",
+    "IIIIIIOIIIIII",
+    "IIIIIIIIIIIII",
+    "IIIIIIIIIIIII",
+    "IIIIIIIIIIIII",
+    "IIIIIIIIIIIII",
+    "IIIIIIIIIIIII",
+    "IIIIIIIIIIIII",
+    "IIIIIIIIIIIII",
+    "IIIIIIIIIIIII",
+    "IIIIIIIIIIIII",
+    "IIIIIIIIIIIII"
+  ],
+  "terrain": {
+    "I": "TileIce"
+  },
+  "furniture": {
+    "O": "TileObject"
+  }
+}

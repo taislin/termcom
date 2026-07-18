@@ -70,6 +70,14 @@ const (
 	TileContainerRed
 	TileContainerBlue
 	TileContainerYellow
+	// Biome structure tiles
+	TileAdobe    // thick adobe wall (dusty orange, indestructible by plasma)
+	TileMetalWall // prefab metallic wall (silver, indestructible)
+	TileWreck    // aircraft wreckage (rusty metal, indestructible, full cover)
+	TileTimber   // stacked timber (flammable, full cover)
+	TileDish     // satellite/comms dish (metal, indestructible)
+	TileTruck    // military supply truck (vehicle, full cover)
+	TileIce      // frozen lake ice (passable, zero cover)
 )
 
 // Tile represents a single cell on the tactical map.
@@ -89,7 +97,8 @@ type Tile struct {
 // TileCover returns the base cover value for a tile type.
 func TileCover(t TileType) int {
 	switch t {
-	case TileWall, TileUFOWall, TileContainerRed, TileContainerBlue, TileContainerYellow:
+	case TileWall, TileUFOWall, TileContainerRed, TileContainerBlue, TileContainerYellow,
+		TileAdobe, TileMetalWall, TileWreck, TileTimber, TileTruck:
 		return 80
 	case TileTree:
 		return 60
@@ -115,7 +124,7 @@ func TileCover(t TileType) int {
 
 func (t Tile) IsFlammable() bool {
 	switch t.Type {
-	case TileGrass, TileTree, TileBush, TileFence, TileDoor:
+	case TileGrass, TileTree, TileBush, TileFence, TileDoor, TileTimber:
 		return true
 	}
 	return false
@@ -244,6 +253,14 @@ var tileChars = map[TileType]rune{
 	TileContainerRed:    '█',
 	TileContainerBlue:   '█',
 	TileContainerYellow: '█',
+	// Biome structure characters
+	TileAdobe:    '█', // adobe wall (dusty orange)
+	TileMetalWall: '█', // prefab metallic wall (silver)
+	TileWreck:    '▤', // aircraft wreckage (rusty)
+	TileTimber:   '≡', // stacked timber
+	TileDish:     '◗', // satellite dish
+	TileTruck:    '▄', // military truck (top half)
+	TileIce:      '≈', // frozen lake ice
 }
 
 func TileChar(t TileType) rune {
@@ -374,6 +391,7 @@ func (m *BattleMap) Passable(x, y int) bool {
 	t := m.At(x, y)
 	switch t.Type {
 	case TileFloor, TileDoor, TileGrass, TileUFOFloor, TileStairs, TileStairsDown, TilePavement, TileSand, TileSnow,
+		TileIce,
 		TileConsole, TileMachinery, TilePod, TilePowerSource, TileStorage, TileAlienTech,
 		TileDesk, TileChair, TileChairLeft, TileChairRight, TileComputer, TileBed, TileLocker, TileCabinet,
 		TileRubble:
@@ -385,7 +403,9 @@ func (m *BattleMap) Passable(x, y int) bool {
 func (m *BattleMap) Opaque(x, y int) bool {
 	t := m.At(x, y)
 	switch t.Type {
-	case TileWall, TileTree, TileRock, TileUFOWall, TileFence:
+	case TileWall, TileTree, TileRock, TileUFOWall, TileFence,
+		TileContainerRed, TileContainerBlue, TileContainerYellow,
+		TileAdobe, TileMetalWall, TileWreck, TileTruck, TileDish:
 		return true
 	}
 	if m.Gas != nil && m.Gas.BlocksLOS(x, y) {
@@ -722,7 +742,8 @@ func isUrbanProtected(t TileType) bool {
 		TileDesk, TileChair, TileChairLeft, TileChairRight, TileComputer, TileBed, TileLocker, TileCabinet,
 		TileCar, TileCarRight, TileForklift, TileForkliftRight,
 		TileObject, TileTree, TileBush, TileFence,
-		TileFuelPump, TileContainerRed, TileContainerBlue, TileContainerYellow:
+		TileFuelPump, TileContainerRed, TileContainerBlue, TileContainerYellow,
+		TileAdobe, TileMetalWall, TileWreck, TileTimber, TileDish, TileTruck:
 		return true
 	}
 	return false

@@ -54,6 +54,11 @@ var opaqueTiles = map[TileType]bool{
 	TileContainerRed:    true,
 	TileContainerBlue:   true,
 	TileContainerYellow: true,
+	TileAdobe:         true,
+	TileMetalWall:     true,
+	TileWreck:         true,
+	TileTruck:         true,
+	TileDish:          true,
 }
 
 // Human building box-drawing glyphs
@@ -110,9 +115,16 @@ var tilePalette = map[TileType]tcell.Color{
 	TileForklift:      tcell.NewRGBColor(200, 160, 40), // yellow forklift
 	TileForkliftRight: tcell.NewRGBColor(200, 160, 40),
 	TileFuelPump:      tcell.NewRGBColor(200, 60, 40), // red fuel pump
-	TileContainerRed:    tcell.NewRGBColor(180, 50, 40), // red shipping container
-	TileContainerBlue:   tcell.NewRGBColor(50, 80, 180), // blue shipping container
-	TileContainerYellow: tcell.NewRGBColor(200, 170, 40), // yellow shipping container
+	TileContainerRed:    tcell.NewRGBColor(180, 50, 40),  // red shipping container
+	TileContainerBlue:   tcell.NewRGBColor(50, 80, 180),  // blue shipping container
+	TileContainerYellow: tcell.NewRGBColor(200, 170, 40),  // yellow shipping container
+	TileAdobe:         tcell.NewRGBColor(200, 130, 70),  // dusty orange adobe
+	TileMetalWall:     tcell.NewRGBColor(180, 185, 195), // prefab metallic silver
+	TileWreck:         tcell.NewRGBColor(150, 95, 60),   // rusty aircraft wreckage
+	TileTimber:        tcell.NewRGBColor(150, 110, 60),  // stacked timber
+	TileDish:          tcell.NewRGBColor(170, 175, 185), // satellite dish
+	TileTruck:         tcell.NewRGBColor(90, 110, 70),   // olive military truck
+	TileIce:           tcell.NewRGBColor(180, 220, 235), // frozen lake ice (cyan-white)
 }
 
 // TileBaseColor returns the resolved color for a tile.

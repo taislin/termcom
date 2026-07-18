@@ -79,6 +79,13 @@ var tileTypeNames = map[battle.TileType]string{
 	battle.TileContainerRed:    "Container (R)",
 	battle.TileContainerBlue:   "Container (B)",
 	battle.TileContainerYellow: "Container (Y)",
+	battle.TileAdobe:         "Adobe Wall",
+	battle.TileMetalWall:     "Metal Wall",
+	battle.TileWreck:         "Aircraft Wreck",
+	battle.TileTimber:        "Timber Stack",
+	battle.TileDish:          "Satellite Dish",
+	battle.TileTruck:         "Supply Truck",
+	battle.TileIce:           "Frozen Ice",
 }
 
 const infoPanelWidth = 22

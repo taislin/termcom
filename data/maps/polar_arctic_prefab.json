@@ -1,0 +1,32 @@
+{
+  "id": "polar_arctic_prefab",
+  "tags": ["polar", "rural"],
+  "width": 15,
+  "height": 15,
+  "weight": 2,
+  "no_rotate": true,
+  "rows": [
+    "...............",
+    ".MMMMMMMMMMM.M.",
+    ".M...........M.",
+    ".M..+.....+..M.",
+    ".M...........M.",
+    ".M....FFF....M.",
+    ".M....FFF....M.",
+    ".M....FFF....M.",
+    ".M...........M.",
+    ".M..+.....+..M.",
+    ".M...........M.",
+    ".MMMMMMMMMMM.M.",
+    "...............",
+    "...............",
+    "..............."
+  ],
+  "terrain": {
+    ".": "TileSnow",
+    "M": "TileMetalWall",
+    "F": "TileFloor",
+    "+": "TileDoor"
+  },
+  "furniture": {}
+}

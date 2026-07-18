@@ -1,0 +1,29 @@
+{
+  "id": "desert_aircraft_boneyard",
+  "tags": ["desert", "rural"],
+  "width": 15,
+  "height": 15,
+  "weight": 2,
+  "rows": [
+    "...............",
+    ".WWW...WWW....",
+    ".W.W...W.W....",
+    ".WWW...WWW....",
+    "...............",
+    "..W.W.W.W.W...",
+    "..W.W.W.W.W...",
+    "..W.W.W.W.W...",
+    "...............",
+    ".WWW...WWW.W..",
+    ".W.W...W.W.W..",
+    ".WWW...WWW.W..",
+    "...............",
+    "...W.W.W.W.W..",
+    "..............."
+  ],
+  "terrain": {
+    ".": "TileSand",
+    "W": "TileWreck"
+  },
+  "furniture": {}
+}

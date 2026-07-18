@@ -1,0 +1,29 @@
+{
+  "id": "polar_supply_convoy",
+  "tags": ["polar", "rural"],
+  "width": 10,
+  "height": 15,
+  "weight": 2,
+  "rows": [
+    "ssssssssss",
+    "sTTTsssssT",
+    "sTTTsTTTsT",
+    "sTTTsssssT",
+    "ssssssssss",
+    "ssssTTTsss",
+    "sTsTTTssss",
+    "sTsTTTssss",
+    "sTsTTTssss",
+    "ssssssssss",
+    "sTTTsssssT",
+    "sTTTsTTTsT",
+    "sTTTsssssT",
+    "ssssssssss",
+    "ssssssssss"
+  ],
+  "terrain": {
+    "s": "TileSnow",
+    "T": "TileTruck"
+  },
+  "furniture": {}
+}
