@@ -863,6 +863,7 @@ func init() {
 		"OPTIONS_ON":               "ВКЛ",
 		"OPTIONS_OFF":              "ВЫКЛ",
 		"OPTIONS_HELP":             "[\u2190]/[\u2192]=Изменить  [\u2191]/[\u2193]=Выбрать  [Enter]=Переключить  [Esc]=Назад",
+		"OPTIONS_REPLAY_TUTORIAL":  "Повторить обучение",
 
 		"CUSTOM_AUTHOR":                "Автор:  %s",
 		"CUSTOM_DATE":                  "Дата:    %s",

@@ -859,6 +859,7 @@ func init() {
 		"OPTIONS_ON":               "ON ",
 		"OPTIONS_OFF":              "OFF",
 		"OPTIONS_HELP":             "[\u2190]/[\u2192]=\u8abf\u6574  [\u2191]/[\u2193]=\u9078\u629e  [Enter]=\u5207\u308a\u66ff\u3048  [Esc]=\u623b\u308b",
+		"OPTIONS_REPLAY_TUTORIAL":  "チュートリアルを再生",
 		"CONFIRM_QUIT":             "終了してもよろしいですか？",
 		"CONFIRM_QUIT_HINT":        "[Y] = はい   [N] = いいえ",
 		"CONFIRM_BATTLE_EXIT":      "全隊員が失われます。任務を放棄しますか？",

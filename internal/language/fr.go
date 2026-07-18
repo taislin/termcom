@@ -863,6 +863,7 @@ func init() {
 		"OPTIONS_ON":               "ACT ",
 		"OPTIONS_OFF":              "ÉTE",
 		"OPTIONS_HELP":             "[\u2190]/[\u2192]=R\u00e9gler  [\u2191]/[\u2193]=S\u00e9lectionner  [Enter]=Basculer  [Esc]=Retour",
+		"OPTIONS_REPLAY_TUTORIAL":  "Revoir le Tutoriel",
 
 		"BATTLE_COVER_FMT":          " (\u25C8 %d%%)",
 		"BATTLE_LEVEL_FMT":          " [N%d]",

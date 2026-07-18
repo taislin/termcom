@@ -863,6 +863,7 @@ func init() {
 		"OPTIONS_ON":               "LIG ",
 		"OPTIONS_OFF":              "DESL",
 		"OPTIONS_HELP":             "[\u2190]/[\u2192]=Ajustar  [\u2191]/[\u2193]=Selecionar  [Enter]=Alternar  [Esc]=Voltar",
+		"OPTIONS_REPLAY_TUTORIAL":  "Repetir Tutorial",
 
 		// ── Weather ───────────────────────────────────────
 		"BATTLE_MOD_ALIEN_AMBUSH":   "MODIFICADOR DE MISS\u00c3O: Emboscada Alien - aliens em vigil\u00e2ncia",

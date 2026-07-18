@@ -862,6 +862,7 @@ func init() {
 		"OPTIONS_ON":               "S\u00cd ",
 		"OPTIONS_OFF":              "NO",
 		"OPTIONS_HELP":             "[\u2190]/[\u2192]=Ajustar  [\u2191]/[\u2193]=Seleccionar  [Enter]=Alternar  [Esc]=Volver",
+		"OPTIONS_REPLAY_TUTORIAL":  "Repetir Tutorial",
 
 		// ── Batalla ──────────────────────────────────────
 		"BATTLE_COVER_FMT":          " (◈ %d%%)",

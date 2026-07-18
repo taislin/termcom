@@ -860,6 +860,7 @@ func init() {
 		"OPTIONS_ON":               "\u5f00 ",
 		"OPTIONS_OFF":              "\u5173",
 		"OPTIONS_HELP":             "[\u2190]/[\u2192]=\u8c03\u6574  [\u2191]/[\u2193]=\u9009\u62e9  [Enter]=\u5207\u6362  [Esc]=\u8fd4\u56de",
+		"OPTIONS_REPLAY_TUTORIAL":  "\u91cd\u64ad\u6559\u7a0b",
 
 		"BATTLE_COVER_FMT":          " (\u25C8 %d%%)",
 		"BATTLE_LEVEL_FMT":          " [L%d]",

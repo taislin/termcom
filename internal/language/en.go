@@ -878,6 +878,7 @@ func init() {
 		"OPTIONS_ON":               "ON ",
 		"OPTIONS_OFF":              "OFF",
 		"OPTIONS_HELP":             "[\u2190]/[\u2192]=Adjust  [\u2191]/[\u2193]=Select  [Enter]=Toggle  [Esc]=Back",
+		"OPTIONS_REPLAY_TUTORIAL":  "Replay Tutorial",
 		"CONFIRM_QUIT":             "ARE YOU SURE YOU WANT TO QUIT?",
 		"CONFIRM_QUIT_HINT":        "[Y] = Yes   [N] = No",
 		"CONFIRM_BATTLE_EXIT":      "ALL SQUAD MEMBERS WILL BE LOST. ABANDON MISSION?",

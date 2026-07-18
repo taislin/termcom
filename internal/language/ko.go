@@ -859,6 +859,7 @@ func init() {
 		"OPTIONS_ON":               "켜짐",
 		"OPTIONS_OFF":              "끄짐",
 		"OPTIONS_HELP":             "[\u2190]/[\u2192]=\uc870\uc815  [\u2191]/[\u2193]=\uc120\ud0dd  [Enter]=\uc804\ud658  [Esc]=\ub3cc\uc544\uac00\uae30",
+		"OPTIONS_REPLAY_TUTORIAL":  "튜토리얼 다시보기",
 		"CONFIRM_QUIT":             "종료하시겠습니까?",
 		"CONFIRM_QUIT_HINT":        "[Y] = 예   [N] = 아니오",
 		"CONFIRM_BATTLE_EXIT":      "모든 팀원이 손실됩니다. 임무를 포기하시겠습니까?",
