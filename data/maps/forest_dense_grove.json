@@ -1,0 +1,19 @@
+{
+  "id": "forest_dense_grove",
+  "tags": ["forest"],
+  "width": 5,
+  "height": 5,
+  "rows": [
+    "..tt.",
+    ".ttt.",
+    "ttbtt",
+    ".ttt.",
+    "..tt."
+  ],
+  "terrain": {
+    ".": "TileGrass",
+    "t": "TileTree",
+    "b": "TileBush"
+  },
+  "furniture": {}
+}

@@ -1,0 +1,19 @@
+{
+  "id": "ufo_crew_quarters",
+  "tags": ["ufo", "alien"],
+  "width": 6,
+  "height": 5,
+  "rows": [
+    "W..W.W",
+    "..P...",
+    "......",
+    "..P...",
+    "W..W.W"
+  ],
+  "terrain": {
+    "W": "TileUFOWall",
+    ".": "TileUFOFloor",
+    "P": "TilePod"
+  },
+  "furniture": {}
+}

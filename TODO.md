@@ -35,3 +35,12 @@ Scope: Features and fixes for the battlescape tactical combat system.
 - [x] Expanded `data/maps/*.json` urban fragment library: apartment, shop,
       warehouse, park, rubble field, tower (added to existing building/shack).
       `AssembleMap` (terror/abduction/crash) consumes them.
+- [x] Massive fragment expansion: 19 new fragments across ALL biomes (alley,
+      corner store, parking lot, rooftop, oasis, desert outpost, rocky
+      formation, forest pond, dense grove, abandoned camp, ice ridge, frozen
+      hut, supply cache, farm house, hay field, windmill, command room,
+      engine core, crew quarters). Total: 32 fragments.
+- [x] `building_assault` launcher type added to `cmd/termcom_battle`.
+- [x] `docs/dev.md` fully rewritten — now documents both mapgen systems
+      (AssembleMap + WFC), fragment/WFC tile schema, adding generators,
+      adding missions, WFC tile rune table, and search paths.

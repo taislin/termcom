@@ -78,9 +78,10 @@ go run ./cmd/termcom_battle alien_base
 go run ./cmd/termcom_battle alien_research
 go run ./cmd/termcom_battle abduction
 go run ./cmd/termcom_battle council
+go run ./cmd/termcom_battle building_assault
 ```
 
-**Available types:** `crash_site`, `terror`, `supply_raid`, `alien_base`, `alien_research`, `council`, `cydonia`, `abduction`, `forest`, `desert`, `polar`
+**Available types:** `crash_site`, `terror`, `supply_raid`, `alien_base`, `alien_research`, `council`, `cydonia`, `abduction`, `forest`, `desert`, `polar`, `building_assault`
 
 **What it does:**
 - Creates a Game instance with procedural alien species
@@ -179,7 +180,7 @@ go run ./cmd/termcom_battle
 | `survive_turns` | `turns` | Survive N turns without squad wipe |
 | `reach_point` | `target_x`, `target_y`, `min_soldiers` | Get N soldiers to the target tile |
 
-**Available map generators:** `crash_site`, `terror`, `supply_raid`/`ufo_interior`, `alien_base`, `council`, `cydonia`, `abduction`, `forest`, `desert`, `polar`
+**Available map generators:** `crash_site`, `terror`, `supply_raid`/`ufo_interior`, `alien_base`, `council`, `cydonia`, `abduction`, `forest`, `desert`, `polar`, `building_assault`
 
 **Available weapon IDs:** `pistol`, `rifle`, `heavy`, `auto`, `rocket`, `laser_pistol`, `laser_rifle`, `stun_rod`, `plasma_pistol`, `plasma_rifle`, `heavy_plasma`, `alien_blaster`, `alien_cannon`, `alien_laser`, `alien_heavy_laser`, `alien_grenade`, `alien_rocket`, `alien_psi_bolt`, `chryssalid_claw`, `reaper_claw`, `alien_claw`, `alien_fang`
 
@@ -191,9 +192,10 @@ go run ./cmd/termcom_battle
 |------|-----------|-------------|
 | `crash_site` | `GenerateCrashSite` | Standard UFO crash recovery |
 | `terror` | `GenerateTerrorSite` | Urban terror mission with civilians |
-| `supply_raid` | `GenerateUFOInterior` | Interior UFO combat |
+| `supply_raid` | `GenerateUFOInterior` (legacy) or `GenerateUFOInteriorWFC` (live) | Interior UFO combat |
 | `alien_base` | `GenerateAlienBase` | Alien base assault |
-| `alien_research` | `GenerateUFOInterior` | Research facility interior |
+| `alien_research` | `GenerateUFOInterior` (legacy) or `GenerateUFOInteriorWFC` (live) | Research facility interior |
+| `building_assault` | `GenerateUrbanBuildingWFC` | Procedural urban building (WFC) |
 | `council` | `GenerateTerrorSite` | Council mission |
 | `cydonia` | `GenerateCydonia` | Final mission on Mars |
 | `abduction` | `GenerateAbductionSite` | Abduction with timer |
@@ -211,6 +213,14 @@ cmd/
   webserver/            Web server (for remote play)
 maps/
   *.json                Custom battle definitions
+data/
+  maps/
+    *.json              Map fragment library (biome-tagged terrain chunks)
+  wfc/
+    ufo.json            WFC tile library: UFO interiors
+    urban.json          WFC tile library: urban buildings
+  aliens/
+    *.json              Procedural alien sprite part definitions
 internal/
   engine/
     game.go             Game loop, state machine
@@ -221,10 +231,17 @@ internal/
   battle/
     battlescape.go      Battlescape: turns, units, AI, victory conditions
     map.go              Tactical map generators (10+ biomes)
+    wfc.go              Wave Function Collapse solver (Tiled Model)
+    fragments.go        Map fragment stamping, chunk placement, AssembleMap
     unit.go             Unit creation (soldier, alien, civilian)
     ai.go               Alien AI behavior
     gas.go              Volumetric smoke/gas
+    cluster.go          Clustered terrain (blob growth, poisson sampling)
     ...                 (input, movement, LOS, etc.)
+  mapgen/
+    mapgen.go           CDDA-style mapgen chunk loader (JSON fragments)
+    wfctile.go          WFC tile library loader (JSON with adjacency rules)
+    alien_templates.go  Alien template sprite loader
   geo/                  Geoscape: world map, UFOs, interceptors, missions
   base/                 Base management: facilities, research, manufacture
   soldier/              Soldier stats, ranking, inventory
@@ -248,6 +265,72 @@ internal/
 - **AI:** Behavior tree pattern with patrol, seek, attack, flee, flank, retreat
 - **Save system:** JSON-based with version migration (current: v3)
 - **Audio:** MIDI synthesis on Windows, oto-based PCM synthesis on Linux/macOS
+- **Map generation:** Two complementary systems — `AssembleMap` for outdoor/biome maps (scatter fragments from `data/maps/*.json`) and WFC solver for enclosed interiors (tile library from `data/wfc/*.json`)
+- **All map generators are deterministic** — seeded RNG ensures reproducible layouts (critical for replay and save verification)
+
+## Map Generation Systems
+
+### 1. Fragment-based assembly (`AssembleMap`)
+
+Used for outdoor & mixed maps: terror, abduction, crash site terrain, forest, desert, polar.
+
+- Reads biome-tagged fragments from `data/maps/*.json`
+- Each fragment defines an ASCII tile grid with terrain/furniture glyph mappings
+- `AssembleMap(biome, w, h, rng)` fills base terrain, applies clustered terrain (blob growth, poisson sampling), stamps a random anchor fragment, then greedily places additional fragments with spacing + connectivity (flood-fill) checks, stamps corridors between fragment doors
+- Biomes: `urban`, `forest`, `desert`, `polar`, `rural`, `ufo`, `alien`
+- Generator wrappers: `GenerateCrashSite`, `GenerateTerrorSite`, `GenerateAbductionSite`, `GenerateForest`, `GenerateDesert`, `GeneratePolar`
+
+**Adding a new fragment:**
+
+1. Create a `.json` file in `data/maps/` with fields: `id`, `tags`, `width`, `height`, `rows` (ASCII art), `terrain` (glyph → TileType name mapping), `furniture` (optional)
+2. Tag it with the biome(s) you want it to appear in (e.g. `["urban", "forest"]`)
+3. Tile glyphs: `W`=TileWall, `.`=TileFloor, `g`=TileGrass, `t`=TileTree, `r`=TileRock, `s`=TileSand, `n`=TileSnow, `~`=TileWater, `R`=TileRubble, etc. Furniture glyphs per-chunk (defined in furniture map)
+4. Fragments load automatically via `mapgen.Init()` at game start
+
+**Current fragment count:** ~32 fragments across all biomes.
+
+### 2. Wave Function Collapse solver (`wfc.go`)
+
+Used for enclosed interiors: UFO hulls and urban building interiors.
+
+- **Tiled Model** — defines a tile library of small 3x3 pieces and larger blocks (6x6, 9x9)
+- **Superposition grid** starts with all tiles possible in every cell
+- **Observation** picks the lowest-entropy cell and randomly collapses it
+- **Propagation** eliminates incompatible tile options from neighbors via queue-based constraint propagation (AC-3 variant)
+- **Restart-on-contradiction** retries with a fresh wave if a cell reaches 0 options
+- Output compiles to `BattleMap` by stamping each tile's rune grid into the terrain grid
+
+**Tile library format** (`data/wfc/*.json`):
+
+```json
+{
+  "tiles": [
+    {
+      "id": 0,
+      "name": "Floor",
+      "rows": ["...", "...", "..."],
+      "neighbors": {
+        "N": [0,1,2,3,4,5,6,7,8,9],
+        "E": [0,1,2,3,4,5,6,7,8,9],
+        "S": [0,1,2,3,4,5,6,7,8,9],
+        "W": [0,1,2,3,4,5,6,7,8,9]
+      }
+    }
+  ]
+}
+```
+
+- `rows` are equal-length strings; characters map to `TileType` via `tileRuneToType`
+- `neighbors.N/E/S/W` list the tile IDs allowed to sit in each cardinal direction relative to this tile
+- Tile size is variable — 3x3 small pieces and larger multi-room blocks share the grid
+- Libraries load at runtime from `data/wfc/ufo.json` and `data/wfc/urban.json`, with hardcoded fallback
+
+**Available WFC generators:**
+
+| Function | Library | Mission |
+|----------|---------|---------|
+| `GenerateUFOInteriorWFC` | `data/wfc/ufo.json` (17 tiles) | `Supply Raid`, `Alien Research` |
+| `GenerateUrbanBuildingWFC` | `data/wfc/urban.json` (20 tiles) | `Building Assault` |
 
 ## Common Development Tasks
 
@@ -271,17 +354,26 @@ internal/
   add targeting bonus to `selectTarget()` in `ai.go`, and add portrait decoration
   to `pickSenseSensor()`
 
-### Adding a new map type
+### Adding a new map generator
 
-1. Add generator function to `internal/battle/map.go`
-2. Add case to `NewBattlescape` switch in `internal/battle/battlescape.go`
-3. Add entry to `cmd/termcom_battle/main.go` for testing
+1. For **fragment-based** maps: add fragment JSONs to `data/maps/` with the desired biome tag, or write a new generator function calling `AssembleMap` with a new biome
+2. For **WFC-based** maps: add tiles to `data/wfc/<name>.json` with adjacency rules, write a generator function using `NewWFCRules` + `newWave` + `Solve` + `CompileToBattleMap`
+3. Add case to `NewBattlescape` switch in `internal/battle/battlescape.go`
+4. Add entry to `cmd/termcom_battle/main.go` for testing
 
 ### Adding a new item
 
 1. Add struct to `internal/data/items.go` with all fields
 2. Add language strings to `internal/language/en.go`
 3. Add to base stores if purchasable
+
+### Adding a new mission type
+
+1. Add language keys `MISSION_<NAME>` and `MISSION_TYPE_<NAME>` to **all 8 language files** (`en.go`, `zh.go`, `es.go`, `fr.go`, `ru.go`, `pt.go`, `ja.go`, `ko.go`)
+2. Add to geoscape mission pool (`internal/geo/geoscape.go` — `rollMission` weighted pool)
+3. Add to `ufoName` switch in `respondToMission` mapping the type to its display key
+4. Add map generator case in `NewBattlescape` (`internal/battle/battlescape.go`)
+5. Add command-line alias in `cmd/termcom_battle/main.go`
 
 ### Procedural systems
 
@@ -305,9 +397,9 @@ Each playthrough generates unique content from a seed:
 - Registered via `RegisterProceduralItems(seed, aliens)`
 - Called during game init and save load
 
-**Maps** (`internal/battle/map.go`):
-- 10 procedural map generators
-- Biome-based tile probability distributions
+**Maps** (`internal/battle/map.go`, `internal/battle/fragments.go`, `internal/battle/wfc.go`):
+- Fragment-based maps (12+ biome wrappers)
+- WFC-based interior maps (2 libraries, single-level and multi-level)
 - Seeded for reproducible layouts
 
 ### Mission modifiers
@@ -374,6 +466,35 @@ Tactical battles can be auto-resolved from the geoscape via `AutoresolveMission(
 - Mission modifiers: `internal/battle/modifiers.go` (RollModifiers)
 - Weather: `internal/battle/modifiers.go` (RollWeather)
 - Perks: `internal/soldier/perks.go` (AllPerks, RollPerk)
+
+## WFC Tile Library: Adding New Tiles
+
+Each tile in `data/wfc/*.json` needs:
+
+1. **Unique `id`** (0..N-1, no gaps or duplicates)
+2. **`name`** — descriptive string
+3. **`rows`** — N strings of equal length (the tile footprint)
+4. **`neighbors`** — per-direction (`"N"`, `"E"`, `"S"`, `"W"`) lists of tile IDs that may touch this tile in that direction
+
+Rune meaning (shared by all WFC libraries):
+
+| Glyph | TileType | Description |
+|-------|----------|-------------|
+| `.` | UFOFloor / Floor | Walkable floor |
+| `#` | UFOWall / Wall | Solid wall |
+| `D` | Door | Passable door |
+| `C` | Console / Computer | Furniture |
+| `M` | Machinery | Industrial equipment |
+| `P` | Pod | Alien pod |
+| `X` | PowerSource | Power core |
+| `S` | Storage | Storage unit |
+| `B` | Bed | Bunk/bed |
+| `A` | AlienTech | Alien technology |
+
+**Neighbor rule tips:**
+- A floor tile (`.` on all edges) should list all interior tiles as neighbors in all 4 directions
+- Wall tiles (`#` on one side) should list structural tiles as neighbors on the solid side and open/interior tiles on the open side
+- Multi-room blocks (walled on all sides) should list only structural tiles as neighbors, so they close the building envelope
 
 ## Save Versioning
 

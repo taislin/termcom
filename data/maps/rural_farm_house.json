@@ -1,0 +1,22 @@
+{
+  "id": "rural_farm_house",
+  "tags": ["rural"],
+  "width": 7,
+  "height": 5,
+  "rows": [
+    "WWWWWWW",
+    "W.d.d.W",
+    "W..a..W",
+    "W.l.l.W",
+    "WWWWWWW"
+  ],
+  "terrain": {
+    "W": "TileWall",
+    ".": "TileFloor"
+  },
+  "furniture": {
+    "d": "TileDesk",
+    "a": "TileCabinet",
+    "l": "TileLocker"
+  }
+}

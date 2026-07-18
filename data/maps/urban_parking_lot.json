@@ -1,0 +1,19 @@
+{
+  "id": "urban_parking_lot",
+  "tags": ["urban"],
+  "width": 5,
+  "height": 5,
+  "rows": [
+    "ppppp",
+    "p...p",
+    "p.f.p",
+    "p...p",
+    "ppppp"
+  ],
+  "terrain": {
+    "p": "TilePavement",
+    ".": "TileFloor",
+    "f": "TileFence"
+  },
+  "furniture": {}
+}

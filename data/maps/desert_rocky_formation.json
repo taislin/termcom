@@ -1,0 +1,18 @@
+{
+  "id": "desert_rocky_formation",
+  "tags": ["desert"],
+  "width": 4,
+  "height": 4,
+  "rows": [
+    "s..s",
+    ".rr.",
+    ".rr.",
+    "s..s"
+  ],
+  "terrain": {
+    "s": "TileSand",
+    ".": "TileFloor",
+    "r": "TileRock"
+  },
+  "furniture": {}
+}

@@ -1,0 +1,18 @@
+{
+  "id": "polar_ice_ridge",
+  "tags": ["polar"],
+  "width": 4,
+  "height": 4,
+  "rows": [
+    "nnrn",
+    "nr.r",
+    "nr.r",
+    "nnrn"
+  ],
+  "terrain": {
+    "n": "TileSnow",
+    ".": "TileSnow",
+    "r": "TileRock"
+  },
+  "furniture": {}
+}

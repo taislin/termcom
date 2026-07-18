@@ -1,0 +1,20 @@
+{
+  "id": "polar_frozen_hut",
+  "tags": ["polar"],
+  "width": 5,
+  "height": 4,
+  "rows": [
+    "WnrnW",
+    "W...W",
+    "n..dn",
+    "nWWWn"
+  ],
+  "terrain": {
+    "W": "TileWall",
+    "n": "TileSnow",
+    "r": "TileRock",
+    ".": "TileFloor",
+    "d": "TileDoor"
+  },
+  "furniture": {}
+}

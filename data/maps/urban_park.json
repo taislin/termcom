@@ -12,6 +12,7 @@
   ],
   "terrain": {
     "g": "TileGrass",
+    ".": "TileGrass",
     "t": "TileTree"
   },
   "furniture": {}

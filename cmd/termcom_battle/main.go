@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -518,6 +519,8 @@ func launchCustom(path string) {
 		m = battle.GenerateTerrorSite(w, h)
 	case "supply_raid", "ufo_interior":
 		m = battle.GenerateUFOInterior(w, h)
+	case "building_assault":
+		m = battle.GenerateUrbanBuildingWFC(w, h, rand.New(rand.NewSource(42)))
 	case "alien_base":
 		m = battle.GenerateAlienBase(w, h)
 	case "alien_research":

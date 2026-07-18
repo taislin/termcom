@@ -1,0 +1,19 @@
+{
+  "id": "rural_windmill",
+  "tags": ["rural"],
+  "width": 4,
+  "height": 5,
+  "rows": [
+    "WWWW",
+    "W..W",
+    "WMWW",
+    "W..W",
+    "WW.W"
+  ],
+  "terrain": {
+    "W": "TileWall",
+    ".": "TileFloor",
+    "M": "TileMachinery"
+  },
+  "furniture": {}
+}
