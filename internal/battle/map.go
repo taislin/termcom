@@ -211,7 +211,7 @@ var tileChars = map[TileType]rune{
 	TileRubble:     '▒',
 	TileObject:     '■',
 	// UFO furniture characters
-	TileConsole:     '⌨', // Console panel
+	TileConsole:     '⌸', // Console panel (U+2338 QUAD MINUS)
 	TileMachinery:   '⊛', // Machinery (U+229B CIRCLED ASTERISK)
 	TilePod:         '◈', // Alien pod
 	TilePowerSource: '⌁', // Power source (U+2301 ELECTRICAL ARC)

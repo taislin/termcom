@@ -438,10 +438,56 @@ func tileRuneToDisplay(ch rune) rune {
 	return 0
 }
 
-// CompileToBattleMap stamps the collapsed wave (grid of 3x3 tiles) into the
-// destination BattleMap at the given level, offset by (ox, oy). The destination
-// must be large enough to hold w*3 x h*3.
-func (wv *Wave) CompileToBattleMap(m *BattleMap, ox, oy, level int) {
+// fillGaps replaces stray base-terrain tiles that were not covered by WFC
+// with the most common neighbor tile type. fillTile is the base tile to
+// detect (e.g. TilePavement for urban, TileUFOFloor for UFO). This fixes
+// uncovered strips from integer division and partial solver coverage.
+// fillGaps replaces stray base-terrain tiles that were not covered by WFC
+// (due to integer division at the right/bottom borders) with the most common
+// neighbor tile type. This fixes uncovered border strips. WfcW and wfcH are the
+// boundaries of the compiled WFC grid (gw * stride, gh * stride); tiles inside
+// these boundaries are left untouched to preserve WFC layout.
+func (m *BattleMap) fillGaps(level int, fillTile TileType, wfcW, wfcH int) {
+	for y := 0; y < m.LevelHeight; y++ {
+		for x := 0; x < m.Width; x++ {
+			// Only fill gaps in the remainder strips outside the WFC grid
+			if x < wfcW && y < wfcH {
+				continue
+			}
+			t := m.AtLevel(x, y, level)
+			if t.Type != fillTile {
+				continue
+			}
+			counts := map[TileType]int{}
+			dirs := [][2]int{{0, -1}, {0, 1}, {-1, 0}, {1, 0}}
+			for _, d := range dirs {
+				nx, ny := x+d[0], y+d[1]
+				if nx < 0 || nx >= m.Width || ny < 0 || ny >= m.LevelHeight {
+					continue
+				}
+				nt := m.AtLevel(nx, ny, level)
+				if nt.Type != fillTile {
+					counts[nt.Type]++
+				}
+			}
+			best, bestCount := fillTile, 0
+			for tt, c := range counts {
+				if c > bestCount {
+					best, bestCount = tt, c
+				}
+			}
+			if best != fillTile {
+				m.SetLevel(x, y, level, best)
+			}
+		}
+	}
+}
+
+// CompileToBattleMap stamps the collapsed wave into the destination BattleMap
+// at the given level, offset by (ox, oy). stride is the fixed pixel size of
+// each wave grid cell (e.g. 9 for urban, 3 for UFO). If stride is 0, it
+// defaults to the tile's own dimensions (legacy behavior for uniform tiles).
+func (wv *Wave) CompileToBattleMap(m *BattleMap, ox, oy, level, stride int) {
 	for gy := 0; gy < wv.h; gy++ {
 		for gx := 0; gx < wv.w; gx++ {
 			id := wv.cells[gy][gx].collapsed
@@ -451,19 +497,23 @@ func (wv *Wave) CompileToBattleMap(m *BattleMap, ox, oy, level int) {
 			tile := wv.rules.Tiles[id]
 			rows := tile.gridRows()
 			cols := tile.gridCols()
+			s := stride
+			if s <= 0 {
+				s = cols
+			}
 			for ty := 0; ty < rows; ty++ {
 				for tx := 0; tx < cols; tx++ {
-				ch := tile.RuneGrid[ty][tx]
-				mx := ox + gx*cols + tx
-				my := oy + gy*rows + ty
-				tt := tileRuneToType(ch)
-				m.SetLevel(mx, my, level, tt)
-				if dr := tileRuneToDisplay(ch); dr != 0 {
-					ary := my + level*m.LevelHeight
-					if mx >= 0 && mx < m.Width && ary >= 0 && ary < m.Height {
-						m.Tiles[ary][mx].Rune = dr
+					ch := tile.RuneGrid[ty][tx]
+					mx := ox + gx*s + tx
+					my := oy + gy*s + ty
+					tt := tileRuneToType(ch)
+					m.SetLevel(mx, my, level, tt)
+					if dr := tileRuneToDisplay(ch); dr != 0 {
+						ary := my + level*m.LevelHeight
+						if mx >= 0 && mx < m.Width && ary >= 0 && ary < m.Height {
+							m.Tiles[ary][mx].Rune = dr
+						}
 					}
-				}
 				}
 			}
 		}
@@ -473,7 +523,93 @@ func (wv *Wave) CompileToBattleMap(m *BattleMap, ox, oy, level int) {
 // wfcDirFromKey maps a JSON direction key to the internal direction index.
 var wfcDirFromKey = map[string]int{"N": dirN, "E": dirE, "S": dirS, "W": dirW}
 
+// wfcOpposite returns the direction index opposite to d (N<->S, E<->W).
+var wfcOpposite = [4]int{dirS, dirW, dirN, dirE}
+
+// wfcEdgeClass maps a tile rune to a simplified class for edge matching.
+// '.' and furniture characters count as "open"; '#' counts as "wall".
+func wfcEdgeClass(ch rune) byte {
+	if ch == '#' {
+		return '#'
+	}
+	return '.'
+}
+
+// extractEdge returns the edge string of tile t in direction d.
+// N: top row left→right; S: bottom row left→right;
+// E: rightmost column top→bottom; W: leftmost column top→bottom.
+func extractEdge(t WFCTile, d int) string {
+	rows := t.gridRows()
+	cols := t.gridCols()
+	if rows == 0 || cols == 0 {
+		return ""
+	}
+	buf := make([]byte, 0, rows)
+	switch d {
+	case dirN:
+		for _, ch := range t.RuneGrid[0] {
+			buf = append(buf, wfcEdgeClass(ch))
+		}
+	case dirS:
+		for _, ch := range t.RuneGrid[rows-1] {
+			buf = append(buf, wfcEdgeClass(ch))
+		}
+	case dirE:
+		for r := 0; r < rows; r++ {
+			buf = append(buf, wfcEdgeClass(t.RuneGrid[r][cols-1]))
+		}
+	case dirW:
+		for r := 0; r < rows; r++ {
+			buf = append(buf, wfcEdgeClass(t.RuneGrid[r][0]))
+		}
+	}
+	return string(buf)
+}
+
+// tilesCompatible returns true if tile a can legally sit in direction d
+// relative to tile b (i.e. a's d-edge matches b's opposite edge).
+// Tiles of different sizes are never compatible.
+func tilesCompatible(a, b WFCTile, d int) bool {
+	if a.gridRows() != b.gridRows() || a.gridCols() != b.gridCols() {
+		return false
+	}
+	return extractEdge(a, d) == extractEdge(b, wfcOpposite[d])
+}
+
+// autoComputeNeighbors fills the Neighbors field for every tile in the slice
+// that has an empty neighbor list. It uses pixel-level edge matching so that
+// the JSON data files do not need hand-authored neighbor lists.
+func autoComputeNeighbors(tiles []WFCTile) []WFCTile {
+	for i := range tiles {
+		needsAuto := false
+		for d := 0; d < 4; d++ {
+			if len(tiles[i].Neighbors[d]) == 0 {
+				needsAuto = true
+				break
+			}
+		}
+		if !needsAuto {
+			continue
+		}
+		for d := 0; d < 4; d++ {
+			if len(tiles[i].Neighbors[d]) > 0 {
+				continue
+			}
+			var nb []int
+			for j := range tiles {
+				if tilesCompatible(tiles[i], tiles[j], d) {
+					nb = append(nb, tiles[j].ID)
+				}
+			}
+			tiles[i].Neighbors[d] = nb
+		}
+	}
+	return tiles
+}
+
 // wfcTilesFromLib converts a parsed JSON WFC library into engine tiles.
+// If any tile has empty neighbor lists, autoComputeNeighbors fills them via
+// pixel-level edge matching.
 func wfcTilesFromLib(lib *mapgen.WFCLibrary) []WFCTile {
 	tiles := make([]WFCTile, 0, len(lib.Tiles))
 	for _, d := range lib.Tiles {
@@ -488,6 +624,7 @@ func wfcTilesFromLib(lib *mapgen.WFCLibrary) []WFCTile {
 		}
 		tiles = append(tiles, WFCTile{ID: d.ID, Name: d.Name, RuneGrid: grid, Neighbors: nb})
 	}
+	tiles = autoComputeNeighbors(tiles)
 	return tiles
 }
 
@@ -531,9 +668,11 @@ func GenerateUFOInteriorWFC(w, h int, rng *rand.Rand) *BattleMap {
 
 	rules := NewWFCRules(ufoWFCTiles())
 
-	// Number of 3x3 tile-grid cells that fit on one level.
-	gw := w / 3
-	gh := levelH / 3
+	// Number of tile-grid cells that fit on one level.
+	// Use 6x6 cells to accommodate both 3x3 and 6x6 tiles.
+	cell := 6
+	gw := w / cell
+	gh := levelH / cell
 	if gw < 1 {
 		gw = 1
 	}
@@ -545,9 +684,11 @@ func GenerateUFOInteriorWFC(w, h int, rng *rand.Rand) *BattleMap {
 		// Fill level with UFO floor base, then stamp collapsed WFC tiles.
 		m.fillRectLevel(0, 0, w, levelH, level, TileUFOFloor)
 
+		levelRng := rand.New(rand.NewSource(int64(rng.Int())))
 		wv := newWave(rules, gw, gh)
-		wv = wv.Solve(rng, 20)
-		wv.CompileToBattleMap(m, 0, 0, level)
+		wv = wv.Solve(levelRng, 20)
+		wv.CompileToBattleMap(m, 0, 0, level, 6)
+		m.fillGaps(level, TileUFOFloor, gw*6, gh*6)
 
 		// Enclose: draw outer hull wall border so the ship reads as closed.
 		m.drawRectLevel(0, 0, w, levelH, level, TileUFOWall)
@@ -578,8 +719,8 @@ func GenerateUFOInteriorWFC(w, h int, rng *rand.Rand) *BattleMap {
 }
 
 // GenerateUrbanBuildingWFC builds an urban building interior map using the WFC
-// Tiled Model. Small 3x3 pieces combine with large multi-room blocks (6x6 and
-// 9x9) to produce varied building layouts. rng must be seeded for reproducibility.
+// Tiled Model on a grid of uniform 9x9 modular pieces whose neighbor rules are
+// auto-computed from pixel-edge matching. rng must be seeded for reproducibility.
 func GenerateUrbanBuildingWFC(w, h int, rng *rand.Rand) *BattleMap {
 	return GenerateUrbanBuildingWFCLevels(w, h, 1, rng)
 }
@@ -607,14 +748,29 @@ func GenerateUrbanBuildingWFCLevels(w, h, numLevels int, rng *rand.Rand) *Battle
 	}
 
 	for level := 0; level < numLevels; level++ {
-		// Fill with pavement (y is level-relative).
+		// Fill with pavement as base; WFC will overwrite the interior.
 		m.fillRectLevel(0, 0, w, h, level, TilePavement)
 
 		// Run WFC with a seeded offset so each level gets a different layout.
 		levelRng := rand.New(rand.NewSource(int64(rng.Int())))
 		wv := newWave(rules, gw, gh)
-		wv = wv.Solve(levelRng, 30)
-		wv.CompileToBattleMap(m, 0, 0, level)
+		wv = wv.Solve(levelRng, 50)
+		wv.CompileToBattleMap(m, 0, 0, level, 9)
+
+		// The WFC rune decoder uses UFO types for '.' and '#' by default.
+		// Convert them to building-appropriate types for urban interiors.
+		for y := 0; y < h; y++ {
+			for x := 0; x < w; x++ {
+				switch m.AtLevel(x, y, level).Type {
+				case TileUFOFloor:
+					m.SetLevel(x, y, level, TileFloor)
+				case TileUFOWall:
+					m.SetLevel(x, y, level, TileWall)
+				}
+			}
+		}
+
+		m.fillGaps(level, TilePavement, gw*9, gh*9)
 
 		// Enclose with a perimeter wall (y is level-relative).
 		m.drawRectLevel(0, 0, w, h, level, TileWall)
@@ -664,7 +820,8 @@ func GenerateAlienBaseWFC(w, h int, rng *rand.Rand) *BattleMap {
 		levelRng := rand.New(rand.NewSource(int64(rng.Int())))
 		wv := newWave(rules, gw, gh)
 		wv = wv.Solve(levelRng, 20)
-		wv.CompileToBattleMap(m, 0, 0, level)
+		wv.CompileToBattleMap(m, 0, 0, level, 3)
+		m.fillGaps(level, TileUFOFloor, gw*3, gh*3)
 
 		m.drawRectLevel(0, 0, w, levelH, level, TileUFOWall)
 	}

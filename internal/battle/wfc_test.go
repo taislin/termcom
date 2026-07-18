@@ -21,9 +21,11 @@ func TestWFCLibrariesLoad(t *testing.T) {
 			if tile.gridRows() == 0 || tile.gridCols() == 0 {
 				t.Fatalf("wfc library %q: tile %q has zero-size grid", name, tile.Name)
 			}
+			// Neighbors are auto-computed from pixel edges if omitted in JSON;
+			// verify the result is non-empty for every direction.
 			for d := 0; d < 4; d++ {
 				if len(tile.Neighbors[d]) == 0 {
-					t.Fatalf("wfc library %q: tile %q dir %d has no neighbors", name, tile.Name, d)
+					t.Fatalf("wfc library %q: tile %q dir %d has no neighbors after auto-compute", name, tile.Name, d)
 				}
 			}
 		}
@@ -87,8 +89,9 @@ func TestWFCCompileToBattleMap(t *testing.T) {
 	wv := newWave(rules, 4, 4)
 	wv = wv.Solve(rng, 50)
 
-	m := NewMultiLevelBattleMap(12, 12, 1)
-	wv.CompileToBattleMap(m, 0, 0, 0)
+	// UFO tiles are 6x6; use stride=6 and a map large enough for 4x4 cells.
+	m := NewMultiLevelBattleMap(24, 24, 1)
+	wv.CompileToBattleMap(m, 0, 0, 0, 6)
 
 	for gy := 0; gy < wv.h; gy++ {
 		for gx := 0; gx < wv.w; gx++ {
@@ -97,9 +100,9 @@ func TestWFCCompileToBattleMap(t *testing.T) {
 				t.Fatalf("uncollapsed cell (%d,%d)", gx, gy)
 			}
 			tile := wv.rules.Tiles[id]
-			for ty := 0; ty < 3; ty++ {
-				for tx := 0; tx < 3; tx++ {
-					mx, my := gx*3+tx, gy*3+ty
+			for ty := 0; ty < tile.gridRows(); ty++ {
+				for tx := 0; tx < tile.gridCols(); tx++ {
+					mx, my := gx*6+tx, gy*6+ty
 					want := tileRuneToType(tile.RuneGrid[ty][tx])
 					got := m.AtLevel(mx, my, 0).Type
 					if got != want {
@@ -270,11 +273,8 @@ func TestUrbanWFCTilesHaveVariableSizes(t *testing.T) {
 	for _, tdef := range tiles {
 		sizes[tdef.gridCols()]++
 	}
-	// Expect both 3x3 small pieces and larger multi-room blocks (6x6, 9x9).
-	if sizes[3] == 0 {
-		t.Fatal("expected 3x3 urban tiles")
-	}
-	if sizes[6] == 0 && sizes[9] == 0 {
-		t.Fatal("expected large multi-room urban blocks (6x6 or 9x9)")
+	// Urban tiles use a uniform 9×9 cell size for coherent WFC layout.
+	if sizes[9] == 0 {
+		t.Fatal("expected 9x9 urban tiles")
 	}
 }

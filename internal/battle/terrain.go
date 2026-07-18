@@ -192,6 +192,12 @@ func TileGeomRune(t Tile, ctx [3][3]TileType) rune {
 		if !sIsWall && !eIsWall && wIsWall && nIsWall {
 			return GlyphBuildingBR
 		}
+		if nIsWall && sIsWall {
+			return GlyphBuildingV
+		}
+		if wIsWall && eIsWall {
+			return GlyphBuildingH
+		}
 		if wIsWall || eIsWall {
 			return GlyphBuildingH
 		}
