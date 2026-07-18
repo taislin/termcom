@@ -2,6 +2,8 @@ package battle
 
 import (
 	"math/rand"
+
+	"github.com/taislin/termcom/internal/mapgen"
 )
 
 // Direction indices for WFC neighbor rules.
@@ -328,7 +330,7 @@ func (wv *Wave) CompileToBattleMap(m *BattleMap, ox, oy, level int) {
 
 // ufoWFCTiles defines the modular UFO piece library for the Tiled Model.
 // Each piece is 3x3. '.' = floor, '#' = wall, other letters = furniture.
-func ufoWFCTiles() []WFCTile {
+func hardcodedUFOTiles() []WFCTile {
 		floor := [][]rune{
 		{'.', '.', '.'},
 		{'.', '.', '.'},
@@ -510,6 +512,62 @@ func ufoWFCTiles() []WFCTile {
 	return tiles
 }
 
+// wfcDirFromKey maps a JSON direction key to the internal direction index.
+var wfcDirFromKey = map[string]int{"N": dirN, "E": dirE, "S": dirS, "W": dirW}
+
+// wfcTilesFromLib converts a parsed JSON WFC library into engine tiles.
+func wfcTilesFromLib(lib *mapgen.WFCLibrary) []WFCTile {
+	tiles := make([]WFCTile, 0, len(lib.Tiles))
+	for _, d := range lib.Tiles {
+		grid := make([][]rune, len(d.Rows))
+		for i, row := range d.Rows {
+			grid[i] = []rune(row)
+		}
+		nb := [4][]int{}
+		for key, ids := range d.Neighbors {
+			dir := wfcDirFromKey[key]
+			nb[dir] = append([]int{}, ids...)
+		}
+		tiles = append(tiles, WFCTile{ID: d.ID, Name: d.Name, RuneGrid: grid, Neighbors: nb})
+	}
+	return tiles
+}
+
+// wfcSearchPaths lists where WFC library JSON may live (binary working dir or
+// repo-root relative). The first existing file wins.
+var wfcSearchPaths = []string{"data/wfc", "../data/wfc", "../../data/wfc"}
+
+// loadWFCLibrary tries to load a WFC tile library by stem (e.g. "ufo") from
+// data/wfc/<stem>.json. On any error it returns nil so callers can fall back
+// to a hardcoded library, keeping generation working without the JSON files.
+func loadWFCLibrary(stem string) []WFCTile {
+	for _, dir := range wfcSearchPaths {
+		path := dir + "/" + stem + ".json"
+		if lib, err := mapgen.LoadWFCLibrary(path); err == nil {
+			return wfcTilesFromLib(lib)
+		}
+	}
+	return nil
+}
+
+// ufoWFCTiles loads the UFO WFC tile library from data/wfc/ufo.json, falling
+// back to the hardcoded library if the file is unavailable.
+func ufoWFCTiles() []WFCTile {
+	if t := loadWFCLibrary("ufo"); t != nil {
+		return t
+	}
+	return hardcodedUFOTiles()
+}
+
+// urbanWFCTiles loads the urban WFC tile library from data/wfc/urban.json,
+// falling back to the hardcoded library if the file is unavailable.
+func urbanWFCTiles() []WFCTile {
+	if t := loadWFCLibrary("urban"); t != nil {
+		return t
+	}
+	return hardcodedUrbanTiles()
+}
+
 // GenerateUFOInteriorWFC builds a UFO interior map using the Wave Function
 // Collapse Tiled Model on a grid of 3x3 modular pieces. The resulting puzzle
 // of tiles is stamped into a multi-level BattleMap. rng must be seeded for
@@ -574,7 +632,7 @@ func GenerateUFOInteriorWFC(w, h int, rng *rand.Rand) *BattleMap {
 // few LARGE multi-room blocks (6x6 and 9x9) so the solver can emit whole
 // building wings in a single collapsed cell. '.' = floor, '#' = wall,
 // letters = furniture, 'D' = door.
-func urbanWFCTiles() []WFCTile {
+func hardcodedUrbanTiles() []WFCTile {
 	// --- Small 3x3 pieces ---
 	floor := [][]rune{
 		{'.', '.', '.'},

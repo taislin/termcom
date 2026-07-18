@@ -345,15 +345,24 @@ func (bs *Battlescape) CalculatePath(startX, startY, endX, endY int) [][2]int {
 func NewBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, ufoName string, crashSeed int64) *Battlescape {
 	var m *BattleMap
 	var crashResult *CrashResult
+	// Deterministic RNG for WFC map generation, derived from the mission seed
+	// (or the game clock when none is supplied) so reloads are reproducible.
+	mapSeed := int64(crashSeed)
+	if mapSeed == 0 {
+		mapSeed = g.GameTime.UnixNano()
+	}
+	mapRng := rand.New(rand.NewSource(mapSeed))
 	switch ufoName {
 	case "Terror":
 		m = GenerateTerrorSite(50, 50)
 	case "Supply Raid":
-		m = GenerateUFOInterior(50, 50)
+		m = GenerateUFOInteriorWFC(50, 50, mapRng)
 	case "Alien Base Assault":
 		m = GenerateAlienBase(50, 50)
 	case "Alien Research":
-		m = GenerateUFOInterior(50, 50)
+		m = GenerateUFOInteriorWFC(50, 50, mapRng)
+	case "Building Assault":
+		m = GenerateUrbanBuildingWFC(50, 50, mapRng)
 	case "Council":
 		m = GenerateTerrorSite(50, 50)
 	case "Cydonia":

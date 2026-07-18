@@ -26,3 +26,12 @@ Scope: Features and fixes for the battlescape tactical combat system.
 - [x] `GenerateUrbanBuildingWFC(w,h,rng)` builds an enclosed urban building
       (perimeter wall, pavement base) from the mixed tile library; tests in
       `wfc_test.go` verify enclosure + interior floors/furniture.
+- [x] WFC tiles now loaded from JSON: `data/wfc/ufo.json` + `data/wfc/urban.json`
+      (new `mapgen.WFCLibrary` schema with per-direction `neighbors`); hardcoded
+      libs kept as fallback. `TestWFCJSONMatchesHardcoded` guards drift.
+- [x] WFC wired into live missions: `Supply Raid` + `Alien Research` use
+      `GenerateUFOInteriorWFC`; new `Building Assault` mission (`MISSION_BUILDING`,
+      all 8 languages) uses `GenerateUrbanBuildingWFC`.
+- [x] Expanded `data/maps/*.json` urban fragment library: apartment, shop,
+      warehouse, park, rubble field, tower (added to existing building/shack).
+      `AssembleMap` (terror/abduction/crash) consumes them.

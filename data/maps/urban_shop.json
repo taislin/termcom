@@ -1,0 +1,23 @@
+{
+  "id": "urban_shop",
+  "tags": ["urban"],
+  "width": 7,
+  "height": 5,
+  "rows": [
+    "WWWWWWW",
+    "W.....W",
+    "Wd...cW",
+    "Wl...sW",
+    "WWWWWWW"
+  ],
+  "terrain": {
+    "W": "TileWall",
+    ".": "TileFloor"
+  },
+  "furniture": {
+    "d": "TileDesk",
+    "c": "TileComputer",
+    "l": "TileLocker",
+    "s": "TileStorage"
+  }
+}
