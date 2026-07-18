@@ -257,6 +257,8 @@ Plasma Weapons) are always present, but prerequisites and costs vary.
 ### Manufacturing
 
 From the Manufacture tab, assign engineers to produce items.
+This produces **stock weapons and armour** — for more powerful custom gear,
+use the Weapon Designer and Plane Designer.
 
 **Manufacturable items** (build multiple at once):
 
@@ -267,8 +269,9 @@ From the Manufacture tab, assign engineers to produce items.
 | Personal Armour, Light/Medium/Heavy/Power/Flying Suit | 6–18 days | Alloys + Elerium |
 | Medi-Kit | 3 days | Alloys |
 
-More engineers = faster production. Plasma weapons and top-tier suits must be
-researched and recovered from aliens — they cannot be manufactured.
+More engineers = faster production. Energy weapons (Laser, Plasma) cannot be
+manufactured — they must be researched, designed, and built through the
+Weapon Designer, or recovered from aliens.
 
 ---
 
@@ -292,7 +295,7 @@ From the Soldiers tab, press `E` to open the equip screen.
 
 ### Slots
 
-- **Slot 1 (Weapon):** Main weapon — rifle, pistol, heavy cannon, etc.
+- **Slot 1 (Weapon):** Main weapon — custom-designed or a stock rifle/pistol
 - **Slot 2 (Armour):** Body armour — personal, light suit, etc.
 - **Slot 3 (Inventory):** Extra items — grenades, medikits, scanners,
   proximity mines, psi-amps, melee weapons
@@ -462,30 +465,55 @@ Press **Enter**, **Space**, or **Esc** to dismiss.
 
 ## Weapons & Equipment
 
-### Weapon Types
+### Custom Weapon Designer
 
-| Type | Ammo | Notes |
-|------|------|-------|
-| Pistol | Ballistic | Needs reloading |
-| Rifle | Ballistic | Standard issue |
-| Heavy Cannon | Ballistic | High damage, heavy |
-| Auto Cannon | Ballistic | Full-auto option |
-| Rocket Launcher | Explosive | Area damage |
-| Laser Pistol | Energy | Never needs reloading |
-| Laser Rifle | Energy | Never needs reloading, supports burst |
-| Plasma Pistol | Energy | Alien weapon, never needs reloading |
-| Plasma Rifle | Energy | Alien weapon, never needs reloading |
-| Heavy Plasma | Energy | Top-tier alien weapon |
-| Psi-Amp | — | Enables psi attacks |
-| Stun Rod | Melee | Stuns instead of killing |
-| Medi-Kit | Consumable | Heals 10 HP |
-| Grenade | Thrown | Area damage, destroys terrain |
-| Proximity Mine | Placed | Triggers on enemy movement |
-| Motion Scanner | Consumable | Reveals nearby enemies |
+Press `G` from the Base, Soldiers, or Equip screen to open the **Weapon Designer**.
+This is the primary way to create weapons for your soldiers. Pick a base template
+and customize each component:
+
+| Component | Options | What it affects |
+|-----------|---------|-----------------|
+| **Base** | Pistol / Rifle | Starting damage, range, accuracy, TU cost |
+| **Barrel** | Short / Standard / Long / Extended | Range, accuracy, TU cost, weight |
+| **Optics** | None / Iron Sights / Scope / Advanced Optics | Accuracy, TU cost, weight |
+| **Fire Mode** | Semi-Auto / Full-Auto | Full-auto mode (fires faster, less accurate) |
+| **Ammo** | Standard / AP / Incendiary / Explosive | Damage mod, TU cost, weight |
+| **Stock** | None / Light / Heavy | Accuracy, TU cost, weight |
+
+Each component affects the weapon's damage, accuracy, TU cost, range, and weight.
+The preview panel shows the assembled weapon as colored ASCII art and displays
+its final stats. Designs are saved as custom items available in the Equip screen.
+
+**Tip:** Start with a Rifle base for most purposes. Long barrels and scopes
+improve ranged accuracy. Explosive ammo hits hard but costs extra TU.
+
+### Stock Weapons
+
+These base items are available from the start and can be manufactured:
+
+| Type | Damage | Ammo | Notes |
+|------|--------|------|-------|
+| Pistol | Light | Ballistic | Needs reloading, low weight |
+| Rifle | Medium | Ballistic | Standard issue, supports burst |
+| Heavy Cannon | High | Ballistic | Slow, heavy, hits hard |
+| Auto Cannon | Medium | Ballistic | Full-auto option |
+| Rocket Launcher | Very High | Explosive | Area damage |
+
+### Energy Weapons
+
+Researched later — never need reloading:
+
+| Type | Damage | Notes |
+|------|--------|-------|
+| Laser Pistol | Light | Early energy weapon |
+| Laser Rifle | Medium | Supports burst fire, never reloads |
+| Plasma Pistol | Medium | Alien weapon, never reloads |
+| Plasma Rifle | High | Alien weapon, never reloads |
+| Heavy Plasma | Very High | Top-tier alien weapon |
 
 ### Ammo & Reloading
 
-- **Ballistic weapons** (Pistol, Rifle, Cannon) need reloading — press `R` in combat
+- **Ballistic weapons** need reloading — press `R` in combat
 - **Energy weapons** (Laser, Plasma) never need reloading
 - **Consumables** (grenades, medikits) are used from your inventory
 
@@ -763,23 +791,47 @@ Press `G` from Base, Soldiers, or Equip screen.
 
 | Parameter | Options | Effect |
 |-----------|---------|--------|
-| Barrel Length | Short / Medium / Long | Range, accuracy, weight, TU cost |
-| Optics | None / Iron / Scope / Advanced | Accuracy, weight, TU cost |
-| Fire Mode | Semi-Auto / Full-Auto | Burst capability |
-| Ammo | Standard / AP / Incendiary / Explosive | Damage type |
-| Stock | None / Light / Heavy | Accuracy, weight |
+| Barrel | Short / Standard / Long / Extended | Range, accuracy, weight, TU cost |
+| Optics | None / Iron Sights / Scope / Advanced | Accuracy, weight, TU cost |
+| Fire Mode | Semi-Auto / Full-Auto | Full-auto mode |
+| Ammo | Standard / AP / Incendiary / Explosive | Damage, weight, TU cost |
+| Stock | None / Light / Heavy | Accuracy, weight, TU cost |
 
-### Plane Designer
+### Plane Designer (Custom Interceptors)
 
-Press `D` from the Hangars tab.
+All interceptors are designed and built through the **Plane Designer**.
+Press `D` from the Hangars tab to open it. Configure your aircraft:
 
-| Parameter | Options | Effect |
-|-----------|---------|--------|
-| Length | Short / Medium / Long | Hull, weight |
-| Wingspan | Short / Medium / Long | Maneuverability |
-| Engines | 1–3 | Speed, fuel |
-| Weapon | Cannon / Stingray / Avalanche / Plasma | Firepower |
-| Armor | None / Light / Heavy / Alien | Hull, weight |
+| Parameter | Range | What it affects |
+|-----------|-------|-----------------|
+| **Length** | Short (3) → Long (7) | Hull points, mass, speed |
+| **Wingspan** | Short (1) → Wide (4) | Maneuverability, mass |
+| **Engines** | 1–3 | Speed, fuel capacity, mass |
+| **Fuel** | 20–100 | Operational range |
+| **Weapon** | Cannon / Stingray / Avalanche / Plasma | Firepower, weight, cost |
+| **Armor** | None / Light Alloy / Heavy Alloy / Alien Plating | Hull bonus, damage reduction, mass |
+
+The designer computes derived stats (speed, firepower, hull, mass-to-thrust ratio)
+from your configuration and displays a colored ASCII preview. Heavier designs
+are tougher but slower — balance durability against interception speed.
+
+**Plane weapons:**
+
+| Weapon | Damage | Accuracy | Range | Fire Rate | Cost |
+|--------|--------|----------|-------|-----------|------|
+| Cannon | 15 | 85% | 25 | 3 shots | $5K |
+| Stingray | 25 | 70% | 45 | 2 shots | $8K |
+| Avalanche | 40 | 55% | 60 | 1 shot | $12K |
+| Plasma | 60 | 50% | 50 | 1 shot | $20K |
+
+**Plane armour:**
+
+| Armour | Hull Bonus | Damage Reduction | Cost |
+|--------|------------|------------------|------|
+| None | 0 | 0% | Free |
+| Light Alloy | +10 | 10% | $8K |
+| Heavy Alloy | +25 | 25% | $18K |
+| Alien Plating | +40 | 40% | $35K |
 
 ### Battlescape
 
@@ -825,8 +877,12 @@ A `[=]` button opens a touch-friendly on-screen control menu.
 1. Research **Alien Alloys** first — it unlocks Laser Weapons and Armour.
 2. Build a second **Radar** — more detection, more monthly funding.
 3. Hire 2–4 extra soldiers to fill your squads.
-4. Manufacture **Laser Rifles** as soon as possible — no reloading needed.
+4. Use the **Weapon Designer** to create custom rifles — you can build
+   better guns than the stock models with the right components.
 5. Don't ignore autopsies — some weapon techs require them.
+6. Custom-design your interceptors in the **Plane Designer** — a balanced
+   design (medium length/wingspan, 2 engines, Stingray missiles) outperforms
+   default interceptors.
 
 ### Combat
 
