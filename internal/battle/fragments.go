@@ -153,19 +153,6 @@ func AssembleMap(biome string, w, h int, rng *rand.Rand) *BattleMap {
 
 	clusterBiome(m, biome, w, h, rng)
 
-	// Draw urban roads before placing buildings so roads don't overwrite
-	// building interior floors.
-	if biome == "urban" {
-		if rng.Intn(2) == 0 {
-			roadX := w/4 + rng.Intn(w/2)
-			m.fillRect(roadX-1, 0, 3, h, TilePavement)
-		}
-		if rng.Intn(2) == 0 {
-			roadY := h/4 + rng.Intn(h/2)
-			m.fillRect(0, roadY-1, w, 3, TilePavement)
-		}
-	}
-
 	chunks := mapgen.ByTag(biome)
 	if len(chunks) == 0 {
 		return m
@@ -197,13 +184,43 @@ func AssembleMap(biome string, w, h int, rng *rand.Rand) *BattleMap {
 		return candidates[len(candidates)-1]
 	}
 
+	type placed struct{ x, y, w, h int }
+	positions := []placed{}
+
+	// For urban maps, reserve road corridors first (painted as pavement) so the
+	// scattered buildings land only in the gaps and roads never cut through a
+	// house.
+	var roadReserved func(x, y int) bool
+	if biome == "urban" {
+		var roads []placed
+		if rng.Intn(2) == 0 {
+			roadX := w/4 + rng.Intn(w/2)
+			roads = append(roads, placed{roadX - 1, 0, 3, h})
+		}
+		if rng.Intn(2) == 0 {
+			roadY := h/4 + rng.Intn(h/2)
+			roads = append(roads, placed{0, roadY - 1, w, 3})
+		}
+		roadReserved = func(x, y int) bool {
+			for _, r := range roads {
+				if x >= r.x && x < r.x+r.w && y >= r.y && y < r.y+r.h {
+					return true
+				}
+			}
+			return false
+		}
+		for _, r := range roads {
+			m.fillRect(r.x, r.y, r.w, r.h, TilePavement)
+		}
+	}
+
 	anchor := weightedPick(chunks)
 	rot := rng.Intn(4)
 	ax, ay := w/2-anchor.Width/2, h/2-anchor.Height/2
-	ApplyMapgenChunkRotated(m, ax, ay, rot, anchor)
-
-	type placed struct{ x, y, w, h int }
-	positions := []placed{{ax, ay, anchor.Width, anchor.Height}}
+	if roadReserved == nil || !roadReserved(ax, ay) {
+		ApplyMapgenChunkRotated(m, ax, ay, rot, anchor)
+		positions = append(positions, placed{ax, ay, anchor.Width, anchor.Height})
+	}
 
 	attempts := 0
 	target := 10 + rng.Intn(5)
@@ -230,6 +247,20 @@ func AssembleMap(biome string, w, h int, rng *rand.Rand) *BattleMap {
 		}
 		if overlap {
 			continue
+		}
+		if roadReserved != nil {
+			hitsRoad := false
+			for py := fy; py < fy+ch && !hitsRoad; py++ {
+				for px := fx; px < fx+cw; px++ {
+					if roadReserved(px, py) {
+						hitsRoad = true
+						break
+					}
+				}
+			}
+			if hitsRoad {
+				continue
+			}
 		}
 		ApplyMapgenChunkRotated(m, fx, fy, r, c)
 		positions = append(positions, placed{fx, fy, cw, ch})

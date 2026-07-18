@@ -6,6 +6,7 @@ import (
 
 	"github.com/gdamore/tcell/v3"
 	"github.com/taislin/termcom/internal/data"
+	"github.com/taislin/termcom/internal/mapgen"
 )
 
 // randn returns rand.Intn(n) but safely yields 0 when n <= 0, avoiding a panic
@@ -861,18 +862,241 @@ func GenerateCrashSite(w, h int, seed int64) (*BattleMap, *CrashResult) {
 	return m, &result
 }
 
-// GenerateTerrorSite creates a terror site map (OpenXcom: 50x50 urban)
-// via AssembleMap with the urban biome (pavement base, scattered objects,
-// and building fragments). seed drives all randomness so each mission
-// produces a unique layout.
+// GenerateTerrorSite creates a terror site map (OpenXcom: 50x50 urban) using a
+// strict "Grid and Zoning" (plots and parcels) pipeline so the result reads as a
+// planned human city rather than scattered fragments:
+//
+//  1. Road skeleton: one main vertical avenue + 1-2 horizontal cross-streets.
+//  2. Sidewalks: grass tiles adjacent to roads become paved walkways.
+//  3. City blocks: the roads divide the map into rectangular Lots. Buildings are
+//     sidewalk-anchored (entrance facing the road) and never overlap roads or
+//     each other.
+//  4. Contextual scatter (masking): cars only on road/sidewalk; trees confined
+//     to empty grass Lots (parks).
+//
+// All randomness is seeded so each mission layout is reproducible.
 func GenerateTerrorSite(w, h int, seed int64) *BattleMap {
 	rng := rand.New(rand.NewSource(seed))
-	m := AssembleMap("urban", w, h, rng)
+	m := NewBattleMap(w, h)
+	m.fillRect(0, 0, w, h, TileGrass)
 
-	// Scatter street furniture: lamp posts, signs, fire hydrants
-	m.Poisson(TileObject, 3, w*h/300, rng)
+	// ---- 1. Road skeleton (bounding-box fills, no organic pathfinding) ----
+	roadW := 4 + rng.Intn(2) // 4-5
+	roadX := w/2 - roadW/2 + rng.Intn(3) - 1
+	if roadX < 1 {
+		roadX = 1
+	}
+	if roadX+roadW > w-1 {
+		roadX = w - roadW - 1
+	}
+	m.fillRect(roadX, 0, roadW, h, TilePavement)
+
+	numCross := 1 + rng.Intn(2) // 1-2 horizontal streets
+	crossWidths := []int{3 + rng.Intn(2)} // 3-4
+	if numCross == 2 {
+		crossWidths = append(crossWidths, 3+rng.Intn(2))
+	}
+	// Evenly distribute cross-streets down the map.
+	for i := 0; i < numCross; i++ {
+		cw := crossWidths[i]
+		cy := (h * (i + 1)) / (numCross + 1)
+		cy -= cw / 2
+		if cy < 1 {
+			cy = 1
+		}
+		if cy+cw > h-1 {
+			cy = h - cw - 1
+		}
+		m.fillRect(0, cy, w, cw, TilePavement)
+	}
+
+	// ---- 2. Sidewalks: grass N/S/E/W adjacent to a road becomes walkway ----
+	for y := 0; y < h; y++ {
+		for x := 0; x < w; x++ {
+			if m.At(x, y).Type != TileGrass {
+				continue
+			}
+			adjRoad := false
+			for _, d := range [][2]int{{0, -1}, {0, 1}, {-1, 0}, {1, 0}} {
+				nx, ny := x+d[0], y+d[1]
+				if nx < 0 || nx >= w || ny < 0 || ny >= h {
+					continue
+				}
+				if m.At(nx, ny).Type == TilePavement {
+					adjRoad = true
+					break
+				}
+			}
+			if adjRoad {
+				m.Set(x, y, TileFloor)
+			}
+		}
+	}
+
+	// ---- 3. City blocks & sidewalk-anchored building placement ----
+	type lot struct{ x, y, w, h int }
+	var lots []lot
+	// Decompose free (non-road) space into maximal rectangles.
+	used := make([][]bool, h)
+	for y := 0; y < h; y++ {
+		used[y] = make([]bool, w)
+	}
+	for gy := 0; gy < h; gy++ {
+		for gx := 0; gx < w; gx++ {
+			if used[gy][gx] || m.At(gx, gy).Type == TilePavement {
+				if m.At(gx, gy).Type == TilePavement {
+					used[gy][gx] = true
+				}
+				continue
+			}
+			rw := 1
+			for gx+rw < w && !used[gy][gx+rw] && m.At(gx+rw, gy).Type != TilePavement {
+				rw++
+			}
+			rh := 1
+		grow:
+			for gy+rh < h {
+				for cx := gx; cx < gx+rw; cx++ {
+					if used[gy+rh][cx] || m.At(cx, gy+rh).Type == TilePavement {
+						break grow
+					}
+				}
+				rh++
+			}
+			lots = append(lots, lot{gx, gy, rw, rh})
+			for yy := gy; yy < gy+rh; yy++ {
+				for xx := gx; xx < gx+rw; xx++ {
+					used[yy][xx] = true
+				}
+			}
+		}
+	}
+
+	buildingIDs := []string{
+		"urban_building", "urban_apartment", "urban_shop", "urban_corner_store",
+		"urban_warehouse", "urban_tower", "urban_parking_lot", "urban_rooftop",
+		"urban_rubble", "bus_stop_cover", "ruined_shack",
+	}
+
+	// Attempt to fill each lot with a building (large lots) or leave as park.
+	type placed struct{ x, y, w, h int }
+	var placedBuildings []placed
+	parkLots := map[int]bool{}
+	for li, l := range lots {
+		if l.w < 3 || l.h < 3 {
+			continue
+		}
+		// Reserve ~1 in 4 sizeable lots as parks (green space) so the city is
+		// not wall-to-wall buildings.
+		if l.w >= 5 && l.h >= 5 && rng.Intn(4) == 0 {
+			parkLots[li] = true
+			continue
+		}
+		// Pick a building whose footprint fits the lot with a 1-tile setback.
+		var candidates []string
+		for _, id := range buildingIDs {
+			c := mapgen.Get(id)
+			if c == nil {
+				continue
+			}
+			if c.Width+2 <= l.w && c.Height+2 <= l.h {
+				candidates = append(candidates, id)
+			}
+		}
+		if len(candidates) == 0 {
+			continue
+		}
+		id := candidates[rng.Intn(len(candidates))]
+		c := mapgen.Get(id)
+		// Choose an anchor along a sidewalk edge of the lot so the entrance
+		// faces the road. Default: centered.
+		ax := l.x + (l.w-c.Width)/2
+		ay := l.y + (l.h-c.Height)/2
+		// Jitter toward a road-adjacent edge when possible.
+		if l.x > 0 && m.At(l.x-1, l.y+l.h/2).Type == TilePavement && ax > l.x {
+			ax = l.x + 1
+		} else if l.x+l.w < w && m.At(l.x+l.w, l.y+l.h/2).Type == TilePavement && ax+c.Width < l.x+l.w-1 {
+			ax = l.x + l.w - c.Width - 1
+		}
+		// No rotate for simplicity/consistency.
+		ApplyMapgenChunkRotated(m, ax, ay, 0, c)
+		placedBuildings = append(placedBuildings, placed{ax, ay, c.Width, c.Height})
+	}
+
+	// ---- 4a. Cars: only on road/sidewalk tiles ----
+	carChunk := mapgen.Get("urban_car")
+	if carChunk != nil {
+		carTries := 0
+		carsPlaced := 0
+		for carsPlaced < 6+w/12 && carTries < 200 {
+			carTries++
+			cx := 1 + rng.Intn(max(1, w-carChunk.Width-1))
+			cy := 1 + rng.Intn(max(1, h-carChunk.Height-1))
+			ok := true
+			for dy := 0; dy < carChunk.Height && ok; dy++ {
+				for dx := 0; dx < carChunk.Width; dx++ {
+					tt := m.At(cx+dx, cy+dy).Type
+					if tt != TilePavement && tt != TileFloor {
+						ok = false
+						break
+					}
+				}
+			}
+			if !ok {
+				continue
+			}
+			ApplyMapgenChunkRotated(m, cx, cy, 0, carChunk)
+			carsPlaced++
+		}
+	}
+
+	// ---- 4b. Parks: reserved grass lots get trees via masked Poisson ----
+	for li, l := range lots {
+		if !parkLots[li] {
+			continue
+		}
+		// Confine tree scatter to this lot rectangle (masking).
+		maskPoissonInRect(m, TileTree, 2, (l.w*l.h)/10+1, l.x, l.y, l.w, l.h, rng)
+	}
+
+	// Street furniture on sidewalks/roads.
+	maskPoissonInRect(m, TileObject, 3, w*h/250, 0, 0, w, h, rng)
 
 	return m
+}
+
+// maskPoissonInRect scatters t using Poisson spacing but only onto tiles whose
+// current type is one of the allowed passable ground types, confined to the
+// given rectangle. Used to keep trees in parks and cars/furniture on pavement.
+func maskPoissonInRect(m *BattleMap, t TileType, radius, count, x0, y0, rw, rh int, rng *rand.Rand) {
+	placed := [][2]int{}
+	attempts := 0
+	for len(placed) < count && attempts < count*20 {
+		attempts++
+		x := x0 + rng.Intn(max(1, rw-2)) + 1
+		y := y0 + rng.Intn(max(1, rh-2)) + 1
+		if x >= m.Width || y >= m.LevelHeight {
+			continue
+		}
+		switch m.At(x, y).Type {
+		case TileGrass, TileFloor, TilePavement:
+		default:
+			continue
+		}
+		ok := true
+		for _, p := range placed {
+			dx, dy := p[0]-x, p[1]-y
+			if dx*dx+dy*dy < radius*radius {
+				ok = false
+				break
+			}
+		}
+		if !ok {
+			continue
+		}
+		m.Set(x, y, t)
+		placed = append(placed, [2]int{x, y})
+	}
 }
 
 func GenerateAbductionSite(w, h int) *BattleMap {
