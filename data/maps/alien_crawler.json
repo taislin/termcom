@@ -1,0 +1,21 @@
+{
+  "id": "alien_crawler",
+  "tags": ["ufo", "alien"],
+  "width": 4,
+  "height": 2,
+  "weight": 1,
+  "no_rotate": true,
+  "rows": [
+    "abcd",
+    "e  f"
+  ],
+  "terrain": {
+    "a": "TileCrawlerLeft",
+    "b": "TileCrawlerMid",
+    "c": "TileCrawlerMid",
+    "d": "TileCrawlerRight",
+    "e": "TileCrawlerLeg",
+    "f": "TileCrawlerLeg"
+  },
+  "furniture": {}
+}

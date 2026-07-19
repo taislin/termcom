@@ -13,7 +13,7 @@ func TestFullBattleSimulation(t *testing.T) {
 		soldier.NewSoldier("Bravo"),
 		soldier.NewSoldier("Charlie"),
 	}
-	m, _ := GenerateCrashSite(30, 24, 42)
+	m, _ := GenerateCrashSite(30, 24, 42, -1, -1)
 	var units UnitList
 	var alienAIs []*AlienAI
 
@@ -170,7 +170,7 @@ func TestMapGeneration(t *testing.T) {
 		name string
 		gen  func(int, int) *BattleMap
 	}{
-		{"CrashSite", func(w, h int) *BattleMap { m, _ := GenerateCrashSite(w, h, 42); return m }},
+		{"CrashSite", func(w, h int) *BattleMap { m, _ := GenerateCrashSite(w, h, 42, -1, -1); return m }},
 		{"TerrorSite", func(w, h int) *BattleMap { return GenerateTerrorSite(w, h, 42) }},
 		{"UFOInterior", func(w, h int) *BattleMap { return GenerateUFOInterior(w, h, 42) }},
 		{"Cydonia", GenerateCydonia},
@@ -197,7 +197,7 @@ func TestMapGeneration(t *testing.T) {
 }
 
 func TestBresenhamLOS(t *testing.T) {
-	m, _ := GenerateCrashSite(30, 24, 42)
+	m, _ := GenerateCrashSite(30, 24, 42, -1, -1)
 	s := &Unit{X: 5, Y: 5, Alive: true, Faction: 0}
 	if !s.CanSee(5, 5, m) {
 		t.Error("should see self")
@@ -274,7 +274,7 @@ func TestAlienAIPatrol(t *testing.T) {
 	ai := NewAlienAI(alien)
 	ai.PatrolX = 12
 	ai.PatrolY = 10
-	m, _ := GenerateCrashSite(30, 24, 42)
+	m, _ := GenerateCrashSite(30, 24, 42, -1, -1)
 	humans := UnitList{}
 	ai.Update(UnitList{}, m, humans, nil, nil)
 	if ai.State != AIPatrol {
@@ -286,7 +286,7 @@ func TestAlienAIAttack(t *testing.T) {
 	alien := &Unit{X: 10, Y: 10, TU: 40, MaxTU: 40, HP: 20, MaxHP: 20, Accuracy: 60, Alive: true, Faction: 1}
 	human := &Unit{X: 11, Y: 10, TU: 50, HP: 20, MaxHP: 20, Armour: 0, Alive: true, Faction: 0}
 	ai := NewAlienAI(alien)
-	m, _ := GenerateCrashSite(30, 24, 42)
+	m, _ := GenerateCrashSite(30, 24, 42, -1, -1)
 	ai.Update(UnitList{}, m, UnitList{human}, nil, nil)
 	if ai.State != AIAttack {
 		t.Error("should attack when human visible nearby")
@@ -301,7 +301,7 @@ func TestAlienAIRetreat(t *testing.T) {
 		AlienType: &data.AlienType{Name: "Test", Bravery: 30},
 	}
 	ai := NewAlienAI(alien)
-	m, _ := GenerateCrashSite(30, 24, 42)
+	m, _ := GenerateCrashSite(30, 24, 42, -1, -1)
 	ai.Update(UnitList{}, m, UnitList{}, nil, nil)
 	if ai.State != AIRetreat {
 		t.Error("should retreat when HP low and low bravery")
@@ -348,7 +348,7 @@ func TestLootDrop(t *testing.T) {
 func TestAlienAIStateTransitions(t *testing.T) {
 	alien := &Unit{X: 10, Y: 10, TU: 40, MaxTU: 40, HP: 20, MaxHP: 20, Accuracy: 60, Alive: true, Faction: 1}
 	ai := NewAlienAI(alien)
-	m, _ := GenerateCrashSite(30, 24, 42)
+	m, _ := GenerateCrashSite(30, 24, 42, -1, -1)
 
 	if ai.State != AIPatrol {
 		t.Error("should start patrolling")

@@ -1,0 +1,21 @@
+{
+  "id": "swamp_cypress_grove",
+  "tags": ["swamp"],
+  "width": 7,
+  "height": 7,
+  "weight": 2,
+  "rows": [
+    ".......",
+    ".T.T.T.",
+    ".......",
+    ".T...T.",
+    ".......",
+    ".T.T.T.",
+    "......."
+  ],
+  "terrain": {
+    ".": "TileSwampWater",
+    "T": "TileCypressTree"
+  },
+  "furniture": {}
+}

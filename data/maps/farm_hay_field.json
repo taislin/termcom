@@ -1,0 +1,20 @@
+{
+  "id": "farm_hay_field",
+  "tags": ["farm"],
+  "width": 7,
+  "height": 5,
+  "weight": 3,
+  "rows": [
+    ".......",
+    ".HHHHH.",
+    ".H...H.",
+    ".HHHHH.",
+    "......."
+  ],
+  "terrain": {
+    ".": "TileGrass"
+  },
+  "furniture": {
+    "H": "TileHayBale"
+  }
+}

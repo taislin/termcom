@@ -1,0 +1,23 @@
+{
+  "id": "jungle_dense_canopy",
+  "tags": ["jungle"],
+  "width": 9,
+  "height": 7,
+  "weight": 2,
+  "rows": [
+    ".........",
+    ".TTTTTTT.",
+    ".T.....T.",
+    ".T..TT.T.",
+    ".T.....T.",
+    ".TTTTTTT.",
+    "........."
+  ],
+  "terrain": {
+    ".": "TileGrass",
+    "T": "TileTree"
+  },
+  "furniture": {
+    "T": "TileVine"
+  }
+}

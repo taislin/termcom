@@ -254,7 +254,7 @@ func TestMapGeneratorsAll(t *testing.T) {
 		name string
 		gen  func(int, int) *BattleMap
 	}{
-		{"CrashSite", func(w, h int) *BattleMap { m, _ := GenerateCrashSite(w, h, 42); return m }},
+		{"CrashSite", func(w, h int) *BattleMap { m, _ := GenerateCrashSite(w, h, 42, -1, -1); return m }},
 		{"TerrorSite", func(w, h int) *BattleMap { return GenerateTerrorSite(w, h, 42) }},
 		{"AbductionSite", GenerateAbductionSite},
 		{"UFOInterior", func(w, h int) *BattleMap { return GenerateUFOInterior(w, h, 42) }},

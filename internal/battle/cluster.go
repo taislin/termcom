@@ -78,7 +78,9 @@ func (m *BattleMap) isPassableLevel(x, y, level int) bool {
 	case TileFloor, TileDoor, TileGrass, TileUFOFloor, TileStairs, TileStairsDown,
 		TilePavement, TileSand, TileSnow, TileRubble,
 		TileConsole, TileMachinery, TilePod, TilePowerSource, TileStorage, TileAlienTech,
-		TileDesk, TileChair, TileChairLeft, TileChairRight, TileComputer, TileBed, TileLocker, TileCabinet:
+		TileDesk, TileChair, TileChairLeft, TileChairRight, TileComputer, TileBed, TileLocker, TileCabinet,
+		TileMarsh, TileIce, TileGlass, TileDebris, TileSkylight, TileBush,
+		TileWheat, TilePier, TileScree, TileSwampWater, TileMud, TileVine, TileHeloRotor:
 		return t.Level == level
 	}
 	return false

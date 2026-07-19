@@ -118,7 +118,7 @@ func main() {
 
 	switch gen {
 	case "crash":
-		m, _ = battle.GenerateCrashSite(w, h, seed)
+		m, _ = battle.GenerateCrashSite(w, h, seed, -1, -1)
 		label = "Crash Site"
 	case "terror":
 		m = battle.GenerateTerrorSite(w, h, seed)
@@ -154,7 +154,7 @@ func main() {
 		m = battle.AssembleMap("urban", w, h, rng)
 		label = "urban (AssembleMap)"
 	default:
-		m, _ = battle.GenerateCrashSite(w, h, seed)
+		m, _ = battle.GenerateCrashSite(w, h, seed, -1, -1)
 		label = "Crash Site (fallback)"
 	}
 

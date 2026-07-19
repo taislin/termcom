@@ -177,6 +177,16 @@ func AssembleMap(biome string, w, h int, rng *rand.Rand) *BattleMap {
 		baseTile = TileGrass
 	case "ufo", "alien":
 		baseTile = TileUFOFloor
+	case "farm":
+		baseTile = TileGrass
+	case "coastal":
+		baseTile = TileSand
+	case "mountain":
+		baseTile = TileGrass
+	case "swamp":
+		baseTile = TileMarsh
+	case "jungle":
+		baseTile = TileGrass
 	}
 	m.fillRect(0, 0, w, h, baseTile)
 
@@ -330,5 +340,42 @@ func clusterBiome(m *BattleMap, biome string, w, h int, rng *rand.Rand) {
 		m.Blob(TileRock, 5, w*h/60, 50, rng)
 		m.Blob(TileTree, 6, w*h/50, 55, rng)
 		m.Poisson(TileObject, 4, w*h/200, rng)
+	case "farm":
+		m.Blob(TileWheat, 8, w*h/25, 65, rng)
+		m.Poisson(TileTree, 4, w*h/150, rng)
+		m.Poisson(TileFence, 4, w*h/200, rng)
+		clearX := w/4 + rng.Intn(w/2)
+		clearY := h/4 + rng.Intn(h/2)
+		m.fillRect(clearX-3, clearY-3, 7, 7, TileGrass)
+	case "coastal":
+		m.Blob(TileWater, 6, w*h/35, 50, rng)
+		m.Blob(TileSand, 5, w*h/60, 50, rng)
+		m.Poisson(TileRock, 4, w*h/100, rng)
+		clearX := w/4 + rng.Intn(w/2)
+		clearY := h/4 + rng.Intn(h/2)
+		m.fillRect(clearX-3, clearY-3, 7, 7, TileSand)
+	case "mountain":
+		m.Blob(TileRock, 5, w*h/40, 55, rng)
+		m.Poisson(TileBoulder, 3, w*h/80, rng)
+		m.Poisson(TileCliffFace, 3, w*h/60, rng)
+		m.Poisson(TileScree, 5, w*h/50, rng)
+		clearX := w/4 + rng.Intn(w/2)
+		clearY := h/4 + rng.Intn(h/2)
+		m.fillRect(clearX-2, clearY-2, 5, 5, TileGrass)
+	case "swamp":
+		m.Blob(TileSwampWater, 6, w*h/25, 60, rng)
+		m.Poisson(TileCypressTree, 3, w*h/60, rng)
+		m.Blob(TileMud, 4, w*h/80, 50, rng)
+		clearX := w/4 + rng.Intn(w/2)
+		clearY := h/4 + rng.Intn(h/2)
+		m.fillRect(clearX-2, clearY-2, 5, 5, TileMarsh)
+	case "jungle":
+		m.Blob(TileTree, 8, w*h/20, 70, rng)
+		m.Blob(TileBamboo, 6, w*h/35, 55, rng)
+		m.Blob(TileVine, 7, w*h/40, 60, rng)
+		m.Poisson(TileMud, 5, w*h/60, rng)
+		clearX := w/4 + rng.Intn(w/2)
+		clearY := h/4 + rng.Intn(h/2)
+		m.fillRect(clearX-2, clearY-2, 5, 5, TileGrass)
 	}
 }

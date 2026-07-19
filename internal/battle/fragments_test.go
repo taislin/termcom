@@ -56,7 +56,7 @@ func TestAssembleMapBiomes(t *testing.T) {
 		t.Fatalf("load maps: %v", err)
 	}
 	rng := rand.New(rand.NewSource(12345))
-	for _, biome := range []string{"urban", "forest", "ufo", "alien", "desert", "polar"} {
+	for _, biome := range []string{"urban", "forest", "ufo", "alien", "desert", "polar", "farm", "coastal", "mountain", "swamp", "jungle"} {
 		m := AssembleMap(biome, 40, 40, rng)
 		if !m.ValidateMap() {
 			t.Errorf("biome %s: assembled map failed validation", biome)

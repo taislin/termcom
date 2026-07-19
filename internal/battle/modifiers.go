@@ -186,12 +186,31 @@ func RollWeather(rng *rand.Rand, biome string) Weather {
 		if roll(rng, windChance) {
 			w.Wind = true
 		}
-	case "marsh":
+	case "marsh", "swamp":
 		if roll(rng, rainChance) {
 			w.Rain = true
 		}
 		if roll(rng, marshFogChance) {
 			w.FogDensity = fogRangeMin + rng.Intn(fogRangeSpan)
+		}
+	case "mountain":
+		if roll(rng, snowChance) {
+			w.Snow = true
+		}
+		if roll(rng, windChance) {
+			w.Wind = true
+		}
+		w.TempCold = true
+	case "jungle":
+		if roll(rng, rainChance*2) {
+			w.Rain = true
+		}
+		if roll(rng, marshFogChance) {
+			w.FogDensity = fogRangeMin + rng.Intn(fogRangeSpan)
+		}
+	case "farm", "coastal":
+		if roll(rng, windChance) {
+			w.Wind = true
 		}
 	default:
 		if roll(rng, rainChance) {

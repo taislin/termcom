@@ -1,0 +1,19 @@
+{
+  "id": "coastal_boat",
+  "tags": ["coastal"],
+  "width": 5,
+  "height": 3,
+  "weight": 2,
+  "no_rotate": true,
+  "rows": [
+    ".HHL.",
+    "HHHHH",
+    "....."
+  ],
+  "terrain": {
+    ".": "TileWater",
+    "H": "TileBoulder",
+    "L": "TileRubble"
+  },
+  "furniture": {}
+}

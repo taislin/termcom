@@ -456,8 +456,18 @@ func launchCustomBattle(g *engine.Game, path string) {
 		m = battle.GenerateDesert(w, h)
 	case "polar":
 		m = battle.GeneratePolar(w, h)
+	case "farm":
+		m = battle.GenerateFarm(w, h)
+	case "coastal":
+		m = battle.GenerateCoastal(w, h)
+	case "mountain":
+		m = battle.GenerateMountain(w, h)
+	case "swamp":
+		m = battle.GenerateSwamp(w, h)
+	case "jungle":
+		m = battle.GenerateJungle(w, h)
 	default:
-		m, _ = battle.GenerateCrashSite(w, h, 42)
+		m, _ = battle.GenerateCrashSite(w, h, 42, -1, -1)
 	}
 
 	var units []battle.CustomUnitDef

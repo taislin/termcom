@@ -74,7 +74,7 @@ func TestMapOpaque(t *testing.T) {
 }
 
 func TestGenerateCrashSite(t *testing.T) {
-	m, _ := GenerateCrashSite(30, 24, 42)
+	m, _ := GenerateCrashSite(30, 24, 42, -1, -1)
 	if m.Width != 30 || m.Height != 24 {
 		t.Errorf("expected 30x24, got %dx%d", m.Width, m.Height)
 	}

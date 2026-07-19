@@ -1,0 +1,21 @@
+{
+  "id": "swamp_mud_bank",
+  "tags": ["swamp"],
+  "width": 7,
+  "height": 5,
+  "weight": 3,
+  "no_rotate": true,
+  "rows": [
+    ".......",
+    ".MMMMM.",
+    ".MMMMM.",
+    ".TTTTT.",
+    "......."
+  ],
+  "terrain": {
+    ".": "TileMarsh",
+    "M": "TileMud",
+    "T": "TileSwampWater"
+  },
+  "furniture": {}
+}

@@ -1,0 +1,21 @@
+{
+  "id": "swamp_sinkhole",
+  "tags": ["swamp"],
+  "width": 5,
+  "height": 5,
+  "weight": 2,
+  "no_rotate": true,
+  "rows": [
+    ".....",
+    ".~W~.",
+    ".W.W.",
+    ".~W~.",
+    "....."
+  ],
+  "terrain": {
+    ".": "TileMarsh",
+    "~": "TileSwampWater",
+    "W": "TileWater"
+  },
+  "furniture": {}
+}

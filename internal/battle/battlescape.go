@@ -338,7 +338,7 @@ func (bs *Battlescape) CalculatePath(startX, startY, endX, endY int) [][2]int {
 	return nil
 }
 
-func NewBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, ufoName string, crashSeed int64) *Battlescape {
+func NewBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, ufoName string, crashSeed int64, worldX, worldY int) *Battlescape {
 	var m *BattleMap
 	var crashResult *CrashResult
 	// Deterministic RNG for WFC map generation, derived from the mission seed
@@ -372,7 +372,7 @@ func NewBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, ufoN
 	case "Polar":
 		m = GeneratePolar(50, 50)
 	default:
-		m, crashResult = GenerateCrashSite(50, 50, crashSeed)
+		m, crashResult = GenerateCrashSite(50, 50, crashSeed, worldX, worldY)
 	}
 	if m != nil && !m.ValidateMap() {
 		// Fallback: clear to open ground so combat remains playable.
@@ -3060,6 +3060,9 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 					ctx.SetCell(sx-1+i, sy-1, '▬', engine.StyleDefault.Background(color.Black).Foreground(pc))
 				}
 			}
+			if u.Faction == FactionHuman && u.Crouching {
+				ctx.SetCell(sx-1, sy, 'c', engine.StyleYellow)
+			}
 		}
 	}
 
@@ -3473,6 +3476,11 @@ func (bs *Battlescape) drawUnitInfo(ctx *engine.ScreenCtx, sideX, sideY0, sideH 
 		sy++
 
 		ctx.DrawString(sideX, sy, fmt.Sprintf(language.String("SIDE_POS"), bs.Selected.X, bs.Selected.Y), engine.StyleGray)
+		sy++
+
+		enc := bs.Selected.Soldier.Encumbrance()
+		pen := bs.Selected.Soldier.TUPenalty()
+		ctx.DrawString(sideX, sy, language.Sprintf("SIDE_ENCUMBRANCE", enc, pen), engine.StyleYellow)
 		sy++
 
 		if len(bs.Selected.Soldier.Inventory) > 0 {

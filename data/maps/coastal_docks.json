@@ -1,0 +1,23 @@
+{
+  "id": "coastal_docks",
+  "tags": ["coastal"],
+  "width": 9,
+  "height": 7,
+  "weight": 2,
+  "rows": [
+    ".........",
+    ".PPPPPPP.",
+    ".PC...C.P",
+    ".PPPPPPP.",
+    ".........",
+    ".........",
+    "........."
+  ],
+  "terrain": {
+    ".": "TileSand",
+    "P": "TilePier"
+  },
+  "furniture": {
+    "C": "TileDockCrate"
+  }
+}

@@ -77,13 +77,22 @@ type Unit struct {
 }
 
 func NewSoldierUnit(s *soldier.Soldier) *Unit {
+	penalty := s.TUPenalty()
+	tu := s.TU - penalty
+	if tu < 0 {
+		tu = 0
+	}
+	maxTU := s.MaxTU - penalty
+	if maxTU < 0 {
+		maxTU = 0
+	}
 	return &Unit{
 		Type:       0,
 		Soldier:    s,
 		HP:         s.HP,
 		MaxHP:      s.MaxHP,
-		TU:         s.TU,
-		MaxTU:      s.MaxTU,
+		TU:         tu,
+		MaxTU:      maxTU,
 		Accuracy:   s.Accuracy,
 		Bravery:    s.Bravery,
 		Reactions:  s.Reactions,
