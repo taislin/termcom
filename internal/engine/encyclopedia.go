@@ -124,12 +124,12 @@ func (es *EncyclopediaScreen) Render(ctx *ScreenCtx) {
 	w, h := ctx.Size()
 
 	const (
-		panelH     = 3
-		tabY       = 3
-		tabGap     = 3
-		listY      = 5
-		infoPanelH = 4
+		panelH = 3
+		tabY   = 3
+		tabGap = 3
+		listY  = 5
 	)
+	infoPanelH := h - listY - 2
 	ctx.DrawPanel(0, 0, w, panelH, language.String("ENCYCLOPEDIA"), StyleCyanBold)
 
 	tx := 2
@@ -197,13 +197,15 @@ func (es *EncyclopediaScreen) Render(ctx *ScreenCtx) {
 				at := e.AlienType
 				bgColor := tcell.NewRGBColor(20, 20, 28)
 				alienImg := GenerateAlienSpriteFromSeed(int64(at.Icon), at.Morphology, bgColor)
+
+				// Portrait on the right, starting below the description
 				pX := infoX + infoW - alienImg.Width - 4
-				pY := listY + 2
+				pY := line + 1
 
 				ctx.DrawPixelImageFramed(pX, pY, alienImg, StyleRed)
 
-				statY := pY + alienImg.Height/2 + 1
-				ctx.DrawString(infoX+1, pY-1, at.LangName(), StyleRedBold)
+				// Stats to the left of portrait, below description
+				statY := line + 1
 				ctx.DrawString(infoX+1, statY, fmt.Sprintf(language.String("ENCYCLO_ALIEN_STATS_1"), at.HP, at.TU, at.Accuracy), StyleGray)
 				ctx.DrawString(infoX+1, statY+1, fmt.Sprintf(language.String("ENCYCLO_ALIEN_STATS_2"), at.Strength, at.Psi, at.Bravery), StyleGray)
 				weapName := "---"

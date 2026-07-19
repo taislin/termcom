@@ -44,6 +44,74 @@
             margin-top: 2px;
         }
 
+        #gallery {
+            background: #0d0d1a;
+            border-bottom: 1px solid #1e1e3a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 0;
+            flex-shrink: 0;
+            position: relative;
+            overflow: hidden;
+            height: 220px;
+        }
+
+        #gallery img {
+            max-height: 200px;
+            max-width: 90%;
+            object-fit: contain;
+            border: 1px solid #1e1e3a;
+            border-radius: 4px;
+            display: none;
+        }
+
+        #gallery img.active {
+            display: block;
+        }
+
+        .gallery-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(13, 13, 26, 0.8);
+            color: #e94560;
+            border: 1px solid #333;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 4px 10px;
+            border-radius: 4px;
+            z-index: 2;
+            font-family: monospace;
+        }
+
+        .gallery-btn:hover {
+            background: rgba(233, 69, 96, 0.2);
+        }
+
+        #gallery-prev { left: 8px; }
+        #gallery-next { right: 8px; }
+
+        #gallery-dots {
+            position: absolute;
+            bottom: 6px;
+            display: flex;
+            gap: 6px;
+        }
+
+        .gallery-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #333;
+            cursor: pointer;
+            border: none;
+        }
+
+        .gallery-dot.active {
+            background: #e94560;
+        }
+
         #layout {
             display: flex;
             flex-direction: column;
@@ -94,6 +162,17 @@
     <div id="layout">
         <div id="header">
             <h1>termcom</h1>
+        </div>
+        <div id="gallery">
+            <button class="gallery-btn" id="gallery-prev">&#8249;</button>
+            <img src="screenshots/battlescape.png" class="active" alt="Battlescape">
+            <img src="screenshots/battlescape_alien.png" alt="Battlescape Alien">
+            <img src="screenshots/geoscape.png" alt="Geoscape">
+            <img src="screenshots/encyclopedia.png" alt="Encyclopedia">
+            <img src="screenshots/plane_designer.png" alt="Plane Designer">
+            <img src="screenshots/aar.png" alt="After Action Report">
+            <button class="gallery-btn" id="gallery-next">&#8250;</button>
+            <div id="gallery-dots"></div>
         </div>
         <div id="terminal-wrap">
             <div id="terminal"></div>
@@ -282,6 +361,45 @@
         window.addEventListener('resize', () => {
             fitAddon.fit();
         });
+
+        // ── Screenshot carousel ──────────────────────────────────────────
+        const galleryImgs = document.querySelectorAll('#gallery img');
+        const dotsContainer = document.getElementById('gallery-dots');
+        let galleryIdx = 0;
+        let galleryTimer = null;
+
+        galleryImgs.forEach((_, i) => {
+            const dot = document.createElement('button');
+            dot.className = 'gallery-dot' + (i === 0 ? ' active' : '');
+            dot.addEventListener('click', () => showGallery(i));
+            dotsContainer.appendChild(dot);
+        });
+
+        function showGallery(idx) {
+            galleryImgs[galleryIdx].classList.remove('active');
+            dotsContainer.children[galleryIdx].classList.remove('active');
+            galleryIdx = (idx + galleryImgs.length) % galleryImgs.length;
+            galleryImgs[galleryIdx].classList.add('active');
+            dotsContainer.children[galleryIdx].classList.add('active');
+        }
+
+        function startGalleryTimer() {
+            clearInterval(galleryTimer);
+            galleryTimer = setInterval(() => showGallery(galleryIdx + 1), 4000);
+        }
+
+        document.getElementById('gallery-prev').addEventListener('click', () => {
+            showGallery(galleryIdx - 1);
+            startGalleryTimer();
+        });
+
+        document.getElementById('gallery-next').addEventListener('click', () => {
+            showGallery(galleryIdx + 1);
+            startGalleryTimer();
+        });
+
+        startGalleryTimer();
+        // ── End carousel ─────────────────────────────────────────────────
 
         connect();
         terminal.focus();

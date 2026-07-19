@@ -1899,6 +1899,11 @@ func GenerateJungle(w, h int) *BattleMap {
 	return AssembleMap("jungle", w, h, rand.New(rand.NewSource(int64(w*73829164+h*38475621))))
 }
 
+// GenerateRural creates a rural map via AssembleMap.
+func GenerateRural(w, h int) *BattleMap {
+	return AssembleMap("rural", w, h, rand.New(rand.NewSource(int64(w*41827364+h*92837465))))
+}
+
 func (m *BattleMap) neighbourhood(x, y int) [3][3]TileType {
 	var res [3][3]TileType
 	for dy := -1; dy <= 1; dy++ {

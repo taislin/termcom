@@ -376,6 +376,20 @@ func NewBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, ufoN
 		m = GenerateDesert(50, 50)
 	case "Polar":
 		m = GeneratePolar(50, 50)
+	case "Jungle":
+		m = GenerateJungle(50, 50)
+	case "Urban":
+		m = GenerateTerrorSite(50, 50, mapSeed)
+	case "Coastal":
+		m = GenerateCoastal(50, 50)
+	case "Mountain":
+		m = GenerateMountain(50, 50)
+	case "Swamp":
+		m = GenerateSwamp(50, 50)
+	case "Farm":
+		m = GenerateFarm(50, 50)
+	case "Rural":
+		m = GenerateRural(50, 50)
 	default:
 		m, crashResult = GenerateCrashSite(50, 50, crashSeed, worldX, worldY)
 	}

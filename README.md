@@ -8,6 +8,10 @@ A roguelike-ified demake of **X-COM: UFO Defense** *(1994, MicroProse)* rendered
 
 [![Download Here](https://img.shields.io/badge/Download%20Here-8A2BE2)](https://github.com/taislin/termcom/releases/latest) [![Website](https://img.shields.io/badge/Website-8A2BE2)](https://taislin.github.io/termcom) [![Manual](https://img.shields.io/badge/Manual-8A2BE2)](https://taislin.github.io/termcom/manual.html) [![Dev Guide](https://img.shields.io/badge/Dev%20Guide-8A2BE2)](docs/dev.md)
 
+<p align="center">
+<a href="docs/screenshots/battlescape.png"><img src="docs/screenshots/battlescape.png" width="40%"/></a> <a href="docs/screenshots/geoscape.png"><img src="docs/screenshots/geoscape.png" width="40%"/></a>
+</p>
+
 ## Features
 
 - **Geoscape** - Real-time world map with time compression, UFO tracking, interceptor launch.

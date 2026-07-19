@@ -148,6 +148,13 @@ var builtinTypes = []struct {
 	{"Forest Patrol", "Forest"},
 	{"Desert Raid", "Desert"},
 	{"Polar Ops", "Polar"},
+	{"Jungle Patrol", "Jungle"},
+	{"Urban Combat", "Urban"},
+	{"Coastal Assault", "Coastal"},
+	{"Mountain Ops", "Mountain"},
+	{"Swamp Raid", "Swamp"},
+	{"Farm Defense", "Farm"},
+	{"Rural Patrol", "Rural"},
 }
 
 func scanCustomMaps() []string {

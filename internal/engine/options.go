@@ -182,7 +182,7 @@ func (os *OptionsScreen) Render(ctx *ScreenCtx) {
 			break
 		}
 	}
-		flagY := startY + langIdx + 2
+		flagY := startY + langIdx + 4
 	drawFlag(ctx, baseX, flagY, language.Current())
 	ctx.DrawString(baseX+langFlagOffset, flagY+1, fmt.Sprintf("  %s: [%s]", language.String("OPTIONS_LANGUAGE"), langs[li]), langStyle)
 

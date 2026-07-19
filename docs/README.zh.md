@@ -8,6 +8,10 @@
 
 [![Download Here](https://img.shields.io/badge/Download%20Here-8A2BE2)](https://github.com/taislin/termcom/releases/latest) [![Website](https://img.shields.io/badge/Website-8A2BE2)](https://taislin.github.io/termcom) [![Manual](https://img.shields.io/badge/Manual-8A2BE2)](https://taislin.github.io/termcom/manual.html) [![Dev Guide](https://img.shields.io/badge/Dev%20Guide-8A2BE2)](docs/dev.md)
 
+<p align="center">
+<a href="screenshots/battlescape.png"><img src="screenshots/battlescape.png" width="40%"/></a> <a href="screenshots/geoscape.png"><img src="screenshots/geoscape.png" width="40%"/></a>
+</p>
+
 ## 特性
 
 - **Geoscape（地球战略层）** — 实时世界地图，支持时间压缩、UFO 追踪与拦截机出击。

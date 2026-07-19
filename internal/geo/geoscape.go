@@ -393,6 +393,15 @@ func (gs *Geoscape) processBattleResult() {
 			gs.destroyBase(defendingBase)
 			baseDestroyed = true
 		}
+		// Remove crash site on loss
+		if gs.ActiveCrashSite != nil {
+			for i, cs := range gs.CrashSites {
+				if cs == gs.ActiveCrashSite {
+					gs.CrashSites = append(gs.CrashSites[:i], gs.CrashSites[i+1:]...)
+					break
+				}
+			}
+		}
 		gs.respondedAlienBase = nil
 		dd := &engine.DebriefData{
 			Won:           false,
