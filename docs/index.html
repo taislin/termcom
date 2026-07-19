@@ -91,6 +91,73 @@
       background: #1a0a2a;
     }
 
+    /* ── Gallery ───────────────────────────────────────── */
+    .gallery {
+      position: relative;
+      max-width: 100%;
+      margin: 1.5em 0;
+      text-align: center;
+      overflow: hidden;
+      border: 1px solid #444;
+      border-radius: 4px;
+      background: #0a0a0a;
+    }
+
+    .gallery img {
+      display: none;
+      max-width: 100%;
+      max-height: 420px;
+      object-fit: contain;
+      margin: 0 auto;
+    }
+
+    .gallery img.active {
+      display: block;
+    }
+
+    .gallery-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(0, 0, 0, 0.6);
+      color: #8A2BE2;
+      border: 1px solid #444;
+      font-size: 1.5em;
+      cursor: pointer;
+      padding: 0.2em 0.6em;
+      border-radius: 4px;
+      z-index: 2;
+      font-family: monospace;
+    }
+
+    .gallery-btn:hover {
+      color: #FF8C00;
+      border-color: #FF8C00;
+    }
+
+    .gallery-prev { left: 8px; }
+    .gallery-next { right: 8px; }
+
+    .gallery-dots {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      padding: 8px 0;
+    }
+
+    .gallery-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #333;
+      border: none;
+      cursor: pointer;
+    }
+
+    .gallery-dot.active {
+      background: #8A2BE2;
+    }
+
     /* ── Translated content visibility ─────────────────── */
     .i18n {
       display: none;
@@ -123,6 +190,18 @@
     </div>
 
     <h1>TERMCOM</h1>
+
+    <div class="gallery" id="gallery">
+      <button class="gallery-btn gallery-prev" id="gprev">&#8249;</button>
+      <img src="https://raw.githubusercontent.com/taislin/termcom/master/docs/screenshots/battlescape.png" class="active" alt="Battlescape">
+      <img src="https://raw.githubusercontent.com/taislin/termcom/master/docs/screenshots/battlescape_alien.png" alt="Battlescape Alien">
+      <img src="https://raw.githubusercontent.com/taislin/termcom/master/docs/screenshots/geoscape.png" alt="Geoscape">
+      <img src="https://raw.githubusercontent.com/taislin/termcom/master/docs/screenshots/encyclopedia.png" alt="Encyclopedia">
+      <img src="https://raw.githubusercontent.com/taislin/termcom/master/docs/screenshots/plane_designer.png" alt="Plane Designer">
+      <img src="https://raw.githubusercontent.com/taislin/termcom/master/docs/screenshots/aar.png" alt="After Action Report">
+      <button class="gallery-btn gallery-next" id="gnext">&#8250;</button>
+      <div class="gallery-dots" id="gdots"></div>
+    </div>
 
     <p class="i18n lang-en">A roguelike-ified demake of <a href="https://en.wikipedia.org/wiki/XCOM">X-COM: UFO
         Defense</a> <i>(1994, MicroProse)</i> rendered entirely in coloured ASCII on a terminal. Written in <a
@@ -390,6 +469,37 @@
         : (LANGS.indexOf(nav) >= 0 ? nav : 'en');
 
       apply(initial);
+
+      // ── Screenshot carousel ──────────────────────────────
+      var imgs = document.querySelectorAll('#gallery img');
+      var dots = document.getElementById('gdots');
+      var gIdx = 0;
+      var gTimer = null;
+
+      imgs.forEach(function (_, i) {
+        var d = document.createElement('button');
+        d.className = 'gallery-dot' + (i === 0 ? ' active' : '');
+        d.addEventListener('click', function () { showSlide(i); });
+        dots.appendChild(d);
+      });
+
+      function showSlide(n) {
+        imgs[gIdx].classList.remove('active');
+        dots.children[gIdx].classList.remove('active');
+        gIdx = (n + imgs.length) % imgs.length;
+        imgs[gIdx].classList.add('active');
+        dots.children[gIdx].classList.add('active');
+      }
+
+      function resetTimer() {
+        clearInterval(gTimer);
+        gTimer = setInterval(function () { showSlide(gIdx + 1); }, 4000);
+      }
+
+      document.getElementById('gprev').addEventListener('click', function () { showSlide(gIdx - 1); resetTimer(); });
+      document.getElementById('gnext').addEventListener('click', function () { showSlide(gIdx + 1); resetTimer(); });
+      resetTimer();
+      // ── End carousel ─────────────────────────────────────
 
       var buttons = document.querySelectorAll('.lang-toggle button');
       for (var i = 0; i < buttons.length; i++) {
