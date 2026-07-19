@@ -6,18 +6,18 @@
   "weight": 2,
   "rows": [
     "WWWWWW",
-    "WSSSSW",
-    "WSSSSW",
-    "WSSSSW",
-    "WSSSSW",
-    "WWWWWW"
+    "W.S.SW",
+    "W.S.SW",
+    "W.S.SW",
+    "W.S.SW",
+    "WW+WWW"
   ],
   "terrain": {
     ".": "TileFloor",
-    "W": "TileWall"
+    "W": "TileWall",
+    "+": "TileDoor"
   },
   "furniture": {
     "S": "TileSkylight"
   }
 }
-

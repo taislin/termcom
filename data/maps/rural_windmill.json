@@ -10,12 +10,13 @@
     "W..W",
     "WMWW",
     "W..W",
-    "WW.W"
+    "WW+W"
   ],
   "terrain": {
     "W": "TileWall",
     ".": "TileFloor",
-    "M": "TileMachinery"
+    "M": "TileMachinery",
+    "+": "TileDoor"
   },
   "furniture": {},
   "weight": 2

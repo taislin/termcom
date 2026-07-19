@@ -6,13 +6,14 @@
   "rows": [
     "rrrrr",
     "r...r",
-    "r...r",
+    "r...+",
     "r...r",
     "rrrrr"
   ],
   "terrain": {
     "r": "TileRock",
-    ".": "TileSnow"
+    ".": "TileSnow",
+    "+": "TileSnow"
   },
   "furniture": {},
   "weight": 2

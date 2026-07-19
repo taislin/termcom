@@ -5,28 +5,32 @@
   "height": 15,
   "weight": 2,
   "rows": [
-    "...............",
-    "...............",
-    ".W.W.W.W.W.W.W.",
-    "...............",
-    ".W.W.W.W.W.W.W.",
-    ".....DDDDD.....",
-    ".W.W.W.W.W.W.W.",
-    "...............",
-    ".W.W.W.W.W.W.W.",
-    ".....DDDDD.....",
-    ".W.W.W.W.W.W.W.",
-    "...............",
-    ".W.W.W.W.W.W.W.",
-    "...............",
-    "..............."
+    "WWWWWWWWWWWWWWW",
+    "WN..C..C..C.NW",
+    "W.............W",
+    "W..C..C..C...DW",
+    "W.............W",
+    "W.............W",
+    "W..CCC.CCC.CCW",
+    "W.............W",
+    "W..CCC.CCC.CCW",
+    "W.............W",
+    "W.............W",
+    "W..L..L...V..VW",
+    "W.............W",
+    "WN...........NW",
+    "WWWWW+WWWWWWWWW"
   ],
   "terrain": {
     ".": "TileFloor",
     "W": "TileWall",
-    "D": "TileDesk"
+    "N": "TileWindow",
+    "+": "TileDoor"
   },
   "furniture": {
-    "T": "TileTree"
+    "C": "TileComputer",
+    "D": "TileDesk",
+    "L": "TileLocker",
+    "V": "TileCabinet"
   }
 }

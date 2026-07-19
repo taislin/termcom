@@ -327,9 +327,7 @@ func (u *Unit) resolveHits(rounds, hitChance int, w data.RuleItem, target *Unit,
 				m.GroundLoot[pos] = append(m.GroundLoot[pos], target.Weapon)
 			}
 			if target.Soldier != nil {
-				for _, item := range target.Soldier.Inventory {
-					m.GroundLoot[pos] = append(m.GroundLoot[pos], item)
-				}
+				m.GroundLoot[pos] = append(m.GroundLoot[pos], target.Soldier.Inventory...)
 				target.Soldier.Inventory = nil
 			}
 		}

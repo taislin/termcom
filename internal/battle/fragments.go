@@ -63,6 +63,31 @@ var tileTypeByName = map[string]TileType{
 	"TileDebris":        TileDebris,
 	"TileCryoPipe":      TileCryoPipe,
 	"TileSkylight":      TileSkylight,
+	"TileWheat":         TileWheat,
+	"TileHayBale":       TileHayBale,
+	"TilePier":          TilePier,
+	"TileDockCrate":     TileDockCrate,
+	"TileCliffFace":     TileCliffFace,
+	"TileScree":         TileScree,
+	"TileBoulder":       TileBoulder,
+	"TileSwampWater":    TileSwampWater,
+	"TileCypressTree":   TileCypressTree,
+	"TileMud":           TileMud,
+	"TileVine":          TileVine,
+	"TileBamboo":        TileBamboo,
+	"TileDryBush":       TileDryBush,
+	"TileBusEnd":        TileBusEnd,
+	"TileBusMid":        TileBusMid,
+	"TileHeloBody":      TileHeloBody,
+	"TileHeloTail":      TileHeloTail,
+	"TileHeloNose":      TileHeloNose,
+	"TileHeloRotor":     TileHeloRotor,
+	"TileTractorCab":    TileTractorCab,
+	"TileTractorBody":   TileTractorBody,
+	"TileCrawlerLeft":   TileCrawlerLeft,
+	"TileCrawlerMid":    TileCrawlerMid,
+	"TileCrawlerRight":  TileCrawlerRight,
+	"TileCrawlerLeg":    TileCrawlerLeg,
 }
 
 func resolveTileType(name string) TileType {
@@ -164,6 +189,9 @@ func ApplyMapgenChunkRotated(m *BattleMap, startX, startY, rot int, chunk *mapge
 // terrain, then placing biome-tagged mapgen chunks (loaded from JSON) with
 // rotation, spacing, and corridor connectivity. rng controls randomness.
 func AssembleMap(biome string, w, h int, rng *rand.Rand) *BattleMap {
+	if biome == "urban" && w >= 20 && h >= 20 {
+		return GenerateTerrorSite(w, h, rng.Int63())
+	}
 	m := NewBattleMap(w, h)
 	baseTile := TileGrass
 	switch biome {
@@ -191,6 +219,16 @@ func AssembleMap(biome string, w, h int, rng *rand.Rand) *BattleMap {
 	m.fillRect(0, 0, w, h, baseTile)
 
 	clusterBiome(m, biome, w, h, rng)
+
+	// Coastal: ocean fills the top third.
+	waterDepth := 0
+	if biome == "coastal" {
+		waterDepth = h / 3
+		if waterDepth < 4 {
+			waterDepth = 4
+		}
+		m.fillRect(0, 0, w, waterDepth, TileWater)
+	}
 
 	chunks := mapgen.ByTag(biome)
 	if len(chunks) == 0 {
@@ -226,6 +264,63 @@ func AssembleMap(biome string, w, h int, rng *rand.Rand) *BattleMap {
 	type placed struct{ x, y, w, h int }
 	positions := []placed{}
 
+	// Coastal: place pier and tide pool chunks along the shoreline.
+	if biome == "coastal" {
+		pierChunk := mapgen.Get("coastal_pier")
+		if pierChunk != nil {
+			tries := 0
+			pierPlaced := 0
+			pierTarget := 2 + rng.Intn(2)
+			for pierPlaced < pierTarget && tries < 30 {
+				tries++
+				px := 1 + rng.Intn(max(1, w-pierChunk.Width-2))
+				py := waterDepth - 3
+				if py < 0 {
+					py = 0
+				}
+				overlap := false
+				for _, p := range positions {
+					if px < p.x+p.w+1 && px+pierChunk.Width+1 > p.x &&
+						py < p.y+p.h+1 && py+pierChunk.Height+1 > p.y {
+						overlap = true
+						break
+					}
+				}
+				if !overlap {
+					ApplyMapgenChunkRotated(m, px, py, 0, pierChunk)
+					positions = append(positions, placed{px, py, pierChunk.Width, pierChunk.Height})
+					pierPlaced++
+				}
+			}
+		}
+		tideChunk := mapgen.Get("coastal_tide_pool")
+		if tideChunk != nil {
+			tries := 0
+			tidePlaced := 0
+			for tidePlaced < 1 && tries < 20 {
+				tries++
+				px := 1 + rng.Intn(max(1, w-tideChunk.Width-2))
+				py := waterDepth - 4
+				if py < 0 {
+					py = 0
+				}
+				overlap := false
+				for _, p := range positions {
+					if px < p.x+p.w+2 && px+tideChunk.Width+2 > p.x &&
+						py < p.y+p.h+2 && py+tideChunk.Height+2 > p.y {
+						overlap = true
+						break
+					}
+				}
+				if !overlap {
+					ApplyMapgenChunkRotated(m, px, py, 0, tideChunk)
+					positions = append(positions, placed{px, py, tideChunk.Width, tideChunk.Height})
+					tidePlaced++
+				}
+			}
+		}
+	}
+
 	// For urban maps, reserve road corridors first (painted as pavement) so the
 	// scattered buildings land only in the gaps and roads never cut through a
 	// house.
@@ -254,9 +349,14 @@ func AssembleMap(biome string, w, h int, rng *rand.Rand) *BattleMap {
 	}
 
 	anchor := weightedPick(chunks)
+	coastalExclude := map[string]bool{"coastal_pier": true, "coastal_docks": true, "coastal_boat": true, "coastal_tide_pool": true}
+	for coastalExclude[anchor.ID] {
+		anchor = weightedPick(chunks)
+	}
 	rot := rng.Intn(4)
 	ax, ay := w/2-anchor.Width/2, h/2-anchor.Height/2
-	if roadReserved == nil || !roadReserved(ax, ay) {
+	if (roadReserved == nil || !roadReserved(ax, ay)) &&
+		(waterDepth == 0 || ay >= waterDepth) {
 		ApplyMapgenChunkRotated(m, ax, ay, rot, anchor)
 		positions = append(positions, placed{ax, ay, anchor.Width, anchor.Height})
 	}
@@ -266,6 +366,9 @@ func AssembleMap(biome string, w, h int, rng *rand.Rand) *BattleMap {
 	for len(positions) < target && attempts < 200 {
 		attempts++
 		c := weightedPick(chunks)
+		if coastalExclude[c.ID] {
+			continue
+		}
 		r := 0
 		if !c.NoRotate {
 			r = rng.Intn(4)
@@ -300,6 +403,9 @@ func AssembleMap(biome string, w, h int, rng *rand.Rand) *BattleMap {
 			if hitsRoad {
 				continue
 			}
+		}
+		if waterDepth > 0 && fy < waterDepth {
+			continue
 		}
 		ApplyMapgenChunkRotated(m, fx, fy, r, c)
 		positions = append(positions, placed{fx, fy, cw, ch})
@@ -348,24 +454,26 @@ func clusterBiome(m *BattleMap, biome string, w, h int, rng *rand.Rand) {
 		clearY := h/4 + rng.Intn(h/2)
 		m.fillRect(clearX-3, clearY-3, 7, 7, TileGrass)
 	case "coastal":
-		m.Blob(TileWater, 6, w*h/35, 50, rng)
-		m.Blob(TileSand, 5, w*h/60, 50, rng)
-		m.Poisson(TileRock, 4, w*h/100, rng)
-		clearX := w/4 + rng.Intn(w/2)
-		clearY := h/4 + rng.Intn(h/2)
-		m.fillRect(clearX-3, clearY-3, 7, 7, TileSand)
+		m.Blob(TileSand, 4, w*h/50, 45, rng)
+		m.Poisson(TileRock, 3, w*h/120, rng)
+		m.Poisson(TileDryBush, 5, w*h/60, rng)
 	case "mountain":
 		m.Blob(TileRock, 5, w*h/40, 55, rng)
 		m.Poisson(TileBoulder, 3, w*h/80, rng)
 		m.Poisson(TileCliffFace, 3, w*h/60, rng)
 		m.Poisson(TileScree, 5, w*h/50, rng)
+		m.Poisson(TileBush, 3, w*h/100, rng)
+		m.Poisson(TileTree, 2, w*h/200, rng)
 		clearX := w/4 + rng.Intn(w/2)
 		clearY := h/4 + rng.Intn(h/2)
 		m.fillRect(clearX-2, clearY-2, 5, 5, TileGrass)
 	case "swamp":
 		m.Blob(TileSwampWater, 6, w*h/25, 60, rng)
-		m.Poisson(TileCypressTree, 3, w*h/60, rng)
+		m.Poisson(TileCypressTree, 4, w*h/45, rng)
 		m.Blob(TileMud, 4, w*h/80, 50, rng)
+		m.Poisson(TileBush, 5, w*h/60, rng)
+		m.Poisson(TileVine, 4, w*h/80, rng)
+		m.Poisson(TileTree, 2, w*h/120, rng)
 		clearX := w/4 + rng.Intn(w/2)
 		clearY := h/4 + rng.Intn(h/2)
 		m.fillRect(clearX-2, clearY-2, 5, 5, TileMarsh)

@@ -15,12 +15,13 @@
     "W.M.W",
     "W.M.W",
     "W.M.W",
-    "WWWWW"
+    "W+.WW"
   ],
   "terrain": {
     ".": "TilePavement",
     "W": "TileWall",
-    "M": "TileStairsDown"
+    "M": "TileStairsDown",
+    "+": "TileDoor"
   },
   "furniture": {
     "F": "TileFence"

@@ -31,10 +31,19 @@ var generators = []genEntry{
 	{"building", "WFC urban building (1 level)"},
 	{"building2", "WFC urban building (2 levels)"},
 	{"cydonia", "Cydonia final mission"},
+	{"urban", "Urban biome (AssembleMap)"},
 	{"forest", "Forest biome (AssembleMap)"},
 	{"desert", "Desert biome (AssembleMap)"},
 	{"polar", "Polar biome (AssembleMap)"},
-	{"all", "All biomes (AssembleMap) — shows biome name"},
+	{"rural", "Rural biome (AssembleMap)"},
+	{"ufo", "UFO biome (AssembleMap)"},
+	{"alien", "Alien biome (AssembleMap)"},
+	{"farm", "Farm biome (AssembleMap)"},
+	{"coastal", "Coastal biome (AssembleMap)"},
+	{"mountain", "Mountain biome (AssembleMap)"},
+	{"swamp", "Swamp biome (AssembleMap)"},
+	{"jungle", "Jungle biome (AssembleMap)"},
+	{"all", "All biomes (AssembleMap) — cycle with 'b' key"},
 }
 
 var tileTypeNames = map[battle.TileType]string{
@@ -91,6 +100,22 @@ var tileTypeNames = map[battle.TileType]string{
 	battle.TileDebris:        "Debris",
 	battle.TileCryoPipe:      "Cryo Pipe",
 	battle.TileSkylight:      "Skylight",
+	battle.TileWheat:         "Wheat",
+	battle.TileHayBale:       "Hay Bale",
+	battle.TilePier:          "Pier",
+	battle.TileDockCrate:     "Dock Crate",
+	battle.TileCliffFace:     "Cliff Face",
+	battle.TileScree:         "Scree",
+	battle.TileBoulder:       "Boulder",
+	battle.TileSwampWater:    "Swamp Water",
+	battle.TileCypressTree:   "Cypress Tree",
+	battle.TileMud:           "Mud",
+	battle.TileVine:          "Vine",
+	battle.TileBamboo:        "Bamboo",
+	battle.TileHeloBody:      "Heli Body",
+	battle.TileHeloTail:      "Heli Tail",
+	battle.TileHeloNose:      "Heli Nose",
+	battle.TileHeloRotor:     "Heli Rotor",
 }
 
 const infoPanelWidth = 22
@@ -113,8 +138,11 @@ func main() {
 
 	rng := rand.New(rand.NewSource(seed))
 
+	allBiomes := []string{"urban", "forest", "desert", "polar", "rural", "ufo", "alien", "farm", "coastal", "mountain", "swamp", "jungle"}
+
 	var m *battle.BattleMap
 	label := gen
+	biomeIdx := 0
 
 	switch gen {
 	case "crash":
@@ -147,12 +175,13 @@ func main() {
 	case "cydonia":
 		m = battle.GenerateCydonia(w, h)
 		label = "Cydonia"
-	case "forest", "desert", "polar":
+	case "urban", "forest", "desert", "polar", "rural", "ufo", "alien", "farm", "coastal", "mountain", "swamp", "jungle":
 		m = battle.AssembleMap(gen, w, h, rng)
 		label = gen + " (AssembleMap)"
 	case "all":
-		m = battle.AssembleMap("urban", w, h, rng)
-		label = "urban (AssembleMap)"
+		m = battle.AssembleMap(allBiomes[0], w, h, rng)
+		biomeIdx = 0
+		label = fmt.Sprintf("all biomes [%d/%d] %s (AssembleMap)", biomeIdx+1, len(allBiomes), allBiomes[0])
 	default:
 		m, _ = battle.GenerateCrashSite(w, h, seed, -1, -1)
 		label = "Crash Site (fallback)"
@@ -162,7 +191,22 @@ func main() {
 		dumpMap(m, label)
 		return
 	}
-	drawMap(m, label)
+
+	allBiomeNames := allBiomes
+
+	var cycleFn func() (string, *battle.BattleMap)
+	if gen == "all" {
+		cycleFn = func() (string, *battle.BattleMap) {
+			biomeIdx = (biomeIdx + 1) % len(allBiomeNames)
+			b := allBiomeNames[biomeIdx]
+			rng2 := rand.New(rand.NewSource(seed))
+			nm := battle.AssembleMap(b, w, h, rng2)
+			nl := fmt.Sprintf("all biomes [%d/%d] %s (AssembleMap)", biomeIdx+1, len(allBiomeNames), b)
+			return nl, nm
+		}
+	}
+
+	drawMap(m, label, cycleFn)
 }
 
 func parseArgs() (gen string, w, h int, seed int64, dump bool) {
@@ -249,7 +293,7 @@ func tileContext(m *battle.BattleMap, x, y, level int) [3][3]battle.TileType {
 	return ctx
 }
 
-func drawMap(m *battle.BattleMap, label string) {
+func drawMap(m *battle.BattleMap, label string, cycleFn func() (string, *battle.BattleMap)) {
 	s, err := tcell.NewScreen()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "tcell.NewScreen: %v\n", err)
@@ -325,6 +369,9 @@ func drawMap(m *battle.BattleMap, label string) {
 
 		// Help bar at bottom
 		help := " q:quit | click:select tile | arrows/wasd:scroll | tab:cycle floor"
+		if cycleFn != nil {
+			help += " | b:cycle biome"
+		}
 		for i, ch := range help {
 			if i < sw {
 				s.SetContent(i, sh-1, ch, nil, tcell.StyleDefault.Foreground(color.Gray).Background(color.Black))
@@ -401,6 +448,18 @@ func drawMap(m *battle.BattleMap, label string) {
 						case "d", "D":
 							camX += 5
 							draw()
+						case "b", "B":
+							if cycleFn != nil {
+								newLabel, newMap := cycleFn()
+								if newMap != nil {
+									m = newMap
+									label = newLabel
+									level = 0
+									camX, camY = 0, 0
+									cursorX, cursorY = -1, -1
+									draw()
+								}
+							}
 						}
 					}
 				case *tcell.EventMouse:

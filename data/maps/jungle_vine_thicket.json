@@ -1,15 +1,17 @@
 {
   "id": "jungle_vine_thicket",
-  "tags": ["jungle"],
+  "tags": [
+    "jungle"
+  ],
   "width": 7,
   "height": 5,
   "weight": 2,
   "rows": [
-    ".......",
+    ".VV....",
     ".VVVVV.",
-    ".V...V.",
-    ".VVVVV.",
-    "......."
+    ".V.VV..",
+    ".V.VVV.",
+    "....V.."
   ],
   "terrain": {
     ".": "TileGrass",

@@ -11,11 +11,12 @@
     "W.......W",
     "W...s...W",
     "W.m...m.W",
-    "WWWWWWWWW"
+    "WWWW+WWWW"
   ],
   "terrain": {
     "W": "TileWall",
-    ".": "TileFloor"
+    ".": "TileFloor",
+    "+": "TileDoor"
   },
   "furniture": {
     "m": "TileMachinery",

@@ -6,14 +6,13 @@
   "weight": 2,
   "no_rotate": true,
   "rows": [
-    ".HHL.",
-    "HHHHH",
+    ".BBB.",
+    "BBBBB",
     "....."
   ],
   "terrain": {
     ".": "TileWater",
-    "H": "TileBoulder",
-    "L": "TileRubble"
+    "B": "TilePier"
   },
   "furniture": {}
 }

@@ -13,11 +13,12 @@
     "W.dW",
     "W..W",
     "W..W",
-    "WWWW"
+    "W+WWW"
   ],
   "terrain": {
     "W": "TileWall",
-    ".": "TileFloor"
+    ".": "TileFloor",
+    "+": "TileDoor"
   },
   "furniture": {
     "d": "TileDesk"

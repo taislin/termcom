@@ -11,13 +11,14 @@
     ".WH...HW.",
     ".WH...HW.",
     ".WH...HW.",
-    ".WWWWWWW.",
+    ".WWW+WWW.",
     ".........",
     "........."
   ],
   "terrain": {
     ".": "TileGrass",
-    "W": "TileWall"
+    "W": "TileWall",
+    "+": "TileDoor"
   },
   "furniture": {
     "H": "TileHayBale"

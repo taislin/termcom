@@ -100,6 +100,7 @@ const (
 	TileMud       // deep mud, passable, 5 cover, high TU, noisy
 	TileVine      // dense hanging vines, passable, 20 cover
 	TileBamboo    // bamboo thicket, 60 cover, opaque, destructible
+	TileDryBush   // dry coastal scrub, passable, 20 cover, flammable
 	// Vehicle tiles
 	TileBusEnd    // Bus left/right end, 50 cover
 	TileBusMid    // Bus middle roof, 50 cover
@@ -178,6 +179,8 @@ func TileCover(t TileType) int {
 		return 60
 	case TileBush:
 		return 40
+	case TileDryBush:
+		return 20
 	case TileFence:
 		return 30
 	case TileCryoPipe:
@@ -216,7 +219,7 @@ func TileCover(t TileType) int {
 
 func (t Tile) IsFlammable() bool {
 	switch t.Type {
-	case TileGrass, TileTree, TileBush, TileFence, TileDoor, TileTimber,
+	case TileGrass, TileTree, TileBush, TileDryBush, TileFence, TileDoor, TileTimber,
 		TileWheat, TileHayBale, TileVine, TileBamboo, TileCypressTree:
 		return true
 	}
@@ -318,7 +321,7 @@ var tileChars = map[TileType]rune{
 	TileBush:       '†',
 	TileFence:      '│',
 	TileRubble:     '▒',
-	TileObject:     '■',
+	TileObject:     '•',
 	// UFO furniture characters
 	TileConsole:     '⌸', // Console panel (U+2338 QUAD MINUS)
 	TileMachinery:   '⊛', // Machinery (U+229B CIRCLED ASTERISK)
@@ -371,6 +374,7 @@ var tileChars = map[TileType]rune{
 	TileMud:       '≋', // mud (wavy, like marsh)
 	TileVine:      '‡', // vines (dense cross)
 	TileBamboo:    '♣', // bamboo (same char as tree, different color)
+	TileDryBush:   '*', // dry coastal scrub
 	TileBusEnd:    '▄', // Bus end (top)
 	TileBusMid:    '█', // Bus middle roof (top)
 	TileHeloBody:  '▄', // Helicopter fuselage (top)
@@ -517,7 +521,7 @@ func (m *BattleMap) Passable(x, y int) bool {
 	case TileFloor, TileDoor, TileGrass, TileUFOFloor, TileStairs, TileStairsDown, TilePavement, TileSand, TileSnow,
 		TileMarsh,
 		TileIce, TileGlass, TileDebris,
-		TileSkylight, TileBush,
+		TileSkylight, TileBush, TileDryBush,
 		TileConsole, TileMachinery, TilePod, TilePowerSource, TileStorage, TileAlienTech,
 		TileDesk, TileChair, TileChairLeft, TileChairRight, TileComputer, TileBed, TileLocker, TileCabinet,
 		TileRubble,
@@ -555,7 +559,7 @@ func (m *BattleMap) IsDestructible(x, y int) bool {
 		TileCar, TileCarRight, TileCarMid, TileForklift, TileForkliftRight,
 		TileFuelPump, TileStreetlamp, TileCryoPipe, TileSkylight,
 		TileWheat, TileHayBale,
-		TileDockCrate, TileScree,
+		TileDockCrate, TileScree, TileDryBush,
 		TileCypressTree, TileVine, TileBamboo,
 		TileBusEnd, TileBusMid,
 		TileHeloBody, TileHeloTail, TileHeloNose, TileHeloRotor,
@@ -947,8 +951,8 @@ func isUrbanProtected(t TileType) bool {
 		TileWheat, TileHayBale,
 		TilePier, TileDockCrate,
 		TileCliffFace, TileScree, TileBoulder,
-		TileSwampWater, TileCypressTree,
-		TileMud, TileVine, TileBamboo,
+		TileWater, 		TileSwampWater, TileCypressTree,
+		TileMud, TileVine, TileBamboo, TileDryBush,
 		TileBusEnd, TileBusMid,
 		TileHeloBody, TileHeloTail, TileHeloNose, TileHeloRotor,
 		TileTractorCab, TileTractorBody,
@@ -1372,6 +1376,47 @@ func GenerateTerrorSite(w, h int, seed int64) *BattleMap {
 		}
 		// Confine tree scatter to this lot rectangle (masking).
 		maskPoissonInRect(m, TileTree, 2, (l.w*l.h)/10+1, l.x, l.y, l.w, l.h, rng)
+	}
+
+	// ---- 4c. Streetlamps along sidewalks/roads ----
+	{
+		lampCount := w * h / 150
+		placed := [][2]int{}
+		attempts := 0
+		for len(placed) < lampCount && attempts < lampCount*20 {
+			attempts++
+			x := 1 + rng.Intn(max(1, w-2))
+			y := 1 + rng.Intn(max(1, h-2))
+			tt := m.At(x, y).Type
+			onRoad := tt == TilePavement
+			nearRoad := false
+			if !onRoad {
+				for _, d := range [][2]int{{0, -1}, {0, 1}, {-1, 0}, {1, 0}} {
+					nx, ny := x+d[0], y+d[1]
+					if nx >= 0 && nx < w && ny >= 0 && ny < h && m.At(nx, ny).Type == TilePavement {
+						nearRoad = true
+						break
+					}
+				}
+			}
+			if !onRoad && !nearRoad {
+				continue
+			}
+			ok := true
+			for _, p := range placed {
+				dx, dy := p[0]-x, p[1]-y
+				if dx*dx+dy*dy < 25 {
+					ok = false
+					break
+				}
+			}
+			if !ok {
+				continue
+			}
+			m.Set(x, y, TileStreetlamp)
+			m.Tiles[y][x].Lit = true
+			placed = append(placed, [2]int{x, y})
+		}
 	}
 
 	// Street furniture on sidewalks/roads.

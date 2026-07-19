@@ -8,17 +8,17 @@
   "rows": [
     ".....",
     ".....",
-    ".###.",
-    ".###.",
-    ".###.",
-    ".#.#.",
+    ".WWW.",
+    ".WWW.",
+    ".WWW.",
+    ".W.W.",
     "....."
   ],
   "terrain": {
     ".": "TileGrass",
-    "#": "TileRubble"
+    "W": "TileWall"
   },
   "furniture": {
-    "#": "TileTimber"
+    "T": "TileTimber"
   }
 }

@@ -14,13 +14,14 @@
     ".WCCCCCCW.",
     ".WCCCCCCW.",
     ".WCCCCCCW.",
-    ".WWWWWWWW.",
+    ".WWWWWW+W.",
     ".........."
   ],
   "terrain": {
     ".": "TileSnow",
     "D": "TileDish",
-    "W": "TileWall"
+    "W": "TileWall",
+    "+": "TileDoor"
   },
   "furniture": {
     "C": "TileComputer"

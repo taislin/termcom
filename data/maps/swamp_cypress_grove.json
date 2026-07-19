@@ -1,21 +1,26 @@
 {
   "id": "swamp_cypress_grove",
   "tags": ["swamp"],
-  "width": 7,
-  "height": 7,
-  "weight": 2,
+  "width": 9,
+  "height": 9,
+  "weight": 3,
   "rows": [
-    ".......",
-    ".T.T.T.",
-    ".......",
-    ".T...T.",
-    ".......",
-    ".T.T.T.",
-    "......."
+    "..T.T..B.",
+    ".TBTTB.V.",
+    "T.T.TBBV.",
+    "..B..TT..",
+    ".T.V.T..B",
+    ".TTB..V..",
+    "B.T.TTV..",
+    ".VB..V.B.",
+    ".......B."
   ],
   "terrain": {
-    ".": "TileSwampWater",
-    "T": "TileCypressTree"
+    ".": "TileSwampWater"
   },
-  "furniture": {}
+  "furniture": {
+    "T": "TileCypressTree",
+    "B": "TileBush",
+    "V": "TileVine"
+  }
 }

@@ -6,25 +6,26 @@
   "weight": 2,
   "rows": [
     "WWWWWWWWWW",
-    "W¤......¤W",
+    "WN......NW",
     "W........W",
-    "W..¤..¤..W",
+    "W........W",
     "W........W",
     "W...OO...W",
     "W...OO...W",
     "W...OO...W",
     "W........W",
-    "W..¤..¤..W",
-    "W........W",
-    "W¤......¤W",
     "W........W",
     "W........W",
-    "WWWWWWWWWW"
+    "W........W",
+    "W........W",
+    "W........W",
+    "WWWW+WWWWW"
   ],
   "terrain": {
     ".": "TileGrass",
     "W": "TileWall",
-    "¤": "TileWindow"
+    "N": "TileWindow",
+    "+": "TileDoor"
   },
   "furniture": {
     "O": "TileObject"

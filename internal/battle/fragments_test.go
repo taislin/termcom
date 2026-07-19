@@ -45,8 +45,8 @@ func TestApplyMapgenChunkOverlapPreservesUnderlying(t *testing.T) {
 	m := NewBattleMap(20, 20)
 	m.Set(5, 5, TileWall)
 	ApplyMapgenChunk(m, 4, 4, chunk)
-	if m.At(5, 5).Type != TileFloor {
-		t.Errorf("expected chunk floor to overwrite underlying wall, got %v", m.At(5, 5).Type)
+	if m.At(5, 5).Type != TilePavement {
+		t.Errorf("expected chunk pavement to overwrite underlying wall, got %v", m.At(5, 5).Type)
 	}
 }
 

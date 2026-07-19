@@ -1,16 +1,18 @@
 {
   "id": "jungle_dense_canopy",
-  "tags": ["jungle"],
+  "tags": [
+    "jungle"
+  ],
   "width": 9,
   "height": 7,
   "weight": 2,
   "rows": [
-    ".........",
-    ".TTTTTTT.",
-    ".T.....T.",
-    ".T..TT.T.",
-    ".T.....T.",
-    ".TTTTTTT.",
+    "....T....",
+    ".TTTT.V..",
+    "..TT.TVT.",
+    ".TT.VT.V.",
+    ".TTT.TVT.",
+    "...T.TV..",
     "........."
   ],
   "terrain": {
@@ -18,6 +20,6 @@
     "T": "TileTree"
   },
   "furniture": {
-    "T": "TileVine"
+    "V": "TileVine"
   }
 }

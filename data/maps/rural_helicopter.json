@@ -8,7 +8,7 @@
   "rows": [
     "  a  ",
     "bcdef",
-    "g   h"
+    "ghij."
   ],
   "terrain": {
     "a": "TileHeloRotor",
@@ -17,8 +17,10 @@
     "d": "TileHeloBody",
     "e": "TileHeloBody",
     "f": "TileHeloTail",
-    "g": "TileHeloBody",
-    "h": "TileHeloTail"
+    "g": "TileHeloNose",
+    "h": "TileHeloBody",
+    "i": "TileHeloBody",
+    "j": "TileHeloTail"
   },
   "furniture": {}
 }

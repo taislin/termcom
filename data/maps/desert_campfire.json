@@ -1,19 +1,20 @@
 {
   "id": "desert_campfire",
   "tags": ["desert"],
-  "width": 4,
-  "height": 4,
+  "width": 5,
+  "height": 5,
   "rows": [
-    "s..s",
-    ".b..",
-    "srr.",
-    "..ss"
+    "s..ss",
+    ".r.r.",
+    "s.@.s",
+    ".r.r.",
+    "sss.."
   ],
   "terrain": {
     "s": "TileSand",
-    ".": "TileGrass",
-    "b": "TileBush",
-    "r": "TileRubble"
+    ".": "TileSand",
+    "r": "TileRock",
+    "@": "TileRubble"
   },
   "furniture": {},
   "weight": 3

@@ -7,17 +7,18 @@
   "no_rotate": true,
   "rows": [
     "..#..",
+    "..M..",
     "..W..",
-    "..W..",
+    "..M..",
     "..W..",
     "..+..",
-    "..W..",
     "....."
   ],
   "terrain": {
     ".": "TileGrass",
-    "#": "TileMetalWall",
-    "W": "TileWall",
+    "#": "TileDish",
+    "W": "TileMetalWall",
+    "M": "TileAdobe",
     "+": "TileDoor"
   },
   "furniture": {}

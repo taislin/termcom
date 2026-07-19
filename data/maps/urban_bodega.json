@@ -7,20 +7,21 @@
   "no_rotate": true,
   "rows": [
     "WWWWWWWWWW",
-    "W¤....¤..W",
-    "W¤.DDD.¤.W",
-    "W¤....¤..W",
-    "W¤....¤..W",
+    "WN....N..W",
+    "WN.DDD...W",
+    "WN.......W",
+    "WN.......W",
     "W........W",
-    "W¤.CCC.¤.W",
-    "W¤.CCC.¤.W",
-    "W¤....¤..W",
-    "WWWWWWWWWW"
+    "WN.CCC...W",
+    "WN.CCC...W",
+    "WN.......W",
+    "WWWW+WWWWW"
   ],
   "terrain": {
     ".": "TileFloor",
     "W": "TileWall",
-    "¤": "TileWindow"
+    "N": "TileWindow",
+    "+": "TileDoor"
   },
   "furniture": {
     "D": "TileDesk",

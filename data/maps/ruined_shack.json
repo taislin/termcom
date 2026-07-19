@@ -8,14 +8,15 @@
   "width": 5,
   "height": 4,
   "rows": [
-    "WWWWW",
+    "WW..W",
     "W...W",
-    "W...W",
-    "WW.WW"
+    "....W",
+    "WW+WW"
   ],
   "terrain": {
     "W": "TileWall",
-    ".": "TileFloor"
+    ".": "TileFloor",
+    "+": "TileDoor"
   },
   "furniture": {},
   "weight": 2

@@ -1,16 +1,18 @@
 {
   "id": "jungle_bamboo_grove",
-  "tags": ["jungle"],
+  "tags": [
+    "jungle"
+  ],
   "width": 7,
   "height": 7,
   "weight": 2,
   "rows": [
     ".......",
+    ".BB.BB.",
+    "..BBBB.",
     ".BBBBB.",
-    ".B...B.",
-    ".B...B.",
-    ".B...B.",
-    ".BBBBB.",
+    ".BBBB..",
+    ".BB.BB.",
     "......."
   ],
   "terrain": {

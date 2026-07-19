@@ -9,15 +9,15 @@
     "W...P.W",
     "WPPPp.W",
     "W...P.W",
-    "WWWWWWW"
+    "WWW+WWW"
   ],
   "terrain": {
     ".": "TileFloor",
-    "W": "TileWall"
+    "W": "TileWall",
+    "+": "TileDoor"
   },
   "furniture": {
     "P": "TileCryoPipe",
     "p": "TileCryoPipe"
   }
 }
-

@@ -1,13 +1,15 @@
 {
   "id": "coastal_docks",
-  "tags": ["coastal"],
+  "tags": [
+    "coastal"
+  ],
   "width": 9,
   "height": 7,
   "weight": 2,
   "rows": [
     ".........",
     ".PPPPPPP.",
-    ".PC...C.P",
+    ".PCPPPCP.",
     ".PPPPPPP.",
     ".........",
     ".........",
