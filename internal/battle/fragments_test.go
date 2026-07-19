@@ -123,7 +123,7 @@ func TestAllGeneratorsValid(t *testing.T) {
 		func() *BattleMap { return GenerateTerrorSite(50, 50, 42) },
 		func() *BattleMap { return GenerateAlienBaseWFC(50, 50, rand.New(rand.NewSource(42))) },
 		func() *BattleMap { return GenerateCydonia(50, 50) },
-		func() *BattleMap { return GenerateUFOInterior(50, 50) },
+		func() *BattleMap { return GenerateUFOInterior(50, 50, 42) },
 	}
 	for i, gen := range generators {
 		m := gen()

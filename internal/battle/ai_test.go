@@ -89,6 +89,7 @@ func TestAIEvaluateCover(t *testing.T) {
 func TestAICanFireAt(t *testing.T) {
 	at := data.GetAlienByName("Sectoid")
 	u := NewAlienUnit(at)
+	u.X, u.Y = 10, 10
 	u.TU = 50
 	u.WeaponAmmo = 10
 	ai := NewAlienAI(u)
@@ -400,5 +401,194 @@ func TestAINearestAlly(t *testing.T) {
 	ally := ai.nearestAlly(UnitList{alien1, alien2})
 	if ally != alien2 {
 		t.Error("nearest ally should be alien2")
+	}
+}
+
+func TestAIEvaluateCoverVsThreats(t *testing.T) {
+	at := data.GetAlienByName("Sectoid")
+	alien := NewAlienUnit(at)
+	alien.X, alien.Y = 10, 10
+	alien.TU = 50
+	m := NewBattleMap(30, 20)
+	for x := 0; x < 30; x++ {
+		for y := 0; y < 20; y++ {
+			m.Set(x, y, TileFloor)
+		}
+	}
+	human := &Unit{X: 15, Y: 10, HP: 20, MaxHP: 20, TU: 50, Alive: true, Faction: FactionHuman, Weapon: "rifle", WeaponAmmo: 10}
+	ai := NewAlienAI(alien)
+	// In open terrain with no cover, protection should be minimal.
+	score := ai.evaluateCoverVsThreats(10, 10, m, UnitList{human})
+	if score >= 50 {
+		t.Errorf("open terrain should not provide high cover, got %f", score)
+	}
+	// Wall between alien and threat should block sight, providing full cover.
+	m.Set(12, 10, TileWall)
+	score = ai.evaluateCoverVsThreats(10, 10, m, UnitList{human})
+	if score < 50 {
+		t.Errorf("wall between should provide substantial cover, got %f", score)
+	}
+}
+
+func TestAICanFireAtRange(t *testing.T) {
+	at := data.GetAlienByName("Sectoid")
+	u := NewAlienUnit(at)
+	u.TU = 50
+	u.WeaponAmmo = 10
+	u.X, u.Y = 5, 5
+	ai := NewAlienAI(u)
+	// Target within range.
+	human := &Unit{X: 10, Y: 5, HP: 20, MaxHP: 20, TU: 50, Alive: true, Faction: FactionHuman, Weapon: "rifle", WeaponAmmo: 10}
+	if !ai.canFireAt(human) {
+		t.Error("should be able to fire at target within range")
+	}
+	// Target far out of range.
+	human.X = 28
+	human.Y = 18
+	if ai.canFireAt(human) {
+		t.Error("should NOT fire at target beyond weapon range")
+	}
+}
+
+func TestAISelectFireMode(t *testing.T) {
+	at := data.GetAlienByName("Sectoid")
+	u := NewAlienUnit(at)
+	u.X, u.Y = 10, 10
+	u.Weapon = "rifle"
+	ai := NewAlienAI(u)
+	// With enough TU at close range, should prefer burst over aimed.
+	u.TU = 50
+	u.FireMode = data.FireModeAimed
+	ai.selectFireMode(3)
+	if u.FireMode != data.FireModeBurst {
+		t.Errorf("expected burst mode at close range with enough TU, got %v", u.FireMode)
+	}
+	// With low TU, should stay on aimed even at close range.
+	u.TU = 10
+	u.FireMode = data.FireModeAimed
+	ai.selectFireMode(3)
+	if u.FireMode != data.FireModeAimed {
+		t.Errorf("expected aimed mode with low TU, got %v", u.FireMode)
+	}
+}
+
+func TestAIHumanFromLevelFilter(t *testing.T) {
+	human1 := &Unit{X: 5, Y: 5, Alive: true, Faction: FactionHuman, Level: 0}
+	human2 := &Unit{X: 10, Y: 10, Alive: true, Faction: FactionHuman, Level: 1}
+	alien := &Unit{X: 6, Y: 5, Alive: true, Faction: FactionAlien, Level: 1}
+	units := UnitList{human1, human2, alien}
+	result := humanFrom(units, 0)
+	if len(result) != 1 || result[0] != human1 {
+		t.Errorf("expected only human on level 0, got %d units", len(result))
+	}
+}
+
+func TestAISelectTargetLevelFilter(t *testing.T) {
+	at := data.GetAlienByName("Sectoid")
+	alien := NewAlienUnit(at)
+	alien.X, alien.Y = 10, 10
+	alien.TU = 50
+	alien.Level = 0
+	human0 := &Unit{X: 12, Y: 10, HP: 20, MaxHP: 20, TU: 50, Alive: true, Faction: FactionHuman, Level: 0}
+	human1 := &Unit{X: 5, Y: 5, HP: 20, MaxHP: 20, TU: 50, Alive: true, Faction: FactionHuman, Level: 1}
+	m := NewBattleMap(30, 20)
+	for x := 0; x < 30; x++ {
+		for y := 0; y < 20; y++ {
+			m.Set(x, y, TileFloor)
+		}
+	}
+	ai := NewAlienAI(alien)
+	// human0 is on same level and closer — gets selected.
+	target := ai.selectTarget(human0, UnitList{human0, human1}, nil, m)
+	if target != human0 {
+		t.Error("should select target on same level")
+	}
+	// Only human1 (different level) — should return nil (no valid target).
+	target = ai.selectTarget(human1, UnitList{human1}, nil, m)
+	if target != nil {
+		t.Error("should not select target on different level")
+	}
+}
+
+func TestCivilianAIBlockedDestination(t *testing.T) {
+	at := data.GetAlienByName("Sectoid")
+	alien := NewAlienUnit(at)
+	alien.X, alien.Y = 6, 5
+	alien.Faction = FactionAlien
+	civ := &Unit{X: 5, Y: 5, HP: 5, MaxHP: 5, Alive: true, Faction: FactionCivilian, TU: 20}
+	m := NewBattleMap(30, 20)
+	for x := 0; x < 30; x++ {
+		for y := 0; y < 20; y++ {
+			m.Set(x, y, TileFloor)
+		}
+	}
+	// The flee destination from (5,5) away from (6,5) with step=3 is (2,5).
+	blocker := &Unit{X: 2, Y: 5, HP: 5, MaxHP: 5, Alive: true, Faction: FactionCivilian}
+	cai := NewCivilianAI(civ)
+	actions := cai.GenerateActions(UnitList{civ, alien, blocker}, m)
+	if len(actions) != 0 {
+		t.Error("should not move into an occupied tile")
+	}
+}
+
+func TestSquadMemoryTurnAccessor(t *testing.T) {
+	sm := NewSquadMemory()
+	if sm.Turn() != 0 {
+		t.Error("new memory should have turn 0")
+	}
+}
+
+func TestAIDoubleFirePrevented(t *testing.T) {
+	at := data.GetAlienByName("Sectoid")
+	alien := NewAlienUnit(at)
+	human := &Unit{X: 11, Y: 10, HP: 20, MaxHP: 20, TU: 50, Alive: true, Faction: FactionHuman, Weapon: "rifle", WeaponAmmo: 10}
+	m := NewBattleMap(30, 20)
+	alien.X, alien.Y = 10, 10
+	alien.TU = 50
+	human.X, human.Y = 11, 10
+	for x := 0; x < 30; x++ {
+		for y := 0; y < 20; y++ {
+			m.Set(x, y, TileFloor)
+		}
+	}
+	ai := NewAlienAI(alien)
+	ai.State = AIAttack
+	actions := ai.Update(UnitList{alien}, m, UnitList{human}, nil, nil)
+	// Count fire actions: there should be at most 1.
+	fireCount := 0
+	for _, a := range actions {
+		if a.Type == "fire" {
+			fireCount++
+		}
+	}
+	if fireCount > 1 {
+		t.Errorf("should not generate more than one fire action per update, got %d", fireCount)
+	}
+}
+
+func TestAISearchInitialZeroPosition(t *testing.T) {
+	at := data.GetAlienByName("Sectoid")
+	alien := NewAlienUnit(at)
+	m := NewBattleMap(30, 20)
+	alien.X, alien.Y = 10, 10
+	alien.TU = 50
+	for x := 0; x < 30; x++ {
+		for y := 0; y < 20; y++ {
+			m.Set(x, y, TileFloor)
+		}
+	}
+	ai := NewAlienAI(alien)
+	ai.LastSeenX, ai.LastSeenY = 0, 0
+	ai.State = AISearch
+	actions := ai.Update(UnitList{alien}, m, UnitList{}, nil, nil)
+	// Should fall back to patrol instead of pathfinding to (0,0).
+	if ai.State != AIPatrol {
+		t.Errorf("expected patrol fallback when last seen is (0,0), got state %d", ai.State)
+	}
+	if len(actions) >= 1 && actions[0].Type == "move" {
+		// Moving away from (0,0) is acceptable (patrol generates moves).
+		if actions[0].ToX == 0 && actions[0].ToY == 0 {
+			t.Error("should not move toward (0,0)")
+		}
 	}
 }

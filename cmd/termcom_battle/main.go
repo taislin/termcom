@@ -518,13 +518,13 @@ func launchCustom(path string) {
 	case "terror":
 		m = battle.GenerateTerrorSite(w, h, time.Now().UnixNano())
 	case "supply_raid", "ufo_interior":
-		m = battle.GenerateUFOInterior(w, h)
+		m = battle.GenerateUFOInterior(w, h, time.Now().UnixNano())
 	case "building_assault":
 		m = battle.GenerateUrbanBuildingWFC(w, h, rand.New(rand.NewSource(42)))
 	case "alien_base":
 		m = battle.GenerateAlienBase(w, h)
 	case "alien_research":
-		m = battle.GenerateUFOInterior(w, h)
+		m = battle.GenerateUFOInterior(w, h, time.Now().UnixNano())
 	case "council":
 		m = battle.GenerateTerrorSite(w, h, time.Now().UnixNano())
 	case "cydonia":

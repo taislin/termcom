@@ -136,7 +136,7 @@ func (ai *AlienAI) GetNextPathStep(tx, ty int, m *BattleMap, units UnitList) (in
 func (ai *AlienAI) reactionFirePenalty(x, y int, m *BattleMap, units UnitList) float64 {
 	var penalty float64
 	for _, u := range units {
-		if !u.Alive || u.Faction != 0 || u == ai.Unit {
+		if !u.Alive || u.Faction != FactionHuman || u == ai.Unit {
 			continue
 		}
 		if u.TU < MinReactionTU || u.Weapon == "" {

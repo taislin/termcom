@@ -127,7 +127,7 @@ func main() {
 		m = battle.GenerateAbductionSite(w, h)
 		label = "Abduction Site"
 	case "ufo_interior":
-		m = battle.GenerateUFOInterior(w, h)
+		m = battle.GenerateUFOInterior(w, h, seed)
 		label = "UFO Interior (hand-crafted)"
 	case "ufo_wfc":
 		m = battle.GenerateUFOInteriorWFC(w, h, rng)

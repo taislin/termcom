@@ -57,6 +57,7 @@ var opaqueTiles = map[TileType]bool{
 	TileRock:          true,
 	TileUFOWall:       true,
 	TileFence:         true,
+	TileBush:          true,
 	TileCar:           true,
 	TileCarMid:        true,
 	TileCarRight:      true,

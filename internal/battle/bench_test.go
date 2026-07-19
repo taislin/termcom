@@ -100,7 +100,7 @@ func BenchmarkMapGeneration(b *testing.B) {
 	})
 	b.Run("UFOInterior", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			GenerateUFOInterior(30, 24)
+			GenerateUFOInterior(30, 24, 42)
 		}
 	})
 	b.Run("UFOInteriorWFC", func(b *testing.B) {

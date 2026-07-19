@@ -320,7 +320,7 @@ func clusterBiome(m *BattleMap, biome string, w, h int, rng *rand.Rand) {
 		m.Blob(TileRock, 4, w*h/80, 45, rng)
 		m.Poisson(TileBush, 4, w*h/200, rng)
 	case "polar":
-		m.Blob(TileMarsh, 5, w*h/60, 50, rng)
+		m.Blob(TileIce, 5, w*h/60, 50, rng)
 		m.Poisson(TileRock, 3, w*h/150, rng)
 	case "urban":
 		m.Poisson(TileObject, 4, w*h/200, rng)

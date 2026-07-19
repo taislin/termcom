@@ -441,7 +441,7 @@ func (m *BattleMap) Passable(x, y int) bool {
 	switch t.Type {
 	case TileFloor, TileDoor, TileGrass, TileUFOFloor, TileStairs, TileStairsDown, TilePavement, TileSand, TileSnow,
 		TileIce, TileGlass, TileDebris,
-		TileSkylight,
+		TileSkylight, TileBush,
 		TileConsole, TileMachinery, TilePod, TilePowerSource, TileStorage, TileAlienTech,
 		TileDesk, TileChair, TileChairLeft, TileChairRight, TileComputer, TileBed, TileLocker, TileCabinet,
 		TileRubble:
@@ -1014,8 +1014,8 @@ func GenerateCrashSite(w, h int, seed int64) (*BattleMap, *CrashResult) {
 
 	// Scatter debris around crash site
 	for i := 0; i < 15; i++ {
-		dx := rand.Intn(12) - 6
-		dy := rand.Intn(10) - 5
+		dx := rng.Intn(12) - 6
+		dy := rng.Intn(10) - 5
 		x := ufoX + bp.Width/2 + dx
 		y := ufoY + bp.Height/2 + dy
 		if m.At(x, y).Type == TileGrass || m.At(x, y).Type == TileTree {
@@ -1275,7 +1275,7 @@ func maskPoissonInRect(m *BattleMap, t TileType, radius, count, x0, y0, rw, rh i
 			continue
 		}
 		switch m.At(x, y).Type {
-		case TileGrass, TileFloor, TilePavement:
+		case TileGrass, TileFloor, TilePavement, TileSand, TileSnow, TileIce:
 		default:
 			continue
 		}
@@ -1300,7 +1300,14 @@ func GenerateAbductionSite(w, h int) *BattleMap {
 }
 
 // GenerateUFOInterior creates a UFO interior map (OpenXcom: 50x50)
-func GenerateUFOInterior(w, h int) *BattleMap {
+func GenerateUFOInterior(w, h int, seed int64) *BattleMap {
+	rng := rand.New(rand.NewSource(seed))
+	rn := func(n int) int {
+		if n <= 0 {
+			return 0
+		}
+		return rng.Intn(n)
+	}
 	levelH := h / 2
 	if levelH < 12 {
 		levelH = 12
@@ -1317,13 +1324,13 @@ func GenerateUFOInterior(w, h int) *BattleMap {
 
 		var rooms []room
 		attempts := 0
-		numRooms := 5 + rand.Intn(3)
+		numRooms := 5 + rng.Intn(3)
 		for i := 0; i < numRooms && attempts < 100; i++ {
 			attempts++
-			rw := 5 + rand.Intn(5)
-			rh := 4 + rand.Intn(4)
-			rx := 2 + rand.Intn(max(1, w-rw-4))
-			ry := 2 + rand.Intn(max(1, levelH-rh-4))
+			rw := 5 + rng.Intn(5)
+			rh := 4 + rng.Intn(4)
+			rx := 2 + rng.Intn(max(1, w-rw-4))
+			ry := 2 + rng.Intn(max(1, levelH-rh-4))
 
 			overlap := false
 			for _, existing := range rooms {
@@ -1340,7 +1347,7 @@ func GenerateUFOInterior(w, h int) *BattleMap {
 			m.fillRectLevel(rx+1, ry+1, rw-1, rh-1, level, TileUFOFloor)
 			m.drawRectLevel(rx, ry, rw, rh, level, TileUFOWall)
 
-			doorSide := rand.Intn(4)
+			doorSide := rng.Intn(4)
 			switch doorSide {
 			case 0:
 				m.SetLevel(rx+rw/2, ry, level, TileDoor)
@@ -1386,7 +1393,7 @@ func GenerateUFOInterior(w, h int) *BattleMap {
 		for _, rm := range rooms {
 			rx := rm.x + rm.w/2
 			ry := rm.y + rm.h/2
-			roomType := rand.Intn(5)
+			roomType := rng.Intn(5)
 			switch roomType {
 			case 0:
 				for dx := -2; dx <= 2; dx++ {
@@ -1433,8 +1440,8 @@ func GenerateUFOInterior(w, h int) *BattleMap {
 	m.SetLevel(stairsX+2, stairsY+2, 0, TilePowerSource)
 
 	for i := 0; i < 6; i++ {
-		x := randn(w-4) + 2
-		y := randn(levelH-4) + 2
+		x := rn(w-4) + 2
+		y := rn(levelH-4) + 2
 		if m.AtLevel(x, y, 0).Type == TileUFOFloor {
 			m.SetLevel(x, y, 0, TileAlienTech)
 		}
