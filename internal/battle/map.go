@@ -403,6 +403,7 @@ type BattleMap struct {
 	CurrentLevel int // 0=ground, 1=upper
 	Tiles        [][]Tile
 	Gas          *GasGrid
+	GroundLoot   map[[2]int][]string // items on the ground, keyed by tile position
 }
 
 func NewBattleMap(w, h int) *BattleMap {
@@ -413,6 +414,7 @@ func NewBattleMap(w, h int) *BattleMap {
 		LevelHeight:  h,
 		CurrentLevel: 0,
 		Tiles:        make([][]Tile, h),
+		GroundLoot:   make(map[[2]int][]string),
 	}
 	for y := 0; y < h; y++ {
 		m.Tiles[y] = make([]Tile, w)

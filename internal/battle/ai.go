@@ -490,15 +490,10 @@ func (ai *AlienAI) canFireAt(target *Unit) bool {
 	if w.AmmoMax < 99 && ai.Unit.WeaponAmmo <= 0 {
 		return false
 	}
-	dx := ai.Unit.X - target.X
-	dy := ai.Unit.Y - target.Y
-	if dx < 0 {
-		dx = -dx
-	}
-	if dy < 0 {
-		dy = -dy
-	}
-	if dx+dy > w.Range {
+	dx := float64(ai.Unit.X - target.X)
+	dy := float64(ai.Unit.Y - target.Y)
+	dist := math.Sqrt(dx*dx + dy*dy)
+	if w.Range > 0 && dist > float64(w.Range) {
 		return false
 	}
 	return true

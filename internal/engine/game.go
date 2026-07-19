@@ -46,6 +46,7 @@ const (
 	StatePlaneDesigner
 	StateWeaponDesigner
 	StateSeed
+	StateLoadout
 )
 
 type Screen interface {

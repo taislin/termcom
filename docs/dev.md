@@ -14,11 +14,15 @@ Build, test, and development reference for the termcom codebase.
 go run ./cmd/termcom
 
 # Build binary
-go build -o termcom.exe ./cmd/termcom
+go build -o termcom ./cmd/termcom
 
 # Or via Makefile
 make build
 make run
+make test          # Run all tests (verbose)
+make test-cover    # Run tests with coverage report
+make lint          # Run go vet + staticcheck
+make clean         # Remove binary and coverage
 ```
 
 ## Testing
@@ -108,11 +112,17 @@ go run ./cmd/test_map all                 # All-biome assembled map
 
 **Available map types:** `crash`, `terror`, `abduction`, `ufo_interior`, `ufo_wfc`, `alien_base`, `alien_base_wfc`, `building`, `building2`, `cydonia`, `forest`, `desert`, `polar`, `all`
 
+**Options:**
+| Flag | Description |
+|------|-------------|
+| `--list` / `-l` | List available generators |
+| `--dump` / `-d` | Print map as ASCII to stdout (non-interactive) |
+
 **Controls:**
 | Key | Action |
 |-----|--------|
 | `q` | Quit |
-| `n` / `p` | Next / previous level (multi-level maps) |
+| Tab / Shift+Tab | Next / previous level (multi-level maps) |
 | Arrows | Scroll when map exceeds terminal size |
 
 **What it does:**
@@ -222,7 +232,7 @@ go run ./cmd/termcom_battle
 | `crash_site` | `GenerateCrashSite` | Standard UFO crash recovery |
 | `terror` | `GenerateTerrorSite` | Urban terror mission with civilians |
 | `supply_raid` | `GenerateUFOInterior` (legacy) or `GenerateUFOInteriorWFC` (live) | Interior UFO combat |
-| `alien_base` | `GenerateAlienBase` | Alien base assault |
+| `alien_base` | `GenerateAlienBaseWFC` | Alien base assault (WFC) |
 | `alien_research` | `GenerateUFOInterior` (legacy) or `GenerateUFOInteriorWFC` (live) | Research facility interior |
 | `building_assault` | `GenerateUrbanBuildingWFC` | Procedural urban building (WFC) |
 | `council` | `GenerateTerrorSite` | Council mission |
@@ -240,6 +250,8 @@ cmd/
   termcom_battle/       Test script: interactive battle launcher
   test_aliens/          Alien roster viewer (console output)
   test_map/             Map visualiser (tcell render of any generator)
+  scenario_creator/     Interactive scenario JSON creator
+  wfcdiag/              WFC tile library diagnostic tool
   webserver/            Web server (for remote play)
 maps/
   *.json                Custom battle definitions
@@ -249,6 +261,7 @@ data/
   wfc/
     ufo.json            WFC tile library: UFO interiors
     urban.json          WFC tile library: urban buildings
+    alien_base.json     WFC tile library: alien base interiors
   aliens/
     *.json              Procedural alien sprite part definitions
 internal/
@@ -317,7 +330,7 @@ Used for outdoor & mixed maps: terror, abduction, crash site terrain, forest, de
 3. Tile glyphs: `W`=TileWall, `.`=TileFloor, `g`=TileGrass, `t`=TileTree, `r`=TileRock, `s`=TileSand, `n`=TileSnow, `~`=TileWater, `R`=TileRubble, etc. Furniture glyphs per-chunk (defined in furniture map)
 4. Fragments load automatically via `mapgen.Init()` at game start
 
-**Current fragment count:** ~32 fragments across all biomes.
+**Current fragment count:** ~84 fragments across all biomes.
 
 ### 2. Wave Function Collapse solver (`wfc.go`)
 
@@ -353,7 +366,7 @@ Used for enclosed interiors: UFO hulls and urban building interiors.
 - `rows` are equal-length strings; characters map to `TileType` via `tileRuneToType`
 - `neighbors.N/E/S/W` list the tile IDs allowed to sit in each cardinal direction relative to this tile
 - Tile size is variable — 3x3 small pieces and larger multi-room blocks share the grid
-- Libraries load at runtime from `data/wfc/ufo.json` and `data/wfc/urban.json`, with hardcoded fallback
+- Libraries load at runtime from `data/wfc/ufo.json`, `data/wfc/urban.json`, and `data/wfc/alien_base.json`, with hardcoded fallback
 
 **Available WFC generators:**
 
@@ -361,6 +374,7 @@ Used for enclosed interiors: UFO hulls and urban building interiors.
 |----------|---------|---------|
 | `GenerateUFOInteriorWFC` | `data/wfc/ufo.json` (17 tiles) | `Supply Raid`, `Alien Research` |
 | `GenerateUrbanBuildingWFC` | `data/wfc/urban.json` (20 tiles) | `Building Assault` |
+| `GenerateAlienBaseWFC` | `data/wfc/alien_base.json` | `Alien Base Assault` |
 
 ## Common Development Tasks
 
@@ -429,7 +443,7 @@ Each playthrough generates unique content from a seed:
 
 **Maps** (`internal/battle/map.go`, `internal/battle/fragments.go`, `internal/battle/wfc.go`):
 - Fragment-based maps (12+ biome wrappers)
-- WFC-based interior maps (2 libraries, single-level and multi-level)
+- WFC-based interior maps (3 libraries, single-level and multi-level)
 - Seeded for reproducible layouts
 
 ### Mission modifiers

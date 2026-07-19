@@ -202,6 +202,9 @@ func (u *Unit) FireAt(target *Unit, m *BattleMap, weather *Weather) (int, bool, 
 	u.TU -= tuCost
 
 	dist := math.Sqrt(float64((target.X-u.X)*(target.X-u.X) + (target.Y-u.Y)*(target.Y-u.Y)))
+	if w.Range > 0 && dist > float64(w.Range) {
+		return 0, false, false, fmt.Errorf("target out of weapon range (%.0f > %d)", dist, w.Range)
+	}
 	accMod := 100 - int(dist*distAccPenalty)
 	if accMod < minAccMod {
 		accMod = minAccMod
@@ -318,6 +321,18 @@ func (u *Unit) resolveHits(rounds, hitChance int, w data.RuleItem, target *Unit,
 	if target.HP <= 0 {
 		target.HP = 0
 		target.Alive = false
+		if m != nil {
+			pos := [2]int{target.X, target.Y}
+			if target.Weapon != "" {
+				m.GroundLoot[pos] = append(m.GroundLoot[pos], target.Weapon)
+			}
+			if target.Soldier != nil {
+				for _, item := range target.Soldier.Inventory {
+					m.GroundLoot[pos] = append(m.GroundLoot[pos], item)
+				}
+				target.Soldier.Inventory = nil
+			}
+		}
 	}
 	return
 }

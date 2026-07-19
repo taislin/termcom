@@ -58,6 +58,45 @@ func (bs *Battlescape) handleKey(e *tcell.EventKey) {
 		return
 	}
 
+	// Inventory overlay intercept
+	if bs.ShowInventory {
+		switch e.Key() {
+		case tcell.KeyUp:
+			if bs.InvCursor > 0 {
+				bs.InvCursor--
+			}
+		case tcell.KeyDown:
+			maxItems := len(bs.currentInvList())
+			if bs.InvCursor < maxItems-1 {
+				bs.InvCursor++
+			}
+		case tcell.KeyTab:
+			bs.InvTab = 1 - bs.InvTab
+			bs.InvCursor = 0
+		case tcell.KeyEnter:
+			bs.invActivate()
+		case tcell.KeyEscape:
+			bs.ShowInventory = false
+		}
+		switch e.Str() {
+		case "i", "I":
+			bs.ShowInventory = false
+		case "u", "U":
+			if bs.InvTab == 0 {
+				bs.invUse()
+			}
+		case "d", "D":
+			if bs.InvTab == 0 {
+				bs.invDrop()
+			}
+		case "p", "P":
+			if bs.InvTab == 1 {
+				bs.invPickup()
+			}
+		}
+		return
+	}
+
 	if bs.PlayerLock > 0 && bs.Phase == PhasePlayerTurn {
 		return
 	}
@@ -123,6 +162,8 @@ func (bs *Battlescape) handleKey(e *tcell.EventKey) {
 		bs.PlaceMine()
 	case "o", "O": 
 		bs.Game.PushState(engine.StateOptions)
+	case "i", "I":
+		bs.openInventory()
 	}
 }
 

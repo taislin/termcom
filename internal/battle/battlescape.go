@@ -186,6 +186,11 @@ type Battlescape struct {
 	mouseX, mouseY int // last mouse position for edge-scrolling
 	QuitConfirm    bool
 	mouseActive    bool
+
+	// In-battle Inventory
+	ShowInventory bool
+	InvCursor     int // selected item index
+	InvTab        int // 0=backpack, 1=ground
 }
 
 // The following setters mutate Battlescape fields that are also read by the
@@ -1205,6 +1210,9 @@ func (bs *Battlescape) checkHumanReactionFire(movedAlien *Unit) {
 		if !ok || w.AmmoMax < 99 && u.WeaponAmmo <= 0 {
 			continue
 		}
+		if w.Range > 0 && dist > w.Range {
+			continue
+		}
 		bs.AddMessage(fmt.Sprintf(language.String("MSG_REACTION_FIRE"), u.Name(), movedAlien.Name()))
 		audio.PlayWeaponFire(u.Weapon)
 		bs.Status = StatusPlayerOverwatch
@@ -1255,6 +1263,9 @@ func (bs *Battlescape) checkAlienReactionFire(movedHuman *Unit) {
 		}
 		w, ok := data.RuleItems[u.Weapon]
 		if !ok || w.AmmoMax < 99 && u.WeaponAmmo <= 0 {
+			continue
+		}
+		if w.Range > 0 && dist > w.Range {
 			continue
 		}
 		bs.AddMessage(fmt.Sprintf(language.String("MSG_REACTION_FIRE"), u.Name(), movedHuman.Name()))
@@ -3193,6 +3204,11 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 	if bs.QuitConfirm {
 		bs.renderQuitConfirm(ctx, w, h)
 	}
+
+	// Inventory overlay
+	if bs.ShowInventory {
+		bs.renderInventory(ctx, w, h)
+	}
 }
 
 func (bs *Battlescape) renderQuitConfirm(ctx *engine.ScreenCtx, w, h int) {
@@ -3210,6 +3226,229 @@ func (bs *Battlescape) renderQuitConfirm(ctx *engine.ScreenCtx, w, h int) {
 	ctx.DrawString(x+(boxW-engine.StringWidth(msg))/2, y+2, msg, engine.StyleYellow)
 	hint := language.String("CONFIRM_BATTLE_EXIT_HINT")
 	ctx.DrawString(x+(boxW-engine.StringWidth(hint))/2, y+3, hint, engine.StyleHotkey)
+}
+
+// openInventory opens the inventory overlay for the selected soldier.
+func (bs *Battlescape) openInventory() {
+	if bs.Selected == nil || bs.Selected.Soldier == nil {
+		return
+	}
+	if bs.Phase != PhasePlayerTurn {
+		return
+	}
+	bs.ShowInventory = true
+	bs.InvCursor = 0
+	bs.InvTab = 0
+}
+
+// currentInvList returns the item list for the active tab.
+func (bs *Battlescape) currentInvList() []string {
+	if bs.InvTab == 0 {
+		if bs.Selected != nil && bs.Selected.Soldier != nil {
+			return bs.Selected.Soldier.Inventory
+		}
+		return nil
+	}
+	return bs.Map.GroundLoot[[2]int{bs.Selected.X, bs.Selected.Y}]
+}
+
+// invActivate uses or picks up the selected item.
+func (bs *Battlescape) invActivate() {
+	list := bs.currentInvList()
+	if bs.InvCursor < 0 || bs.InvCursor >= len(list) {
+		return
+	}
+	if bs.InvTab == 0 {
+		bs.invUse()
+	} else {
+		bs.invPickup()
+	}
+}
+
+// invUse uses the selected inventory item (medikit, etc.).
+func (bs *Battlescape) invUse() {
+	if bs.Selected == nil || bs.Selected.Soldier == nil {
+		return
+	}
+	items := bs.Selected.Soldier.Inventory
+	if bs.InvCursor < 0 || bs.InvCursor >= len(items) {
+		return
+	}
+	item := items[bs.InvCursor]
+	switch item {
+	case "medikit":
+		bs.Selected.Soldier.RemoveItem(item)
+		bs.UseMedikit()
+	case "grenade":
+		bs.Selected.Soldier.RemoveItem(item)
+		bs.Grenade()
+	case "motion_scanner":
+		bs.Selected.Soldier.RemoveItem(item)
+		bs.UseMotionScanner()
+	}
+	// Re-check cursor bounds after removal
+	maxItems := len(bs.currentInvList())
+	if maxItems > 0 && bs.InvCursor >= maxItems {
+		bs.InvCursor = maxItems - 1
+	}
+}
+
+// invDrop drops the selected inventory item onto the ground.
+func (bs *Battlescape) invDrop() {
+	if bs.Selected == nil || bs.Selected.Soldier == nil {
+		return
+	}
+	items := bs.Selected.Soldier.Inventory
+	if bs.InvCursor < 0 || bs.InvCursor >= len(items) {
+		return
+	}
+	item := items[bs.InvCursor]
+	bs.Selected.Soldier.RemoveItem(item)
+	pos := [2]int{bs.Selected.X, bs.Selected.Y}
+	bs.Map.GroundLoot[pos] = append(bs.Map.GroundLoot[pos], item)
+	// Re-check cursor bounds
+	maxItems := len(bs.currentInvList())
+	if bs.InvCursor >= maxItems {
+		bs.InvCursor = maxItems - 1
+	}
+}
+
+// invPickup picks up the selected item from the ground.
+func (bs *Battlescape) invPickup() {
+	if bs.Selected == nil || bs.Selected.Soldier == nil {
+		return
+	}
+	pos := [2]int{bs.Selected.X, bs.Selected.Y}
+	items := bs.Map.GroundLoot[pos]
+	if bs.InvCursor < 0 || bs.InvCursor >= len(items) {
+		return
+	}
+	item := items[bs.InvCursor]
+	// Remove from ground
+	bs.Map.GroundLoot[pos] = append(items[:bs.InvCursor], items[bs.InvCursor+1:]...)
+	// Add to soldier inventory
+	bs.Selected.Soldier.AddItem(item)
+	// Re-check cursor bounds
+	maxItems := len(bs.currentInvList())
+	if bs.InvCursor >= maxItems {
+		bs.InvCursor = maxItems - 1
+	}
+}
+
+func (bs *Battlescape) renderInventory(ctx *engine.ScreenCtx, w, h int) {
+	if bs.Selected == nil || bs.Selected.Soldier == nil {
+		bs.ShowInventory = false
+		return
+	}
+	s := bs.Selected.Soldier
+	items := s.Inventory
+	ground := bs.Map.GroundLoot[[2]int{bs.Selected.X, bs.Selected.Y}]
+
+	boxW := 52
+	boxH := 6
+	// Count lines needed
+	lineCount := 0
+	lineCount++ // soldier name
+	lineCount++ // weapon + armor
+	lineCount++ // blank
+	lineCount++ // "Backpack:" header
+	nInv := len(items)
+	for i := 0; i < nInv; i++ {
+		lineCount++
+	}
+	lineCount++ // blank
+	lineCount++ // "Ground:" header
+	nGround := len(ground)
+	for i := 0; i < nGround; i++ {
+		lineCount++
+	}
+	lineCount++ // blank
+	lineCount++ // key hints
+	boxH = lineCount + 2
+
+	x := (w - boxW) / 2
+	y := (h - boxH) / 2
+	if y < 0 {
+		y = 0
+	}
+
+	// Fill background
+	for fy := y; fy < y+boxH; fy++ {
+		for fx := x; fx < x+boxW; fx++ {
+			ctx.SetCell(fx, fy, ' ', engine.StyleGray)
+		}
+	}
+	ctx.DrawPanel(x, y, boxW, boxH, "Inventory", engine.StyleGray)
+
+	cur := y + 1
+	// Soldier name + encumbrance
+	enc := s.Encumbrance()
+	pen := s.TUPenalty()
+	nameStr := fmt.Sprintf("%s  Enc: %d (TU -%d)", s.Name, enc, pen)
+	ctx.DrawString(x+2, cur, nameStr, engine.StyleYellow)
+	cur++
+
+	// Weapon + Armor
+	wpnStr := "Weapon: "
+	if s.Weapon != "" {
+		wpnStr += data.ItemDisplayName(s.Weapon)
+		if ai, ok := data.RuleItems[s.Weapon]; ok && ai.AmmoMax < 99 {
+			wpnStr += fmt.Sprintf(" (%d/%d)", bs.Selected.WeaponAmmo, ai.AmmoMax)
+		}
+	} else {
+		wpnStr += "(none)"
+	}
+	armStr := "Armor: " + language.String(s.Armor)
+	ctx.DrawString(x+2, cur, wpnStr, engine.StyleDefault)
+	ctx.DrawString(x+2+boxW/2, cur, armStr, engine.StyleDefault)
+	cur++
+
+	cur++ // blank
+
+	// Backpack section
+	ctx.DrawString(x+2, cur, "Backpack:", engine.StyleCyan)
+	cur++
+	sel := bs.InvCursor
+	for i, item := range items {
+		mark := "  "
+		if i == sel && bs.InvTab == 0 {
+			mark = " >"
+		}
+		line := fmt.Sprintf("%s %s", mark, data.ItemDisplayName(item))
+		ctx.DrawString(x+2, cur, line, engine.StyleDefault)
+		ctx.DrawString(x+boxW-20, cur, "[U]se [D]rop", engine.StyleHotkey)
+		cur++
+	}
+	if nInv == 0 {
+		ctx.DrawString(x+4, cur, "(empty)", engine.StyleGray)
+		cur++
+	}
+
+	cur++ // blank
+
+	// Ground section
+	ctx.DrawString(x+2, cur, "Ground:", engine.StyleCyan)
+	cur++
+	for i, item := range ground {
+		mark := "  "
+		if i == sel && bs.InvTab == 1 {
+			mark = " >"
+		}
+		line := fmt.Sprintf("%s %s", mark, data.ItemDisplayName(item))
+		ctx.DrawString(x+2, cur, line, engine.StyleDefault)
+		ctx.DrawString(x+boxW-18, cur, "[P]ick up", engine.StyleHotkey)
+		cur++
+	}
+	if nGround == 0 {
+		ctx.DrawString(x+4, cur, "(nothing)", engine.StyleGray)
+		cur++
+	}
+
+	cur++ // blank
+
+	// Key hints
+	hintStr := "[I] Close  [↑↓] Select  [Tab] Tab"
+	ctx.DrawString(x+(boxW-engine.StringWidth(hintStr))/2, cur, hintStr, engine.StyleHotkey)
 }
 
 func (bs *Battlescape) phaseStr() string {

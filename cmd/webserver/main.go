@@ -135,6 +135,7 @@ func wireGame(g *engine.Game) {
 				g.RegisterScreen(engine.StateGeoscape, gs)
 				g.RegisterScreen(engine.StateBase, base.NewBaseScreen(g, gs.SelectedBase()))
 				g.RegisterScreen(engine.StateEquip, base.NewEquipScreen(g, gs.SelectedBase()))
+				g.RegisterScreen(engine.StateLoadout, base.NewLoadoutScreen(g, gs.SelectedBase()))
 				g.RegisterScreen(engine.StateResearch, base.NewResearchScreen(g, gs.SelectedBase()))
 				g.RegisterScreen(engine.StateManufacture, base.NewManufactureScreen(g, gs.SelectedBase()))
 				g.SetState(engine.StateGeoscape)
@@ -152,13 +153,14 @@ func wireGame(g *engine.Game) {
 		gs := geo.NewGeoscapeFromSave(g, sd)
 		g.RegisterScreen(engine.StateGeoscape, gs)
 		g.RegisterScreen(engine.StateBase, base.NewBaseScreen(g, gs.SelectedBase()))
-		g.RegisterScreen(engine.StateEquip, base.NewEquipScreen(g, gs.SelectedBase()))
-		g.RegisterScreen(engine.StateResearch, base.NewResearchScreen(g, gs.SelectedBase()))
-		g.RegisterScreen(engine.StateManufacture, base.NewManufactureScreen(g, gs.SelectedBase()))
-		g.SetState(engine.StateGeoscape)
-	}
+	g.RegisterScreen(engine.StateEquip, base.NewEquipScreen(g, gs.SelectedBase()))
+	g.RegisterScreen(engine.StateLoadout, base.NewLoadoutScreen(g, gs.SelectedBase()))
+	g.RegisterScreen(engine.StateResearch, base.NewResearchScreen(g, gs.SelectedBase()))
+	g.RegisterScreen(engine.StateManufacture, base.NewManufactureScreen(g, gs.SelectedBase()))
+	g.SetState(engine.StateGeoscape)
+}
 
-	g.OnLoadGame = func() {
+g.OnLoadGame = func() {
 		var slots []engine.SlotInfo
 		for slot := 1; slot <= 10; slot++ {
 			sd, err := save.LoadGame(save.SavePath(slot))
@@ -177,6 +179,7 @@ func wireGame(g *engine.Game) {
 			g.RegisterScreen(engine.StateGeoscape, gs)
 			g.RegisterScreen(engine.StateBase, base.NewBaseScreen(g, gs.SelectedBase()))
 			g.RegisterScreen(engine.StateEquip, base.NewEquipScreen(g, gs.SelectedBase()))
+			g.RegisterScreen(engine.StateLoadout, base.NewLoadoutScreen(g, gs.SelectedBase()))
 			g.RegisterScreen(engine.StateResearch, base.NewResearchScreen(g, gs.SelectedBase()))
 			g.RegisterScreen(engine.StateManufacture, base.NewManufactureScreen(g, gs.SelectedBase()))
 			g.SetState(engine.StateGeoscape)
