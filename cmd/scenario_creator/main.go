@@ -26,6 +26,11 @@ var generators = []mapGenDef{
 	{"Forest", "forest"},
 	{"Desert", "desert"},
 	{"Polar", "polar"},
+	{"Farm", "farm"},
+	{"Coastal", "coastal"},
+	{"Mountain", "mountain"},
+	{"Swamp", "swamp"},
+	{"Jungle", "jungle"},
 }
 
 type scenarioBuilder struct {

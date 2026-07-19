@@ -31,8 +31,8 @@
     "weight": 2,
     "no_rotate": true,
     "rows": [
-      "ab",
-      "c "
+      "a ",
+      "cb"
     ],
     "terrain": {
       "a": "TileForklift",

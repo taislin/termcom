@@ -1,20 +1,20 @@
 {
   "id": "urban_corner_store",
-  "tags": [
-    "urban"
-  ],
+  "tags": ["urban"],
   "width": 6,
   "height": 5,
   "rows": [
     "WWWWWW",
-    "W.d..W",
+    "WNd.NW",
     "W..s.W",
-    "W.c..W",
-    "WWWWWW"
+    "W.c.NW",
+    "WW+WWW"
   ],
   "terrain": {
     "W": "TileWall",
-    ".": "TileFloor"
+    ".": "TileFloor",
+    "N": "TileWindow",
+    "+": "TileDoor"
   },
   "furniture": {
     "d": "TileDesk",

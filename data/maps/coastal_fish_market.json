@@ -1,0 +1,29 @@
+{
+  "id": "coastal_fish_market",
+  "tags": [
+    "coastal",
+    "urban"
+  ],
+  "width": 15,
+  "height": 8,
+  "weight": 2,
+  "no_rotate": true,
+  "rows": [
+    ".ppppppppppppp.",
+    ".pDDpp8ppDDDpp.",
+    ".ppppppppppppp.",
+    ".ppSppDDpp8ppp.",
+    ".ppppppppppppp.",
+    ".pDDDppSppDDpp.",
+    ".ppp8ppppppppp.",
+    ".pppppppDDpSpp."
+  ],
+  "terrain": {
+    "p": "TilePier"
+  },
+  "furniture": {
+    "D": "TileDesk",
+    "S": "TileStorage",
+    "8": "TileFuelPump"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "id": "coastal_pier",
+  "tags": [
+    "coastal"
+  ],
+  "width": 5,
+  "height": 6,
+  "weight": 2,
+  "no_rotate": true,
+  "rows": [
+    "..P..",
+    "..P..",
+    "..P..",
+    "PPPPP",
+    "PPPPP",
+    "PPPPP"
+  ],
+  "terrain": {
+    ".": "TileWater",
+    "P": "TilePier"
+  },
+  "furniture": {}
+}

@@ -38,6 +38,7 @@ const (
 	fireSpreadBase   = 20
 	fogRangeMin      = 1
 	fogRangeSpan     = 2
+	movePenaltyRain  = 2
 )
 
 // MissionModifier defines mission-specific environment rules.
@@ -185,12 +186,31 @@ func RollWeather(rng *rand.Rand, biome string) Weather {
 		if roll(rng, windChance) {
 			w.Wind = true
 		}
-	case "marsh":
+	case "marsh", "swamp":
 		if roll(rng, rainChance) {
 			w.Rain = true
 		}
 		if roll(rng, marshFogChance) {
 			w.FogDensity = fogRangeMin + rng.Intn(fogRangeSpan)
+		}
+	case "mountain":
+		if roll(rng, snowChance) {
+			w.Snow = true
+		}
+		if roll(rng, windChance) {
+			w.Wind = true
+		}
+		w.TempCold = true
+	case "jungle":
+		if roll(rng, rainChance*2) {
+			w.Rain = true
+		}
+		if roll(rng, marshFogChance) {
+			w.FogDensity = fogRangeMin + rng.Intn(fogRangeSpan)
+		}
+	case "farm", "coastal":
+		if roll(rng, windChance) {
+			w.Wind = true
 		}
 	default:
 		if roll(rng, rainChance) {
@@ -243,6 +263,15 @@ func (w Weather) FireSpreadChance() int {
 		return fireSpreadWind
 	}
 	return fireSpreadBase
+}
+
+// MovePenalty returns extra TU added per tile stepped on while the ground
+// is muddy. Rain turns grass/dirt to mud (slower); cold+wind does not.
+func (w Weather) MovePenalty() int {
+	if w.Rain {
+		return movePenaltyRain
+	}
+	return 0
 }
 
 func (w Weather) IsClear() bool {

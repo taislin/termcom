@@ -1,21 +1,21 @@
 {
   "id": "urban_building",
-  "tags": [
-    "urban"
-  ],
+  "tags": ["urban"],
   "width": 7,
   "height": 6,
   "rows": [
     "WWWWWWW",
-    "W.....W",
+    "WN...NW",
     "W.c.C.W",
     "W(ld)rW",
     "Wl...aW",
-    "WWWWWWW"
+    "WW+WWWW"
   ],
   "terrain": {
     "W": "TileWall",
-    ".": "TileFloor"
+    ".": "TileFloor",
+    "N": "TileWindow",
+    "+": "TileDoor"
   },
   "furniture": {
     "c": "TileChair",

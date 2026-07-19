@@ -439,10 +439,6 @@ func tileRuneToDisplay(ch rune) rune {
 }
 
 // fillGaps replaces stray base-terrain tiles that were not covered by WFC
-// with the most common neighbor tile type. fillTile is the base tile to
-// detect (e.g. TilePavement for urban, TileUFOFloor for UFO). This fixes
-// uncovered strips from integer division and partial solver coverage.
-// fillGaps replaces stray base-terrain tiles that were not covered by WFC
 // (due to integer division at the right/bottom borders) with the most common
 // neighbor tile type. This fixes uncovered border strips. WfcW and wfcH are the
 // boundaries of the compiled WFC grid (gw * stride, gh * stride); tiles inside

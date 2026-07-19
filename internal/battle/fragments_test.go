@@ -45,8 +45,8 @@ func TestApplyMapgenChunkOverlapPreservesUnderlying(t *testing.T) {
 	m := NewBattleMap(20, 20)
 	m.Set(5, 5, TileWall)
 	ApplyMapgenChunk(m, 4, 4, chunk)
-	if m.At(5, 5).Type != TileFloor {
-		t.Errorf("expected chunk floor to overwrite underlying wall, got %v", m.At(5, 5).Type)
+	if m.At(5, 5).Type != TilePavement {
+		t.Errorf("expected chunk pavement to overwrite underlying wall, got %v", m.At(5, 5).Type)
 	}
 }
 
@@ -56,7 +56,7 @@ func TestAssembleMapBiomes(t *testing.T) {
 		t.Fatalf("load maps: %v", err)
 	}
 	rng := rand.New(rand.NewSource(12345))
-	for _, biome := range []string{"urban", "forest", "ufo", "alien", "desert", "polar"} {
+	for _, biome := range []string{"urban", "forest", "ufo", "alien", "desert", "polar", "farm", "coastal", "mountain", "swamp", "jungle"} {
 		m := AssembleMap(biome, 40, 40, rng)
 		if !m.ValidateMap() {
 			t.Errorf("biome %s: assembled map failed validation", biome)
@@ -123,7 +123,7 @@ func TestAllGeneratorsValid(t *testing.T) {
 		func() *BattleMap { return GenerateTerrorSite(50, 50, 42) },
 		func() *BattleMap { return GenerateAlienBaseWFC(50, 50, rand.New(rand.NewSource(42))) },
 		func() *BattleMap { return GenerateCydonia(50, 50) },
-		func() *BattleMap { return GenerateUFOInterior(50, 50) },
+		func() *BattleMap { return GenerateUFOInterior(50, 50, 42) },
 	}
 	for i, gen := range generators {
 		m := gen()

@@ -132,6 +132,7 @@ func NewGame(dataDir string, cols, rows int) *GameBridge {
 			g.RegisterScreen(engine.StateGeoscape, gs)
 			g.RegisterScreen(engine.StateBase, base.NewBaseScreen(g, gs.SelectedBase()))
 			g.RegisterScreen(engine.StateEquip, base.NewEquipScreen(g, gs.SelectedBase()))
+			g.RegisterScreen(engine.StateLoadout, base.NewLoadoutScreen(g, gs.SelectedBase()))
 			g.RegisterScreen(engine.StateResearch, base.NewResearchScreen(g, gs.SelectedBase()))
 			g.RegisterScreen(engine.StateManufacture, base.NewManufactureScreen(g, gs.SelectedBase()))
 			g.SetState(engine.StateGeoscape)
@@ -148,6 +149,7 @@ func NewGame(dataDir string, cols, rows int) *GameBridge {
 		g.RegisterScreen(engine.StateGeoscape, gs)
 		g.RegisterScreen(engine.StateBase, base.NewBaseScreen(g, gs.SelectedBase()))
 		g.RegisterScreen(engine.StateEquip, base.NewEquipScreen(g, gs.SelectedBase()))
+		g.RegisterScreen(engine.StateLoadout, base.NewLoadoutScreen(g, gs.SelectedBase()))
 		g.RegisterScreen(engine.StateResearch, base.NewResearchScreen(g, gs.SelectedBase()))
 		g.RegisterScreen(engine.StateManufacture, base.NewManufactureScreen(g, gs.SelectedBase()))
 		g.SetState(engine.StateGeoscape)
@@ -172,6 +174,7 @@ func NewGame(dataDir string, cols, rows int) *GameBridge {
 			g.RegisterScreen(engine.StateGeoscape, gs)
 			g.RegisterScreen(engine.StateBase, base.NewBaseScreen(g, gs.SelectedBase()))
 			g.RegisterScreen(engine.StateEquip, base.NewEquipScreen(g, gs.SelectedBase()))
+			g.RegisterScreen(engine.StateLoadout, base.NewLoadoutScreen(g, gs.SelectedBase()))
 			g.RegisterScreen(engine.StateResearch, base.NewResearchScreen(g, gs.SelectedBase()))
 			g.RegisterScreen(engine.StateManufacture, base.NewManufactureScreen(g, gs.SelectedBase()))
 			g.SetState(engine.StateGeoscape)
@@ -472,11 +475,11 @@ func (b *GameBridge) launchCustomBattle(path string) {
 	case "terror":
 		m = battle.GenerateTerrorSite(w, h, time.Now().UnixNano())
 	case "supply_raid", "ufo_interior":
-		m = battle.GenerateUFOInterior(w, h)
+		m = battle.GenerateUFOInterior(w, h, time.Now().UnixNano())
 	case "alien_base":
 		m = battle.GenerateAlienBase(w, h)
 	case "alien_research":
-		m = battle.GenerateUFOInterior(w, h)
+		m = battle.GenerateUFOInterior(w, h, time.Now().UnixNano())
 	case "council":
 		m = battle.GenerateTerrorSite(w, h, time.Now().UnixNano())
 	case "cydonia":
@@ -489,8 +492,18 @@ func (b *GameBridge) launchCustomBattle(path string) {
 		m = battle.GenerateDesert(w, h)
 	case "polar":
 		m = battle.GeneratePolar(w, h)
+	case "farm":
+		m = battle.GenerateFarm(w, h)
+	case "coastal":
+		m = battle.GenerateCoastal(w, h)
+	case "mountain":
+		m = battle.GenerateMountain(w, h)
+	case "swamp":
+		m = battle.GenerateSwamp(w, h)
+	case "jungle":
+		m = battle.GenerateJungle(w, h)
 	default:
-		m, _ = battle.GenerateCrashSite(w, h, 42)
+		m, _ = battle.GenerateCrashSite(w, h, 42, -1, -1)
 	}
 
 	var units []battle.CustomUnitDef

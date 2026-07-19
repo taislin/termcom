@@ -1,0 +1,23 @@
+{
+  "id": "military_checkpoint",
+  "tags": ["urban", "rural"],
+  "width": 15,
+  "height": 5,
+  "weight": 2,
+  "rows": [
+    "F.............F",
+    "F..rrr...rrr..F",
+    "F..r.r...r.r..F",
+    "WWWW.+...+.WWWW",
+    "..............."
+  ],
+  "terrain": {
+    ".": "TilePavement",
+    "F": "TileFence",
+    "W": "TileWall",
+    "+": "TileDoor"
+  },
+  "furniture": {
+    "r": "TileRock"
+  }
+}

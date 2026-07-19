@@ -70,6 +70,58 @@ const (
 	TileContainerRed
 	TileContainerBlue
 	TileContainerYellow
+	// Biome structure tiles
+	TileAdobe    // thick adobe wall (dusty orange, indestructible by plasma)
+	TileMetalWall // prefab metallic wall (silver, indestructible)
+	TileWreck    // aircraft wreckage (rusty metal, indestructible, full cover)
+	TileTimber   // stacked timber (flammable, full cover)
+	TileDish     // satellite/comms dish (metal, indestructible)
+	TileTruck    // military supply truck (vehicle, full cover)
+	TileIce      // frozen lake ice (passable, zero cover)
+	TileStreetlamp // streetlamp / floodlight pole (emits light, shootable)
+	TileGlass     // broken glass / debris on floor (noisy when stepped on)
+	TileDebris    // scattered debris / rubble-strewn floor (noisy when stepped on)
+	TileCryoPipe  // cryo-coolant pipe (shootable, vents freezing gas)
+	TileSkylight  // translucent glass floor on upper levels (collapses under weight)
+	// Farm biome tiles
+	TileWheat    // tall wheat/corn crop, passable, 20 cover, flammable
+	TileHayBale  // hay bale, solid cover, 60 cover, flammable
+	// Coastal biome tiles
+	TilePier     // wooden pier over water, passable, 10 cover
+	TileDockCrate // dock crate, destructible, 50 cover
+	// Mountain biome tiles
+	TileCliffFace // impassable cliff, 80 cover, indestructible
+	TileScree     // loose scree slope, passable, 10 cover, noisy
+	TileBoulder   // large boulder, 70 cover, indestructible
+	// Swamp biome tiles
+	TileSwampWater // shallow murky water, passable, 5 cover, high TU
+	TileCypressTree // cypress tree trunk, 80 cover, destructible
+	// Jungle biome tiles
+	TileMud       // deep mud, passable, 5 cover, high TU, noisy
+	TileVine      // dense hanging vines, passable, 20 cover
+	TileBamboo    // bamboo thicket, 60 cover, opaque, destructible
+	TileDryBush   // dry coastal scrub, passable, 20 cover, flammable
+	// Vehicle tiles
+	TileBusEnd    // Bus left/right end, 50 cover
+	TileBusMid    // Bus middle roof, 50 cover
+	TileHeloBody  // Helicopter fuselage, 50 cover
+	TileHeloTail  // Helicopter tail boom, 30 cover
+	TileHeloNose  // Helicopter nose/cockpit, 40 cover
+	TileHeloRotor // Helicopter rotor (overhead, passable below)
+	TileHeloRotorSides // Helicopter rotor blade sides (overhead, passable below)
+	TileHeloBodyBack // Helicopter rear/back fuselage, 50 cover
+	TileHeloRotorBack // Helicopter rear rotor blade (overhead, passable below)
+	TileHeloWindow // Helicopter window/glass, 0 cover
+	TileTractorCab  // Tractor cab/hood, 30 cover
+	TileTractorBody // Tractor body/rear, 30 cover
+	// Alien vehicle tiles
+	TileCrawlerLeft  // Alien crawler left end: ◢
+	TileCrawlerMid   // Alien crawler middle: █
+	TileCrawlerRight // Alien crawler right end: ◣
+	TileCrawlerLeg   // Alien crawler leg/undercarriage: ^
+	// Wheel tiles
+	TileWheel      // Vehicle wheel
+	TileWheelSmall // Vehicle wheel (small)
 )
 
 // Tile represents a single cell on the tactical map.
@@ -82,32 +134,91 @@ type Tile struct {
 	Seen      bool
 	Blood     int // 0=none, 1=human(red), 2=alien_green, 3=alien_purple
 	Fire      int // 0=none, >0=turns of fire remaining
+	Lit       bool // lamp is currently emitting light
+	LitByLamp bool // tile is inside a lamp's light radius
 	BaseColor tcell.Color
 	Rune      rune
+}
+
+// MoveCost returns the TU cost for a unit to step onto the tile at
+// (x,y). Base cost varies by terrain: pavement is fastest, grass/indoor
+// normal, sand/marsh/water are slow. Rain makes soft ground muddy
+// (extra cost). Heavy/special terrain is handled by the caller via per-tile
+// tile type; crouch cost is added by the caller.
+func (m *BattleMap) MoveCost(x, y int, w *Weather) int {
+	t := m.At(x, y)
+	base := 4
+	switch t.Type {
+	case TilePavement, TilePier:
+		base = 3
+	case TileSand, TileMarsh, TileMud, TileScree, TileVine:
+		base = 6
+	case TileWater, TileSwampWater:
+		base = 8
+	case TileTree, TileRock, TileCypressTree, TileBamboo:
+		base = 8
+	case TileSnow, TileIce:
+		base = 5
+	case TileBush, TileWheat:
+		base = 5
+	}
+	if w != nil && w.MovePenalty() > 0 {
+		switch t.Type {
+		case TileGrass, TileSand, TileMarsh, TileMud, TileSwampWater:
+			base += w.MovePenalty()
+		}
+	}
+	return base
 }
 
 // TileCover returns the base cover value for a tile type.
 func TileCover(t TileType) int {
 	switch t {
-	case TileWall, TileUFOWall, TileContainerRed, TileContainerBlue, TileContainerYellow:
+	case TileWall, TileUFOWall, TileContainerRed, TileContainerBlue, TileContainerYellow,
+		TileAdobe, TileMetalWall, TileWreck, TileTimber, TileTruck,
+		TileCliffFace, TileCypressTree:
 		return 80
-	case TileTree:
+	case TileTree, TileBoulder, TileBamboo:
 		return 60
 	case TileRock:
 		return 70
+	case TileHayBale:
+		return 60
 	case TileBush:
 		return 40
+	case TileDryBush:
+		return 20
 	case TileFence:
+		return 30
+	case TileCryoPipe:
 		return 30
 	case TileObject, TileConsole, TileMachinery, TilePod, TilePowerSource, TileStorage, TileAlienTech,
 		TileDesk, TileChair, TileChairLeft, TileChairRight, TileComputer, TileBed, TileLocker, TileCabinet,
 		TileCar, TileCarRight, TileCarMid, TileForklift, TileForkliftRight,
-		TileFuelPump:
+		TileFuelPump,
+		TileBusEnd, TileBusMid, TileHeloBody, TileHeloBodyBack, TileDockCrate,
+		TileCrawlerLeft, TileCrawlerMid, TileCrawlerRight:
 		return 50
+	case TileCrawlerLeg:
+		return 20
+	case TileTractorCab, TileTractorBody, TileVine:
+		return 30
+	case TileHeloTail:
+		return 30
+	case TileHeloNose:
+		return 40
 	case TileRubble:
+		return 20
+	case TileWheat:
 		return 20
 	case TileDoor:
 		return 0
+	case TileGlass, TileDebris:
+		return 0
+	case TileSkylight:
+		return 0
+	case TilePier, TileScree, TileSwampWater, TileMud, TileHeloRotor, TileHeloRotorSides, TileHeloRotorBack, TileWheel, TileWheelSmall:
+		return 5
 	default:
 		return 0
 	}
@@ -115,7 +226,8 @@ func TileCover(t TileType) int {
 
 func (t Tile) IsFlammable() bool {
 	switch t.Type {
-	case TileGrass, TileTree, TileBush, TileFence, TileDoor:
+	case TileGrass, TileTree, TileBush, TileDryBush, TileFence, TileDoor, TileTimber,
+		TileWheat, TileHayBale, TileVine, TileBamboo, TileCypressTree:
 		return true
 	}
 	return false
@@ -216,7 +328,7 @@ var tileChars = map[TileType]rune{
 	TileBush:       '†',
 	TileFence:      '│',
 	TileRubble:     '▒',
-	TileObject:     '■',
+	TileObject:     '•',
 	// UFO furniture characters
 	TileConsole:     '⌸', // Console panel (U+2338 QUAD MINUS)
 	TileMachinery:   '⊛', // Machinery (U+229B CIRCLED ASTERISK)
@@ -244,6 +356,50 @@ var tileChars = map[TileType]rune{
 	TileContainerRed:    '█',
 	TileContainerBlue:   '█',
 	TileContainerYellow: '█',
+	// Biome structure characters
+	TileAdobe:    '█', // adobe wall (dusty orange)
+	TileMetalWall: '█', // prefab metallic wall (silver)
+	TileWreck:    '▤', // aircraft wreckage (rusty)
+	TileTimber:   '≡', // stacked timber
+	TileDish:     '◗', // satellite dish
+	TileTruck:    '▄', // military truck (top half)
+	TileIce:      '≈', // frozen lake ice
+	TileStreetlamp: '⌖', // lamp/floodlight fixture
+	TileGlass:     ',', // broken glass / debris (noisy step)
+	TileDebris:    '`', // scattered debris (noisy step)
+	TileCryoPipe:  '╪', // cryo-coolant pipe
+	TileSkylight:  '⊙', // glass skylight floor
+	TileWheat:     '▓', // tall wheat (dense crop pattern)
+	TileHayBale:   '█', // hay bale
+	TilePier:      '═', // wooden pier planks
+	TileDockCrate: '▣', // dock crate (square with center dot)
+	TileCliffFace: '░', // cliff face (stippled rock)
+	TileScree:     '·', // loose scree (like sand/grit dots)
+	TileBoulder:   '∩', // large boulder (same as rock but bigger shape)
+	TileSwampWater: '≋', // swamp water (wavy)
+	TileCypressTree: '♣', // cypress tree (same char as tree, different color)
+	TileMud:       '≋', // mud (wavy, like marsh)
+	TileVine:      '‡', // vines (dense cross)
+	TileBamboo:    '♣', // bamboo (same char as tree, different color)
+	TileDryBush:   '*', // dry coastal scrub
+	TileBusEnd:    '▄', // Bus end (top)
+	TileBusMid:    '█', // Bus middle roof (top)
+	TileHeloBody:  '█', // Helicopter fuselage (top)
+	TileHeloTail:  '▄', // Helicopter tail (top)
+	TileHeloNose:  '▷', // Helicopter nose (top)
+	TileHeloRotor: '+', // Helicopter rotor (overhead)
+	TileHeloRotorSides: '-', // Helicopter rotor sides (overhead)
+	TileHeloBodyBack:  '█', // Helicopter rear fuselage
+	TileHeloRotorBack: 'x', // Helicopter rear rotor
+	TileHeloWindow:    '◣', // Helicopter window glass
+	TileTractorCab:  '◣', // Tractor cab (top)
+	TileTractorBody: '█', // Tractor body (top)
+	TileCrawlerLeft:  '◢', // Crawler left end
+	TileCrawlerMid:   '█', // Crawler middle body
+	TileCrawlerRight: '◣', // Crawler right end
+	TileCrawlerLeg:   '^', // Crawler leg
+	TileWheel:        'O', // Vehicle wheel
+	TileWheelSmall:   'o', // Vehicle wheel (small)
 }
 
 func TileChar(t TileType) rune {
@@ -264,6 +420,7 @@ type BattleMap struct {
 	CurrentLevel int // 0=ground, 1=upper
 	Tiles        [][]Tile
 	Gas          *GasGrid
+	GroundLoot   map[[2]int][]string // items on the ground, keyed by tile position
 }
 
 func NewBattleMap(w, h int) *BattleMap {
@@ -274,6 +431,7 @@ func NewBattleMap(w, h int) *BattleMap {
 		LevelHeight:  h,
 		CurrentLevel: 0,
 		Tiles:        make([][]Tile, h),
+		GroundLoot:   make(map[[2]int][]string),
 	}
 	for y := 0; y < h; y++ {
 		m.Tiles[y] = make([]Tile, w)
@@ -374,9 +532,13 @@ func (m *BattleMap) Passable(x, y int) bool {
 	t := m.At(x, y)
 	switch t.Type {
 	case TileFloor, TileDoor, TileGrass, TileUFOFloor, TileStairs, TileStairsDown, TilePavement, TileSand, TileSnow,
+		TileMarsh,
+		TileIce, TileGlass, TileDebris,
+		TileSkylight, TileBush, TileDryBush,
 		TileConsole, TileMachinery, TilePod, TilePowerSource, TileStorage, TileAlienTech,
 		TileDesk, TileChair, TileChairLeft, TileChairRight, TileComputer, TileBed, TileLocker, TileCabinet,
-		TileRubble:
+		TileRubble,
+		TileWheat, TilePier, TileScree, TileSwampWater, TileMud, TileVine, TileHeloRotor, TileHeloRotorSides, TileHeloRotorBack:
 		return true
 	}
 	return false
@@ -385,7 +547,15 @@ func (m *BattleMap) Passable(x, y int) bool {
 func (m *BattleMap) Opaque(x, y int) bool {
 	t := m.At(x, y)
 	switch t.Type {
-	case TileWall, TileTree, TileRock, TileUFOWall, TileFence:
+	case TileWall, TileTree, TileRock, TileUFOWall, TileFence,
+		TileContainerRed, TileContainerBlue, TileContainerYellow,
+		TileAdobe, TileMetalWall, TileWreck, TileTruck, TileDish,
+		TileHayBale, TileDockCrate, TileCliffFace, TileBoulder,
+		TileCypressTree, TileBamboo,
+		TileBusEnd, TileBusMid,
+		TileHeloBody, TileHeloTail, TileHeloNose, TileHeloBodyBack,
+		TileTractorCab, TileTractorBody,
+		TileCrawlerLeft, TileCrawlerMid, TileCrawlerRight, TileCrawlerLeg:
 		return true
 	}
 	if m.Gas != nil && m.Gas.BlocksLOS(x, y) {
@@ -400,7 +570,14 @@ func (m *BattleMap) IsDestructible(x, y int) bool {
 	case TileWall, TileUFOWall, TileTree, TileRock, TileFence, TileDoor,
 		TileDesk, TileChair, TileChairLeft, TileChairRight, TileComputer, TileBed, TileLocker, TileCabinet,
 		TileCar, TileCarRight, TileCarMid, TileForklift, TileForkliftRight,
-		TileFuelPump:
+		TileFuelPump, TileStreetlamp, TileCryoPipe, TileSkylight,
+		TileWheat, TileHayBale,
+		TileDockCrate, TileScree, TileDryBush,
+		TileCypressTree, TileVine, TileBamboo,
+		TileBusEnd, TileBusMid,
+		TileHeloBody, TileHeloTail, TileHeloNose, TileHeloBodyBack, TileHeloRotor, TileHeloRotorSides, TileHeloRotorBack, TileHeloWindow, TileWheel, TileWheelSmall,
+		TileTractorCab, TileTractorBody,
+		TileCrawlerLeft, TileCrawlerMid, TileCrawlerRight, TileCrawlerLeg:
 		return true
 	}
 	return false
@@ -415,6 +592,7 @@ func (m *BattleMap) DestroyWall(x, y int) bool {
 			return false
 		}
 		tile := &m.Tiles[y][x]
+		tile.Lit = false
 		tile.Type = TileRubble
 		tile.Cover = TileCover(TileRubble)
 	} else {
@@ -423,9 +601,30 @@ func (m *BattleMap) DestroyWall(x, y int) bool {
 			return false
 		}
 		tile := &m.Tiles[arrayY][x]
+		tile.Lit = false
 		tile.Type = TileRubble
 		tile.Cover = TileCover(TileRubble)
 	}
+	return true
+}
+
+// CollapseSkylight destroys the skylight at (x,y) on the current level and
+// returns true if a collapse occurred. Only acts on upper levels (not ground).
+func (m *BattleMap) CollapseSkylight(x, y int) bool {
+	if m.NumLevels <= 1 || m.CurrentLevel == 0 {
+		return false
+	}
+	arrayY := y + m.CurrentLevel*m.LevelHeight
+	if x < 0 || x >= m.Width || arrayY < 0 || arrayY >= m.LevelHeight*m.NumLevels {
+		return false
+	}
+	tile := &m.Tiles[arrayY][x]
+	if tile.Type != TileSkylight {
+		return false
+	}
+	tile.Type = TileRubble
+	tile.Cover = TileCover(TileRubble)
+	tile.Rune = tileChars[TileRubble]
 	return true
 }
 
@@ -503,6 +702,43 @@ func (m *BattleMap) ClearVisibility() {
 	for y := startY; y < endY; y++ {
 		for x := 0; x < m.Width; x++ {
 			m.Tiles[y][x].Visible = false
+			m.Tiles[y][x].Seen = false
+			m.Tiles[y][x].LitByLamp = false
+		}
+	}
+}
+
+// applyLampLight forces visibility on tiles within the light radius of any
+// lit streetlamp. Called after unit-based FOV so lamplit areas stay
+// visible even without a unit having direct line-of-sight. Radius 3 = 7x7.
+func (m *BattleMap) applyLampLight() {
+	const r = 3
+	startY := 0
+	endY := m.Height
+	if m.NumLevels > 1 {
+		startY = m.CurrentLevel * m.LevelHeight
+		endY = startY + m.LevelHeight
+	}
+	for y := startY; y < endY; y++ {
+		for x := 0; x < m.Width; x++ {
+			t := &m.Tiles[y][x]
+			if t.Type != TileStreetlamp || !t.Lit {
+				continue
+			}
+			for dy := -r; dy <= r; dy++ {
+				for dx := -r; dx <= r; dx++ {
+					if dx*dx+dy*dy > r*r {
+						continue
+					}
+					tx, ty := x+dx, y+dy
+					if tx < 0 || tx >= m.Width || ty < startY || ty >= endY {
+						continue
+					}
+					m.Tiles[ty][tx].Visible = true
+					m.Tiles[ty][tx].Seen = true
+					m.Tiles[ty][tx].LitByLamp = true
+				}
+			}
 		}
 	}
 }
@@ -720,9 +956,20 @@ func isUrbanProtected(t TileType) bool {
 	case TileWall, TileDoor, TileWindow,
 		TileConsole, TileMachinery, TilePod, TilePowerSource, TileStorage, TileAlienTech,
 		TileDesk, TileChair, TileChairLeft, TileChairRight, TileComputer, TileBed, TileLocker, TileCabinet,
-		TileCar, TileCarRight, TileForklift, TileForkliftRight,
+		TileCar, TileCarMid, TileCarRight, TileForklift, TileForkliftRight, TileWheel, TileWheelSmall,
 		TileObject, TileTree, TileBush, TileFence,
-		TileFuelPump, TileContainerRed, TileContainerBlue, TileContainerYellow:
+		TileFuelPump, TileContainerRed, TileContainerBlue, TileContainerYellow,
+		TileAdobe, TileMetalWall, TileWreck, TileTimber, TileDish, TileTruck,
+		TileStreetlamp, TileCryoPipe, TileGlass, TileDebris, TileSkylight,
+		TileWheat, TileHayBale,
+		TilePier, TileDockCrate,
+		TileCliffFace, TileScree, TileBoulder,
+		TileWater, TileSwampWater, TileCypressTree,
+		TileMud, TileVine, TileBamboo, TileDryBush,
+		TileBusEnd, TileBusMid,
+		TileHeloBody, TileHeloTail, TileHeloNose, TileHeloBodyBack, TileHeloRotor, TileHeloRotorSides, TileHeloRotorBack, TileHeloWindow,
+		TileTractorCab, TileTractorBody,
+		TileCrawlerLeft, TileCrawlerMid, TileCrawlerRight, TileCrawlerLeg:
 		return true
 	}
 	return false
@@ -847,12 +1094,32 @@ func ApplyCommands(m *BattleMap, cmds []MapCommand) {
 	}
 }
 
+// crashBiomeFromCoords maps world-map pixel coordinates (0-179, 0-89) to a
+// biome. The mapping is a deterministic function of position so that the same
+// location always gets the same terrain, giving the world a sense of place.
+func crashBiomeFromCoords(worldX, worldY int) string {
+	biomes := []string{
+		"forest", "desert", "polar", "rural",
+		"farm", "coastal", "mountain", "swamp", "jungle",
+	}
+	idx := (worldX*73856093 + worldY*19349663) % len(biomes)
+	if idx < 0 {
+		idx = -idx
+	}
+	return biomes[idx]
+}
+
 // GenerateCrashSite creates a crash site map with a procedural UFO blueprint
 // stamped onto clustered terrain. Returns both the map and crash result.
-func GenerateCrashSite(w, h int, seed int64) (*BattleMap, *CrashResult) {
-	// Clustered forest terrain via AssembleMap, deterministic on seed.
+// worldX/worldY are the crash location on the world map (0-179, 0-89) and
+// determine the biome. Pass -1,-1 to default to forest.
+func GenerateCrashSite(w, h int, seed int64, worldX, worldY int) (*BattleMap, *CrashResult) {
+	biome := "forest"
+	if worldX >= 0 && worldY >= 0 {
+		biome = crashBiomeFromCoords(worldX, worldY)
+	}
 	rng := rand.New(rand.NewSource(seed))
-	m := AssembleMap("forest", w, h, rng)
+	m := AssembleMap(biome, w, h, rng)
 
 	// Pick a UFO tier based on seed (deterministic)
 	seed16 := seed
@@ -883,8 +1150,8 @@ func GenerateCrashSite(w, h int, seed int64) (*BattleMap, *CrashResult) {
 
 	// Scatter debris around crash site
 	for i := 0; i < 15; i++ {
-		dx := rand.Intn(12) - 6
-		dy := rand.Intn(10) - 5
+		dx := rng.Intn(12) - 6
+		dy := rng.Intn(10) - 5
 		x := ufoX + bp.Width/2 + dx
 		y := ufoY + bp.Height/2 + dy
 		if m.At(x, y).Type == TileGrass || m.At(x, y).Type == TileTree {
@@ -1124,6 +1391,36 @@ func GenerateTerrorSite(w, h int, seed int64) *BattleMap {
 		maskPoissonInRect(m, TileTree, 2, (l.w*l.h)/10+1, l.x, l.y, l.w, l.h, rng)
 	}
 
+	// ---- 4c. Streetlamps along sidewalks/roads ----
+	{
+		lampCount := w * h / 150
+		placed := [][2]int{}
+		attempts := 0
+		for len(placed) < lampCount && attempts < lampCount*20 {
+			attempts++
+			x := 1 + rng.Intn(max(1, w-2))
+			y := 1 + rng.Intn(max(1, h-2))
+			tt := m.At(x, y).Type
+			if tt != TilePavement {
+				continue
+			}
+			ok := true
+			for _, p := range placed {
+				dx, dy := p[0]-x, p[1]-y
+				if dx*dx+dy*dy < 25 {
+					ok = false
+					break
+				}
+			}
+			if !ok {
+				continue
+			}
+			m.Set(x, y, TileStreetlamp)
+			m.Tiles[y][x].Lit = true
+			placed = append(placed, [2]int{x, y})
+		}
+	}
+
 	// Street furniture on sidewalks/roads.
 	maskPoissonInRect(m, TileObject, 3, w*h/250, 0, 0, w, h, rng)
 
@@ -1144,7 +1441,7 @@ func maskPoissonInRect(m *BattleMap, t TileType, radius, count, x0, y0, rw, rh i
 			continue
 		}
 		switch m.At(x, y).Type {
-		case TileGrass, TileFloor, TilePavement:
+		case TileGrass, TileFloor, TilePavement, TileSand, TileSnow, TileIce:
 		default:
 			continue
 		}
@@ -1169,7 +1466,14 @@ func GenerateAbductionSite(w, h int) *BattleMap {
 }
 
 // GenerateUFOInterior creates a UFO interior map (OpenXcom: 50x50)
-func GenerateUFOInterior(w, h int) *BattleMap {
+func GenerateUFOInterior(w, h int, seed int64) *BattleMap {
+	rng := rand.New(rand.NewSource(seed))
+	rn := func(n int) int {
+		if n <= 0 {
+			return 0
+		}
+		return rng.Intn(n)
+	}
 	levelH := h / 2
 	if levelH < 12 {
 		levelH = 12
@@ -1186,13 +1490,13 @@ func GenerateUFOInterior(w, h int) *BattleMap {
 
 		var rooms []room
 		attempts := 0
-		numRooms := 5 + rand.Intn(3)
+		numRooms := 5 + rng.Intn(3)
 		for i := 0; i < numRooms && attempts < 100; i++ {
 			attempts++
-			rw := 5 + rand.Intn(5)
-			rh := 4 + rand.Intn(4)
-			rx := 2 + rand.Intn(max(1, w-rw-4))
-			ry := 2 + rand.Intn(max(1, levelH-rh-4))
+			rw := 5 + rng.Intn(5)
+			rh := 4 + rng.Intn(4)
+			rx := 2 + rng.Intn(max(1, w-rw-4))
+			ry := 2 + rng.Intn(max(1, levelH-rh-4))
 
 			overlap := false
 			for _, existing := range rooms {
@@ -1209,7 +1513,7 @@ func GenerateUFOInterior(w, h int) *BattleMap {
 			m.fillRectLevel(rx+1, ry+1, rw-1, rh-1, level, TileUFOFloor)
 			m.drawRectLevel(rx, ry, rw, rh, level, TileUFOWall)
 
-			doorSide := rand.Intn(4)
+			doorSide := rng.Intn(4)
 			switch doorSide {
 			case 0:
 				m.SetLevel(rx+rw/2, ry, level, TileDoor)
@@ -1255,7 +1559,7 @@ func GenerateUFOInterior(w, h int) *BattleMap {
 		for _, rm := range rooms {
 			rx := rm.x + rm.w/2
 			ry := rm.y + rm.h/2
-			roomType := rand.Intn(5)
+			roomType := rng.Intn(5)
 			switch roomType {
 			case 0:
 				for dx := -2; dx <= 2; dx++ {
@@ -1302,8 +1606,8 @@ func GenerateUFOInterior(w, h int) *BattleMap {
 	m.SetLevel(stairsX+2, stairsY+2, 0, TilePowerSource)
 
 	for i := 0; i < 6; i++ {
-		x := randn(w-4) + 2
-		y := randn(levelH-4) + 2
+		x := rn(w-4) + 2
+		y := rn(levelH-4) + 2
 		if m.AtLevel(x, y, 0).Type == TileUFOFloor {
 			m.SetLevel(x, y, 0, TileAlienTech)
 		}
@@ -1568,6 +1872,31 @@ func GenerateDesert(w, h int) *BattleMap {
 // GeneratePolar creates a polar map (OpenXcom: 50x50) via AssembleMap.
 func GeneratePolar(w, h int) *BattleMap {
 	return AssembleMap("polar", w, h, rand.New(rand.NewSource(int64(w*2654435761+h*19349663))))
+}
+
+// GenerateFarm creates a farm map via AssembleMap.
+func GenerateFarm(w, h int) *BattleMap {
+	return AssembleMap("farm", w, h, rand.New(rand.NewSource(int64(w*92743891+h*52938467))))
+}
+
+// GenerateCoastal creates a coastal map via AssembleMap.
+func GenerateCoastal(w, h int) *BattleMap {
+	return AssembleMap("coastal", w, h, rand.New(rand.NewSource(int64(w*38291457+h*65102834))))
+}
+
+// GenerateMountain creates a mountain map via AssembleMap.
+func GenerateMountain(w, h int) *BattleMap {
+	return AssembleMap("mountain", w, h, rand.New(rand.NewSource(int64(w*46739281+h*81927364))))
+}
+
+// GenerateSwamp creates a swamp map via AssembleMap.
+func GenerateSwamp(w, h int) *BattleMap {
+	return AssembleMap("swamp", w, h, rand.New(rand.NewSource(int64(w*59384721+h*17283946))))
+}
+
+// GenerateJungle creates a jungle map via AssembleMap.
+func GenerateJungle(w, h int) *BattleMap {
+	return AssembleMap("jungle", w, h, rand.New(rand.NewSource(int64(w*73829164+h*38475621))))
 }
 
 func (m *BattleMap) neighbourhood(x, y int) [3][3]TileType {

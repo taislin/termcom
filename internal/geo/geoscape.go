@@ -696,7 +696,12 @@ func (gs *Geoscape) Update() {
 										for _, s := range healthy {
 											gs.PreBattleStats[s.Name] = [6]int{s.HP, s.Accuracy, s.Reactions, s.Strength, s.Bravery, s.TU}
 										}
-										bs := battle.NewBattlescape(gs.Game, selectedBase, healthy, localizeUFOName(cs.UFOName), cs.Seed)
+										city := gs.CityByID(cs.NodeID)
+									cx, cy := -1, -1
+									if city != nil {
+										cx, cy = city.X, city.Y
+									}
+									bs := battle.NewBattlescape(gs.Game, selectedBase, healthy, localizeUFOName(cs.UFOName), cs.Seed, cx, cy)
 										gs.Game.SetScreen(engine.StateBattlescape, bs)
 										gs.Game.PushState(engine.StateBattlescape)
 										return
@@ -1455,7 +1460,7 @@ func (gs *Geoscape) RespondToMission(idx int) {
 		ufoName = language.String("MISSION_TYPE_BASE")
 	}
 	gs.ActiveMissionType = mission.Type
-	bs := battle.NewBattlescape(gs.Game, defBase, healthy, ufoName, 0)
+	bs := battle.NewBattlescape(gs.Game, defBase, healthy, ufoName, 0, -1, -1)
 	gs.Game.SetScreen(engine.StateBattlescape, bs)
 	gs.Game.PushState(engine.StateBattlescape)
 }

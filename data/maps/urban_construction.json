@@ -6,27 +6,29 @@
   "weight": 2,
   "rows": [
     "...............",
-    "F...F...F...F..",
-    "F.O.F.R.F.O.F..",
-    "F.O.F.R.F.O.F..",
-    "F.O.F.R.F.O.F..",
-    "...............",
-    "F...F...F...F..",
-    ".R.F...F...F.R.",
-    ".R.F...F...F.R.",
-    ".R.F...F...F.R.",
-    "...............",
-    "F...F...F...F..",
-    "F.O.F.R.F.O.F..",
-    "F.O.F.R.F.O.F..",
-    "F.O.F.R.F.O.F.."
+    ".FFFFFFFFFFFFF.",
+    ".F...........F.",
+    ".F..MMMMM....F.",
+    ".F..MMMMM....F.",
+    ".F...........F.",
+    ".F..SS..00...F.",
+    ".F..SS..00...F.",
+    ".F...........F.",
+    ".F....rr.....F.",
+    ".F....rr.....F.",
+    ".F...........F.",
+    ".F...........F.",
+    ".FFFFF.FFFFFF.",
+    "..............."
   ],
   "terrain": {
     ".": "TileSand",
     "F": "TileFence"
   },
   "furniture": {
-    "O": "TileObject",
-    "R": "TileRock"
+    "M": "TileMachinery",
+    "S": "TileStorage",
+    "r": "TileRubble",
+    "0": "TileObject"
   }
 }

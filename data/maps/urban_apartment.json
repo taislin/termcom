@@ -1,21 +1,21 @@
 {
   "id": "urban_apartment",
-  "tags": [
-    "urban"
-  ],
+  "tags": ["urban"],
   "width": 7,
   "height": 6,
   "rows": [
     "WWWWWWW",
-    "W.....W",
+    "WN...NW",
     "W.b.b.W",
-    "W.....W",
-    "W.c.c.W",
-    "WWWWWWW"
+    "WWW+WWW",
+    "Wc...cW",
+    "WW+WWWW"
   ],
   "terrain": {
     "W": "TileWall",
-    ".": "TileFloor"
+    ".": "TileFloor",
+    "N": "TileWindow",
+    "+": "TileDoor"
   },
   "furniture": {
     "b": "TileBed",

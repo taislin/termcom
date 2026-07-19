@@ -23,7 +23,18 @@ const (
 	aoMinFactor         = 0.6  // clamp for accumulated AO darkening
 	ditherFactor        = 0.92 // checkerboard dither darkening on even-parity tiles
 	fogOfWarDim         = 0.45 // foreground/background dim for remembered (seen) tiles
+	lampLightFactor     = 0.8  // background lightening inside a lamp's radius
+	noiseAlertRadius    = 15   // tiles within which broken glass/debris alerts aliens
 )
+
+// Cryo-coolant freeze gas tuning.
+const (
+	freezeGasCoreDensity     = 3 // density at the vent tile
+	freezeGasEdgeDensity     = 2 // density on the 8 surrounding tiles
+	freezeTUDrainPerDensity  = 6  // TU lost per gas density level while chilled
+)
+
+const skylightFallDamage = 15 // HP damage when unit falls through a skylight
 
 // Blood palette by blood type (1=human red, 2/3=alien green/purple).
 var bloodPalette = map[int]tcell.Color{
@@ -41,19 +52,42 @@ var firePalette = []tcell.Color{
 
 // opaqueTiles is the set of tile types that block line of sight.
 var opaqueTiles = map[TileType]bool{
-	TileWall:          true,
-	TileTree:          true,
-	TileRock:          true,
-	TileUFOWall:       true,
-	TileFence:         true,
-	TileCar:           true,
-	TileCarMid:        true,
-	TileCarRight:      true,
-	TileForklift:     true,
-	TileForkliftRight: true,
+	TileWall:            true,
+	TileTree:            true,
+	TileRock:            true,
+	TileUFOWall:         true,
+	TileFence:           true,
+	TileBush:            true,
+	TileCar:             true,
+	TileCarMid:          true,
+	TileCarRight:        true,
+	TileForklift:       true,
+	TileForkliftRight:   true,
 	TileContainerRed:    true,
 	TileContainerBlue:   true,
 	TileContainerYellow: true,
+	TileAdobe:           true,
+	TileMetalWall:       true,
+	TileWreck:           true,
+	TileTruck:           true,
+	TileDish:            true,
+	TileHayBale:         true,
+	TileDockCrate:       true,
+	TileCliffFace:       true,
+	TileBoulder:         true,
+	TileCypressTree:     true,
+	TileBamboo:          true,
+	TileBusEnd:          true,
+	TileBusMid:          true,
+	TileHeloBody:        true,
+	TileHeloTail:        true,
+	TileHeloNose:        true,
+	TileTractorCab:      true,
+	TileTractorBody:     true,
+	TileCrawlerLeft:     true,
+	TileCrawlerMid:      true,
+	TileCrawlerRight:    true,
+	TileCrawlerLeg:      true,
 }
 
 // Human building box-drawing glyphs
@@ -110,9 +144,52 @@ var tilePalette = map[TileType]tcell.Color{
 	TileForklift:      tcell.NewRGBColor(200, 160, 40), // yellow forklift
 	TileForkliftRight: tcell.NewRGBColor(200, 160, 40),
 	TileFuelPump:      tcell.NewRGBColor(200, 60, 40), // red fuel pump
-	TileContainerRed:    tcell.NewRGBColor(180, 50, 40), // red shipping container
-	TileContainerBlue:   tcell.NewRGBColor(50, 80, 180), // blue shipping container
-	TileContainerYellow: tcell.NewRGBColor(200, 170, 40), // yellow shipping container
+	TileContainerRed:    tcell.NewRGBColor(180, 50, 40),  // red shipping container
+	TileContainerBlue:   tcell.NewRGBColor(50, 80, 180),  // blue shipping container
+	TileContainerYellow: tcell.NewRGBColor(200, 170, 40),  // yellow shipping container
+	TileAdobe:         tcell.NewRGBColor(200, 130, 70),  // dusty orange adobe
+	TileMetalWall:     tcell.NewRGBColor(180, 185, 195), // prefab metallic silver
+	TileWreck:         tcell.NewRGBColor(150, 95, 60),   // rusty aircraft wreckage
+	TileTimber:        tcell.NewRGBColor(150, 110, 60),  // stacked timber
+	TileDish:          tcell.NewRGBColor(170, 175, 185), // satellite dish
+	TileTruck:         tcell.NewRGBColor(90, 110, 70),   // olive military truck
+	TileIce:           tcell.NewRGBColor(180, 220, 235), // frozen lake ice (cyan-white)
+	TileStreetlamp:    tcell.NewRGBColor(220, 210, 120), // lamp fixture (warm)
+	TileGlass:         tcell.NewRGBColor(190, 200, 210), // broken glass (pale)
+	TileDebris:        tcell.NewRGBColor(150, 140, 130), // scattered debris
+	TileCryoPipe:      tcell.NewRGBColor(140, 200, 230), // cryo-coolant pipe (icy blue)
+	TileSkylight:      tcell.NewRGBColor(180, 210, 240), // glass skylight (pale blue)
+	TileWheat:         tcell.NewRGBColor(200, 180, 60),  // golden wheat
+	TileHayBale:       tcell.NewRGBColor(160, 140, 60),  // tan hay bale
+	TilePier:          tcell.NewRGBColor(140, 100, 60),  // brown wooden pier
+	TileDockCrate:     tcell.NewRGBColor(150, 120, 80),  // weathered crate
+	TileCliffFace:     tcell.NewRGBColor(140, 120, 100), // grey-brown cliff
+	TileScree:         tcell.NewRGBColor(160, 150, 130), // pale scree
+	TileBoulder:       tcell.NewRGBColor(130, 125, 120), // grey boulder
+	TileSwampWater:    tcell.NewRGBColor(50, 100, 80),   // murky green water
+	TileCypressTree:   tcell.NewRGBColor(40, 85, 50),    // darker green cypress
+	TileMud:           tcell.NewRGBColor(110, 80, 50),   // brown mud
+	TileVine:          tcell.NewRGBColor(50, 130, 50),   // bright green vine
+	TileBamboo:        tcell.NewRGBColor(80, 150, 60),   // pale green bamboo
+	TileBusEnd:        tcell.NewRGBColor(200, 180, 60),  // yellow bus
+	TileBusMid:        tcell.NewRGBColor(200, 180, 60),  // yellow bus
+	TileHeloBody:      tcell.NewRGBColor(60, 70, 85),    // dark grey-green fuselage
+	TileHeloTail:      tcell.NewRGBColor(60, 70, 85),    // dark grey-green tail
+	TileHeloNose:      tcell.NewRGBColor(130, 200, 230), // glass canopy blue
+	TileHeloRotor:     tcell.NewRGBColor(180, 180, 180), // light grey rotor
+	TileHeloRotorSides: tcell.NewRGBColor(180, 180, 180), // light grey rotor sides
+	TileTractorCab:    tcell.NewRGBColor(130, 200, 230),  // glass tractor cab
+	TileTractorBody:   tcell.NewRGBColor(180, 60, 40),   // red tractor body
+	TileCrawlerLeft:   tcell.NewRGBColor(130, 70, 190),  // alien purple
+	TileCrawlerMid:    tcell.NewRGBColor(130, 70, 190),  // alien purple
+	TileCrawlerRight:  tcell.NewRGBColor(130, 70, 190),  // alien purple
+	TileCrawlerLeg:    tcell.NewRGBColor(100, 50, 160),  // darker purple
+	TileDryBush:       tcell.NewRGBColor(170, 140, 60),  // dry scrub brown
+	TileHeloBodyBack:  tcell.NewRGBColor(60, 70, 85),    // dark grey-green rear fuselage
+	TileHeloRotorBack: tcell.NewRGBColor(180, 180, 180), // light grey rear rotor
+	TileHeloWindow:    tcell.NewRGBColor(130, 200, 230), // blue glass
+	TileWheel:         tcell.NewRGBColor(60, 60, 60),    // dark grey rubber
+	TileWheelSmall:    tcell.NewRGBColor(60, 60, 60),    // dark grey rubber
 }
 
 // TileBaseColor returns the resolved color for a tile.
@@ -213,6 +290,43 @@ func TileGeomRune(t Tile, ctx [3][3]TileType) rune {
 		}
 		return '#' // Default hash
 
+	case TileBusEnd:
+		if n == TileBusEnd {
+			return 'º'
+		}
+		return TileChar(t.Type) // '▄'
+	case TileBusMid:
+		if n == TileBusMid {
+			return '▄'
+		}
+		return '█'
+	case TileTractorCab:
+		if n == TileTractorCab {
+			return 'o'
+		}
+		return TileChar(t.Type)
+	case TileTractorBody:
+		return '█'
+	case TileCrawlerLeft:
+		if n == TileCrawlerLeft {
+			return 'º'
+		}
+		return '◢'
+	case TileCrawlerMid:
+		if n == TileCrawlerMid {
+			return '▄'
+		}
+		return '█'
+	case TileCrawlerRight:
+		if n == TileCrawlerRight {
+			return 'º'
+		}
+		return '◣'
+	case TileCrawlerLeg:
+		if n == TileCrawlerMid || n == TileCrawlerLeft || n == TileCrawlerRight {
+			return '^'
+		}
+		return '·'
 	case TileDoor:
 		return GlyphBuildingDoor
 	case TileWindow:
@@ -282,10 +396,18 @@ func RenderTile(t Tile, ctx [3][3]TileType, visible, seen bool, frame int, tileX
 		bg = engine.DarkenColor(bg, ditherFactor)
 	}
 
+	// Streetlamp / floodlight illumination: brighten background so the
+	// lit radius reads as a pool of light against the dark map.
+	if t.LitByLamp {
+		bg = engine.LightenColor(baseCol, 1.0+lampLightFactor)
+	}
+
 	if !visible && seen {
 		// Fog of War: dim both foreground and background
 		fg = engine.DarkenColor(fg, fogOfWarDim)
-		bg = engine.DarkenColor(bg, fogOfWarDim)
+		if !t.LitByLamp {
+			bg = engine.DarkenColor(bg, fogOfWarDim)
+		}
 	} else {
 		// Overlay effects (blood, fire) only visible when tile is currently in line of sight
 		if t.Blood > 0 {

@@ -1,0 +1,33 @@
+{
+  "id": "forest_overgrown_chapel",
+  "tags": ["forest", "rural"],
+  "width": 10,
+  "height": 15,
+  "weight": 2,
+  "rows": [
+    "WWWWWWWWWW",
+    "WN......NW",
+    "W........W",
+    "W........W",
+    "W........W",
+    "W...OO...W",
+    "W...OO...W",
+    "W...OO...W",
+    "W........W",
+    "W........W",
+    "W........W",
+    "W........W",
+    "W........W",
+    "W........W",
+    "WWWW+WWWWW"
+  ],
+  "terrain": {
+    ".": "TileGrass",
+    "W": "TileWall",
+    "N": "TileWindow",
+    "+": "TileDoor"
+  },
+  "furniture": {
+    "O": "TileObject"
+  }
+}

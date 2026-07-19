@@ -1,0 +1,18 @@
+{
+  "id": "urban_streetlamps",
+  "tags": ["urban"],
+  "width": 7,
+  "height": 3,
+  "weight": 3,
+  "rows": [
+    "L.....L",
+    ".......",
+    "......."
+  ],
+  "terrain": {
+    ".": "TilePavement"
+  },
+  "furniture": {
+    "L": "TileStreetlamp"
+  }
+}

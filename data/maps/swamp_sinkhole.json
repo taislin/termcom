@@ -1,0 +1,28 @@
+{
+  "id": "swamp_sinkhole",
+  "tags": ["swamp"],
+  "width": 7,
+  "height": 7,
+  "weight": 2,
+  "no_rotate": true,
+  "rows": [
+    "..B.V..",
+    ".Bw~wT.",
+    "Tw~W~wB",
+    "B.~W~..",
+    ".w~W~wV",
+    ".Tw~w..",
+    "..V.B.."
+  ],
+  "terrain": {
+    ".": "TileMarsh",
+    "w": "TileSwampWater",
+    "~": "TileMud",
+    "W": "TileWater"
+  },
+  "furniture": {
+    "B": "TileBush",
+    "V": "TileVine",
+    "T": "TileCypressTree"
+  }
+}

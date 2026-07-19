@@ -1,0 +1,28 @@
+{
+  "id": "coastal_surf_shack",
+  "tags": [
+    "coastal",
+    "rural"
+  ],
+  "width": 10,
+  "height": 6,
+  "weight": 3,
+  "no_rotate": true,
+  "rows": [
+    "ssssssssss",
+    "ssWWWWWWss",
+    "ssW....Oss",
+    "ssWD...Wss",
+    "ssO....Wss",
+    "ssWW+WWWss"
+  ],
+  "terrain": {
+    "s": "TileSand",
+    "W": "TileWall",
+    "O": "TileWindow",
+    "+": "TileDoor"
+  },
+  "furniture": {
+    "D": "TileDesk"
+  }
+}

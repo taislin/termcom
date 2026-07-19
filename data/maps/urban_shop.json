@@ -1,20 +1,20 @@
 {
   "id": "urban_shop",
-  "tags": [
-    "urban"
-  ],
+  "tags": ["urban"],
   "width": 7,
   "height": 5,
   "rows": [
     "WWWWWWW",
-    "W.....W",
+    "WN...NW",
     "Wd...cW",
     "Wl...sW",
-    "WWWWWWW"
+    "WW+WWWW"
   ],
   "terrain": {
     "W": "TileWall",
-    ".": "TileFloor"
+    ".": "TileFloor",
+    "N": "TileWindow",
+    "+": "TileDoor"
   },
   "furniture": {
     "d": "TileDesk",

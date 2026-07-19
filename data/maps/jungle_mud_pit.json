@@ -1,0 +1,22 @@
+{
+  "id": "jungle_mud_pit",
+  "tags": [
+    "jungle"
+  ],
+  "width": 5,
+  "height": 5,
+  "weight": 3,
+  "no_rotate": true,
+  "rows": [
+    ".....",
+    ".MMM.",
+    ".MMM.",
+    ".MMM.",
+    "..M.."
+  ],
+  "terrain": {
+    ".": "TileGrass",
+    "M": "TileMud"
+  },
+  "furniture": {}
+}

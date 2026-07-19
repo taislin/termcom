@@ -186,6 +186,11 @@ type Battlescape struct {
 	mouseX, mouseY int // last mouse position for edge-scrolling
 	QuitConfirm    bool
 	mouseActive    bool
+
+	// In-battle Inventory
+	ShowInventory bool
+	InvCursor     int // selected item index
+	InvTab        int // 0=backpack, 1=ground
 }
 
 // The following setters mutate Battlescape fields that are also read by the
@@ -275,16 +280,12 @@ func (bs *Battlescape) GetMovementRange() map[[2]int]bool {
 				continue
 			}
 
-			tile := bs.Map.At(nx, ny)
 			if !bs.Map.Passable(nx, ny) {
 				continue
 			}
 
-			// TU cost: 4 for normal terrain, 8 for difficult terrain
-			cost := 4
-			if tile.Type == TileTree || tile.Type == TileRock || tile.Type == TileWater {
-				cost = 8
-			}
+			// TU cost varies by terrain type and weather.
+			cost := bs.Map.MoveCost(nx, ny, &bs.Weather)
 
 			remainingTU := current.tu - cost
 			if remainingTU >= 0 {
@@ -342,7 +343,7 @@ func (bs *Battlescape) CalculatePath(startX, startY, endX, endY int) [][2]int {
 	return nil
 }
 
-func NewBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, ufoName string, crashSeed int64) *Battlescape {
+func NewBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, ufoName string, crashSeed int64, worldX, worldY int) *Battlescape {
 	var m *BattleMap
 	var crashResult *CrashResult
 	// Deterministic RNG for WFC map generation, derived from the mission seed
@@ -376,7 +377,7 @@ func NewBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, ufoN
 	case "Polar":
 		m = GeneratePolar(50, 50)
 	default:
-		m, crashResult = GenerateCrashSite(50, 50, crashSeed)
+		m, crashResult = GenerateCrashSite(50, 50, crashSeed, worldX, worldY)
 	}
 	if m != nil && !m.ValidateMap() {
 		// Fallback: clear to open ground so combat remains playable.
@@ -770,6 +771,7 @@ func (bs *Battlescape) ComputeFOVForTeam() {
 			bs.Map.ComputeFOV(u.X, u.Y, sightRange)
 		}
 	}
+	bs.Map.applyLampLight()
 	for _, u := range bs.Units {
 		if u.Faction == FactionAlien && u.Alive && u.AlienType != nil && u.Level == bs.Map.CurrentLevel && bs.Map.IsVisible(u.X, u.Y) {
 			bs.Game.LearnAlien(u.AlienType.Name, 1)
@@ -1057,6 +1059,9 @@ func (bs *Battlescape) executeAlienAction(action AlienAction) {
 		}
 	case "move":
 		action.Unit.MoveTo(action.ToX, action.ToY, bs.Map)
+		if bs.Map.CollapseSkylight(action.Unit.X, action.Unit.Y) {
+			bs.UnitFallsThroughSkylight(action.Unit)
+		}
 		bs.ComputeFOVForTeam()
 		bs.checkHumanReactionFire(action.Unit)
 	case "patrol":
@@ -1205,6 +1210,9 @@ func (bs *Battlescape) checkHumanReactionFire(movedAlien *Unit) {
 		if !ok || w.AmmoMax < 99 && u.WeaponAmmo <= 0 {
 			continue
 		}
+		if w.Range > 0 && dist > w.Range {
+			continue
+		}
 		bs.AddMessage(fmt.Sprintf(language.String("MSG_REACTION_FIRE"), u.Name(), movedAlien.Name()))
 		audio.PlayWeaponFire(u.Weapon)
 		bs.Status = StatusPlayerOverwatch
@@ -1255,6 +1263,9 @@ func (bs *Battlescape) checkAlienReactionFire(movedHuman *Unit) {
 		}
 		w, ok := data.RuleItems[u.Weapon]
 		if !ok || w.AmmoMax < 99 && u.WeaponAmmo <= 0 {
+			continue
+		}
+		if w.Range > 0 && dist > w.Range {
 			continue
 		}
 		bs.AddMessage(fmt.Sprintf(language.String("MSG_REACTION_FIRE"), u.Name(), movedHuman.Name()))
@@ -1482,6 +1493,7 @@ func (bs *Battlescape) finishAlienTurn() {
 	bs.learnFromKills()
 	bs.Gas.Diffuse()
 	bs.Map.SpreadFire()
+	bs.applyFreezeToUnits()
 	if bs.UFOName == "Abduction" {
 		bs.processAbduction()
 	}
@@ -1837,11 +1849,7 @@ func (bs *Battlescape) MoveSelected() {
 	best := 0
 	totalCost := 0
 	for i := 1; i < len(path); i++ {
-		tile := bs.Map.At(path[i][0], path[i][1])
-		stepCost := 4
-		if tile.Type == TileTree || tile.Type == TileRock || tile.Type == TileWater {
-			stepCost = 8
-		}
+		stepCost := bs.Map.MoveCost(path[i][0], path[i][1], &bs.Weather)
 		totalCost += stepCost
 		if totalCost+crouchExtra <= u.TU {
 			best = i
@@ -1855,11 +1863,7 @@ func (bs *Battlescape) MoveSelected() {
 	}
 	totalCost = 0
 	for i := 1; i <= best; i++ {
-		tile := bs.Map.At(path[i][0], path[i][1])
-		stepCost := 4
-		if tile.Type == TileTree || tile.Type == TileRock || tile.Type == TileWater {
-			stepCost = 8
-		}
+		stepCost := bs.Map.MoveCost(path[i][0], path[i][1], &bs.Weather)
 		totalCost += stepCost
 	}
 	dest := path[best]
@@ -1867,6 +1871,16 @@ func (bs *Battlescape) MoveSelected() {
 	u.TU -= totalCost + crouchExtra
 	audio.PlayMove()
 	bs.AddMessage(fmt.Sprintf(language.String("MSG_MOVED"), u.Soldier.Name, u.X, u.Y))
+	// Stepping on broken glass / debris alerts nearby aliens.
+	for i := 1; i <= best; i++ {
+		if t := bs.Map.At(path[i][0], path[i][1]).Type; t == TileGlass || t == TileDebris {
+			bs.EmitNoise(path[i][0], path[i][1], noiseAlertRadius)
+			break
+		}
+	}
+	if bs.Map.CollapseSkylight(u.X, u.Y) {
+		bs.UnitFallsThroughSkylight(u)
+	}
 	bs.ComputeFOVForTeam()
 	bs.checkAlienReactionFire(u)
 }
@@ -1874,6 +1888,41 @@ func (bs *Battlescape) MoveSelected() {
 // FireWeapon fires the selected unit's weapon at the target under the cursor.
 func (bs *Battlescape) FireWeapon() {
 	if bs.Selected == nil || bs.Phase != PhasePlayerTurn {
+		return
+	}
+	// Allow shooting a destructible terrain tile (streetlamp, pipe, fuel pump…)
+	// even when no unit is standing on it.
+	if bs.Map.IsDestructible(bs.CursorX, bs.CursorY) && bs.Units.At(bs.CursorX, bs.CursorY) == nil {
+		if bs.Selected.TU < 4 {
+			bs.AddMessage(language.String("MSG_NOT_ENOUGH_TU"))
+			return
+		}
+		if !bs.Selected.CanSee(bs.CursorX, bs.CursorY, bs.Map) {
+			bs.AddMessage(language.String("MSG_TARGET_NO_LOS"))
+			return
+		}
+		bs.Selected.TU -= 4
+		audio.PlayWeaponFire(bs.Selected.Weapon)
+		origType := bs.Map.At(bs.CursorX, bs.CursorY).Type
+		explRadius := bs.Map.ExplodesOnDestruction(bs.CursorX, bs.CursorY)
+		if bs.Map.DestroyWall(bs.CursorX, bs.CursorY) {
+			SpawnRubble(bs.Particles, bs.CursorX-bs.ScrollX+1, bs.CursorY-bs.ScrollY+1)
+		}
+		if explRadius > 0 {
+			bs.TriggerFuelPumpExplosions(bs.CursorX, bs.CursorY)
+		}
+		if origType == TileCryoPipe {
+			bs.VentFreezeGas(bs.CursorX, bs.CursorY)
+		}
+		if origType == TileSkylight {
+			for _, u := range bs.Units {
+				if u.Alive && u.X == bs.CursorX && u.Y == bs.CursorY && u.Level == bs.Map.CurrentLevel {
+					bs.UnitFallsThroughSkylight(u)
+				}
+			}
+		}
+		bs.ComputeFOVForTeam()
+		bs.PlayerLock = bs.Game.ActionDelay / 2
 		return
 	}
 	target := bs.Units.At(bs.CursorX, bs.CursorY)
@@ -2406,6 +2455,56 @@ func (bs *Battlescape) Grenade() {
 // that were just destroyed and detonates them, dealing splash damage to units
 // and destroying nearby tiles. Called after any tile destruction that might
 // have hit a fuel pump.
+// VentFreezeGas releases a cloud of freezing coolant gas in a 3x3 area around
+// (cx,cy). Units caught in it are chilled and lose time units. Also turns
+// underlying floor tiles into ice.
+func (bs *Battlescape) VentFreezeGas(cx, cy int) {
+	for dy := -1; dy <= 1; dy++ {
+		for dx := -1; dx <= 1; dx++ {
+			nx, ny := cx+dx, cy+dy
+			if nx < 0 || nx >= bs.Map.Width || ny < 0 || ny >= bs.Map.Height {
+				continue
+			}
+			density := freezeGasCoreDensity
+			if dx != 0 || dy != 0 {
+				density = freezeGasEdgeDensity
+			}
+			bs.Gas.Set(nx, ny, density, GasFreeze)
+			// Coat passable floor tiles with slippery ice.
+			tile := &bs.Map.Tiles[ny][nx]
+			if tile.Type == TileFloor || tile.Type == TilePavement ||
+				tile.Type == TileGrass || tile.Type == TileSnow ||
+				tile.Type == TileSand || tile.Type == TileGlass ||
+				tile.Type == TileDebris {
+				tile.Type = TileIce
+				tile.Cover = TileCover(TileIce)
+				tile.Rune = tileChars[TileIce]
+			}
+		}
+	}
+	engine.SpawnSmoke(bs.Particles, cx-bs.ScrollX+1, cy-bs.ScrollY+1, 10)
+	bs.AddMessage(language.String("MSG_CRYO_VENT"))
+	// Apply immediate chill to anyone standing in the burst.
+	bs.applyFreezeToUnits()
+}
+
+// applyFreezeToUnits drains TU (and a little morale) from every living unit
+// currently standing in freeze gas. Called when gas is vented and each turn.
+func (bs *Battlescape) applyFreezeToUnits() {
+	for _, u := range bs.Units {
+		if !u.Alive {
+			continue
+		}
+		if d, gt, ok := bs.Gas.Get(u.X, u.Y); ok && gt == GasFreeze {
+			drain := d * freezeTUDrainPerDensity
+			u.TU -= drain
+			if u.TU < 0 {
+				u.TU = 0
+			}
+		}
+	}
+}
+
 func (bs *Battlescape) TriggerFuelPumpExplosions(cx, cy int) {
 	radius := FuelPumpExplosionRadius
 	type blastTarget struct {
@@ -2464,6 +2563,63 @@ func (bs *Battlescape) TriggerFuelPumpExplosions(cx, cy int) {
 	engine.SpawnExplosion(bs.Particles, cx-bs.ScrollX+1, cy-bs.ScrollY+1, tcell.NewRGBColor(255, 100, 30), 32)
 	engine.SpawnSmoke(bs.Particles, cx-bs.ScrollX+1, cy-bs.ScrollY+1, 12)
 	bs.ComputeFOVForTeam()
+}
+
+// EmitNoise alerts every alien within `radius` tiles of (x,y) by forcing
+// them into search state aimed at the noise source. Used when a unit steps
+// onto broken glass / debris.
+func (bs *Battlescape) EmitNoise(x, y, radius int) {
+	for _, ai := range bs.AlienAIs {
+		u := ai.Unit
+		if u == nil || !u.Alive {
+			continue
+		}
+		dx := u.X - x
+		if dx < 0 {
+			dx = -dx
+		}
+		dy := u.Y - y
+		if dy < 0 {
+			dy = -dy
+		}
+		if dx > radius || dy > radius || dx*dx+dy*dy > radius*radius {
+			continue
+		}
+		if ai.State == AIAttack {
+			continue // already engaged, don't downgrade
+		}
+		ai.State = AISearch
+		ai.TurnsSince = 0
+		ai.LastSeenX = x
+		ai.LastSeenY = y
+	}
+	bs.AddMessage(language.String("MSG_NOISE_ALERT"))
+}
+
+// UnitFallsThroughSkylight drops a unit one level down after a skylight
+// collapses under them. Deals fall damage and turns the landing tile to
+// rubble if it's solid.
+func (bs *Battlescape) UnitFallsThroughSkylight(u *Unit) {
+	if bs.Map.NumLevels <= 1 || u.Level < 1 {
+		return
+	}
+	u.Level = u.Level - 1
+	if !bs.Map.Passable(u.X, u.Y) {
+		u.HP -= skylightFallDamage * 2 // crushed in debris
+	} else {
+		u.HP -= skylightFallDamage
+	}
+	if u.HP <= 0 {
+		u.HP = 0
+		u.Alive = false
+		bs.AddMessage(fmt.Sprintf(language.String("MSG_UNIT_DIED"), u.Name()))
+	}
+	SpawnRubble(bs.Particles, u.X-bs.ScrollX+1, u.Y-bs.ScrollY+1)
+	name := u.Name()
+	bs.AddMessage(fmt.Sprintf(language.String("MSG_SKYLIGHT_FALL"), name))
+	if u == bs.Selected && u.Level != bs.Map.CurrentLevel {
+		bs.SetSelected(nil)
+	}
 }
 
 func (bs *Battlescape) UseMedikit() {
@@ -2915,6 +3071,9 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 					ctx.SetCell(sx-1+i, sy-1, '▬', engine.StyleDefault.Background(color.Black).Foreground(pc))
 				}
 			}
+			if u.Faction == FactionHuman && u.Crouching {
+				ctx.SetCell(sx-1, sy, 'c', engine.StyleYellow)
+			}
 		}
 	}
 
@@ -3045,6 +3204,11 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 	if bs.QuitConfirm {
 		bs.renderQuitConfirm(ctx, w, h)
 	}
+
+	// Inventory overlay
+	if bs.ShowInventory {
+		bs.renderInventory(ctx, w, h)
+	}
 }
 
 func (bs *Battlescape) renderQuitConfirm(ctx *engine.ScreenCtx, w, h int) {
@@ -3062,6 +3226,229 @@ func (bs *Battlescape) renderQuitConfirm(ctx *engine.ScreenCtx, w, h int) {
 	ctx.DrawString(x+(boxW-engine.StringWidth(msg))/2, y+2, msg, engine.StyleYellow)
 	hint := language.String("CONFIRM_BATTLE_EXIT_HINT")
 	ctx.DrawString(x+(boxW-engine.StringWidth(hint))/2, y+3, hint, engine.StyleHotkey)
+}
+
+// openInventory opens the inventory overlay for the selected soldier.
+func (bs *Battlescape) openInventory() {
+	if bs.Selected == nil || bs.Selected.Soldier == nil {
+		return
+	}
+	if bs.Phase != PhasePlayerTurn {
+		return
+	}
+	bs.ShowInventory = true
+	bs.InvCursor = 0
+	bs.InvTab = 0
+}
+
+// currentInvList returns the item list for the active tab.
+func (bs *Battlescape) currentInvList() []string {
+	if bs.InvTab == 0 {
+		if bs.Selected != nil && bs.Selected.Soldier != nil {
+			return bs.Selected.Soldier.Inventory
+		}
+		return nil
+	}
+	return bs.Map.GroundLoot[[2]int{bs.Selected.X, bs.Selected.Y}]
+}
+
+// invActivate uses or picks up the selected item.
+func (bs *Battlescape) invActivate() {
+	list := bs.currentInvList()
+	if bs.InvCursor < 0 || bs.InvCursor >= len(list) {
+		return
+	}
+	if bs.InvTab == 0 {
+		bs.invUse()
+	} else {
+		bs.invPickup()
+	}
+}
+
+// invUse uses the selected inventory item (medikit, etc.).
+func (bs *Battlescape) invUse() {
+	if bs.Selected == nil || bs.Selected.Soldier == nil {
+		return
+	}
+	items := bs.Selected.Soldier.Inventory
+	if bs.InvCursor < 0 || bs.InvCursor >= len(items) {
+		return
+	}
+	item := items[bs.InvCursor]
+	switch item {
+	case "medikit":
+		bs.Selected.Soldier.RemoveItem(item)
+		bs.UseMedikit()
+	case "grenade":
+		bs.Selected.Soldier.RemoveItem(item)
+		bs.Grenade()
+	case "motion_scanner":
+		bs.Selected.Soldier.RemoveItem(item)
+		bs.UseMotionScanner()
+	}
+	// Re-check cursor bounds after removal
+	maxItems := len(bs.currentInvList())
+	if maxItems > 0 && bs.InvCursor >= maxItems {
+		bs.InvCursor = maxItems - 1
+	}
+}
+
+// invDrop drops the selected inventory item onto the ground.
+func (bs *Battlescape) invDrop() {
+	if bs.Selected == nil || bs.Selected.Soldier == nil {
+		return
+	}
+	items := bs.Selected.Soldier.Inventory
+	if bs.InvCursor < 0 || bs.InvCursor >= len(items) {
+		return
+	}
+	item := items[bs.InvCursor]
+	bs.Selected.Soldier.RemoveItem(item)
+	pos := [2]int{bs.Selected.X, bs.Selected.Y}
+	bs.Map.GroundLoot[pos] = append(bs.Map.GroundLoot[pos], item)
+	// Re-check cursor bounds
+	maxItems := len(bs.currentInvList())
+	if bs.InvCursor >= maxItems {
+		bs.InvCursor = maxItems - 1
+	}
+}
+
+// invPickup picks up the selected item from the ground.
+func (bs *Battlescape) invPickup() {
+	if bs.Selected == nil || bs.Selected.Soldier == nil {
+		return
+	}
+	pos := [2]int{bs.Selected.X, bs.Selected.Y}
+	items := bs.Map.GroundLoot[pos]
+	if bs.InvCursor < 0 || bs.InvCursor >= len(items) {
+		return
+	}
+	item := items[bs.InvCursor]
+	// Remove from ground
+	bs.Map.GroundLoot[pos] = append(items[:bs.InvCursor], items[bs.InvCursor+1:]...)
+	// Add to soldier inventory
+	bs.Selected.Soldier.AddItem(item)
+	// Re-check cursor bounds
+	maxItems := len(bs.currentInvList())
+	if bs.InvCursor >= maxItems {
+		bs.InvCursor = maxItems - 1
+	}
+}
+
+func (bs *Battlescape) renderInventory(ctx *engine.ScreenCtx, w, h int) {
+	if bs.Selected == nil || bs.Selected.Soldier == nil {
+		bs.ShowInventory = false
+		return
+	}
+	s := bs.Selected.Soldier
+	items := s.Inventory
+	ground := bs.Map.GroundLoot[[2]int{bs.Selected.X, bs.Selected.Y}]
+
+	boxW := 52
+	boxH := 6
+	// Count lines needed
+	lineCount := 0
+	lineCount++ // soldier name
+	lineCount++ // weapon + armor
+	lineCount++ // blank
+	lineCount++ // "Backpack:" header
+	nInv := len(items)
+	for i := 0; i < nInv; i++ {
+		lineCount++
+	}
+	lineCount++ // blank
+	lineCount++ // "Ground:" header
+	nGround := len(ground)
+	for i := 0; i < nGround; i++ {
+		lineCount++
+	}
+	lineCount++ // blank
+	lineCount++ // key hints
+	boxH = lineCount + 2
+
+	x := (w - boxW) / 2
+	y := (h - boxH) / 2
+	if y < 0 {
+		y = 0
+	}
+
+	// Fill background
+	for fy := y; fy < y+boxH; fy++ {
+		for fx := x; fx < x+boxW; fx++ {
+			ctx.SetCell(fx, fy, ' ', engine.StyleGray)
+		}
+	}
+	ctx.DrawPanel(x, y, boxW, boxH, "Inventory", engine.StyleGray)
+
+	cur := y + 1
+	// Soldier name + encumbrance
+	enc := s.Encumbrance()
+	pen := s.TUPenalty()
+	nameStr := fmt.Sprintf("%s  Enc: %d (TU -%d)", s.Name, enc, pen)
+	ctx.DrawString(x+2, cur, nameStr, engine.StyleYellow)
+	cur++
+
+	// Weapon + Armor
+	wpnStr := "Weapon: "
+	if s.Weapon != "" {
+		wpnStr += data.ItemDisplayName(s.Weapon)
+		if ai, ok := data.RuleItems[s.Weapon]; ok && ai.AmmoMax < 99 {
+			wpnStr += fmt.Sprintf(" (%d/%d)", bs.Selected.WeaponAmmo, ai.AmmoMax)
+		}
+	} else {
+		wpnStr += "(none)"
+	}
+	armStr := "Armor: " + language.String(s.Armor)
+	ctx.DrawString(x+2, cur, wpnStr, engine.StyleDefault)
+	ctx.DrawString(x+2+boxW/2, cur, armStr, engine.StyleDefault)
+	cur++
+
+	cur++ // blank
+
+	// Backpack section
+	ctx.DrawString(x+2, cur, "Backpack:", engine.StyleCyan)
+	cur++
+	sel := bs.InvCursor
+	for i, item := range items {
+		mark := "  "
+		if i == sel && bs.InvTab == 0 {
+			mark = " >"
+		}
+		line := fmt.Sprintf("%s %s", mark, data.ItemDisplayName(item))
+		ctx.DrawString(x+2, cur, line, engine.StyleDefault)
+		ctx.DrawString(x+boxW-20, cur, "[U]se [D]rop", engine.StyleHotkey)
+		cur++
+	}
+	if nInv == 0 {
+		ctx.DrawString(x+4, cur, "(empty)", engine.StyleGray)
+		cur++
+	}
+
+	cur++ // blank
+
+	// Ground section
+	ctx.DrawString(x+2, cur, "Ground:", engine.StyleCyan)
+	cur++
+	for i, item := range ground {
+		mark := "  "
+		if i == sel && bs.InvTab == 1 {
+			mark = " >"
+		}
+		line := fmt.Sprintf("%s %s", mark, data.ItemDisplayName(item))
+		ctx.DrawString(x+2, cur, line, engine.StyleDefault)
+		ctx.DrawString(x+boxW-18, cur, "[P]ick up", engine.StyleHotkey)
+		cur++
+	}
+	if nGround == 0 {
+		ctx.DrawString(x+4, cur, "(nothing)", engine.StyleGray)
+		cur++
+	}
+
+	cur++ // blank
+
+	// Key hints
+	hintStr := "[I] Close  [↑↓] Select  [Tab] Tab"
+	ctx.DrawString(x+(boxW-engine.StringWidth(hintStr))/2, cur, hintStr, engine.StyleHotkey)
 }
 
 func (bs *Battlescape) phaseStr() string {
@@ -3330,6 +3717,11 @@ func (bs *Battlescape) drawUnitInfo(ctx *engine.ScreenCtx, sideX, sideY0, sideH 
 		ctx.DrawString(sideX, sy, fmt.Sprintf(language.String("SIDE_POS"), bs.Selected.X, bs.Selected.Y), engine.StyleGray)
 		sy++
 
+		enc := bs.Selected.Soldier.Encumbrance()
+		pen := bs.Selected.Soldier.TUPenalty()
+		ctx.DrawString(sideX, sy, language.Sprintf("SIDE_ENCUMBRANCE", enc, pen), engine.StyleYellow)
+		sy++
+
 		if len(bs.Selected.Soldier.Inventory) > 0 {
 			ctx.DrawString(sideX, sy, language.String("SIDE_INVENTORY"), engine.StyleDefault)
 			sy++
@@ -3550,6 +3942,82 @@ func tileTypeName(t TileType) string {
 		return language.String("TILE_LOCKER")
 	case TileCabinet:
 		return language.String("TILE_CABINET")
+	case TileObject:
+		return language.String("TILE_OBJECT")
+	case TileCar, TileCarMid, TileCarRight:
+		return language.String("TILE_CAR")
+	case TileForklift, TileForkliftRight:
+		return language.String("TILE_FORKLIFT")
+	case TileFuelPump:
+		return language.String("TILE_FUEL_PUMP")
+	case TileContainerRed, TileContainerBlue, TileContainerYellow:
+		return language.String("TILE_CONTAINER")
+	case TileAdobe:
+		return language.String("TILE_ADOBE")
+	case TileMetalWall:
+		return language.String("TILE_METAL_WALL")
+	case TileWreck:
+		return language.String("TILE_WRECK")
+	case TileTimber:
+		return language.String("TILE_TIMBER")
+	case TileDish:
+		return language.String("TILE_DISH")
+	case TileTruck:
+		return language.String("TILE_TRUCK")
+	case TileIce:
+		return language.String("TILE_ICE")
+	case TileStreetlamp:
+		return language.String("TILE_STREETLAMP")
+	case TileGlass:
+		return language.String("TILE_GLASS")
+	case TileDebris:
+		return language.String("TILE_DEBRIS")
+	case TileCryoPipe:
+		return language.String("TILE_CRYO_PIPE")
+	case TileSkylight:
+		return language.String("TILE_SKYLIGHT")
+	case TileWheat:
+		return language.String("TILE_WHEAT")
+	case TileHayBale:
+		return language.String("TILE_HAY_BALE")
+	case TilePier:
+		return language.String("TILE_PIER")
+	case TileDockCrate:
+		return language.String("TILE_DOCK_CRATE")
+	case TileCliffFace:
+		return language.String("TILE_CLIFF_FACE")
+	case TileScree:
+		return language.String("TILE_SCREE")
+	case TileBoulder:
+		return language.String("TILE_BOULDER")
+	case TileSwampWater:
+		return language.String("TILE_SWAMP_WATER")
+	case TileCypressTree:
+		return language.String("TILE_CYPRESS_TREE")
+	case TileMud:
+		return language.String("TILE_MUD")
+	case TileVine:
+		return language.String("TILE_VINE")
+	case TileBamboo:
+		return language.String("TILE_BAMBOO")
+	case TileDryBush:
+		return language.String("TILE_DRY_BUSH")
+	case TileBusEnd, TileBusMid:
+		return language.String("TILE_BUS")
+	case TileHeloBody, TileHeloTail, TileHeloNose, TileHeloBodyBack:
+		return language.String("TILE_HELICOPTER")
+	case TileHeloRotor, TileHeloRotorSides, TileHeloRotorBack:
+		return language.String("TILE_HELO_ROTOR")
+	case TileHeloWindow:
+		return language.String("TILE_WINDOW")
+	case TileTractorCab, TileTractorBody:
+		return language.String("TILE_TRACTOR")
+	case TileCrawlerLeft, TileCrawlerMid, TileCrawlerRight:
+		return language.String("TILE_CRAWLER")
+	case TileCrawlerLeg:
+		return language.String("TILE_CRAWLER_LEG")
+	case TileWheel, TileWheelSmall:
+		return language.String("TILE_WHEEL")
 	}
 	return language.String("TILE_UNKNOWN")
 }

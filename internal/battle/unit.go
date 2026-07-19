@@ -38,7 +38,6 @@ const (
 	fatalWoundChance    = 15    // % chance per hit to inflict a fatal wound
 	bleedDivisor        = 4     // bleed rate = damage / bleedDivisor
 	maxBleedRate        = 5     // cap on bleed rate
-	moveTUCostPerTile   = 4     // TU cost per tile moved (matches pathMoveCost)
 )
 
 type Unit struct {
@@ -78,13 +77,22 @@ type Unit struct {
 }
 
 func NewSoldierUnit(s *soldier.Soldier) *Unit {
+	penalty := s.TUPenalty()
+	tu := s.TU - penalty
+	if tu < 0 {
+		tu = 0
+	}
+	maxTU := s.MaxTU - penalty
+	if maxTU < 0 {
+		maxTU = 0
+	}
 	return &Unit{
 		Type:       0,
 		Soldier:    s,
 		HP:         s.HP,
 		MaxHP:      s.MaxHP,
-		TU:         s.TU,
-		MaxTU:      s.MaxTU,
+		TU:         tu,
+		MaxTU:      maxTU,
 		Accuracy:   s.Accuracy,
 		Bravery:    s.Bravery,
 		Reactions:  s.Reactions,
@@ -194,6 +202,9 @@ func (u *Unit) FireAt(target *Unit, m *BattleMap, weather *Weather) (int, bool, 
 	u.TU -= tuCost
 
 	dist := math.Sqrt(float64((target.X-u.X)*(target.X-u.X) + (target.Y-u.Y)*(target.Y-u.Y)))
+	if w.Range > 0 && dist > float64(w.Range) {
+		return 0, false, false, fmt.Errorf("target out of weapon range (%.0f > %d)", dist, w.Range)
+	}
 	accMod := 100 - int(dist*distAccPenalty)
 	if accMod < minAccMod {
 		accMod = minAccMod
@@ -310,6 +321,16 @@ func (u *Unit) resolveHits(rounds, hitChance int, w data.RuleItem, target *Unit,
 	if target.HP <= 0 {
 		target.HP = 0
 		target.Alive = false
+		if m != nil {
+			pos := [2]int{target.X, target.Y}
+			if target.Weapon != "" {
+				m.GroundLoot[pos] = append(m.GroundLoot[pos], target.Weapon)
+			}
+			if target.Soldier != nil {
+				m.GroundLoot[pos] = append(m.GroundLoot[pos], target.Soldier.Inventory...)
+				target.Soldier.Inventory = nil
+			}
+		}
 	}
 	return
 }
@@ -331,8 +352,34 @@ func WeaponDamageType(weapon string) int {
 }
 
 func (u *Unit) MoveTo(x, y int, m *BattleMap) bool {
-	dist := math.Abs(float64(x-u.X)) + math.Abs(float64(y-u.Y))
-	tuCost := int(dist) * moveTUCostPerTile
+	// Per-step TU cost varies by terrain; sum along a Manhattan path.
+	dx := x - u.X
+	if dx < 0 {
+		dx = -dx
+	}
+	dy := y - u.Y
+	if dy < 0 {
+		dy = -dy
+	}
+	sx, sy := 1, 1
+	if x < u.X {
+		sx = -1
+	}
+	if y < u.Y {
+		sy = -1
+	}
+	// Walk the longer axis first, then the shorter (Manhattan order).
+	cx, cy := u.X, u.Y
+	stepCost := 0
+	for i := 0; i < dx; i++ {
+		cx += sx
+		stepCost += m.MoveCost(cx, cy, nil)
+	}
+	for i := 0; i < dy; i++ {
+		cy += sy
+		stepCost += m.MoveCost(cx, cy, nil)
+	}
+	tuCost := stepCost
 	if u.Crouching {
 		tuCost += 4
 	}

@@ -6,18 +6,19 @@
   "width": 4,
   "height": 8,
   "rows": [
-    "WWWW",
+    "W+WW",
     "W..W",
     "W..W",
     "W..W",
     "W.dW",
     "W..W",
     "W..W",
-    "WWWW"
+    "W+WW"
   ],
   "terrain": {
     "W": "TileWall",
-    ".": "TileFloor"
+    ".": "TileFloor",
+    "+": "TileDoor"
   },
   "furniture": {
     "d": "TileDesk"

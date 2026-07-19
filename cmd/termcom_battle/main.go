@@ -437,7 +437,7 @@ func launchBuiltin(ufoName, extra string) {
 		os.Exit(1)
 	}
 
-	bs := battle.NewBattlescape(g, b, squad, ufoName, 42)
+	bs := battle.NewBattlescape(g, b, squad, ufoName, 42, -1, -1)
 	g.SetScreen(engine.StateBattlescape, bs)
 	g.SetState(engine.StateBattlescape)
 
@@ -518,13 +518,13 @@ func launchCustom(path string) {
 	case "terror":
 		m = battle.GenerateTerrorSite(w, h, time.Now().UnixNano())
 	case "supply_raid", "ufo_interior":
-		m = battle.GenerateUFOInterior(w, h)
+		m = battle.GenerateUFOInterior(w, h, time.Now().UnixNano())
 	case "building_assault":
 		m = battle.GenerateUrbanBuildingWFC(w, h, rand.New(rand.NewSource(42)))
 	case "alien_base":
 		m = battle.GenerateAlienBase(w, h)
 	case "alien_research":
-		m = battle.GenerateUFOInterior(w, h)
+		m = battle.GenerateUFOInterior(w, h, time.Now().UnixNano())
 	case "council":
 		m = battle.GenerateTerrorSite(w, h, time.Now().UnixNano())
 	case "cydonia":
@@ -538,7 +538,7 @@ func launchCustom(path string) {
 	case "polar":
 		m = battle.GeneratePolar(w, h)
 	default:
-		m, _ = battle.GenerateCrashSite(w, h, 42)
+		m, _ = battle.GenerateCrashSite(w, h, 42, -1, -1)
 	}
 
 	// Build unit definitions

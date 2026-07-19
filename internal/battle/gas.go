@@ -12,6 +12,7 @@ type GasType int
 const (
 	GasSmoke  GasType = iota
 	GasPoison
+	GasFreeze
 )
 
 // Gas density bounds and tuning.
@@ -43,6 +44,16 @@ var (
 		tcell.NewRGBColor(0, 0, 0),
 		tcell.NewRGBColor(0, 25, 0),
 		tcell.NewRGBColor(0, 40, 0),
+	}
+	gasFreezeFg = []tcell.Color{
+		tcell.NewRGBColor(150, 200, 230),
+		tcell.NewRGBColor(190, 225, 245),
+		tcell.NewRGBColor(225, 245, 255),
+	}
+	gasFreezeBg = []tcell.Color{
+		tcell.NewRGBColor(0, 10, 20),
+		tcell.NewRGBColor(10, 25, 40),
+		tcell.NewRGBColor(20, 40, 60),
 	}
 	gasRune = []rune{'\u2591', '\u2592', '\u2593'} // light/medium/dark shade by density-1
 )
@@ -206,6 +217,9 @@ func gasStyle(density int, gt GasType) (rune, tcell.Style) {
 	ch := gasRune[idx]
 	if gt == GasPoison {
 		return ch, tcell.StyleDefault.Foreground(gasPoisonFg[idx]).Background(gasPoisonBg[idx])
+	}
+	if gt == GasFreeze {
+		return ch, tcell.StyleDefault.Foreground(gasFreezeFg[idx]).Background(gasFreezeBg[idx])
 	}
 	return ch, tcell.StyleDefault.Foreground(gasSmokeFg[idx]).Background(gasSmokeBg[idx])
 }

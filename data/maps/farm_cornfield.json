@@ -1,0 +1,24 @@
+{
+  "id": "farm_cornfield",
+  "tags": ["farm", "rural"],
+  "width": 10,
+  "height": 10,
+  "weight": 3,
+  "rows": [
+    "..........",
+    ".wwwwwwww.",
+    ".w.w.w.w.w",
+    ".wwwwwwww.",
+    ".w.w.w.w.w",
+    ".wwwwwwww.",
+    ".w.w.w.w.w",
+    ".wwwwwwww.",
+    "..........",
+    ".........."
+  ],
+  "terrain": {
+    ".": "TileGrass",
+    "w": "TileWheat"
+  },
+  "furniture": {}
+}

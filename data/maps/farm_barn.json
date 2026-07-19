@@ -1,0 +1,26 @@
+{
+  "id": "farm_barn",
+  "tags": ["farm"],
+  "width": 9,
+  "height": 9,
+  "weight": 2,
+  "rows": [
+    ".........",
+    ".WWWWWWW.",
+    ".WH...HW.",
+    ".WH...HW.",
+    ".WH...HW.",
+    ".WH...HW.",
+    ".WWW+WWW.",
+    ".........",
+    "........."
+  ],
+  "terrain": {
+    ".": "TileGrass",
+    "W": "TileWall",
+    "+": "TileDoor"
+  },
+  "furniture": {
+    "H": "TileHayBale"
+  }
+}

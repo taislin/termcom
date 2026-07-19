@@ -46,6 +46,7 @@ const (
 	StatePlaneDesigner
 	StateWeaponDesigner
 	StateSeed
+	StateLoadout
 )
 
 type Screen interface {
@@ -269,6 +270,9 @@ func (g *Game) initSpeciesWithSeed(seed int64) {
 // LearnAlien increases knowledge level for an alien type.
 // Levels: 0=unknown, 1=sighted, 2=killed, 3=autopsied
 func (g *Game) LearnAlien(name string, level int) {
+	if g.AlienKnowledge == nil {
+		g.AlienKnowledge = make(map[string]int)
+	}
 	if g.AlienKnowledge[name] < level {
 		g.AlienKnowledge[name] = level
 	}

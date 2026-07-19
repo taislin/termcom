@@ -1,0 +1,30 @@
+{
+  "id": "swamp_mud_bank",
+  "tags": ["swamp"],
+  "width": 9,
+  "height": 9,
+  "weight": 3,
+  "no_rotate": true,
+  "rows": [
+    ".........",
+    "..TTT....",
+    ".TmwmT.T.",
+    ".TwWwT.B.",
+    ".TmwmT...",
+    "..TTT.V..",
+    "...B.....",
+    "..V..B...",
+    "........."
+  ],
+  "terrain": {
+    ".": "TileMarsh",
+    "m": "TileMud",
+    "w": "TileSwampWater",
+    "W": "TileWater"
+  },
+  "furniture": {
+    "T": "TileCypressTree",
+    "B": "TileBush",
+    "V": "TileVine"
+  }
+}

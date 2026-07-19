@@ -22,7 +22,7 @@ func TestHandleEventNoDeadlock(t *testing.T) {
 		soldier.NewSoldier("Alpha"),
 		soldier.NewSoldier("Bravo"),
 	}
-	bs := NewBattlescape(g, nil, squad, "Crash", 777)
+	bs := NewBattlescape(g, nil, squad, "Crash", 777, -1, -1)
 
 	// Place the cursor on the first friendly soldier so Enter triggers SetSelected.
 	var su *Unit

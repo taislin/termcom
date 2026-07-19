@@ -1,0 +1,23 @@
+{
+  "id": "urban_skylight_room",
+  "tags": ["urban"],
+  "width": 6,
+  "height": 6,
+  "weight": 2,
+  "rows": [
+    "WWWWWW",
+    "W.S.SW",
+    "W.S.SW",
+    "W.S.SW",
+    "W.S.SW",
+    "WW+WWW"
+  ],
+  "terrain": {
+    ".": "TileFloor",
+    "W": "TileWall",
+    "+": "TileDoor"
+  },
+  "furniture": {
+    "S": "TileSkylight"
+  }
+}

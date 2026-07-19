@@ -456,6 +456,11 @@ func (bs *BaseScreen) dispatchHotkey(key string, viaMouse bool) {
 		if bs.Tab == 1 && len(bs.Base.Soldiers) > 0 {
 			bs.Game.PushState(engine.StateEquip)
 		}
+	case "l", "L":
+		if bs.Tab == 1 && len(bs.Base.Soldiers) > 0 {
+			bs.Game.SetScreen(engine.StateLoadout, NewLoadoutScreen(bs.Game, bs.Base))
+			bs.Game.PushState(engine.StateLoadout)
+		}
 	case "r", "R":
 		if bs.Tab == 2 {
 			bs.Game.PushState(engine.StateResearch)

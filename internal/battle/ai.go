@@ -107,6 +107,16 @@ func (sm *SquadMemory) Report(target *Unit, x, y, turn int) {
 	}
 }
 
+// Turn returns the current turn counter under lock.
+func (sm *SquadMemory) Turn() int {
+	if sm == nil {
+		return 0
+	}
+	sm.mu.Lock()
+	defer sm.mu.Unlock()
+	return sm.turn
+}
+
 // Forget marks a target as no longer confirmed alive (e.g. killed).
 func (sm *SquadMemory) Forget(target *Unit) {
 	if sm == nil || target == nil {
@@ -187,7 +197,7 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList, pla
 	// Spatial memory: report any human we can currently sense so the squad can
 	// share target positions even after an individual alien loses line of sight.
 	if ai.Memory != nil && nearest != nil {
-		ai.Memory.Report(nearest, nearest.X, nearest.Y, ai.Memory.turn)
+		ai.Memory.Report(nearest, nearest.X, nearest.Y, ai.Memory.Turn())
 	}
 
 	if ai.Unit.HP <= 0 {
@@ -244,6 +254,7 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList, pla
 		ai.TurnsSince = 0
 
 		target := ai.selectTarget(nearest, humanUnits, plan, m)
+		fired := false
 
 		if target != nil && ai.canFireAt(target) {
 			ai.selectFireMode(int(dist))
@@ -255,6 +266,7 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList, pla
 					ToX: target.X, ToY: target.Y,
 				})
 				ai.State = AISuppress
+				fired = true
 			} else if role == RoleFlanker && dist > FlankDistThreshold && ai.Unit.TU >= FlankTUThreshold {
 				// 2. Flank: Move to a side position if specialized and distance allows.
 				ai.State = AIFlank
@@ -265,6 +277,7 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList, pla
 					FromX: ai.Unit.X, FromY: ai.Unit.Y,
 					ToX: target.X, ToY: target.Y,
 				})
+				fired = true
 			} else if ai.Unit.Weapon == "alien_grenade" && ai.Unit.TU >= GrenadeTUThreshold && dist <= GrenadeRangeMax && dist > GrenadeRangeMin {
 				// 4. Grenade: Throw alien grenade at the target's position (AoE).
 				actions = append(actions, AlienAction{
@@ -272,6 +285,7 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList, pla
 					FromX: ai.Unit.X, FromY: ai.Unit.Y,
 					ToX: target.X, ToY: target.Y,
 				})
+				fired = true
 			} else if (dist <= CloseAttackDist || (longRange && dist <= CoverSeekDist) || (ai.Unit.AlienType != nil && ai.Unit.AlienType.Aggression > 7)) {
 				// 5. Standard Attack: Melee if adjacent, otherwise ranged fire.
 				if dist <= MeleeDist {
@@ -287,6 +301,7 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList, pla
 						ToX: target.X, ToY: target.Y,
 					})
 				}
+				fired = true
 			}
 		}
 
@@ -318,14 +333,15 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList, pla
 					actions = ai.appendMove(actions, fx, fy)
 				}
 			}
-		} else if ai.Unit.TU >= 20 && ai.Unit.TU < ai.Unit.MaxTU && target != nil && ai.canFireAt(target) {
-			// Last-resort fire if enough TU remains.
+		} else if !fired && ai.Unit.TU >= 20 && target != nil && ai.canFireAt(target) {
+			// Last-resort fire if no combat action was taken yet and enough TU remains.
 			ai.selectFireMode(int(dist))
 			actions = append(actions, AlienAction{
 				Type: "fire", Unit: ai.Unit, Target: target,
 				FromX: ai.Unit.X, FromY: ai.Unit.Y,
 				ToX: target.X, ToY: target.Y,
 			})
+			fired = true
 		}
 
 	case AISuppress:
@@ -387,9 +403,12 @@ func (ai *AlienAI) selectTarget(nearest *Unit, humanUnits UnitList, plan *SquadP
 	}
 
 	best := nearest
+	if nearest != nil && nearest.Level != ai.Unit.Level {
+		best = nil
+	}
 	bestScore := -999.0
 	for _, h := range humanUnits {
-		if !h.Alive || !ai.canSense(h.X, h.Y, m) {
+		if !h.Alive || h.Level != ai.Unit.Level || !ai.canSense(h.X, h.Y, m) {
 			continue
 		}
 		dx := float64(h.X - ai.Unit.X)
@@ -471,13 +490,19 @@ func (ai *AlienAI) canFireAt(target *Unit) bool {
 	if w.AmmoMax < 99 && ai.Unit.WeaponAmmo <= 0 {
 		return false
 	}
+	dx := float64(ai.Unit.X - target.X)
+	dy := float64(ai.Unit.Y - target.Y)
+	dist := math.Sqrt(dx*dx + dy*dy)
+	if w.Range > 0 && dist > float64(w.Range) {
+		return false
+	}
 	return true
 }
 
-func humanFrom(units UnitList) UnitList {
+func humanFrom(units UnitList, level int) UnitList {
 	var humans UnitList
 	for _, u := range units {
-		if u.Alive && u.Faction == 0 {
+		if u.Alive && u.Faction == FactionHuman && u.Level == level {
 			humans = append(humans, u)
 		}
 	}
@@ -569,7 +594,7 @@ func (ai *AlienAI) findCoverTowardTarget(tx, ty int, m *BattleMap, units UnitLis
 
 		score := float64(cover)*3.0 - tDist*2.0 - moveDist*2.0
 		// Directional cover: reward positions that actually block LOS to threats.
-		score += ai.evaluateCoverVsThreats(nx, ny, m, humanFrom(units)) * 0.5
+		score += ai.evaluateCoverVsThreats(nx, ny, m, humanFrom(units, ai.Unit.Level)) * 0.5
 		if cover > 0 {
 			score += 10
 		}
@@ -698,7 +723,7 @@ func (ai *AlienAI) retreatTarget(threat *Unit, m *BattleMap, units UnitList) (in
 				continue
 			}
 			cover := ai.evaluateCover(cx, cy, m)
-			protection := ai.evaluateCoverVsThreats(cx, cy, m, humanFrom(units))
+			protection := ai.evaluateCoverVsThreats(cx, cy, m, humanFrom(units, ai.Unit.Level))
 			total := math.Max(protection, float64(cover))
 			tdx := threat.X - cx
 			tdy := threat.Y - cy
@@ -722,7 +747,7 @@ func (ai *AlienAI) nearestAlly(units UnitList) *Unit {
 	var best *Unit
 	bestDist := 999.0
 	for _, u := range units {
-		if u == ai.Unit || !u.Alive || u.Faction != 1 {
+		if u == ai.Unit || !u.Alive || u.Faction != FactionAlien {
 			continue
 		}
 		dx := float64(u.X - ai.Unit.X)
@@ -830,7 +855,7 @@ func (ai *AlienAI) moveTowardTargetCover(tx, ty int, m *BattleMap, units UnitLis
 		tdy := ty - ny
 		tDist := math.Sqrt(float64(tdx*tdx + tdy*tdy))
 
-		score := -tDist + float64(cover)*8 - ai.reactionFirePenalty(nx, ny, m, units) + ai.evaluateCoverVsThreats(nx, ny, m, humanFrom(units))*0.5
+		score := -tDist + float64(cover)*8 - ai.reactionFirePenalty(nx, ny, m, units) + ai.evaluateCoverVsThreats(nx, ny, m, humanFrom(units, ai.Unit.Level))*0.5
 
 		if score > bestScore {
 			bestScore = score
@@ -915,7 +940,7 @@ func (cai *CivilianAI) GenerateActions(units UnitList, m *BattleMap) []AlienActi
 	var nearestThreat *Unit
 	bestDist := 999.0
 	for _, u := range units {
-		if !u.Alive || u.Faction == 2 || u.Level != cai.Unit.Level {
+		if !u.Alive || u.Faction == FactionCivilian || u.Level != cai.Unit.Level {
 			continue
 		}
 		dx := float64(u.X - cai.Unit.X)
@@ -962,10 +987,9 @@ func (cai *CivilianAI) GenerateActions(units UnitList, m *BattleMap) []AlienActi
 		fy = m.LevelHeight - 1
 	}
 
-	if !m.Passable(fx, fy) {
+	if !m.Passable(fx, fy) || units.At(fx, fy) != nil {
 		return nil
 	}
-
 	return []AlienAction{{
 		Type: "move", Unit: cai.Unit,
 		FromX: cai.Unit.X, FromY: cai.Unit.Y,
@@ -1005,10 +1029,15 @@ func (ai *AlienAI) handleSearch(nearest *Unit, m *BattleMap, humanUnits UnitList
 		sx, sy := ai.LastSeenX, ai.LastSeenY
 		if ai.Memory != nil {
 			if s, ok := ai.Memory.Latest(); ok {
-				if s.Turn >= ai.Memory.turn-3 {
+				if s.Turn >= ai.Memory.Turn()-3 {
 					sx, sy = s.X, s.Y
 				}
 			}
+		}
+		// If no sighting is available (both zero), fall back to patrol.
+		if sx == 0 && sy == 0 {
+			ai.State = AIPatrol
+			return ai.handlePatrol(m)
 		}
 		nx, ny := ai.moveTowardTargetCover(sx, sy, m, humanUnits)
 		if (nx != ai.Unit.X || ny != ai.Unit.Y) && m.Passable(nx, ny) {
@@ -1093,25 +1122,24 @@ func (ai *AlienAI) selectFireMode(dist int) {
 	if len(modes) <= 1 {
 		return
 	}
-	if dist <= FireModeAutoDist {
-		for _, m := range modes {
-			if m == data.FireModeAuto {
-				ai.Unit.FireMode = data.FireModeAuto
-				return
-			}
+	// Preference order: Auto > Burst > Aimed, fall back if TU is insufficient.
+	tryMode := func(mode data.FireMode) bool {
+		if !w.HasMode(mode) {
+			return false
 		}
-		for _, m := range modes {
-			if m == data.FireModeBurst {
-				ai.Unit.FireMode = data.FireModeBurst
-				return
-			}
+		if ai.Unit.TU >= w.ModeTU(mode) {
+			ai.Unit.FireMode = mode
+			return true
+		}
+		return false
+	}
+	if dist <= FireModeAutoDist {
+		if tryMode(data.FireModeAuto) || tryMode(data.FireModeBurst) {
+			return
 		}
 	} else if dist <= FireModeBurstDist {
-		for _, m := range modes {
-			if m == data.FireModeBurst {
-				ai.Unit.FireMode = data.FireModeBurst
-				return
-			}
+		if tryMode(data.FireModeBurst) {
+			return
 		}
 	}
 	ai.Unit.FireMode = data.FireModeAimed

@@ -1,0 +1,31 @@
+{
+  "id": "desert_dry_riverbed",
+  "tags": ["desert", "rural"],
+  "width": 10,
+  "height": 15,
+  "weight": 2,
+  "rows": [
+    "ssssssssss",
+    "sRRRRRRRRs",
+    "sRbbbbbbRs",
+    "sRb....bRs",
+    "sRb....bRs",
+    "sRb....bRs",
+    "sRb....bRs",
+    "sRb....bRs",
+    "sRb....bRs",
+    "sRb....bRs",
+    "sRb....bRs",
+    "sRbbbbbbRs",
+    "sRRRRRRRRs",
+    "ssssssssss",
+    "ssssssssss"
+  ],
+  "terrain": {
+    "s": "TileSand",
+    "R": "TileRock",
+    "b": "TileBush",
+    ".": "TileFloor"
+  },
+  "furniture": {}
+}
