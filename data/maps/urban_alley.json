@@ -6,14 +6,14 @@
   "width": 4,
   "height": 8,
   "rows": [
-    "WWWW",
+    "W+WW",
     "W..W",
     "W..W",
     "W..W",
     "W.dW",
     "W..W",
     "W..W",
-    "W+WWW"
+    "W+WW"
   ],
   "terrain": {
     "W": "TileWall",

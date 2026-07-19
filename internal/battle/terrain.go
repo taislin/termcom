@@ -177,12 +177,19 @@ var tilePalette = map[TileType]tcell.Color{
 	TileHeloTail:      tcell.NewRGBColor(60, 70, 85),    // dark grey-green tail
 	TileHeloNose:      tcell.NewRGBColor(130, 200, 230), // glass canopy blue
 	TileHeloRotor:     tcell.NewRGBColor(180, 180, 180), // light grey rotor
-	TileTractorCab:    tcell.NewRGBColor(180, 60, 40),   // red tractor cab
+	TileHeloRotorSides: tcell.NewRGBColor(180, 180, 180), // light grey rotor sides
+	TileTractorCab:    tcell.NewRGBColor(130, 200, 230),  // glass tractor cab
 	TileTractorBody:   tcell.NewRGBColor(180, 60, 40),   // red tractor body
 	TileCrawlerLeft:   tcell.NewRGBColor(130, 70, 190),  // alien purple
 	TileCrawlerMid:    tcell.NewRGBColor(130, 70, 190),  // alien purple
 	TileCrawlerRight:  tcell.NewRGBColor(130, 70, 190),  // alien purple
 	TileCrawlerLeg:    tcell.NewRGBColor(100, 50, 160),  // darker purple
+	TileDryBush:       tcell.NewRGBColor(170, 140, 60),  // dry scrub brown
+	TileHeloBodyBack:  tcell.NewRGBColor(60, 70, 85),    // dark grey-green rear fuselage
+	TileHeloRotorBack: tcell.NewRGBColor(180, 180, 180), // light grey rear rotor
+	TileHeloWindow:    tcell.NewRGBColor(130, 200, 230), // blue glass
+	TileWheel:         tcell.NewRGBColor(60, 60, 60),    // dark grey rubber
+	TileWheelSmall:    tcell.NewRGBColor(60, 60, 60),    // dark grey rubber
 }
 
 // TileBaseColor returns the resolved color for a tile.
@@ -293,22 +300,12 @@ func TileGeomRune(t Tile, ctx [3][3]TileType) rune {
 			return '▄'
 		}
 		return '█'
-	case TileHeloBody, TileHeloTail, TileHeloNose:
-		if n == t.Type {
-			return 'º'
-		}
-		return TileChar(t.Type) // '▄'
-	case TileHeloRotor:
-		return '⎈'
 	case TileTractorCab:
 		if n == TileTractorCab {
-			return 'º'
+			return 'o'
 		}
-		return TileChar(t.Type) // '▄'
+		return TileChar(t.Type)
 	case TileTractorBody:
-		if n == TileTractorBody {
-			return '▄'
-		}
 		return '█'
 	case TileCrawlerLeft:
 		if n == TileCrawlerLeft {

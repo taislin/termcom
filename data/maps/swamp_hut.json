@@ -1,24 +1,27 @@
 {
   "id": "swamp_hut",
-  "tags": ["swamp"],
+  "tags": [
+    "swamp"
+  ],
   "width": 9,
   "height": 9,
   "weight": 1,
   "rows": [
-    "..B...T..",
-    ".T.V..B..",
-    "..W+TWB..",
-    "..TT.TT..",
-    "..W+TWT..",
-    "..BV..B..",
-    ".T..V.T..",
+    "..B...V..",
+    ".V.V..VV.",
+    "..W+WWB..",
+    "..W__WTB.",
+    "..W+WWT..",
+    "..BV..BB.",
+    ".TT.V.VV.",
     "..T...B..",
     "........."
   ],
   "terrain": {
     ".": "TileMarsh",
     "W": "TileWall",
-    "+": "TileDoor"
+    "+": "TileDoor",
+    "_": "TileFloor"
   },
   "furniture": {
     "T": "TileTimber",

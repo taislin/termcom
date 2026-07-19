@@ -1,6 +1,8 @@
 {
   "id": "urban_gas_station",
-  "tags": ["urban"],
+  "tags": [
+    "urban"
+  ],
   "width": 15,
   "height": 10,
   "weight": 2,
@@ -8,10 +10,10 @@
   "rows": [
     "...............",
     "WWWWWWWWWWWWWWW",
-    "W.....+.......W",
-    "W......C......W",
+    "W......s.s.s.sW",
+    "WCCCCC.s.s.s.sW",
     "W.............W",
-    "WWWWWWWWWWWWWWW",
+    "WVWVWVW+WVWVWVW",
     ".O...O...O...O.",
     ".P...P...P...P.",
     ".P...P...P...P.",
@@ -20,11 +22,13 @@
   "terrain": {
     ".": "TilePavement",
     "W": "TileWall",
-    "+": "TileDoor"
+    "+": "TileDoor",
+    "V": "TileWindow"
   },
   "furniture": {
     "C": "TileDesk",
     "O": "TileObject",
-    "P": "TileFuelPump"
+    "P": "TileFuelPump",
+    "s": "TileStorage"
   }
 }

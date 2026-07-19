@@ -1,26 +1,29 @@
 {
   "id": "rural_helicopter",
-  "tags": ["rural", "urban", "coastal", "farm"],
-  "width": 5,
-  "height": 3,
+  "tags": [
+    "rural",
+    "urban",
+    "coastal",
+    "farm"
+  ],
+  "width": 7,
+  "height": 4,
   "weight": 1,
   "no_rotate": true,
   "rows": [
-    "  a  ",
-    "bcdef",
-    "ghij."
+    " --+-- ",
+    "  ===W ",
+    "x=====F",
+    "  o  o "
   ],
   "terrain": {
-    "a": "TileHeloRotor",
-    "b": "TileHeloNose",
-    "c": "TileHeloBody",
-    "d": "TileHeloBody",
-    "e": "TileHeloBody",
-    "f": "TileHeloTail",
-    "g": "TileHeloNose",
-    "h": "TileHeloBody",
-    "i": "TileHeloBody",
-    "j": "TileHeloTail"
+    "-": "TileHeloRotorSides",
+    "+": "TileHeloRotor",
+    "x": "TileHeloRotorBack",
+    "=": "TileHeloBody",
+    "F": "TileHeloNose",
+    "W": "TileHeloWindow",
+    "o": "TileWheelSmall"
   },
   "furniture": {}
 }

@@ -6,15 +6,13 @@
   "width": 5,
   "height": 4,
   "rows": [
-    "WnrnW",
+    "WWWWW",
     "W...W",
-    "n..dn",
-    "nWWWn"
+    "W...d",
+    "WWWWW"
   ],
   "terrain": {
     "W": "TileWall",
-    "n": "TileSnow",
-    "r": "TileRock",
     ".": "TileFloor",
     "d": "TileDoor"
   },

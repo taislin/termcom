@@ -1,13 +1,15 @@
 {
   "id": "polar_ice_cave",
-  "tags": ["polar"],
+  "tags": [
+    "polar"
+  ],
   "width": 5,
   "height": 5,
   "rows": [
     "rrrrr",
-    "r...r",
+    "r..rr",
     "r...+",
-    "r...r",
+    "rr..r",
     "rrrrr"
   ],
   "terrain": {

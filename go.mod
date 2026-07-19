@@ -6,12 +6,12 @@ require (
 	github.com/clipperhouse/displaywidth v0.11.0
 	github.com/ebitengine/oto/v3 v3.4.0
 	github.com/gorilla/websocket v1.5.3
+	github.com/mattn/go-runewidth v0.0.24
 )
 
 require (
 	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
 	github.com/ebitengine/purego v0.9.0 // indirect
-	github.com/mattn/go-runewidth v0.0.24 // indirect
 	golang.org/x/mobile v0.0.0-20260709172247-6129f5bee9d5 // indirect
 	golang.org/x/mod v0.38.0 // indirect
 	golang.org/x/sync v0.22.0 // indirect

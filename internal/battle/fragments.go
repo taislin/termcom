@@ -82,12 +82,18 @@ var tileTypeByName = map[string]TileType{
 	"TileHeloTail":      TileHeloTail,
 	"TileHeloNose":      TileHeloNose,
 	"TileHeloRotor":     TileHeloRotor,
+	"TileHeloRotorSides":TileHeloRotorSides,
+	"TileHeloBodyBack":  TileHeloBodyBack,
+	"TileHeloRotorBack": TileHeloRotorBack,
+	"TileHeloWindow":    TileHeloWindow,
 	"TileTractorCab":    TileTractorCab,
 	"TileTractorBody":   TileTractorBody,
 	"TileCrawlerLeft":   TileCrawlerLeft,
 	"TileCrawlerMid":    TileCrawlerMid,
 	"TileCrawlerRight":  TileCrawlerRight,
 	"TileCrawlerLeg":    TileCrawlerLeg,
+	"TileWheel":         TileWheel,
+	"TileWheelSmall":    TileWheelSmall,
 }
 
 func resolveTileType(name string) TileType {
@@ -353,7 +359,10 @@ func AssembleMap(biome string, w, h int, rng *rand.Rand) *BattleMap {
 	for coastalExclude[anchor.ID] {
 		anchor = weightedPick(chunks)
 	}
-	rot := rng.Intn(4)
+	rot := 0
+	if !anchor.NoRotate {
+		rot = rng.Intn(4)
+	}
 	ax, ay := w/2-anchor.Width/2, h/2-anchor.Height/2
 	if (roadReserved == nil || !roadReserved(ax, ay)) &&
 		(waterDepth == 0 || ay >= waterDepth) {

@@ -1,6 +1,9 @@
 {
   "id": "polar_comm_array",
-  "tags": ["polar", "rural"],
+  "tags": [
+    "polar",
+    "rural"
+  ],
   "width": 10,
   "height": 10,
   "weight": 2,
@@ -11,17 +14,18 @@
     "...DDDD...",
     "..DD..DD..",
     ".WWWWWWWW.",
-    ".WCCCCCCW.",
-    ".WCCCCCCW.",
-    ".WCCCCCCW.",
-    ".WWWWWW+W.",
+    ".WFFFFFFW.",
+    ".WFCFCFCW.",
+    ".WFCFCFCW.",
+    ".WWW+WWWW.",
     ".........."
   ],
   "terrain": {
     ".": "TileSnow",
     "D": "TileDish",
     "W": "TileWall",
-    "+": "TileDoor"
+    "+": "TileDoor",
+    "F": "TileFloor"
   },
   "furniture": {
     "C": "TileComputer"

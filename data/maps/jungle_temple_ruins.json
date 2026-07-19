@@ -7,19 +7,21 @@
   "height": 7,
   "weight": 1,
   "rows": [
-    ".........",
-    ".#####...",
-    ".#___###.",
+    ".t..tV...",
+    ".#####.Vt",
+    "t#V__##V.",
     ".+_____#.",
-    ".#___###.",
-    ".#####...",
-    "........."
+    "V#__VV##t",
+    ".###Vttt.",
+    "..V..t..."
   ],
   "terrain": {
     ".": "TileGrass",
     "#": "TileAdobe",
     "+": "TileDoor",
-    "_": "TileFloor"
+    "_": "TileFloor",
+    "t": "TileTree",
+    "V": "TileVine"
   },
   "furniture": {}
 }

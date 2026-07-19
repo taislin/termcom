@@ -7,9 +7,9 @@
   "height": 4,
   "rows": [
     "sssss",
-    "s.W.s",
-    "s...s",
-    "sssss"
+    "sWWWs",
+    "sW.Ws",
+    "sW.Ws"
   ],
   "terrain": {
     "s": "TileSand",

@@ -1,20 +1,18 @@
 {
   "id": "urban_diner",
-  "tags": ["urban"],
+  "tags": [
+    "urban"
+  ],
   "width": 10,
-  "height": 10,
-  "weight": 2,
+  "height": 7,
   "rows": [
     "WWWWWWWWWW",
-    "WN..N..N.W",
     "W........W",
-    "W..O..O..W",
-    "W........W",
-    "WCCCCCCC.W",
-    "W........N",
-    "W.s..s..NW",
-    "W.s..s...W",
-    "WWWW+WNNNW"
+    "WCCC+CCCCW",
+    "Ws......sW",
+    "Ws.s..s.sW",
+    "Ws.s..s.sW",
+    "WNNN+NNNNW"
   ],
   "terrain": {
     "W": "TileWall",
@@ -23,7 +21,6 @@
     "+": "TileDoor"
   },
   "furniture": {
-    "O": "TileDesk",
     "C": "TileDesk",
     "s": "TileStorage"
   },

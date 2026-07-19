@@ -1,24 +1,24 @@
 {
   "id": "coastal_fish_market",
-  "tags": ["coastal", "urban"],
+  "tags": [
+    "coastal",
+    "urban"
+  ],
   "width": 15,
-  "height": 10,
+  "height": 8,
   "weight": 2,
   "no_rotate": true,
   "rows": [
-    "WWWWWWWWWWWWWWW",
-    "WpppppppppppppW",
-    "WpDDpp8ppDDDpW",
-    "WpppppppppppppW",
-    "WppSppDDpp8pppW",
-    "WpppppppppppppW",
-    "WpDDDppSppDDpW",
-    "Wppp8pppppppppW",
-    "WpppppppDDpSppW",
-    "WWWWWWWWWWWWWWW"
+    ".ppppppppppppp.",
+    ".pDDpp8ppDDDpp.",
+    ".ppppppppppppp.",
+    ".ppSppDDpp8ppp.",
+    ".ppppppppppppp.",
+    ".pDDDppSppDDpp.",
+    ".ppp8ppppppppp.",
+    ".pppppppDDpSpp."
   ],
   "terrain": {
-    "W": "TileWater",
     "p": "TilePier"
   },
   "furniture": {

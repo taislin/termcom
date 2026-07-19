@@ -3942,6 +3942,82 @@ func tileTypeName(t TileType) string {
 		return language.String("TILE_LOCKER")
 	case TileCabinet:
 		return language.String("TILE_CABINET")
+	case TileObject:
+		return language.String("TILE_OBJECT")
+	case TileCar, TileCarMid, TileCarRight:
+		return language.String("TILE_CAR")
+	case TileForklift, TileForkliftRight:
+		return language.String("TILE_FORKLIFT")
+	case TileFuelPump:
+		return language.String("TILE_FUEL_PUMP")
+	case TileContainerRed, TileContainerBlue, TileContainerYellow:
+		return language.String("TILE_CONTAINER")
+	case TileAdobe:
+		return language.String("TILE_ADOBE")
+	case TileMetalWall:
+		return language.String("TILE_METAL_WALL")
+	case TileWreck:
+		return language.String("TILE_WRECK")
+	case TileTimber:
+		return language.String("TILE_TIMBER")
+	case TileDish:
+		return language.String("TILE_DISH")
+	case TileTruck:
+		return language.String("TILE_TRUCK")
+	case TileIce:
+		return language.String("TILE_ICE")
+	case TileStreetlamp:
+		return language.String("TILE_STREETLAMP")
+	case TileGlass:
+		return language.String("TILE_GLASS")
+	case TileDebris:
+		return language.String("TILE_DEBRIS")
+	case TileCryoPipe:
+		return language.String("TILE_CRYO_PIPE")
+	case TileSkylight:
+		return language.String("TILE_SKYLIGHT")
+	case TileWheat:
+		return language.String("TILE_WHEAT")
+	case TileHayBale:
+		return language.String("TILE_HAY_BALE")
+	case TilePier:
+		return language.String("TILE_PIER")
+	case TileDockCrate:
+		return language.String("TILE_DOCK_CRATE")
+	case TileCliffFace:
+		return language.String("TILE_CLIFF_FACE")
+	case TileScree:
+		return language.String("TILE_SCREE")
+	case TileBoulder:
+		return language.String("TILE_BOULDER")
+	case TileSwampWater:
+		return language.String("TILE_SWAMP_WATER")
+	case TileCypressTree:
+		return language.String("TILE_CYPRESS_TREE")
+	case TileMud:
+		return language.String("TILE_MUD")
+	case TileVine:
+		return language.String("TILE_VINE")
+	case TileBamboo:
+		return language.String("TILE_BAMBOO")
+	case TileDryBush:
+		return language.String("TILE_DRY_BUSH")
+	case TileBusEnd, TileBusMid:
+		return language.String("TILE_BUS")
+	case TileHeloBody, TileHeloTail, TileHeloNose, TileHeloBodyBack:
+		return language.String("TILE_HELICOPTER")
+	case TileHeloRotor, TileHeloRotorSides, TileHeloRotorBack:
+		return language.String("TILE_HELO_ROTOR")
+	case TileHeloWindow:
+		return language.String("TILE_WINDOW")
+	case TileTractorCab, TileTractorBody:
+		return language.String("TILE_TRACTOR")
+	case TileCrawlerLeft, TileCrawlerMid, TileCrawlerRight:
+		return language.String("TILE_CRAWLER")
+	case TileCrawlerLeg:
+		return language.String("TILE_CRAWLER_LEG")
+	case TileWheel, TileWheelSmall:
+		return language.String("TILE_WHEEL")
 	}
 	return language.String("TILE_UNKNOWN")
 }

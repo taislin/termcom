@@ -108,6 +108,10 @@ const (
 	TileHeloTail  // Helicopter tail boom, 30 cover
 	TileHeloNose  // Helicopter nose/cockpit, 40 cover
 	TileHeloRotor // Helicopter rotor (overhead, passable below)
+	TileHeloRotorSides // Helicopter rotor blade sides (overhead, passable below)
+	TileHeloBodyBack // Helicopter rear/back fuselage, 50 cover
+	TileHeloRotorBack // Helicopter rear rotor blade (overhead, passable below)
+	TileHeloWindow // Helicopter window/glass, 0 cover
 	TileTractorCab  // Tractor cab/hood, 30 cover
 	TileTractorBody // Tractor body/rear, 30 cover
 	// Alien vehicle tiles
@@ -115,6 +119,9 @@ const (
 	TileCrawlerMid   // Alien crawler middle: █
 	TileCrawlerRight // Alien crawler right end: ◣
 	TileCrawlerLeg   // Alien crawler leg/undercarriage: ^
+	// Wheel tiles
+	TileWheel      // Vehicle wheel
+	TileWheelSmall // Vehicle wheel (small)
 )
 
 // Tile represents a single cell on the tactical map.
@@ -189,7 +196,7 @@ func TileCover(t TileType) int {
 		TileDesk, TileChair, TileChairLeft, TileChairRight, TileComputer, TileBed, TileLocker, TileCabinet,
 		TileCar, TileCarRight, TileCarMid, TileForklift, TileForkliftRight,
 		TileFuelPump,
-		TileBusEnd, TileBusMid, TileHeloBody, TileDockCrate,
+		TileBusEnd, TileBusMid, TileHeloBody, TileHeloBodyBack, TileDockCrate,
 		TileCrawlerLeft, TileCrawlerMid, TileCrawlerRight:
 		return 50
 	case TileCrawlerLeg:
@@ -210,7 +217,7 @@ func TileCover(t TileType) int {
 		return 0
 	case TileSkylight:
 		return 0
-	case TilePier, TileScree, TileSwampWater, TileMud, TileHeloRotor:
+	case TilePier, TileScree, TileSwampWater, TileMud, TileHeloRotor, TileHeloRotorSides, TileHeloRotorBack, TileWheel, TileWheelSmall:
 		return 5
 	default:
 		return 0
@@ -377,16 +384,22 @@ var tileChars = map[TileType]rune{
 	TileDryBush:   '*', // dry coastal scrub
 	TileBusEnd:    '▄', // Bus end (top)
 	TileBusMid:    '█', // Bus middle roof (top)
-	TileHeloBody:  '▄', // Helicopter fuselage (top)
+	TileHeloBody:  '█', // Helicopter fuselage (top)
 	TileHeloTail:  '▄', // Helicopter tail (top)
-	TileHeloNose:  '▄', // Helicopter nose (top)
-	TileHeloRotor: '⎈', // Helicopter rotor (overhead)
-	TileTractorCab:  '▄', // Tractor cab (top)
+	TileHeloNose:  '▷', // Helicopter nose (top)
+	TileHeloRotor: '+', // Helicopter rotor (overhead)
+	TileHeloRotorSides: '-', // Helicopter rotor sides (overhead)
+	TileHeloBodyBack:  '█', // Helicopter rear fuselage
+	TileHeloRotorBack: 'x', // Helicopter rear rotor
+	TileHeloWindow:    '◣', // Helicopter window glass
+	TileTractorCab:  '◣', // Tractor cab (top)
 	TileTractorBody: '█', // Tractor body (top)
 	TileCrawlerLeft:  '◢', // Crawler left end
 	TileCrawlerMid:   '█', // Crawler middle body
 	TileCrawlerRight: '◣', // Crawler right end
 	TileCrawlerLeg:   '^', // Crawler leg
+	TileWheel:        'O', // Vehicle wheel
+	TileWheelSmall:   'o', // Vehicle wheel (small)
 }
 
 func TileChar(t TileType) rune {
@@ -525,7 +538,7 @@ func (m *BattleMap) Passable(x, y int) bool {
 		TileConsole, TileMachinery, TilePod, TilePowerSource, TileStorage, TileAlienTech,
 		TileDesk, TileChair, TileChairLeft, TileChairRight, TileComputer, TileBed, TileLocker, TileCabinet,
 		TileRubble,
-		TileWheat, TilePier, TileScree, TileSwampWater, TileMud, TileVine, TileHeloRotor:
+		TileWheat, TilePier, TileScree, TileSwampWater, TileMud, TileVine, TileHeloRotor, TileHeloRotorSides, TileHeloRotorBack:
 		return true
 	}
 	return false
@@ -540,7 +553,7 @@ func (m *BattleMap) Opaque(x, y int) bool {
 		TileHayBale, TileDockCrate, TileCliffFace, TileBoulder,
 		TileCypressTree, TileBamboo,
 		TileBusEnd, TileBusMid,
-		TileHeloBody, TileHeloTail, TileHeloNose,
+		TileHeloBody, TileHeloTail, TileHeloNose, TileHeloBodyBack,
 		TileTractorCab, TileTractorBody,
 		TileCrawlerLeft, TileCrawlerMid, TileCrawlerRight, TileCrawlerLeg:
 		return true
@@ -562,7 +575,7 @@ func (m *BattleMap) IsDestructible(x, y int) bool {
 		TileDockCrate, TileScree, TileDryBush,
 		TileCypressTree, TileVine, TileBamboo,
 		TileBusEnd, TileBusMid,
-		TileHeloBody, TileHeloTail, TileHeloNose, TileHeloRotor,
+		TileHeloBody, TileHeloTail, TileHeloNose, TileHeloBodyBack, TileHeloRotor, TileHeloRotorSides, TileHeloRotorBack, TileHeloWindow, TileWheel, TileWheelSmall,
 		TileTractorCab, TileTractorBody,
 		TileCrawlerLeft, TileCrawlerMid, TileCrawlerRight, TileCrawlerLeg:
 		return true
@@ -943,7 +956,7 @@ func isUrbanProtected(t TileType) bool {
 	case TileWall, TileDoor, TileWindow,
 		TileConsole, TileMachinery, TilePod, TilePowerSource, TileStorage, TileAlienTech,
 		TileDesk, TileChair, TileChairLeft, TileChairRight, TileComputer, TileBed, TileLocker, TileCabinet,
-		TileCar, TileCarRight, TileForklift, TileForkliftRight,
+		TileCar, TileCarMid, TileCarRight, TileForklift, TileForkliftRight, TileWheel, TileWheelSmall,
 		TileObject, TileTree, TileBush, TileFence,
 		TileFuelPump, TileContainerRed, TileContainerBlue, TileContainerYellow,
 		TileAdobe, TileMetalWall, TileWreck, TileTimber, TileDish, TileTruck,
@@ -951,10 +964,10 @@ func isUrbanProtected(t TileType) bool {
 		TileWheat, TileHayBale,
 		TilePier, TileDockCrate,
 		TileCliffFace, TileScree, TileBoulder,
-		TileWater, 		TileSwampWater, TileCypressTree,
+		TileWater, TileSwampWater, TileCypressTree,
 		TileMud, TileVine, TileBamboo, TileDryBush,
 		TileBusEnd, TileBusMid,
-		TileHeloBody, TileHeloTail, TileHeloNose, TileHeloRotor,
+		TileHeloBody, TileHeloTail, TileHeloNose, TileHeloBodyBack, TileHeloRotor, TileHeloRotorSides, TileHeloRotorBack, TileHeloWindow,
 		TileTractorCab, TileTractorBody,
 		TileCrawlerLeft, TileCrawlerMid, TileCrawlerRight, TileCrawlerLeg:
 		return true
@@ -1388,18 +1401,7 @@ func GenerateTerrorSite(w, h int, seed int64) *BattleMap {
 			x := 1 + rng.Intn(max(1, w-2))
 			y := 1 + rng.Intn(max(1, h-2))
 			tt := m.At(x, y).Type
-			onRoad := tt == TilePavement
-			nearRoad := false
-			if !onRoad {
-				for _, d := range [][2]int{{0, -1}, {0, 1}, {-1, 0}, {1, 0}} {
-					nx, ny := x+d[0], y+d[1]
-					if nx >= 0 && nx < w && ny >= 0 && ny < h && m.At(nx, ny).Type == TilePavement {
-						nearRoad = true
-						break
-					}
-				}
-			}
-			if !onRoad && !nearRoad {
+			if tt != TilePavement {
 				continue
 			}
 			ok := true

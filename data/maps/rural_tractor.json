@@ -1,21 +1,22 @@
 {
   "id": "rural_tractor",
-  "tags": ["rural", "farm"],
+  "tags": [
+    "rural",
+    "farm"
+  ],
   "width": 2,
   "height": 3,
   "weight": 2,
   "no_rotate": true,
   "rows": [
-    "ab",
-    "cd",
-    "e "
+    "ba",
+    "bb",
+    "oo"
   ],
   "terrain": {
     "a": "TileTractorCab",
     "b": "TileTractorBody",
-    "c": "TileTractorCab",
-    "d": "TileTractorBody",
-    "e": "TileTractorCab"
+    "o": "TileWheel"
   },
   "furniture": {}
 }
