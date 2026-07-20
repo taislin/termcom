@@ -550,6 +550,11 @@ func (gs *Geoscape) Update() {
 	if !gs.Game.Paused && gs.Game.TimeSpeed > 0 {
 		speedMult := []int{0, 1, 5, 20, 60}
 		minutes := speedMult[gs.Game.TimeSpeed]
+		if gs.Game.TimeSpeed < 0 || gs.Game.TimeSpeed >= len(speedMult) {
+			minutes = speedMult[1]
+		} else {
+			minutes = speedMult[gs.Game.TimeSpeed]
+		}
 
 		// UFO Spawning: Frequency increases as the campaign progresses (gameMonth).
 		gameMonth := int(gs.Game.GameTime.Month()) - 3 + (gs.Game.GameTime.Year()-1999)*12
@@ -689,14 +694,19 @@ func (gs *Geoscape) Update() {
 							if t.FromNode == t.ToNode {
 								cs := t.CrashSite
 								if cs != nil && !cs.Looted {
-									// Start tactical battle
-									gs.Transport = nil
-									selectedBase := gs.SelectedBase()
-									if selectedBase == nil {
+									// Start tactical battle — use the base that dispatched
+									// this transport, not the currently-selected base.
+									baseIdx := gs.FindBaseIndex(t.SourceBaseCity)
+									sourceBase := gs.SelectedBase()
+									if baseIdx >= 0 {
+										sourceBase = gs.Bases[baseIdx]
+									}
+									if sourceBase == nil {
 										return
 									}
-									healthy := selectedBase.HealthySoldiers()
+									healthy := sourceBase.HealthySoldiers()
 									if len(healthy) > 0 {
+										gs.Transport = nil
 										gs.Game.Paused = true
 										gs.ActiveCrashSite = cs
 										gs.Message = fmt.Sprintf(language.String("MSG_TRANSPORT_RETRIEVED"), localizeUFOName(cs.UFOName), 0)
@@ -706,11 +716,11 @@ func (gs *Geoscape) Update() {
 											gs.PreBattleStats[s.Name] = [6]int{s.HP, s.Accuracy, s.Reactions, s.Strength, s.Bravery, s.TU}
 										}
 										city := gs.CityByID(cs.NodeID)
-									cx, cy := -1, -1
-									if city != nil {
-										cx, cy = city.X, city.Y
-									}
-									bs := battle.NewBattlescape(gs.Game, selectedBase, healthy, localizeUFOName(cs.UFOName), cs.Seed, cx, cy)
+										cx, cy := -1, -1
+										if city != nil {
+											cx, cy = city.X, city.Y
+										}
+										bs := battle.NewBattlescape(gs.Game, sourceBase, healthy, localizeUFOName(cs.UFOName), cs.Seed, cx, cy)
 										gs.Game.SetScreen(engine.StateBattlescape, bs)
 										gs.Game.PushState(engine.StateBattlescape)
 										return

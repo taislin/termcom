@@ -28,7 +28,7 @@ type BarrelDef struct {
 }
 
 func (b BarrelDef) LangName() string {
-	return language.String("BARREL_" + b.Name)
+	return language.String("BARREL_" + strings.ToUpper(b.Name))
 }
 
 var Barrels = []BarrelDef{
