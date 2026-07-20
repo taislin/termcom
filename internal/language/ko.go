@@ -561,6 +561,8 @@ func init() {
 		"ALL_TOPICS":                  "모든 주제:",
 		"NO_TOPICS":                   "가용 주제 없음. 유물을 더 수집하십시오.",
 		"RESEARCH_CAPTURED":           "생포한 외계인: %d  [I] 심문",
+		"RESEARCH_CAPTURED_NAMES":     "",
+		"RESEARCH_CORPSES":            "",
 		"RESEARCH_INTERROGATE_PROMPT": "Enter를 눌러 첫 생포 외계인을 심문하십시오.",
 		"HELP_RESEARCH":               "[\\u2191]/[\\u2193]=Select  [Enter]=Start  [Esc]=Back  [T]ree  [I]nterrogate",
 		"RESEARCH_REQUIRES":           " [필요: %s]",

@@ -184,7 +184,7 @@ func (bs *BaseScreen) Render(ctx *engine.ScreenCtx) {
 
 func (bs *BaseScreen) renderFacilities(ctx *engine.ScreenCtx, x, y, w, h int) {
 	ctx.DrawString(x, y, language.String("SECTION_FACILITIES"), engine.StyleCyanBold)
-	facTypes := []FacilityType{FacLivingQuarters, FacLab, FacWorkshop, FacStorage, FacRadar, FacContainment, FacHangar}
+	facTypes := []FacilityType{FacLivingQuarters, FacLab, FacWorkshop, FacStorage, FacRadar, FacContainment, FacPsiLab, FacHangar}
 	for i, ft := range facTypes {
 		count := bs.Base.CountFacility(ft)
 		def := FacilityDefs[ft]

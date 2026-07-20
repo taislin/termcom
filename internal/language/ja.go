@@ -561,6 +561,8 @@ func init() {
 		"ALL_TOPICS":                  "全トピック:",
 		"NO_TOPICS":                   "利用できるトピックがありません。更多のアーティファクトを収集してください。",
 		"RESEARCH_CAPTURED":           "捕獲エイリアン: %d  [I]尋問",
+		"RESEARCH_CAPTURED_NAMES":     "",
+		"RESEARCH_CORPSES":            "",
 		"RESEARCH_INTERROGATE_PROMPT": "Enter で最初の捕獲エイリアンを尋問します。",
 		"HELP_RESEARCH":               "[\u2191]/[\u2193]=選択  [Enter]=開始  [Esc]=戻る  [T]ツリー  [I]尋問",
 		"RESEARCH_REQUIRES":           " [必要: %s]",

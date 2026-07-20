@@ -445,6 +445,23 @@ func (b *Base) CountItem(item string) int {
 	return b.Stores[item]
 }
 
+// AlienCorpseTypes returns the names of alien species whose corpses are in storage.
+func (b *Base) AlienCorpseTypes() []string {
+	corpseMap := map[string]string{
+		"corpse_sect":  "Sectoid",
+		"corpse_float": "Floater",
+		"corpse_muton": "Muton",
+		"corpse_ether": "Ethereal",
+	}
+	var result []string
+	for item, name := range corpseMap {
+		if b.Stores[item] > 0 {
+			result = append(result, name)
+		}
+	}
+	return result
+}
+
 func (b *Base) SellItem(item string) int64 {
 	if b.Stores[item] <= 0 {
 		return 0

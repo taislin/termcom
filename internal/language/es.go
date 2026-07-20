@@ -561,6 +561,8 @@ func init() {
 		"ALL_TOPICS":                  "TODOS LOS TEMAS:",
 		"NO_TOPICS":                   "No hay temas disponibles. Recogid m\u00e1s artefactos.",
 		"RESEARCH_CAPTURED":           "Alien\u00edgenas capturados: %d  [I]nterrogar",
+		"RESEARCH_CAPTURED_NAMES":     "",
+		"RESEARCH_CORPSES":            "",
 		"RESEARCH_INTERROGATE_PROMPT": "Pulsad Enter para interrogar al primer alien\u00edgena capturado.",
 		"HELP_RESEARCH":               "[\u2191]/[\u2193]=Seleccionar  [Enter]=Empezar  [Esc]=Volver  [T]\u00c1rbol  [I]nterrogar",
 		"RESEARCH_REQUIRES":           " [Requiere: %s]",

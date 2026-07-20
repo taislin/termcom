@@ -75,7 +75,13 @@ func (rs *ResearchScreen) Render(ctx *engine.ScreenCtx) {
 
 	// Show captured aliens line
 	if len(rs.Base.LiveAliens) > 0 {
-		ctx.DrawString(2, 5, fmt.Sprintf(language.String("RESEARCH_CAPTURED"), len(rs.Base.LiveAliens)), engine.StyleYellow)
+		names := strings.Join(rs.Base.LiveAliens, ", ")
+		ctx.DrawString(2, 5, fmt.Sprintf(language.String("RESEARCH_CAPTURED_NAMES"), names), engine.StyleYellow)
+	}
+	corpses := rs.Base.AlienCorpseTypes()
+	if len(corpses) > 0 {
+		names := strings.Join(corpses, ", ")
+		ctx.DrawString(2, 6, fmt.Sprintf(language.String("RESEARCH_CORPSES"), names), engine.StyleYellow)
 	}
 
 	entries := rs.getAllTopics()

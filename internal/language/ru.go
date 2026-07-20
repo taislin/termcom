@@ -561,6 +561,8 @@ func init() {
 		"ALL_TOPICS":                  "ВСЕ ТЕМЫ:",
 		"NO_TOPICS":                   "Нет доступных тем. Соберите больше артефактов.",
 		"RESEARCH_CAPTURED":           "Захвачено пришельцев: %d  [Д]опросить",
+		"RESEARCH_CAPTURED_NAMES":     "",
+		"RESEARCH_CORPSES":            "",
 		"RESEARCH_INTERROGATE_PROMPT": "Нажмите Enter для допроса первого захваченного пришельца.",
 		"HELP_RESEARCH":               "[\u2191]/[\u2193]=Выбор  [Enter]=Начать  [Esc]=Назад  [Д]ерево  [Д]опросить",
 		"RESEARCH_REQUIRES":           " [Требуется: %s]",

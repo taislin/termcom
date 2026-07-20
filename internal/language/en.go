@@ -559,6 +559,8 @@ func init() {
 		"ALL_TOPICS":                  "ALL TOPICS:",
 		"NO_TOPICS":                   "No topics available. Collect more artifacts.",
 		"RESEARCH_CAPTURED":           "Captured aliens: %d  [I]nterrogate",
+		"RESEARCH_CAPTURED_NAMES":     "Captured aliens: %s  [I]nterrogate",
+		"RESEARCH_CORPSES":            "Alien corpses: %s",
 		"RESEARCH_INTERROGATE_PROMPT": "Press Enter to interrogate first captured alien.",
 		"HELP_RESEARCH":               "[\u2191]/[\u2193]=Select  [Enter]=Start  [Esc]=Back  [T]ree  [I]nterrogate",
 		"RESEARCH_REQUIRES":           " [Requires: %s]",
