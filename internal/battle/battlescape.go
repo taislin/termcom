@@ -367,7 +367,7 @@ func NewBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, ufoN
 	case "Council":
 		m = GenerateTerrorSite(50, 50, mapSeed)
 	case "Cydonia":
-		m = GenerateCydonia(50, 50)
+		m = GenerateCydonia(50, 50, mapSeed)
 	case "Abduction":
 		m = GenerateAbductionSite(50, 50)
 	case "Forest":

@@ -900,7 +900,7 @@ func (m *BattleMap) corridorImplProtected(x1, y1, x2, y2, w, level int, fillTile
 }
 
 func (m *BattleMap) corridorImpl(x1, y1, x2, y2, w, level int, guardTile, fillTile TileType) {
-	if rand.Intn(2) == 0 {
+	if (x1+x2+y1+y2)%2 == 0 {
 		start := min(x1, x2)
 		end := max(x1, x2)
 		for x := start; x <= end; x++ {
@@ -1632,68 +1632,62 @@ func (m *BattleMap) placeDoor(x, y, size, side int) {
 	}
 }
 
-// GenerateCydonia creates an alien base map (OpenXcom: 50x50, 2 levels)
-func GenerateCydonia(w, h int) *BattleMap {
+// GenerateCydonia creates an alien base map (OpenXcom: 50x50, 2 levels).
+// seed ensures deterministic, reproducible layouts.
+func GenerateCydonia(w, h int, seed int64) *BattleMap {
+	rng := rand.New(rand.NewSource(seed))
 	m := NewBattleMap(w, h)
 
-	// Fill with alien floor
 	for y := 0; y < h; y++ {
 		for x := 0; x < w; x++ {
 			m.Set(x, y, TileUFOFloor)
 		}
 	}
 
-	// Outer walls
 	m.drawRect(0, 0, w, h, TileUFOWall)
 
-	// Generate entrance area on a random side
-	entranceSide := rand.Intn(4)
+	entranceSide := rng.Intn(4)
 	switch entranceSide {
-	case 0: // top
+	case 0:
 		m.fillRect(w/2-5, 0, 10, 6, TileUFOFloor)
 		m.Set(w/2, 0, TileDoor)
-	case 1: // bottom
+	case 1:
 		m.fillRect(w/2-5, h-6, 10, 6, TileUFOFloor)
 		m.Set(w/2, h-1, TileDoor)
-	case 2: // left
+	case 2:
 		m.fillRect(0, h/2-5, 6, 10, TileUFOFloor)
 		m.Set(0, h/2, TileDoor)
-	case 3: // right
+	case 3:
 		m.fillRect(w-6, h/2-5, 6, 10, TileUFOFloor)
 		m.Set(w-1, h/2, TileDoor)
 	}
 
-	// Command center (size varies 16-24)
-	ccSize := 16 + rand.Intn(9)
+	ccSize := 16 + rng.Intn(9)
 	ccX := w/2 - ccSize/2
 	ccY := h/2 - ccSize/2
 	m.drawRect(ccX, ccY, ccSize, ccSize, TileUFOWall)
 	m.fillRect(ccX+1, ccY+1, ccSize-2, ccSize-2, TileUFOFloor)
 
-	// Brain in center (size varies 3-5)
-	brainSize := 3 + rand.Intn(3)
+	brainSize := 3 + rng.Intn(3)
 	brainX := ccX + ccSize/2 - brainSize/2
 	brainY := ccY + ccSize/2 - brainSize/2
 	m.fillRect(brainX, brainY, brainSize, brainSize, TileObject)
-	m.placeDoor(brainX, brainY, brainSize, rand.Intn(4))
+	m.placeDoor(brainX, brainY, brainSize, rng.Intn(4))
 
-	// Pods: 3-6 rooms around command center
-	podCount := 3 + rand.Intn(4)
-	podSize := 5 + rand.Intn(2) // 5-6
+	podCount := 3 + rng.Intn(4)
+	podSize := 5 + rng.Intn(2)
 	var podPositions [][2]int
 	for i := 0; i < podCount; i++ {
 		angle := float64(i) * (2 * math.Pi / float64(podCount))
-		radius := float64(ccSize/2+podSize+2)
-		px := w/2 + int(angle*radius*0.7) - podSize/2
-		py := h/2 + int(angle*radius*0.5) - podSize/2
-		// Clamp to map bounds
+		radius := float64(ccSize/2 + podSize + 2)
+		px := w/2 + int(math.Cos(angle)*radius) - podSize/2
+		py := h/2 + int(math.Sin(angle)*radius) - podSize/2
 		px = max(2, min(px, w-podSize-2))
 		py = max(2, min(py, h-podSize-2))
 		m.drawRect(px, py, podSize, podSize, TileUFOWall)
 		m.fillRect(px+1, py+1, podSize-2, podSize-2, TileUFOFloor)
-		m.placeDoor(px, py, podSize, rand.Intn(4))
-		// Random furniture
-		furniture := rand.Intn(4)
+		m.placeDoor(px, py, podSize, rng.Intn(4))
+		furniture := rng.Intn(4)
 		switch furniture {
 		case 0:
 			m.Set(px+podSize/2, py+podSize/2, TilePod)
@@ -1707,12 +1701,10 @@ func GenerateCydonia(w, h int) *BattleMap {
 		podPositions = append(podPositions, [2]int{px + podSize/2, py + podSize/2})
 	}
 
-	// Connect command center to pods
 	for _, pos := range podPositions {
 		m.generateCorridorUFO(ccX+ccSize/2, ccY+ccSize/2, pos[0], pos[1], 2)
 	}
 
-	// Connect entrance to command center
 	switch entranceSide {
 	case 0:
 		m.generateCorridorUFO(w/2, 6, ccX+ccSize/2, ccY, 2)
@@ -1724,17 +1716,15 @@ func GenerateCydonia(w, h int) *BattleMap {
 		m.generateCorridorUFO(w-6, h/2, ccX+ccSize, ccY+ccSize/2, 2)
 	}
 
-	// Scatter objects
-	scatterCount := 15 + rand.Intn(15)
+	scatterCount := 15 + rng.Intn(15)
 	for i := 0; i < scatterCount; i++ {
-		x := randn(w-4) + 2
-		y := randn(h-4) + 2
+		x := rng.Intn(max(1, w-4)) + 2
+		y := rng.Intn(max(1, h-4)) + 2
 		if m.At(x, y).Type == TileUFOFloor {
 			m.Set(x, y, TileObject)
 		}
 	}
 
-	// Guarantee the whole interior is reachable from the command center.
 	m.RepairConnectivity(ccX+ccSize/2, ccY+ccSize/2)
 
 	return m
@@ -1742,68 +1732,63 @@ func GenerateCydonia(w, h int) *BattleMap {
 
 // GenerateAlienBase creates an alien base assault map: rocky terrain with a
 // central alien structure (distinct from the final Cydonia mission).
-func GenerateAlienBase(w, h int) *BattleMap {
+// seed ensures deterministic, reproducible layouts.
+func GenerateAlienBase(w, h int, seed int64) *BattleMap {
+	rng := rand.New(rand.NewSource(seed))
 	m := NewBattleMap(w, h)
 
-	// Rocky outdoor terrain
 	m.fillRect(0, 0, w, h, TileRock)
 	ApplyCommands(m, []MapCommand{
 		{Type: CmdScatter, X: 0, Y: 0, W: w, H: h, Tile: TileSand, Prob: 6, Count: w * h},
 		{Type: CmdScatter, X: 0, Y: 0, W: w, H: h, Tile: TileBush, Prob: 2, Count: w * h},
 	})
 
-	// Vary base structure size (18-28)
-	baseSize := 18 + rand.Intn(11)
+	baseSize := 18 + rng.Intn(11)
 	bx := w/2 - baseSize/2
 	by := h/2 - baseSize/2
 	m.drawRect(bx, by, baseSize, baseSize, TileUFOWall)
 	m.fillRect(bx+1, by+1, baseSize-2, baseSize-2, TileUFOFloor)
 
-	// Command core (size varies 4-8)
-	coreSize := 4 + rand.Intn(5)
+	coreSize := 4 + rng.Intn(5)
 	cx := w/2 - coreSize/2
 	cy := h/2 - coreSize/2
 	m.drawRect(cx, cy, coreSize, coreSize, TileUFOWall)
 	m.fillRect(cx+1, cy+1, coreSize-2, coreSize-2, TileUFOFloor)
 	m.Set(cx+coreSize/2, cy+coreSize-1, TileDoor)
-	coreItems := 1 + rand.Intn(3)
+	coreItems := 1 + rng.Intn(3)
 	for i := 0; i < coreItems; i++ {
-		ix := cx + 1 + rand.Intn(coreSize-2)
-		iy := cy + 1 + rand.Intn(coreSize-2)
+		ix := cx + 1 + rng.Intn(coreSize-2)
+		iy := cy + 1 + rng.Intn(coreSize-2)
 		if m.At(ix, iy).Type == TileUFOFloor {
 			m.Set(ix, iy, TileAlienTech)
 		}
 	}
 
-	// Side pods: 2-6 pods placed around the perimeter
-	podCount := 2 + rand.Intn(5)
-	podSize := 4 + rand.Intn(3) // 4-6
+	podCount := 2 + rng.Intn(5)
+	podSize := 4 + rng.Intn(3)
 	var pods [][2]int
 	margin := podSize + 1
 	for i := 0; i < podCount; i++ {
-		// Place pods at varying positions around the structure interior
 		var px, py int
 		switch i % 4 {
-		case 0: // top-left area
-			px = bx + margin + rand.Intn(max(1, baseSize/2-margin*2))
-			py = by + margin + rand.Intn(max(1, baseSize/2-margin*2))
-		case 1: // top-right area
-			px = bx + baseSize/2 + rand.Intn(max(1, baseSize/2-margin*2))
-			py = by + margin + rand.Intn(max(1, baseSize/2-margin*2))
-		case 2: // bottom-left area
-			px = bx + margin + rand.Intn(max(1, baseSize/2-margin*2))
-			py = by + baseSize/2 + rand.Intn(max(1, baseSize/2-margin*2))
-		case 3: // bottom-right area
-			px = bx + baseSize/2 + rand.Intn(max(1, baseSize/2-margin*2))
-			py = by + baseSize/2 + rand.Intn(max(1, baseSize/2-margin*2))
+		case 0:
+			px = bx + margin + rng.Intn(max(1, baseSize/2-margin*2))
+			py = by + margin + rng.Intn(max(1, baseSize/2-margin*2))
+		case 1:
+			px = bx + baseSize/2 + rng.Intn(max(1, baseSize/2-margin*2))
+			py = by + margin + rng.Intn(max(1, baseSize/2-margin*2))
+		case 2:
+			px = bx + margin + rng.Intn(max(1, baseSize/2-margin*2))
+			py = by + baseSize/2 + rng.Intn(max(1, baseSize/2-margin*2))
+		case 3:
+			px = bx + baseSize/2 + rng.Intn(max(1, baseSize/2-margin*2))
+			py = by + baseSize/2 + rng.Intn(max(1, baseSize/2-margin*2))
 		}
-		// Ensure pod fits within the base
 		if px+podSize < bx+baseSize-1 && py+podSize < by+baseSize-1 {
 			m.drawRect(px, py, podSize, podSize, TileUFOWall)
 			m.fillRect(px+1, py+1, podSize-2, podSize-2, TileUFOFloor)
 			m.Set(px+podSize/2, py+podSize-1, TileDoor)
-			// Random furniture in pod
-			furniture := rand.Intn(3)
+			furniture := rng.Intn(3)
 			switch furniture {
 			case 0:
 				m.Set(px+podSize/2, py+podSize/2, TilePod)
@@ -1816,42 +1801,38 @@ func GenerateAlienBase(w, h int) *BattleMap {
 		}
 	}
 
-	// Connect core to pods
 	coreCx := cx + coreSize/2
 	coreCy := cy + coreSize/2
 	for _, p := range pods {
 		m.generateCorridorUFO(coreCx, coreCy, p[0], p[1], 2)
 	}
 
-	// Entrance on a random side
-	entranceSide := rand.Intn(4)
+	entranceSide := rng.Intn(4)
 	switch entranceSide {
-	case 0: // top
-		ex := bx + 2 + rand.Intn(max(1, baseSize-4))
+	case 0:
+		ex := bx + 2 + rng.Intn(max(1, baseSize-4))
 		m.fillRect(ex-1, by-2, 3, 3, TileUFOFloor)
 		m.Set(ex, by-1, TileDoor)
-	case 1: // bottom
-		ex := bx + 2 + rand.Intn(max(1, baseSize-4))
+	case 1:
+		ex := bx + 2 + rng.Intn(max(1, baseSize-4))
 		m.fillRect(ex-1, by+baseSize-1, 3, 3, TileUFOFloor)
 		m.Set(ex, by+baseSize, TileDoor)
-	case 2: // left
-		ey := by + 2 + rand.Intn(max(1, baseSize-4))
+	case 2:
+		ey := by + 2 + rng.Intn(max(1, baseSize-4))
 		m.fillRect(bx-2, ey-1, 3, 3, TileUFOFloor)
 		m.Set(bx-1, ey, TileDoor)
-	case 3: // right
-		ey := by + 2 + rand.Intn(max(1, baseSize-4))
+	case 3:
+		ey := by + 2 + rng.Intn(max(1, baseSize-4))
 		m.fillRect(bx+baseSize-1, ey-1, 3, 3, TileUFOFloor)
 		m.Set(bx+baseSize, ey, TileDoor)
 	}
 
-	// Guarantee the whole interior and entrance area is reachable from the core.
 	m.RepairConnectivity(coreCx, coreCy)
 
-	// Scatter alien tech loot inside the structure
-	scatterCount := 8 + rand.Intn(12)
+	scatterCount := 8 + rng.Intn(12)
 	for i := 0; i < scatterCount; i++ {
-		x := bx + 2 + rand.Intn(max(1, baseSize-4))
-		y := by + 2 + rand.Intn(max(1, baseSize-4))
+		x := bx + 2 + rng.Intn(max(1, baseSize-4))
+		y := by + 2 + rng.Intn(max(1, baseSize-4))
 		if m.At(x, y).Type == TileUFOFloor {
 			m.Set(x, y, TileAlienTech)
 		}

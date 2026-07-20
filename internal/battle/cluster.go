@@ -164,8 +164,32 @@ func (m *BattleMap) ValidateMap() bool {
 // RepairConnectivity flood-fills passable tiles from (sx,sy) and carves a
 // UFO corridor from the seed to any unreachable floor pocket, guaranteeing the
 // map is fully traversable. Used by walled base/interior generators.
+// If (sx,sy) is not passable it searches outward for the nearest passable tile.
 func (m *BattleMap) RepairConnectivity(sx, sy int) {
 	dirs := [][2]int{{0, -1}, {0, 1}, {-1, 0}, {1, 0}}
+	// If the seed is not passable (e.g. brain center of TileObject), find the
+	// nearest passable tile so corridors have a valid anchor.
+	if !m.Passable(sx, sy) {
+		for r := 1; r < max(m.Width, m.LevelHeight); r++ {
+			found := false
+			for dy := -r; dy <= r && !found; dy++ {
+				for dx := -r; dx <= r && !found; dx++ {
+					if dx > -r && dx < r && dy > -r && dy < r {
+						continue
+					}
+					nx, ny := sx+dx, sy+dy
+					if nx >= 0 && nx < m.Width && ny >= 0 && ny < m.LevelHeight && m.Passable(nx, ny) {
+						sx, sy = nx, ny
+						found = true
+					}
+				}
+			}
+			if found {
+				break
+			}
+		}
+	}
+
 	seen := map[[2]int]bool{}
 	stack := [][2]int{{sx, sy}}
 	for len(stack) > 0 {

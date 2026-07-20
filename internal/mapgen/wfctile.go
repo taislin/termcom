@@ -16,11 +16,13 @@ var wfcDirKeys = []string{"N", "E", "S", "W"}
 // Rows is an array of equal-length strings; each character is a tile glyph
 // ('.' floor, '#' wall, 'D' door, letters = furniture). Neighbors lists the
 // tile IDs allowed to sit in each cardinal direction relative to this tile.
+// Weight controls selection frequency (higher = more common, default 1).
 type WFCTileDef struct {
 	ID        int               `json:"id"`
 	Name      string            `json:"name"`
 	Rows      []string          `json:"rows"`
 	Neighbors map[string][]int  `json:"neighbors"`
+	Weight    float64           `json:"weight,omitempty"`
 }
 
 // WFCLibrary is a parsed collection of WFC tiles loaded from JSON.

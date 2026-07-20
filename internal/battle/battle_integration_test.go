@@ -173,7 +173,7 @@ func TestMapGeneration(t *testing.T) {
 		{"CrashSite", func(w, h int) *BattleMap { m, _ := GenerateCrashSite(w, h, 42, -1, -1); return m }},
 		{"TerrorSite", func(w, h int) *BattleMap { return GenerateTerrorSite(w, h, 42) }},
 		{"UFOInterior", func(w, h int) *BattleMap { return GenerateUFOInterior(w, h, 42) }},
-		{"Cydonia", GenerateCydonia},
+		{"Cydonia", func(w, h int) *BattleMap { return GenerateCydonia(w, h, 42) }},
 	}
 	for _, tc := range maps {
 		t.Run(tc.name, func(t *testing.T) {

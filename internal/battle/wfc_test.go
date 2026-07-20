@@ -131,7 +131,7 @@ func TestWFCCompileToBattleMap(t *testing.T) {
 			for ty := 0; ty < tile.gridRows(); ty++ {
 				for tx := 0; tx < tile.gridCols(); tx++ {
 					mx, my := gx*6+tx, gy*6+ty
-					want := tileRuneToType(tile.RuneGrid[ty][tx])
+					want := tileRuneToType(tile.RuneGrid[ty][tx], TileUFOFloor, TileUFOWall)
 					got := m.AtLevel(mx, my, 0).Type
 					if got != want {
 						t.Fatalf("mismatch at map (%d,%d): got %v want %v", mx, my, got, want)

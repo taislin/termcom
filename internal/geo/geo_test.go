@@ -391,7 +391,7 @@ func TestApplyMissionRewards(t *testing.T) {
 }
 
 func TestGenerateAlienBaseMap(t *testing.T) {
-	m := battle.GenerateAlienBase(50, 50)
+	m := battle.GenerateAlienBase(50, 50, 42)
 	if m == nil {
 		t.Fatal("GenerateAlienBase returned nil")
 	}

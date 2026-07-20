@@ -3,6 +3,7 @@
     {
       "id": 0,
       "name": "FloorOpen",
+      "weight": 5,
       "rows": [
         "#....#",
         "......",
@@ -15,6 +16,7 @@
     {
       "id": 1,
       "name": "WallSolid",
+      "weight": 3,
       "rows": [
         "######",
         "######",
@@ -27,6 +29,7 @@
     {
       "id": 2,
       "name": "CorridorH",
+      "weight": 5,
       "rows": [
         "######",
         "......",
@@ -39,6 +42,7 @@
     {
       "id": 3,
       "name": "CorridorV",
+      "weight": 5,
       "rows": [
         "#....#",
         "#....#",
@@ -51,6 +55,7 @@
     {
       "id": 4,
       "name": "TurnNE",
+      "weight": 4,
       "rows": [
         "#....#",
         "#.....",
@@ -63,6 +68,7 @@
     {
       "id": 5,
       "name": "TurnNW",
+      "weight": 4,
       "rows": [
         "#....#",
         ".....#",
@@ -75,6 +81,7 @@
     {
       "id": 6,
       "name": "TurnSE",
+      "weight": 4,
       "rows": [
         "######",
         "#.....",
@@ -87,6 +94,7 @@
     {
       "id": 7,
       "name": "TurnSW",
+      "weight": 4,
       "rows": [
         "######",
         ".....#",
@@ -99,6 +107,7 @@
     {
       "id": 8,
       "name": "TJuncN",
+      "weight": 3,
       "rows": [
         "#....#",
         "......",
@@ -111,6 +120,7 @@
     {
       "id": 9,
       "name": "TJuncS",
+      "weight": 3,
       "rows": [
         "######",
         "......",
@@ -123,6 +133,7 @@
     {
       "id": 10,
       "name": "TJuncE",
+      "weight": 3,
       "rows": [
         "#....#",
         "#.....",
@@ -135,6 +146,7 @@
     {
       "id": 11,
       "name": "TJuncW",
+      "weight": 3,
       "rows": [
         "#....#",
         ".....#",
@@ -147,6 +159,7 @@
     {
       "id": 12,
       "name": "EngineRoom",
+      "weight": 1,
       "rows": [
         "#....#",
         "#.MM.#",
@@ -159,6 +172,7 @@
     {
       "id": 13,
       "name": "ConsoleRoom",
+      "weight": 1,
       "rows": [
         "######",
         "..CC..",
@@ -171,6 +185,7 @@
     {
       "id": 14,
       "name": "PodRoom",
+      "weight": 1,
       "rows": [
         "#....#",
         ".P..P.",
@@ -183,6 +198,7 @@
     {
       "id": 15,
       "name": "StorageRoom",
+      "weight": 1,
       "rows": [
         "#....#",
         "#.X..#",
@@ -195,6 +211,7 @@
     {
       "id": 16,
       "name": "PowerCore",
+      "weight": 1,
       "rows": [
         "######",
         "#.##.#",

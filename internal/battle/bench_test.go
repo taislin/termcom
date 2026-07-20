@@ -110,7 +110,7 @@ func BenchmarkMapGeneration(b *testing.B) {
 	})
 	b.Run("Cydonia", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			GenerateCydonia(30, 24)
+			GenerateCydonia(30, 24, 42)
 		}
 	})
 }

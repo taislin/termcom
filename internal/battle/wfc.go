@@ -23,10 +23,12 @@ var wfcDirDY = [4]int{-1, 0, 1, 0}
 // (rows x cols) where '.' denotes empty/floor-fill space. Tiles may be any
 // size (small 3x3 pieces up to large multi-room blocks). Neighbors[d] lists
 // the tile IDs that may legally sit in direction d relative to this tile.
+// Weight controls selection frequency during observation (1.0 = default).
 type WFCTile struct {
 	ID       int
 	Name     string
 	RuneGrid [][]rune
+	Weight   float64
 	// Neighbors[d] for d in {N,E,S,W} gives the set of allowed neighbor tile IDs.
 	Neighbors [4][]int
 }
@@ -58,9 +60,13 @@ func (s *superposition) collapseTo(id int) {
 }
 
 // WFCRules holds the tile set and a fast adjacency matrix.
+// FloorTile and WallTile specify which TileType to use for '.' and '#' runes
+// when compiling to a BattleMap (defaults TileUFOFloor/TileUFOWall).
 type WFCRules struct {
 	Tiles     []WFCTile
 	numTiles  int
+	FloorTile TileType
+	WallTile  TileType
 	// compatible[a][d][b] is true if tile b may sit in direction d of tile a.
 	compatible [][4][]bool
 }
@@ -76,7 +82,7 @@ func NewWFCRules(tiles []WFCTile) *WFCRules {
 			log.Printf("wfc: warning: tile %q has id %d but expected %d; adjacency matrix may be mis-indexed", t.Name, t.ID, i)
 		}
 	}
-	r := &WFCRules{Tiles: tiles, numTiles: n}
+	r := &WFCRules{Tiles: tiles, numTiles: n, FloorTile: TileUFOFloor, WallTile: TileUFOWall}
 	r.compatible = make([][4][]bool, n)
 	for a := 0; a < n; a++ {
 		for d := 0; d < 4; d++ {
@@ -165,13 +171,20 @@ func (wv *Wave) minEntropyCell(rng *rand.Rand) (int, int, bool) {
 }
 
 // observe collapses the lowest-entropy cell by randomly choosing one of its
-// remaining valid tiles. Returns the chosen tile ID, or -1 if no options exist.
+// remaining valid tiles, weighted by each tile's Weight field. Returns the
+// chosen tile ID, or -1 if no options exist.
 func (wv *Wave) observe(x, y int, rng *rand.Rand) int {
 	c := &wv.cells[y][x]
 	options := make([]int, 0, c.count)
+	weights := make([]float64, 0, c.count)
 	for i := 0; i < len(c.allowed); i++ {
 		if c.allowed[i] {
 			options = append(options, i)
+			w := wv.rules.Tiles[i].Weight
+			if w <= 0 {
+				w = 1
+			}
+			weights = append(weights, w)
 		}
 	}
 	if len(options) == 0 {
@@ -181,7 +194,19 @@ func (wv *Wave) observe(x, y int, rng *rand.Rand) int {
 	if len(options) == 1 {
 		chosen = options[0]
 	} else {
-		chosen = options[rng.Intn(len(options))]
+		total := 0.0
+		for _, w := range weights {
+			total += w
+		}
+		pick := rng.Float64() * total
+		accum := 0.0
+		for i, id := range options {
+			accum += weights[i]
+			if pick < accum {
+				chosen = id
+				break
+			}
+		}
 	}
 	c.collapseTo(chosen)
 	return chosen
@@ -443,14 +468,14 @@ func (wv *Wave) Solve(rng *rand.Rand, maxRestarts int) *Wave {
 	return best
 }
 
-// tileRuneToType maps a WFC rune to a BattleMap TileType. '.' is treated as
-// hull-fill (UFO floor).
-func tileRuneToType(ch rune) TileType {
+// tileRuneToType maps a WFC rune to a BattleMap TileType. floorType and
+// wallType specify the base types for '.' and '#' respectively.
+func tileRuneToType(ch rune, floorType, wallType TileType) TileType {
 	switch ch {
 	case '#':
-		return TileUFOWall
+		return wallType
 	case '.':
-		return TileUFOFloor
+		return floorType
 	case 'D':
 		return TileDoor
 	case 'C':
@@ -562,7 +587,7 @@ func (wv *Wave) CompileToBattleMap(m *BattleMap, ox, oy, level, stride int) {
 					ch := tile.RuneGrid[ty][tx]
 					mx := ox + gx*s + tx
 					my := oy + gy*s + ty
-					tt := tileRuneToType(ch)
+					tt := tileRuneToType(ch, wv.rules.FloorTile, wv.rules.WallTile)
 					m.SetLevel(mx, my, level, tt)
 					if dr := tileRuneToDisplay(ch); dr != 0 {
 						ary := my + level*m.LevelHeight
@@ -574,6 +599,41 @@ func (wv *Wave) CompileToBattleMap(m *BattleMap, ox, oy, level, stride int) {
 			}
 		}
 	}
+}
+
+// findNearestFloor searches outward from (sx, sy) at the given level for a tile
+// whose type matches one of the desired floor types. Returns the nearest match
+// or the original coordinate if none is found within maxDist.
+func findNearestFloor(m *BattleMap, sx, sy, level int, maxDist int, floors ...TileType) (int, int) {
+	if sx < 0 || sx >= m.Width || sy < 0 || sy >= m.LevelHeight {
+		return sx, sy
+	}
+	t := m.AtLevel(sx, sy, level).Type
+	for _, ft := range floors {
+		if t == ft {
+			return sx, sy
+		}
+	}
+	for r := 1; r <= maxDist; r++ {
+		for dy := -r; dy <= r; dy++ {
+			for dx := -r; dx <= r; dx++ {
+				if dx > -r && dx < r && dy > -r && dy < r {
+					continue
+				}
+				nx, ny := sx+dx, sy+dy
+				if nx < 0 || nx >= m.Width || ny < 0 || ny >= m.LevelHeight {
+					continue
+				}
+				nt := m.AtLevel(nx, ny, level).Type
+				for _, ft := range floors {
+					if nt == ft {
+						return nx, ny
+					}
+				}
+			}
+		}
+	}
+	return sx, sy
 }
 
 // wfcDirFromKey maps a JSON direction key to the internal direction index.
@@ -681,7 +741,11 @@ func wfcTilesFromLib(lib *mapgen.WFCLibrary) []WFCTile {
 			}
 			nb[dir] = append([]int{}, ids...)
 		}
-		tiles = append(tiles, WFCTile{ID: d.ID, Name: d.Name, RuneGrid: grid, Neighbors: nb})
+		weight := d.Weight
+		if weight <= 0 {
+			weight = 1
+		}
+		tiles = append(tiles, WFCTile{ID: d.ID, Name: d.Name, RuneGrid: grid, Neighbors: nb, Weight: weight})
 	}
 	tiles = autoComputeNeighbors(tiles)
 	return tiles
@@ -756,7 +820,8 @@ func GenerateUFOInteriorWFC(w, h int, rng *rand.Rand) *BattleMap {
 	buildLevel(0)
 	buildLevel(1)
 
-	// Connect levels with stairs.
+	// Connect levels with stairs. Search outward if the default central
+	// position fell on a WFC-placed wall.
 	stairsX := (w / 2) & ^1
 	stairsY := (levelH / 2) & ^1
 	if stairsX+1 >= w {
@@ -765,14 +830,18 @@ func GenerateUFOInteriorWFC(w, h int, rng *rand.Rand) *BattleMap {
 	if stairsY+1 >= levelH {
 		stairsY = levelH - 2
 	}
-	m.SetLevel(stairsX, stairsY, 0, TileStairsDown)
-	m.SetLevel(stairsX+1, stairsY, 0, TileUFOFloor)
-	m.SetLevel(stairsX, stairsY+1, 0, TileUFOFloor)
-	m.SetLevel(stairsX+1, stairsY+1, 0, TileUFOFloor)
-	m.SetLevel(stairsX, stairsY, 1, TileStairs)
-	m.SetLevel(stairsX+1, stairsY, 1, TileUFOFloor)
-	m.SetLevel(stairsX, stairsY+1, 1, TileUFOFloor)
-	m.SetLevel(stairsX+1, stairsY+1, 1, TileUFOFloor)
+	sx0, sy0 := findNearestFloor(m, stairsX, stairsY, 0, 6, TileUFOFloor)
+	sx1, sy1 := findNearestFloor(m, stairsX, stairsY, 1, 6, TileUFOFloor)
+	sx := min(sx0, sx1)
+	sy := min(sy0, sy1)
+	m.SetLevel(sx, sy, 0, TileStairsDown)
+	m.SetLevel(sx+1, sy, 0, TileUFOFloor)
+	m.SetLevel(sx, sy+1, 0, TileUFOFloor)
+	m.SetLevel(sx+1, sy+1, 0, TileUFOFloor)
+	m.SetLevel(sx, sy, 1, TileStairs)
+	m.SetLevel(sx+1, sy, 1, TileUFOFloor)
+	m.SetLevel(sx, sy+1, 1, TileUFOFloor)
+	m.SetLevel(sx+1, sy+1, 1, TileUFOFloor)
 
 	return m
 }
@@ -795,6 +864,8 @@ func GenerateUrbanBuildingWFCLevels(w, h, numLevels int, rng *rand.Rand) *Battle
 	m := NewMultiLevelBattleMap(w, h, numLevels)
 
 	rules := NewWFCRules(urbanWFCTiles())
+	rules.FloorTile = TileFloor
+	rules.WallTile = TileWall
 
 	cell := 9
 	gw := w / cell
@@ -815,30 +886,18 @@ func GenerateUrbanBuildingWFCLevels(w, h, numLevels int, rng *rand.Rand) *Battle
 		wv := newWave(rules, gw, gh)
 		wv = wv.Solve(levelRng, 50)
 		wv.CompileToBattleMap(m, 0, 0, level, 9)
-
-		// The WFC rune decoder uses UFO types for '.' and '#' by default.
-		// Convert them to building-appropriate types for urban interiors.
-		for y := 0; y < h; y++ {
-			for x := 0; x < w; x++ {
-				switch m.AtLevel(x, y, level).Type {
-				case TileUFOFloor:
-					m.SetLevel(x, y, level, TileFloor)
-				case TileUFOWall:
-					m.SetLevel(x, y, level, TileWall)
-				}
-			}
-		}
-
 		m.fillGaps(level, TilePavement, gw*9, gh*9)
 
 		// Enclose with a perimeter wall (y is level-relative).
 		m.drawRectLevel(0, 0, w, h, level, TileWall)
 	}
 
-	// Add stairs between levels at a random interior position.
+	// Add stairs between levels at a random interior position. If the
+	// random position landed on a WFC wall, search outward for floor.
 	for level := 0; level < numLevels-1; level++ {
-		sx := 1 + rng.Intn(w-2)
-		sy := 1 + rng.Intn(h-2)
+		rx := 1 + rng.Intn(w-2)
+		ry := 1 + rng.Intn(h-2)
+		sx, sy := findNearestFloor(m, rx, ry, level, 6, TileFloor)
 		m.SetLevel(sx, sy, level, TileStairsDown)
 		m.SetLevel(sx, sy, level+1, TileStairs)
 	}
@@ -888,7 +947,8 @@ func GenerateAlienBaseWFC(w, h int, rng *rand.Rand) *BattleMap {
 	buildLevel(0)
 	buildLevel(1)
 
-	// Connect levels with stairs.
+	// Connect levels with stairs. Search outward if the default central
+	// position fell on a WFC-placed wall.
 	stairsX := (w / 2) & ^1
 	stairsY := (levelH / 2) & ^1
 	if stairsX+1 >= w {
@@ -897,14 +957,18 @@ func GenerateAlienBaseWFC(w, h int, rng *rand.Rand) *BattleMap {
 	if stairsY+1 >= levelH {
 		stairsY = levelH - 2
 	}
-	m.SetLevel(stairsX, stairsY, 0, TileStairsDown)
-	m.SetLevel(stairsX+1, stairsY, 0, TileUFOFloor)
-	m.SetLevel(stairsX, stairsY+1, 0, TileUFOFloor)
-	m.SetLevel(stairsX+1, stairsY+1, 0, TileUFOFloor)
-	m.SetLevel(stairsX, stairsY, 1, TileStairs)
-	m.SetLevel(stairsX+1, stairsY, 1, TileUFOFloor)
-	m.SetLevel(stairsX, stairsY+1, 1, TileUFOFloor)
-	m.SetLevel(stairsX+1, stairsY+1, 1, TileUFOFloor)
+	sx0, sy0 := findNearestFloor(m, stairsX, stairsY, 0, 6, TileUFOFloor)
+	sx1, sy1 := findNearestFloor(m, stairsX, stairsY, 1, 6, TileUFOFloor)
+	sx := min(sx0, sx1)
+	sy := min(sy0, sy1)
+	m.SetLevel(sx, sy, 0, TileStairsDown)
+	m.SetLevel(sx+1, sy, 0, TileUFOFloor)
+	m.SetLevel(sx, sy+1, 0, TileUFOFloor)
+	m.SetLevel(sx+1, sy+1, 0, TileUFOFloor)
+	m.SetLevel(sx, sy, 1, TileStairs)
+	m.SetLevel(sx+1, sy, 1, TileUFOFloor)
+	m.SetLevel(sx, sy+1, 1, TileUFOFloor)
+	m.SetLevel(sx+1, sy+1, 1, TileUFOFloor)
 
 	return m
 }

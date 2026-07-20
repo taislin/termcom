@@ -161,7 +161,7 @@ func main() {
 		m = battle.GenerateUFOInteriorWFC(w, h, rng)
 		label = "UFO Interior (WFC)"
 	case "alien_base":
-		m = battle.GenerateAlienBase(w, h)
+		m = battle.GenerateAlienBase(w, h, time.Now().UnixNano())
 		label = "Alien Base (hand-crafted)"
 	case "alien_base_wfc":
 		m = battle.GenerateAlienBaseWFC(w, h, rng)
@@ -173,7 +173,7 @@ func main() {
 		m = battle.GenerateUrbanBuildingWFCLevels(w, h, 2, rng)
 		label = "Urban Building 2-Level (WFC)"
 	case "cydonia":
-		m = battle.GenerateCydonia(w, h)
+		m = battle.GenerateCydonia(w, h, time.Now().UnixNano())
 		label = "Cydonia"
 	case "urban", "forest", "desert", "polar", "rural", "ufo", "alien", "farm", "coastal", "mountain", "swamp", "jungle":
 		m = battle.AssembleMap(gen, w, h, rng)

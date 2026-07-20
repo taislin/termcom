@@ -420,10 +420,26 @@ func AssembleMap(biome string, w, h int, rng *rand.Rand) *BattleMap {
 		positions = append(positions, placed{fx, fy, cw, ch})
 	}
 
-	for i := 0; i < len(positions)-1; i++ {
-		p1 := positions[i]
-		p2 := positions[i+1]
-		m.generateCorridorFill(p1.x+p1.w/2, p1.y+p1.h/2, p2.x+p2.w/2, p2.y+p2.h/2, 1, baseTile)
+	// Connect each placed chunk to its nearest already-placed neighbor so the
+	// corridor network is compact (minimum-spanning-tree-like) rather than a
+	// simple chain that may create long winding paths.
+	for i := 1; i < len(positions); i++ {
+		pi := positions[i]
+		cx1, cy1 := pi.x+pi.w/2, pi.y+pi.h/2
+		bestDist := -1
+		bestIdx := 0
+		for j := 0; j < i; j++ {
+			pj := positions[j]
+			dx := cx1 - (pj.x + pj.w/2)
+			dy := cy1 - (pj.y + pj.h/2)
+			d := dx*dx + dy*dy
+			if bestDist < 0 || d < bestDist {
+				bestDist = d
+				bestIdx = j
+			}
+		}
+		pj := positions[bestIdx]
+		m.generateCorridorFill(pj.x+pj.w/2, pj.y+pj.h/2, cx1, cy1, 1, baseTile)
 	}
 
 	return m

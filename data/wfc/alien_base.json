@@ -3,6 +3,7 @@
     {
       "id": 0,
       "name": "FloorOpen",
+      "weight": 5,
       "rows": [
         "#.#",
         "...",
@@ -12,6 +13,7 @@
     {
       "id": 1,
       "name": "CorridorH",
+      "weight": 5,
       "rows": [
         "###",
         "...",
@@ -21,6 +23,7 @@
     {
       "id": 2,
       "name": "CorridorV",
+      "weight": 5,
       "rows": [
         "#.#",
         "#.#",
@@ -30,6 +33,7 @@
     {
       "id": 3,
       "name": "TurnNE",
+      "weight": 4,
       "rows": [
         "#.#",
         "#..",
@@ -39,6 +43,7 @@
     {
       "id": 4,
       "name": "TurnNW",
+      "weight": 4,
       "rows": [
         "#.#",
         "..#",
@@ -48,6 +53,7 @@
     {
       "id": 5,
       "name": "TurnSE",
+      "weight": 4,
       "rows": [
         "###",
         "#..",
@@ -57,6 +63,7 @@
     {
       "id": 6,
       "name": "TurnSW",
+      "weight": 4,
       "rows": [
         "###",
         "..#",
@@ -66,6 +73,7 @@
     {
       "id": 7,
       "name": "TJuncN",
+      "weight": 3,
       "rows": [
         "#.#",
         "...",
@@ -75,6 +83,7 @@
     {
       "id": 8,
       "name": "TJuncS",
+      "weight": 3,
       "rows": [
         "###",
         "...",
@@ -84,6 +93,7 @@
     {
       "id": 9,
       "name": "TJuncE",
+      "weight": 3,
       "rows": [
         "#.#",
         "#..",
@@ -93,6 +103,7 @@
     {
       "id": 10,
       "name": "TJuncW",
+      "weight": 3,
       "rows": [
         "#.#",
         "..#",
@@ -102,6 +113,7 @@
     {
       "id": 11,
       "name": "ConsoleRoom",
+      "weight": 1,
       "rows": [
         "#.#",
         ".C.",
@@ -111,6 +123,7 @@
     {
       "id": 12,
       "name": "MachineryRoom",
+      "weight": 1,
       "rows": [
         "#.#",
         ".M.",
@@ -120,6 +133,7 @@
     {
       "id": 13,
       "name": "PodRoom",
+      "weight": 1,
       "rows": [
         "#.#",
         ".P.",
@@ -129,6 +143,7 @@
     {
       "id": 14,
       "name": "PowerRoom",
+      "weight": 1,
       "rows": [
         "###",
         ".X.",
@@ -138,6 +153,7 @@
     {
       "id": 15,
       "name": "StorageRoom",
+      "weight": 1,
       "rows": [
         "#.#",
         ".S.",
@@ -147,6 +163,7 @@
     {
       "id": 16,
       "name": "AlienTechRoom",
+      "weight": 1,
       "rows": [
         "#.#",
         ".A.",
@@ -156,6 +173,7 @@
     {
       "id": 17,
       "name": "DoorN",
+      "weight": 1,
       "rows": [
         "#D#",
         "...",
@@ -165,6 +183,7 @@
     {
       "id": 18,
       "name": "BioComputerRoom",
+      "weight": 1,
       "rows": [
         "#.#",
         "⌸⊕⌸",
@@ -174,6 +193,7 @@
     {
       "id": 19,
       "name": "CryoRoom",
+      "weight": 1,
       "rows": [
         "#.#",
         "╓⊚╖",
@@ -183,6 +203,7 @@
     {
       "id": 20,
       "name": "ReactorRoom",
+      "weight": 1,
       "rows": [
         "###",
         "║⍾║",
@@ -192,6 +213,7 @@
     {
       "id": 21,
       "name": "SurgicalRoom",
+      "weight": 1,
       "rows": [
         "#.#",
         "⊏≈⊐",
@@ -201,6 +223,7 @@
     {
       "id": 22,
       "name": "MonolithRoom",
+      "weight": 1,
       "rows": [
         "#.#",
         "☼◊╨",
