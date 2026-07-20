@@ -447,6 +447,7 @@ func init() {
 		"MSG_HIRED":                  "%s\u5df2\u88ab\u62db\u52df\u3002",
 		"MSG_INTERCEPTOR_PURCHASED":  "\u6218\u6597\u673a\u5df2\u8d2d\u4e70\u3002",
 		"MSG_CANNOT_BUY_INTERCEPTOR": "\u65e0\u6cd5\u8d2d\u4e70\u6218\u6597\u673a\uff01",
+		"MSG_PRESS_B_TO_REPLACE": " [Destroyed - Press [B] to replace]",
 		"MSG_NO_INTERCEPTORS":        "\u673a\u5e93\u6ca1\u6709\u6218\u6597\u673a\u3002\u6309 [B] \u8d2d\u4e70\u3002",
 		"MSG_WEAPON_CHANGED":         "\u6b66\u5668\u5df2\u66f4\u6362\u4e3a %s",
 		"SECTION_HANGARS":            "\u673a\u5e93\uff1a",

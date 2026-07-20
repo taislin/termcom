@@ -330,17 +330,21 @@ func (bs *BaseScreen) renderHangars(ctx *engine.ScreenCtx, x, y, w, h int) {
 	ctx.DrawString(x, y, language.String("SECTION_HANGARS"), engine.StyleCyanBold)
 	y += 2
 	idx := 0
-	for _, hg := range bs.Base.Hangars {
-		if hg.Status == "destroyed" {
-			continue
-		}
+	for i, hg := range bs.Base.Hangars {
 		style := engine.StyleDefault
 		if idx == bs.Selection {
 			style = engine.StyleHighlight
 		}
-		wpn := data.InterceptorWeapons[hg.WeaponKey]
 		statusKey := "INTERCEPTOR_STATUS_" + strings.ToUpper(hg.Status)
-		line := fmt.Sprintf(language.String("LINE_HANGAR_INFO"), idx+1, language.String(statusKey), hg.HP, hg.MaxHP, wpn.DisplayName(hg.WeaponKey), hg.Ammo)
+		if hg.Status == "destroyed" {
+			line := fmt.Sprintf(language.String("LINE_HANGAR_INFO"), i+1, language.String(statusKey), 0, hg.MaxHP, "-", 0)
+			ctx.DrawString(x, y+idx, line, engine.StyleGray)
+			ctx.DrawString(x+1, y+idx+1, language.String("MSG_PRESS_B_TO_REPLACE"), engine.StyleGray)
+			idx += 2
+			continue
+		}
+		wpn := data.InterceptorWeapons[hg.WeaponKey]
+		line := fmt.Sprintf(language.String("LINE_HANGAR_INFO"), i+1, language.String(statusKey), hg.HP, hg.MaxHP, wpn.DisplayName(hg.WeaponKey), hg.Ammo)
 		ctx.DrawString(x, y+idx, line, style)
 		idx++
 	}

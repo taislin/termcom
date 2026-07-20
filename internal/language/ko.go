@@ -449,6 +449,7 @@ func init() {
 		"MSG_HIRED":                  "%s 고용됨.",
 		"MSG_INTERCEPTOR_PURCHASED":  "요격기 구매됨.",
 		"MSG_CANNOT_BUY_INTERCEPTOR": "요격기를 살 수 없습니다!",
+		"MSG_PRESS_B_TO_REPLACE": " [Destroyed - Press [B] to replace]",
 		"MSG_NO_INTERCEPTORS":        "격납고에 요격기 없음. 구매하려면 [B].",
 		"MSG_WEAPON_CHANGED":         "무기가 %s(으)로 변경됨",
 		"SECTION_HANGARS":            "격납고:",

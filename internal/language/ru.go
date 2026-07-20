@@ -449,6 +449,7 @@ func init() {
 		"MSG_HIRED":                  "%s нанят.",
 		"MSG_INTERCEPTOR_PURCHASED":  "Перехватчик приобретён.",
 		"MSG_CANNOT_BUY_INTERCEPTOR": "Невозможно купить перехватчик!",
+		"MSG_PRESS_B_TO_REPLACE": " [Destroyed - Press [B] to replace]",
 		"MSG_NO_INTERCEPTORS":        "Нет перехватчиков в ангарах. Нажмите [К] для покупки.",
 		"MSG_WEAPON_CHANGED":         "Оружие заменено на %s",
 		"SECTION_HANGARS":            "АНГАРЫ:",

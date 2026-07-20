@@ -2273,10 +2273,21 @@ func (gs *Geoscape) renderRegionTable(ctx *engine.ScreenCtx, x, y, w, h int) {
 				ctx.DrawString(rx, ry, language.String("GEO_RADAR_OFF"), engine.StyleGray)
 			}
 
-			// Interceptor count
+			// Interceptor count — count actual (non-destroyed) hangar slots
 			ix := x + int(float64(w)*0.75)
-			if c.InterceptorCount > 0 {
-				ctx.DrawString(ix, ry, fmt.Sprintf(" %d ", c.InterceptorCount), engine.StyleGreen)
+			hangarCount := 0
+			for _, b := range gs.Bases {
+				if b.CityID == c.ID {
+					for _, hg := range b.Hangars {
+						if hg.Status != "destroyed" {
+							hangarCount++
+						}
+					}
+					break
+				}
+			}
+			if hangarCount > 0 {
+				ctx.DrawString(ix, ry, fmt.Sprintf(" %d ", hangarCount), engine.StyleGreen)
 			} else {
 				ctx.DrawString(ix, ry, language.String("GEO_RADAR_OFF"), engine.StyleGray)
 			}

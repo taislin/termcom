@@ -449,6 +449,7 @@ func init() {
 		"MSG_HIRED":                  "%s recrutado(a).",
 		"MSG_INTERCEPTOR_PURCHASED":  "Interceptor comprado.",
 		"MSG_CANNOT_BUY_INTERCEPTOR": "N\u00e3o \u00e9 poss\u00edvel comprar interceptor!",
+		"MSG_PRESS_B_TO_REPLACE": " [Destroyed - Press [B] to replace]",
 		"MSG_NO_INTERCEPTORS":        "Sem interceptores nos hangares. Prima [B] para comprar.",
 		"MSG_WEAPON_CHANGED":         "Arma alterada para %s",
 		"SECTION_HANGARS":            "HANGARES:",

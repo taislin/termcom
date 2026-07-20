@@ -449,6 +449,7 @@ func init() {
 		"MSG_HIRED":                  "%sを採用しました。",
 		"MSG_INTERCEPTOR_PURCHASED":  "攻撃機を購入しました。",
 		"MSG_CANNOT_BUY_INTERCEPTOR": "攻撃機を購入できません！",
+		"MSG_PRESS_B_TO_REPLACE": " [Destroyed - Press [B] to replace]",
 		"MSG_NO_INTERCEPTORS":        "格納庫に攻撃機がいません。[B] で購入してください。",
 		"MSG_WEAPON_CHANGED":         "武器を %s に変更",
 		"SECTION_HANGARS":            "格納庫:",
