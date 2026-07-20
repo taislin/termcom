@@ -72,6 +72,7 @@ var tileTypeByName = map[string]TileType{
 	"TileBoulder":       TileBoulder,
 	"TileSwampWater":    TileSwampWater,
 	"TileCypressTree":   TileCypressTree,
+	"TileSnowTree":      TileSnowTree,
 	"TileMud":           TileMud,
 	"TileVine":          TileVine,
 	"TileBamboo":        TileBamboo,
@@ -463,6 +464,7 @@ func clusterBiome(m *BattleMap, biome string, w, h int, rng *rand.Rand) {
 	case "polar":
 		m.Blob(TileIce, 5, w*h/60, 50, rng)
 		m.Poisson(TileRock, 3, w*h/150, rng)
+		m.Poisson(TileSnowTree, 3, w*h/200, rng)
 	case "urban":
 		m.Poisson(TileObject, 4, w*h/200, rng)
 		m.Poisson(TileBush, 5, w*h/150, rng)

@@ -96,6 +96,8 @@ const (
 	// Swamp biome tiles
 	TileSwampWater // shallow murky water, passable, 5 cover, high TU
 	TileCypressTree // cypress tree trunk, 80 cover, destructible
+	// Polar biome tiles
+	TileSnowTree // snow-covered pine, 80 cover, destructible
 	// Jungle biome tiles
 	TileMud       // deep mud, passable, 5 cover, high TU, noisy
 	TileVine      // dense hanging vines, passable, 20 cover
@@ -155,7 +157,7 @@ func (m *BattleMap) MoveCost(x, y int, w *Weather) int {
 		base = 6
 	case TileWater, TileSwampWater:
 		base = 8
-	case TileTree, TileRock, TileCypressTree, TileBamboo:
+	case TileTree, TileRock, TileCypressTree, TileSnowTree, TileBamboo:
 		base = 8
 	case TileSnow, TileIce:
 		base = 5
@@ -176,7 +178,7 @@ func TileCover(t TileType) int {
 	switch t {
 	case TileWall, TileUFOWall, TileContainerRed, TileContainerBlue, TileContainerYellow,
 		TileAdobe, TileMetalWall, TileWreck, TileTimber, TileTruck,
-		TileCliffFace, TileCypressTree:
+		TileCliffFace, TileCypressTree, TileSnowTree:
 		return 80
 	case TileTree, TileBoulder, TileBamboo:
 		return 60
@@ -227,7 +229,7 @@ func TileCover(t TileType) int {
 func (t Tile) IsFlammable() bool {
 	switch t.Type {
 	case TileGrass, TileTree, TileBush, TileDryBush, TileFence, TileDoor, TileTimber,
-		TileWheat, TileHayBale, TileVine, TileBamboo, TileCypressTree:
+		TileWheat, TileHayBale, TileVine, TileBamboo, TileCypressTree, TileSnowTree:
 		return true
 	}
 	return false
@@ -312,7 +314,7 @@ var tileChars = map[TileType]rune{
 	TileFloor:      '.',
 	TileWall:       '#',
 	TileDoor:       '+',
-	TileWindow:     '¤',
+	TileWindow:     '⊞',
 	TileGrass:      '·',
 	TileTree:       '♣',
 	TileRock:       '∩',
@@ -369,7 +371,7 @@ var tileChars = map[TileType]rune{
 	TileDebris:    '`', // scattered debris (noisy step)
 	TileCryoPipe:  '╪', // cryo-coolant pipe
 	TileSkylight:  '⊙', // glass skylight floor
-	TileWheat:     '▓', // tall wheat (dense crop pattern)
+	TileWheat:     'ψ', // tall wheat (psi-shaped stalks)
 	TileHayBale:   '█', // hay bale
 	TilePier:      '═', // wooden pier planks
 	TileDockCrate: '▣', // dock crate (square with center dot)
@@ -378,6 +380,7 @@ var tileChars = map[TileType]rune{
 	TileBoulder:   '∩', // large boulder (same as rock but bigger shape)
 	TileSwampWater: '≋', // swamp water (wavy)
 	TileCypressTree: '♣', // cypress tree (same char as tree, different color)
+	TileSnowTree:    '♣', // snow-covered pine (white, same char)
 	TileMud:       '≋', // mud (wavy, like marsh)
 	TileVine:      '‡', // vines (dense cross)
 	TileBamboo:    '♣', // bamboo (same char as tree, different color)
@@ -552,7 +555,7 @@ func (m *BattleMap) Opaque(x, y int) bool {
 		TileContainerRed, TileContainerBlue, TileContainerYellow,
 		TileAdobe, TileMetalWall, TileWreck, TileTruck, TileDish,
 		TileHayBale, TileDockCrate, TileCliffFace, TileBoulder,
-		TileCypressTree, TileBamboo,
+		TileCypressTree, TileSnowTree, TileBamboo,
 		TileBusEnd, TileBusMid,
 		TileHeloBody, TileHeloTail, TileHeloNose, TileHeloBodyBack,
 		TileTractorCab, TileTractorBody,
@@ -574,7 +577,7 @@ func (m *BattleMap) IsDestructible(x, y int) bool {
 		TileFuelPump, TileStreetlamp, TileCryoPipe, TileSkylight,
 		TileWheat, TileHayBale,
 		TileDockCrate, TileScree, TileDryBush,
-		TileCypressTree, TileVine, TileBamboo,
+		TileCypressTree, TileSnowTree, TileVine, TileBamboo,
 		TileBusEnd, TileBusMid,
 		TileHeloBody, TileHeloTail, TileHeloNose, TileHeloBodyBack, TileHeloRotor, TileHeloRotorSides, TileHeloRotorBack, TileHeloWindow, TileWheel, TileWheelSmall,
 		TileTractorCab, TileTractorBody,
@@ -965,7 +968,7 @@ func isUrbanProtected(t TileType) bool {
 		TileWheat, TileHayBale,
 		TilePier, TileDockCrate,
 		TileCliffFace, TileScree, TileBoulder,
-		TileWater, TileSwampWater, TileCypressTree,
+		TileWater, TileSwampWater, TileCypressTree, TileSnowTree,
 		TileMud, TileVine, TileBamboo, TileDryBush,
 		TileBusEnd, TileBusMid,
 		TileHeloBody, TileHeloTail, TileHeloNose, TileHeloBodyBack, TileHeloRotor, TileHeloRotorSides, TileHeloRotorBack, TileHeloWindow,

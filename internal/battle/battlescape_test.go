@@ -284,7 +284,7 @@ func TestTileTypeNames(t *testing.T) {
 		{TileHeloWindow, "Window"},
 		{TileTractorCab, "Tractor"},
 		{TileTractorBody, "Tractor"},
-		{TileCrawlerLeg, "Crawler Leg"},
+		{TileCrawlerLeg, "Alien Crawler Leg"},
 		{TileType(99), "Unknown"},
 	}
 	for _, tt := range tests {

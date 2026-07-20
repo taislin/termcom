@@ -268,6 +268,7 @@ func init() {
 		"TILE_BOULDER":      "Boulder",
 		"TILE_SWAMP_WATER":  "Swamp Water",
 		"TILE_CYPRESS_TREE": "Cypress Tree",
+		"TILE_SNOW_TREE":    "Snow Tree",
 		"TILE_MUD":          "Mud",
 		"TILE_VINE":         "Vine",
 		"TILE_BAMBOO":       "Bamboo",
@@ -276,8 +277,8 @@ func init() {
 		"TILE_HELICOPTER":   "Helicopter",
 		"TILE_HELO_ROTOR":   "Rotor",
 		"TILE_TRACTOR":      "Tractor",
-		"TILE_CRAWLER":      "Crawler",
-		"TILE_CRAWLER_LEG":  "Crawler Leg",
+		"TILE_CRAWLER":      "Alien Crawler",
+		"TILE_CRAWLER_LEG":  "Alien Crawler Leg",
 		"TILE_WHEEL":        "Rueda",
 		"TILE_UNKNOWN":      "Desconocido",
 

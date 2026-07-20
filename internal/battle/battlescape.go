@@ -3985,6 +3985,8 @@ func tileTypeName(t TileType) string {
 		return language.String("TILE_SWAMP_WATER")
 	case TileCypressTree:
 		return language.String("TILE_CYPRESS_TREE")
+	case TileSnowTree:
+		return language.String("TILE_SNOW_TREE")
 	case TileMud:
 		return language.String("TILE_MUD")
 	case TileVine:

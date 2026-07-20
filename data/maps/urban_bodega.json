@@ -7,14 +7,14 @@
   "no_rotate": true,
   "rows": [
     "WWWWWWWWWW",
-    "WN....N..W",
-    "WN.DDD...W",
-    "WN.......W",
-    "WN.......W",
+    "N........N",
+    "N.DDD....N",
+    "N........N",
+    "N........N",
     "W........W",
-    "WN.CCC...W",
-    "WN.CCC...W",
-    "WN.......W",
+    "N.CCC....N",
+    "N.CCC....N",
+    "N........N",
     "WWWW+WWWWW"
   ],
   "terrain": {

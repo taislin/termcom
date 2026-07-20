@@ -75,6 +75,7 @@ var opaqueTiles = map[TileType]bool{
 	TileCliffFace:       true,
 	TileBoulder:         true,
 	TileCypressTree:     true,
+	TileSnowTree:        true,
 	TileBamboo:          true,
 	TileBusEnd:          true,
 	TileBusMid:          true,
@@ -99,7 +100,7 @@ const (
 	GlyphBuildingH    rune = '█'
 	GlyphBuildingV    rune = '█'
 	GlyphBuildingDoor rune = '▒'
-	GlyphBuildingWin  rune = 'N'
+	GlyphBuildingWin  rune = '⊞'
 )
 
 // tilePalette maps TileType to a curated true-color RGB value.
@@ -168,6 +169,7 @@ var tilePalette = map[TileType]tcell.Color{
 	TileBoulder:       tcell.NewRGBColor(130, 125, 120), // grey boulder
 	TileSwampWater:    tcell.NewRGBColor(50, 100, 80),   // murky green water
 	TileCypressTree:   tcell.NewRGBColor(40, 85, 50),    // darker green cypress
+	TileSnowTree:      tcell.NewRGBColor(220, 235, 245),  // white snow-covered pine
 	TileMud:           tcell.NewRGBColor(110, 80, 50),   // brown mud
 	TileVine:          tcell.NewRGBColor(50, 130, 50),   // bright green vine
 	TileBamboo:        tcell.NewRGBColor(80, 150, 60),   // pale green bamboo
