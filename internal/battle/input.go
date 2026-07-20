@@ -234,6 +234,20 @@ func (bs *Battlescape) handleMouse(e *tcell.EventMouse) {
 			return
 		}
 
+		// Target destructible terrain (streetlamps, pipes, fuel pumps…)
+		if bs.Selected != nil && bs.Phase == PhasePlayerTurn &&
+			bs.Map.IsDestructible(mx, my) && unit == nil {
+			if bs.State.CursorState == StateTargeting && bs.CursorX == mx && bs.CursorY == my {
+				bs.FireWeapon()
+				bs.State.CursorState = StateInspect
+			} else {
+				bs.CursorX, bs.CursorY = mx, my
+				bs.State.CursorState = StateTargeting
+				bs.State.TargetUnit = nil
+			}
+			return
+		}
+
 		if bs.State.CursorState == StateMovePlan && bs.CursorX == mx && bs.CursorY == my {
 			bs.MoveSelected()
 			bs.State.CursorState = StateInspect

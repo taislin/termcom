@@ -23,7 +23,6 @@ const (
 	aoMinFactor         = 0.6  // clamp for accumulated AO darkening
 	ditherFactor        = 0.92 // checkerboard dither darkening on even-parity tiles
 	fogOfWarDim         = 0.45 // foreground/background dim for remembered (seen) tiles
-	lampLightFactor     = 0.32 // background lightening inside a lamp's radius
 	noiseAlertRadius    = 15   // tiles within which broken glass/debris alerts aliens
 )
 
@@ -397,33 +396,10 @@ func RenderTile(t Tile, ctx [3][3]TileType, visible, seen bool, frame int, tileX
 		bg = engine.DarkenColor(bg, ditherFactor)
 	}
 
-	// Streetlamp / floodlight illumination: brighten background so the
-	// lit radius reads as a pool of light against the dark map.
-	if t.LitByLamp {
-		r, g, b := baseCol.RGB()
-		blend := lampLightFactor
-		goldR, goldG, goldB := 255.0, 200.0, 100.0
-		nr := int32(float64(r) + (goldR-float64(r))*blend)
-		ng := int32(float64(g) + (goldG-float64(g))*blend)
-		nb := int32(float64(b) + (goldB-float64(b))*blend)
-		if nr > 255 {
-			nr = 255
-		}
-		if ng > 255 {
-			ng = 255
-		}
-		if nb > 255 {
-			nb = 255
-		}
-		bg = tcell.NewRGBColor(nr, ng, nb)
-	}
-
 	if !visible && seen {
 		// Fog of War: dim both foreground and background
 		fg = engine.DarkenColor(fg, fogOfWarDim)
-		if !t.LitByLamp {
-			bg = engine.DarkenColor(bg, fogOfWarDim)
-		}
+		bg = engine.DarkenColor(bg, fogOfWarDim)
 	} else {
 		// Overlay effects (blood, fire) only visible when tile is currently in line of sight
 		if t.Blood > 0 {
