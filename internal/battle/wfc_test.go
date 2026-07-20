@@ -36,6 +36,34 @@ func TestWFCLibrariesLoad(t *testing.T) {
 	load("alien_base")
 }
 
+func TestWFCSolveNoContradiction(t *testing.T) {
+	rng := rand.New(rand.NewSource(12345))
+	for _, dims := range [][2]int{{10, 8}, {12, 9}, {16, 8}, {5, 5}} {
+		rules := NewWFCRules(ufoWFCTiles())
+		wv := newWave(rules, dims[0], dims[1])
+		wv = wv.Solve(rng, 50)
+		if wv.hasContradiction() {
+			t.Fatalf("solved wave (%dx%d) reports a contradiction", dims[0], dims[1])
+		}
+	}
+}
+
+func TestWFCHasContradiction(t *testing.T) {
+	rules := NewWFCRules(ufoWFCTiles())
+	wv := newWave(rules, 4, 4)
+	if wv.hasContradiction() {
+		t.Fatal("fresh wave should not be a contradiction")
+	}
+	// Drive one uncollapsed cell to zero remaining options.
+	c := &wv.cells[1][1]
+	for i := range c.allowed {
+		c.allowed[i] = false
+	}
+	c.count = 0
+	if !wv.hasContradiction() {
+		t.Fatal("cell with zero options but not collapsed must be a contradiction")
+	}
+}
 func TestWFCSolveCollapsesFully(t *testing.T) {
 	rules := NewWFCRules(ufoWFCTiles())
 	rng := rand.New(rand.NewSource(12345))

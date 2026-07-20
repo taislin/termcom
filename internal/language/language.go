@@ -7,6 +7,7 @@ var (
 	strings    = map[string]map[string]string{}
 	available  = []string{"en"}
 	registered = map[string]bool{"en": true}
+	english    map[string]string // stored reference to en.go strings for fallback
 )
 
 // SetLanguage switches the active language.
@@ -27,12 +28,15 @@ func Available() []string {
 }
 
 // String returns the translated string for the given key in the active language.
-// Falls back to the key itself if not found.
+// Falls back to English, then to the key itself if not found in English either.
 func String(key string) string {
 	if m, ok := strings[current]; ok {
 		if s, ok := m[key]; ok {
 			return s
 		}
+	}
+	if s, ok := english[key]; ok {
+		return s
 	}
 	return key
 }
@@ -46,6 +50,9 @@ func Sprintf(key string, args ...interface{}) string {
 // register adds a language's string map to the registry.
 func register(lang string, strs map[string]string) {
 	strings[lang] = strs
+	if lang == "en" {
+		english = strs
+	}
 	if !registered[lang] {
 		registered[lang] = true
 		available = append(available, lang)

@@ -109,7 +109,7 @@ func (ds *DebriefScreen) Render(ctx *ScreenCtx) {
 		outStyle = StyleRed.Bold(true)
 	}
 	ctx.DrawString(4, yOff, language.String("DEBRIEF_OUTCOME"), StyleDefault)
-	ctx.DrawString(4+len(language.String("DEBRIEF_OUTCOME")), yOff, outcome, outStyle)
+	ctx.DrawString(4+StringWidth(language.String("DEBRIEF_OUTCOME")), yOff, outcome, outStyle)
 	yOff += 2
 
 	// Kills & casualties

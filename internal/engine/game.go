@@ -208,7 +208,6 @@ func NewGameWeb(cols, rows int) (*Game, *nullScreen, error) {
 	}
 
 	g := newGameWithScreen(scr, initialState)
-	g.initSpecies()
 	return g, ns, nil
 }
 

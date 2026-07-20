@@ -48,23 +48,52 @@ func (es *EquipScreen) Render(ctx *engine.ScreenCtx) {
 	rightX := engine.Layout.EquipSplitX(w)
 
 	ctx.DrawString(2, 2, language.String("SECTION_SOLDIER"), engine.StyleCyanBold)
-	for i, s := range es.Base.Soldiers {
-		style := engine.StyleDefault
-		if i == es.SelectedSol {
-			style = engine.StyleHighlight
-		}
-		line := fmt.Sprintf(language.String("EQUIP_SOLDIER_LINE"), s.Name, s.Rank, s.HP, s.MaxHP)
-		ctx.DrawString(2, 3+i, line, style)
-	}
-
-	s := es.Base.Soldiers[es.SelectedSol]
 
 	const (
 		portraitW = 20
 		portraitH = 24
 	)
+	framedH := portraitH/2 + 2 // rows occupied by the framed portrait
+
+	// Portrait sits at the bottom-left. Reserve the last two rows for the
+	// message + help bars and clamp so it never spills off a short screen.
+	portY := h - 2 - framedH
+	if portY < 3 {
+		portY = 3
+	}
+
+	// The soldier roster fills the rows between the section header and the
+	// portrait. Scroll it (keeping the selection centred) so a long roster no
+	// longer draws over — and visually clips — the portrait below it.
+	maxListRows := portY - 3
+	if maxListRows < 1 {
+		maxListRows = 1
+	}
+	start := 0
+	if len(es.Base.Soldiers) > maxListRows {
+		start = es.SelectedSol - maxListRows/2
+		if start < 0 {
+			start = 0
+		}
+		if start > len(es.Base.Soldiers)-maxListRows {
+			start = len(es.Base.Soldiers) - maxListRows
+		}
+	}
+	for row := 0; row < maxListRows && start+row < len(es.Base.Soldiers); row++ {
+		i := start + row
+		sd := es.Base.Soldiers[i]
+		style := engine.StyleDefault
+		if i == es.SelectedSol {
+			style = engine.StyleHighlight
+		}
+		line := fmt.Sprintf(language.String("EQUIP_SOLDIER_LINE"), sd.Name, sd.Rank, sd.HP, sd.MaxHP)
+		ctx.DrawString(2, 3+row, line, style)
+	}
+
+	s := es.Base.Soldiers[es.SelectedSol]
+
 	soldierImg := engine.MakeSoldierPortrait(s.Name, portraitW, portraitH)
-	ctx.DrawPixelImageFramed(2, h-16, soldierImg, engine.StyleCyan)
+	ctx.DrawPixelImageFramed(2, portY, soldierImg, engine.StyleCyan)
 
 	ctx.DrawString(rightX, 2, language.String("SECTION_EQUIPMENT"), engine.StyleCyanBold)
 

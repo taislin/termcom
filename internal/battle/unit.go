@@ -196,15 +196,16 @@ func (u *Unit) FireAt(target *Unit, m *BattleMap, weather *Weather) (int, bool, 
 	if w.AmmoMax < InfAmmoThreshold && u.WeaponAmmo < rounds {
 		return 0, false, false, fmt.Errorf("out of ammo")
 	}
-	if w.AmmoMax < InfAmmoThreshold {
-		u.WeaponAmmo -= rounds
-	}
-	u.TU -= tuCost
 
 	dist := math.Sqrt(float64((target.X-u.X)*(target.X-u.X) + (target.Y-u.Y)*(target.Y-u.Y)))
 	if w.Range > 0 && dist > float64(w.Range) {
 		return 0, false, false, fmt.Errorf("target out of weapon range (%.0f > %d)", dist, w.Range)
 	}
+
+	if w.AmmoMax < InfAmmoThreshold {
+		u.WeaponAmmo -= rounds
+	}
+	u.TU -= tuCost
 	accMod := 100 - int(dist*distAccPenalty)
 	if accMod < minAccMod {
 		accMod = minAccMod

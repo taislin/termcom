@@ -66,8 +66,16 @@ type WFCRules struct {
 }
 
 // NewWFCRules validates and precomputes the compatibility matrix from tiles.
+// Tile IDs must be contiguous 0..n-1 because the compat matrix is indexed by
+// ID directly. A mismatch is logged as a warning rather than panicking, but
+// produces a silently incorrect adjacency matrix.
 func NewWFCRules(tiles []WFCTile) *WFCRules {
 	n := len(tiles)
+	for i, t := range tiles {
+		if t.ID != i {
+			log.Printf("wfc: warning: tile %q has id %d but expected %d; adjacency matrix may be mis-indexed", t.Name, t.ID, i)
+		}
+	}
 	r := &WFCRules{Tiles: tiles, numTiles: n}
 	r.compatible = make([][4][]bool, n)
 	for a := 0; a < n; a++ {
@@ -113,8 +121,9 @@ func newWave(rules *WFCRules, w, h int) *Wave {
 }
 
 // minEntropyCell returns the coordinates of the uncollapsed cell with the
-// fewest remaining options, plus whether any such cell exists. Deterministic
-// tie-breaking (lowest x then y) keeps generation reproducible per seed.
+// fewest remaining options, plus whether any such cell exists and the wave is
+// contradiction-free. A cell with count==0 means an impossible constraint, so
+// we return false to signal external backtracking.
 func (wv *Wave) minEntropyCell(rng *rand.Rand) (int, int, bool) {
 	best := -1
 	var bx, by int
@@ -123,6 +132,9 @@ func (wv *Wave) minEntropyCell(rng *rand.Rand) (int, int, bool) {
 			c := &wv.cells[y][x]
 			if c.collapsed >= 0 {
 				continue
+			}
+			if c.count == 0 {
+				return 0, 0, false
 			}
 			if best == -1 || c.count < best {
 				best = c.count
@@ -133,11 +145,27 @@ func (wv *Wave) minEntropyCell(rng *rand.Rand) (int, int, bool) {
 	if best == -1 {
 		return 0, 0, false
 	}
-	return bx, by, true
+	// Collect every uncollapsed cell sharing the minimum entropy and pick one
+	// at random so generation does not always grow from the top-left corner.
+	candidates := make([][2]int, 0, 4)
+	for y := 0; y < wv.h; y++ {
+		for x := 0; x < wv.w; x++ {
+			c := &wv.cells[y][x]
+			if c.collapsed >= 0 || c.count != best {
+				continue
+			}
+			candidates = append(candidates, [2]int{x, y})
+		}
+	}
+	if len(candidates) == 1 {
+		return bx, by, true
+	}
+	chosen := candidates[rng.Intn(len(candidates))]
+	return chosen[0], chosen[1], true
 }
 
 // observe collapses the lowest-entropy cell by randomly choosing one of its
-// remaining valid tiles. Returns the chosen tile ID.
+// remaining valid tiles. Returns the chosen tile ID, or -1 if no options exist.
 func (wv *Wave) observe(x, y int, rng *rand.Rand) int {
 	c := &wv.cells[y][x]
 	options := make([]int, 0, c.count)
@@ -146,7 +174,15 @@ func (wv *Wave) observe(x, y int, rng *rand.Rand) int {
 			options = append(options, i)
 		}
 	}
-	chosen := options[rng.Intn(len(options))]
+	if len(options) == 0 {
+		return -1
+	}
+	var chosen int
+	if len(options) == 1 {
+		chosen = options[0]
+	} else {
+		chosen = options[rng.Intn(len(options))]
+	}
 	c.collapseTo(chosen)
 	return chosen
 }
@@ -169,19 +205,29 @@ func (wv *Wave) propagate(x, y int) bool {
 		src := &wv.cells[cy][cx]
 
 		// compat[d][b] = does b have at least one allowed source neighbor in d.
-		for d := 0; d < 4; d++ {
-			for b := 0; b < wv.rules.numTiles; b++ {
-				wv.compat[d][b] = false
+		// Fast path for collapsed cells: copy precomputed compat mask for that tile.
+		if src.collapsed >= 0 {
+			a := src.collapsed
+			for d := 0; d < 4; d++ {
+				copy(wv.compat[d], wv.rules.compatible[a][d])
 			}
-		}
-		for a := 0; a < wv.rules.numTiles; a++ {
-			if !src.allowed[a] {
-				continue
-			}
+		} else {
 			for d := 0; d < 4; d++ {
 				for b := 0; b < wv.rules.numTiles; b++ {
-					if wv.rules.compatible[a][d][b] {
-						wv.compat[d][b] = true
+					wv.compat[d][b] = false
+				}
+			}
+			for a := 0; a < wv.rules.numTiles; a++ {
+				if !src.allowed[a] {
+					continue
+				}
+				for d := 0; d < 4; d++ {
+					ca := wv.rules.compatible[a][d]
+					cd := wv.compat[d]
+					for b := 0; b < wv.rules.numTiles; b++ {
+						if ca[b] {
+							cd[b] = true
+						}
 					}
 				}
 			}
@@ -218,6 +264,19 @@ func (wv *Wave) propagate(x, y int) bool {
 		}
 	}
 	return true
+}
+
+// hasContradiction reports whether any uncollapsed cell has zero remaining
+// options. Such a wave cannot be completed.
+func (wv *Wave) hasContradiction() bool {
+	for y := 0; y < wv.h; y++ {
+		for x := 0; x < wv.w; x++ {
+			if wv.cells[y][x].collapsed < 0 && wv.cells[y][x].count == 0 {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // fullyCollapsed reports whether every cell has exactly one tile.
@@ -302,12 +361,11 @@ func (wv *Wave) Solve(rng *rand.Rand, maxRestarts int) *Wave {
 				// Backtrack: pop frames until we find a cell with an untried tile.
 				for len(stack) > 0 {
 					top := &stack[len(stack)-1]
-					wv.restoreSnapshot(top.snap)
 
-					// Find a valid tile at top's cell not yet tried.
-					cell := &wv.cells[top.y][top.x]
 				scan:
-					for i := 0; i < len(cell.allowed); i++ {
+					for i := 0; i < len(top.snap.cells[top.y][top.x].allowed); i++ {
+						wv.restoreSnapshot(top.snap)
+						cell := &wv.cells[top.y][top.x]
 						if !cell.allowed[i] {
 							continue
 						}
@@ -316,23 +374,15 @@ func (wv *Wave) Solve(rng *rand.Rand, maxRestarts int) *Wave {
 								continue scan
 							}
 						}
-						// Found an untried valid tile.
 						top.tried = append(top.tried, i)
 						cell.collapseTo(i)
 						if wv.propagate(top.x, top.y) {
-							// Backtrack succeeded — resume forward.
 							contradict = false
 							continue mainLoop
 						}
-						// Still a contradiction — try next tile at same cell.
 					}
 
-					// No untried tile at this cell — pop frame and backtrack further.
 					stack = stack[:len(stack)-1]
-				}
-
-				if len(stack) == 0 {
-					contradict = false
 				}
 				break
 			}
@@ -343,14 +393,24 @@ func (wv *Wave) Solve(rng *rand.Rand, maxRestarts int) *Wave {
 			}
 
 			snap := wv.saveSnapshot()
-			wv.observe(x, y, rng)
+			tileID := wv.observe(x, y, rng)
+			if tileID < 0 {
+				// No options — contradiction without a chosen tile.
+				stack = append(stack, btFrame{
+					snap:  snap,
+					x:     x,
+					y:     y,
+				})
+				contradict = true
+				continue
+			}
 			if !wv.propagate(x, y) {
 				// Contradiction: push a backtrack frame and retry.
 				stack = append(stack, btFrame{
 					snap:  snap,
 					x:     x,
 					y:     y,
-					tried: []int{wv.cells[y][x].collapsed},
+					tried: []int{tileID},
 				})
 				contradict = true
 				continue
@@ -360,7 +420,7 @@ func (wv *Wave) Solve(rng *rand.Rand, maxRestarts int) *Wave {
 				snap:  snap,
 				x:     x,
 				y:     y,
-				tried: []int{wv.cells[y][x].collapsed},
+				tried: []int{tileID},
 			})
 		}
 
@@ -375,7 +435,7 @@ func (wv *Wave) Solve(rng *rand.Rand, maxRestarts int) *Wave {
 		if !contradict && wv.fullyCollapsed() {
 			return wv
 		}
-		if count > bestCollapsed {
+		if !contradict && !wv.hasContradiction() && count > bestCollapsed {
 			best = wv
 			bestCollapsed = count
 		}
@@ -615,7 +675,10 @@ func wfcTilesFromLib(lib *mapgen.WFCLibrary) []WFCTile {
 		}
 		nb := [4][]int{}
 		for key, ids := range d.Neighbors {
-			dir := wfcDirFromKey[key]
+			dir, ok := wfcDirFromKey[key]
+			if !ok {
+				continue
+			}
 			nb[dir] = append([]int{}, ids...)
 		}
 		tiles = append(tiles, WFCTile{ID: d.ID, Name: d.Name, RuneGrid: grid, Neighbors: nb})

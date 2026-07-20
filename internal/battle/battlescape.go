@@ -2076,7 +2076,9 @@ func (bs *Battlescape) EndTurn() {
 	if bs.AlienMemory == nil {
 		bs.AlienMemory = NewSquadMemory()
 	}
+	bs.AlienMemory.mu.Lock()
 	bs.AlienMemory.turn = bs.Turn
+	bs.AlienMemory.mu.Unlock()
 	for _, h := range bs.Units.Faction(0) {
 		if !h.Alive {
 			bs.AlienMemory.Forget(h)
@@ -2970,31 +2972,6 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 	}
 
 	bs.Gas.Draw(ctx, bs.ScrollX, bs.ScrollY, viewW, viewH)
-
-	if bs.IsNight {
-		for _, u := range bs.Units {
-			if !u.Alive || u.Faction != 0 || u.Level != bs.Map.CurrentLevel {
-				continue
-			}
-			sx := u.X - bs.ScrollX + 1
-			sy := u.Y - bs.ScrollY + 1
-			if sx >= 1 && sx < viewW+1 && sy >= 1 && sy < viewH+1 {
-				engine.ApplyLightSource(ctx.ScreenRaw, ctx.FrameBuffer(), sx, sy, 3, tcell.NewRGBColor(120, 110, 70))
-			}
-		}
-		for _, u := range bs.Units {
-			if !u.Alive || u.Faction != 1 || u.Level != bs.Map.CurrentLevel {
-				continue
-			}
-			sx := u.X - bs.ScrollX + 1
-			sy := u.Y - bs.ScrollY + 1
-			if sx >= 1 && sx < viewW+1 && sy >= 1 && sy < viewH+1 {
-				if bs.Map.IsSeen(u.X, u.Y) {
-				engine.ApplyLightSource(ctx.ScreenRaw, ctx.FrameBuffer(), sx, sy, 1, tcell.NewRGBColor(60, 80, 150))
-				}
-			}
-		}
-	}
 
 	for _, u := range bs.Units {
 		if !u.Alive {

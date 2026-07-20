@@ -24,6 +24,7 @@ var (
 	otoOnce  sync.Once
 	otoReady chan struct{}
 	mixer    *mixerStream
+	otoPlayer *oto.Player
 )
 
 type mixerStream struct {
@@ -82,6 +83,9 @@ func ensureOto() {
 		defer func() {
 			if r := recover(); r != nil {
 				audioDisabled = true
+				if otoReady != nil {
+					close(otoReady)
+				}
 			}
 		}()
 		otoReady = make(chan struct{})
@@ -101,6 +105,7 @@ func ensureOto() {
 		}
 		player := otoCtx.NewPlayer(mixer)
 		player.Play()
+		otoPlayer = player
 		close(otoReady)
 	})
 	if otoReady != nil {
@@ -132,7 +137,14 @@ var _ Backend = (*pcmBackend)(nil)
 func init() { RegisterBackend(&pcmBackend{}) }
 
 func (b *pcmBackend) Init() { ensureOto() }
-func (b *pcmBackend) Close() {}
+func (b *pcmBackend) Close() {
+	if otoPlayer != nil {
+		otoPlayer.Close()
+	}
+	if otoCtx != nil {
+		otoCtx.Close()
+	}
+}
 
 func (b *pcmBackend) Play(s Sound) {
 	pcm := soundSamples(s)

@@ -549,10 +549,8 @@ func (gs *Geoscape) Update() {
 	// 5. Real-time world simulation (only when game is not paused and time is moving)
 	if !gs.Game.Paused && gs.Game.TimeSpeed > 0 {
 		speedMult := []int{0, 1, 5, 20, 60}
-		minutes := speedMult[gs.Game.TimeSpeed]
-		if gs.Game.TimeSpeed < 0 || gs.Game.TimeSpeed >= len(speedMult) {
-			minutes = speedMult[1]
-		} else {
+		minutes := speedMult[1]
+		if gs.Game.TimeSpeed >= 0 && gs.Game.TimeSpeed < len(speedMult) {
 			minutes = speedMult[gs.Game.TimeSpeed]
 		}
 
@@ -580,12 +578,14 @@ func (gs *Geoscape) Update() {
 			}
 			if gs.UFOs.Count() < maxUFOs {
 				ufo := SpawnUFOOnCities(gs.Cities, gameMonth)
-				gs.UFOs = append(gs.UFOs, ufo)
-				gs.Message = fmt.Sprintf(language.String("MSG_UFO_DETECTED"), ufo.Type.DisplayName(), gs.cityName(ufo.CurrentNode()))
-				gs.MessageTimer = time.Now()
-				audio.PlayAlert()
-				if engine.Config.PauseOnAlienDetect {
-					gs.Game.Paused = true
+				if ufo != nil {
+					gs.UFOs = append(gs.UFOs, ufo)
+					gs.Message = fmt.Sprintf(language.String("MSG_UFO_DETECTED"), ufo.Type.DisplayName(), gs.cityName(ufo.CurrentNode()))
+					gs.MessageTimer = time.Now()
+					audio.PlayAlert()
+					if engine.Config.PauseOnAlienDetect {
+						gs.Game.Paused = true
+					}
 				}
 			}
 		}
@@ -668,10 +668,15 @@ func (gs *Geoscape) Update() {
 			}
 		}
 
-		// Prune destroyed interceptors
+		// Prune interceptors that are no longer in play: destroyed (HP<=0) or
+		// those that have disengaged and returned to base (no longer launching
+		// and not currently mid-dogfight). Their hangar state (available /
+		// destroyed) is tracked separately on the base, so dropping the live
+		// runtime object just means the craft is back home and reusable.
 		activeInterceptors := make(InterceptorList, 0, len(gs.Interceptors))
 		for _, i := range gs.Interceptors {
-			if i.HP > 0 {
+			inDogfight := gs.DogfightVisual != nil && gs.DogfightVisual.Active && gs.DogfightVisual.Interceptor == i
+			if i.HP > 0 && (i.Launching || inDogfight) {
 				activeInterceptors = append(activeInterceptors, i)
 			}
 		}
@@ -1394,8 +1399,8 @@ func (gs *Geoscape) triggerCydonia() {
 
 	// Add Cydonia as a special mission
 	mission := &AlienMission{
-		Type:      language.String("GEO_CYDONIA"), // Reuse for Cydonia
-		NodeID:    0,                              // Special node for Cydonia
+		Type:      language.String("GEO_CYDONIA"),
+		NodeID:    -1,                             // Sentinel, not a real city
 		HoursLeft: 9999.0,                         // Indefinite
 	}
 	gs.Missions = append(gs.Missions, mission)
@@ -1471,7 +1476,7 @@ func (gs *Geoscape) RespondToMission(idx int) {
 	case language.String("MISSION_BUILDING"):
 		ufoName = language.String("MISSION_TYPE_BUILDING")
 	}
-	if mission.NodeID == 0 {
+	if mission.Type == language.String("GEO_CYDONIA") {
 		ufoName = language.String("GEO_CYDONIA")
 		gs.ActiveFinalMission = true
 	}
@@ -1883,7 +1888,7 @@ func (gs *Geoscape) loadFromSaveData(sd *save.SaveData) {
 		gs.CydoniaTriggered = true
 	}
 	for _, m := range gs.Missions {
-		if m.NodeID == 0 {
+		if m.Type == language.String("GEO_CYDONIA") {
 			gs.CydoniaTriggered = true
 		}
 	}
@@ -2201,7 +2206,8 @@ func (gs *Geoscape) renderRegionTable(ctx *engine.ScreenCtx, x, y, w, h int) {
 			ry := y + 2 + row
 
 			// Highlight selected (reuse cursor for selection index)
-			sel := row == gs.TargetCursor%len(targets)
+			n := len(targets)
+			sel := n > 0 && ((gs.TargetCursor%n)+n)%n == row
 			baseStyle := engine.StyleDefault
 			if sel {
 				baseStyle = engine.StyleHighlight
@@ -2716,6 +2722,9 @@ func (gs *Geoscape) HandleKey(e *tcell.EventKey) {
 	case tcell.KeyUp:
 		if gs.TargetSelectionMode {
 			gs.TargetCursor--
+			if gs.TargetCursor < 0 {
+				gs.TargetCursor = 0
+			}
 		} else {
 			gs.moveCursor(0, -1)
 		}

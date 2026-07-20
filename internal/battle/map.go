@@ -451,6 +451,7 @@ func NewMultiLevelBattleMap(w, levelH, numLevels int) *BattleMap {
 		LevelHeight:  levelH,
 		CurrentLevel: 0,
 		Tiles:        make([][]Tile, totalH),
+		GroundLoot:   make(map[[2]int][]string),
 	}
 	for y := 0; y < totalH; y++ {
 		level := y / levelH

@@ -368,7 +368,7 @@ func DrawTransparentRect(s *ScreenRaw, fb *FrameBuffer, x, y, width, height int,
 			}
 			newBg := tcell.NewRGBColor(int32(blended[0]), int32(blended[1]), int32(blended[2]))
 			style := tcell.StyleDefault.Foreground(cell.Fg).Background(newBg)
-			s.screen.SetContent(cx, cy, cell.Ch, nil, style)
+			s.SetCell(cx, cy, cell.Ch, style)
 		}
 	}
 }

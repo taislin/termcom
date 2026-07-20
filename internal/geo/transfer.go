@@ -52,6 +52,10 @@ func (ts *TransferScreen) Render(ctx *engine.ScreenCtx) {
 	w, h := ctx.Size()
 	ctx.DrawPanel(0, 0, w, h-panelBottomOffset, language.String("TRANSFER_TITLE"), engine.StyleDefault)
 
+	if ts.FromIdx < 0 || ts.FromIdx >= len(ts.Geo.Bases) || ts.ToIdx < 0 || ts.ToIdx >= len(ts.Geo.Bases) {
+		ts.Game.PopState()
+		return
+	}
 	from := ts.Geo.Bases[ts.FromIdx]
 	to := ts.Geo.Bases[ts.ToIdx]
 

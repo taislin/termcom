@@ -92,14 +92,15 @@ var opaqueTiles = map[TileType]bool{
 
 // Human building box-drawing glyphs
 const (
-	GlyphBuildingTL   rune = '┌'
-	GlyphBuildingTR   rune = '┐'
-	GlyphBuildingBL   rune = '└'
-	GlyphBuildingBR   rune = '┘'
-	GlyphBuildingH    rune = '─'
-	GlyphBuildingV    rune = '│'
+	// Building wall glyphs — all solid blocks for uniform rendering.
+	GlyphBuildingTL   rune = '█'
+	GlyphBuildingTR   rune = '█'
+	GlyphBuildingBL   rune = '█'
+	GlyphBuildingBR   rune = '█'
+	GlyphBuildingH    rune = '█'
+	GlyphBuildingV    rune = '█'
 	GlyphBuildingDoor rune = '▒'
-	GlyphBuildingWin  rune = '┼'
+	GlyphBuildingWin  rune = 'N'
 )
 
 // tilePalette maps TileType to a curated true-color RGB value.

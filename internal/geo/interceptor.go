@@ -160,8 +160,10 @@ func (i *Interceptor) LaunchAtUFO(ufo *UFO) {
 func (i *Interceptor) Update(cities []*City, ufos UFOList) bool {
 	if i.TargetUFO != nil {
 		if !i.TargetUFO.Active {
-			i.TargetUFO = nil
-			i.Launching = false
+			// Target UFO is gone (destroyed by another craft, escaped, or
+			// despawned). Return to base and free the hangar slot, otherwise
+			// the interceptor would remain stuck in "active" status forever.
+			i.Disengage()
 			return false
 		}
 		
@@ -195,7 +197,7 @@ func (i *Interceptor) Update(cities []*City, ufos UFOList) bool {
 			}
 		}
 		if target == nil {
-			i.Launching = false
+			i.Disengage()
 			return false
 		}
 		tx := float64(target.X)
@@ -237,9 +239,9 @@ func (i *Interceptor) moveStep(tx, ty, maxDist float64) (dx, dy, dist float64, r
 	}
 	i.RangeLeft--
 	if i.RangeLeft <= 0 {
-		i.TargetNode = -1
-		i.TargetUFO = nil
-		i.Launching = false
+		// Out of fuel: break off and return to base so the craft becomes
+		// available again instead of being stranded in "active" status.
+		i.Disengage()
 		return dx, dy, dist, false
 	}
 	return dx, dy, dist, false

@@ -64,6 +64,7 @@ type BaseSave struct {
 	ManufactureQueue     []*ManufJobSave
 	ActiveResearch       *ResearchSave
 	Hangars              []*data.InterceptorState
+	CustomWeapons        map[string]*data.WeaponDesign
 }
 
 type SoldierSave struct {
@@ -146,7 +147,6 @@ func SaveGame(path string, data *SaveData) error {
 	if err := os.WriteFile(tmp, buf, saveFilePerm); err != nil {
 		return err
 	}
-	os.Remove(path)
 	if err := os.Rename(tmp, path); err != nil {
 		os.Remove(tmp)
 		return err
@@ -279,6 +279,7 @@ func FromBase(b *base.Base) *BaseSave {
 		UsedStorage:          b.UsedStorage,
 		LiveAliens:           b.LiveAliens,
 		Hangars:              b.Hangars,
+		CustomWeapons:        b.CustomWeapons,
 	}
 	for _, s := range b.Soldiers {
 		bs.Soldiers = append(bs.Soldiers, toSoldierSave(s))
@@ -359,18 +360,36 @@ func ToBase(bs *BaseSave) *base.Base {
 	if b.LiveAliens == nil {
 		b.LiveAliens = make([]string, 0)
 	}
+	if bs.CustomWeapons != nil {
+		b.CustomWeapons = bs.CustomWeapons
+	}
 	b.Hangars = bs.Hangars
 	if b.Hangars == nil {
 		b.Hangars = make([]*data.InterceptorState, 0)
 	}
 	for _, ss := range bs.Soldiers {
+		if ss == nil {
+			continue
+		}
 		b.Soldiers = append(b.Soldiers, fromSoldierSave(ss))
 	}
 	for _, fs := range bs.Facilities {
+		if fs == nil {
+			continue
+		}
 		b.Facilities = append(b.Facilities, fromFacilitySave(fs))
 	}
 	for _, js := range bs.ManufactureQueue {
+		if js == nil {
+			continue
+		}
 		b.ManufactureQueue = append(b.ManufactureQueue, fromManufJobSave(js))
+	}
+	for _, h := range b.Hangars {
+		if h != nil && h.PlaneConfig == nil {
+			def := data.DefaultPlaneConfig()
+			h.PlaneConfig = &def
+		}
 	}
 	if bs.ActiveResearch != nil {
 		b.ActiveResearch = fromResearchSave(bs.ActiveResearch)

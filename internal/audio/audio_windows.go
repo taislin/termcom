@@ -19,6 +19,7 @@ var (
 var (
 	handle   uintptr
 	midiOnce sync.Once
+	midiMu   sync.Mutex
 )
 
 // MIDI message status bytes and constants.
@@ -62,15 +63,21 @@ func (b *midiBackend) Close() {
 	if audioDisabled {
 		return
 	}
+	midiMu.Lock()
 	midiOutClose.Call(handle)
 	audioDisabled = true
+	midiMu.Unlock()
 }
 
 func sendMIDI(msg uint32) {
 	if audioDisabled {
 		return
 	}
-	midiOutShortMsg.Call(handle, uintptr(msg))
+	midiMu.Lock()
+	if !audioDisabled {
+		midiOutShortMsg.Call(handle, uintptr(msg))
+	}
+	midiMu.Unlock()
 }
 
 func playNote(note byte, velocity byte, channel byte, duration time.Duration) {

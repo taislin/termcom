@@ -109,10 +109,54 @@
       max-height: 420px;
       object-fit: contain;
       margin: 0 auto;
+      cursor: zoom-in;
     }
 
     .gallery img.active {
       display: block;
+    }
+
+    /* ── Lightbox ──────────────────────────────────────── */
+    .lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: rgba(0, 0, 0, 0.9);
+      cursor: zoom-out;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .lightbox.open {
+      display: flex;
+    }
+
+    .lightbox img {
+      max-width: 95vw;
+      max-height: 95vh;
+      object-fit: contain;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+    }
+
+    .lightbox-close {
+      position: absolute;
+      top: 16px;
+      right: 24px;
+      color: #8A2BE2;
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid #444;
+      font-size: 1.8em;
+      line-height: 1;
+      cursor: pointer;
+      padding: 0.1em 0.4em;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+
+    .lightbox-close:hover {
+      color: #FF8C00;
+      border-color: #FF8C00;
     }
 
     .gallery-btn {
@@ -201,6 +245,11 @@
       <img src="https://raw.githubusercontent.com/taislin/termcom/master/docs/screenshots/aar.png" alt="After Action Report">
       <button class="gallery-btn gallery-next" id="gnext">&#8250;</button>
       <div class="gallery-dots" id="gdots"></div>
+    </div>
+
+    <div class="lightbox" id="lightbox">
+      <button class="lightbox-close" id="lbclose" aria-label="Close">&times;</button>
+      <img id="lbimg" src="" alt="">
     </div>
 
     <p class="i18n lang-en">A roguelike-ified demake of <a href="https://en.wikipedia.org/wiki/XCOM">X-COM: UFO
@@ -500,6 +549,37 @@
       document.getElementById('gnext').addEventListener('click', function () { showSlide(gIdx + 1); resetTimer(); });
       resetTimer();
       // ── End carousel ─────────────────────────────────────
+
+      // ── Lightbox (click image to expand) ─────────────────
+      var lightbox = document.getElementById('lightbox');
+      var lbimg = document.getElementById('lbimg');
+      var lbclose = document.getElementById('lbclose');
+
+      function openLightbox(src, alt) {
+        lbimg.src = src;
+        lbimg.alt = alt || '';
+        lightbox.classList.add('open');
+        clearInterval(gTimer);
+      }
+
+      function closeLightbox() {
+        lightbox.classList.remove('open');
+        lbimg.src = '';
+        resetTimer();
+      }
+
+      imgs.forEach(function (img) {
+        img.addEventListener('click', function () { openLightbox(this.src, this.alt); });
+      });
+
+      lightbox.addEventListener('click', function (e) {
+        if (e.target !== lbimg) { closeLightbox(); }
+      });
+      lbclose.addEventListener('click', closeLightbox);
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && lightbox.classList.contains('open')) { closeLightbox(); }
+      });
+      // ── End lightbox ─────────────────────────────────────
 
       var buttons = document.querySelectorAll('.lang-toggle button');
       for (var i = 0; i < buttons.length; i++) {
