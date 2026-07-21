@@ -256,8 +256,21 @@ cmd/
 maps/
   *.json                Custom battle definitions
 tools/
-  map_editor.html       Browser-based tile-grid editor for map fragments
+  map_editor.html       Browser-based full map builder (chunk stamping + tile painting)
+  area_editor.html      Browser-based chunk editor (small tile-grid fragments)
+  mission_editor.html   Browser-based mission editor (place units, set victory conditions)
   tile_creator.html     Browser-based tile type creator (custom tiles)
+  bundle_tiles.js       Build script: bundles tools/tile_data/*.jsonc → tile_data.js
+  tile_data.js          Generated tile library used by HTML tools
+  tile_data/            Source JSONC files (categorized, with comments)
+    terrain.jsonc       Floor, wall, ground, pavement, sand, snow, etc.
+    nature.jsonc        Trees, rocks, bushes, wheat, vines, etc.
+    water.jsonc         Water, marsh, swamp, ice, pier
+    furniture.jsonc     Desks, chairs, beds, lockers, consoles, etc.
+    vehicles.jsonc      Cars, helos, tractors, buses, crawlers, wheels
+    alien.jsonc         UFO floors, pods, power sources, alien tech
+    urban.jsonc         Adobe, containers, rubble, streetlamps, timber
+    hazards.jsonc       Glass, debris
 data/
   maps/
     *.json              Map fragment library (biome-tagged terrain chunks)
@@ -557,9 +570,31 @@ Current version: **3**
 
 Migration functions are in `internal/save/save.go`. Saves below v2 are rejected.
 
+## Tile Library System
+
+All 87 built-in tile definitions live in `tools/tile_data/*.jsonc` — categorized JSONC files with comments showing each glyph's character next to its Unicode code point. These files are the single source of truth for tile data across both the HTML editor tools and the Go game engine.
+
+| File | Category | Tiles |
+|------|----------|-------|
+| `terrain.jsonc` | Floors, walls, ground, pavement, sand, snow, scree, mud, stairs, cliff | 13 |
+| `nature.jsonc` | Trees, rocks, bushes, wheat, vines, bamboo, hay, boulders | 11 |
+| `water.jsonc` | Water, marsh, swamp water, ice, pier | 5 |
+| `furniture.jsonc` | Desks, chairs, beds, lockers, cabinets, consoles, machinery, storage | 12 |
+| `vehicles.jsonc` | Cars, helos, tractors, forklifts, buses, trucks, crawlers, wheels | 24 |
+| `alien.jsonc` | UFO floors/walls, pods, power sources, alien tech, wreckage, dish | 10 |
+| `urban.jsonc` | Adobe, metal walls, containers, rubble, fences, streetlamps, timber | 10 |
+| `hazards.jsonc` | Glass, debris | 2 |
+
+**Bundle script:** `tools/bundle_tiles.js` reads all `*.jsonc` files and generates `tools/tile_data.js` (a JS file with the combined `TILE_DATA` array). The HTML tools include this script. Re-run after editing any JSONC file:
+```bash
+node tools/bundle_tiles.js
+```
+
+**Go loading:** The game engine reads the same JSONC files at startup via `stripJSONCComments()` in `internal/battle/tiledef.go`. When the JSONC files aren't found (e.g., deployed binary), the game falls back to hardcoded values.
+
 ## Developer Tools
 
-Browser-based HTML tools for level design and tile creation. Open directly in any browser — no build step required.
+Browser-based HTML tools for level design and tile creation. Open directly in any browser — no build step required. Tile definitions are loaded from `tools/tile_data.js` (generated from `tools/tile_data/*.jsonc`).
 
 ### Area Editor (`tools/area_editor.html`)
 
