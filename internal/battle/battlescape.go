@@ -3866,6 +3866,9 @@ func (bs *Battlescape) cycleUnit(dir int) {
 }
 
 func tileTypeName(t TileType) string {
+	if d := GetTileDef(t); d != nil && d.NameKey != "" {
+		return language.String(d.NameKey)
+	}
 	switch t {
 	case TileFloor:
 		return language.String("TILE_FLOOR")

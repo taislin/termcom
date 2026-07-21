@@ -199,6 +199,9 @@ func TileBaseColor(t Tile) tcell.Color {
 	if t.BaseColor != tcell.ColorDefault {
 		return t.BaseColor
 	}
+	if d := GetTileDef(t.Type); d != nil {
+		return d.Color
+	}
 	if col, ok := tilePalette[t.Type]; ok {
 		return col
 	}
@@ -350,6 +353,9 @@ func fireColor(frame int) tcell.Color {
 }
 
 func isOpaqueTile(t TileType) bool {
+	if d := GetTileDef(t); d != nil {
+		return d.Opaque
+	}
 	return opaqueTiles[t]
 }
 

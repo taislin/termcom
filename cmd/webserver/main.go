@@ -31,6 +31,7 @@ func main() {
 	if err := mapgen.Init(); err != nil {
 		log.Printf("Warning: mapgen init: %v", err)
 	}
+	battle.InitCustomTiles()
 	data.NewAlienSpriteRegistry().RebuildFromTemplates(
 		mapgen.ToTemplateData("head"),
 		mapgen.ToTemplateData("eye"),

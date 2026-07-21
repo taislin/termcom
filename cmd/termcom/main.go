@@ -20,6 +20,7 @@ func main() {
 	if err := mapgen.Init(); err != nil {
 		fmt.Fprintf(os.Stderr, "Warning: mapgen init: %v\n", err)
 	}
+	battle.InitCustomTiles()
 	data.NewAlienSpriteRegistry().RebuildFromTemplates(
 		mapgen.ToTemplateData("head"),
 		mapgen.ToTemplateData("eye"),

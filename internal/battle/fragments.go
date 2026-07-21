@@ -98,6 +98,9 @@ var tileTypeByName = map[string]TileType{
 }
 
 func resolveTileType(name string) TileType {
+	if tt, ok := LookupTileType(name); ok {
+		return tt
+	}
 	if tt, ok := tileTypeByName[name]; ok {
 		return tt
 	}

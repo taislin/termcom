@@ -66,8 +66,9 @@ body { font-family: 'Courier New', monospace; background: #1a1a2e; color: #e0e0e
       <input type="text" id="tileId" value="TileCustom1" placeholder="TileMyTile">
     </div>
     <div class="field">
-      <label>Name</label>
-      <input type="text" id="tileName" value="My Custom Tile" display="inline">
+      <label>Name Key</label>
+      <input type="text" id="tileName" value="TILE_CUSTOM1" placeholder="TILE_MY_TILE">
+      <span class="help">Language key for display name</span>
     </div>
   </div>
 
@@ -317,7 +318,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("clearFormBtn").addEventListener("click", () => {
     fillForm({
       id: "TileCustom" + (customTiles.length + 1),
-      name: "", glyph: "*", color: "#aa4444", bg: "#1a1a2e",
+      name: "TILE_CUSTOM" + (customTiles.length + 1), glyph: "*", color: "#aa4444", bg: "#1a1a2e",
       passable: true, opaque: false, destructible: true,
       flammable: false, explodes: false, noisy: false,
       cover: 0, tu: 6, damage: 0, category: "terrain", desc: ""

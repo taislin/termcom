@@ -149,6 +149,19 @@ type Tile struct {
 // tile type; crouch cost is added by the caller.
 func (m *BattleMap) MoveCost(x, y int, w *Weather) int {
 	t := m.At(x, y)
+	if d := GetTileDef(t.Type); d != nil {
+		base := d.MoveCost
+		if base == 0 {
+			base = 4
+		}
+		if w != nil && w.MovePenalty() > 0 {
+			switch t.Type {
+			case TileGrass, TileSand, TileMarsh, TileMud, TileSwampWater:
+				base += w.MovePenalty()
+			}
+		}
+		return base
+	}
 	base := 4
 	switch t.Type {
 	case TilePavement, TilePier:
@@ -175,6 +188,9 @@ func (m *BattleMap) MoveCost(x, y int, w *Weather) int {
 
 // TileCover returns the base cover value for a tile type.
 func TileCover(t TileType) int {
+	if d := GetTileDef(t); d != nil {
+		return d.Cover
+	}
 	switch t {
 	case TileWall, TileUFOWall, TileContainerRed, TileContainerBlue, TileContainerYellow,
 		TileAdobe, TileMetalWall, TileWreck, TileTimber, TileTruck,
@@ -227,6 +243,9 @@ func TileCover(t TileType) int {
 }
 
 func (t Tile) IsFlammable() bool {
+	if d := GetTileDef(t.Type); d != nil {
+		return d.Flammable
+	}
 	switch t.Type {
 	case TileGrass, TileTree, TileBush, TileDryBush, TileFence, TileDoor, TileTimber,
 		TileWheat, TileHayBale, TileVine, TileBamboo, TileCypressTree, TileSnowTree:
@@ -534,6 +553,9 @@ func (m *BattleMap) AtLevel(x, y, level int) Tile {
 
 func (m *BattleMap) Passable(x, y int) bool {
 	t := m.At(x, y)
+	if d := GetTileDef(t.Type); d != nil {
+		return d.Passable
+	}
 	switch t.Type {
 	case TileFloor, TileDoor, TileGrass, TileUFOFloor, TileStairs, TileStairsDown, TilePavement, TileSand, TileSnow,
 		TileMarsh,
@@ -550,6 +572,15 @@ func (m *BattleMap) Passable(x, y int) bool {
 
 func (m *BattleMap) Opaque(x, y int) bool {
 	t := m.At(x, y)
+	if d := GetTileDef(t.Type); d != nil {
+		if d.Opaque {
+			return true
+		}
+		if m.Gas != nil && m.Gas.BlocksLOS(x, y) {
+			return true
+		}
+		return false
+	}
 	switch t.Type {
 	case TileWall, TileTree, TileRock, TileUFOWall, TileFence,
 		TileContainerRed, TileContainerBlue, TileContainerYellow,
@@ -570,6 +601,9 @@ func (m *BattleMap) Opaque(x, y int) bool {
 
 func (m *BattleMap) IsDestructible(x, y int) bool {
 	t := m.At(x, y)
+	if d := GetTileDef(t.Type); d != nil {
+		return d.Destructible
+	}
 	switch t.Type {
 	case TileWall, TileUFOWall, TileTree, TileRock, TileFence, TileDoor,
 		TileDesk, TileChair, TileChairLeft, TileChairRight, TileComputer, TileBed, TileLocker, TileCabinet,
@@ -639,6 +673,9 @@ const FuelPumpExplosionRadius = 5
 // should chain-explode when destroyed, or 0 if it does not explode.
 func (m *BattleMap) ExplodesOnDestruction(x, y int) int {
 	tile := m.At(x, y)
+	if d := GetTileDef(tile.Type); d != nil {
+		return d.Explodes
+	}
 	switch tile.Type {
 	case TileFuelPump:
 		return FuelPumpExplosionRadius
