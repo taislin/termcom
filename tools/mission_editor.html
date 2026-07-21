@@ -203,32 +203,10 @@ body { font-family: 'Courier New', monospace; background: #1a1a2e; color: #e0e0e
   <textarea id="exportText" readonly></textarea>
 </div>
 
+<script src="tile_data.js"></script>
 <script>
 // ===== CONSTANTS =====
-const TILES = [
-  { id:"TileFloor",g:'.',c:"#5f5a55"},{ id:"TileWall",g:'#',c:"#a09b96"},{ id:"TileDoor",g:'+',c:"#8c6432"},{ id:"TileWindow",g:'\u229E',c:"#78aadc"},
-  { id:"TileGrass",g:'\u00B7',c:"#326e28"},{ id:"TileTree",g:'\u2663',c:"#235a19"},{ id:"TileRock",g:'\u2229',c:"#827d78"},{ id:"TileWater",g:'\u2248',c:"#2850c8"},
-  { id:"TileUFOFloor",g:'\u2261',c:"#324b6e"},{ id:"TileUFOWall",g:'\u2588',c:"#466496"},{ id:"TileStairs",g:'\u2592',c:"#6e6964"},{ id:"TileStairsDown",g:'\u2593',c:"#504b46"},
-  { id:"TilePavement",g:'\u2591',c:"#787878"},{ id:"TileSand",g:'\u00B7',c:"#c8b478"},{ id:"TileSnow",g:'\u2217',c:"#e6ebf5"},{ id:"TileMarsh",g:'\u224B',c:"#3c6446"},
-  { id:"TileBush",g:'\u2020',c:"#2d6423"},{ id:"TileFence",g:'\u2502',c:"#917850"},{ id:"TileRubble",g:'\u2592',c:"#78736e"},{ id:"TileObject",g:'\u2022',c:"#aaaaaa"},
-  { id:"TileConsole",g:'\u2338',c:"#46d282"},{ id:"TileMachinery",g:'\u229B',c:"#b4b4b4"},{ id:"TilePod",g:'\u25C8',c:"#8246be"},{ id:"TilePowerSource",g:'\u2301',c:"#f0c83c"},
-  { id:"TileStorage",g:'\u25A4',c:"#b48c5a"},{ id:"TileAlienTech",g:'\u2295',c:"#e64646"},{ id:"TileDesk",g:'\u25CA',c:"#a07850"},{ id:"TileChair",g:'\u229F',c:"#96643c"},
-  { id:"TileChairLeft",g:'\u2143',c:"#96643c"},{ id:"TileChairRight",g:'L',c:"#96643c"},{ id:"TileComputer",g:'\u2338',c:"#46b4d2"},{ id:"TileBed",g:'\u25A1',c:"#c8c8c8"},
-  { id:"TileLocker",g:'\u25EB',c:"#8ca0b4"},{ id:"TileCabinet",g:'\u229E',c:"#aa825a"},{ id:"TileCar",g:'\u2584',c:"#3264b4"},{ id:"TileCarMid",g:'\u2588',c:"#3264b4"},
-  { id:"TileCarRight",g:'\u2584',c:"#3264b4"},{ id:"TileForklift",g:'\u2588',c:"#c8a028"},{ id:"TileForkliftRight",g:'\u228F',c:"#c8a028"},{ id:"TileFuelPump",g:'8',c:"#c83c28"},
-  { id:"TileContainerRed",g:'\u2588',c:"#b43228"},{ id:"TileContainerBlue",g:'\u2588',c:"#3250b4"},{ id:"TileContainerYellow",g:'\u2588',c:"#c8aa28"},{ id:"TileBusEnd",g:'\u2584',c:"#c8b43c"},
-  { id:"TileBusMid",g:'\u2588',c:"#c8b43c"},{ id:"TileHeloBody",g:'\u2588',c:"#3c4655"},{ id:"TileHeloTail",g:'\u2584',c:"#3c4655"},{ id:"TileHeloNose",g:'\u25B7',c:"#82c8e6"},
-  { id:"TileHeloRotor",g:'+',c:"#b4b4b4"},{ id:"TileHeloRotorSides",g:'-',c:"#b4b4b4"},{ id:"TileHeloBodyBack",g:'\u2588',c:"#3c4655"},{ id:"TileHeloRotorBack",g:'x',c:"#b4b4b4"},
-  { id:"TileHeloWindow",g:'\u25E3',c:"#82c8e6"},{ id:"TileTractorCab",g:'\u25E3',c:"#82c8e6"},{ id:"TileTractorBody",g:'\u2588',c:"#b43c28"},{ id:"TileCrawlerLeft",g:'\u25E2',c:"#8246be"},
-  { id:"TileCrawlerMid",g:'\u2588',c:"#8246be"},{ id:"TileCrawlerRight",g:'\u25E3',c:"#8246be"},{ id:"TileCrawlerLeg",g:'^',c:"#6432a0"},{ id:"TileWheel",g:'O',c:"#3c3c3c"},
-  { id:"TileWheelSmall",g:'o',c:"#3c3c3c"},{ id:"TileAdobe",g:'\u2588',c:"#c88246"},{ id:"TileMetalWall",g:'\u2588',c:"#b4b9c3"},{ id:"TileWreck",g:'\u25A4',c:"#965f3c"},
-  { id:"TileTimber",g:'\u2261',c:"#966e3c"},{ id:"TileDish",g:'\u25D7',c:"#aaafb9"},{ id:"TileTruck",g:'\u2584',c:"#5a6e46"},{ id:"TileIce",g:'\u2248',c:"#b4dceb"},
-  { id:"TileStreetlamp",g:'\u2316',c:"#dcd278"},{ id:"TileGlass",g:',',c:"#bec8d2"},{ id:"TileDebris",g:'`',c:"#968c82"},{ id:"TileCryoPipe",g:'\u256A',c:"#8cc8e6"},
-  { id:"TileSkylight",g:'\u2299',c:"#b4d2f0"},{ id:"TileWheat",g:'\u03C8',c:"#c8b43c"},{ id:"TileHayBale",g:'\u2588',c:"#a08c3c"},{ id:"TilePier",g:'\u2550',c:"#8c643c"},
-  { id:"TileDockCrate",g:'\u25A3',c:"#967850"},{ id:"TileCliffFace",g:'\u2591',c:"#8c7864"},{ id:"TileScree",g:'\u00B7',c:"#a09682"},{ id:"TileBoulder",g:'\u2229',c:"#827d78"},
-  { id:"TileSwampWater",g:'\u224B',c:"#326450"},{ id:"TileCypressTree",g:'\u2663',c:"#285532"},{ id:"TileSnowTree",g:'\u2663',c:"#dcebf5"},{ id:"TileMud",g:'\u224B',c:"#6e5032"},
-  { id:"TileVine",g:'\u2021',c:"#328232"},{ id:"TileBamboo",g:'\u2663',c:"#50963c"},{ id:"TileDryBush",g:'*',c:"#aa8c3c"},
-];
+const TILES = TILE_DATA;
 const tileMap = {}; TILES.forEach(t => tileMap[t.id] = t);
 
 const SOLDIER_NAMES = [

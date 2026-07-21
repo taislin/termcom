@@ -249,7 +249,119 @@ func InitCustomTiles() {
 }
 
 func init() {
- populateBuiltinRegistry()
+	populateBuiltinRegistry()
+	loadBuiltinTileLibrary()
+}
+
+// Strip comments from JSONC text (both // and /* */ comments).
+func stripJSONCComments(raw []byte) []byte {
+	// We do a simple single-pass stripper.
+	// This is good enough for our controlled tile definition files.
+	var out []byte
+	inString := false
+	escape := false
+	for i := 0; i < len(raw); i++ {
+		b := raw[i]
+		if escape {
+			out = append(out, b)
+			escape = false
+			continue
+		}
+		if b == '\\' && inString {
+			escape = true
+			out = append(out, b)
+			continue
+		}
+		if b == '"' {
+			inString = !inString
+			out = append(out, b)
+			continue
+		}
+		if inString {
+			out = append(out, b)
+			continue
+		}
+		// Check for // comment
+		if b == '/' && i+1 < len(raw) && raw[i+1] == '/' {
+			for i < len(raw) && raw[i] != '\n' {
+				i++
+			}
+			out = append(out, '\n')
+			continue
+		}
+		// Check for /* */ comment
+		if b == '/' && i+1 < len(raw) && raw[i+1] == '*' {
+			for i+1 < len(raw) && !(raw[i] == '*' && i+1 < len(raw) && raw[i+1] == '/') {
+				i++
+			}
+			i += 2 // skip */
+			continue
+		}
+		out = append(out, b)
+	}
+	return out
+}
+
+// jsoncTileDef matches the short-field format used in tools/tile_data/*.jsonc.
+type jsoncTileDef struct {
+	ID           string `json:"id"`
+	GlyphStr     string `json:"g"`
+	ColorHex     string `json:"c"`
+	Cover        int    `json:"cv"`
+	Passable     *bool  `json:"pa"`
+	Opaque       *bool  `json:"op"`
+	Destructible *bool  `json:"de"`
+}
+
+// loadBuiltinTileLibrary loads tile definitions from tools/tile_data/*.jsonc
+// and overrides or registers tiles in the registry.
+func loadBuiltinTileLibrary() {
+	paths := []string{"tools/tile_data/*.jsonc", "../tools/tile_data/*.jsonc", "../../tools/tile_data/*.jsonc"}
+	var matches []string
+	for _, p := range paths {
+		var err error
+		matches, err = filepath.Glob(p)
+		if err == nil && len(matches) > 0 {
+			break
+		}
+	}
+	if len(matches) == 0 {
+		return // fall back to hardcoded
+	}
+	for _, path := range matches {
+		raw, err := os.ReadFile(path)
+		if err != nil {
+			continue
+		}
+		cleaned := stripJSONCComments(raw)
+		var tiles []jsoncTileDef
+		if err := json.Unmarshal(cleaned, &tiles); err != nil {
+			continue
+		}
+		for _, jt := range tiles {
+			if jt.ID == "" || jt.GlyphStr == "" {
+				continue
+			}
+			def := &TileDef{
+				GlyphStr:     jt.GlyphStr,
+				Glyph:        []rune(jt.GlyphStr)[0],
+				ColorHex:     jt.ColorHex,
+				Color:        parseHexColor(jt.ColorHex),
+				Cover:        jt.Cover,
+				Passable:     boolPtrVal(jt.Passable, true),
+				Opaque:       boolPtrVal(jt.Opaque, false),
+				Destructible: boolPtrVal(jt.Destructible, true),
+				MoveCost:     4,
+			}
+			// If already registered (by populateBuiltinRegistry), override.
+			// If not, register as a new tile with a dynamic type.
+			if t, ok := tileRegistryByName[jt.ID]; ok {
+				tileRegistry[t] = def
+			} else {
+				RegisterTile(jt.ID, def)
+			}
+		}
+	}
 }
 
 // populateBuiltinRegistry fills the tile registry from the hardcoded tile constants.
