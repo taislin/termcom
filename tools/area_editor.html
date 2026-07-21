@@ -39,6 +39,8 @@ body { font-family: 'Courier New', monospace; background: #1a1a2e; color: #e0e0e
 .toolbar button.secondary:hover { background: #1a3a5c; }
 .toolbar .spacer { flex: 1; }
 .toolbar .info { font-size: 12px; color: #888; }
+.tag-pill { display: inline-block; padding: 1px 5px; font-size: 9px; border-radius: 3px; cursor: pointer; background: #1a1a2e; border: 1px solid #0f3460; color: #a0c4ff; font-family: inherit; transition: all 0.1s; }
+.tag-pill:hover { background: #e94560; border-color: #e94560; color: #fff; }
 .canvas-wrap { flex: 1; display: flex; align-items: center; justify-content: center; overflow: auto; padding: 16px; background: #111; position: relative; }
 .grid-container { display: inline-block; }
 .grid-row { display: flex; }
@@ -76,6 +78,7 @@ body { font-family: 'Courier New', monospace; background: #1a1a2e; color: #e0e0e
     <button id="clearBtn" class="secondary">Clear</button>
     <label>ID:</label><input type="text" id="chunkId" value="custom_chunk">
     <label>Tags:</label><input type="text" id="chunkTags" value="farm">
+    <span id="tagPills" style="display:flex;gap:3px;flex-wrap:wrap"></span>
     <span class="spacer"></span>
     <div class="sel-preview" id="selPreview"><span class="swatch" id="selSwatch">·</span><span id="selName">TileGrass</span></div>
     <button id="exportBtn">Export JSON</button>
@@ -197,6 +200,7 @@ const TILES = [
 const tileMap = {};
 TILES.forEach(t => tileMap[t.id] = t);
 let customTiles = [];
+const COMMON_TAGS = ["farm","rural","urban","forest","desert","polar","ufo","alien","coastal","mountain","swamp","jungle"];
 
 // ===== STATE =====
 let grid = [];
@@ -383,6 +387,22 @@ document.addEventListener("DOMContentLoaded", () => {
   renderGrid();
   renderPreview();
   selectTile("TileGrass");
+
+  // Build tag pills
+  const pillContainer = document.getElementById("tagPills");
+  COMMON_TAGS.forEach(tag => {
+    const pill = document.createElement("span");
+    pill.className = "tag-pill";
+    pill.textContent = tag;
+    pill.addEventListener("click", () => {
+      const inp = document.getElementById("chunkTags");
+      const existing = inp.value.split(/[,\s]+/).filter(Boolean).map(s => s.trim());
+      if (!existing.includes(tag)) {
+        inp.value = existing.length ? existing.join(", ") + ", " + tag : tag;
+      }
+    });
+    pillContainer.appendChild(pill);
+  });
 
   document.getElementById("resizeBtn").addEventListener("click", () => {
     w = parseInt(wIn.value) || 9;
