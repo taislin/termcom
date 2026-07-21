@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tile Type Creator</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Courier New', monospace; background: #1a1a2e; color: #e0e0e0; display: flex; height: 100vh; }
+.left { width: 340px; min-width: 340px; background: #16213e; display: flex; flex-direction: column; border-right: 2px solid #0f3460; overflow-y: auto; }
+.left h2 { padding: 12px; font-size: 14px; background: #0f3460; color: #e94560; text-align: center; letter-spacing: 1px; }
+.section { padding: 12px; border-bottom: 1px solid #0f3460; }
+.section h3 { font-size: 12px; color: #a0c4ff; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+.field { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.field label { font-size: 12px; color: #888; min-width: 90px; }
+.field input[type=text], .field input[type=number] { flex: 1; padding: 4px 8px; background: #1a1a2e; border: 1px solid #0f3460; color: #e0e0e0; border-radius: 3px; font-family: inherit; font-size: 13px; }
+.field input[type=number] { width: 60px; flex: none; }
+.field input[type=color] { width: 36px; height: 28px; border: 1px solid #0f3460; border-radius: 3px; cursor: pointer; background: none; padding: 2px; }
+.toggle { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.toggle input[type=checkbox] { accent-color: #e94560; width: 16px; height: 16px; }
+.toggle label { font-size: 12px; color: #ccc; cursor: pointer; }
+.right { flex: 1; display: flex; flex-direction: column; }
+.toolbar { display: flex; align-items: center; gap: 10px; padding: 8px 16px; background: #0f3460; flex-wrap: wrap; }
+.toolbar button { padding: 5px 14px; background: #e94560; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: bold; transition: background 0.15s; }
+.toolbar button:hover { background: #ff6b81; }
+.toolbar button.secondary { background: #0f3460; border: 1px solid #1a3a5c; }
+.toolbar button.secondary:hover { background: #1a3a5c; }
+.toolbar .spacer { flex: 1; }
+.preview-area { flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px; gap: 40px; }
+.preview-tile { text-align: center; }
+.preview-tile .big { width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; font-size: 48px; border-radius: 8px; border: 2px solid #0f3460; margin: 0 auto 8px; }
+.preview-tile .label { font-size: 11px; color: #888; }
+.preview-terminal { text-align: center; }
+.preview-terminal pre { font-size: 18px; line-height: 1.0; background: #0a0a14; padding: 16px; border-radius: 8px; border: 1px solid #0f3460; }
+.preview-terminal .label { font-size: 11px; color: #888; margin-top: 8px; }
+.tile-list-area { border-top: 2px solid #0f3460; max-height: 250px; overflow-y: auto; background: #111; }
+.tile-list-area h3 { padding: 8px 12px; font-size: 12px; color: #a0c4ff; background: #0f3460; position: sticky; top: 0; }
+.tile-row { display: flex; align-items: center; gap: 8px; padding: 4px 12px; font-size: 12px; border-bottom: 1px solid #1a1a2e; }
+.tile-row:hover { background: #1a3a5c; }
+.tile-row .glyph { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 16px; border-radius: 3px; flex-shrink: 0; }
+.tile-row .name { flex: 1; }
+.tile-row .props { color: #666; font-size: 10px; }
+.tile-row button { background: #c83c28; color: #fff; border: none; border-radius: 3px; padding: 2px 6px; cursor: pointer; font-size: 10px; }
+#exportArea { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 80%; max-width: 700px; max-height: 80vh; background: #1a1a2e; border: 2px solid #0f3460; border-radius: 8px; z-index: 1000; flex-direction: column; }
+#exportArea.show { display: flex; }
+#exportArea textarea { width: 100%; height: 400px; background: #111; color: #0f0; border: none; padding: 12px; font-family: 'Courier New', monospace; font-size: 12px; resize: vertical; }
+#exportArea .bar { display: flex; gap: 8px; padding: 8px 12px; align-items: center; background: #0f3460; }
+#exportArea .bar button { padding: 5px 14px; background: #e94560; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-family: inherit; font-size: 13px; }
+#exportArea .bar span { flex: 1; color: #a0c4ff; font-size: 13px; }
+.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 999; }
+.overlay.show { display: block; }
+#loadInput { display: none; }
+.help { font-size: 11px; color: #666; padding: 4px 0; line-height: 1.4; }
+.glyph-input { font-size: 28px; width: 48px; height: 48px; text-align: center; border: 1px solid #0f3460; border-radius: 4px; background: #1a1a2e; color: #e0e0e0; padding: 0; }
+</style>
+</head>
+<body>
+
+<div class="left">
+  <h2>TILE CREATOR</h2>
+
+  <div class="section">
+    <h3>Identity</h3>
+    <div class="field">
+      <label>ID</label>
+      <input type="text" id="tileId" value="TileCustom1" placeholder="TileMyTile">
+    </div>
+    <div class="field">
+      <label>Name</label>
+      <input type="text" id="tileName" value="My Custom Tile" display="inline">
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Appearance</h3>
+    <div class="field">
+      <label>Glyph</label>
+      <input type="text" class="glyph-input" id="tileGlyph" value="*" maxlength="2">
+      <span class="help">Click to type a character</span>
+    </div>
+    <div class="field">
+      <label>Color</label>
+      <input type="color" id="tileColor" value="#aa4444">
+      <input type="text" id="tileColorHex" value="#aa4444" style="width:80px">
+    </div>
+    <div class="field">
+      <label>Background</label>
+      <input type="color" id="tileBg" value="#1a1a2e">
+      <span class="help">(preview only, game uses terminal bg)</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Properties</h3>
+    <div class="toggle">
+      <input type="checkbox" id="tilePassable" checked>
+      <label for="tilePassable">Passable (units can walk on)</label>
+    </div>
+    <div class="toggle">
+      <input type="checkbox" id="tileOpaque">
+      <label for="tileOpaque">Opaque (blocks line of sight)</label>
+    </div>
+    <div class="toggle">
+      <input type="checkbox" id="tileDestructible" checked>
+      <label for="tileDestructible">Destructible (can be shot)</label>
+    </div>
+    <div class="toggle">
+      <input type="checkbox" id="tileFlammable">
+      <label for="tileFlammable">Flammable (fire can spread)</label>
+    </div>
+    <div class="toggle">
+      <input type="checkbox" id="tileExplodes">
+      <label for="tileExplodes">Explodes on destruction</label>
+    </div>
+    <div class="toggle">
+      <input type="checkbox" id="tileNoisy">
+      <label for="tileNoisy">Noisy (alert aliens when stepped on)</label>
+    </div>
+    <div class="field">
+      <label>Cover %</label>
+      <input type="number" id="tileCover" value="0" min="0" max="100">
+    </div>
+    <div class="field">
+      <label>TU cost</label>
+      <input type="number" id="tileTU" value="6" min="1" max="50">
+    </div>
+    <div class="field">
+      <label>Damage</label>
+      <input type="number" id="tileDamage" value="0" min="0" max="100">
+      <span class="help">HP lost when stepped on</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Category</h3>
+    <div class="field">
+      <label>Category</label>
+      <select id="tileCategory" style="flex:1;padding:4px 8px;background:#1a1a2e;border:1px solid #0f3460;color:#e0e0e0;border-radius:3px;font-family:inherit;font-size:13px">
+        <option value="terrain">Terrain (walkable)</option>
+        <option value="structure">Structure (wall/obstacle)</option>
+        <option value="furniture">Furniture (cover object)</option>
+        <option value="vehicle">Vehicle</option>
+        <option value="hazard">Hazard (gas/fire)</option>
+        <option value="decoration">Decoration (visual only)</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Description</label>
+      <input type="text" id="tileDesc" value="A custom tile">
+    </div>
+  </div>
+</div>
+
+<div class="right">
+  <div class="toolbar">
+    <button id="addBtn">Add Tile</button>
+    <button id="clearFormBtn" class="secondary">Clear Form</button>
+    <span class="spacer"></span>
+    <button id="exportBtn">Export All</button>
+    <button id="loadBtn" class="secondary">Load</button>
+    <input type="file" id="loadInput" accept=".json">
+  </div>
+  <div class="preview-area">
+    <div class="preview-tile">
+      <div class="big" id="previewBig">*</div>
+      <div class="label">Tile Preview (80x80)</div>
+    </div>
+    <div class="preview-terminal">
+      <pre id="previewTerminal"></pre>
+      <div class="label">Terminal Preview</div>
+    </div>
+  </div>
+  <div class="tile-list-area">
+    <h3>REGISTERED TILES (<span id="tileCount">0</span>)</h3>
+    <div id="tileListEl"></div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay"></div>
+<div id="exportArea">
+  <div class="bar"><span>Export JSON</span><button id="copyBtn">Copy</button><button id="downloadBtn">Download</button><button id="closeExportBtn">Close</button></div>
+  <textarea id="exportText" readonly></textarea>
+</div>
+
+<script>
+let customTiles = [];
+
+function getFormData() {
+  return {
+    id: document.getElementById("tileId").value.trim(),
+    name: document.getElementById("tileName").value.trim(),
+    glyph: document.getElementById("tileGlyph").value || "*",
+    color: document.getElementById("tileColor").value,
+    bg: document.getElementById("tileBg").value,
+    passable: document.getElementById("tilePassable").checked,
+    opaque: document.getElementById("tileOpaque").checked,
+    destructible: document.getElementById("tileDestructible").checked,
+    flammable: document.getElementById("tileFlammable").checked,
+    explodes: document.getElementById("tileExplodes").checked,
+    noisy: document.getElementById("tileNoisy").checked,
+    cover: parseInt(document.getElementById("tileCover").value) || 0,
+    tu: parseInt(document.getElementById("tileTU").value) || 6,
+    damage: parseInt(document.getElementById("tileDamage").value) || 0,
+    category: document.getElementById("tileCategory").value,
+    desc: document.getElementById("tileDesc").value.trim(),
+  };
+}
+
+function fillForm(t) {
+  document.getElementById("tileId").value = t.id || "";
+  document.getElementById("tileName").value = t.name || "";
+  document.getElementById("tileGlyph").value = t.glyph || "*";
+  document.getElementById("tileColor").value = t.color || "#aa4444";
+  document.getElementById("tileColorHex").value = t.color || "#aa4444";
+  document.getElementById("tileBg").value = t.bg || "#1a1a2e";
+  document.getElementById("tilePassable").checked = t.passable !== false;
+  document.getElementById("tileOpaque").checked = !!t.opaque;
+  document.getElementById("tileDestructible").checked = t.destructible !== false;
+  document.getElementById("tileFlammable").checked = !!t.flammable;
+  document.getElementById("tileExplodes").checked = !!t.explodes;
+  document.getElementById("tileNoisy").checked = !!t.noisy;
+  document.getElementById("tileCover").value = t.cover || 0;
+  document.getElementById("tileTU").value = t.tu || 6;
+  document.getElementById("tileDamage").value = t.damage || 0;
+  document.getElementById("tileCategory").value = t.category || "terrain";
+  document.getElementById("tileDesc").value = t.desc || "";
+  updatePreview();
+}
+
+function updatePreview() {
+  const t = getFormData();
+  const big = document.getElementById("previewBig");
+  big.textContent = t.glyph;
+  big.style.background = t.color;
+  big.style.color = "#fff";
+  big.style.textShadow = "0 0 4px #000";
+
+  const term = document.getElementById("previewTerminal");
+  term.innerHTML = "";
+  const span = document.createElement("span");
+  span.textContent = t.glyph;
+  span.style.color = t.color;
+  term.appendChild(span);
+
+  const hex = t.color;
+  document.getElementById("tileColor").value = hex;
+  document.getElementById("tileColorHex").value = hex;
+}
+
+function renderTileList() {
+  const el = document.getElementById("tileListEl");
+  document.getElementById("tileCount").textContent = customTiles.length;
+  el.innerHTML = "";
+  customTiles.forEach((t, i) => {
+    const row = document.createElement("div");
+    row.className = "tile-row";
+    row.innerHTML = `<div class="glyph" style="background:${t.color};color:#fff">${t.glyph}</div><span class="name">${t.id}</span><span class="props">${t.category} cover=${t.cover} ${t.passable?"pass":"solid"} ${t.opaque?"opaque":""}</span><button data-idx="${i}">X</button>`;
+    row.addEventListener("click", (e) => {
+      if (e.target.tagName === "BUTTON") return;
+      fillForm(t);
+    });
+    row.querySelector("button").addEventListener("click", () => {
+      customTiles.splice(i, 1);
+      renderTileList();
+    });
+    el.appendChild(row);
+  });
+}
+
+function exportJSON() {
+  return JSON.stringify({ tiles: customTiles }, null, 2);
+}
+
+function loadJSON(text) {
+  try {
+    const data = JSON.parse(text);
+    if (data.tiles && Array.isArray(data.tiles)) {
+      customTiles = data.tiles;
+    } else if (Array.isArray(data)) {
+      customTiles = data;
+    }
+    renderTileList();
+  } catch(e) {
+    alert("Invalid JSON: " + e.message);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("tileColor").addEventListener("input", (e) => {
+    document.getElementById("tileColorHex").value = e.target.value;
+    updatePreview();
+  });
+  document.getElementById("tileColorHex").addEventListener("input", (e) => {
+    if (/^#[0-9a-f]{6}$/i.test(e.target.value)) {
+      document.getElementById("tileColor").value = e.target.value;
+      updatePreview();
+    }
+  });
+  document.getElementById("tileGlyph").addEventListener("input", updatePreview);
+  ["tileId","tileName","tilePassable","tileOpaque","tileDestructible","tileFlammable","tileExplodes","tileNoisy","tileCover","tileTU","tileDamage","tileCategory","tileDesc","tileBg"].forEach(id => {
+    document.getElementById(id).addEventListener("input", updatePreview);
+    document.getElementById(id).addEventListener("change", updatePreview);
+  });
+
+  document.getElementById("addBtn").addEventListener("click", () => {
+    const t = getFormData();
+    if (!t.id) { alert("Tile ID is required"); return; }
+    const existing = customTiles.findIndex(c => c.id === t.id);
+    if (existing >= 0) {
+      customTiles[existing] = t;
+    } else {
+      customTiles.push(t);
+    }
+    renderTileList();
+  });
+
+  document.getElementById("clearFormBtn").addEventListener("click", () => {
+    fillForm({
+      id: "TileCustom" + (customTiles.length + 1),
+      name: "", glyph: "*", color: "#aa4444", bg: "#1a1a2e",
+      passable: true, opaque: false, destructible: true,
+      flammable: false, explodes: false, noisy: false,
+      cover: 0, tu: 6, damage: 0, category: "terrain", desc: ""
+    });
+  });
+
+  const exportArea = document.getElementById("exportArea");
+  const overlay = document.getElementById("overlay");
+  document.getElementById("exportBtn").addEventListener("click", () => {
+    document.getElementById("exportText").value = exportJSON();
+    exportArea.classList.add("show");
+    overlay.classList.add("show");
+  });
+  document.getElementById("closeExportBtn").addEventListener("click", () => {
+    exportArea.classList.remove("show");
+    overlay.classList.remove("show");
+  });
+  overlay.addEventListener("click", () => {
+    exportArea.classList.remove("show");
+    overlay.classList.remove("show");
+  });
+  document.getElementById("copyBtn").addEventListener("click", () => {
+    const ta = document.getElementById("exportText");
+    ta.select();
+    document.execCommand("copy");
+  });
+  document.getElementById("downloadBtn").addEventListener("click", () => {
+    const blob = new Blob([document.getElementById("exportText").value], {type:"application/json"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "custom_tiles.json";
+    a.click();
+  });
+
+  document.getElementById("loadBtn").addEventListener("click", () => {
+    document.getElementById("loadInput").click();
+  });
+  document.getElementById("loadInput").addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => loadJSON(ev.target.result);
+    reader.readAsText(file);
+    e.target.value = "";
+  });
+
+  updatePreview();
+  renderTileList();
+});
+</script>
+</body>
+</html>
