@@ -29,6 +29,7 @@ body { font-family: 'Courier New', monospace; background: #1a1a2e; color: #e0e0e
 .toolbar { display: flex; align-items: center; gap: 10px; padding: 8px 16px; background: #0f3460; flex-wrap: wrap; }
 .toolbar label { font-size: 13px; color: #a0c4ff; }
 .toolbar input[type=number] { width: 50px; padding: 4px 6px; background: #1a1a2e; border: 1px solid #0f3460; color: #e0e0e0; border-radius: 3px; font-family: inherit; font-size: 13px; }
+.toolbar input[type=text] { width: 90px; padding: 4px 6px; background: #1a1a2e; border: 1px solid #0f3460; color: #e0e0e0; border-radius: 3px; font-family: inherit; font-size: 12px; }
 .toolbar button { padding: 5px 14px; background: #e94560; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: bold; transition: background 0.15s; }
 .toolbar button:hover { background: #ff6b81; }
 .toolbar button.secondary { background: #0f3460; border: 1px solid #1a3a5c; }
@@ -69,6 +70,8 @@ body { font-family: 'Courier New', monospace; background: #1a1a2e; color: #e0e0e
     <button id="resizeBtn">Resize</button>
     <button id="fillBtn" class="secondary">Fill</button>
     <button id="clearBtn" class="secondary">Clear</button>
+    <label>ID:</label><input type="text" id="chunkId" value="custom_chunk">
+    <label>Tags:</label><input type="text" id="chunkTags" value="farm">
     <span class="spacer"></span>
     <div class="sel-preview" id="selPreview"><span class="swatch" id="selSwatch">·</span><span id="selName">TileGrass</span></div>
     <button id="exportBtn">Export JSON</button>
@@ -304,74 +307,54 @@ function updateInfo() {
 
 // ===== EXPORT =====
 function exportJSON() {
-  // Determine used glyphs
-  const usedGlyphs = {};
-  const terrain = {};
-  const furniture = {};
+  const used = {};
   for (let y = 0; y < h; y++)
     for (let x = 0; x < w; x++) {
       const id = grid[y][x] || "TileGrass";
-      const t = tileMap[id];
-      if (!t || id === "TileGrass") continue;
-      // Assign a unique glyph based on tile type index
-      // Use a single letter/digit if possible, otherwise use the tile's glyph
-      let glyph;
-      // Use a consistent glyph per tile type across the chunk
-      if (!usedGlyphs[id]) {
-        // Try first letter of the name after Tile
-        let name = id.replace("Tile","");
-        let ch = name[0].toLowerCase();
-        // Avoid collision with reserved chars for base terrain
-        if (".#+·♣∩≈≡▒▓░∗≋†│•".includes(ch) || Object.values(usedGlyphs).includes(ch) || ch === 'h') {
-          // Use a unique starting char
-          ch = String.fromCharCode(97 + Object.keys(usedGlyphs).length);
-        }
-        // Actually just use the tile's rune character directly since the terrain/furniture map is explicit
-        ch = t.g;
-        // But if two different tile types share the same glyph (like ♣ used by Tree/Cypress/SnowTree/Bamboo),
-        // we need to disambiguate. Use a unique letter.
-        // Instead: assign unique ASCII glyphs for all used tiles
-        const keys = Object.keys(usedGlyphs);
-        const idx = keys.length;
-        if (idx < 26) ch = String.fromCharCode(97 + idx);
-        else if (idx < 52) ch = String.fromCharCode(65 + idx - 26);
-        else ch = String.fromCharCode(48 + idx - 52);
-        usedGlyphs[id] = ch;
-      }
-      glyph = usedGlyphs[id];
-      if (t.pa) {
-        terrain[glyph] = id;
-      } else {
-        furniture[glyph] = id;
-      }
+      if (id !== "TileGrass") used[id] = true;
     }
 
-  // Build rows
+  const sorted = Object.keys(used).sort();
+  const pool = [];
+  for (let i = 0; i < 26; i++) pool.push(String.fromCharCode(97 + i));
+  for (let i = 0; i < 26; i++) pool.push(String.fromCharCode(65 + i));
+  for (let i = 0; i < 10; i++) pool.push(String.fromCharCode(48 + i));
+  for (const ch of "!@#$%^&*-_=+[]{}|:,.<>?/~`") pool.push(ch);
+
+  const gm = {};
+  sorted.forEach((id, i) => { gm[id] = i < pool.length ? pool[i] : String.fromCharCode(97 + (i % 26)); });
+
+  const terrain = {};
+  const furniture = {};
+  sorted.forEach(id => {
+    const t = tileMap[id];
+    const g = gm[id];
+    if (t && t.pa) terrain[g] = id;
+    else if (t) furniture[g] = id;
+  });
+
   const rows = [];
   for (let y = 0; y < h; y++) {
     let row = "";
     for (let x = 0; x < w; x++) {
       const id = grid[y][x] || "TileGrass";
-      if (id === "TileGrass") {
-        row += ".";
-      } else {
-        row += usedGlyphs[id] || ".";
-      }
+      row += id === "TileGrass" ? "." : (gm[id] || ".");
     }
     rows.push(row);
   }
 
-  const tags = ["farm"];
+  const tagsStr = document.getElementById("chunkTags").value.trim();
+  const tags = tagsStr ? tagsStr.split(/[,\s]+/).filter(Boolean) : ["custom"];
+
   const chunk = {
-    id: "custom_chunk",
+    id: document.getElementById("chunkId").value.trim() || "custom_chunk",
     tags: tags,
     width: w,
     height: h,
     rows: rows,
-    terrain: Object.fromEntries(Object.entries(usedGlyphs || {}).filter(([g,id]) => tileMap[id] && tileMap[id].pa).map(([g,id]) => [g,id])),
-    furniture: Object.fromEntries(Object.entries(usedGlyphs || {}).filter(([g,id]) => tileMap[id] && !tileMap[id].pa).map(([g,id]) => [g,id]))
+    terrain: terrain
   };
-  if (Object.keys(chunk.furniture).length === 0) chunk.furniture = {};
+  if (Object.keys(furniture).length > 0) chunk.furniture = furniture;
 
   return JSON.stringify(chunk, null, 2);
 }
