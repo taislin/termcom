@@ -3,23 +3,153 @@
 //         fl=flammable, ex=explodes radius, no=noisy, mv=move cost, nm=name key
 [
   // \u2261 ≡ — UFO floor
-  { "id":"TileUFOFloor", "g":"\u2261", "c":"#324b6e", "pa":true, "op":false, "de":false, "cv":0, "fl":false, "ex":0, "no":false, "mv":4, "nm":"TILE_UFO_FLOOR" },
+  {
+    "id": "TileUFOFloor",
+    "g": "\u2261",
+    "c": "#324b6e",
+    "pa": true,
+    "op": false,
+    "de": false,
+    "cv": 0,
+    "fl": false,
+    "ex": 0,
+    "no": false,
+    "mv": 4,
+    "nm": "TILE_UFO_FLOOR"
+  },
   // \u2588 █ — UFO wall
-  { "id":"TileUFOWall", "g":"\u2588", "c":"#466496", "pa":false, "op":true, "de":true, "cv":80, "fl":false, "ex":0, "no":false, "mv":4, "nm":"TILE_UFO_WALL" },
+  {
+    "id": "TileUFOWall",
+    "g": "\u2588",
+    "c": "#466496",
+    "pa": false,
+    "op": true,
+    "de": true,
+    "cv": 80,
+    "fl": false,
+    "ex": 0,
+    "no": false,
+    "mv": 4,
+    "nm": "TILE_UFO_WALL"
+  },
   // \u25C8 ◈ — Alien pod
-  { "id":"TilePod", "g":"\u25C8", "c":"#8246be", "pa":true, "op":false, "de":true, "cv":30, "fl":false, "ex":0, "no":false, "mv":4, "nm":"TILE_POD" },
+  {
+    "id": "TilePod",
+    "g": "\u25C8",
+    "c": "#8246be",
+    "pa": true,
+    "op": false,
+    "de": true,
+    "cv": 30,
+    "fl": false,
+    "ex": 0,
+    "no": false,
+    "mv": 4,
+    "nm": "TILE_POD"
+  },
   // \u2301 ⌁ — Power core
-  { "id":"TilePowerSource", "g":"\u2301", "c":"#f0c83c", "pa":true, "op":false, "de":true, "cv":20, "fl":false, "ex":0, "no":false, "mv":4, "nm":"TILE_POWER_SOURCE" },
+  {
+    "id": "TilePowerSource",
+    "g": "\u2301",
+    "c": "#f0c83c",
+    "pa": true,
+    "op": false,
+    "de": true,
+    "cv": 20,
+    "fl": false,
+    "ex": 0,
+    "no": false,
+    "mv": 4,
+    "nm": "TILE_POWER_SOURCE"
+  },
   // \u2295 ⊕ — Alien artifact
-  { "id":"TileAlienTech", "g":"\u2295", "c":"#e64646", "pa":true, "op":false, "de":true, "cv":20, "fl":false, "ex":0, "no":false, "mv":4, "nm":"TILE_ALIEN_TECH" },
+  {
+    "id": "TileAlienTech",
+    "g": "\u2295",
+    "c": "#e64646",
+    "pa": true,
+    "op": false,
+    "de": true,
+    "cv": 20,
+    "fl": false,
+    "ex": 0,
+    "no": false,
+    "mv": 4,
+    "nm": "TILE_ALIEN_TECH"
+  },
   // \u256A ╪ — Cryo pipe
-  { "id":"TileCryoPipe", "g":"\u256A", "c":"#8cc8e6", "pa":false, "op":false, "de":true, "cv":20, "fl":false, "ex":0, "no":false, "mv":4, "nm":"TILE_CRYO_PIPE" },
+  {
+    "id": "TileCryoPipe",
+    "g": "\u256A",
+    "c": "#8cc8e6",
+    "pa": false,
+    "op": false,
+    "de": true,
+    "cv": 20,
+    "fl": false,
+    "ex": 0,
+    "no": false,
+    "mv": 4,
+    "nm": "TILE_CRYO_PIPE"
+  },
   // \u2299 ⊙ — Glass skylight
-  { "id":"TileSkylight", "g":"\u2299", "c":"#b4d2f0", "pa":true, "op":false, "de":true, "cv":0, "fl":false, "ex":0, "no":false, "mv":4, "nm":"TILE_SKYLIGHT" },
+  {
+    "id": "TileSkylight",
+    "g": "\u2299",
+    "c": "#b4d2f0",
+    "pa": true,
+    "op": false,
+    "de": true,
+    "cv": 0,
+    "fl": false,
+    "ex": 0,
+    "no": false,
+    "mv": 4,
+    "nm": "TILE_SKYLIGHT"
+  },
   // \u25A4 ▤ — Aircraft wreckage
-  { "id":"TileWreck", "g":"\u25A4", "c":"#965f3c", "pa":false, "op":true, "de":false, "cv":80, "fl":false, "ex":0, "no":false, "mv":4, "nm":"TILE_WRECK" },
+  {
+    "id": "TileWreck",
+    "g": "\u25A4",
+    "c": "#965f3c",
+    "pa": false,
+    "op": true,
+    "de": false,
+    "cv": 80,
+    "fl": false,
+    "ex": 0,
+    "no": false,
+    "mv": 4,
+    "nm": "TILE_WRECK"
+  },
   // \u25D7 ◗ — Satellite dish
-  { "id":"TileDish", "g":"\u25D7", "c":"#aaafb9", "pa":false, "op":true, "de":false, "cv":50, "fl":false, "ex":0, "no":false, "mv":4, "nm":"TILE_DISH" },
+  {
+    "id": "TileDish",
+    "g": "\u25D7",
+    "c": "#aaafb9",
+    "pa": false,
+    "op": true,
+    "de": false,
+    "cv": 50,
+    "fl": false,
+    "ex": 0,
+    "no": false,
+    "mv": 4,
+    "nm": "TILE_DISH"
+  },
   // 8 — Fuel pump (explodes)
-  { "id":"TileFuelPump", "g":"8", "c":"#c83c28", "pa":false, "op":true, "de":true, "cv":30, "fl":false, "ex":5, "no":false, "mv":4, "nm":"TILE_FUEL_PUMP" }
+  {
+    "id": "TileFuelPump",
+    "g": "8",
+    "c": "#c83c28",
+    "pa": false,
+    "op": true,
+    "de": true,
+    "cv": 30,
+    "fl": false,
+    "ex": 5,
+    "no": false,
+    "mv": 4,
+    "nm": "TILE_FUEL_PUMP"
+  }
 ]

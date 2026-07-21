@@ -3,25 +3,183 @@
 //         fl=flammable, ex=explodes radius, no=noisy, mv=move cost, nm=name key
 [
   // \u2663 ♣ — Tree
-  { "id":"TileTree", "g":"\u2663", "c":"#235a19", "pa":false, "op":true, "de":true, "cv":60, "fl":true, "ex":0, "no":false, "mv":8, "nm":"TILE_TREE" },
+  {
+    "id": "TileTree",
+    "g": "\u2663",
+    "c": "#235a19",
+    "pa": false,
+    "op": true,
+    "de": true,
+    "cv": 60,
+    "fl": true,
+    "ex": 0,
+    "no": false,
+    "mv": 8,
+    "nm": "TILE_TREE"
+  },
   // \u2229 ∩ — Rock formation
-  { "id":"TileRock", "g":"\u2229", "c":"#827d78", "pa":false, "op":true, "de":true, "cv":70, "fl":false, "ex":0, "no":false, "mv":8, "nm":"TILE_ROCK" },
-  // \u2020 † — Bush / scrub
-  { "id":"TileBush", "g":"\u2020", "c":"#2d6423", "pa":true, "op":false, "de":true, "cv":40, "fl":true, "ex":0, "no":false, "mv":5, "nm":"TILE_BUSH" },
+  {
+    "id": "TileRock",
+    "g": "\u2229",
+    "c": "#827d78",
+    "pa": false,
+    "op": true,
+    "de": true,
+    "cv": 70,
+    "fl": false,
+    "ex": 0,
+    "no": false,
+    "mv": 8,
+    "nm": "TILE_ROCK"
+  },
+  // \u2020 ʷ — Bush / scrub
+  {
+    "id": "TileBush",
+    "g": "\u02B7",
+    "c": "#2d6423",
+    "pa": true,
+    "op": false,
+    "de": true,
+    "cv": 40,
+    "fl": true,
+    "ex": 0,
+    "no": false,
+    "mv": 5,
+    "nm": "TILE_BUSH"
+  },
+  // \u2020 ʬ — large bush
+  {
+    "id": "TileBushTall",
+    "g": "\u02ac",
+    "c": "#2d6423",
+    "pa": true,
+    "op": false,
+    "de": true,
+    "cv": 55,
+    "fl": true,
+    "ex": 0,
+    "no": false,
+    "mv": 5,
+    "nm": "TILE_BUSH"
+  },
   // \u03C8 ψ — Tall wheat / corn
-  { "id":"TileWheat", "g":"\u03C8", "c":"#c8b43c", "pa":true, "op":false, "de":true, "cv":20, "fl":true, "ex":0, "no":false, "mv":5, "nm":"TILE_WHEAT" },
+  {
+    "id": "TileWheat",
+    "g": "\u03C8",
+    "c": "#c8b43c",
+    "pa": true,
+    "op": false,
+    "de": true,
+    "cv": 20,
+    "fl": true,
+    "ex": 0,
+    "no": false,
+    "mv": 5,
+    "nm": "TILE_WHEAT"
+  },
   // \u2021 ‡ — Hanging vines
-  { "id":"TileVine", "g":"\u2021", "c":"#328232", "pa":true, "op":false, "de":true, "cv":20, "fl":true, "ex":0, "no":false, "mv":6, "nm":"TILE_VINE" },
-  // \u2663 ♣ — Bamboo thicket
-  { "id":"TileBamboo", "g":"\u2663", "c":"#50963c", "pa":false, "op":true, "de":true, "cv":60, "fl":true, "ex":0, "no":false, "mv":8, "nm":"TILE_BAMBOO" },
-  // \u2663 ♣ — Cypress tree (swamp)
-  { "id":"TileCypressTree", "g":"\u2663", "c":"#285532", "pa":false, "op":true, "de":true, "cv":80, "fl":true, "ex":0, "no":false, "mv":8, "nm":"TILE_CYPRESS_TREE" },
+  {
+    "id": "TileVine",
+    "g": "\u2021",
+    "c": "#328232",
+    "pa": true,
+    "op": false,
+    "de": true,
+    "cv": 20,
+    "fl": true,
+    "ex": 0,
+    "no": false,
+    "mv": 6,
+    "nm": "TILE_VINE"
+  },
+  // \u2663 ዘ — Bamboo thicket
+  {
+    "id": "TileBamboo",
+    "g": "\u12D8",
+    "c": "#50963c",
+    "pa": false,
+    "op": true,
+    "de": true,
+    "cv": 60,
+    "fl": true,
+    "ex": 0,
+    "no": false,
+    "mv": 8,
+    "nm": "TILE_BAMBOO"
+  },
+  // \u2663 ፕ — Cypress tree (swamp)
+  {
+    "id": "TileCypressTree",
+    "g": "\u1355",
+    "c": "#285532",
+    "pa": false,
+    "op": true,
+    "de": true,
+    "cv": 80,
+    "fl": true,
+    "ex": 0,
+    "no": false,
+    "mv": 8,
+    "nm": "TILE_CYPRESS_TREE"
+  },
   // \u2663 ♣ — Snow-covered pine
-  { "id":"TileSnowTree", "g":"\u2663", "c":"#dcebf5", "pa":false, "op":true, "de":true, "cv":80, "fl":true, "ex":0, "no":false, "mv":8, "nm":"TILE_SNOW_TREE" },
-  // * — Dry coastal scrub
-  { "id":"TileDryBush", "g":"*", "c":"#aa8c3c", "pa":true, "op":false, "de":true, "cv":20, "fl":true, "ex":0, "no":false, "mv":4, "nm":"TILE_DRY_BUSH" },
+  {
+    "id": "TileSnowTree",
+    "g": "\u2663",
+    "c": "#dcebf5",
+    "pa": false,
+    "op": true,
+    "de": true,
+    "cv": 80,
+    "fl": true,
+    "ex": 0,
+    "no": false,
+    "mv": 8,
+    "nm": "TILE_SNOW_TREE"
+  },
+  // ʵ — Dry coastal scrub
+  {
+    "id": "TileDryBush",
+    "g": "\u02B5",
+    "c": "#aa8c3c",
+    "pa": true,
+    "op": false,
+    "de": true,
+    "cv": 20,
+    "fl": true,
+    "ex": 0,
+    "no": false,
+    "mv": 4,
+    "nm": "TILE_DRY_BUSH"
+  },
   // \u2229 ∩ — Large boulder
-  { "id":"TileBoulder", "g":"\u2229", "c":"#827d78", "pa":false, "op":true, "de":false, "cv":70, "fl":false, "ex":0, "no":false, "mv":8, "nm":"TILE_BOULDER" },
-  // \u2588 █ — Hay bale
-  { "id":"TileHayBale", "g":"\u2588", "c":"#a08c3c", "pa":false, "op":true, "de":true, "cv":60, "fl":true, "ex":0, "no":false, "mv":4, "nm":"TILE_HAY_BALE" }
+  {
+    "id": "TileBoulder",
+    "g": "\u2229",
+    "c": "#827d78",
+    "pa": false,
+    "op": true,
+    "de": false,
+    "cv": 70,
+    "fl": false,
+    "ex": 0,
+    "no": false,
+    "mv": 8,
+    "nm": "TILE_BOULDER"
+  },
+  // \u2588 ѻ — Hay bale
+  {
+    "id": "TileHayBale",
+    "g": "\u047B",
+    "c": "#a08c3c",
+    "pa": false,
+    "op": true,
+    "de": true,
+    "cv": 60,
+    "fl": true,
+    "ex": 0,
+    "no": false,
+    "mv": 4,
+    "nm": "TILE_HAY_BALE"
+  }
 ]

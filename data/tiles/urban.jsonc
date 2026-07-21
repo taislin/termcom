@@ -3,23 +3,153 @@
 //         fl=flammable, ex=explodes radius, no=noisy, mv=move cost, nm=name key
 [
   // \u2588 █ — Adobe wall
-  { "id":"TileAdobe", "g":"\u2588", "c":"#c88246", "pa":false, "op":true, "de":false, "cv":80, "fl":false, "ex":0, "no":false, "mv":4, "nm":"TILE_ADOBE" },
+  {
+    "id": "TileAdobe",
+    "g": "\u2588",
+    "c": "#c88246",
+    "pa": false,
+    "op": true,
+    "de": false,
+    "cv": 80,
+    "fl": false,
+    "ex": 0,
+    "no": false,
+    "mv": 4,
+    "nm": "TILE_ADOBE"
+  },
   // \u2588 █ — Prefab metal wall
-  { "id":"TileMetalWall", "g":"\u2588", "c":"#b4b9c3", "pa":false, "op":true, "de":false, "cv":80, "fl":false, "ex":0, "no":false, "mv":4, "nm":"TILE_METAL_WALL" },
+  {
+    "id": "TileMetalWall",
+    "g": "\u2588",
+    "c": "#b4b9c3",
+    "pa": false,
+    "op": true,
+    "de": false,
+    "cv": 80,
+    "fl": false,
+    "ex": 0,
+    "no": false,
+    "mv": 4,
+    "nm": "TILE_METAL_WALL"
+  },
   // \u2502 │ — Wooden fence
-  { "id":"TileFence", "g":"\u2502", "c":"#917850", "pa":false, "op":true, "de":true, "cv":30, "fl":true, "ex":0, "no":false, "mv":4, "nm":"TILE_FENCE" },
+  {
+    "id": "TileFence",
+    "g": "\u2502",
+    "c": "#917850",
+    "pa": false,
+    "op": true,
+    "de": true,
+    "cv": 30,
+    "fl": true,
+    "ex": 0,
+    "no": false,
+    "mv": 4,
+    "nm": "TILE_FENCE"
+  },
   // \u2592 ▒ — Destroyed wall debris
-  { "id":"TileRubble", "g":"\u2592", "c":"#78736e", "pa":true, "op":false, "de":false, "cv":20, "fl":false, "ex":0, "no":false, "mv":4, "nm":"TILE_RUBBLE" },
+  {
+    "id": "TileRubble",
+    "g": "\u2592",
+    "c": "#78736e",
+    "pa": true,
+    "op": false,
+    "de": false,
+    "cv": 20,
+    "fl": false,
+    "ex": 0,
+    "no": false,
+    "mv": 4,
+    "nm": "TILE_RUBBLE"
+  },
   // \u2588 █ — Red shipping container
-  { "id":"TileContainerRed", "g":"\u2588", "c":"#b43228", "pa":false, "op":true, "de":false, "cv":80, "fl":false, "ex":0, "no":false, "mv":4, "nm":"TILE_CONTAINER" },
+  {
+    "id": "TileContainerRed",
+    "g": "\u2588",
+    "c": "#b43228",
+    "pa": false,
+    "op": true,
+    "de": false,
+    "cv": 80,
+    "fl": false,
+    "ex": 0,
+    "no": false,
+    "mv": 4,
+    "nm": "TILE_CONTAINER"
+  },
   // \u2588 █ — Blue shipping container
-  { "id":"TileContainerBlue", "g":"\u2588", "c":"#3250b4", "pa":false, "op":true, "de":false, "cv":80, "fl":false, "ex":0, "no":false, "mv":4, "nm":"TILE_CONTAINER" },
+  {
+    "id": "TileContainerBlue",
+    "g": "\u2588",
+    "c": "#3250b4",
+    "pa": false,
+    "op": true,
+    "de": false,
+    "cv": 80,
+    "fl": false,
+    "ex": 0,
+    "no": false,
+    "mv": 4,
+    "nm": "TILE_CONTAINER"
+  },
   // \u2588 █ — Yellow shipping container
-  { "id":"TileContainerYellow", "g":"\u2588", "c":"#c8aa28", "pa":false, "op":true, "de":false, "cv":80, "fl":false, "ex":0, "no":false, "mv":4, "nm":"TILE_CONTAINER" },
+  {
+    "id": "TileContainerYellow",
+    "g": "\u2588",
+    "c": "#c8aa28",
+    "pa": false,
+    "op": true,
+    "de": false,
+    "cv": 80,
+    "fl": false,
+    "ex": 0,
+    "no": false,
+    "mv": 4,
+    "nm": "TILE_CONTAINER"
+  },
   // \u25A3 ▣ — Dock crate
-  { "id":"TileDockCrate", "g":"\u25A3", "c":"#967850", "pa":false, "op":true, "de":true, "cv":50, "fl":false, "ex":0, "no":false, "mv":4, "nm":"TILE_DOCK_CRATE" },
+  {
+    "id": "TileDockCrate",
+    "g": "\u25A3",
+    "c": "#967850",
+    "pa": false,
+    "op": true,
+    "de": true,
+    "cv": 50,
+    "fl": false,
+    "ex": 0,
+    "no": false,
+    "mv": 4,
+    "nm": "TILE_DOCK_CRATE"
+  },
   // \u2261 ≡ — Stacked timber
-  { "id":"TileTimber", "g":"\u2261", "c":"#966e3c", "pa":false, "op":true, "de":true, "cv":80, "fl":true, "ex":0, "no":false, "mv":4, "nm":"TILE_TIMBER" },
+  {
+    "id": "TileTimber",
+    "g": "\u2261",
+    "c": "#966e3c",
+    "pa": false,
+    "op": true,
+    "de": true,
+    "cv": 80,
+    "fl": true,
+    "ex": 0,
+    "no": false,
+    "mv": 4,
+    "nm": "TILE_TIMBER"
+  },
   // \u2316 ⌖ — Streetlamp
-  { "id":"TileStreetlamp", "g":"\u2316", "c":"#dcd278", "pa":false, "op":false, "de":true, "cv":10, "fl":false, "ex":0, "no":false, "mv":4, "nm":"TILE_STREETLAMP" }
+  {
+    "id": "TileStreetlamp",
+    "g": "\u2316",
+    "c": "#dcd278",
+    "pa": false,
+    "op": false,
+    "de": true,
+    "cv": 10,
+    "fl": false,
+    "ex": 0,
+    "no": false,
+    "mv": 4,
+    "nm": "TILE_STREETLAMP"
+  }
 ]

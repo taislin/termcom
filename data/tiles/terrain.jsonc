@@ -3,29 +3,198 @@
 //         fl=flammable, ex=explodes radius, no=noisy, mv=move cost, nm=name key
 [
   // . — Interior floor
-  { "id":"TileFloor", "g":".", "c":"#5f5a55", "pa":true, "op":false, "de":false, "cv":0, "fl":false, "ex":0, "no":false, "mv":4, "nm":"TILE_FLOOR" },
+  {
+    "id": "TileFloor",
+    "g": ".",
+    "c": "#5f5a55",
+    "pa": true,
+    "op": false,
+    "de": false,
+    "cv": 0,
+    "fl": false,
+    "ex": 0,
+    "no": false,
+    "mv": 4,
+    "nm": "TILE_FLOOR"
+  },
   // # — Building wall
-  { "id":"TileWall", "g":"#", "c":"#a09b96", "pa":false, "op":true, "de":true, "cv":80, "fl":false, "ex":0, "no":false, "mv":4, "nm":"TILE_WALL" },
+  {
+    "id": "TileWall",
+    "g": "#",
+    "c": "#a09b96",
+    "pa": false,
+    "op": true,
+    "de": true,
+    "cv": 80,
+    "fl": false,
+    "ex": 0,
+    "no": false,
+    "mv": 4,
+    "nm": "TILE_WALL"
+  },
   // + — Doorway
-  { "id":"TileDoor", "g":"+", "c":"#8c6432", "pa":true, "op":false, "de":true, "cv":0, "fl":true, "ex":0, "no":false, "mv":4, "nm":"TILE_DOOR" },
+  {
+    "id": "TileDoor",
+    "g": "+",
+    "c": "#8c6432",
+    "pa": true,
+    "op": false,
+    "de": true,
+    "cv": 0,
+    "fl": true,
+    "ex": 0,
+    "no": false,
+    "mv": 4,
+    "nm": "TILE_DOOR"
+  },
   // \u229E ⊞ — Building window
-  { "id":"TileWindow", "g":"\u229E", "c":"#78aadc", "pa":false, "op":false, "de":true, "cv":20, "fl":false, "ex":0, "no":false, "mv":4, "nm":"TILE_WINDOW" },
+  {
+    "id": "TileWindow",
+    "g": "\u229E",
+    "c": "#78aadc",
+    "pa": false,
+    "op": false,
+    "de": true,
+    "cv": 20,
+    "fl": false,
+    "ex": 0,
+    "no": false,
+    "mv": 4,
+    "nm": "TILE_WINDOW"
+  },
   // \u00B7 · — Open ground
-  { "id":"TileGrass", "g":"\u00B7", "c":"#326e28", "pa":true, "op":false, "de":false, "cv":0, "fl":true, "ex":0, "no":false, "mv":4, "nm":"TILE_GRASS" },
+  {
+    "id": "TileGrass",
+    "g": "\u00B7",
+    "c": "#326e28",
+    "pa": true,
+    "op": false,
+    "de": false,
+    "cv": 0,
+    "fl": true,
+    "ex": 0,
+    "no": false,
+    "mv": 4,
+    "nm": "TILE_GRASS"
+  },
   // \u2591 ░ — Road / sidewalk
-  { "id":"TilePavement", "g":"\u2591", "c":"#787878", "pa":true, "op":false, "de":false, "cv":0, "fl":false, "ex":0, "no":false, "mv":3, "nm":"TILE_PAVEMENT" },
+  {
+    "id": "TilePavement",
+    "g": "\u2591",
+    "c": "#787878",
+    "pa": true,
+    "op": false,
+    "de": false,
+    "cv": 0,
+    "fl": false,
+    "ex": 0,
+    "no": false,
+    "mv": 3,
+    "nm": "TILE_PAVEMENT"
+  },
   // \u00B7 · — Sandy ground
-  { "id":"TileSand", "g":"\u00B7", "c":"#c8b478", "pa":true, "op":false, "de":false, "cv":0, "fl":false, "ex":0, "no":false, "mv":6, "nm":"TILE_SAND" },
+  {
+    "id": "TileSand",
+    "g": "\u00B7",
+    "c": "#c8b478",
+    "pa": true,
+    "op": false,
+    "de": false,
+    "cv": 0,
+    "fl": false,
+    "ex": 0,
+    "no": false,
+    "mv": 6,
+    "nm": "TILE_SAND"
+  },
   // \u2217 ∗ — Snowy ground
-  { "id":"TileSnow", "g":"\u2217", "c":"#e6ebf5", "pa":true, "op":false, "de":false, "cv":0, "fl":false, "ex":0, "no":false, "mv":5, "nm":"TILE_SNOW" },
+  {
+    "id": "TileSnow",
+    "g": "\u2217",
+    "c": "#e6ebf5",
+    "pa": true,
+    "op": false,
+    "de": false,
+    "cv": 0,
+    "fl": false,
+    "ex": 0,
+    "no": false,
+    "mv": 5,
+    "nm": "TILE_SNOW"
+  },
   // \u00B7 · — Loose scree (noisy)
-  { "id":"TileScree", "g":"\u00B7", "c":"#a09682", "pa":true, "op":false, "de":true, "cv":10, "fl":false, "ex":0, "no":true, "mv":6, "nm":"TILE_SCREE" },
+  {
+    "id": "TileScree",
+    "g": "\u00B7",
+    "c": "#a09682",
+    "pa": true,
+    "op": false,
+    "de": true,
+    "cv": 10,
+    "fl": false,
+    "ex": 0,
+    "no": true,
+    "mv": 6,
+    "nm": "TILE_SCREE"
+  },
   // \u224B ≋ — Deep mud
-  { "id":"TileMud", "g":"\u224B", "c":"#6e5032", "pa":true, "op":false, "de":false, "cv":5, "fl":false, "ex":0, "no":false, "mv":6, "nm":"TILE_MUD" },
+  {
+    "id": "TileMud",
+    "g": "\u224B",
+    "c": "#6e5032",
+    "pa": true,
+    "op": false,
+    "de": false,
+    "cv": 5,
+    "fl": false,
+    "ex": 0,
+    "no": false,
+    "mv": 6,
+    "nm": "TILE_MUD"
+  },
   // \u2592 ▒ — Stairs up
-  { "id":"TileStairs", "g":"\u2592", "c":"#6e6964", "pa":true, "op":false, "de":false, "cv":0, "fl":false, "ex":0, "no":false, "mv":4, "nm":"TILE_STAIRS" },
+  {
+    "id": "TileStairs",
+    "g": "\u2592",
+    "c": "#6e6964",
+    "pa": true,
+    "op": false,
+    "de": false,
+    "cv": 0,
+    "fl": false,
+    "ex": 0,
+    "no": false,
+    "mv": 4,
+    "nm": "TILE_STAIRS"
+  },
   // \u2593 ▓ — Stairs down
-  { "id":"TileStairsDown", "g":"\u2593", "c":"#504b46", "pa":true, "op":false, "de":false, "cv":0, "fl":false, "ex":0, "no":false, "mv":4, "nm":"TILE_STAIRS_DOWN" },
+  {
+    "id": "TileStairsDown",
+    "g": "\u2593",
+    "c": "#504b46",
+    "pa": true,
+    "op": false,
+    "de": false,
+    "cv": 0,
+    "fl": false,
+    "ex": 0,
+    "no": false,
+    "mv": 4,
+    "nm": "TILE_STAIRS_DOWN"
+  },
   // \u2591 ░ — Cliff face (impassable)
-  { "id":"TileCliffFace", "g":"\u2591", "c":"#8c7864", "pa":false, "op":true, "de":false, "cv":80, "fl":false, "ex":0, "no":false, "mv":4, "nm":"TILE_CLIFF_FACE" }
+  {
+    "id": "TileCliffFace",
+    "g": "\u2591",
+    "c": "#8c7864",
+    "pa": false,
+    "op": true,
+    "de": false,
+    "cv": 80,
+    "fl": false,
+    "ex": 0,
+    "no": false,
+    "mv": 4,
+    "nm": "TILE_CLIFF_FACE"
+  }
 ]

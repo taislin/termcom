@@ -160,7 +160,7 @@ body { font-family: 'Courier New', monospace; background: #1a1a2e; color: #e0e0e
     <span class="spacer"></span>
     <button id="exportBtn">Export All</button>
     <button id="loadBtn" class="secondary">Load</button>
-    <input type="file" id="loadInput" accept=".json">
+    <input type="file" id="loadInput" accept=".json,.jsonc">
     <span style="font-size:11px;color:#888;margin-left:8px">Export → save as data/tiles/my_tiles.json</span>
   </div>
   <div class="preview-area">
@@ -287,6 +287,8 @@ function exportJSON() {
 
 function loadJSON(text) {
   try {
+    // Strip JSONC comments (// and /* */)
+    text = text.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '');
     const data = JSON.parse(text);
     const arr = data.tiles && Array.isArray(data.tiles) ? data.tiles : (Array.isArray(data) ? data : null);
     if (!arr) { alert("Invalid tile JSON"); return; }

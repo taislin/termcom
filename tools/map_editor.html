@@ -95,7 +95,7 @@ body { font-family: 'Courier New', monospace; background: #1a1a2e; color: #e0e0e
   <h2>TILES<button class="ct-btn" id="loadTilesBtn">+Custom</button><span class="ct-count" id="ctCount"></span></h2>
   <div class="tile-list" id="tileList"></div>
 </div>
-<input type="file" id="tilesInput" accept=".json" style="display:none">
+<input type="file" id="tilesInput" accept=".json,.jsonc" style="display:none">
 
 <!-- Main -->
 <div class="main">
@@ -114,7 +114,7 @@ body { font-family: 'Courier New', monospace; background: #1a1a2e; color: #e0e0e
     <button id="exportBtn">Export</button>
     <button id="loadMapBtn" class="sc">Load Map</button>
     <button id="chunkToggleBtn" class="sc chunk-btn">Chunks</button>
-    <input type="file" id="mapFileInput" accept=".json">
+    <input type="file" id="mapFileInput" accept=".json,.jsonc">
   </div>
 
   <div class="canvas-wrap" id="canvasWrap">
@@ -133,7 +133,7 @@ body { font-family: 'Courier New', monospace; background: #1a1a2e; color: #e0e0e
   <div class="chunk-body" id="chunkBody">
     <div style="color:#555;font-size:11px;padding:12px;text-align:center;">Load chunk JSONs<br>from data/maps/ to begin</div>
   </div>
-  <input type="file" id="chunkFileInput" accept=".json" multiple>
+  <input type="file" id="chunkFileInput" accept=".json,.jsonc" multiple>
 </div>
 
 <!-- Export overlay -->
@@ -151,6 +151,32 @@ const TILES = TILE_DATA;
 const tileMap = {};
 TILES.forEach(t => tileMap[t.id] = t);
 let customTiles = [];
+
+// Strip JSONC comments (// and /* */) before parsing.
+function stripJSONC(text) {
+  let out = "", inStr = false, esc = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (esc) { out += ch; esc = false; continue; }
+    if (ch === '\\' && inStr) { esc = true; out += ch; continue; }
+    if (ch === '"') { inStr = !inStr; out += ch; continue; }
+    if (inStr) { out += ch; continue; }
+    if (ch === '/' && i + 1 < text.length && text[i + 1] === '/') {
+      while (i < text.length && text[i] !== '\n') i++;
+      out += '\n'; continue;
+    }
+    if (ch === '/' && i + 1 < text.length && text[i + 1] === '*') {
+      for (i += 2; i + 1 < text.length && !(text[i] === '*' && text[i + 1] === '/'); i++) {}
+      i++; continue;
+    }
+    out += ch;
+  }
+  return out;
+}
+
+function parseJSON(text) {
+  return JSON.parse(stripJSONC(text));
+}
 
 // ===== STATE =====
 let grid = [];
@@ -461,7 +487,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const reader = new FileReader();
       reader.onload = (ev) => {
         try {
-          const data = JSON.parse(ev.target.result);
+          const data = parseJSON(ev.target.result);
           if (data.rows && data.width && data.height && data.id) {
             loadedChunks.push(data);
             loaded++;
@@ -522,7 +548,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const reader = new FileReader();
     reader.onload = (ev) => {
       try {
-        const data = JSON.parse(ev.target.result);
+        const data = parseJSON(ev.target.result);
         if (loadMapJSON(data)) {
           renderGrid();
           exportArea.classList.remove("show");
@@ -546,7 +572,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const reader = new FileReader();
     reader.onload = (ev) => {
       try {
-        const data = JSON.parse(ev.target.result);
+        const data = parseJSON(ev.target.result);
         const arr = data.tiles && Array.isArray(data.tiles) ? data.tiles : (Array.isArray(data) ? data : null);
         if (!arr || arr.length === 0) { alert("No tiles found in JSON"); return; }
         let added = 0;

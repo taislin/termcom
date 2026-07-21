@@ -3,7 +3,33 @@
 //         fl=flammable, ex=explodes radius, no=noisy, mv=move cost, nm=name key
 [
   // , — Broken glass (noisy)
-  { "id":"TileGlass", "g":",", "c":"#bec8d2", "pa":true, "op":false, "de":true, "cv":0, "fl":false, "ex":0, "no":true, "mv":4, "nm":"TILE_GLASS" },
+  {
+    "id": "TileGlass",
+    "g": ",",
+    "c": "#bec8d2",
+    "pa": true,
+    "op": false,
+    "de": true,
+    "cv": 0,
+    "fl": false,
+    "ex": 0,
+    "no": true,
+    "mv": 4,
+    "nm": "TILE_GLASS"
+  },
   // ` — Scattered debris (noisy)
-  { "id":"TileDebris", "g":"`", "c":"#968c82", "pa":true, "op":false, "de":true, "cv":0, "fl":false, "ex":0, "no":true, "mv":4, "nm":"TILE_DEBRIS" }
+  {
+    "id": "TileDebris",
+    "g": "`",
+    "c": "#968c82",
+    "pa": true,
+    "op": false,
+    "de": true,
+    "cv": 0,
+    "fl": false,
+    "ex": 0,
+    "no": true,
+    "mv": 4,
+    "nm": "TILE_DEBRIS"
+  }
 ]
