@@ -154,12 +154,12 @@ func TestTileGeomRune_DoorAndWindow(t *testing.T) {
 }
 
 func TestTileBaseColor_AllTileTypes(t *testing.T) {
-	// Ensure every tile type in the palette resolves without panic
-	for tileType, expectedColor := range tilePalette {
-		tt := Tile{Type: tileType}
+	// Ensure every registered tile type resolves without panic
+	for tType, def := range tileRegistry {
+		tt := Tile{Type: tType}
 		got := TileBaseColor(tt)
-		if got != expectedColor {
-			t.Errorf("TileBaseColor(%v) = %v, want %v", tileType, got, expectedColor)
+		if got != def.Color {
+			t.Errorf("TileBaseColor(%v) = %v, want %v", tType, got, def.Color)
 		}
 	}
 }
@@ -210,7 +210,7 @@ func TestRenderTile_Visibility(t *testing.T) {
 		t.Errorf("Expected '·' for Grass, got %c", rVisible)
 	}
 	fgVisible := styleVisible.GetForeground()
-	expectedColor := tilePalette[TileGrass]
+	expectedColor := TileDefColor(TileGrass)
 	if fgVisible != expectedColor {
 		t.Errorf("Expected color %v, got %v", expectedColor, fgVisible)
 	}

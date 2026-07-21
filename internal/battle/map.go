@@ -323,111 +323,15 @@ func (m *BattleMap) SpreadFire() {
 		if tile.Fire <= 0 && tile.IsFlammable() {
 			tile.Type = TileFloor
 			tile.Cover = TileCover(TileFloor)
-			tile.Rune = tileChars[TileFloor]
+			tile.Rune = TileDefGlyph(TileFloor)
 			tile.Fire = 3
 		}
 	}
 }
 
-var tileChars = map[TileType]rune{
-	TileFloor:      '.',
-	TileWall:       '#',
-	TileDoor:       '+',
-	TileWindow:     '⊞',
-	TileGrass:      '·',
-	TileTree:       '♣',
-	TileRock:       '∩',
-	TileWater:      '≈',
-	TileUFOFloor:   '≡',
-	TileUFOWall:    '█',
-	TileStairsDown: '▓',
-	TileStairs:     '▒',
-	TilePavement:   '░',
-	TileSand:       '·',
-	TileSnow:       '∗',
-	TileMarsh:      '≋',
-	TileBush:       '†',
-	TileFence:      '│',
-	TileRubble:     '▒',
-	TileObject:     '•',
-	// UFO furniture characters
-	TileConsole:     '⌸', // Console panel (U+2338 QUAD MINUS)
-	TileMachinery:   '⊛', // Machinery (U+229B CIRCLED ASTERISK)
-	TilePod:         '◈', // Alien pod
-	TilePowerSource: '⌁', // Power source (U+2301 ELECTRICAL ARC)
-	TileStorage:     '▤', // Storage container
-	TileAlienTech:   '⊕', // Alien technology
-	// Human furniture characters
-	TileDesk:     '◊', // Desk (U+25CA LOZENGE)
-	TileChair:    '⊟', // Chair (U+229F)
-	TileChairLeft:  '⅃', // Chair facing left (toward a table)
-	TileChairRight: 'L', // Chair facing right (toward a table)
-	TileComputer: '⌸', // Console (U+2338 QUAD MINUS)
-	TileBed:          '□', // Bed (U+25A1)
-	TileLocker:       '◫', // Locker (U+25EB)
-	TileCabinet:      '⊞', // Cabinet (U+229E)
-	TileCar:          '▄', // Car left half (top)
-	TileCarMid:       '█', // Car middle roof (top only)
-	TileCarRight:     '▄', // Car right half (top)
-	TileForklift:     '█', // Forklift left half (top)
-	TileForkliftRight: '⊏', // Forklift right half (top)
-	// Urban hazard characters
-	TileFuelPump: '8', // Fuel pump (looks like nozzle)
-	// Shipping container characters
-	TileContainerRed:    '█',
-	TileContainerBlue:   '█',
-	TileContainerYellow: '█',
-	// Biome structure characters
-	TileAdobe:    '█', // adobe wall (dusty orange)
-	TileMetalWall: '█', // prefab metallic wall (silver)
-	TileWreck:    '▤', // aircraft wreckage (rusty)
-	TileTimber:   '≡', // stacked timber
-	TileDish:     '◗', // satellite dish
-	TileTruck:    '▄', // military truck (top half)
-	TileIce:      '≈', // frozen lake ice
-	TileStreetlamp: '⌖', // lamp/floodlight fixture
-	TileGlass:     ',', // broken glass / debris (noisy step)
-	TileDebris:    '`', // scattered debris (noisy step)
-	TileCryoPipe:  '╪', // cryo-coolant pipe
-	TileSkylight:  '⊙', // glass skylight floor
-	TileWheat:     'ψ', // tall wheat (psi-shaped stalks)
-	TileHayBale:   '█', // hay bale
-	TilePier:      '═', // wooden pier planks
-	TileDockCrate: '▣', // dock crate (square with center dot)
-	TileCliffFace: '░', // cliff face (stippled rock)
-	TileScree:     '·', // loose scree (like sand/grit dots)
-	TileBoulder:   '∩', // large boulder (same as rock but bigger shape)
-	TileSwampWater: '≋', // swamp water (wavy)
-	TileCypressTree: '♣', // cypress tree (same char as tree, different color)
-	TileSnowTree:    '♣', // snow-covered pine (white, same char)
-	TileMud:       '≋', // mud (wavy, like marsh)
-	TileVine:      '‡', // vines (dense cross)
-	TileBamboo:    '♣', // bamboo (same char as tree, different color)
-	TileDryBush:   '*', // dry coastal scrub
-	TileBusEnd:    '▄', // Bus end (top)
-	TileBusMid:    '█', // Bus middle roof (top)
-	TileHeloBody:  '█', // Helicopter fuselage (top)
-	TileHeloTail:  '▄', // Helicopter tail (top)
-	TileHeloNose:  '▷', // Helicopter nose (top)
-	TileHeloRotor: '+', // Helicopter rotor (overhead)
-	TileHeloRotorSides: '-', // Helicopter rotor sides (overhead)
-	TileHeloBodyBack:  '█', // Helicopter rear fuselage
-	TileHeloRotorBack: 'x', // Helicopter rear rotor
-	TileHeloWindow:    '◣', // Helicopter window glass
-	TileTractorCab:  '◣', // Tractor cab (top)
-	TileTractorBody: '█', // Tractor body (top)
-	TileCrawlerLeft:  '◢', // Crawler left end
-	TileCrawlerMid:   '█', // Crawler middle body
-	TileCrawlerRight: '◣', // Crawler right end
-	TileCrawlerLeg:   '^', // Crawler leg
-	TileWheel:        'O', // Vehicle wheel
-	TileWheelSmall:   'o', // Vehicle wheel (small)
-}
-
 func TileChar(t TileType) rune {
-	ch, ok := tileChars[t]
-	if ok {
-		return ch
+	if d := GetTileDef(t); d != nil {
+		return d.Glyph
 	}
 	return '.'
 }
@@ -662,7 +566,7 @@ func (m *BattleMap) CollapseSkylight(x, y int) bool {
 	}
 	tile.Type = TileRubble
 	tile.Cover = TileCover(TileRubble)
-	tile.Rune = tileChars[TileRubble]
+	tile.Rune = TileDefGlyph(TileRubble)
 	return true
 }
 

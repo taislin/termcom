@@ -2494,7 +2494,7 @@ func (bs *Battlescape) VentFreezeGas(cx, cy int) {
 				tile.Type == TileDebris {
 				tile.Type = TileIce
 				tile.Cover = TileCover(TileIce)
-				tile.Rune = tileChars[TileIce]
+				tile.Rune = TileDefGlyph(TileIce)
 			}
 		}
 	}
@@ -2546,7 +2546,7 @@ func (bs *Battlescape) TriggerFuelPumpExplosions(cx, cy int) {
 		tile := &bs.Map.Tiles[t.y][t.x]
 		tile.Type = TileRubble
 		tile.Cover = TileCover(TileRubble)
-		tile.Rune = tileChars[TileRubble]
+		tile.Rune = TileDefGlyph(TileRubble)
 		tile.BaseColor = tcell.ColorDefault
 	}
 

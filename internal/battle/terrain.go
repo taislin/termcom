@@ -49,47 +49,6 @@ var firePalette = []tcell.Color{
 	tcell.NewRGBColor(255, 200, 0),
 }
 
-// opaqueTiles is the set of tile types that block line of sight.
-var opaqueTiles = map[TileType]bool{
-	TileWall:            true,
-	TileTree:            true,
-	TileRock:            true,
-	TileUFOWall:         true,
-	TileFence:           true,
-	TileBush:            true,
-	TileCar:             true,
-	TileCarMid:          true,
-	TileCarRight:        true,
-	TileForklift:       true,
-	TileForkliftRight:   true,
-	TileContainerRed:    true,
-	TileContainerBlue:   true,
-	TileContainerYellow: true,
-	TileAdobe:           true,
-	TileMetalWall:       true,
-	TileWreck:           true,
-	TileTruck:           true,
-	TileDish:            true,
-	TileHayBale:         true,
-	TileDockCrate:       true,
-	TileCliffFace:       true,
-	TileBoulder:         true,
-	TileCypressTree:     true,
-	TileSnowTree:        true,
-	TileBamboo:          true,
-	TileBusEnd:          true,
-	TileBusMid:          true,
-	TileHeloBody:        true,
-	TileHeloTail:        true,
-	TileHeloNose:        true,
-	TileTractorCab:      true,
-	TileTractorBody:     true,
-	TileCrawlerLeft:     true,
-	TileCrawlerMid:      true,
-	TileCrawlerRight:    true,
-	TileCrawlerLeg:      true,
-}
-
 // Human building box-drawing glyphs
 const (
 	// Building wall glyphs — all solid blocks for uniform rendering.
@@ -103,97 +62,6 @@ const (
 	GlyphBuildingWin  rune = '⊞'
 )
 
-// tilePalette maps TileType to a curated true-color RGB value.
-var tilePalette = map[TileType]tcell.Color{
-	TileFloor:       tcell.NewRGBColor(95, 90, 85),
-	TileWall:        tcell.NewRGBColor(160, 155, 150),
-	TileDoor:        tcell.NewRGBColor(140, 100, 50),
-	TileWindow:      tcell.NewRGBColor(120, 170, 220),
-	TileGrass:       tcell.NewRGBColor(50, 110, 40),
-	TileTree:        tcell.NewRGBColor(35, 90, 25),
-	TileRock:        tcell.NewRGBColor(130, 125, 120),
-	TileWater:       tcell.NewRGBColor(40, 80, 200),
-	TileUFOFloor:    tcell.NewRGBColor(50, 75, 110),
-	TileUFOWall:     tcell.NewRGBColor(70, 100, 150),
-	TileStairs:      tcell.NewRGBColor(110, 105, 100),
-	TileStairsDown:  tcell.NewRGBColor(80, 75, 70),
-	TilePavement:    tcell.NewRGBColor(120, 120, 120),
-	TileSand:        tcell.NewRGBColor(200, 180, 120),
-	TileSnow:        tcell.NewRGBColor(230, 235, 245),
-	TileMarsh:       tcell.NewRGBColor(60, 100, 70),
-	TileBush:        tcell.NewRGBColor(45, 100, 35),
-	TileFence:       tcell.NewRGBColor(145, 120, 80),
-	TileRubble:      tcell.NewRGBColor(120, 115, 110),
-	TileObject:      tcell.NewRGBColor(170, 170, 170),
-	TileConsole:     tcell.NewRGBColor(70, 210, 130),
-	TileMachinery:   tcell.NewRGBColor(180, 180, 180),
-	TilePod:         tcell.NewRGBColor(130, 70, 190),
-	TilePowerSource: tcell.NewRGBColor(240, 200, 60),
-	TileStorage:     tcell.NewRGBColor(180, 140, 90),
-	TileAlienTech:   tcell.NewRGBColor(230, 70, 70),
-	TileDesk:        tcell.NewRGBColor(160, 120, 80),
-	TileChair:       tcell.NewRGBColor(150, 100, 60),
-	TileChairLeft:   tcell.NewRGBColor(150, 100, 60),
-	TileChairRight:  tcell.NewRGBColor(150, 100, 60),
-	TileComputer:    tcell.NewRGBColor(70, 180, 210),
-	TileBed:         tcell.NewRGBColor(200, 200, 200),
-	TileLocker:       tcell.NewRGBColor(140, 160, 180),
-	TileCabinet:      tcell.NewRGBColor(170, 130, 90),
-	TileCar:          tcell.NewRGBColor(50, 100, 180),
-	TileCarMid:       tcell.NewRGBColor(50, 100, 180),
-	TileCarRight:     tcell.NewRGBColor(50, 100, 180),
-	TileForklift:      tcell.NewRGBColor(200, 160, 40), // yellow forklift
-	TileForkliftRight: tcell.NewRGBColor(200, 160, 40),
-	TileFuelPump:      tcell.NewRGBColor(200, 60, 40), // red fuel pump
-	TileContainerRed:    tcell.NewRGBColor(180, 50, 40),  // red shipping container
-	TileContainerBlue:   tcell.NewRGBColor(50, 80, 180),  // blue shipping container
-	TileContainerYellow: tcell.NewRGBColor(200, 170, 40),  // yellow shipping container
-	TileAdobe:         tcell.NewRGBColor(200, 130, 70),  // dusty orange adobe
-	TileMetalWall:     tcell.NewRGBColor(180, 185, 195), // prefab metallic silver
-	TileWreck:         tcell.NewRGBColor(150, 95, 60),   // rusty aircraft wreckage
-	TileTimber:        tcell.NewRGBColor(150, 110, 60),  // stacked timber
-	TileDish:          tcell.NewRGBColor(170, 175, 185), // satellite dish
-	TileTruck:         tcell.NewRGBColor(90, 110, 70),   // olive military truck
-	TileIce:           tcell.NewRGBColor(180, 220, 235), // frozen lake ice (cyan-white)
-	TileStreetlamp:    tcell.NewRGBColor(220, 210, 120), // lamp fixture (warm)
-	TileGlass:         tcell.NewRGBColor(190, 200, 210), // broken glass (pale)
-	TileDebris:        tcell.NewRGBColor(150, 140, 130), // scattered debris
-	TileCryoPipe:      tcell.NewRGBColor(140, 200, 230), // cryo-coolant pipe (icy blue)
-	TileSkylight:      tcell.NewRGBColor(180, 210, 240), // glass skylight (pale blue)
-	TileWheat:         tcell.NewRGBColor(200, 180, 60),  // golden wheat
-	TileHayBale:       tcell.NewRGBColor(160, 140, 60),  // tan hay bale
-	TilePier:          tcell.NewRGBColor(140, 100, 60),  // brown wooden pier
-	TileDockCrate:     tcell.NewRGBColor(150, 120, 80),  // weathered crate
-	TileCliffFace:     tcell.NewRGBColor(140, 120, 100), // grey-brown cliff
-	TileScree:         tcell.NewRGBColor(160, 150, 130), // pale scree
-	TileBoulder:       tcell.NewRGBColor(130, 125, 120), // grey boulder
-	TileSwampWater:    tcell.NewRGBColor(50, 100, 80),   // murky green water
-	TileCypressTree:   tcell.NewRGBColor(40, 85, 50),    // darker green cypress
-	TileSnowTree:      tcell.NewRGBColor(220, 235, 245),  // white snow-covered pine
-	TileMud:           tcell.NewRGBColor(110, 80, 50),   // brown mud
-	TileVine:          tcell.NewRGBColor(50, 130, 50),   // bright green vine
-	TileBamboo:        tcell.NewRGBColor(80, 150, 60),   // pale green bamboo
-	TileBusEnd:        tcell.NewRGBColor(200, 180, 60),  // yellow bus
-	TileBusMid:        tcell.NewRGBColor(200, 180, 60),  // yellow bus
-	TileHeloBody:      tcell.NewRGBColor(60, 70, 85),    // dark grey-green fuselage
-	TileHeloTail:      tcell.NewRGBColor(60, 70, 85),    // dark grey-green tail
-	TileHeloNose:      tcell.NewRGBColor(130, 200, 230), // glass canopy blue
-	TileHeloRotor:     tcell.NewRGBColor(180, 180, 180), // light grey rotor
-	TileHeloRotorSides: tcell.NewRGBColor(180, 180, 180), // light grey rotor sides
-	TileTractorCab:    tcell.NewRGBColor(130, 200, 230),  // glass tractor cab
-	TileTractorBody:   tcell.NewRGBColor(180, 60, 40),   // red tractor body
-	TileCrawlerLeft:   tcell.NewRGBColor(130, 70, 190),  // alien purple
-	TileCrawlerMid:    tcell.NewRGBColor(130, 70, 190),  // alien purple
-	TileCrawlerRight:  tcell.NewRGBColor(130, 70, 190),  // alien purple
-	TileCrawlerLeg:    tcell.NewRGBColor(100, 50, 160),  // darker purple
-	TileDryBush:       tcell.NewRGBColor(170, 140, 60),  // dry scrub brown
-	TileHeloBodyBack:  tcell.NewRGBColor(60, 70, 85),    // dark grey-green rear fuselage
-	TileHeloRotorBack: tcell.NewRGBColor(180, 180, 180), // light grey rear rotor
-	TileHeloWindow:    tcell.NewRGBColor(130, 200, 230), // blue glass
-	TileWheel:         tcell.NewRGBColor(60, 60, 60),    // dark grey rubber
-	TileWheelSmall:    tcell.NewRGBColor(60, 60, 60),    // dark grey rubber
-}
-
 // TileBaseColor returns the resolved color for a tile.
 func TileBaseColor(t Tile) tcell.Color {
 	if t.BaseColor != tcell.ColorDefault {
@@ -201,9 +69,6 @@ func TileBaseColor(t Tile) tcell.Color {
 	}
 	if d := GetTileDef(t.Type); d != nil {
 		return d.Color
-	}
-	if col, ok := tilePalette[t.Type]; ok {
-		return col
 	}
 	return tcell.NewRGBColor(128, 128, 128) // neutral grey fallback
 }
@@ -356,7 +221,7 @@ func isOpaqueTile(t TileType) bool {
 	if d := GetTileDef(t); d != nil {
 		return d.Opaque
 	}
-	return opaqueTiles[t]
+	return false
 }
 
 // RenderTile produces the character and style for drawing a tile.

@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
-	"strconv"
-	"strings"
+	"runtime"
+	"sync/atomic"
 
 	"github.com/gdamore/tcell/v3"
 )
@@ -31,9 +31,10 @@ type TileDef struct {
 }
 
 var (
-	tileRegistry      = map[TileType]*TileDef{}
-	tileRegistryByName = map[string]TileType{}
-	nextCustomTileType TileType = TileCustomBase
+	tileRegistry        = map[TileType]*TileDef{}
+	tileRegistryByName  = map[string]TileType{}
+	nextCustomTileType  TileType = TileCustomBase
+	tileLibLoaded       int32
 )
 
 // RegisterTile adds a custom tile type and returns its assigned TileType.
@@ -59,6 +60,7 @@ func LookupTileType(id string) (TileType, bool) {
 
 // GetTileDef returns the TileDef for a TileType, or nil if not registered.
 func GetTileDef(t TileType) *TileDef {
+	ensureTilesLoaded()
 	return tileRegistry[t]
 }
 
@@ -67,9 +69,6 @@ func TileDefGlyph(t TileType) rune {
 	if d := tileRegistry[t]; d != nil {
 		return d.Glyph
 	}
-	if r, ok := tileChars[t]; ok {
-		return r
-	}
 	return '?'
 }
 
@@ -77,9 +76,6 @@ func TileDefGlyph(t TileType) rune {
 func TileDefColor(t TileType) tcell.Color {
 	if d := tileRegistry[t]; d != nil {
 		return d.Color
-	}
-	if c, ok := tilePalette[t]; ok {
-		return c
 	}
 	return tcell.ColorDefault
 }
@@ -157,14 +153,7 @@ func TileDefMoveCost(t TileType) int {
 }
 
 func parseHexColor(hex string) tcell.Color {
-	hex = strings.TrimPrefix(hex, "#")
-	if len(hex) != 6 {
-		return tcell.ColorDefault
-	}
-	r, _ := strconv.ParseUint(hex[0:2], 16, 8)
-	g, _ := strconv.ParseUint(hex[2:4], 16, 8)
-	b, _ := strconv.ParseUint(hex[4:6], 16, 8)
-	return tcell.NewRGBColor(int32(r), int32(g), int32(b))
+	return tcell.GetColor(hex)
 }
 
 // LoadCustomTiles loads custom tile definitions from a JSON file.
@@ -248,11 +237,6 @@ func InitCustomTiles() {
 	}
 }
 
-func init() {
-	populateBuiltinRegistry()
-	loadBuiltinTileLibrary()
-}
-
 // Strip comments from JSONC text (both // and /* */ comments).
 func stripJSONCComments(raw []byte) []byte {
 	// We do a simple single-pass stripper.
@@ -302,7 +286,7 @@ func stripJSONCComments(raw []byte) []byte {
 	return out
 }
 
-// jsoncTileDef matches the short-field format used in tools/tile_data/*.jsonc.
+// jsoncTileDef matches the compact field format used in data/tiles/*.jsonc.
 type jsoncTileDef struct {
 	ID           string `json:"id"`
 	GlyphStr     string `json:"g"`
@@ -311,22 +295,60 @@ type jsoncTileDef struct {
 	Passable     *bool  `json:"pa"`
 	Opaque       *bool  `json:"op"`
 	Destructible *bool  `json:"de"`
+	Flammable    *bool  `json:"fl"`
+	Explodes     int    `json:"ex"`
+	Noisy        *bool  `json:"no"`
+	MoveCost     int    `json:"mv"`
+	NameKey      string `json:"nm"`
 }
 
-// loadBuiltinTileLibrary loads tile definitions from tools/tile_data/*.jsonc
-// and overrides or registers tiles in the registry.
+// loadBuiltinTileLibrary loads tile definitions from data/tiles/*.jsonc
+// and registers them as the built-in tile library.
 func loadBuiltinTileLibrary() {
-	paths := []string{"tools/tile_data/*.jsonc", "../tools/tile_data/*.jsonc", "../../tools/tile_data/*.jsonc"}
+	// Search for data/tiles/*.jsonc by walking up from cwd
+	cwd, _ := os.Getwd()
 	var matches []string
-	for _, p := range paths {
-		var err error
-		matches, err = filepath.Glob(p)
-		if err == nil && len(matches) > 0 {
+	for _, root := range []string{cwd} {
+		dir := root
+		for depth := 0; depth < 8; depth++ {
+			p := filepath.Join(dir, "data", "tiles", "*.jsonc")
+			m, err := filepath.Glob(p)
+			if err == nil && len(m) > 0 {
+				matches = m
+				break
+			}
+			parent := filepath.Dir(dir)
+			if parent == dir {
+				break
+			}
+			dir = parent
+		}
+		if len(matches) > 0 {
 			break
 		}
 	}
+	// Fallback: use runtime.Caller to find the source file directory
 	if len(matches) == 0 {
-		return // fall back to hardcoded
+		_, srcFile, _, ok := runtime.Caller(0)
+		if ok {
+			dir := filepath.Dir(srcFile)
+			for depth := 0; depth < 6; depth++ {
+				p := filepath.Join(dir, "data", "tiles", "*.jsonc")
+				m, err := filepath.Glob(p)
+				if err == nil && len(m) > 0 {
+					matches = m
+					break
+				}
+				parent := filepath.Dir(dir)
+				if parent == dir {
+					break
+				}
+				dir = parent
+			}
+		}
+	}
+	if len(matches) == 0 {
+		return
 	}
 	for _, path := range matches {
 		raw, err := os.ReadFile(path)
@@ -351,10 +373,15 @@ func loadBuiltinTileLibrary() {
 				Passable:     boolPtrVal(jt.Passable, true),
 				Opaque:       boolPtrVal(jt.Opaque, false),
 				Destructible: boolPtrVal(jt.Destructible, true),
-				MoveCost:     4,
+				Flammable:    boolPtrVal(jt.Flammable, false),
+				Explodes:     jt.Explodes,
+				Noisy:        boolPtrVal(jt.Noisy, false),
+				MoveCost:     jt.MoveCost,
+				NameKey:      jt.NameKey,
 			}
-			// If already registered (by populateBuiltinRegistry), override.
-			// If not, register as a new tile with a dynamic type.
+			if def.MoveCost == 0 {
+				def.MoveCost = 4
+			}
 			if t, ok := tileRegistryByName[jt.ID]; ok {
 				tileRegistry[t] = def
 			} else {
@@ -364,140 +391,22 @@ func loadBuiltinTileLibrary() {
 	}
 }
 
-// populateBuiltinRegistry fills the tile registry from the hardcoded tile constants.
-func populateBuiltinRegistry() {
-	type builtinDef struct {
-		id           string
-		t            TileType
-		glyph        rune
-		color        tcell.Color
-		cover        int
-		passable     bool
-		opaque       bool
-		destructible bool
-		flammable    bool
-		explodes     int
-		noisy        bool
-		moveCost     int
-		nameKey      string
-	}
-	builtins := []builtinDef{
-		{"TileFloor", TileFloor, '.', rgb(95, 90, 85), 0, true, false, false, false, 0, false, 4, "TILE_FLOOR"},
-		{"TileWall", TileWall, '#', rgb(160, 155, 150), 80, false, true, true, false, 0, false, 4, "TILE_WALL"},
-		{"TileDoor", TileDoor, '+', rgb(140, 100, 50), 0, true, false, true, true, 0, false, 4, "TILE_DOOR"},
-		{"TileWindow", TileWindow, '⊞', rgb(120, 170, 220), 20, false, false, true, false, 0, false, 4, "TILE_WINDOW"},
-		{"TileGrass", TileGrass, '·', rgb(50, 110, 40), 0, true, false, false, true, 0, false, 4, "TILE_GRASS"},
-		{"TileTree", TileTree, '♣', rgb(35, 90, 25), 60, false, true, true, true, 0, false, 8, "TILE_TREE"},
-		{"TileRock", TileRock, '∩', rgb(130, 125, 120), 70, false, true, true, false, 0, false, 8, "TILE_ROCK"},
-		{"TileWater", TileWater, '≈', rgb(40, 80, 200), 0, false, false, false, false, 0, false, 8, "TILE_WATER"},
-		{"TileUFOFloor", TileUFOFloor, '≡', rgb(50, 75, 110), 0, true, false, false, false, 0, false, 4, "TILE_UFO_FLOOR"},
-		{"TileUFOWall", TileUFOWall, '█', rgb(70, 100, 150), 80, false, true, true, false, 0, false, 4, "TILE_UFO_WALL"},
-		{"TileStairs", TileStairs, '▒', rgb(110, 105, 100), 0, true, false, false, false, 0, false, 4, "TILE_STAIRS"},
-		{"TilePavement", TilePavement, '░', rgb(120, 120, 120), 0, true, false, false, false, 0, false, 3, "TILE_PAVEMENT"},
-		{"TileSand", TileSand, '·', rgb(200, 180, 120), 0, true, false, false, false, 0, false, 6, "TILE_SAND"},
-		{"TileSnow", TileSnow, '∗', rgb(230, 235, 245), 0, true, false, false, false, 0, false, 5, "TILE_SNOW"},
-		{"TileMarsh", TileMarsh, '≋', rgb(60, 100, 70), 0, true, false, false, false, 0, false, 6, "TILE_MARSH"},
-		{"TileBush", TileBush, '†', rgb(45, 100, 35), 40, true, false, false, true, 0, false, 5, "TILE_BUSH"},
-		{"TileFence", TileFence, '│', rgb(145, 120, 80), 30, false, true, true, true, 0, false, 4, "TILE_FENCE"},
-		{"TileRubble", TileRubble, '▒', rgb(120, 115, 110), 20, true, false, false, false, 0, false, 4, "TILE_RUBBLE"},
-		{"TileObject", TileObject, '•', rgb(170, 170, 170), 50, false, false, false, false, 0, false, 4, "TILE_OBJECT"},
-		{"TileConsole", TileConsole, '⌸', rgb(70, 210, 130), 10, true, false, true, false, 0, false, 4, "TILE_CONSOLE"},
-		{"TileMachinery", TileMachinery, '⊛', rgb(180, 180, 180), 30, true, false, true, false, 0, false, 4, "TILE_MACHINERY"},
-		{"TilePod", TilePod, '◈', rgb(130, 70, 190), 30, true, false, true, false, 0, false, 4, "TILE_POD"},
-		{"TilePowerSource", TilePowerSource, '⌁', rgb(240, 200, 60), 20, true, false, true, false, 0, false, 4, "TILE_POWER_SOURCE"},
-		{"TileStorage", TileStorage, '▤', rgb(180, 140, 90), 30, true, false, true, false, 0, false, 4, "TILE_STORAGE"},
-		{"TileAlienTech", TileAlienTech, '⊕', rgb(230, 70, 70), 20, true, false, true, false, 0, false, 4, "TILE_ALIEN_TECH"},
-		{"TileStairsDown", TileStairsDown, '▓', rgb(80, 75, 70), 0, true, false, false, false, 0, false, 4, "TILE_STAIRS_DOWN"},
-		{"TileDesk", TileDesk, '◊', rgb(160, 120, 80), 30, true, false, true, false, 0, false, 4, "TILE_DESK"},
-		{"TileChair", TileChair, '⊟', rgb(150, 100, 60), 10, true, false, true, false, 0, false, 4, "TILE_CHAIR"},
-		{"TileChairLeft", TileChairLeft, '⅃', rgb(150, 100, 60), 10, true, false, true, false, 0, false, 4, "TILE_CHAIR"},
-		{"TileChairRight", TileChairRight, 'L', rgb(150, 100, 60), 10, true, false, true, false, 0, false, 4, "TILE_CHAIR"},
-		{"TileComputer", TileComputer, '⌸', rgb(70, 180, 210), 10, true, false, true, false, 0, false, 4, "TILE_COMPUTER"},
-		{"TileBed", TileBed, '□', rgb(200, 200, 200), 20, true, false, true, false, 0, false, 4, "TILE_BED"},
-		{"TileLocker", TileLocker, '◫', rgb(140, 160, 180), 30, true, false, true, false, 0, false, 4, "TILE_LOCKER"},
-		{"TileCabinet", TileCabinet, '⊞', rgb(170, 130, 90), 30, true, false, true, false, 0, false, 4, "TILE_CABINET"},
-		{"TileCar", TileCar, '▄', rgb(50, 100, 180), 50, false, false, true, false, 0, false, 4, "TILE_CAR"},
-		{"TileCarMid", TileCarMid, '█', rgb(50, 100, 180), 50, false, false, true, false, 0, false, 4, "TILE_CAR"},
-		{"TileCarRight", TileCarRight, '▄', rgb(50, 100, 180), 50, false, false, true, false, 0, false, 4, "TILE_CAR"},
-		{"TileForklift", TileForklift, '█', rgb(200, 160, 40), 50, false, false, true, false, 0, false, 4, "TILE_FORKLIFT"},
-		{"TileForkliftRight", TileForkliftRight, '⊏', rgb(200, 160, 40), 50, false, false, true, false, 0, false, 4, "TILE_FORKLIFT"},
-		{"TileFuelPump", TileFuelPump, '8', rgb(200, 60, 40), 30, false, false, true, false, 5, false, 4, "TILE_FUEL_PUMP"},
-		{"TileContainerRed", TileContainerRed, '█', rgb(180, 50, 40), 80, false, false, false, false, 0, false, 4, "TILE_CONTAINER"},
-		{"TileContainerBlue", TileContainerBlue, '█', rgb(50, 80, 180), 80, false, false, false, false, 0, false, 4, "TILE_CONTAINER"},
-		{"TileContainerYellow", TileContainerYellow, '█', rgb(200, 170, 40), 80, false, false, false, false, 0, false, 4, "TILE_CONTAINER"},
-		{"TileAdobe", TileAdobe, '█', rgb(200, 130, 70), 80, false, true, false, false, 0, false, 4, "TILE_ADOBE"},
-		{"TileMetalWall", TileMetalWall, '█', rgb(180, 185, 195), 80, false, true, false, false, 0, false, 4, "TILE_METAL_WALL"},
-		{"TileWreck", TileWreck, '▤', rgb(150, 95, 60), 80, false, true, false, false, 0, false, 4, "TILE_WRECK"},
-		{"TileTimber", TileTimber, '≡', rgb(150, 110, 60), 80, false, true, true, true, 0, false, 4, "TILE_TIMBER"},
-		{"TileDish", TileDish, '◗', rgb(170, 175, 185), 50, false, true, false, false, 0, false, 4, "TILE_DISH"},
-		{"TileTruck", TileTruck, '▄', rgb(90, 110, 70), 80, false, true, true, false, 0, false, 4, "TILE_TRUCK"},
-		{"TileIce", TileIce, '≈', rgb(180, 220, 235), 0, true, false, false, false, 0, false, 5, "TILE_ICE"},
-		{"TileStreetlamp", TileStreetlamp, '⌖', rgb(220, 210, 120), 10, false, false, true, false, 0, false, 4, "TILE_STREETLAMP"},
-		{"TileGlass", TileGlass, ',', rgb(190, 200, 210), 0, true, false, true, false, 0, true, 4, "TILE_GLASS"},
-		{"TileDebris", TileDebris, '`', rgb(150, 140, 130), 0, true, false, true, false, 0, true, 4, "TILE_DEBRIS"},
-		{"TileCryoPipe", TileCryoPipe, '╪', rgb(140, 200, 230), 30, false, false, true, false, 0, false, 4, "TILE_CRYO_PIPE"},
-		{"TileSkylight", TileSkylight, '⊙', rgb(180, 210, 240), 0, true, false, true, false, 0, false, 4, "TILE_SKYLIGHT"},
-		{"TileWheat", TileWheat, 'ψ', rgb(200, 180, 60), 20, true, false, true, true, 0, false, 5, "TILE_WHEAT"},
-		{"TileHayBale", TileHayBale, '█', rgb(160, 140, 60), 60, false, true, true, true, 0, false, 4, "TILE_HAY_BALE"},
-		{"TilePier", TilePier, '═', rgb(140, 100, 60), 10, true, false, false, false, 0, false, 3, "TILE_PIER"},
-		{"TileDockCrate", TileDockCrate, '▣', rgb(150, 120, 80), 50, false, true, true, false, 0, false, 4, "TILE_DOCK_CRATE"},
-		{"TileCliffFace", TileCliffFace, '░', rgb(140, 120, 100), 80, false, true, false, false, 0, false, 4, "TILE_CLIFF_FACE"},
-		{"TileScree", TileScree, '·', rgb(160, 150, 130), 10, true, false, true, false, 0, true, 6, "TILE_SCREE"},
-		{"TileBoulder", TileBoulder, '∩', rgb(130, 125, 120), 70, false, true, false, false, 0, false, 8, "TILE_BOULDER"},
-		{"TileSwampWater", TileSwampWater, '≋', rgb(50, 100, 80), 5, true, false, false, false, 0, false, 8, "TILE_SWAMP_WATER"},
-		{"TileCypressTree", TileCypressTree, '♣', rgb(40, 85, 50), 80, false, true, true, true, 0, false, 8, "TILE_CYPRESS_TREE"},
-		{"TileSnowTree", TileSnowTree, '♣', rgb(220, 235, 245), 80, false, true, true, true, 0, false, 8, "TILE_SNOW_TREE"},
-		{"TileMud", TileMud, '≋', rgb(110, 80, 50), 5, true, false, false, false, 0, false, 6, "TILE_MUD"},
-		{"TileVine", TileVine, '‡', rgb(50, 130, 50), 20, true, false, true, true, 0, false, 6, "TILE_VINE"},
-		{"TileBamboo", TileBamboo, '♣', rgb(80, 150, 60), 60, false, true, true, true, 0, false, 8, "TILE_BAMBOO"},
-		{"TileDryBush", TileDryBush, '*', rgb(170, 140, 60), 20, true, false, true, true, 0, false, 4, "TILE_DRY_BUSH"},
-		{"TileBusEnd", TileBusEnd, '▄', rgb(200, 180, 60), 50, false, true, true, false, 0, false, 4, "TILE_BUS"},
-		{"TileBusMid", TileBusMid, '█', rgb(200, 180, 60), 50, false, true, true, false, 0, false, 4, "TILE_BUS"},
-		{"TileHeloBody", TileHeloBody, '█', rgb(60, 70, 85), 50, false, true, true, false, 0, false, 4, "TILE_HELICOPTER"},
-		{"TileHeloTail", TileHeloTail, '▄', rgb(60, 70, 85), 30, false, true, true, false, 0, false, 4, "TILE_HELICOPTER"},
-		{"TileHeloNose", TileHeloNose, '▷', rgb(130, 200, 230), 40, false, true, true, false, 0, false, 4, "TILE_HELICOPTER"},
-		{"TileHeloRotor", TileHeloRotor, '+', rgb(180, 180, 180), 0, true, false, true, false, 0, false, 4, "TILE_HELO_ROTOR"},
-		{"TileHeloRotorSides", TileHeloRotorSides, '-', rgb(180, 180, 180), 0, true, false, true, false, 0, false, 4, "TILE_HELO_ROTOR"},
-		{"TileHeloBodyBack", TileHeloBodyBack, '█', rgb(60, 70, 85), 50, false, true, true, false, 0, false, 4, "TILE_HELICOPTER"},
-		{"TileHeloRotorBack", TileHeloRotorBack, 'x', rgb(180, 180, 180), 0, true, false, true, false, 0, false, 4, "TILE_HELO_ROTOR"},
-		{"TileHeloWindow", TileHeloWindow, '◣', rgb(130, 200, 230), 0, false, true, true, false, 0, false, 4, "TILE_WINDOW"},
-		{"TileTractorCab", TileTractorCab, '◣', rgb(130, 200, 230), 30, false, true, true, false, 0, false, 4, "TILE_TRACTOR"},
-		{"TileTractorBody", TileTractorBody, '█', rgb(180, 60, 40), 30, false, true, true, false, 0, false, 4, "TILE_TRACTOR"},
-		{"TileCrawlerLeft", TileCrawlerLeft, '◢', rgb(130, 70, 190), 50, false, true, true, false, 0, false, 4, "TILE_CRAWLER"},
-		{"TileCrawlerMid", TileCrawlerMid, '█', rgb(130, 70, 190), 50, false, true, true, false, 0, false, 4, "TILE_CRAWLER"},
-		{"TileCrawlerRight", TileCrawlerRight, '◣', rgb(130, 70, 190), 50, false, true, true, false, 0, false, 4, "TILE_CRAWLER"},
-		{"TileCrawlerLeg", TileCrawlerLeg, '^', rgb(100, 50, 160), 20, false, true, true, false, 0, false, 4, "TILE_CRAWLER_LEG"},
-		{"TileWheel", TileWheel, 'O', rgb(60, 60, 60), 10, false, false, true, false, 0, false, 4, "TILE_WHEEL"},
-		{"TileWheelSmall", TileWheelSmall, 'o', rgb(60, 60, 60), 10, false, false, true, false, 0, false, 4, "TILE_WHEEL"},
-	}
-	for _, b := range builtins {
-		def := &TileDef{
-			Glyph:        b.glyph,
-			GlyphStr:     string(b.glyph),
-			Color:        b.color,
-			ColorHex:     colorToHex(b.color),
-			Cover:        b.cover,
-			Passable:     b.passable,
-			Opaque:       b.opaque,
-			Destructible: b.destructible,
-			Flammable:    b.flammable,
-			Explodes:     b.explodes,
-			Noisy:        b.noisy,
-			MoveCost:     b.moveCost,
-			NameKey:      b.nameKey,
-		}
-		tileRegistry[b.t] = def
-		tileRegistryByName[b.id] = b.t
+// ensureTilesLoaded ensures the built-in tile library is loaded.
+// This is called lazily on first access to avoid issues with working directory
+// during package init (especially in tests).
+func ensureTilesLoaded() {
+	if atomic.LoadInt32(&tileLibLoaded) == 0 {
+		atomic.StoreInt32(&tileLibLoaded, 1)
+		registerBuiltinNameMappings()
+		loadBuiltinTileLibrary()
 	}
 }
 
-func rgb(r, g, b int32) tcell.Color {
-	return tcell.NewRGBColor(r, g, b)
-}
-
-func colorToHex(c tcell.Color) string {
-	r, g, b := c.RGB()
-	return "#" + strconv.FormatInt(int64((r>>16)&0xFF), 16) +
-		strconv.FormatInt(int64((g>>8)&0xFF), 16) +
-		strconv.FormatInt(int64(b&0xFF), 16)
+// registerBuiltinNameMappings populates tileRegistryByName with the known
+// TileType constant values so that loadBuiltinTileLibrary can update the
+// registry at the correct constant-based indices.
+func registerBuiltinNameMappings() {
+	for id, t := range tileTypeByName {
+		tileRegistryByName[id] = t
+	}
 }

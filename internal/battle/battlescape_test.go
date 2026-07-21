@@ -11,6 +11,7 @@ import (
 
 func TestMain(m *testing.M) {
 	_ = mapgen.Init()
+	loadBuiltinTileLibrary()
 	os.Exit(m.Run())
 }
 

@@ -1,0 +1,15 @@
+// Water, marsh, swamp water, ice, wooden pier
+// Fields: id, g=glyph, c=color, pa=passable, op=opaque, de=destructible, cv=cover,
+//         fl=flammable, ex=explodes radius, no=noisy, mv=move cost, nm=name key
+[
+  // \u2248 ≈ — Deep water
+  { "id":"TileWater", "g":"\u2248", "c":"#2850c8", "pa":false, "op":false, "de":false, "cv":0, "fl":false, "ex":0, "no":false, "mv":8, "nm":"TILE_WATER" },
+  // \u224B ≋ — Marsh / bog
+  { "id":"TileMarsh", "g":"\u224B", "c":"#3c6446", "pa":true, "op":false, "de":false, "cv":0, "fl":false, "ex":0, "no":false, "mv":6, "nm":"TILE_MARSH" },
+  // \u224B ≋ — Murky swamp water
+  { "id":"TileSwampWater", "g":"\u224B", "c":"#326450", "pa":true, "op":false, "de":false, "cv":5, "fl":false, "ex":0, "no":false, "mv":8, "nm":"TILE_SWAMP_WATER" },
+  // \u2248 ≈ — Frozen lake ice
+  { "id":"TileIce", "g":"\u2248", "c":"#b4dceb", "pa":true, "op":false, "de":false, "cv":0, "fl":false, "ex":0, "no":false, "mv":5, "nm":"TILE_ICE" },
+  // \u2550 ═ — Wooden pier
+  { "id":"TilePier", "g":"\u2550", "c":"#8c643c", "pa":true, "op":false, "de":false, "cv":10, "fl":false, "ex":0, "no":false, "mv":3, "nm":"TILE_PIER" }
+]
