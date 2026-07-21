@@ -255,9 +255,14 @@ cmd/
   webserver/            Web server (for remote play)
 maps/
   *.json                Custom battle definitions
+tools/
+  map_editor.html       Browser-based tile-grid editor for map fragments
+  tile_creator.html     Browser-based tile type creator (custom tiles)
 data/
   maps/
     *.json              Map fragment library (biome-tagged terrain chunks)
+  tiles/
+    *.json              Custom tile definitions (dynamically loaded at startup)
   wfc/
     ufo.json            WFC tile library: UFO interiors
     urban.json          WFC tile library: urban buildings
@@ -551,3 +556,62 @@ Current version: **3**
 | 3 | AlienKnowledge map added |
 
 Migration functions are in `internal/save/save.go`. Saves below v2 are rejected.
+
+## Developer Tools
+
+Browser-based HTML tools for level design and tile creation. Open directly in any browser — no build step required.
+
+### Map Editor (`tools/map_editor.html`)
+
+Visual tile-grid editor for designing map fragments. Paint tiles on a grid, export to JSON for use in `data/maps/`.
+
+- **Left sidebar:** tile palette with all tile types, glyph previews, and color swatches
+- **Center:** interactive grid — left-click to paint, right-click to erase (sets to TileGrass)
+- **Terminal Preview:** click "Preview" to open a side panel showing how the map looks in a monospace terminal (correct glyph aspect ratio, game colors)
+- **Export:** generates a chunk JSON file. Save the exported JSON to `data/maps/<name>.json` and tag it with the appropriate biome(s). The chunk will be picked up automatically by `mapgen.Init()` at startup.
+- **Load:** import existing chunk JSONs from `data/maps/` to edit them
+
+**Exported file location:** `data/maps/<name>.json`
+
+### Tile Creator (`tools/tile_creator.html`)
+
+Create new tile types with custom glyphs, colors, and gameplay properties. Export to JSON for use as dynamic tiles loaded at startup.
+
+- **Left sidebar:** tile properties — ID, name key, glyph, color picker, passable/opaque/destructible/flammable/explodes/noisy toggles, cover %, TU cost, move cost, category, description
+- **Center:** live preview — large tile render + terminal-style preview
+- **Registered Tiles:** list of all tiles you've added in this session. Click to re-edit, X to remove.
+- **Export:** generates a `custom_tiles.json` file. Save to `data/tiles/<name>.json` and the game loads it automatically on startup via `InitCustomTiles()`. You can have multiple files in `data/tiles/` — all `.json` files are loaded.
+- **Load:** import existing tile JSONs from `data/tiles/` to continue editing
+
+**Exported file location:** `data/tiles/<name>.json` (any filename, must end in `.json`)
+
+**Custom tile JSON format:**
+
+```json
+{
+  "tiles": [
+    {
+      "id": "TileNeonSign",
+      "glyph": "n",
+      "color": "#00ff88",
+      "cover": 0,
+      "passable": true,
+      "opaque": false,
+      "destructible": true,
+      "flammable": false,
+      "explodes": 0,
+      "noisy": false,
+      "move_cost": 4,
+      "name": "TILE_NEON_SIGN"
+    }
+  ]
+}
+```
+
+Custom tiles are assigned dynamic `TileType` IDs starting at 1000. They work in:
+- Map fragment JSONs (add `"TileNeonSign": "n"` to the `terrain` map)
+- WFC tile libraries
+- Fragment assembly
+- All gameplay systems (LOS, pathfinding, cover, fire, explosions)
+
+**TU cost reference:** 3=pavement, 4=floor, 5=snow/bush/wheat, 6=sand/mud/scree, 8=water/forest

@@ -230,14 +230,21 @@ func boolPtrVal(p *bool, def bool) bool {
 	return def
 }
 
-// InitCustomTiles loads custom_tiles.json from the data directory.
+// InitCustomTiles loads all .json files from data/tiles/ directory.
 func InitCustomTiles() {
-	dirs := []string{"data", "../data", "../../data"}
+	dirs := []string{"data/tiles", "../data/tiles", "../../data/tiles"}
 	for _, d := range dirs {
-		path := filepath.Join(d, "custom_tiles.json")
-		if err := LoadCustomTiles(path); err == nil {
-			return
+		matches, err := filepath.Glob(filepath.Join(d, "*.json"))
+		if err != nil || len(matches) == 0 {
+			continue
 		}
+		for _, path := range matches {
+			if err := LoadCustomTiles(path); err != nil {
+				// silently skip bad files
+				continue
+			}
+		}
+		return
 	}
 }
 
