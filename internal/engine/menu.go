@@ -103,6 +103,13 @@ func HasSave() bool {
 	return false
 }
 
+// HasContinueSave returns true only if the main quick-save file exists,
+// which is the file that the "Continue" menu option actually loads.
+func HasContinueSave() bool {
+	_, err := os.Stat(SaveFile)
+	return err == nil
+}
+
 func (ms *MenuScreen) seedStars(w, h int) {
 	const numStars = 150
 	ms.stars = make([]menuStar, numStars)
@@ -414,10 +421,20 @@ func isNewerVersion(latest, current string) bool {
 }
 
 func (ms *MenuScreen) options() []string {
-	if HasSave() {
-		return []string{language.String("MENU_NEW_GAME"), language.String("MENU_CONTINUE"), language.String("MENU_LOAD_GAME"), language.String("MENU_CUSTOM_BATTLE"), language.String("MENU_OPTIONS"), language.String("MENU_WEBSITE"), language.String("MENU_QUIT")}
+	base := []string{language.String("MENU_NEW_GAME")}
+	if HasContinueSave() {
+		base = append(base, language.String("MENU_CONTINUE"))
 	}
-	return []string{language.String("MENU_NEW_GAME"), language.String("MENU_CUSTOM_BATTLE"), language.String("MENU_OPTIONS"), language.String("MENU_WEBSITE"), language.String("MENU_QUIT")}
+	if HasSave() {
+		base = append(base, language.String("MENU_LOAD_GAME"))
+	}
+	base = append(base,
+		language.String("MENU_CUSTOM_BATTLE"),
+		language.String("MENU_OPTIONS"),
+		language.String("MENU_WEBSITE"),
+		language.String("MENU_QUIT"),
+	)
+	return base
 }
 
 func (ms *MenuScreen) HandleKey(e *tcell.EventKey) {
@@ -464,6 +481,8 @@ func (ms *MenuScreen) HandleKey(e *tcell.EventKey) {
 		ms.handleNumericShortcut(5, opts)
 	case "6":
 		ms.handleNumericShortcut(6, opts)
+	case "7":
+		ms.handleNumericShortcut(7, opts)
 	}
 }
 

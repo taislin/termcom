@@ -13,6 +13,7 @@ import (
 )
 
 const numTabs = 6
+const numFacilityTypes = 8
 
 // BaseScreen renders the base management view with multiple tabs.
 type BaseScreen struct {
@@ -365,6 +366,8 @@ func (bs *BaseScreen) HandleKey(e *tcell.EventKey) {
 				bs.Selection = len(bs.storesItems) - 1
 			} else if bs.Tab == 5 {
 				bs.Selection = len(bs.Base.Hangars) - 1
+			} else if bs.Tab == 0 {
+				bs.Selection = numFacilityTypes - 1
 			} else {
 				bs.Selection = numTabs
 			}
@@ -382,6 +385,10 @@ func (bs *BaseScreen) HandleKey(e *tcell.EventKey) {
 			}
 		} else if bs.Tab == 5 {
 			if bs.Selection >= len(bs.Base.Hangars) {
+				bs.Selection = 0
+			}
+		} else if bs.Tab == 0 {
+			if bs.Selection >= numFacilityTypes {
 				bs.Selection = 0
 			}
 		} else {
@@ -575,7 +582,7 @@ func (bs *BaseScreen) HandleMouse(e *tcell.EventMouse) {
 		}
 	}
 
-	if y >= 5 && y <= 11 && bs.Tab == 0 {
+	if y >= 5 && y <= 12 && bs.Tab == 0 {
 		bs.Selection = y - 5
 		return
 	}

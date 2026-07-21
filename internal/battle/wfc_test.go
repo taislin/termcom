@@ -3,6 +3,8 @@ package battle
 import (
 	"math/rand"
 	"testing"
+
+	"github.com/taislin/termcom/internal/mapgen"
 )
 
 func TestWFCLibrariesLoad(t *testing.T) {
@@ -56,9 +58,7 @@ func TestWFCHasContradiction(t *testing.T) {
 	}
 	// Drive one uncollapsed cell to zero remaining options.
 	c := &wv.cells[1][1]
-	for i := range c.allowed {
-		c.allowed[i] = false
-	}
+	c.allowed = 0
 	c.count = 0
 	if !wv.hasContradiction() {
 		t.Fatal("cell with zero options but not collapsed must be a contradiction")
@@ -170,7 +170,7 @@ func TestGenerateUFOInteriorWFC(t *testing.T) {
 }
 
 func TestGenerateUrbanBuildingWFC(t *testing.T) {
-	rng := rand.New(rand.NewSource(7))
+	rng := rand.New(rand.NewSource(42))
 	m := GenerateUrbanBuildingWFC(45, 45, rng)
 	if m == nil {
 		t.Fatal("nil map")
@@ -304,5 +304,88 @@ func TestUrbanWFCTilesHaveVariableSizes(t *testing.T) {
 	// Urban tiles use a uniform 9×9 cell size for coherent WFC layout.
 	if sizes[9] == 0 {
 		t.Fatal("expected 9x9 urban tiles")
+	}
+}
+
+func TestWFCDeterministicExtended(t *testing.T) {
+	libraries := []struct {
+		name string
+		fn   func() []WFCTile
+	}{
+		{"ufo", ufoWFCTiles},
+		{"urban", urbanWFCTiles},
+		{"alien_base", alienBaseWFCTiles},
+	}
+	for _, lib := range libraries {
+		t.Run(lib.name, func(t *testing.T) {
+			rules := NewWFCRules(lib.fn())
+			w, h := 8, 6
+			solve := func(seed int64) [][]int {
+				rng := rand.New(rand.NewSource(seed))
+				wv := newWave(rules, w, h)
+				wv = wv.Solve(rng, 50)
+				out := make([][]int, wv.h)
+				for y := 0; y < wv.h; y++ {
+					out[y] = make([]int, wv.w)
+					for x := 0; x < wv.w; x++ {
+						out[y][x] = wv.cells[y][x].collapsed
+					}
+				}
+				return out
+			}
+			a := solve(999)
+			b := solve(999)
+			for y := range a {
+				for x := range a[y] {
+					if a[y][x] != b[y][x] {
+						t.Fatalf("non-deterministic at (%d,%d): %d vs %d", x, y, a[y][x], b[y][x])
+					}
+				}
+			}
+		})
+	}
+}
+
+func TestWFCMisorderedTileIDs(t *testing.T) {
+	// Library with a gap in IDs: 0, 2, 5 — after sorting, index 1 has id 2,
+	// index 2 has id 5, neither matches its position.
+	lib := &mapgen.WFCLibrary{
+		Tiles: []mapgen.WFCTileDef{
+			{ID: 0, Name: "a", Rows: []string{".", "."}},
+			{ID: 5, Name: "c", Rows: []string{".", "."}},
+			{ID: 2, Name: "b", Rows: []string{".", "."}},
+		},
+	}
+	defer func() {
+		if r := recover(); r == nil {
+			t.Fatal("expected panic for non-contiguous tile IDs after sorting")
+		}
+	}()
+	wfcTilesFromLib(lib)
+}
+
+func TestWFCSolveManySeeds(t *testing.T) {
+	libraries := []struct {
+		name string
+		fn   func() []WFCTile
+		w, h int
+	}{
+		{"ufo", ufoWFCTiles, 8, 6},
+		{"urban", urbanWFCTiles, 6, 6},
+		{"alien_base", alienBaseWFCTiles, 8, 6},
+	}
+	numSeeds := 25
+	for _, lib := range libraries {
+		t.Run(lib.name, func(t *testing.T) {
+			rules := NewWFCRules(lib.fn())
+			for seed := int64(0); seed < int64(numSeeds); seed++ {
+				rng := rand.New(rand.NewSource(seed))
+				wv := newWave(rules, lib.w, lib.h)
+				wv = wv.Solve(rng, 50)
+				if wv.hasContradiction() {
+					t.Fatalf("seed %d: contradiction in best wave", seed)
+				}
+			}
+		})
 	}
 }

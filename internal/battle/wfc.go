@@ -1,8 +1,12 @@
 package battle
 
 import (
+	"fmt"
 	"log"
+	"math"
+	"math/bits"
 	"math/rand"
+	"sort"
 
 	"github.com/taislin/termcom/internal/mapgen"
 )
@@ -43,18 +47,15 @@ func (t WFCTile) gridCols() int {
 }
 
 // superposition is the set of still-possible tile IDs for one wave cell.
-// allowed[id] is true when tile id is still valid here.
+// allowed is a bitmask where bit n is set when tile id n is still valid here.
 type superposition struct {
-	allowed  []bool
-	count    int // number of true entries; cached for entropy
-	collapsed int // -1 if uncollapsed, otherwise the chosen tile ID
+	allowed   uint64
+	count     int    // number of set bits; cached for entropy
+	collapsed int    // -1 if uncollapsed, otherwise the chosen tile ID
 }
 
 func (s *superposition) collapseTo(id int) {
-	for i := range s.allowed {
-		s.allowed[i] = false
-	}
-	s.allowed[id] = true
+	s.allowed = 1 << uint(id)
 	s.count = 1
 	s.collapsed = id
 }
@@ -67,31 +68,33 @@ type WFCRules struct {
 	numTiles  int
 	FloorTile TileType
 	WallTile  TileType
-	// compatible[a][d][b] is true if tile b may sit in direction d of tile a.
-	compatible [][4][]bool
+	// compatible[a][d] is a bitmask where bit b is set if tile b may sit in
+	// direction d of tile a.
+	compatible [][4]uint64
 }
 
 // NewWFCRules validates and precomputes the compatibility matrix from tiles.
 // Tile IDs must be contiguous 0..n-1 because the compat matrix is indexed by
-// ID directly. A mismatch is logged as a warning rather than panicking, but
+// ID directly. A mismatch panics.
 // produces a silently incorrect adjacency matrix.
 func NewWFCRules(tiles []WFCTile) *WFCRules {
 	n := len(tiles)
 	for i, t := range tiles {
 		if t.ID != i {
-			log.Printf("wfc: warning: tile %q has id %d but expected %d; adjacency matrix may be mis-indexed", t.Name, t.ID, i)
+			panic(fmt.Sprintf("wfc: tile %q has id %d but expected %d; adjacency matrix would be mis-indexed", t.Name, t.ID, i))
 		}
 	}
 	r := &WFCRules{Tiles: tiles, numTiles: n, FloorTile: TileUFOFloor, WallTile: TileUFOWall}
-	r.compatible = make([][4][]bool, n)
+	r.compatible = make([][4]uint64, n)
 	for a := 0; a < n; a++ {
 		for d := 0; d < 4; d++ {
-			r.compatible[a][d] = make([]bool, n)
+			var mask uint64
 			for _, b := range tiles[a].Neighbors[d] {
 				if b >= 0 && b < n {
-					r.compatible[a][d][b] = true
+					mask |= 1 << uint(b)
 				}
 			}
+			r.compatible[a][d] = mask
 		}
 	}
 	return r
@@ -102,37 +105,74 @@ type Wave struct {
 	rules  *WFCRules
 	w, h   int
 	cells  [][]superposition
-	compat [4][]bool // reusable across propagate calls
+	compat [4]uint64 // reusable scratch across propagate calls
 }
 
 func newWave(rules *WFCRules, w, h int) *Wave {
 	cells := make([][]superposition, h)
+	numTiles := rules.numTiles
+	var fullMask uint64
+	if numTiles >= 64 {
+		fullMask = ^uint64(0)
+	} else {
+		fullMask = (1 << uint(numTiles)) - 1
+	}
 	for y := 0; y < h; y++ {
 		cells[y] = make([]superposition, w)
 		for x := 0; x < w; x++ {
-			allowed := make([]bool, rules.numTiles)
-			for i := range allowed {
-				allowed[i] = true
-			}
-			cells[y][x] = superposition{allowed: allowed, count: rules.numTiles, collapsed: -1}
+			cells[y][x] = superposition{allowed: fullMask, count: numTiles, collapsed: -1}
 		}
 	}
-	compat := [4][]bool{
-		make([]bool, rules.numTiles),
-		make([]bool, rules.numTiles),
-		make([]bool, rules.numTiles),
-		make([]bool, rules.numTiles),
+	return &Wave{rules: rules, w: w, h: h, cells: cells}
+}
+
+// cellEntropy returns the weighted Shannon entropy for an uncollapsed cell.
+// H = -Σ p_i · log(p_i) where p_i = weight_i / totalWeight.
+// Returns 0 for cells with count <= 1.
+func (wv *Wave) cellEntropy(s *superposition) float64 {
+	if s.count <= 1 {
+		return 0
 	}
-	return &Wave{rules: rules, w: w, h: h, cells: cells, compat: compat}
+	var totalWeight float64
+	mask := s.allowed
+	for mask != 0 {
+		b := bits.TrailingZeros64(mask)
+		w := wv.rules.Tiles[b].Weight
+		if w <= 0 {
+			w = 1
+		}
+		totalWeight += w
+		mask &^= 1 << uint(b)
+	}
+	if totalWeight <= 0 {
+		return 0
+	}
+	var h float64
+	mask = s.allowed
+	for mask != 0 {
+		b := bits.TrailingZeros64(mask)
+		w := wv.rules.Tiles[b].Weight
+		if w <= 0 {
+			w = 1
+		}
+		p := w / totalWeight
+		h -= p * math.Log(p)
+		mask &^= 1 << uint(b)
+	}
+	return h
 }
 
 // minEntropyCell returns the coordinates of the uncollapsed cell with the
-// fewest remaining options, plus whether any such cell exists and the wave is
-// contradiction-free. A cell with count==0 means an impossible constraint, so
-// we return false to signal external backtracking.
+// lowest weighted Shannon entropy, plus whether any such cell exists and the
+// wave is contradiction-free. A cell with count==0 means an impossible
+// constraint, so we return false to signal external backtracking.
 func (wv *Wave) minEntropyCell(rng *rand.Rand) (int, int, bool) {
-	best := -1
-	var bx, by int
+	type entry struct {
+		x, y    int
+		entropy float64
+	}
+	var cells []entry
+
 	for y := 0; y < wv.h; y++ {
 		for x := 0; x < wv.w; x++ {
 			c := &wv.cells[y][x]
@@ -142,32 +182,19 @@ func (wv *Wave) minEntropyCell(rng *rand.Rand) (int, int, bool) {
 			if c.count == 0 {
 				return 0, 0, false
 			}
-			if best == -1 || c.count < best {
-				best = c.count
-				bx, by = x, y
+			e := wv.cellEntropy(c)
+			if len(cells) == 0 || e < cells[0].entropy {
+				cells = append(cells[:0], entry{x, y, e})
+			} else if e == cells[0].entropy {
+				cells = append(cells, entry{x, y, e})
 			}
 		}
 	}
-	if best == -1 {
+	if len(cells) == 0 {
 		return 0, 0, false
 	}
-	// Collect every uncollapsed cell sharing the minimum entropy and pick one
-	// at random so generation does not always grow from the top-left corner.
-	candidates := make([][2]int, 0, 4)
-	for y := 0; y < wv.h; y++ {
-		for x := 0; x < wv.w; x++ {
-			c := &wv.cells[y][x]
-			if c.collapsed >= 0 || c.count != best {
-				continue
-			}
-			candidates = append(candidates, [2]int{x, y})
-		}
-	}
-	if len(candidates) == 1 {
-		return bx, by, true
-	}
-	chosen := candidates[rng.Intn(len(candidates))]
-	return chosen[0], chosen[1], true
+	chosen := cells[rng.Intn(len(cells))]
+	return chosen.x, chosen.y, true
 }
 
 // observe collapses the lowest-entropy cell by randomly choosing one of its
@@ -177,15 +204,16 @@ func (wv *Wave) observe(x, y int, rng *rand.Rand) int {
 	c := &wv.cells[y][x]
 	options := make([]int, 0, c.count)
 	weights := make([]float64, 0, c.count)
-	for i := 0; i < len(c.allowed); i++ {
-		if c.allowed[i] {
-			options = append(options, i)
-			w := wv.rules.Tiles[i].Weight
-			if w <= 0 {
-				w = 1
-			}
-			weights = append(weights, w)
+	mask := c.allowed
+	for mask != 0 {
+		b := bits.TrailingZeros64(mask)
+		options = append(options, b)
+		w := wv.rules.Tiles[b].Weight
+		if w <= 0 {
+			w = 1
 		}
+		weights = append(weights, w)
+		mask &^= 1 << uint(b)
 	}
 	if len(options) == 0 {
 		return -1
@@ -213,48 +241,36 @@ func (wv *Wave) observe(x, y int, rng *rand.Rand) int {
 }
 
 // propagate enforces constraints from (x,y) outward using a queue. It returns
-// false if any cell is reduced to zero options (contradiction).
-func (wv *Wave) propagate(x, y int) bool {
+// false if any cell is reduced to zero options (contradiction), plus the list
+// of cell diffs needed to revert propagation's changes on backtrack.
+func (wv *Wave) propagate(x, y int) (bool, []cellDiff) {
 	queue := make([]int, 0, wv.w*wv.h)
 	queue = append(queue, x, y)
+	var diffs []cellDiff
 
 	for len(queue) > 0 {
 		cx := queue[0]
 		cy := queue[1]
 		queue = queue[2:]
 
-		// The changed cell at (cx,cy) (collapsed or still a superposition that
-		// lost options) determines which neighbor tiles remain valid. A neighbor
-		// tile b in direction d is valid only if some still-allowed source tile
-		// a satisfies compatible[a][d][b].
 		src := &wv.cells[cy][cx]
 
-		// compat[d][b] = does b have at least one allowed source neighbor in d.
-		// Fast path for collapsed cells: copy precomputed compat mask for that tile.
 		if src.collapsed >= 0 {
 			a := src.collapsed
 			for d := 0; d < 4; d++ {
-				copy(wv.compat[d], wv.rules.compatible[a][d])
+				wv.compat[d] = wv.rules.compatible[a][d]
 			}
 		} else {
 			for d := 0; d < 4; d++ {
-				for b := 0; b < wv.rules.numTiles; b++ {
-					wv.compat[d][b] = false
-				}
+				wv.compat[d] = 0
 			}
-			for a := 0; a < wv.rules.numTiles; a++ {
-				if !src.allowed[a] {
-					continue
-				}
+			aMask := src.allowed
+			for aMask != 0 {
+				a := bits.TrailingZeros64(aMask)
 				for d := 0; d < 4; d++ {
-					ca := wv.rules.compatible[a][d]
-					cd := wv.compat[d]
-					for b := 0; b < wv.rules.numTiles; b++ {
-						if ca[b] {
-							cd[b] = true
-						}
-					}
+					wv.compat[d] |= wv.rules.compatible[a][d]
 				}
+				aMask &^= 1 << uint(a)
 			}
 		}
 
@@ -267,28 +283,24 @@ func (wv *Wave) propagate(x, y int) bool {
 			if nb.collapsed >= 0 {
 				continue
 			}
-			// A neighbor tile b is valid only if compat[d][b] (some allowed
-			// source tile is compatible with b in direction d).
-			removed := false
-			for b := 0; b < len(nb.allowed); b++ {
-				if !nb.allowed[b] {
-					continue
+			oldAllowed := nb.allowed
+			nb.allowed &= wv.compat[d]
+			if nb.allowed != oldAllowed {
+				diffs = append(diffs, cellDiff{
+					x: nx, y: ny,
+					oldAllowed:   oldAllowed,
+					oldCount:     nb.count,
+					oldCollapsed: nb.collapsed,
+				})
+				nb.count = bits.OnesCount64(nb.allowed)
+				if nb.count == 0 {
+					return false, diffs
 				}
-				if !wv.compat[d][b] {
-					nb.allowed[b] = false
-					nb.count--
-					removed = true
-				}
-			}
-			if nb.count == 0 {
-				return false
-			}
-			if removed {
 				queue = append(queue, nx, ny)
 			}
 		}
 	}
-	return true
+	return true, diffs
 }
 
 // hasContradiction reports whether any uncollapsed cell has zero remaining
@@ -316,44 +328,33 @@ func (wv *Wave) fullyCollapsed() bool {
 	return true
 }
 
-// wfcCheckpoint stores a full superposition snapshot for a single cell.
-type wfcCheckpoint struct {
-	allowed  []bool
-	count    int
-	collapsed int
+// cellDiff records a single cell modification so it can be reverted on
+// backtrack without copying the full wave grid.
+type cellDiff struct {
+	x, y         int
+	oldAllowed   uint64
+	oldCount     int
+	oldCollapsed int
 }
 
-// wfcSnapshot stores the entire wave at one point in time.
+// wfcSnapshot stores the state of a single cell before observation. The
+// corresponding cellDiff list from propagate is kept alongside in the
+// backtrack frame and applied together to restore the wave.
 type wfcSnapshot struct {
-	cells [][]wfcCheckpoint
+	x, y int
+	cell  superposition
 }
 
-func (wv *Wave) saveSnapshot() wfcSnapshot {
-	s := wfcSnapshot{cells: make([][]wfcCheckpoint, wv.h)}
-	for y := 0; y < wv.h; y++ {
-		s.cells[y] = make([]wfcCheckpoint, wv.w)
-		for x := 0; x < wv.w; x++ {
-			src := &wv.cells[y][x]
-			cp := wfcCheckpoint{
-				allowed:   append([]bool{}, src.allowed...),
-				count:     src.count,
-				collapsed: src.collapsed,
-			}
-			s.cells[y][x] = cp
-		}
-	}
-	return s
+func (wv *Wave) saveSnapshot(x, y int) wfcSnapshot {
+	return wfcSnapshot{x: x, y: y, cell: wv.cells[y][x]}
 }
 
-func (wv *Wave) restoreSnapshot(s wfcSnapshot) {
-	for y := 0; y < wv.h; y++ {
-		for x := 0; x < wv.w; x++ {
-			src := &s.cells[y][x]
-			dst := &wv.cells[y][x]
-			copy(dst.allowed, src.allowed)
-			dst.count = src.count
-			dst.collapsed = src.collapsed
-		}
+func (wv *Wave) restoreSnapshot(s wfcSnapshot, diffs []cellDiff) {
+	wv.cells[s.y][s.x] = s.cell
+	for _, d := range diffs {
+		wv.cells[d.y][d.x].allowed = d.oldAllowed
+		wv.cells[d.y][d.x].count = d.oldCount
+		wv.cells[d.y][d.x].collapsed = d.oldCollapsed
 	}
 }
 
@@ -367,9 +368,10 @@ func (wv *Wave) Solve(rng *rand.Rand, maxRestarts int) *Wave {
 	bestCollapsed := 0
 
 	type btFrame struct {
-		snap    wfcSnapshot
-		x, y    int
-		tried   []int
+		snap  wfcSnapshot
+		x, y  int
+		tried []int
+		diffs []cellDiff
 	}
 
 	for restart := 0; restart <= maxRestarts; restart++ {
@@ -388,12 +390,11 @@ func (wv *Wave) Solve(rng *rand.Rand, maxRestarts int) *Wave {
 					top := &stack[len(stack)-1]
 
 				scan:
-					for i := 0; i < len(top.snap.cells[top.y][top.x].allowed); i++ {
-						wv.restoreSnapshot(top.snap)
+					for mask := top.snap.cell.allowed; mask != 0; {
+						i := bits.TrailingZeros64(mask)
+						mask &^= 1 << uint(i)
+						wv.restoreSnapshot(top.snap, top.diffs)
 						cell := &wv.cells[top.y][top.x]
-						if !cell.allowed[i] {
-							continue
-						}
 						for _, t := range top.tried {
 							if i == t {
 								continue scan
@@ -401,7 +402,8 @@ func (wv *Wave) Solve(rng *rand.Rand, maxRestarts int) *Wave {
 						}
 						top.tried = append(top.tried, i)
 						cell.collapseTo(i)
-						if wv.propagate(top.x, top.y) {
+						ok, _ := wv.propagate(top.x, top.y)
+						if ok {
 							contradict = false
 							continue mainLoop
 						}
@@ -417,36 +419,33 @@ func (wv *Wave) Solve(rng *rand.Rand, maxRestarts int) *Wave {
 				break
 			}
 
-			snap := wv.saveSnapshot()
+			snap := wv.saveSnapshot(x, y)
 			tileID := wv.observe(x, y, rng)
 			if tileID < 0 {
 				// No options — contradiction without a chosen tile.
 				stack = append(stack, btFrame{
-					snap:  snap,
-					x:     x,
-					y:     y,
+					snap: snap,
+					x:    x,
+					y:    y,
 				})
 				contradict = true
 				continue
 			}
-			if !wv.propagate(x, y) {
-				// Contradiction: push a backtrack frame and retry.
-				stack = append(stack, btFrame{
-					snap:  snap,
-					x:     x,
-					y:     y,
-					tried: []int{tileID},
-				})
-				contradict = true
-				continue
-			}
-			// Successful observation — push frame so future steps can backtrack here.
-			stack = append(stack, btFrame{
+			ok, diffs := wv.propagate(x, y)
+			frame := btFrame{
 				snap:  snap,
 				x:     x,
 				y:     y,
 				tried: []int{tileID},
-			})
+				diffs: diffs,
+			}
+			if !ok {
+				stack = append(stack, frame)
+				contradict = true
+				continue
+			}
+			// Successful observation — push frame so future steps can backtrack here.
+			stack = append(stack, frame)
 		}
 
 		count := 0
@@ -746,6 +745,12 @@ func wfcTilesFromLib(lib *mapgen.WFCLibrary) []WFCTile {
 			weight = 1
 		}
 		tiles = append(tiles, WFCTile{ID: d.ID, Name: d.Name, RuneGrid: grid, Neighbors: nb, Weight: weight})
+	}
+	sort.Slice(tiles, func(i, j int) bool { return tiles[i].ID < tiles[j].ID })
+	for i, t := range tiles {
+		if t.ID != i {
+			panic(fmt.Sprintf("wfc: tile %q has id %d but consecutive ids 0..%d required", t.Name, t.ID, len(tiles)-1))
+		}
 	}
 	tiles = autoComputeNeighbors(tiles)
 	return tiles

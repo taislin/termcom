@@ -141,9 +141,6 @@ func (b *pcmBackend) Close() {
 	if otoPlayer != nil {
 		otoPlayer.Close()
 	}
-	if otoCtx != nil {
-		otoCtx.Close()
-	}
 }
 
 func (b *pcmBackend) Play(s Sound) {
