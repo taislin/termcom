@@ -3,188 +3,232 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Map Chunk Editor</title>
+<title>Map Editor</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Courier New', monospace; background: #1a1a2e; color: #e0e0e0; display: flex; height: 100vh; }
-.preview-panel { width: 0; overflow: hidden; background: #0a0a14; border-left: 2px solid #0f3460; display: flex; flex-direction: column; transition: width 0.2s; }
-.preview-panel.open { width: 320px; }
-.preview-header { padding: 8px 12px; background: #0f3460; color: #a0c4ff; font-size: 12px; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-.preview-header button { background: #e94560; color: #fff; border: none; border-radius: 3px; padding: 2px 8px; cursor: pointer; font-family: inherit; font-size: 11px; }
-.preview-body { flex: 1; overflow: auto; padding: 8px; display: flex; justify-content: center; }
-.preview-body pre { font-family: 'Courier New', monospace; font-size: 14px; line-height: 1.0; letter-spacing: 0px; white-space: pre; margin: 0; }
-.sidebar { width: 260px; min-width: 260px; background: #16213e; display: flex; flex-direction: column; border-right: 2px solid #0f3460; }
-.sidebar h2 { padding: 12px; font-size: 14px; background: #0f3460; color: #e94560; text-align: center; letter-spacing: 1px; }
-.tile-list { flex: 1; overflow-y: auto; padding: 4px; }
-.tile-list::-webkit-scrollbar { width: 6px; }
+body { font-family: 'Courier New', monospace; background: #1a1a2e; color: #e0e0e0; display: flex; height: 100vh; overflow: hidden; }
+
+/* Sidebar - Tile Palette */
+.sidebar { width: 210px; min-width: 210px; background: #16213e; display: flex; flex-direction: column; border-right: 2px solid #0f3460; }
+.sidebar h2 { padding: 8px; font-size: 13px; background: #0f3460; color: #e94560; text-align: center; letter-spacing: 1px; flex-shrink: 0; }
+.tile-list { flex: 1; overflow-y: auto; padding: 2px; }
+.tile-list::-webkit-scrollbar { width: 5px; }
 .tile-list::-webkit-scrollbar-track { background: #16213e; }
 .tile-list::-webkit-scrollbar-thumb { background: #0f3460; border-radius: 3px; }
-.tile-item { display: flex; align-items: center; gap: 8px; padding: 4px 8px; cursor: pointer; border-radius: 4px; font-size: 13px; transition: background 0.1s; }
+.tile-item { display: flex; align-items: center; gap: 5px; padding: 2px 6px; cursor: pointer; border-radius: 3px; font-size: 11px; transition: background 0.1s; }
 .tile-item:hover { background: #1a3a5c; }
 .tile-item.active { background: #0f3460; outline: 1px solid #e94560; }
-.tile-item .preview { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 16px; border-radius: 2px; flex-shrink: 0; }
-.tile-item .name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.tile-item .glyph { color: #888; font-size: 11px; margin-left: auto; }
-.main { flex: 1; display: flex; flex-direction: column; }
-.toolbar { display: flex; align-items: center; gap: 10px; padding: 8px 16px; background: #0f3460; flex-wrap: wrap; }
-.toolbar label { font-size: 13px; color: #a0c4ff; }
-.toolbar input[type=number] { width: 50px; padding: 4px 6px; background: #1a1a2e; border: 1px solid #0f3460; color: #e0e0e0; border-radius: 3px; font-family: inherit; font-size: 13px; }
-.toolbar button { padding: 5px 14px; background: #e94560; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: bold; transition: background 0.15s; }
+.tile-item .pvw { width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; font-size: 12px; border-radius: 2px; flex-shrink: 0; }
+.tile-item .nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
+
+/* Main area */
+.main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.toolbar { display: flex; align-items: center; gap: 6px; padding: 5px 10px; background: #0f3460; flex-wrap: wrap; font-size: 12px; flex-shrink: 0; }
+.toolbar label { color: #a0c4ff; font-size: 11px; }
+.toolbar input[type=number] { width: 40px; padding: 2px 4px; background: #1a1a2e; border: 1px solid #0f3460; color: #e0e0e0; border-radius: 3px; font-family: inherit; font-size: 12px; }
+.toolbar button { padding: 3px 10px; background: #e94560; color: #fff; border: none; border-radius: 3px; cursor: pointer; font-family: inherit; font-size: 11px; font-weight: bold; }
 .toolbar button:hover { background: #ff6b81; }
-.toolbar button.secondary { background: #0f3460; border: 1px solid #1a3a5c; }
-.toolbar button.secondary:hover { background: #1a3a5c; }
+.toolbar button.sc { background: #0f3460; border: 1px solid #1a3a5c; }
+.toolbar button.sc:hover { background: #1a3a5c; }
+.toolbar .mode-group { display: flex; gap: 0; }
+.toolbar .mode-btn { padding: 3px 8px; background: #1a1a2e; border: 1px solid #0f3460; color: #888; cursor: pointer; font-family: inherit; font-size: 11px; }
+.toolbar .mode-btn:first-child { border-radius: 3px 0 0 3px; }
+.toolbar .mode-btn:last-child { border-radius: 0 3px 3px 0; }
+.toolbar .mode-btn.active { background: #e94560; color: #fff; border-color: #e94560; }
+.toolbar .sel-info { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; background: #1a1a2e; border-radius: 3px; font-size: 11px; }
+.toolbar .sel-info .swatch { width: 14px; height: 14px; display: flex; align-items: center; justify-content: center; font-size: 10px; border-radius: 2px; }
 .toolbar .spacer { flex: 1; }
-.toolbar .info { font-size: 12px; color: #888; }
-.canvas-wrap { flex: 1; display: flex; align-items: center; justify-content: center; overflow: auto; padding: 16px; background: #111; position: relative; }
-.grid-container { display: inline-block; }
+
+/* Chunk library panel */
+.chunk-panel { width: 0; min-width: 0; background: #16213e; border-left: 2px solid #0f3460; display: flex; flex-direction: column; transition: width 0.15s; overflow: hidden; }
+.chunk-panel.open { width: 280px; min-width: 280px; }
+.chunk-header { padding: 6px 8px; background: #0f3460; color: #a0c4ff; font-size: 11px; display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.chunk-header button { padding: 2px 7px; background: #e94560; color: #fff; border: none; border-radius: 3px; cursor: pointer; font-family: inherit; font-size: 10px; font-weight: bold; }
+.chunk-header button.sm { background: #1a1a2e; border: 1px solid #0f3460; }
+.chunk-header .spcr { flex: 1; }
+.chunk-body { flex: 1; overflow-y: auto; padding: 4px; }
+.chunk-body::-webkit-scrollbar { width: 5px; }
+.chunk-body::-webkit-scrollbar-track { background: #16213e; }
+.chunk-body::-webkit-scrollbar-thumb { background: #0f3460; border-radius: 3px; }
+.chunk-item { display: flex; align-items: center; gap: 6px; padding: 4px; cursor: pointer; border-radius: 4px; border: 1px solid transparent; margin-bottom: 3px; transition: all 0.1s; }
+.chunk-item:hover { background: #1a3a5c; }
+.chunk-item.active { border-color: #e94560; background: #0f3460; }
+.chunk-item .minimap { display: grid; gap: 1px; flex-shrink: 0; }
+.chunk-item .minimap .mpixel { width: 6px; height: 6px; border-radius: 1px; }
+.chunk-item .info { flex: 1; min-width: 0; }
+.chunk-item .info .cid { font-size: 11px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chunk-item .info .cdim { font-size: 10px; color: #888; }
+.chunk-item .rm { background: none; border: none; color: #e94560; cursor: pointer; font-size: 14px; padding: 0 4px; }
+
+/* Canvas / Grid */
+.canvas-wrap { flex: 1; overflow: auto; background: #111; position: relative; display: flex; }
+.canvas-wrap::-webkit-scrollbar { width: 8px; height: 8px; }
+.canvas-wrap::-webkit-scrollbar-track { background: #111; }
+.canvas-wrap::-webkit-scrollbar-thumb { background: #0f3460; border-radius: 4px; }
+.grid-container { margin: auto; display: inline-block; }
 .grid-row { display: flex; }
-.cell { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: crosshair; border: 1px solid #2a2a3e; transition: border-color 0.1s; user-select: none; position: relative; }
+.cell { width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; font-size: 11px; cursor: crosshair; border: 1px solid #202030; position: relative; user-select: none; transition: border-color 0.05s; }
 .cell:hover { border-color: #e94560; z-index: 1; }
-.cell.empty { background: #1a1a2e; }
-.cell .coord { position: absolute; font-size: 7px; color: rgba(255,255,255,0.15); bottom: 0; right: 1px; pointer-events: none; }
-.toolbar .sel-preview { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; background: #1a1a2e; border-radius: 4px; font-size: 12px; }
-.toolbar .sel-preview .swatch { width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; font-size: 13px; border-radius: 2px; }
-#exportArea { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 80%; max-width: 800px; max-height: 80vh; background: #1a1a2e; border: 2px solid #0f3460; border-radius: 8px; z-index: 1000; flex-direction: column; }
-#exportArea.show { display: flex; }
-#exportArea textarea { width: 100%; height: 400px; background: #111; color: #0f0; border: none; padding: 12px; font-family: 'Courier New', monospace; font-size: 12px; resize: vertical; }
-#exportArea .bar { display: flex; gap: 8px; padding: 8px 12px; align-items: center; background: #0f3460; }
-#exportArea .bar button { padding: 5px 14px; background: #e94560; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-family: inherit; font-size: 13px; }
-#exportArea .bar span { flex: 1; color: #a0c4ff; font-size: 13px; }
+.cell .cl { position: absolute; font-size: 6px; color: rgba(255,255,255,0.08); bottom: 0; right: 1px; pointer-events: none; }
+
+/* Export overlay */
+.export-area { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 70%; max-width: 700px; max-height: 80vh; background: #1a1a2e; border: 2px solid #0f3460; border-radius: 8px; z-index: 1000; flex-direction: column; }
+.export-area.show { display: flex; }
+.export-area textarea { width: 100%; height: 350px; background: #111; color: #0f0; border: none; padding: 10px; font-family: 'Courier New', monospace; font-size: 11px; resize: vertical; }
+.export-area .bar { display: flex; gap: 6px; padding: 6px 10px; align-items: center; background: #0f3460; }
+.export-area .bar button { padding: 3px 10px; background: #e94560; color: #fff; border: none; border-radius: 3px; cursor: pointer; font-family: inherit; font-size: 11px; }
+.export-area .bar span { flex: 1; color: #a0c4ff; font-size: 12px; }
 .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 999; }
 .overlay.show { display: block; }
-#loadInput { display: none; }
+#chunkFileInput, #mapFileInput { display: none; }
+.toolbar .chunk-btn { background: #283a6e; border-color: #3a5a9e; }
+.toolbar .chunk-btn:hover { background: #3a5a9e; }
 </style>
 </head>
 <body>
 
+<!-- Sidebar -->
 <div class="sidebar">
   <h2>TILES</h2>
   <div class="tile-list" id="tileList"></div>
 </div>
 
+<!-- Main -->
 <div class="main">
   <div class="toolbar">
-    <label>W:</label><input type="number" id="mapW" value="9" min="1" max="64">
-    <label>H:</label><input type="number" id="mapH" value="9" min="1" max="64">
+    <label>W:</label><input type="number" id="mapW" value="50" min="1" max="120">
+    <label>H:</label><input type="number" id="mapH" value="50" min="1" max="120">
     <button id="resizeBtn">Resize</button>
-    <button id="fillBtn" class="secondary">Fill</button>
-    <button id="clearBtn" class="secondary">Clear</button>
+    <button id="fillBtn" class="sc">Fill</button>
+    <button id="clearBtn" class="sc">Clear</button>
+    <div class="mode-group">
+      <button class="mode-btn active" data-mode="tile">Tile</button>
+      <button class="mode-btn" data-mode="chunk">Chunk</button>
+    </div>
     <span class="spacer"></span>
-    <div class="sel-preview" id="selPreview"><span class="swatch" id="selSwatch">·</span><span id="selName">TileGrass</span></div>
-    <button id="exportBtn">Export JSON</button>
-    <button id="loadBtn" class="secondary">Load JSON</button>
-    <button id="previewBtn" class="secondary">Preview</button>
-    <input type="file" id="loadInput" accept=".json">
+    <div class="sel-info" id="selInfo"><span class="swatch" id="selSwatch">&#183;</span><span id="selName">TileGrass</span></div>
+    <button id="exportBtn">Export</button>
+    <button id="loadMapBtn" class="sc">Load Map</button>
+    <button id="chunkToggleBtn" class="sc chunk-btn">Chunks</button>
+    <input type="file" id="mapFileInput" accept=".json">
   </div>
+
   <div class="canvas-wrap" id="canvasWrap">
     <div class="grid-container" id="gridContainer"></div>
   </div>
 </div>
 
-<div class="preview-panel" id="previewPanel">
-  <div class="preview-header">
-    <span>Terminal Preview</span>
-    <button id="closePreviewBtn">X</button>
+<!-- Chunk panel -->
+<div class="chunk-panel" id="chunkPanel">
+  <div class="chunk-header">
+    <span>Chunk Library</span>
+    <span class="spcr"></span>
+    <button id="loadChunksBtn" style="background:#283a6e;border:1px solid #3a5a9e;">Load</button>
+    <button class="sm" id="clearChunksBtn">X</button>
   </div>
-  <div class="preview-body"><pre id="previewPre"></pre></div>
+  <div class="chunk-body" id="chunkBody">
+    <div style="color:#555;font-size:11px;padding:12px;text-align:center;">Load chunk JSONs<br>from data/maps/ to begin</div>
+  </div>
+  <input type="file" id="chunkFileInput" accept=".json" multiple>
 </div>
 
+<!-- Export overlay -->
 <div class="overlay" id="overlay"></div>
-<div id="exportArea">
-  <div class="bar"><span>Export JSON</span><button id="copyBtn">Copy</button><button id="downloadBtn">Download</button><button id="closeExportBtn">Close</button></div>
+<div class="export-area" id="exportArea">
+  <div class="bar"><span id="exportTitle">Export Map</span><button id="copyBtn">Copy</button><button id="downloadBtn">Download</button><button id="closeExportBtn">Close</button></div>
   <textarea id="exportText" readonly></textarea>
 </div>
 
 <script>
 // ===== TILE DEFINITIONS =====
 const TILES = [
-  { id:"TileFloor",      g:'.',  c:"#5f5a55", pa:1, op:0, de:0, cv:0,  desc:"Interior floor" },
-  { id:"TileWall",       g:'#',  c:"#a09b96", pa:0, op:1, de:1, cv:80, desc:"Building wall" },
-  { id:"TileDoor",       g:'+',  c:"#8c6432", pa:1, op:0, de:1, cv:0,  desc:"Doorway" },
-  { id:"TileWindow",     g:'\u229E', c:"#78aadc", pa:0, op:0, de:1, cv:20, desc:"Building window" },
-  { id:"TileGrass",      g:'\u00B7', c:"#326e28", pa:1, op:0, de:0, cv:0,  desc:"Open ground" },
-  { id:"TileTree",       g:'\u2663', c:"#235a19", pa:0, op:1, de:1, cv:80, desc:"Tree" },
-  { id:"TileRock",       g:'\u2229', c:"#827d78", pa:0, op:1, de:1, cv:70, desc:"Rock formation" },
-  { id:"TileWater",      g:'\u2248', c:"#2850c8", pa:0, op:0, de:0, cv:0,  desc:"Deep water" },
-  { id:"TileUFOFloor",   g:'\u2261', c:"#324b6e", pa:1, op:0, de:0, cv:0,  desc:"UFO floor" },
-  { id:"TileUFOWall",    g:'\u2588', c:"#466496", pa:0, op:1, de:1, cv:80, desc:"UFO wall" },
-  { id:"TileStairs",     g:'\u2592', c:"#6e6964", pa:1, op:0, de:0, cv:0,  desc:"Stairs up" },
-  { id:"TileStairsDown", g:'\u2593', c:"#504b46", pa:1, op:0, de:0, cv:0,  desc:"Stairs down" },
-  { id:"TilePavement",   g:'\u2591', c:"#787878", pa:1, op:0, de:0, cv:0,  desc:"Road / sidewalk" },
-  { id:"TileSand",       g:'\u00B7', c:"#c8b478", pa:1, op:0, de:0, cv:0,  desc:"Sandy ground" },
-  { id:"TileSnow",       g:'\u2217', c:"#e6ebf5", pa:1, op:0, de:0, cv:0,  desc:"Snowy ground" },
-  { id:"TileMarsh",      g:'\u224B', c:"#3c6446", pa:1, op:0, de:0, cv:0,  desc:"Marsh / bog" },
-  { id:"TileBush",       g:'\u2020', c:"#2d6423", pa:1, op:0, de:1, cv:40, desc:"Bush / scrub" },
-  { id:"TileFence",      g:'\u2502', c:"#917850", pa:0, op:1, de:1, cv:40, desc:"Wooden fence" },
-  { id:"TileRubble",     g:'\u2592', c:"#78736e", pa:1, op:0, de:0, cv:20, desc:"Destroyed wall debris" },
-  { id:"TileObject",     g:'\u2022', c:"#aaaaaa", pa:0, op:1, de:0, cv:50, desc:"Scatter object" },
-  { id:"TileConsole",    g:'\u2338', c:"#46d282", pa:1, op:0, de:1, cv:10, desc:"Control panel" },
-  { id:"TileMachinery",  g:'\u229B', c:"#b4b4b4", pa:1, op:0, de:1, cv:30, desc:"Engine/generator" },
-  { id:"TilePod",        g:'\u25C8', c:"#8246be", pa:1, op:0, de:1, cv:30, desc:"Alien pod" },
-  { id:"TilePowerSource",g:'\u2301', c:"#f0c83c", pa:1, op:0, de:1, cv:20, desc:"Power core" },
-  { id:"TileStorage",    g:'\u25A4', c:"#b48c5a", pa:1, op:0, de:1, cv:30, desc:"Storage crate" },
-  { id:"TileAlienTech",  g:'\u2295', c:"#e64646", pa:1, op:0, de:1, cv:20, desc:"Alien artifact" },
-  { id:"TileDesk",       g:'\u25CA', c:"#a07850", pa:1, op:0, de:1, cv:30, desc:"Desk/workstation" },
-  { id:"TileChair",      g:'\u229F', c:"#96643c", pa:1, op:0, de:1, cv:10, desc:"Chair" },
-  { id:"TileChairLeft",  g:'\u2143', c:"#96643c", pa:1, op:0, de:1, cv:10, desc:"Chair facing left" },
-  { id:"TileChairRight", g:'L',      c:"#96643c", pa:1, op:0, de:1, cv:10, desc:"Chair facing right" },
-  { id:"TileComputer",   g:'\u2338', c:"#46b4d2", pa:1, op:0, de:1, cv:10, desc:"Computer terminal" },
-  { id:"TileBed",        g:'\u25A1', c:"#c8c8c8", pa:1, op:0, de:1, cv:20, desc:"Bed/cot" },
-  { id:"TileLocker",     g:'\u25EB', c:"#8ca0b4", pa:1, op:0, de:1, cv:30, desc:"Locker" },
-  { id:"TileCabinet",    g:'\u229E', c:"#aa825a", pa:1, op:0, de:1, cv:30, desc:"Cabinet/shelving" },
-  { id:"TileCar",        g:'\u2584', c:"#3264b4", pa:0, op:1, de:1, cv:50, desc:"Car left half" },
-  { id:"TileCarMid",     g:'\u2588', c:"#3264b4", pa:0, op:1, de:1, cv:50, desc:"Car middle roof" },
-  { id:"TileCarRight",   g:'\u2584', c:"#3264b4", pa:0, op:1, de:1, cv:50, desc:"Car right half" },
-  { id:"TileForklift",   g:'\u2588', c:"#c8a028", pa:0, op:1, de:1, cv:50, desc:"Forklift left" },
-  { id:"TileForkliftRight",g:'\u228F',c:"#c8a028", pa:0, op:1, de:1, cv:50, desc:"Forklift right" },
-  { id:"TileFuelPump",   g:'8',      c:"#c83c28", pa:0, op:1, de:1, cv:30, desc:"Fuel pump (explodes)" },
-  { id:"TileContainerRed",g:'\u2588',c:"#b43228", pa:0, op:1, de:0, cv:80, desc:"Red shipping container" },
-  { id:"TileContainerBlue",g:'\u2588',c:"#3250b4", pa:0, op:1, de:0, cv:80, desc:"Blue shipping container" },
-  { id:"TileContainerYellow",g:'\u2588',c:"#c8aa28", pa:0, op:1, de:0, cv:80, desc:"Yellow shipping container" },
-  { id:"TileBusEnd",     g:'\u2584', c:"#c8b43c", pa:0, op:1, de:1, cv:50, desc:"Bus left/right end" },
-  { id:"TileBusMid",     g:'\u2588', c:"#c8b43c", pa:0, op:1, de:1, cv:50, desc:"Bus middle roof" },
-  { id:"TileHeloBody",   g:'\u2588', c:"#3c4655", pa:0, op:1, de:1, cv:50, desc:"Helicopter fuselage" },
-  { id:"TileHeloTail",   g:'\u2584', c:"#3c4655", pa:0, op:1, de:1, cv:30, desc:"Helicopter tail" },
-  { id:"TileHeloNose",   g:'\u25B7', c:"#82c8e6", pa:0, op:1, de:1, cv:40, desc:"Helicopter nose" },
-  { id:"TileHeloRotor",  g:'+',      c:"#b4b4b4", pa:1, op:0, de:1, cv:0,  desc:"Helicopter rotor" },
-  { id:"TileHeloRotorSides",g:'-',   c:"#b4b4b4", pa:1, op:0, de:1, cv:0,  desc:"Rotor blade sides" },
-  { id:"TileHeloBodyBack",g:'\u2588',c:"#3c4655", pa:0, op:1, de:1, cv:50, desc:"Rear fuselage" },
-  { id:"TileHeloRotorBack",g:'x',    c:"#b4b4b4", pa:1, op:0, de:1, cv:0,  desc:"Rear rotor" },
-  { id:"TileHeloWindow", g:'\u25E3', c:"#82c8e6", pa:0, op:1, de:1, cv:0,  desc:"Helicopter window" },
-  { id:"TileTractorCab", g:'\u25E3', c:"#82c8e6", pa:0, op:1, de:1, cv:30, desc:"Tractor cab" },
-  { id:"TileTractorBody",g:'\u2588', c:"#b43c28", pa:0, op:1, de:1, cv:30, desc:"Tractor body" },
-  { id:"TileCrawlerLeft",g:'\u25E2', c:"#8246be", pa:0, op:1, de:1, cv:50, desc:"Alien crawler left" },
-  { id:"TileCrawlerMid", g:'\u2588', c:"#8246be", pa:0, op:1, de:1, cv:50, desc:"Alien crawler middle" },
-  { id:"TileCrawlerRight",g:'\u25E3',c:"#8246be", pa:0, op:1, de:1, cv:50, desc:"Alien crawler right" },
-  { id:"TileCrawlerLeg", g:'^',      c:"#6432a0", pa:0, op:1, de:1, cv:20, desc:"Alien crawler leg" },
-  { id:"TileWheel",      g:'O',      c:"#3c3c3c", pa:0, op:0, de:1, cv:10, desc:"Vehicle wheel" },
-  { id:"TileWheelSmall", g:'o',      c:"#3c3c3c", pa:0, op:0, de:1, cv:10, desc:"Small wheel" },
-  { id:"TileAdobe",      g:'\u2588', c:"#c88246", pa:0, op:1, de:0, cv:80, desc:"Adobe wall" },
-  { id:"TileMetalWall",  g:'\u2588', c:"#b4b9c3", pa:0, op:1, de:0, cv:80, desc:"Prefab metal wall" },
-  { id:"TileWreck",      g:'\u25A4', c:"#965f3c", pa:0, op:1, de:0, cv:80, desc:"Aircraft wreckage" },
-  { id:"TileTimber",     g:'\u2261', c:"#966e3c", pa:0, op:1, de:1, cv:80, desc:"Stacked timber" },
-  { id:"TileDish",       g:'\u25D7', c:"#aaafb9", pa:0, op:1, de:0, cv:50, desc:"Satellite dish" },
-  { id:"TileTruck",      g:'\u2584', c:"#5a6e46", pa:0, op:1, de:1, cv:80, desc:"Military truck" },
-  { id:"TileIce",        g:'\u2248', c:"#b4dceb", pa:1, op:0, de:0, cv:0,  desc:"Frozen lake ice" },
-  { id:"TileStreetlamp", g:'\u2316', c:"#dcd278", pa:0, op:0, de:1, cv:10, desc:"Streetlamp (light)" },
-  { id:"TileGlass",      g:',',      c:"#bec8d2", pa:1, op:0, de:1, cv:0,  desc:"Broken glass (noisy)" },
-  { id:"TileDebris",     g:'`',      c:"#968c82", pa:1, op:0, de:1, cv:0,  desc:"Scattered debris" },
-  { id:"TileCryoPipe",   g:'\u256A', c:"#8cc8e6", pa:0, op:0, de:1, cv:20, desc:"Cryo pipe (vents gas)" },
-  { id:"TileSkylight",   g:'\u2299', c:"#b4d2f0", pa:1, op:0, de:1, cv:0,  desc:"Glass skylight" },
-  { id:"TileWheat",      g:'\u03C8', c:"#c8b43c", pa:1, op:0, de:1, cv:20, desc:"Tall wheat/corn" },
-  { id:"TileHayBale",    g:'\u2588', c:"#a08c3c", pa:0, op:1, de:1, cv:60, desc:"Hay bale (flammable)" },
-  { id:"TilePier",       g:'\u2550', c:"#8c643c", pa:1, op:0, de:0, cv:10, desc:"Wooden pier" },
-  { id:"TileDockCrate",  g:'\u25A3', c:"#967850", pa:0, op:1, de:1, cv:50, desc:"Dock crate" },
-  { id:"TileCliffFace",  g:'\u2591', c:"#8c7864", pa:0, op:1, de:0, cv:80, desc:"Impassable cliff" },
-  { id:"TileScree",      g:'\u00B7', c:"#a09682", pa:1, op:0, de:1, cv:10, desc:"Loose scree (noisy)" },
-  { id:"TileBoulder",    g:'\u2229', c:"#827d78", pa:0, op:1, de:0, cv:70, desc:"Large boulder" },
-  { id:"TileSwampWater", g:'\u224B', c:"#326450", pa:1, op:0, de:0, cv:5,  desc:"Murky swamp water" },
-  { id:"TileCypressTree",g:'\u2663', c:"#285532", pa:0, op:1, de:1, cv:80, desc:"Cypress tree" },
-  { id:"TileSnowTree",   g:'\u2663', c:"#dcebf5", pa:0, op:1, de:1, cv:80, desc:"Snow-covered pine" },
-  { id:"TileMud",        g:'\u224B', c:"#6e5032", pa:1, op:0, de:0, cv:5,  desc:"Deep mud (high TU)" },
-  { id:"TileVine",       g:'\u2021', c:"#328232", pa:1, op:0, de:1, cv:20, desc:"Hanging vines" },
-  { id:"TileBamboo",     g:'\u2663', c:"#50963c", pa:0, op:1, de:1, cv:60, desc:"Bamboo thicket" },
-  { id:"TileDryBush",    g:'*',      c:"#aa8c3c", pa:1, op:0, de:1, cv:20, desc:"Dry coastal scrub" },
+  { id:"TileFloor",      g:'.',  c:"#5f5a55", pa:1, op:0, de:0, cv:0 },
+  { id:"TileWall",       g:'#',  c:"#a09b96", pa:0, op:1, de:1, cv:80 },
+  { id:"TileDoor",       g:'+',  c:"#8c6432", pa:1, op:0, de:1, cv:0 },
+  { id:"TileWindow",     g:'\u229E', c:"#78aadc", pa:0, op:0, de:1, cv:20 },
+  { id:"TileGrass",      g:'\u00B7', c:"#326e28", pa:1, op:0, de:0, cv:0 },
+  { id:"TileTree",       g:'\u2663', c:"#235a19", pa:0, op:1, de:1, cv:80 },
+  { id:"TileRock",       g:'\u2229', c:"#827d78", pa:0, op:1, de:1, cv:70 },
+  { id:"TileWater",      g:'\u2248', c:"#2850c8", pa:0, op:0, de:0, cv:0 },
+  { id:"TileUFOFloor",   g:'\u2261', c:"#324b6e", pa:1, op:0, de:0, cv:0 },
+  { id:"TileUFOWall",    g:'\u2588', c:"#466496", pa:0, op:1, de:1, cv:80 },
+  { id:"TileStairs",     g:'\u2592', c:"#6e6964", pa:1, op:0, de:0, cv:0 },
+  { id:"TileStairsDown", g:'\u2593', c:"#504b46", pa:1, op:0, de:0, cv:0 },
+  { id:"TilePavement",   g:'\u2591', c:"#787878", pa:1, op:0, de:0, cv:0 },
+  { id:"TileSand",       g:'\u00B7', c:"#c8b478", pa:1, op:0, de:0, cv:0 },
+  { id:"TileSnow",       g:'\u2217', c:"#e6ebf5", pa:1, op:0, de:0, cv:0 },
+  { id:"TileMarsh",      g:'\u224B', c:"#3c6446", pa:1, op:0, de:0, cv:0 },
+  { id:"TileBush",       g:'\u2020', c:"#2d6423", pa:1, op:0, de:1, cv:40 },
+  { id:"TileFence",      g:'\u2502', c:"#917850", pa:0, op:1, de:1, cv:40 },
+  { id:"TileRubble",     g:'\u2592', c:"#78736e", pa:1, op:0, de:0, cv:20 },
+  { id:"TileObject",     g:'\u2022', c:"#aaaaaa", pa:0, op:1, de:0, cv:50 },
+  { id:"TileConsole",    g:'\u2338', c:"#46d282", pa:1, op:0, de:1, cv:10 },
+  { id:"TileMachinery",  g:'\u229B', c:"#b4b4b4", pa:1, op:0, de:1, cv:30 },
+  { id:"TilePod",        g:'\u25C8', c:"#8246be", pa:1, op:0, de:1, cv:30 },
+  { id:"TilePowerSource",g:'\u2301', c:"#f0c83c", pa:1, op:0, de:1, cv:20 },
+  { id:"TileStorage",    g:'\u25A4', c:"#b48c5a", pa:1, op:0, de:1, cv:30 },
+  { id:"TileAlienTech",  g:'\u2295', c:"#e64646", pa:1, op:0, de:1, cv:20 },
+  { id:"TileDesk",       g:'\u25CA', c:"#a07850", pa:1, op:0, de:1, cv:30 },
+  { id:"TileChair",      g:'\u229F', c:"#96643c", pa:1, op:0, de:1, cv:10 },
+  { id:"TileChairLeft",  g:'\u2143', c:"#96643c", pa:1, op:0, de:1, cv:10 },
+  { id:"TileChairRight", g:'L',      c:"#96643c", pa:1, op:0, de:1, cv:10 },
+  { id:"TileComputer",   g:'\u2338', c:"#46b4d2", pa:1, op:0, de:1, cv:10 },
+  { id:"TileBed",        g:'\u25A1', c:"#c8c8c8", pa:1, op:0, de:1, cv:20 },
+  { id:"TileLocker",     g:'\u25EB', c:"#8ca0b4", pa:1, op:0, de:1, cv:30 },
+  { id:"TileCabinet",    g:'\u229E', c:"#aa825a", pa:1, op:0, de:1, cv:30 },
+  { id:"TileCar",        g:'\u2584', c:"#3264b4", pa:0, op:1, de:1, cv:50 },
+  { id:"TileCarMid",     g:'\u2588', c:"#3264b4", pa:0, op:1, de:1, cv:50 },
+  { id:"TileCarRight",   g:'\u2584', c:"#3264b4", pa:0, op:1, de:1, cv:50 },
+  { id:"TileForklift",   g:'\u2588', c:"#c8a028", pa:0, op:1, de:1, cv:50 },
+  { id:"TileForkliftRight",g:'\u228F',c:"#c8a028", pa:0, op:1, de:1, cv:50 },
+  { id:"TileFuelPump",   g:'8',      c:"#c83c28", pa:0, op:1, de:1, cv:30 },
+  { id:"TileContainerRed",g:'\u2588',c:"#b43228", pa:0, op:1, de:0, cv:80 },
+  { id:"TileContainerBlue",g:'\u2588',c:"#3250b4", pa:0, op:1, de:0, cv:80 },
+  { id:"TileContainerYellow",g:'\u2588',c:"#c8aa28", pa:0, op:1, de:0, cv:80 },
+  { id:"TileBusEnd",     g:'\u2584', c:"#c8b43c", pa:0, op:1, de:1, cv:50 },
+  { id:"TileBusMid",     g:'\u2588', c:"#c8b43c", pa:0, op:1, de:1, cv:50 },
+  { id:"TileHeloBody",   g:'\u2588', c:"#3c4655", pa:0, op:1, de:1, cv:50 },
+  { id:"TileHeloTail",   g:'\u2584', c:"#3c4655", pa:0, op:1, de:1, cv:30 },
+  { id:"TileHeloNose",   g:'\u25B7', c:"#82c8e6", pa:0, op:1, de:1, cv:40 },
+  { id:"TileHeloRotor",  g:'+',      c:"#b4b4b4", pa:1, op:0, de:1, cv:0 },
+  { id:"TileHeloRotorSides",g:'-',   c:"#b4b4b4", pa:1, op:0, de:1, cv:0 },
+  { id:"TileHeloBodyBack",g:'\u2588',c:"#3c4655", pa:0, op:1, de:1, cv:50 },
+  { id:"TileHeloRotorBack",g:'x',    c:"#b4b4b4", pa:1, op:0, de:1, cv:0 },
+  { id:"TileHeloWindow", g:'\u25E3', c:"#82c8e6", pa:0, op:1, de:1, cv:0 },
+  { id:"TileTractorCab", g:'\u25E3', c:"#82c8e6", pa:0, op:1, de:1, cv:30 },
+  { id:"TileTractorBody",g:'\u2588', c:"#b43c28", pa:0, op:1, de:1, cv:30 },
+  { id:"TileCrawlerLeft",g:'\u25E2', c:"#8246be", pa:0, op:1, de:1, cv:50 },
+  { id:"TileCrawlerMid", g:'\u2588', c:"#8246be", pa:0, op:1, de:1, cv:50 },
+  { id:"TileCrawlerRight",g:'\u25E3',c:"#8246be", pa:0, op:1, de:1, cv:50 },
+  { id:"TileCrawlerLeg", g:'^',      c:"#6432a0", pa:0, op:1, de:1, cv:20 },
+  { id:"TileWheel",      g:'O',      c:"#3c3c3c", pa:0, op:0, de:1, cv:10 },
+  { id:"TileWheelSmall", g:'o',      c:"#3c3c3c", pa:0, op:0, de:1, cv:10 },
+  { id:"TileAdobe",      g:'\u2588', c:"#c88246", pa:0, op:1, de:0, cv:80 },
+  { id:"TileMetalWall",  g:'\u2588', c:"#b4b9c3", pa:0, op:1, de:0, cv:80 },
+  { id:"TileWreck",      g:'\u25A4', c:"#965f3c", pa:0, op:1, de:0, cv:80 },
+  { id:"TileTimber",     g:'\u2261', c:"#966e3c", pa:0, op:1, de:1, cv:80 },
+  { id:"TileDish",       g:'\u25D7', c:"#aaafb9", pa:0, op:1, de:0, cv:50 },
+  { id:"TileTruck",      g:'\u2584', c:"#5a6e46", pa:0, op:1, de:1, cv:80 },
+  { id:"TileIce",        g:'\u2248', c:"#b4dceb", pa:1, op:0, de:0, cv:0 },
+  { id:"TileStreetlamp", g:'\u2316', c:"#dcd278", pa:0, op:0, de:1, cv:10 },
+  { id:"TileGlass",      g:',',      c:"#bec8d2", pa:1, op:0, de:1, cv:0 },
+  { id:"TileDebris",     g:'`',      c:"#968c82", pa:1, op:0, de:1, cv:0 },
+  { id:"TileCryoPipe",   g:'\u256A', c:"#8cc8e6", pa:0, op:0, de:1, cv:20 },
+  { id:"TileSkylight",   g:'\u2299', c:"#b4d2f0", pa:1, op:0, de:1, cv:0 },
+  { id:"TileWheat",      g:'\u03C8', c:"#c8b43c", pa:1, op:0, de:1, cv:20 },
+  { id:"TileHayBale",    g:'\u2588', c:"#a08c3c", pa:0, op:1, de:1, cv:60 },
+  { id:"TilePier",       g:'\u2550', c:"#8c643c", pa:1, op:0, de:0, cv:10 },
+  { id:"TileDockCrate",  g:'\u25A3', c:"#967850", pa:0, op:1, de:1, cv:50 },
+  { id:"TileCliffFace",  g:'\u2591', c:"#8c7864", pa:0, op:1, de:0, cv:80 },
+  { id:"TileScree",      g:'\u00B7', c:"#a09682", pa:1, op:0, de:1, cv:10 },
+  { id:"TileBoulder",    g:'\u2229', c:"#827d78", pa:0, op:1, de:0, cv:70 },
+  { id:"TileSwampWater", g:'\u224B', c:"#326450", pa:1, op:0, de:0, cv:5 },
+  { id:"TileCypressTree",g:'\u2663', c:"#285532", pa:0, op:1, de:1, cv:80 },
+  { id:"TileSnowTree",   g:'\u2663', c:"#dcebf5", pa:0, op:1, de:1, cv:80 },
+  { id:"TileMud",        g:'\u224B', c:"#6e5032", pa:1, op:0, de:0, cv:5 },
+  { id:"TileVine",       g:'\u2021', c:"#328232", pa:1, op:0, de:1, cv:20 },
+  { id:"TileBamboo",     g:'\u2663', c:"#50963c", pa:0, op:1, de:1, cv:60 },
+  { id:"TileDryBush",    g:'*',      c:"#aa8c3c", pa:1, op:0, de:1, cv:20 },
 ];
 
 const tileMap = {};
@@ -193,26 +237,29 @@ TILES.forEach(t => tileMap[t.id] = t);
 // ===== STATE =====
 let grid = [];
 let selTile = TILES.find(t => t.id === "TileGrass");
-let w = 9, h = 9;
+let currentMode = "tile";
+let selChunk = null;
+let loadedChunks = [];
+let w = 50, h = 50;
 
 function initGrid() {
   grid = [];
   for (let y = 0; y < h; y++) {
     grid[y] = [];
-    for (let x = 0; x < w; x++) {
-      grid[y][x] = "TileGrass";
-    }
+    for (let x = 0; x < w; x++) grid[y][x] = "TileGrass";
   }
 }
 
+// ===== RENDER TILE LIST =====
 function renderTileList() {
   const el = document.getElementById("tileList");
   el.innerHTML = "";
   TILES.forEach(t => {
     const div = document.createElement("div");
     div.className = "tile-item" + (selTile && selTile.id === t.id ? " active" : "");
-    div.innerHTML = `<div class="preview" style="background:${t.c};color:#fff;text-shadow:0 0 2px #000">${t.g}</div><span class="name">${t.id.replace("Tile","")}</span><span class="glyph">${t.g.charCodeAt(0).toString(16).toUpperCase()}</span>`;
+    div.innerHTML = `<div class="pvw" style="background:${t.c};color:#fff;text-shadow:0 0 2px #000">${t.g}</div><span class="nm">${t.id.replace("Tile","")}</span>`;
     div.addEventListener("click", () => selectTile(t.id));
+    div.addEventListener("dblclick", () => selectTile(t.id));
     el.appendChild(div);
   });
 }
@@ -228,10 +275,10 @@ function selectTile(id) {
   document.getElementById("selName").textContent = selTile.id;
 }
 
+// ===== RENDER GRID =====
 function renderGrid() {
   const container = document.getElementById("gridContainer");
   container.innerHTML = "";
-  container.style.gridTemplateColumns = `repeat(${w}, 28px)`;
   for (let y = 0; y < h; y++) {
     const row = document.createElement("div");
     row.className = "grid-row";
@@ -246,170 +293,191 @@ function renderGrid() {
       cell.style.background = t.c;
       cell.style.color = "#fff";
       cell.style.textShadow = "0 0 2px #000";
-      // Darken empty-style tiles for contrast
-      if (t.id === "TileGrass" || t.id === "TileSand" || t.id === "TileScree") {
-        cell.style.color = "rgba(255,255,255,0.3)";
-      }
-      const coord = document.createElement("span");
-      coord.className = "coord";
-      coord.textContent = x+","+y;
-      cell.appendChild(coord);
-      cell.addEventListener("click", () => placeTile(x, y));
-      cell.addEventListener("contextmenu", e => { e.preventDefault(); placeTile(x, y, true); });
+      if (t.id === "TileGrass" || t.id === "TileSand" || t.id === "TileScree")
+        cell.style.color = "rgba(255,255,255,0.25)";
+      const cl = document.createElement("span");
+      cl.className = "cl";
+      cl.textContent = x+","+y;
+      cell.appendChild(cl);
+      cell.addEventListener("mousedown", e => {
+        e.preventDefault();
+        if (e.button === 2) { eraseCell(x, y); return; }
+        handleCellClick(x, y);
+      });
+      cell.addEventListener("contextmenu", e => e.preventDefault());
       row.appendChild(cell);
     }
     container.appendChild(row);
   }
-  updateInfo();
-  renderPreview();
 }
 
-function placeTile(x, y, erase) {
-  if (!selTile) return;
-  grid[y][x] = erase ? "TileGrass" : selTile.id;
-  renderGrid();
-  // restore selection highlight
-  selectTile(selTile.id);
-}
-
-function renderPreview() {
-  const pre = document.getElementById("previewPre");
-  if (!pre) return;
-  const fragment = document.createDocumentFragment();
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      const id = grid[y][x] || "TileGrass";
-      const t = tileMap[id] || TILES[0];
-      const span = document.createElement("span");
-      span.textContent = t.g;
-      span.style.color = t.c;
-      fragment.appendChild(span);
-    }
-    if (y < h - 1) fragment.appendChild(document.createTextNode("\n"));
+function handleCellClick(x, y) {
+  if (currentMode === "tile") {
+    if (selTile) grid[y][x] = selTile.id;
+  } else {
+    stampChunk(x, y);
   }
-  pre.textContent = "";
-  pre.appendChild(fragment);
+  renderGrid();
+  if (currentMode === "tile") selectTile(selTile.id);
 }
 
-function updateInfo() {
-  const used = new Set();
-  let count = 0;
-  for (let y = 0; y < h; y++)
-    for (let x = 0; x < w; x++) {
-      used.add(grid[y][x]);
-      count++;
+function eraseCell(x, y) {
+  grid[y][x] = "TileGrass";
+  renderGrid();
+  if (currentMode === "tile") selectTile(selTile.id);
+}
+
+// ===== CHUNK STAMPING =====
+const defaultGlyphMap = {
+  ".": "TileFloor", "#": "TileWall", "+": "TileDoor", "\u229E": "TileWindow",
+  "\u00B7": "TileGrass", "\u2663": "TileTree", "\u2229": "TileRock",
+  "\u2248": "TileWater", "\u2261": "TileUFOFloor", "\u2588": "TileUFOWall",
+  "\u2592": "TileStairs", "\u2593": "TileStairsDown", "\u2591": "TilePavement",
+  "\u2217": "TileSnow", "\u224B": "TileMarsh", "\u2020": "TileBush",
+  "\u2502": "TileFence", "\u2022": "TileObject", "W": "TileWall",
+  "g": "TileGrass", "t": "TileTree", "r": "TileRock", "s": "TileSand",
+  "n": "TileSnow", "~": "TileWater", "R": "TileRubble", "D": "TileDoor",
+  "C": "TileConsole", "M": "TileMachinery", "P": "TilePod",
+  "X": "TilePowerSource", "S": "TileStorage", "B": "TileBed", "A": "TileAlienTech"
+};
+
+function stampChunk(cx, cy) {
+  if (!selChunk) return;
+  const chunk = selChunk;
+  for (let y = 0; y < chunk.height; y++) {
+    for (let x = 0; x < chunk.width; x++) {
+      const glyph = chunk.rows[y][x];
+      if (glyph === ' ') continue;
+      let tileId = chunk.terrain && chunk.terrain[glyph];
+      if (!tileId) tileId = chunk.furniture && chunk.furniture[glyph];
+      if (!tileId) tileId = defaultGlyphMap[glyph];
+      if (!tileId) continue;
+      const mx = cx + x;
+      const my = cy + y;
+      if (mx >= 0 && mx < w && my >= 0 && my < h) {
+        grid[my][mx] = tileId;
+      }
     }
-  // no info bar for now
+  }
+}
+
+// ===== CHUNK LIBRARY =====
+function renderChunkLibrary() {
+  const body = document.getElementById("chunkBody");
+  if (loadedChunks.length === 0) {
+    body.innerHTML = '<div style="color:#555;font-size:11px;padding:12px;text-align:center;">Load chunk JSONs<br>from data/maps/ to begin</div>';
+    return;
+  }
+  body.innerHTML = "";
+  loadedChunks.forEach((chunk, idx) => {
+    const item = document.createElement("div");
+    item.className = "chunk-item" + (selChunk === chunk ? " active" : "");
+
+    // Mini map
+    const mini = document.createElement("div");
+    mini.className = "minimap";
+    const mw = Math.min(chunk.width, 20);
+    const mh = Math.min(chunk.height, 20);
+    mini.style.gridTemplateColumns = `repeat(${mw}, 6px)`;
+    for (let y = 0; y < mh; y++) {
+      for (let x = 0; x < mw; x++) {
+        const glyph = chunk.rows[y][x];
+        let tileId = chunk.terrain && chunk.terrain[glyph];
+        if (!tileId) tileId = chunk.furniture && chunk.furniture[glyph];
+        if (!tileId) tileId = defaultGlyphMap[glyph];
+        const t = tileMap[tileId] || TILES[0];
+        const pix = document.createElement("div");
+        pix.className = "mpixel";
+        pix.style.background = t.c;
+        mini.appendChild(pix);
+      }
+    }
+
+    const info = document.createElement("div");
+    info.className = "info";
+    info.innerHTML = `<div class="cid">${chunk.id}</div><div class="cdim">${chunk.width}\u00D7${chunk.height} ${chunk.tags ? chunk.tags.join(", ") : ""}</div>`;
+
+    const rm = document.createElement("button");
+    rm.className = "rm";
+    rm.textContent = "\u00D7";
+    rm.title = "Remove";
+    rm.addEventListener("click", e => { e.stopPropagation(); loadedChunks.splice(idx, 1); if (selChunk === chunk) selChunk = null; renderChunkLibrary(); });
+
+    item.appendChild(mini);
+    item.appendChild(info);
+    item.appendChild(rm);
+    item.addEventListener("click", () => {
+      selChunk = chunk;
+      document.getElementById("selSwatch").textContent = "\u25A0";
+      document.getElementById("selSwatch").style.background = "#e94560";
+      document.getElementById("selName").textContent = chunk.id + " (" + chunk.width + "\u00D7" + chunk.height + ")";
+      renderChunkLibrary();
+    });
+    body.appendChild(item);
+  });
 }
 
 // ===== EXPORT =====
-function exportJSON() {
-  // Determine used glyphs
-  const usedGlyphs = {};
-  const terrain = {};
-  const furniture = {};
-  for (let y = 0; y < h; y++)
-    for (let x = 0; x < w; x++) {
-      const id = grid[y][x] || "TileGrass";
-      const t = tileMap[id];
-      if (!t || id === "TileGrass") continue;
-      // Assign a unique glyph based on tile type index
-      // Use a single letter/digit if possible, otherwise use the tile's glyph
-      let glyph;
-      // Use a consistent glyph per tile type across the chunk
-      if (!usedGlyphs[id]) {
-        // Try first letter of the name after Tile
-        let name = id.replace("Tile","");
-        let ch = name[0].toLowerCase();
-        // Avoid collision with reserved chars for base terrain
-        if (".#+·♣∩≈≡▒▓░∗≋†│•".includes(ch) || Object.values(usedGlyphs).includes(ch) || ch === 'h') {
-          // Use a unique starting char
-          ch = String.fromCharCode(97 + Object.keys(usedGlyphs).length);
-        }
-        // Actually just use the tile's rune character directly since the terrain/furniture map is explicit
-        ch = t.g;
-        // But if two different tile types share the same glyph (like ♣ used by Tree/Cypress/SnowTree/Bamboo),
-        // we need to disambiguate. Use a unique letter.
-        // Instead: assign unique ASCII glyphs for all used tiles
-        const keys = Object.keys(usedGlyphs);
-        const idx = keys.length;
-        if (idx < 26) ch = String.fromCharCode(97 + idx);
-        else if (idx < 52) ch = String.fromCharCode(65 + idx - 26);
-        else ch = String.fromCharCode(48 + idx - 52);
-        usedGlyphs[id] = ch;
-      }
-      glyph = usedGlyphs[id];
-      if (t.pa) {
-        terrain[glyph] = id;
-      } else {
-        furniture[glyph] = id;
-      }
-    }
-
-  // Build rows
-  const rows = [];
+function exportMap() {
+  const tiles = [];
   for (let y = 0; y < h; y++) {
-    let row = "";
+    const row = [];
     for (let x = 0; x < w; x++) {
-      const id = grid[y][x] || "TileGrass";
-      if (id === "TileGrass") {
-        row += ".";
-      } else {
-        row += usedGlyphs[id] || ".";
-      }
+      row.push(grid[y][x] || "TileGrass");
     }
-    rows.push(row);
+    tiles.push(row);
   }
+  return JSON.stringify({ width: w, height: h, tiles: tiles }, null, 2);
+}
 
-  const tags = ["farm"];
-  const chunk = {
-    id: "custom_chunk",
-    tags: tags,
-    width: w,
-    height: h,
-    rows: rows,
-    terrain: Object.fromEntries(Object.entries(usedGlyphs || {}).filter(([g,id]) => tileMap[id] && tileMap[id].pa).map(([g,id]) => [g,id])),
-    furniture: Object.fromEntries(Object.entries(usedGlyphs || {}).filter(([g,id]) => tileMap[id] && !tileMap[id].pa).map(([g,id]) => [g,id]))
-  };
-  if (Object.keys(chunk.furniture).length === 0) chunk.furniture = {};
-
-  return JSON.stringify(chunk, null, 2);
+function loadMapJSON(data) {
+  if (!data.tiles || !data.width || !data.height) {
+    alert("Invalid map JSON: missing width, height, or tiles");
+    return false;
+  }
+  w = data.width;
+  h = data.height;
+  document.getElementById("mapW").value = w;
+  document.getElementById("mapH").value = h;
+  grid = [];
+  for (let y = 0; y < h; y++) {
+    grid[y] = [];
+    for (let x = 0; x < w; x++) {
+      const id = data.tiles[y] && data.tiles[y][x];
+      grid[y][x] = tileMap[id] ? id : "TileGrass";
+    }
+  }
+  return true;
 }
 
 // ===== UI EVENTS =====
 document.addEventListener("DOMContentLoaded", () => {
   const wIn = document.getElementById("mapW");
   const hIn = document.getElementById("mapH");
-  w = parseInt(wIn.value) || 9;
-  h = parseInt(hIn.value) || 9;
+  w = parseInt(wIn.value) || 50;
+  h = parseInt(hIn.value) || 50;
   initGrid();
   renderTileList();
   renderGrid();
-  renderPreview();
   selectTile("TileGrass");
 
+  // Resize
   document.getElementById("resizeBtn").addEventListener("click", () => {
-    w = parseInt(wIn.value) || 9;
-    h = parseInt(hIn.value) || 9;
-    if (w < 1) w = 1; if (w > 64) w = 64;
-    if (h < 1) h = 1; if (h > 64) h = 64;
-    wIn.value = w; hIn.value = h;
-    const newGrid = [];
-    for (let y = 0; y < h; y++) {
-      newGrid[y] = [];
-      for (let x = 0; x < w; x++) {
-        newGrid[y][x] = (grid[y] && grid[y][x]) ? grid[y][x] : "TileGrass";
+    const nw = Math.max(1, Math.min(120, parseInt(wIn.value) || 50));
+    const nh = Math.max(1, Math.min(120, parseInt(hIn.value) || 50));
+    wIn.value = nw; hIn.value = nh;
+    const ng = [];
+    for (let y = 0; y < nh; y++) {
+      ng[y] = [];
+      for (let x = 0; x < nw; x++) {
+        ng[y][x] = (grid[y] && grid[y][x]) ? grid[y][x] : "TileGrass";
       }
     }
-    grid = newGrid;
+    grid = ng; w = nw; h = nh;
     renderGrid();
   });
 
-  document.getElementById("clearBtn").addEventListener("click", () => {
-    initGrid();
-    renderGrid();
-  });
-
+  // Fill
   document.getElementById("fillBtn").addEventListener("click", () => {
     if (!selTile) return;
     for (let y = 0; y < h; y++)
@@ -419,11 +487,81 @@ document.addEventListener("DOMContentLoaded", () => {
     selectTile(selTile.id);
   });
 
+  // Clear
+  document.getElementById("clearBtn").addEventListener("click", () => {
+    initGrid();
+    renderGrid();
+  });
+
+  // Mode toggle
+  document.querySelectorAll(".mode-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".mode-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      currentMode = btn.dataset.mode;
+      if (currentMode === "tile") {
+        selectTile(selTile ? selTile.id : "TileGrass");
+      } else if (selChunk) {
+        document.getElementById("selSwatch").textContent = "\u25A0";
+        document.getElementById("selSwatch").style.background = "#e94560";
+        document.getElementById("selName").textContent = selChunk.id;
+      } else {
+        document.getElementById("selSwatch").textContent = "?";
+        document.getElementById("selSwatch").style.background = "#555";
+        document.getElementById("selName").textContent = "Select a chunk";
+      }
+    });
+  });
+
+  // Chunk panel toggle
+  document.getElementById("chunkToggleBtn").addEventListener("click", () => {
+    document.getElementById("chunkPanel").classList.toggle("open");
+  });
+
+  // Load chunks
+  document.getElementById("loadChunksBtn").addEventListener("click", () => {
+    document.getElementById("chunkFileInput").click();
+  });
+  document.getElementById("chunkFileInput").addEventListener("change", e => {
+    const files = e.target.files;
+    if (!files.length) return;
+    let loaded = 0;
+    const processNext = (idx) => {
+      if (idx >= files.length) {
+        renderChunkLibrary();
+        document.getElementById("chunkPanel").classList.add("open");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          const data = JSON.parse(ev.target.result);
+          if (data.rows && data.width && data.height && data.id) {
+            loadedChunks.push(data);
+            loaded++;
+          }
+        } catch(_) {}
+        processNext(idx + 1);
+      };
+      reader.readAsText(files[idx]);
+    };
+    processNext(0);
+    e.target.value = "";
+  });
+
+  // Clear chunks
+  document.getElementById("clearChunksBtn").addEventListener("click", () => {
+    loadedChunks = [];
+    selChunk = null;
+    renderChunkLibrary();
+  });
+
   // Export
   const exportArea = document.getElementById("exportArea");
   const overlay = document.getElementById("overlay");
   document.getElementById("exportBtn").addEventListener("click", () => {
-    document.getElementById("exportText").value = exportJSON();
+    document.getElementById("exportText").value = exportMap();
+    document.getElementById("exportTitle").textContent = "Export Map (" + w + "\u00D7" + h + ")";
     exportArea.classList.add("show");
     overlay.classList.add("show");
   });
@@ -444,69 +582,33 @@ document.addEventListener("DOMContentLoaded", () => {
     const blob = new Blob([document.getElementById("exportText").value], {type:"application/json"});
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = "custom_chunk.json";
+    a.download = "custom_map.json";
     a.click();
   });
 
-  // Load
-  document.getElementById("loadBtn").addEventListener("click", () => {
-    document.getElementById("loadInput").click();
+  // Load map
+  document.getElementById("loadMapBtn").addEventListener("click", () => {
+    document.getElementById("mapFileInput").click();
   });
-  document.getElementById("loadInput").addEventListener("change", (e) => {
+  document.getElementById("mapFileInput").addEventListener("change", e => {
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (ev) => {
       try {
         const data = JSON.parse(ev.target.result);
-        if (!data.rows || !data.width || !data.height) {
-          alert("Invalid chunk JSON: missing rows, width, or height");
-          return;
+        if (loadMapJSON(data)) {
+          renderGrid();
+          exportArea.classList.remove("show");
+          overlay.classList.remove("show");
         }
-        w = data.width;
-        h = data.height;
-        document.getElementById("mapW").value = w;
-        document.getElementById("mapH").value = h;
-        const terrain = data.terrain || {};
-        const furniture = data.furniture || {};
-        const tmap = {...terrain, ...furniture};
-        // Reverse map: glyph -> TileType name
-        const rev = {};
-        for (const [glyph, tid] of Object.entries(tmap)) {
-          rev[glyph] = tid;
-        }
-        grid = [];
-        for (let y = 0; y < h; y++) {
-          grid[y] = [];
-          for (let x = 0; x < w; x++) {
-            const ch = data.rows[y] ? data.rows[y][x] : ".";
-            // default terrain glyphs
-            const defaultTerrain = { ".":"TileFloor", "#":"TileWall", "+":"TileDoor", "\u229E":"TileWindow", "\u00B7":"TileGrass", "\u2663":"TileTree", "\u2229":"TileRock", "\u2248":"TileWater", "\u2261":"TileUFOFloor", "\u2588":"TileUFOWall", "\u2592":"TileStairs", "\u2593":"TileStairsDown", "\u2591":"TilePavement", "\u2217":"TileSnow", "\u224B":"TileMarsh", "\u2020":"TileBush", "\u2502":"TileFence", "\u2022":"TileObject" };
-            grid[y][x] = rev[ch] || defaultTerrain[ch] || "TileGrass";
-          }
-        }
-        renderGrid();
-        exportArea.classList.remove("show");
-        overlay.classList.remove("show");
       } catch(err) {
-        alert("Error loading JSON: " + err.message);
+        alert("Error loading map: " + err.message);
       }
     };
     reader.readAsText(file);
     e.target.value = "";
   });
-
-  // Preview toggle
-  document.getElementById("previewBtn").addEventListener("click", () => {
-    document.getElementById("previewPanel").classList.toggle("open");
-    renderPreview();
-  });
-  document.getElementById("closePreviewBtn").addEventListener("click", () => {
-    document.getElementById("previewPanel").classList.remove("open");
-  });
-
-  // click on empty area clears selection (toggle grass)
-  // already handled
 });
 </script>
 </body>

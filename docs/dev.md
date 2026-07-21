@@ -561,9 +561,9 @@ Migration functions are in `internal/save/save.go`. Saves below v2 are rejected.
 
 Browser-based HTML tools for level design and tile creation. Open directly in any browser — no build step required.
 
-### Map Editor (`tools/map_editor.html`)
+### Area Editor (`tools/area_editor.html`)
 
-Visual tile-grid editor for designing map fragments. Paint tiles on a grid, export to JSON for use in `data/maps/`.
+Visual tile-grid editor for designing map fragments (chunks). Paint tiles on a grid, export to chunk JSON for use in `data/maps/`.
 
 - **Left sidebar:** tile palette with all tile types, glyph previews, and color swatches
 - **Center:** interactive grid — left-click to paint, right-click to erase (sets to TileGrass)
@@ -572,6 +572,26 @@ Visual tile-grid editor for designing map fragments. Paint tiles on a grid, expo
 - **Load:** import existing chunk JSONs from `data/maps/` to edit them
 
 **Exported file location:** `data/maps/<name>.json`
+
+### Map Editor (`tools/map_editor.html`)
+
+Full map builder — design complete tactical maps by stamping chunks or painting individual tiles on a large grid.
+
+- **Left sidebar:** tile palette (same tiles as Area Editor)
+- **Center:** large grid (up to 100x100) — left-click to paint tile / stamp chunk, right-click to erase
+- **Right panel: Chunk Library** — load any number of chunk JSONs from `data/maps/` via multi-file picker. Each loaded chunk can be selected and stamped onto the map with a single click. Active chunks are listed with mini previews.
+- **Mode toggle:** switch between Tile Mode (paint individual tiles) and Chunk Mode (stamp entire chunks)
+- **Export:** exports the full map as a JSON file with width, height, and a 2D tile grid array
+- **Load Map:** re-import previously exported map JSON for editing
+
+**Exported file location:** standalone map JSON (loadable by the editor). To use in-game, wrap in a custom battle definition or add a loader in `NewBattlescape`.
+
+**Usage:**
+1. Set W/H for the overall map (default 50×50)
+2. Load chunk JSONs from `data/maps/` using the Chunk Library panel
+3. Switch to Chunk Mode, click a chunk in the library, then click on the map to stamp it
+4. Switch to Tile Mode to paint individual tiles or touch up chunk edges
+5. Export the finished map to JSON
 
 ### Tile Creator (`tools/tile_creator.html`)
 
