@@ -31,8 +31,9 @@ type WFCLibrary struct {
 }
 
 // LoadWFCLibrary parses a single WFC library JSON file.
+// Comments (// and /* */) are stripped before parsing.
 func LoadWFCLibrary(path string) (*WFCLibrary, error) {
-	data, err := os.ReadFile(path)
+	data, err := ReadFileJSONC(path)
 	if err != nil {
 		return nil, fmt.Errorf("mapgen: read %s: %w", path, err)
 	}
@@ -90,8 +91,8 @@ func contains(s []string, v string) bool {
 	return false
 }
 
-// LoadWFCLibrariesDir loads every *.json file in dir as a WFC library and
-// returns them keyed by filename stem (e.g. "ufo", "urban").
+// LoadWFCLibrariesDir loads every *.json/*.jsonc file in dir as a WFC library
+// and returns them keyed by filename stem (e.g. "ufo", "urban").
 func LoadWFCLibrariesDir(dir string) (map[string]*WFCLibrary, error) {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
@@ -99,7 +100,7 @@ func LoadWFCLibrariesDir(dir string) (map[string]*WFCLibrary, error) {
 	}
 	out := map[string]*WFCLibrary{}
 	for _, e := range entries {
-		if e.IsDir() || !strings.HasSuffix(e.Name(), ".json") {
+		if e.IsDir() || !IsJSONFile(e.Name()) {
 			continue
 		}
 		path := filepath.Join(dir, e.Name())
@@ -108,6 +109,7 @@ func LoadWFCLibrariesDir(dir string) (map[string]*WFCLibrary, error) {
 			return nil, err
 		}
 		stem := strings.TrimSuffix(e.Name(), ".json")
+		stem = strings.TrimSuffix(stem, ".jsonc")
 		out[stem] = lib
 	}
 	return out, nil

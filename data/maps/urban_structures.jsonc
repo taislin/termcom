@@ -1,0 +1,166 @@
+[
+  {
+    "description": "Urban dumpsters map chunk",
+    "furniture": {
+      "O": "TileObject"
+    },
+    "height": 1,
+    "id": "urban_dumpsters",
+    "rows": [
+      "OOO"
+    ],
+    "tags": [
+      "urban"
+    ],
+    "terrain": {
+      ".": "TilePavement"
+    },
+    "weight": 4,
+    "width": 3
+  },
+  {
+    "description": "Urban bench tree map chunk",
+    "furniture": {
+      "O": "TileObject"
+    },
+    "height": 2,
+    "id": "urban_bench_tree",
+    "rows": [
+      ".T.",
+      ".O."
+    ],
+    "tags": [
+      "urban"
+    ],
+    "terrain": {
+      ".": "TileGrass",
+      "T": "TileTree"
+    },
+    "weight": 3,
+    "width": 3
+  },
+  {
+    "description": "Urban newsstand map chunk",
+    "furniture": {
+      "O": "TileObject"
+    },
+    "height": 2,
+    "id": "urban_newsstand",
+    "no_rotate": true,
+    "rows": [
+      "WO",
+      "WO"
+    ],
+    "tags": [
+      "urban"
+    ],
+    "terrain": {
+      ".": "TilePavement",
+      "W": "TileWall"
+    },
+    "weight": 2,
+    "width": 2
+  },
+  {
+    "description": "Urban phone booth map chunk",
+    "furniture": {
+      "O": "TileObject"
+    },
+    "height": 2,
+    "id": "urban_phone_booth",
+    "no_rotate": true,
+    "rows": [
+      "W.",
+      ".O"
+    ],
+    "tags": [
+      "urban"
+    ],
+    "terrain": {
+      ".": "TilePavement",
+      "W": "TileWall"
+    },
+    "weight": 2,
+    "width": 2
+  },
+  {
+    "description": "Urban fire hydrants map chunk",
+    "furniture": {
+      "O": "TileObject"
+    },
+    "height": 1,
+    "id": "urban_fire_hydrants",
+    "rows": [
+      "OO"
+    ],
+    "tags": [
+      "urban"
+    ],
+    "terrain": {
+      ".": "TilePavement"
+    },
+    "weight": 3,
+    "width": 2
+  },
+  {
+    "description": "Urban traffic island map chunk",
+    "furniture": {
+      "B": "TileBush"
+    },
+    "height": 1,
+    "id": "urban_traffic_island",
+    "rows": [
+      ".BBB."
+    ],
+    "tags": [
+      "urban"
+    ],
+    "terrain": {
+      ".": "TilePavement"
+    },
+    "weight": 3,
+    "width": 5
+  },
+  {
+    "description": "Urban parking lots map chunk",
+    "furniture": {
+      "O": "TileObject"
+    },
+    "height": 4,
+    "id": "urban_parking_lots",
+    "rows": [
+      "......",
+      ".OO.OO",
+      ".OO.OO",
+      "......"
+    ],
+    "tags": [
+      "urban"
+    ],
+    "terrain": {
+      ".": "TilePavement"
+    },
+    "weight": 2,
+    "width": 6
+  },
+  {
+    "description": "Urban fence section map chunk",
+    "furniture": {},
+    "height": 3,
+    "id": "urban_fence_section",
+    "rows": [
+      "F..F",
+      "F..F",
+      "F..F"
+    ],
+    "tags": [
+      "urban"
+    ],
+    "terrain": {
+      ".": "TileGrass",
+      "F": "TileFence"
+    },
+    "weight": 3,
+    "width": 4
+  }
+]

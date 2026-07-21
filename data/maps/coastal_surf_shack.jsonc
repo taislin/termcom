@@ -1,0 +1,29 @@
+{
+  "description": "Coastal surf shack map chunk",
+  "furniture": {
+    "D": "TileDesk"
+  },
+  "height": 6,
+  "id": "coastal_surf_shack",
+  "no_rotate": true,
+  "rows": [
+    "ssssssssss",
+    "ssWWWWWWss",
+    "ssW....Oss",
+    "ssWD...Wss",
+    "ssO....Wss",
+    "ssWW+WWWss"
+  ],
+  "tags": [
+    "coastal",
+    "rural"
+  ],
+  "terrain": {
+    "+": "TileDoor",
+    "O": "TileWindow",
+    "W": "TileWall",
+    "s": "TileSand"
+  },
+  "weight": 3,
+  "width": 10
+}

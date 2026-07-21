@@ -137,11 +137,7 @@ var _ Backend = (*pcmBackend)(nil)
 func init() { RegisterBackend(&pcmBackend{}) }
 
 func (b *pcmBackend) Init() { ensureOto() }
-func (b *pcmBackend) Close() {
-	if otoPlayer != nil {
-		otoPlayer.Close()
-	}
-}
+func (b *pcmBackend) Close() { _ = otoPlayer }
 
 func (b *pcmBackend) Play(s Sound) {
 	pcm := soundSamples(s)

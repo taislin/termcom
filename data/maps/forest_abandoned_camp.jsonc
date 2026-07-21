@@ -1,0 +1,23 @@
+{
+  "description": "Forest abandoned camp map chunk",
+  "furniture": {},
+  "height": 4,
+  "id": "forest_abandoned_camp",
+  "rows": [
+    "g...g",
+    ".R.R.",
+    "..R..",
+    "g...g"
+  ],
+  "tags": [
+    "forest",
+    "rural"
+  ],
+  "terrain": {
+    ".": "TileFloor",
+    "R": "TileRubble",
+    "g": "TileGrass"
+  },
+  "weight": 2,
+  "width": 5
+}

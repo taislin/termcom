@@ -1,0 +1,24 @@
+{
+  "description": "Forest pond map chunk",
+  "furniture": {},
+  "height": 5,
+  "id": "forest_pond",
+  "rows": [
+    "ggggg",
+    "g.t.g",
+    "t~~~t",
+    "g.t.g",
+    "ggggg"
+  ],
+  "tags": [
+    "forest"
+  ],
+  "terrain": {
+    ".": "TileGrass",
+    "g": "TileGrass",
+    "t": "TileTree",
+    "~": "TileWater"
+  },
+  "weight": 2,
+  "width": 5
+}

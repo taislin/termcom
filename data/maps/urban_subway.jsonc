@@ -1,0 +1,32 @@
+{
+  "description": "Urban subway map chunk",
+  "furniture": {
+    "F": "TileFence"
+  },
+  "height": 10,
+  "id": "urban_subway",
+  "no_rotate": true,
+  "rows": [
+    "WWWWW",
+    "W...W",
+    "W.F.W",
+    "W.M.W",
+    "W.M.W",
+    "W.M.W",
+    "W.M.W",
+    "W.M.W",
+    "W.M.W",
+    "W+.WW"
+  ],
+  "tags": [
+    "urban"
+  ],
+  "terrain": {
+    "+": "TileDoor",
+    ".": "TilePavement",
+    "M": "TileStairsDown",
+    "W": "TileWall"
+  },
+  "weight": 2,
+  "width": 5
+}

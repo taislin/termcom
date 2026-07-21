@@ -1,0 +1,24 @@
+{
+  "description": "Rural windmill map chunk",
+  "furniture": {},
+  "height": 5,
+  "id": "rural_windmill",
+  "rows": [
+    "WWWW",
+    "W..W",
+    "WMWW",
+    "W..W",
+    "WW+W"
+  ],
+  "tags": [
+    "rural"
+  ],
+  "terrain": {
+    "+": "TileDoor",
+    ".": "TileFloor",
+    "M": "TileMachinery",
+    "W": "TileWall"
+  },
+  "weight": 2,
+  "width": 4
+}

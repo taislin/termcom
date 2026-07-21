@@ -168,7 +168,7 @@ func scanCustomMaps() []string {
 	}
 	var files []string
 	for _, e := range entries {
-		if !e.IsDir() && strings.HasSuffix(strings.ToLower(e.Name()), ".json") {
+		if !e.IsDir() && (strings.HasSuffix(strings.ToLower(e.Name()), ".json") || strings.HasSuffix(strings.ToLower(e.Name()), ".jsonc")) {
 			files = append(files, filepath.Join(mapsDir, e.Name()))
 		}
 	}
@@ -176,7 +176,7 @@ func scanCustomMaps() []string {
 }
 
 func loadCustomBattle(path string) (*customBattle, error) {
-	data, err := os.ReadFile(path)
+	data, err := mapgen.ReadFileJSONC(path)
 	if err != nil {
 		return nil, err
 	}

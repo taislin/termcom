@@ -1,0 +1,23 @@
+{
+  "description": "Mountain outcrop map chunk",
+  "furniture": {},
+  "height": 5,
+  "id": "mountain_outcrop",
+  "no_rotate": true,
+  "rows": [
+    ".....",
+    "..B..",
+    ".BBB.",
+    "..B..",
+    "....."
+  ],
+  "tags": [
+    "mountain"
+  ],
+  "terrain": {
+    ".": "TileScree",
+    "B": "TileBoulder"
+  },
+  "weight": 2,
+  "width": 5
+}

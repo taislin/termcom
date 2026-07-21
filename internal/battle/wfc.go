@@ -761,12 +761,16 @@ func wfcTilesFromLib(lib *mapgen.WFCLibrary) []WFCTile {
 var wfcSearchPaths = []string{"data/wfc", "../data/wfc", "../../data/wfc"}
 
 // loadWFCLibrary loads a WFC tile library by stem (e.g. "ufo") from
-// data/wfc/<stem>.json. It panics if the file cannot be found or parsed.
+// data/wfc/<stem>.json or data/wfc/<stem>.jsonc. It panics if the file cannot
+// be found or parsed.
 func loadWFCLibrary(stem string) []WFCTile {
+	exts := []string{".jsonc", ".json"}
 	for _, dir := range wfcSearchPaths {
-		path := dir + "/" + stem + ".json"
-		if lib, err := mapgen.LoadWFCLibrary(path); err == nil {
-			return wfcTilesFromLib(lib)
+		for _, ext := range exts {
+			path := dir + "/" + stem + ext
+			if lib, err := mapgen.LoadWFCLibrary(path); err == nil {
+				return wfcTilesFromLib(lib)
+			}
 		}
 	}
 	log.Fatalf("wfc: required library %q not found in any search path: %v", stem, wfcSearchPaths)

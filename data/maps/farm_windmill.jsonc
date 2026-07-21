@@ -1,0 +1,25 @@
+{
+  "description": "Farm windmill map chunk",
+  "furniture": {},
+  "height": 7,
+  "id": "farm_windmill",
+  "rows": [
+    ".......",
+    "..WWW..",
+    ".W+...+W",
+    ".W....+W",
+    ".W+...+W",
+    "..WWW..",
+    "......."
+  ],
+  "tags": [
+    "farm"
+  ],
+  "terrain": {
+    "+": "TileDoor",
+    ".": "TileGrass",
+    "W": "TileWall"
+  },
+  "weight": 1,
+  "width": 7
+}

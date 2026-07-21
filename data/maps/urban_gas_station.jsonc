@@ -1,0 +1,35 @@
+{
+  "description": "Urban gas station map chunk",
+  "furniture": {
+    "C": "TileDesk",
+    "O": "TileObject",
+    "P": "TileFuelPump",
+    "s": "TileStorage"
+  },
+  "height": 10,
+  "id": "urban_gas_station",
+  "no_rotate": true,
+  "rows": [
+    "...............",
+    "WWWWWWWWWWWWWWW",
+    "W......s.s.s.sW",
+    "WCCCCC.s.s.s.sW",
+    "W.............W",
+    "WVWVWVW+WVWVWVW",
+    ".O...O...O...O.",
+    ".P...P...P...P.",
+    ".P...P...P...P.",
+    "..............."
+  ],
+  "tags": [
+    "urban"
+  ],
+  "terrain": {
+    "+": "TileDoor",
+    ".": "TilePavement",
+    "V": "TileWindow",
+    "W": "TileWall"
+  },
+  "weight": 2,
+  "width": 15
+}

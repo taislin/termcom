@@ -1,0 +1,29 @@
+{
+  "description": "Urban diner map chunk",
+  "furniture": {
+    "C": "TileDesk",
+    "s": "TileStorage"
+  },
+  "height": 7,
+  "id": "urban_diner",
+  "rows": [
+    "WWWWWWWWWW",
+    "W........W",
+    "WCCC+CCCCW",
+    "Ws......sW",
+    "Ws.s..s.sW",
+    "Ws.s..s.sW",
+    "N...+....N"
+  ],
+  "tags": [
+    "urban"
+  ],
+  "terrain": {
+    "+": "TileDoor",
+    ".": "TileFloor",
+    "N": "TileWindow",
+    "W": "TileWall"
+  },
+  "weight": 2,
+  "width": 10
+}

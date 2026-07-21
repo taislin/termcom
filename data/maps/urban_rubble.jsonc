@@ -1,0 +1,22 @@
+{
+  "description": "Urban rubble map chunk",
+  "furniture": {},
+  "height": 5,
+  "id": "urban_rubble",
+  "rows": [
+    ".....",
+    ".r.r.",
+    ".r.r.",
+    "..r..",
+    "....."
+  ],
+  "tags": [
+    "urban"
+  ],
+  "terrain": {
+    ".": "TileFloor",
+    "r": "TileRubble"
+  },
+  "weight": 2,
+  "width": 5
+}

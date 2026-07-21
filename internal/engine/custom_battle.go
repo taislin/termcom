@@ -9,6 +9,7 @@ import (
 
 	"github.com/gdamore/tcell/v3"
 	"github.com/taislin/termcom/internal/language"
+	"github.com/taislin/termcom/internal/mapgen"
 )
 
 const (
@@ -56,11 +57,11 @@ func scanCustomMaps() []CustomBattleEntry {
 	}
 	var result []CustomBattleEntry
 	for _, e := range dirEntries {
-		if e.IsDir() || !strings.HasSuffix(strings.ToLower(e.Name()), ".json") {
+		if e.IsDir() || !mapgen.IsJSONFile(e.Name()) {
 			continue
 		}
 		path := filepath.Join(mapsDir, e.Name())
-		data, err := os.ReadFile(path)
+		data, err := mapgen.ReadFileJSONC(path)
 		if err != nil {
 			continue
 		}

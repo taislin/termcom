@@ -1,0 +1,22 @@
+{
+  "description": "Polar ice ridge map chunk",
+  "furniture": {},
+  "height": 4,
+  "id": "polar_ice_ridge",
+  "rows": [
+    "nnrn",
+    "nr.r",
+    "nr.r",
+    "nnrn"
+  ],
+  "tags": [
+    "polar"
+  ],
+  "terrain": {
+    ".": "TileSnow",
+    "n": "TileSnow",
+    "r": "TileRock"
+  },
+  "weight": 2,
+  "width": 4
+}

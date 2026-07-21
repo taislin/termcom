@@ -1,0 +1,33 @@
+{
+  "description": "Swamp mud bank map chunk",
+  "furniture": {
+    "B": "TileBush",
+    "T": "TileCypressTree",
+    "V": "TileVine"
+  },
+  "height": 9,
+  "id": "swamp_mud_bank",
+  "no_rotate": true,
+  "rows": [
+    ".........",
+    "..TTT....",
+    ".TmwmT.T.",
+    ".TwWwT.B.",
+    ".TmwmT...",
+    "..TTT.V..",
+    "...B.....",
+    "..V..B...",
+    "........."
+  ],
+  "tags": [
+    "swamp"
+  ],
+  "terrain": {
+    ".": "TileMarsh",
+    "W": "TileWater",
+    "m": "TileMud",
+    "w": "TileSwampWater"
+  },
+  "weight": 3,
+  "width": 9
+}

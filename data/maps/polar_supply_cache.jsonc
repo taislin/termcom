@@ -1,0 +1,24 @@
+{
+  "description": "Polar supply cache map chunk",
+  "furniture": {},
+  "height": 4,
+  "id": "polar_supply_cache",
+  "rows": [
+    "WW+W",
+    "W.sW",
+    "WssW",
+    "WWWW"
+  ],
+  "tags": [
+    "polar",
+    "rural"
+  ],
+  "terrain": {
+    "+": "TileDoor",
+    ".": "TileSnow",
+    "W": "TileWall",
+    "s": "TileStorage"
+  },
+  "weight": 2,
+  "width": 4
+}

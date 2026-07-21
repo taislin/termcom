@@ -1,0 +1,29 @@
+{
+  "description": "Farm barn map chunk",
+  "furniture": {
+    "H": "TileHayBale"
+  },
+  "height": 9,
+  "id": "farm_barn",
+  "rows": [
+    ".........",
+    ".WWWWWWW.",
+    ".WH...HW.",
+    ".WH...HW.",
+    ".WH...HW.",
+    ".WH...HW.",
+    ".WWW+WWW.",
+    ".........",
+    "........."
+  ],
+  "tags": [
+    "farm"
+  ],
+  "terrain": {
+    "+": "TileDoor",
+    ".": "TileGrass",
+    "W": "TileWall"
+  },
+  "weight": 2,
+  "width": 9
+}

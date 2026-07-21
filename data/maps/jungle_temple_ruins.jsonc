@@ -1,0 +1,28 @@
+{
+  "description": "Jungle temple ruins map chunk",
+  "furniture": {},
+  "height": 7,
+  "id": "jungle_temple_ruins",
+  "rows": [
+    ".t..tV...",
+    ".#####.Vt",
+    "t#V__##V.",
+    ".+_____#.",
+    "V#__VV##t",
+    ".###Vttt.",
+    "..V..t..."
+  ],
+  "tags": [
+    "jungle"
+  ],
+  "terrain": {
+    "#": "TileAdobe",
+    "+": "TileDoor",
+    ".": "TileGrass",
+    "V": "TileVine",
+    "_": "TileFloor",
+    "t": "TileTree"
+  },
+  "weight": 1,
+  "width": 9
+}

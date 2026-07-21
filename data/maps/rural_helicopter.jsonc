@@ -1,0 +1,30 @@
+{
+  "description": "Rural helicopter map chunk",
+  "furniture": {},
+  "height": 4,
+  "id": "rural_helicopter",
+  "no_rotate": true,
+  "rows": [
+    " --+-- ",
+    "  ===W ",
+    "x=====F",
+    "  o  o "
+  ],
+  "tags": [
+    "rural",
+    "urban",
+    "coastal",
+    "farm"
+  ],
+  "terrain": {
+    "+": "TileHeloRotor",
+    "-": "TileHeloRotorSides",
+    "=": "TileHeloBody",
+    "F": "TileHeloNose",
+    "W": "TileHeloWindow",
+    "o": "TileWheelSmall",
+    "x": "TileHeloRotorBack"
+  },
+  "weight": 1,
+  "width": 7
+}

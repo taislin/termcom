@@ -1,0 +1,24 @@
+{
+  "description": "Ufo crew quarters map chunk",
+  "furniture": {},
+  "height": 5,
+  "id": "ufo_crew_quarters",
+  "rows": [
+    "W..W.W",
+    "..P...",
+    "......",
+    "..P...",
+    "W..W.W"
+  ],
+  "tags": [
+    "ufo",
+    "alien"
+  ],
+  "terrain": {
+    ".": "TileUFOFloor",
+    "P": "TilePod",
+    "W": "TileUFOWall"
+  },
+  "weight": 2,
+  "width": 6
+}

@@ -1,0 +1,33 @@
+{
+  "description": "Desert aircraft boneyard map chunk",
+  "furniture": {},
+  "height": 15,
+  "id": "desert_aircraft_boneyard",
+  "rows": [
+    "..............",
+    ".WWW...WWW....",
+    ".W.W...W.W....",
+    ".WWW...WWW....",
+    "..............",
+    "..W.W.W.W.W...",
+    "..W.W.W.W.W...",
+    "..W.W.W.W.W...",
+    "..............",
+    ".WWW...WWW.W..",
+    ".W.W...W.W.W..",
+    ".WWW...WWW.W..",
+    "..............",
+    "...W.W.W.W.W..",
+    ".............."
+  ],
+  "tags": [
+    "desert",
+    "rural"
+  ],
+  "terrain": {
+    ".": "TileSand",
+    "W": "TileWreck"
+  },
+  "weight": 2,
+  "width": 15
+}

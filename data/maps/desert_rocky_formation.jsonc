@@ -1,0 +1,22 @@
+{
+  "description": "Desert rocky formation map chunk",
+  "furniture": {},
+  "height": 4,
+  "id": "desert_rocky_formation",
+  "rows": [
+    "s..s",
+    ".rr.",
+    "rrr.",
+    "s..s"
+  ],
+  "tags": [
+    "desert"
+  ],
+  "terrain": {
+    ".": "TileFloor",
+    "r": "TileRock",
+    "s": "TileSand"
+  },
+  "weight": 2,
+  "width": 4
+}

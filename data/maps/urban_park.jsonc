@@ -1,0 +1,23 @@
+{
+  "description": "Urban park map chunk",
+  "furniture": {},
+  "height": 5,
+  "id": "urban_park",
+  "rows": [
+    "ggggggg",
+    "g.t.t.g",
+    "g.g.g.g",
+    "g.t.t.g",
+    "ggggggg"
+  ],
+  "tags": [
+    "urban"
+  ],
+  "terrain": {
+    ".": "TileGrass",
+    "g": "TileGrass",
+    "t": "TileTree"
+  },
+  "weight": 3,
+  "width": 7
+}

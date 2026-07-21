@@ -1,0 +1,27 @@
+{
+  "description": "Coastal lighthouse map chunk",
+  "furniture": {},
+  "height": 7,
+  "id": "coastal_lighthouse",
+  "no_rotate": true,
+  "rows": [
+    "..#..",
+    "..M..",
+    "..W..",
+    "..M..",
+    "..W..",
+    "..+..",
+    "....."
+  ],
+  "tags": [
+    "coastal"
+  ],
+  "terrain": {
+    "#": "TileDish",
+    "+": "TileDoor",
+    "M": "TileAdobe",
+    "W": "TileMetalWall"
+  },
+  "weight": 1,
+  "width": 5
+}

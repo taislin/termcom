@@ -1,0 +1,37 @@
+{
+  "description": "Urban construction map chunk",
+  "furniture": {
+    "0": "TileObject",
+    "M": "TileMachinery",
+    "S": "TileStorage",
+    "r": "TileRubble"
+  },
+  "height": 15,
+  "id": "urban_construction",
+  "rows": [
+    "...............",
+    ".FFFFFFFFFFFFF.",
+    ".F...........F.",
+    ".F..MMMMM....F.",
+    ".F..MMMMM....F.",
+    ".F...........F.",
+    ".F..SS..00...F.",
+    ".F..SS..00...F.",
+    ".F...........F.",
+    ".F....rr.....F.",
+    ".F....rr.....F.",
+    ".F...........F.",
+    ".F...........F.",
+    ".FFFFF.FFFFFF.",
+    "..............."
+  ],
+  "tags": [
+    "urban"
+  ],
+  "terrain": {
+    ".": "TileSand",
+    "F": "TileFence"
+  },
+  "weight": 2,
+  "width": 15
+}

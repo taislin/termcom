@@ -1,0 +1,23 @@
+{
+  "description": "Polar ice cave map chunk",
+  "furniture": {},
+  "height": 5,
+  "id": "polar_ice_cave",
+  "rows": [
+    "rrrrr",
+    "r..rr",
+    "r...+",
+    "rr..r",
+    "rrrrr"
+  ],
+  "tags": [
+    "polar"
+  ],
+  "terrain": {
+    "+": "TileSnow",
+    ".": "TileSnow",
+    "r": "TileRock"
+  },
+  "weight": 2,
+  "width": 5
+}

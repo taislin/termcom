@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
 // AlienTemplate represents a single body-part pixel template loaded from JSON.
@@ -36,15 +35,15 @@ func ResetAliens() {
 	alienRegistry = map[string][]*AlienTemplate{}
 }
 
-// LoadAlienTemplates reads all .json files in dir and registers the alien
-// templates they contain.
+// LoadAlienTemplates reads all .json/.jsonc files in dir and registers the
+// alien templates they contain.
 func LoadAlienTemplates(dir string) error {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		return fmt.Errorf("alien templates: read dir %s: %w", dir, err)
 	}
 	for _, e := range entries {
-		if e.IsDir() || !strings.HasSuffix(e.Name(), ".json") {
+		if e.IsDir() || !IsJSONFile(e.Name()) {
 			continue
 		}
 		path := filepath.Join(dir, e.Name())
@@ -56,7 +55,7 @@ func LoadAlienTemplates(dir string) error {
 }
 
 func loadAlienFile(path string) error {
-	data, err := os.ReadFile(path)
+	data, err := ReadFileJSONC(path)
 	if err != nil {
 		return fmt.Errorf("alien templates: read %s: %w", path, err)
 	}

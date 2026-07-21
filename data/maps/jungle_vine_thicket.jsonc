@@ -1,0 +1,22 @@
+{
+  "description": "Jungle vine thicket map chunk",
+  "furniture": {},
+  "height": 5,
+  "id": "jungle_vine_thicket",
+  "rows": [
+    ".VV....",
+    ".VVVVV.",
+    ".V.VV..",
+    ".V.VVV.",
+    "....V.."
+  ],
+  "tags": [
+    "jungle"
+  ],
+  "terrain": {
+    ".": "TileGrass",
+    "V": "TileVine"
+  },
+  "weight": 2,
+  "width": 7
+}

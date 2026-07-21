@@ -1,0 +1,35 @@
+{
+  "description": "Urban container yard map chunk",
+  "furniture": {},
+  "height": 15,
+  "id": "urban_container_yard",
+  "no_rotate": true,
+  "rows": [
+    "...............",
+    ".RRR...BBB...Y.",
+    ".RRR...BBB...Y.",
+    ".RRR...BBB...Y.",
+    "...............",
+    ".BBB...YYY...R.",
+    ".BBB...YYY...R.",
+    ".BBB...YYY...R.",
+    "...............",
+    ".YYY...RRR...B.",
+    ".YYY...RRR...B.",
+    ".YYY...RRR...B.",
+    "...............",
+    ".RRR...BBB...Y.",
+    "..............."
+  ],
+  "tags": [
+    "urban"
+  ],
+  "terrain": {
+    ".": "TilePavement",
+    "B": "TileContainerBlue",
+    "R": "TileContainerRed",
+    "Y": "TileContainerYellow"
+  },
+  "weight": 2,
+  "width": 15
+}

@@ -1,0 +1,21 @@
+{
+  "description": "Urban streetlamps map chunk",
+  "furniture": {
+    "L": "TileStreetlamp"
+  },
+  "height": 3,
+  "id": "urban_streetlamps",
+  "rows": [
+    "L.....L",
+    ".......",
+    "......."
+  ],
+  "tags": [
+    "urban"
+  ],
+  "terrain": {
+    ".": "TilePavement"
+  },
+  "weight": 3,
+  "width": 7
+}

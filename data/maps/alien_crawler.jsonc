@@ -1,0 +1,25 @@
+{
+  "description": "Alien crawler map chunk",
+  "furniture": {},
+  "height": 2,
+  "id": "alien_crawler",
+  "no_rotate": true,
+  "rows": [
+    "abcd",
+    "e  f"
+  ],
+  "tags": [
+    "ufo",
+    "alien"
+  ],
+  "terrain": {
+    "a": "TileCrawlerLeft",
+    "b": "TileCrawlerMid",
+    "c": "TileCrawlerMid",
+    "d": "TileCrawlerRight",
+    "e": "TileCrawlerLeg",
+    "f": "TileCrawlerLeg"
+  },
+  "weight": 1,
+  "width": 4
+}

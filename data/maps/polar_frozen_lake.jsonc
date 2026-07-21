@@ -1,0 +1,32 @@
+{
+  "description": "Polar frozen lake map chunk",
+  "height": 15,
+  "id": "polar_frozen_lake",
+  "rows": [
+    "....IIIIII...",
+    "..IIIIIIIIIII",
+    ".IIIIIIIIIII.",
+    ".....IIIIII..",
+    "..IIIIIIIIII.",
+    ".IIIIIIIIIIII",
+    ".IIIIIIIIIIII",
+    ".IIIIIIIIIIII",
+    "IIIIIIIIII...",
+    "IIIIIIIIIIII.",
+    ".IIIIIIIIIII.",
+    "..IIIIIIIIII.",
+    ".IIIIIIIII...",
+    ".IIIIIIIIII..",
+    ".IIIIIII....."
+  ],
+  "tags": [
+    "polar",
+    "rural"
+  ],
+  "terrain": {
+    ".": "TileSnow",
+    "I": "TileIce"
+  },
+  "weight": 2,
+  "width": 15
+}

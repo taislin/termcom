@@ -1,0 +1,28 @@
+{
+  "description": "Farm cornfield map chunk",
+  "furniture": {},
+  "height": 10,
+  "id": "farm_cornfield",
+  "rows": [
+    "..........",
+    ".wwwwwwww.",
+    ".w.w.w.w.w",
+    ".wwwwwwww.",
+    ".w.w.w.w.w",
+    ".wwwwwwww.",
+    ".w.w.w.w.w",
+    ".wwwwwwww.",
+    "..........",
+    ".........."
+  ],
+  "tags": [
+    "farm",
+    "rural"
+  ],
+  "terrain": {
+    ".": "TileGrass",
+    "w": "TileWheat"
+  },
+  "weight": 3,
+  "width": 10
+}

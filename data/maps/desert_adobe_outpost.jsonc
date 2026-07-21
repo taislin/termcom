@@ -1,0 +1,30 @@
+{
+  "description": "Desert adobe outpost map chunk",
+  "furniture": {},
+  "height": 10,
+  "id": "desert_adobe_outpost",
+  "no_rotate": true,
+  "rows": [
+    "AAAAAAAAAA",
+    "A........A",
+    "A..AAAA..A",
+    "A..A..A..A",
+    "A..A..A..A",
+    "A..A..A..A",
+    "A..A..A..A",
+    "A........A",
+    "A........A",
+    "AAAA++AAAA"
+  ],
+  "tags": [
+    "desert",
+    "rural"
+  ],
+  "terrain": {
+    "+": "TileDoor",
+    ".": "TileSand",
+    "A": "TileAdobe"
+  },
+  "weight": 2,
+  "width": 10
+}

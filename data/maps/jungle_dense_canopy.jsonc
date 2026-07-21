@@ -1,0 +1,26 @@
+{
+  "description": "Jungle dense canopy map chunk",
+  "furniture": {
+    "V": "TileVine"
+  },
+  "height": 7,
+  "id": "jungle_dense_canopy",
+  "rows": [
+    "....T....",
+    ".TTTT.V..",
+    "..TT.TVT.",
+    ".TT.VT.V.",
+    ".TTT.TVT.",
+    "...T.TV..",
+    "........."
+  ],
+  "tags": [
+    "jungle"
+  ],
+  "terrain": {
+    ".": "TileGrass",
+    "T": "TileTree"
+  },
+  "weight": 2,
+  "width": 9
+}

@@ -1,0 +1,24 @@
+{
+  "description": "Mountain ridge map chunk",
+  "furniture": {},
+  "height": 5,
+  "id": "mountain_ridge",
+  "no_rotate": true,
+  "rows": [
+    "..........",
+    "..B.....B.",
+    ".BBB...BBB",
+    "BBBBBBBBBB",
+    "CCCCCCCCCC"
+  ],
+  "tags": [
+    "mountain"
+  ],
+  "terrain": {
+    ".": "TileGrass",
+    "B": "TileBoulder",
+    "C": "TileCliffFace"
+  },
+  "weight": 2,
+  "width": 10
+}

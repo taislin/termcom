@@ -1,0 +1,23 @@
+{
+  "description": "Urban parking lot map chunk",
+  "furniture": {},
+  "height": 5,
+  "id": "urban_parking_lot",
+  "rows": [
+    "ppppp",
+    "p...p",
+    "p.f.p",
+    "p...p",
+    "ppppp"
+  ],
+  "tags": [
+    "urban"
+  ],
+  "terrain": {
+    ".": "TileFloor",
+    "f": "TileFence",
+    "p": "TilePavement"
+  },
+  "weight": 2,
+  "width": 5
+}

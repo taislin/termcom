@@ -1,0 +1,35 @@
+{
+  "description": "Desert dry riverbed map chunk",
+  "furniture": {},
+  "height": 15,
+  "id": "desert_dry_riverbed",
+  "rows": [
+    "ssssssssss",
+    "sRRRRRRRRs",
+    "sRbbbbbbRs",
+    "sRb....bRs",
+    "sRb....bRs",
+    "sRb....bRs",
+    "sRb....bRs",
+    "sRb....bRs",
+    "sRb....bRs",
+    "sRb....bRs",
+    "sRb....bRs",
+    "sRbbbbbbRs",
+    "sRRRRRRRRs",
+    "ssssssssss",
+    "ssssssssss"
+  ],
+  "tags": [
+    "desert",
+    "rural"
+  ],
+  "terrain": {
+    ".": "TileFloor",
+    "R": "TileRock",
+    "b": "TileBush",
+    "s": "TileSand"
+  },
+  "weight": 2,
+  "width": 10
+}

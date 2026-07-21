@@ -1,0 +1,31 @@
+{
+  "description": "Alien surgery map chunk",
+  "furniture": {
+    "B": "TilePod",
+    "M": "TileMachinery",
+    "w": "TileSwampWater"
+  },
+  "height": 7,
+  "id": "alien_surgery",
+  "no_rotate": true,
+  "rows": [
+    "WWWWWWW",
+    "W..M..W",
+    "W.BwB.W",
+    "W.....W",
+    "W.BwB.W",
+    "W..M..W",
+    "WWW+WWW"
+  ],
+  "tags": [
+    "alien",
+    "ufo"
+  ],
+  "terrain": {
+    "+": "TileDoor",
+    ".": "TileUFOFloor",
+    "W": "TileUFOWall"
+  },
+  "weight": 1,
+  "width": 7
+}

@@ -1,0 +1,24 @@
+{
+  "description": "Desert oasis map chunk",
+  "furniture": {},
+  "height": 5,
+  "id": "desert_oasis",
+  "rows": [
+    "ss..ss",
+    "s.tt.s",
+    "st~~.s",
+    "s.tt.s",
+    "ssssss"
+  ],
+  "tags": [
+    "desert"
+  ],
+  "terrain": {
+    ".": "TileGrass",
+    "s": "TileSand",
+    "t": "TileTree",
+    "~": "TileWater"
+  },
+  "weight": 2,
+  "width": 6
+}

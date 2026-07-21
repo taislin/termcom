@@ -1,0 +1,26 @@
+{
+  "description": "Coastal docks map chunk",
+  "furniture": {
+    "C": "TileDockCrate"
+  },
+  "height": 7,
+  "id": "coastal_docks",
+  "rows": [
+    ".........",
+    ".PPPPPPP.",
+    ".PCPPPCP.",
+    ".PPPPPPP.",
+    ".........",
+    ".........",
+    "........."
+  ],
+  "tags": [
+    "coastal"
+  ],
+  "terrain": {
+    ".": "TileSand",
+    "P": "TilePier"
+  },
+  "weight": 2,
+  "width": 9
+}

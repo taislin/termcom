@@ -1,0 +1,29 @@
+{
+  "description": "Urban shop map chunk",
+  "furniture": {
+    "c": "TileComputer",
+    "d": "TileDesk",
+    "l": "TileLocker",
+    "s": "TileStorage"
+  },
+  "height": 5,
+  "id": "urban_shop",
+  "rows": [
+    "WWWWWWW",
+    "N.....N",
+    "Wd...cW",
+    "Wl...sW",
+    "WW+WWWW"
+  ],
+  "tags": [
+    "urban"
+  ],
+  "terrain": {
+    "+": "TileDoor",
+    ".": "TileFloor",
+    "N": "TileWindow",
+    "W": "TileWall"
+  },
+  "weight": 1,
+  "width": 7
+}

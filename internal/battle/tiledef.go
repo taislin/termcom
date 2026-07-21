@@ -8,6 +8,7 @@ import (
 	"sync/atomic"
 
 	"github.com/gdamore/tcell/v3"
+	"github.com/taislin/termcom/internal/mapgen"
 )
 
 // TileCustomBase is the starting TileType ID for dynamically registered tiles.
@@ -156,10 +157,10 @@ func parseHexColor(hex string) tcell.Color {
 	return tcell.GetColor(hex)
 }
 
-// LoadCustomTiles loads custom tile definitions from a JSON file.
+// LoadCustomTiles loads custom tile definitions from a JSON/JSONC file.
 // The file format is: { "tiles": [ { "id": "...", ... }, ... ] }
 func LoadCustomTiles(path string) error {
-	data, err := os.ReadFile(path)
+	data, err := mapgen.ReadFileJSONC(path)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil
@@ -219,15 +220,19 @@ func boolPtrVal(p *bool, def bool) bool {
 	return def
 }
 
-// InitCustomTiles loads all .json files from data/tiles/ directory.
+// InitCustomTiles loads all .json/.jsonc files from data/tiles/ directory.
 func InitCustomTiles() {
 	dirs := []string{"data/tiles", "../data/tiles", "../../data/tiles"}
 	for _, d := range dirs {
-		matches, err := filepath.Glob(filepath.Join(d, "*.json"))
-		if err != nil || len(matches) == 0 {
+		entries, err := os.ReadDir(d)
+		if err != nil || len(entries) == 0 {
 			continue
 		}
-		for _, path := range matches {
+		for _, e := range entries {
+			if e.IsDir() || !mapgen.IsJSONFile(e.Name()) {
+				continue
+			}
+			path := filepath.Join(d, e.Name())
 			if err := LoadCustomTiles(path); err != nil {
 				// silently skip bad files
 				continue

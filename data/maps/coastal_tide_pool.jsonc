@@ -1,0 +1,31 @@
+{
+  "description": "Coastal tide pool map chunk",
+  "furniture": {
+    "B": "TileBoulder"
+  },
+  "height": 10,
+  "id": "coastal_tide_pool",
+  "no_rotate": true,
+  "rows": [
+    "WWWWWWWWWWWWWWW",
+    "WW~~WW~~W~WWWWW",
+    "W~~~B~~~~~~W~WW",
+    "~~B~~~~~BB~~~W~",
+    "~~~~s~~~s~~~~..",
+    "~s~sss~ssssssss",
+    "ssssBssssssssss",
+    "ssssssssssBssss",
+    "sssssssssssssss",
+    "sssssssssssssss"
+  ],
+  "tags": [
+    "coastal"
+  ],
+  "terrain": {
+    "W": "TileWater",
+    "s": "TileSand",
+    "~": "TileSwampWater"
+  },
+  "weight": 3,
+  "width": 15
+}

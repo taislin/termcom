@@ -1,0 +1,21 @@
+{
+  "description": "Coastal boat map chunk",
+  "furniture": {},
+  "height": 3,
+  "id": "coastal_boat",
+  "no_rotate": true,
+  "rows": [
+    ".BBB.",
+    "BBBBB",
+    "....."
+  ],
+  "tags": [
+    "coastal"
+  ],
+  "terrain": {
+    ".": "TileWater",
+    "B": "TilePier"
+  },
+  "weight": 2,
+  "width": 5
+}

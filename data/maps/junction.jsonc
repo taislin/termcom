@@ -1,0 +1,21 @@
+{
+  "description": "Junction map chunk",
+  "furniture": {},
+  "height": 3,
+  "id": "junction",
+  "rows": [
+    "W.W",
+    "...",
+    "W.W"
+  ],
+  "tags": [
+    "ufo",
+    "alien"
+  ],
+  "terrain": {
+    ".": "TileUFOFloor",
+    "W": "TileUFOWall"
+  },
+  "weight": 3,
+  "width": 3
+}

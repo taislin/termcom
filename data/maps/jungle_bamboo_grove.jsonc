@@ -1,0 +1,24 @@
+{
+  "description": "Jungle bamboo grove map chunk",
+  "furniture": {},
+  "height": 7,
+  "id": "jungle_bamboo_grove",
+  "rows": [
+    ".......",
+    ".BB.BB.",
+    "..BBBB.",
+    ".BBBBB.",
+    ".BBBB..",
+    ".BB.BB.",
+    "......."
+  ],
+  "tags": [
+    "jungle"
+  ],
+  "terrain": {
+    ".": "TileGrass",
+    "B": "TileBamboo"
+  },
+  "weight": 2,
+  "width": 7
+}

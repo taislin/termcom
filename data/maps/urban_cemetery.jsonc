@@ -1,0 +1,34 @@
+{
+  "description": "Urban cemetery map chunk",
+  "furniture": {},
+  "height": 15,
+  "id": "urban_cemetery",
+  "rows": [
+    "...............",
+    "F...F...F...F..",
+    "F.T.R.T.R.T.F..",
+    "F.R.R.R.R.R.F..",
+    "F.T.R.T.R.T.F..",
+    "...............",
+    "F...F...F...F..",
+    ".T.R.T.R.T.R.T.",
+    ".R.R.R.R.R.R.R.",
+    ".T.R.T.R.T.R.T.",
+    "...............",
+    "F...F...F...F..",
+    "F.T.R.T.R.T.F..",
+    "F.R.R.R.R.R.F..",
+    "F.T.R.T.R.T.F.."
+  ],
+  "tags": [
+    "urban"
+  ],
+  "terrain": {
+    ".": "TileGrass",
+    "F": "TileFence",
+    "R": "TileRock",
+    "T": "TileTree"
+  },
+  "weight": 2,
+  "width": 15
+}

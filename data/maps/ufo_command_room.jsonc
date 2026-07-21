@@ -1,0 +1,24 @@
+{
+  "description": "Ufo command room map chunk",
+  "furniture": {},
+  "height": 5,
+  "id": "ufo_command_room",
+  "rows": [
+    "WWWWW",
+    "W.C.W",
+    "WC.CW",
+    "W.C.W",
+    "WWWWW"
+  ],
+  "tags": [
+    "ufo",
+    "alien"
+  ],
+  "terrain": {
+    ".": "TileUFOFloor",
+    "C": "TileConsole",
+    "W": "TileUFOWall"
+  },
+  "weight": 2,
+  "width": 5
+}

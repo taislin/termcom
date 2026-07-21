@@ -1,0 +1,33 @@
+{
+  "description": "Urban tower map chunk",
+  "furniture": {
+    "L": "TileLocker",
+    "a": "TileCabinet",
+    "c": "TileComputer",
+    "l": "TileLocker"
+  },
+  "height": 9,
+  "id": "urban_tower",
+  "rows": [
+    "WWWWWWWWW",
+    "N.a...a.N",
+    "W.......W",
+    "W..W+W..W",
+    "W..ccc..W",
+    "W..LWL..W",
+    "W..W+W..W",
+    "N.a...a.N",
+    "WWW+WWWWW"
+  ],
+  "tags": [
+    "urban"
+  ],
+  "terrain": {
+    "+": "TileDoor",
+    ".": "TileFloor",
+    "N": "TileWindow",
+    "W": "TileWall"
+  },
+  "weight": 1,
+  "width": 9
+}

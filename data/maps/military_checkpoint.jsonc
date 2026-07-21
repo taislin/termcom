@@ -1,0 +1,27 @@
+{
+  "description": "Military checkpoint map chunk",
+  "furniture": {
+    "r": "TileRock"
+  },
+  "height": 5,
+  "id": "military_checkpoint",
+  "rows": [
+    "F.............F",
+    "F..rrr...rrr..F",
+    "F..r.r...r.r..F",
+    "WWWW.+...+.WWWW",
+    "..............."
+  ],
+  "tags": [
+    "urban",
+    "rural"
+  ],
+  "terrain": {
+    "+": "TileDoor",
+    ".": "TilePavement",
+    "F": "TileFence",
+    "W": "TileWall"
+  },
+  "weight": 2,
+  "width": 15
+}

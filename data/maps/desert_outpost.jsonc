@@ -1,0 +1,22 @@
+{
+  "description": "Desert outpost map chunk",
+  "furniture": {},
+  "height": 4,
+  "id": "desert_outpost",
+  "rows": [
+    "sssss",
+    "sWWWs",
+    "sW.Ws",
+    "sW.Ws"
+  ],
+  "tags": [
+    "desert"
+  ],
+  "terrain": {
+    ".": "TileFloor",
+    "W": "TileWall",
+    "s": "TileSand"
+  },
+  "weight": 2,
+  "width": 5
+}

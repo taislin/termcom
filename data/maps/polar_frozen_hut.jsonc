@@ -1,0 +1,22 @@
+{
+  "description": "Polar frozen hut map chunk",
+  "furniture": {},
+  "height": 4,
+  "id": "polar_frozen_hut",
+  "rows": [
+    "WWWWW",
+    "W...W",
+    "W...d",
+    "WWWWW"
+  ],
+  "tags": [
+    "polar"
+  ],
+  "terrain": {
+    ".": "TileFloor",
+    "W": "TileWall",
+    "d": "TileDoor"
+  },
+  "weight": 2,
+  "width": 5
+}

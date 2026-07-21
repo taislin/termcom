@@ -1,0 +1,34 @@
+{
+  "description": "Polar comm array map chunk",
+  "furniture": {
+    "C": "TileComputer"
+  },
+  "height": 10,
+  "id": "polar_comm_array",
+  "no_rotate": true,
+  "rows": [
+    "..........",
+    "....DD....",
+    "...DDDD...",
+    "..DD..DD..",
+    ".WWWWWWWW.",
+    ".WFFFFFFW.",
+    ".WFCFCFCW.",
+    ".WFCFCFCW.",
+    ".WWW+WWWW.",
+    ".........."
+  ],
+  "tags": [
+    "polar",
+    "rural"
+  ],
+  "terrain": {
+    "+": "TileDoor",
+    ".": "TileSnow",
+    "D": "TileDish",
+    "F": "TileFloor",
+    "W": "TileWall"
+  },
+  "weight": 2,
+  "width": 10
+}

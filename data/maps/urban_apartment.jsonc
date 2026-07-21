@@ -1,0 +1,28 @@
+{
+  "description": "Urban apartment map chunk",
+  "furniture": {
+    "b": "TileBed",
+    "c": "TileCabinet"
+  },
+  "height": 6,
+  "id": "urban_apartment",
+  "rows": [
+    "WWWWWWW",
+    "N.....N",
+    "W.b.b.W",
+    "WWW+WWW",
+    "Wc...cW",
+    "WW+WWWW"
+  ],
+  "tags": [
+    "urban"
+  ],
+  "terrain": {
+    "+": "TileDoor",
+    ".": "TileFloor",
+    "N": "TileWindow",
+    "W": "TileWall"
+  },
+  "weight": 1,
+  "width": 7
+}
