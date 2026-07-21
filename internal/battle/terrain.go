@@ -52,12 +52,12 @@ var firePalette = []tcell.Color{
 // Human building box-drawing glyphs
 const (
 	// Building wall glyphs — all solid blocks for uniform rendering.
-	GlyphBuildingTL   rune = '█'
-	GlyphBuildingTR   rune = '█'
-	GlyphBuildingBL   rune = '█'
-	GlyphBuildingBR   rune = '█'
-	GlyphBuildingH    rune = '█'
-	GlyphBuildingV    rune = '█'
+	GlyphBuildingTL   rune = '╔'
+	GlyphBuildingTR   rune = '╗'
+	GlyphBuildingBL   rune = '╚'
+	GlyphBuildingBR   rune = '╝'
+	GlyphBuildingH    rune = '═'
+	GlyphBuildingV    rune = '║'
 	GlyphBuildingDoor rune = '▒'
 	GlyphBuildingWin  rune = '⊞'
 )

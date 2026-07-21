@@ -20,7 +20,7 @@
   // # — Building wall
   {
     "id": "TileWall",
-    "g": "#",
+    "g": "\u2588",
     "c": "#a09b96",
     "pa": false,
     "op": true,

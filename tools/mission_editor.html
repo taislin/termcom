@@ -203,11 +203,10 @@ body { font-family: 'Courier New', monospace; background: #1a1a2e; color: #e0e0e
   <textarea id="exportText" readonly></textarea>
 </div>
 
-<script src="tile_data.js"></script>
 <script>
 // ===== CONSTANTS =====
-const TILES = TILE_DATA;
-const tileMap = {}; TILES.forEach(t => tileMap[t.id] = t);
+let TILES = [];
+const tileMap = {};
 
 const SOLDIER_NAMES = [
   "Alpha","Bravo","Charlie","Delta","Echo","Foxtrot","Golf","Hotel","India",

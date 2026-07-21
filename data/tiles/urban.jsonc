@@ -17,10 +17,10 @@
     "mv": 4,
     "nm": "TILE_ADOBE"
   },
-  // \u2588 █ — Prefab metal wall
+  // \u2588 # — Prefab metal wall
   {
     "id": "TileMetalWall",
-    "g": "\u2588",
+    "g": "#",
     "c": "#b4b9c3",
     "pa": false,
     "op": true,

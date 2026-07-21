@@ -28,7 +28,7 @@ func TestTileChar(t *testing.T) {
 		want rune
 	}{
 		{TileFloor, '.'},
-		{TileWall, '#'},
+		{TileWall, '█'},
 		{TileDoor, '+'},
 		{TileGrass, '·'},
 		{TileTree, '♣'},

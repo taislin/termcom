@@ -95,7 +95,8 @@ body { font-family: 'Courier New', monospace; background: #1a1a2e; color: #e0e0e
   <h2>TILES<button class="ct-btn" id="loadTilesBtn">+Custom</button><span class="ct-count" id="ctCount"></span></h2>
   <div class="tile-list" id="tileList"></div>
 </div>
-<input type="file" id="tilesInput" accept=".json,.jsonc" style="display:none">
+
+<input type="file" id="tilesInput" accept=".json,.jsonc" multiple style="display:none">
 
 <!-- Main -->
 <div class="main">
@@ -143,10 +144,9 @@ body { font-family: 'Courier New', monospace; background: #1a1a2e; color: #e0e0e
   <textarea id="exportText" readonly></textarea>
 </div>
 
-<script src="tile_data.js"></script>
 <script>
 // ===== TILE DEFINITIONS =====
-const TILES = TILE_DATA;
+let TILES = [];
 
 const tileMap = {};
 TILES.forEach(t => tileMap[t.id] = t);
@@ -562,37 +562,53 @@ document.addEventListener("DOMContentLoaded", () => {
     e.target.value = "";
   });
 
-  // Load custom tiles
+  // Load tile library (JSONC arrays of tile defs)
   document.getElementById("loadTilesBtn").addEventListener("click", () => {
     document.getElementById("tilesInput").click();
   });
   document.getElementById("tilesInput").addEventListener("change", e => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      try {
-        const data = parseJSON(ev.target.result);
-        const arr = data.tiles && Array.isArray(data.tiles) ? data.tiles : (Array.isArray(data) ? data : null);
-        if (!arr || arr.length === 0) { alert("No tiles found in JSON"); return; }
-        let added = 0;
-        arr.forEach(t => {
-          if (!t.id || !t.glyph) return;
-          if (tileMap[t.id]) return;
-          const glyph = t.glyph && t.glyph.length > 0 ? t.glyph[0] : "*";
-          const tile = {
-            id: t.id, g: glyph, c: t.color || "#888888",
-            pa: t.passable !== false, op: !!t.opaque, de: t.destructible !== false,
-            cv: t.cover || 0, desc: t.desc || t.name || t.id
-          };
-          tileMap[t.id] = tile;
-          customTiles.push(tile);
-          added++;
-        });
-        if (added > 0) { renderTileList(); selectTile(selTile.id); }
-      } catch(err) { alert("Error loading tiles: " + err.message); }
-    };
-    reader.readAsText(file);
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+    let pending = files.length;
+    let allTiles = [];
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          const data = parseJSON(ev.target.result);
+          let arr;
+          if (Array.isArray(data)) {
+            arr = data;
+          } else if (data.tiles && Array.isArray(data.tiles)) {
+            arr = data.tiles;
+          } else {
+            arr = [];
+          }
+          arr.forEach(t => {
+            if (!t.id) return;
+            const glyph = (t.g || t.glyph || "?");
+            if (tileMap[t.id]) return;
+            tileMap[t.id] = {
+              id: t.id, g: glyph, c: t.c || t.color || "#888888",
+              pa: t.pa !== false && t.passable !== false,
+              op: !!(t.op || t.opaque),
+              de: !!(t.de || t.destructible) || true,
+              cv: t.cv || t.cover || 0,
+              desc: t.nm || t.name || t.desc || t.id
+            };
+            allTiles.push(tileMap[t.id]);
+          });
+        } catch(err) { console.error("Error loading tile file:", file.name, err); }
+        pending--;
+        if (pending === 0 && allTiles.length > 0) {
+          TILES = allTiles;
+          renderTileList();
+          selectTile(allTiles[0].id);
+          document.getElementById("selName").textContent = allTiles[0].id;
+        }
+      };
+      reader.readAsText(file);
+    });
     e.target.value = "";
   });
 });
