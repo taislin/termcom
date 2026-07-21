@@ -1,8 +1,5 @@
 {
   "description": "Polar comm array map chunk",
-  "furniture": {
-    "C": "TileComputer"
-  },
   "height": 10,
   "id": "polar_comm_array",
   "no_rotate": true,
@@ -27,7 +24,8 @@
     ".": "TileSnow",
     "D": "TileDish",
     "F": "TileFloor",
-    "W": "TileWall"
+    "W": "TileWall",
+    "C": "TileComputer"
   },
   "weight": 2,
   "width": 10

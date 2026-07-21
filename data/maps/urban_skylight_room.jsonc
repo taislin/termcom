@@ -1,8 +1,5 @@
 {
   "description": "Urban skylight room map chunk",
-  "furniture": {
-    "S": "TileSkylight"
-  },
   "height": 6,
   "id": "urban_skylight_room",
   "rows": [
@@ -19,7 +16,8 @@
   "terrain": {
     "+": "TileDoor",
     ".": "TileFloor",
-    "W": "TileWall"
+    "W": "TileWall",
+    "S": "TileSkylight"
   },
   "weight": 2,
   "width": 6

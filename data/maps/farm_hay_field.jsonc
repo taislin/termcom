@@ -1,8 +1,5 @@
 {
   "description": "Farm hay field map chunk",
-  "furniture": {
-    "H": "TileHayBale"
-  },
   "height": 5,
   "id": "farm_hay_field",
   "rows": [
@@ -16,7 +13,8 @@
     "farm"
   ],
   "terrain": {
-    ".": "TileGrass"
+    ".": "TileGrass",
+    "H": "TileHayBale"
   },
   "weight": 3,
   "width": 7

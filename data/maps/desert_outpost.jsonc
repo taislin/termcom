@@ -1,7 +1,6 @@
 {
   "description": "Desert outpost map chunk",
-  "furniture": {},
-  "height": 4,
+"height": 4,
   "id": "desert_outpost",
   "rows": [
     "sssss",

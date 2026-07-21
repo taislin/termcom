@@ -1,11 +1,5 @@
 {
   "description": "Urban gas station map chunk",
-  "furniture": {
-    "C": "TileDesk",
-    "O": "TileObject",
-    "P": "TileFuelPump",
-    "s": "TileStorage"
-  },
   "height": 10,
   "id": "urban_gas_station",
   "no_rotate": true,
@@ -28,7 +22,11 @@
     "+": "TileDoor",
     ".": "TilePavement",
     "V": "TileWindow",
-    "W": "TileWall"
+    "W": "TileWall",
+    "C": "TileDesk",
+    "O": "TileObject",
+    "P": "TileFuelPump",
+    "s": "TileStorage"
   },
   "weight": 2,
   "width": 15

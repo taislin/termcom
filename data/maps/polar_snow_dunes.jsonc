@@ -1,7 +1,6 @@
 {
   "description": "Polar snow dunes map chunk",
-  "furniture": {},
-  "height": 4,
+"height": 4,
   "id": "polar_snow_dunes",
   "rows": [
     "ssss",

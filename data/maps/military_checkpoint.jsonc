@@ -1,8 +1,5 @@
 {
   "description": "Military checkpoint map chunk",
-  "furniture": {
-    "r": "TileRock"
-  },
   "height": 5,
   "id": "military_checkpoint",
   "rows": [
@@ -20,7 +17,8 @@
     "+": "TileDoor",
     ".": "TilePavement",
     "F": "TileFence",
-    "W": "TileWall"
+    "W": "TileWall",
+    "r": "TileRock"
   },
   "weight": 2,
   "width": 15

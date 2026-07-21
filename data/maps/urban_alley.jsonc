@@ -1,8 +1,5 @@
 {
   "description": "Urban alley map chunk",
-  "furniture": {
-    "d": "TileDesk"
-  },
   "height": 8,
   "id": "urban_alley",
   "rows": [
@@ -21,7 +18,8 @@
   "terrain": {
     "+": "TileDoor",
     ".": "TileFloor",
-    "W": "TileWall"
+    "W": "TileWall",
+    "d": "TileDesk"
   },
   "weight": 1,
   "width": 4

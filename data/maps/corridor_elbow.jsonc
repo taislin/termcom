@@ -1,7 +1,6 @@
 {
   "description": "Corridor elbow map chunk",
-  "furniture": {},
-  "height": 3,
+"height": 3,
   "id": "corridor_elbow",
   "rows": [
     "WWW",

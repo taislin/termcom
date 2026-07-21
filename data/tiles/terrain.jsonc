@@ -47,10 +47,10 @@
     "mv": 4,
     "nm": "TILE_DOOR"
   },
-  // \u229E ⊞ — Building window
+  // \u25A1 □ — Building window
   {
     "id": "TileWindow",
-    "g": "\u229E",
+    "g": "\u25A1",
     "c": "#78aadc",
     "pa": false,
     "op": false,
@@ -77,10 +77,10 @@
     "mv": 4,
     "nm": "TILE_GRASS"
   },
-  // \u2591 ░ — Road / sidewalk
+  // \u00B7 · — Road / sidewalk (· on dark grey = nearly solid)
   {
     "id": "TilePavement",
-    "g": "\u2591",
+    "g": "\u00B7",
     "c": "#787878",
     "pa": true,
     "op": false,

@@ -1,7 +1,6 @@
 {
   "description": "Bus stop cover map chunk",
-  "furniture": {},
-  "height": 2,
+"height": 2,
   "id": "bus_stop_cover",
   "rows": [
     "WWW",

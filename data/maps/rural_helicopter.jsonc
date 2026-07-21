@@ -1,7 +1,6 @@
 {
   "description": "Rural helicopter map chunk",
-  "furniture": {},
-  "height": 4,
+"height": 4,
   "id": "rural_helicopter",
   "no_rotate": true,
   "rows": [

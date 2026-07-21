@@ -1,7 +1,6 @@
 {
   "description": "Farm cornfield map chunk",
-  "furniture": {},
-  "height": 10,
+"height": 10,
   "id": "farm_cornfield",
   "rows": [
     "..........",

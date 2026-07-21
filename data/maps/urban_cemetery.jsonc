@@ -1,7 +1,6 @@
 {
   "description": "Urban cemetery map chunk",
-  "furniture": {},
-  "height": 15,
+"height": 15,
   "id": "urban_cemetery",
   "rows": [
     "...............",

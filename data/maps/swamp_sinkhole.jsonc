@@ -1,10 +1,5 @@
 {
   "description": "Swamp sinkhole map chunk",
-  "furniture": {
-    "B": "TileBush",
-    "T": "TileCypressTree",
-    "V": "TileVine"
-  },
   "height": 7,
   "id": "swamp_sinkhole",
   "no_rotate": true,
@@ -24,7 +19,10 @@
     ".": "TileMarsh",
     "W": "TileWater",
     "w": "TileSwampWater",
-    "~": "TileMud"
+    "~": "TileMud",
+    "B": "TileBush",
+    "T": "TileCypressTree",
+    "V": "TileVine"
   },
   "weight": 2,
   "width": 7

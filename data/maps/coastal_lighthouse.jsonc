@@ -1,7 +1,6 @@
 {
   "description": "Coastal lighthouse map chunk",
-  "furniture": {},
-  "height": 7,
+"height": 7,
   "id": "coastal_lighthouse",
   "no_rotate": true,
   "rows": [

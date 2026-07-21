@@ -1,10 +1,5 @@
 {
   "description": "Swamp mud bank map chunk",
-  "furniture": {
-    "B": "TileBush",
-    "T": "TileCypressTree",
-    "V": "TileVine"
-  },
   "height": 9,
   "id": "swamp_mud_bank",
   "no_rotate": true,
@@ -26,7 +21,10 @@
     ".": "TileMarsh",
     "W": "TileWater",
     "m": "TileMud",
-    "w": "TileSwampWater"
+    "w": "TileSwampWater",
+    "B": "TileBush",
+    "T": "TileCypressTree",
+    "V": "TileVine"
   },
   "weight": 3,
   "width": 9

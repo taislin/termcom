@@ -1,8 +1,5 @@
 {
   "description": "Polar arctic prefab map chunk",
-  "furniture": {
-    "D": "TileDesk"
-  },
   "height": 11,
   "id": "polar_arctic_prefab",
   "no_rotate": true,
@@ -30,7 +27,8 @@
     ".": "TileSnow",
     "F": "TileFloor",
     "M": "TileMetalWall",
-    "a": "TileCabinet"
+    "a": "TileCabinet",
+    "D": "TileDesk"
   },
   "weight": 2,
   "width": 15

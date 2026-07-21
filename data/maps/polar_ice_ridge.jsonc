@@ -1,7 +1,6 @@
 {
   "description": "Polar ice ridge map chunk",
-  "furniture": {},
-  "height": 4,
+"height": 4,
   "id": "polar_ice_ridge",
   "rows": [
     "nnrn",

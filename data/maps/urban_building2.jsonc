@@ -24,9 +24,7 @@
         "e": "TileDesk",
         "f": "TileDoor",
         "g": "TileFloor",
-        "h": "TileStorage"
-    },
-    "furniture": {
+        "h": "TileStorage",
         "i": "TileWall",
         "j": "TileWindow"
     },

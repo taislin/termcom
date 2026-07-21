@@ -1,9 +1,5 @@
 {
   "description": "Urban bodega map chunk",
-  "furniture": {
-    "C": "TileComputer",
-    "D": "TileDesk"
-  },
   "height": 10,
   "id": "urban_bodega",
   "no_rotate": true,
@@ -26,7 +22,9 @@
     "+": "TileDoor",
     ".": "TileFloor",
     "N": "TileWindow",
-    "W": "TileWall"
+    "W": "TileWall",
+    "C": "TileComputer",
+    "D": "TileDesk"
   },
   "weight": 2,
   "width": 10

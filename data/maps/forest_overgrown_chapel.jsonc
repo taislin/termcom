@@ -1,8 +1,5 @@
 {
   "description": "Forest overgrown chapel map chunk",
-  "furniture": {
-    "O": "TileObject"
-  },
   "height": 15,
   "id": "forest_overgrown_chapel",
   "rows": [
@@ -30,7 +27,8 @@
     "+": "TileDoor",
     ".": "TileGrass",
     "N": "TileWindow",
-    "W": "TileWall"
+    "W": "TileWall",
+    "O": "TileObject"
   },
   "weight": 2,
   "width": 10

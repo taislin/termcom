@@ -1336,36 +1336,6 @@ func GenerateTerrorSite(w, h int, seed int64) *BattleMap {
 		maskPoissonInRect(m, TileTree, 2, (l.w*l.h)/10+1, l.x, l.y, l.w, l.h, rng)
 	}
 
-	// ---- 4c. Streetlamps along sidewalks/roads ----
-	{
-		lampCount := w * h / 150
-		placed := [][2]int{}
-		attempts := 0
-		for len(placed) < lampCount && attempts < lampCount*20 {
-			attempts++
-			x := 1 + rng.Intn(max(1, w-2))
-			y := 1 + rng.Intn(max(1, h-2))
-			tt := m.At(x, y).Type
-			if tt != TilePavement {
-				continue
-			}
-			ok := true
-			for _, p := range placed {
-				dx, dy := p[0]-x, p[1]-y
-				if dx*dx+dy*dy < 25 {
-					ok = false
-					break
-				}
-			}
-			if !ok {
-				continue
-			}
-			m.Set(x, y, TileStreetlamp)
-			m.Tiles[y][x].Lit = true
-			placed = append(placed, [2]int{x, y})
-		}
-	}
-
 	// Street furniture on sidewalks/roads.
 	maskPoissonInRect(m, TileObject, 3, w*h/250, 0, 0, w, h, rng)
 

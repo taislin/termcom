@@ -1,7 +1,6 @@
 {
   "description": "Rural tractor map chunk",
-  "furniture": {},
-  "height": 3,
+"height": 3,
   "id": "rural_tractor",
   "no_rotate": true,
   "rows": [

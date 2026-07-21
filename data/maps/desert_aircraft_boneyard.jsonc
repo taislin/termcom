@@ -1,7 +1,6 @@
 {
   "description": "Desert aircraft boneyard map chunk",
-  "furniture": {},
-  "height": 15,
+"height": 15,
   "id": "desert_aircraft_boneyard",
   "rows": [
     "..............",

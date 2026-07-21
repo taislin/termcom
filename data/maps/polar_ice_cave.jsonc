@@ -1,7 +1,6 @@
 {
   "description": "Polar ice cave map chunk",
-  "furniture": {},
-  "height": 5,
+"height": 5,
   "id": "polar_ice_cave",
   "rows": [
     "rrrrr",

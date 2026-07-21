@@ -1,10 +1,5 @@
 {
   "description": "Coastal fish market map chunk",
-  "furniture": {
-    "8": "TileFuelPump",
-    "D": "TileDesk",
-    "S": "TileStorage"
-  },
   "height": 8,
   "id": "coastal_fish_market",
   "no_rotate": true,
@@ -23,7 +18,10 @@
     "urban"
   ],
   "terrain": {
-    "p": "TilePier"
+    "p": "TilePier",
+    "8": "TileFuelPump",
+    "D": "TileDesk",
+    "S": "TileStorage"
   },
   "weight": 2,
   "width": 15

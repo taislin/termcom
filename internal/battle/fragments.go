@@ -128,13 +128,6 @@ func ApplyMapgenChunk(m *BattleMap, startX, startY int, chunk *mapgen.MapgenChun
 					m.Tiles[ty][tx].Lit = true
 				}
 			}
-			if ft, ok := chunk.Furniture[ch]; ok {
-				ft2 := resolveTileType(ft)
-				m.Set(tx, ty, ft2)
-				if ft2 == TileStreetlamp {
-					m.Tiles[ty][tx].Lit = true
-				}
-			}
 		}
 	}
 }
@@ -151,9 +144,7 @@ func ApplyMapgenChunkRotated(m *BattleMap, startX, startY, rot int, chunk *mapge
 				resolved[dy][dx] = -1
 				continue
 			}
-			if ft, ok := chunk.Furniture[ch]; ok {
-				resolved[dy][dx] = resolveTileType(ft)
-			} else if tt, ok := chunk.Terrain[ch]; ok {
+			if tt, ok := chunk.Terrain[ch]; ok {
 				resolved[dy][dx] = resolveTileType(tt)
 			} else {
 				resolved[dy][dx] = -1

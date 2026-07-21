@@ -1,9 +1,5 @@
 {
   "description": "Urban warehouse map chunk",
-  "furniture": {
-    "m": "TileMachinery",
-    "s": "TileStorage"
-  },
   "height": 8,
   "id": "urban_warehouse",
   "rows": [
@@ -22,7 +18,9 @@
   "terrain": {
     "+": "TileDoor",
     ".": "TileFloor",
-    "W": "TileWall"
+    "W": "TileWall",
+    "m": "TileMachinery",
+    "s": "TileStorage"
   },
   "weight": 1,
   "width": 10

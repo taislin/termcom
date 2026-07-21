@@ -1,9 +1,5 @@
 {
   "description": "Urban cryo lab map chunk",
-  "furniture": {
-    "P": "TileCryoPipe",
-    "p": "TileCryoPipe"
-  },
   "height": 5,
   "id": "urban_cryo_lab",
   "rows": [
@@ -20,7 +16,9 @@
   "terrain": {
     "+": "TileDoor",
     ".": "TileFloor",
-    "W": "TileWall"
+    "W": "TileWall",
+    "P": "TileCryoPipe",
+    "p": "TileCryoPipe"
   },
   "weight": 3,
   "width": 7

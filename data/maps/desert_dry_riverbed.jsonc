@@ -1,7 +1,6 @@
 {
   "description": "Desert dry riverbed map chunk",
-  "furniture": {},
-  "height": 15,
+"height": 15,
   "id": "desert_dry_riverbed",
   "rows": [
     "ssssssssss",

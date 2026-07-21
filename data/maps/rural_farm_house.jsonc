@@ -1,10 +1,5 @@
 {
   "description": "Rural farm house map chunk",
-  "furniture": {
-    "a": "TileCabinet",
-    "d": "TileDesk",
-    "l": "TileLocker"
-  },
   "height": 5,
   "id": "rural_farm_house",
   "rows": [
@@ -21,7 +16,10 @@
     "+": "TileDoor",
     ".": "TileFloor",
     "N": "TileWindow",
-    "W": "TileWall"
+    "W": "TileWall",
+    "a": "TileCabinet",
+    "d": "TileDesk",
+    "l": "TileLocker"
   },
   "weight": 1,
   "width": 7

@@ -1,7 +1,6 @@
 {
   "description": "Polar frozen hut map chunk",
-  "furniture": {},
-  "height": 4,
+"height": 4,
   "id": "polar_frozen_hut",
   "rows": [
     "WWWWW",

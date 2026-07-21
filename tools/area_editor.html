@@ -410,7 +410,7 @@ document.addEventListener("DOMContentLoaded", () => {
           for (let x = 0; x < w; x++) {
             const ch = data.rows[y] ? data.rows[y][x] : ".";
             // default terrain glyphs
-            const defaultTerrain = { ".":"TileFloor", "#":"TileWall", "+":"TileDoor", "\u229E":"TileWindow", "\u00B7":"TileGrass", "\u2663":"TileTree", "\u2229":"TileRock", "\u2248":"TileWater", "\u2261":"TileUFOFloor", "\u2588":"TileUFOWall", "\u2592":"TileStairs", "\u2593":"TileStairsDown", "\u2591":"TilePavement", "\u2217":"TileSnow", "\u224B":"TileMarsh", "\u2020":"TileBush", "\u2502":"TileFence", "\u2022":"TileObject" };
+            const defaultTerrain = { ".":"TileFloor", "#":"TileWall", "+":"TileDoor", "\u25A1":"TileWindow", "\u00B7":"TileGrass", "\u2663":"TileTree", "\u2229":"TileRock", "\u2248":"TileWater", "\u2261":"TileUFOFloor", "\u2588":"TileUFOWall", "\u2592":"TileStairs", "\u2593":"TileStairsDown", "\u2591":"TilePavement", "\u2217":"TileSnow", "\u224B":"TileMarsh", "\u2020":"TileBush", "\u2502":"TileFence", "\u2022":"TileObject" };
             grid[y][x] = rev[ch] || defaultTerrain[ch] || "TileGrass";
           }
         }

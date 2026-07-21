@@ -1,11 +1,5 @@
 {
   "description": "Urban bank map chunk",
-  "furniture": {
-    "C": "TileComputer",
-    "D": "TileDesk",
-    "L": "TileLocker",
-    "V": "TileCabinet"
-  },
   "height": 15,
   "id": "urban_bank",
   "rows": [
@@ -32,7 +26,11 @@
     "+": "TileDoor",
     ".": "TileFloor",
     "N": "TileWindow",
-    "W": "TileWall"
+    "W": "TileWall",
+    "C": "TileComputer",
+    "D": "TileDesk",
+    "L": "TileLocker",
+    "V": "TileCabinet"
   },
   "weight": 2,
   "width": 15

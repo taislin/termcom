@@ -1,7 +1,6 @@
 {
   "description": "Forest abandoned camp map chunk",
-  "furniture": {},
-  "height": 4,
+"height": 4,
   "id": "forest_abandoned_camp",
   "rows": [
     "g...g",

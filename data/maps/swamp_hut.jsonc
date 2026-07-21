@@ -1,10 +1,5 @@
 {
   "description": "Swamp hut map chunk",
-  "furniture": {
-    "B": "TileBush",
-    "T": "TileTimber",
-    "V": "TileVine"
-  },
   "height": 9,
   "id": "swamp_hut",
   "rows": [
@@ -25,7 +20,10 @@
     "+": "TileDoor",
     ".": "TileMarsh",
     "W": "TileWall",
-    "_": "TileFloor"
+    "_": "TileFloor",
+    "B": "TileBush",
+    "T": "TileTimber",
+    "V": "TileVine"
   },
   "weight": 1,
   "width": 9

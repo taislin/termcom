@@ -1,9 +1,5 @@
 {
   "description": "Forest logging camp map chunk",
-  "furniture": {
-    "F": "TileForklift",
-    "T": "TileTimber"
-  },
   "height": 15,
   "id": "forest_logging_camp",
   "rows": [
@@ -30,7 +26,9 @@
   "terrain": {
     "+": "TileDoor",
     ".": "TileGrass",
-    "W": "TileWall"
+    "W": "TileWall",
+    "F": "TileForklift",
+    "T": "TileTimber"
   },
   "weight": 2,
   "width": 15

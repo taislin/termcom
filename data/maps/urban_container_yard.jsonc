@@ -1,7 +1,6 @@
 {
   "description": "Urban container yard map chunk",
-  "furniture": {},
-  "height": 15,
+"height": 15,
   "id": "urban_container_yard",
   "no_rotate": true,
   "rows": [

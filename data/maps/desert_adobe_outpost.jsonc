@@ -1,7 +1,6 @@
 {
   "description": "Desert adobe outpost map chunk",
-  "furniture": {},
-  "height": 10,
+"height": 10,
   "id": "desert_adobe_outpost",
   "no_rotate": true,
   "rows": [

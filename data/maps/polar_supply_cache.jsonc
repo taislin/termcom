@@ -1,7 +1,6 @@
 {
   "description": "Polar supply cache map chunk",
-  "furniture": {},
-  "height": 4,
+"height": 4,
   "id": "polar_supply_cache",
   "rows": [
     "WW+W",

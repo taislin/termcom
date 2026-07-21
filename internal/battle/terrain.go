@@ -58,8 +58,13 @@ const (
 	GlyphBuildingBR   rune = '╝'
 	GlyphBuildingH    rune = '═'
 	GlyphBuildingV    rune = '║'
+	GlyphBuildingTJL  rune = '╠'
+	GlyphBuildingTJR  rune = '╣'
+	GlyphBuildingTJT  rune = '╦'
+	GlyphBuildingTJB  rune = '╩'
+	GlyphBuildingX    rune = '╬'
 	GlyphBuildingDoor rune = '▒'
-	GlyphBuildingWin  rune = '⊞'
+	GlyphBuildingWin  rune = '□'
 )
 
 // TileBaseColor returns the resolved color for a tile.
@@ -89,17 +94,6 @@ func TileGeomRune(t Tile, ctx [3][3]TileType) rune {
 	e := ctx[1][2]
 
 	switch t.Type {
-	case TileCar, TileCarRight, TileForklift, TileForkliftRight:
-		if n == t.Type {
-			return 'º'
-		}
-		return TileChar(t.Type)
-	case TileCarMid:
-		if n == TileCarMid {
-			return '▄'
-		}
-		return '█'
-
 	case TileUFOWall:
 		// Corner calculations
 		nIsUFO := n == TileUFOWall
@@ -127,76 +121,58 @@ func TileGeomRune(t Tile, ctx [3][3]TileType) rune {
 		}
 		return '#' // Default hash for isolated walls
 
-	case TileWall:
-		// Human building corners and lines
-		nIsWall := n == TileWall
-		sIsWall := s == TileWall
-		wIsWall := w == TileWall
-		eIsWall := e == TileWall
+	case TileWall, TileMetalWall:
+		// Human building walls — full box-drawing lookup.
+		// Doors and windows sit IN the wall, so count them as wall-like.
+		// TileMetalWall also connects to TileWall for continuity.
+		isWall := func(tt TileType) bool {
+			return tt == TileWall || tt == TileMetalWall || tt == TileDoor || tt == TileWindow
+		}
+		nW := isWall(n)
+		sW := isWall(s)
+		wW := isWall(w)
+		eW := isWall(e)
 
-		if !nIsWall && !wIsWall && eIsWall && sIsWall {
+		// Cross
+		if nW && sW && wW && eW {
+			return GlyphBuildingX
+		}
+		// T-junctions (3 walls)
+		if nW && sW && wW && !eW {
+			return GlyphBuildingTJR // ╣
+		}
+		if nW && sW && !wW && eW {
+			return GlyphBuildingTJL // ╠
+		}
+		if nW && !sW && wW && eW {
+			return GlyphBuildingTJB // ╩
+		}
+		if !nW && sW && wW && eW {
+			return GlyphBuildingTJT // ╦
+		}
+		// Corners (2 perpendicular, no opposite)
+		if eW && sW && !nW && !wW {
 			return GlyphBuildingTL
 		}
-		if !nIsWall && !eIsWall && wIsWall && sIsWall {
+		if wW && sW && !nW && !eW {
 			return GlyphBuildingTR
 		}
-		if !sIsWall && !wIsWall && eIsWall && nIsWall {
+		if eW && nW && !sW && !wW {
 			return GlyphBuildingBL
 		}
-		if !sIsWall && !eIsWall && wIsWall && nIsWall {
+		if wW && nW && !sW && !eW {
 			return GlyphBuildingBR
 		}
-		if nIsWall && sIsWall {
+		// Straight lines
+		if nW || sW {
 			return GlyphBuildingV
 		}
-		if wIsWall && eIsWall {
+		if wW || eW {
 			return GlyphBuildingH
 		}
-		if wIsWall || eIsWall {
-			return GlyphBuildingH
-		}
-		if nIsWall || sIsWall {
-			return GlyphBuildingV
-		}
-		return '#' // Default hash
+		// Isolated — solid block
+		return '█'
 
-	case TileBusEnd:
-		if n == TileBusEnd {
-			return 'º'
-		}
-		return TileChar(t.Type) // '▄'
-	case TileBusMid:
-		if n == TileBusMid {
-			return '▄'
-		}
-		return '█'
-	case TileTractorCab:
-		if n == TileTractorCab {
-			return 'o'
-		}
-		return TileChar(t.Type)
-	case TileTractorBody:
-		return '█'
-	case TileCrawlerLeft:
-		if n == TileCrawlerLeft {
-			return 'º'
-		}
-		return '◢'
-	case TileCrawlerMid:
-		if n == TileCrawlerMid {
-			return '▄'
-		}
-		return '█'
-	case TileCrawlerRight:
-		if n == TileCrawlerRight {
-			return 'º'
-		}
-		return '◣'
-	case TileCrawlerLeg:
-		if n == TileCrawlerMid || n == TileCrawlerLeft || n == TileCrawlerRight {
-			return '^'
-		}
-		return '·'
 	case TileDoor:
 		return GlyphBuildingDoor
 	case TileWindow:
@@ -284,6 +260,13 @@ func RenderTile(t Tile, ctx [3][3]TileType, visible, seen bool, frame int, tileX
 	}
 
 	r := TileGeomRune(t, ctx)
+
+	// Pavement: match foreground to background so the · glyph is
+	// invisible and the tile renders as a solid coloured block.
+	if t.Type == TilePavement {
+		fg = bg
+	}
+
 	style := tcell.StyleDefault.Foreground(fg).Background(bg)
 	return r, style
 }

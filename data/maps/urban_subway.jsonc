@@ -1,8 +1,5 @@
 {
   "description": "Urban subway map chunk",
-  "furniture": {
-    "F": "TileFence"
-  },
   "height": 10,
   "id": "urban_subway",
   "no_rotate": true,
@@ -25,7 +22,8 @@
     "+": "TileDoor",
     ".": "TilePavement",
     "M": "TileStairsDown",
-    "W": "TileWall"
+    "W": "TileWall",
+    "F": "TileFence"
   },
   "weight": 2,
   "width": 5

@@ -1,10 +1,5 @@
 {
   "description": "Swamp cypress grove map chunk",
-  "furniture": {
-    "B": "TileBush",
-    "T": "TileCypressTree",
-    "V": "TileVine"
-  },
   "height": 9,
   "id": "swamp_cypress_grove",
   "rows": [
@@ -22,7 +17,10 @@
     "swamp"
   ],
   "terrain": {
-    ".": "TileSwampWater"
+    ".": "TileSwampWater",
+    "B": "TileBush",
+    "T": "TileCypressTree",
+    "V": "TileVine"
   },
   "weight": 3,
   "width": 9

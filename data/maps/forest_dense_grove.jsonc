@@ -1,7 +1,6 @@
 {
   "description": "Forest dense grove map chunk",
-  "furniture": {},
-  "height": 5,
+"height": 5,
   "id": "forest_dense_grove",
   "rows": [
     "..tt.",

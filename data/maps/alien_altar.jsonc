@@ -1,8 +1,5 @@
 {
   "description": "Alien altar map chunk",
-  "furniture": {
-    "T": "TileAlienTech"
-  },
   "height": 5,
   "id": "alien_altar",
   "rows": [
@@ -17,7 +14,8 @@
   ],
   "terrain": {
     ".": "TileUFOFloor",
-    "W": "TileUFOWall"
+    "W": "TileUFOWall",
+    "T": "TileAlienTech"
   },
   "weight": 2,
   "width": 5

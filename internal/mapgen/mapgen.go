@@ -9,9 +9,8 @@ import (
 )
 
 // MapgenChunk represents a CDDA-style map definition loaded from JSON.
-// Rows are ASCII art; terrain/furniture map each character to a tile type name.
-// Weight controls how often the chunk appears relative to others of the same
-// tag (higher = more frequent, default 1).
+// Rows are ASCII art; terrain maps each character to a tile type name.
+// The furniture field is deprecated — merged into terrain at load time.
 type MapgenChunk struct {
 	ID          string            `json:"id"`
 	Description string            `json:"description,omitempty"`
@@ -22,7 +21,7 @@ type MapgenChunk struct {
 	NoRotate    bool              `json:"no_rotate,omitempty"`
 	Rows        []string          `json:"rows"`
 	Terrain     map[string]string `json:"terrain"`
-	Furniture   map[string]string `json:"furniture"`
+	Furniture   map[string]string `json:"furniture,omitempty"` // deprecated, merged into Terrain
 }
 
 func (c *MapgenChunk) EffectiveWeight() int {
@@ -151,6 +150,11 @@ func LoadFile(path string) error {
 		return fmt.Errorf("mapgen: read %s: %w", path, err)
 	}
 
+	finish := func(c *MapgenChunk) {
+		mergeFurniture(c)
+		registry[c.ID] = c
+	}
+
 	var chunks []MapgenChunk
 	if err := json.Unmarshal(data, &chunks); err == nil {
 		for i := range chunks {
@@ -158,7 +162,7 @@ func LoadFile(path string) error {
 			if err := validate(c); err != nil {
 				return fmt.Errorf("mapgen: %s chunk %d: %w", path, i, err)
 			}
-			registry[c.ID] = c
+			finish(c)
 		}
 		return nil
 	}
@@ -170,8 +174,25 @@ func LoadFile(path string) error {
 	if err := validate(&single); err != nil {
 		return fmt.Errorf("mapgen: %s: %w", path, err)
 	}
-	registry[single.ID] = &single
+	finish(&single)
 	return nil
+}
+
+// mergeFurniture merges Furniture entries into Terrain so there's only one
+// lookup. Furniture wins on key conflict.
+func mergeFurniture(c *MapgenChunk) {
+	if c.Furniture == nil {
+		return
+	}
+	if c.Terrain == nil {
+		c.Terrain = c.Furniture
+		c.Furniture = nil
+		return
+	}
+	for k, v := range c.Furniture {
+		c.Terrain[k] = v
+	}
+	c.Furniture = nil
 }
 
 func validate(c *MapgenChunk) error {

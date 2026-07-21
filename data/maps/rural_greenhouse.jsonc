@@ -1,8 +1,5 @@
 {
   "description": "Rural greenhouse map chunk",
-  "furniture": {
-    "B": "TileBush"
-  },
   "height": 5,
   "id": "rural_greenhouse",
   "rows": [
@@ -20,7 +17,8 @@
   "terrain": {
     "+": "TileDoor",
     ".": "TileFloor",
-    "N": "TileWindow"
+    "N": "TileWindow",
+    "B": "TileBush"
   },
   "weight": 2,
   "width": 7

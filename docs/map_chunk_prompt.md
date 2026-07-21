@@ -74,7 +74,7 @@ You are generating a **map fragment/chunk JSON file** for the X-COM tactical gam
 | `TileFloor` | `.` | 95,90,85 | yes | no | no | 0 | Interior floor |
 | `TileWall` | `#` | 160,155,150 | no | yes | yes | 80 | Building wall |
 | `TileDoor` | `+` | 140,100,50 | yes | no | yes | 0 | Doorway |
-| `TileWindow` | `⊞` | 120,170,220 | no | yes | yes | 20 | Building window |
+| `TileWindow` | `□` | 120,170,220 | no | yes | yes | 20 | Building window |
 | `TileGrass` | `·` | 50,110,40 | yes | no | no | 0 | Open ground |
 | `TileTree` | `♣` | 35,90,25 | no | yes | yes | 80 | Tree |
 | `TileRock` | `∩` | 130,125,120 | no | yes | yes | 70 | Rock formation |

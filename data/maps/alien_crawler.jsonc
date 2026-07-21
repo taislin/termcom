@@ -1,7 +1,6 @@
 {
   "description": "Alien crawler map chunk",
-  "furniture": {},
-  "height": 2,
+"height": 2,
   "id": "alien_crawler",
   "no_rotate": true,
   "rows": [

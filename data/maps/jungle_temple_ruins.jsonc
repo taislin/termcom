@@ -1,7 +1,6 @@
 {
   "description": "Jungle temple ruins map chunk",
-  "furniture": {},
-  "height": 7,
+"height": 7,
   "id": "jungle_temple_ruins",
   "rows": [
     ".t..tV...",

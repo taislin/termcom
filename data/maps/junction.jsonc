@@ -1,7 +1,6 @@
 {
   "description": "Junction map chunk",
-  "furniture": {},
-  "height": 3,
+"height": 3,
   "id": "junction",
   "rows": [
     "W.W",

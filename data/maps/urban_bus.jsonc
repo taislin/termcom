@@ -1,7 +1,6 @@
 {
   "description": "Urban bus map chunk",
-  "furniture": {},
-  "height": 2,
+"height": 2,
   "id": "urban_bus",
   "no_rotate": true,
   "rows": [

@@ -1,8 +1,5 @@
 {
   "description": "Coastal tide pool map chunk",
-  "furniture": {
-    "B": "TileBoulder"
-  },
   "height": 10,
   "id": "coastal_tide_pool",
   "no_rotate": true,
@@ -24,7 +21,8 @@
   "terrain": {
     "W": "TileWater",
     "s": "TileSand",
-    "~": "TileSwampWater"
+    "~": "TileSwampWater",
+    "B": "TileBoulder"
   },
   "weight": 3,
   "width": 15

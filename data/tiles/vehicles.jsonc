@@ -272,11 +272,11 @@
     "mv": 4,
     "nm": "TILE_TRUCK"
   },
-  // O — Vehicle wheel
+  // º — Vehicle wheel (colour matches pavement so bg blends)
   {
     "id": "TileWheel",
-    "g": "O",
-    "c": "#3c3c3c",
+    "g": "\u00BA",
+    "c": "#787878",
     "pa": false,
     "op": false,
     "de": true,

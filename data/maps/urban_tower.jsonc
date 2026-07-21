@@ -1,11 +1,5 @@
 {
   "description": "Urban tower map chunk",
-  "furniture": {
-    "L": "TileLocker",
-    "a": "TileCabinet",
-    "c": "TileComputer",
-    "l": "TileLocker"
-  },
   "height": 9,
   "id": "urban_tower",
   "rows": [
@@ -26,7 +20,11 @@
     "+": "TileDoor",
     ".": "TileFloor",
     "N": "TileWindow",
-    "W": "TileWall"
+    "W": "TileWall",
+    "L": "TileLocker",
+    "a": "TileCabinet",
+    "c": "TileComputer",
+    "l": "TileLocker"
   },
   "weight": 1,
   "width": 9
