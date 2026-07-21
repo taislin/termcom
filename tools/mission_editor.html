@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mission Editor</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Courier New', monospace; background: #1a1a2e; color: #e0e0e0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+.toolbar { display: flex; align-items: center; gap: 6px; padding: 5px 10px; background: #0f3460; flex-shrink: 0; font-size: 12px; flex-wrap: wrap; }
+.toolbar button { padding: 3px 10px; background: #e94560; color: #fff; border: none; border-radius: 3px; cursor: pointer; font-family: inherit; font-size: 11px; font-weight: bold; }
+.toolbar button:hover { background: #ff6b81; }
+.toolbar button.sc { background: #0f3460; border: 1px solid #1a3a5c; font-weight: normal; }
+.toolbar button.sc:hover { background: #1a3a5c; }
+.toolbar label { color: #a0c4ff; font-size: 11px; }
+.toolbar .spacer { flex: 1; }
+.toolbar .map-info { font-size: 11px; color: #888; margin-left: 8px; }
+#mapFileInput, #missionFileInput { display: none; }
+
+.main { flex: 1; display: flex; min-height: 0; }
+
+/* Map panel */
+.map-panel { flex: 1; overflow: auto; background: #111; display: flex; position: relative; }
+.map-panel::-webkit-scrollbar { width: 8px; height: 8px; }
+.map-panel::-webkit-scrollbar-track { background: #111; }
+.map-panel::-webkit-scrollbar-thumb { background: #0f3460; border-radius: 4px; }
+.grid-container { margin: 20px; display: inline-block; position: relative; }
+.grid-row { display: flex; }
+.cell { width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 12px; cursor: crosshair; border: 1px solid #202030; position: relative; user-select: none; }
+.cell:hover { border-color: #e94560; z-index: 2; }
+.cell .glyph { z-index: 1; pointer-events: none; }
+.cell .indicator { position: absolute; top: 0; left: 0; width: 7px; height: 7px; border-radius: 50%; border: 1px solid #fff; z-index: 2; pointer-events: none; }
+.cell .indicator.unit-s { background: #3288ff; }
+.cell .indicator.unit-a { background: #e82828; }
+.cell .indicator.unit-c { background: #e8d838; }
+.cell .coord { position: absolute; font-size: 6px; color: rgba(255,255,255,0.08); bottom: 0; right: 1px; pointer-events: none; }
+.cell .hover-label { display: none; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: #1a1a2e; border: 1px solid #e94560; padding: 2px 6px; font-size: 9px; white-space: nowrap; z-index: 10; pointer-events: none; border-radius: 3px; }
+.cell:hover .hover-label { display: block; }
+
+/* Right panel */
+.right-panel { width: 340px; min-width: 340px; background: #16213e; border-left: 2px solid #0f3460; display: flex; flex-direction: column; overflow: hidden; }
+.right-panel .tabs { display: flex; flex-shrink: 0; }
+.right-panel .tab { flex: 1; padding: 6px; text-align: center; font-size: 11px; cursor: pointer; background: #0f3460; border: none; color: #888; font-family: inherit; transition: all 0.1s; }
+.right-panel .tab:hover { background: #1a3a5c; }
+.right-panel .tab.active { background: #e94560; color: #fff; font-weight: bold; }
+.tab-content { flex: 1; overflow-y: auto; padding: 6px; display: none; }
+.tab-content.active { display: block; }
+.tab-content::-webkit-scrollbar { width: 5px; }
+.tab-content::-webkit-scrollbar-track { background: #16213e; }
+.tab-content::-webkit-scrollbar-thumb { background: #0f3460; border-radius: 3px; }
+
+.section { margin-bottom: 8px; }
+.section-title { font-size: 11px; font-weight: bold; color: #e94560; padding: 4px 0; border-bottom: 1px solid #0f3460; margin-bottom: 6px; }
+.field { display: flex; align-items: center; gap: 4px; margin-bottom: 3px; font-size: 11px; }
+.field label { color: #a0c4ff; min-width: 55px; flex-shrink: 0; font-size: 10px; }
+.field input[type=text], .field input[type=number], .field select { flex: 1; padding: 2px 4px; background: #1a1a2e; border: 1px solid #0f3460; color: #e0e0e0; border-radius: 3px; font-family: inherit; font-size: 11px; }
+.field input[type=checkbox] { margin-right: 4px; }
+.field .sm-input { width: 50px; flex: none; }
+
+.btn-sm { padding: 2px 8px; background: #0f3460; border: 1px solid #1a3a5c; color: #e0e0e0; border-radius: 3px; cursor: pointer; font-family: inherit; font-size: 10px; }
+.btn-sm:hover { background: #1a3a5c; }
+.btn-sm.danger { border-color: #e94560; color: #e94560; }
+.btn-sm.danger:hover { background: #e94560; color: #fff; }
+
+/* Unit config */
+.unit-config { background: #1a1a2e; border-radius: 4px; padding: 6px; margin-top: 4px; }
+.unit-config .inline-fields { display: flex; flex-wrap: wrap; gap: 3px; }
+.unit-config .inline-fields .field { flex: 1 1 45%; min-width: 0; }
+.unit-config .inline-fields .field label { min-width: 30px; }
+.unit-config .inline-fields .field input { width: 40px; }
+
+/* Placed units list */
+.placed-unit { display: flex; align-items: center; gap: 4px; padding: 3px 4px; border-radius: 3px; font-size: 10px; cursor: pointer; margin-bottom: 2px; }
+.placed-unit:hover { background: #1a3a5c; }
+.placed-unit .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.placed-unit .dot.s { background: #3288ff; }
+.placed-unit .dot.a { background: #e82828; }
+.placed-unit .dot.c { background: #e8d838; }
+.placed-unit .info { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.placed-unit .pos { color: #888; margin: 0 4px; }
+.placed-unit .rm { background: none; border: none; color: #e94560; cursor: pointer; font-size: 13px; padding: 0 2px; }
+
+/* Roster */
+.roster-species { display: flex; align-items: center; gap: 4px; padding: 2px 4px; font-size: 10px; margin-bottom: 2px; border-radius: 3px; background: #1a1a2e; }
+.roster-species .name { font-weight: bold; flex: 1; }
+.roster-species .stats { color: #888; }
+.roster-species .rm { background: none; border: none; color: #e94560; cursor: pointer; font-size: 12px; padding: 0 2px; }
+
+/* Empty state */
+.empty-state { color: #555; font-size: 11px; text-align: center; padding: 20px; }
+
+/* Export overlay */
+.export-area { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 70%; max-width: 700px; max-height: 80vh; background: #1a1a2e; border: 2px solid #0f3460; border-radius: 8px; z-index: 1000; flex-direction: column; }
+.export-area.show { display: flex; }
+.export-area textarea { width: 100%; height: 350px; background: #111; color: #0f0; border: none; padding: 10px; font-family: 'Courier New', monospace; font-size: 11px; resize: vertical; }
+.export-area .bar { display: flex; gap: 6px; padding: 6px 10px; align-items: center; background: #0f3460; }
+.export-area .bar button { padding: 3px 10px; background: #e94560; color: #fff; border: none; border-radius: 3px; cursor: pointer; font-family: inherit; font-size: 11px; }
+.export-area .bar span { flex: 1; color: #a0c4ff; font-size: 12px; }
+.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 999; }
+.overlay.show { display: block; }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <button id="loadMapBtn">Load Map</button>
+  <button id="exportBtn">Export Mission</button>
+  <button id="loadMissionBtn" class="sc">Load Mission</button>
+  <span class="map-info" id="mapInfo">No map loaded</span>
+  <span class="spacer"></span>
+  <span id="unitCountLabel" style="font-size:11px;color:#888;">Units: 0</span>
+  <input type="file" id="mapFileInput" accept=".json">
+  <input type="file" id="missionFileInput" accept=".json">
+</div>
+
+<div class="main">
+  <div class="map-panel" id="mapPanel">
+    <div class="grid-container" id="gridContainer">
+      <div class="empty-state">Load a map JSON from the Map Editor to begin</div>
+    </div>
+  </div>
+
+  <div class="right-panel" id="rightPanel">
+    <div class="tabs">
+      <button class="tab active" data-tab="place">Place</button>
+      <button class="tab" data-tab="roster">Roster</button>
+      <button class="tab" data-tab="settings">Settings</button>
+    </div>
+
+    <!-- Place Tab -->
+    <div class="tab-content active" id="tabPlace">
+      <div class="section">
+        <div class="section-title">Unit Tool</div>
+        <div class="field">
+          <label>Type:</label>
+          <select id="unitType" style="flex:1">
+            <option value="soldier">Soldier</option>
+            <option value="alien">Alien</option>
+            <option value="civilian">Civilian</option>
+          </select>
+        </div>
+        <div class="unit-config" id="unitConfig"></div>
+        <div style="font-size:10px;color:#888;margin-top:4px;">Click on the map to place this unit. Right-click to remove.</div>
+      </div>
+
+      <div class="section" style="flex:1">
+        <div class="section-title">Placed Units (<span id="placedCount">0</span>)</div>
+        <div id="placedUnitsList"></div>
+      </div>
+    </div>
+
+    <!-- Roster Tab -->
+    <div class="tab-content" id="tabRoster">
+      <div class="section">
+        <div class="section-title">Alien Species Library</div>
+        <div style="display:flex;gap:4px;margin-bottom:6px;">
+          <button id="genRosterBtn" class="btn-sm" style="flex:1">Generate Random Roster</button>
+          <button id="hardcodedBtn" class="btn-sm" style="flex:1">Use Hardcoded Aliens</button>
+        </div>
+        <div id="speciesList">
+          <div class="empty-state">Generate or load an alien roster to begin placing aliens</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings Tab -->
+    <div class="tab-content" id="tabSettings">
+      <div class="section">
+        <div class="section-title">Mission Info</div>
+        <div class="field"><label>Name:</label><input type="text" id="missionName" value="Custom Mission"></div>
+        <div class="field"><label>Author:</label><input type="text" id="missionAuthor" value="Player"></div>
+        <div class="field"><label>Description:</label><input type="text" id="missionDesc" value=""></div>
+        <div class="field"><label><input type="checkbox" id="nightToggle"> Night mission</label></div>
+      </div>
+      <div class="section">
+        <div class="section-title">Victory Condition</div>
+        <div class="field"><label>Type:</label>
+          <select id="victoryType" style="flex:1">
+            <option value="eliminate_all">Eliminate All Aliens</option>
+            <option value="survive_turns">Survive N Turns</option>
+            <option value="reach_point">Reach Point</option>
+          </select>
+        </div>
+        <div id="victoryParams" style="display:none">
+          <div class="field"><label>Turns:</label><input type="number" id="victoryTurns" value="10" min="1" class="sm-input"></div>
+          <div class="field"><label>Target X:</label><input type="number" id="victoryTx" value="25" min="0" class="sm-input"></div>
+          <div class="field"><label>Target Y:</label><input type="number" id="victoryTy" value="25" min="0" class="sm-input"></div>
+          <div class="field"><label>Min Soldiers:</label><input type="number" id="victoryMin" value="1" min="1" class="sm-input"></div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-title">Actions</div>
+        <button id="clearAllBtn" class="btn-sm danger">Clear All Units</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay"></div>
+<div class="export-area" id="exportArea">
+  <div class="bar"><span id="exportTitle">Export Mission</span><button id="copyBtn">Copy</button><button id="downloadBtn">Download</button><button id="closeExportBtn">Close</button></div>
+  <textarea id="exportText" readonly></textarea>
+</div>
+
+<script>
+// ===== CONSTANTS =====
+const TILES = [
+  { id:"TileFloor",g:'.',c:"#5f5a55"},{ id:"TileWall",g:'#',c:"#a09b96"},{ id:"TileDoor",g:'+',c:"#8c6432"},{ id:"TileWindow",g:'\u229E',c:"#78aadc"},
+  { id:"TileGrass",g:'\u00B7',c:"#326e28"},{ id:"TileTree",g:'\u2663',c:"#235a19"},{ id:"TileRock",g:'\u2229',c:"#827d78"},{ id:"TileWater",g:'\u2248',c:"#2850c8"},
+  { id:"TileUFOFloor",g:'\u2261',c:"#324b6e"},{ id:"TileUFOWall",g:'\u2588',c:"#466496"},{ id:"TileStairs",g:'\u2592',c:"#6e6964"},{ id:"TileStairsDown",g:'\u2593',c:"#504b46"},
+  { id:"TilePavement",g:'\u2591',c:"#787878"},{ id:"TileSand",g:'\u00B7',c:"#c8b478"},{ id:"TileSnow",g:'\u2217',c:"#e6ebf5"},{ id:"TileMarsh",g:'\u224B',c:"#3c6446"},
+  { id:"TileBush",g:'\u2020',c:"#2d6423"},{ id:"TileFence",g:'\u2502',c:"#917850"},{ id:"TileRubble",g:'\u2592',c:"#78736e"},{ id:"TileObject",g:'\u2022',c:"#aaaaaa"},
+  { id:"TileConsole",g:'\u2338',c:"#46d282"},{ id:"TileMachinery",g:'\u229B',c:"#b4b4b4"},{ id:"TilePod",g:'\u25C8',c:"#8246be"},{ id:"TilePowerSource",g:'\u2301',c:"#f0c83c"},
+  { id:"TileStorage",g:'\u25A4',c:"#b48c5a"},{ id:"TileAlienTech",g:'\u2295',c:"#e64646"},{ id:"TileDesk",g:'\u25CA',c:"#a07850"},{ id:"TileChair",g:'\u229F',c:"#96643c"},
+  { id:"TileChairLeft",g:'\u2143',c:"#96643c"},{ id:"TileChairRight",g:'L',c:"#96643c"},{ id:"TileComputer",g:'\u2338',c:"#46b4d2"},{ id:"TileBed",g:'\u25A1',c:"#c8c8c8"},
+  { id:"TileLocker",g:'\u25EB',c:"#8ca0b4"},{ id:"TileCabinet",g:'\u229E',c:"#aa825a"},{ id:"TileCar",g:'\u2584',c:"#3264b4"},{ id:"TileCarMid",g:'\u2588',c:"#3264b4"},
+  { id:"TileCarRight",g:'\u2584',c:"#3264b4"},{ id:"TileForklift",g:'\u2588',c:"#c8a028"},{ id:"TileForkliftRight",g:'\u228F',c:"#c8a028"},{ id:"TileFuelPump",g:'8',c:"#c83c28"},
+  { id:"TileContainerRed",g:'\u2588',c:"#b43228"},{ id:"TileContainerBlue",g:'\u2588',c:"#3250b4"},{ id:"TileContainerYellow",g:'\u2588',c:"#c8aa28"},{ id:"TileBusEnd",g:'\u2584',c:"#c8b43c"},
+  { id:"TileBusMid",g:'\u2588',c:"#c8b43c"},{ id:"TileHeloBody",g:'\u2588',c:"#3c4655"},{ id:"TileHeloTail",g:'\u2584',c:"#3c4655"},{ id:"TileHeloNose",g:'\u25B7',c:"#82c8e6"},
+  { id:"TileHeloRotor",g:'+',c:"#b4b4b4"},{ id:"TileHeloRotorSides",g:'-',c:"#b4b4b4"},{ id:"TileHeloBodyBack",g:'\u2588',c:"#3c4655"},{ id:"TileHeloRotorBack",g:'x',c:"#b4b4b4"},
+  { id:"TileHeloWindow",g:'\u25E3',c:"#82c8e6"},{ id:"TileTractorCab",g:'\u25E3',c:"#82c8e6"},{ id:"TileTractorBody",g:'\u2588',c:"#b43c28"},{ id:"TileCrawlerLeft",g:'\u25E2',c:"#8246be"},
+  { id:"TileCrawlerMid",g:'\u2588',c:"#8246be"},{ id:"TileCrawlerRight",g:'\u25E3',c:"#8246be"},{ id:"TileCrawlerLeg",g:'^',c:"#6432a0"},{ id:"TileWheel",g:'O',c:"#3c3c3c"},
+  { id:"TileWheelSmall",g:'o',c:"#3c3c3c"},{ id:"TileAdobe",g:'\u2588',c:"#c88246"},{ id:"TileMetalWall",g:'\u2588',c:"#b4b9c3"},{ id:"TileWreck",g:'\u25A4',c:"#965f3c"},
+  { id:"TileTimber",g:'\u2261',c:"#966e3c"},{ id:"TileDish",g:'\u25D7',c:"#aaafb9"},{ id:"TileTruck",g:'\u2584',c:"#5a6e46"},{ id:"TileIce",g:'\u2248',c:"#b4dceb"},
+  { id:"TileStreetlamp",g:'\u2316',c:"#dcd278"},{ id:"TileGlass",g:',',c:"#bec8d2"},{ id:"TileDebris",g:'`',c:"#968c82"},{ id:"TileCryoPipe",g:'\u256A',c:"#8cc8e6"},
+  { id:"TileSkylight",g:'\u2299',c:"#b4d2f0"},{ id:"TileWheat",g:'\u03C8',c:"#c8b43c"},{ id:"TileHayBale",g:'\u2588',c:"#a08c3c"},{ id:"TilePier",g:'\u2550',c:"#8c643c"},
+  { id:"TileDockCrate",g:'\u25A3',c:"#967850"},{ id:"TileCliffFace",g:'\u2591',c:"#8c7864"},{ id:"TileScree",g:'\u00B7',c:"#a09682"},{ id:"TileBoulder",g:'\u2229',c:"#827d78"},
+  { id:"TileSwampWater",g:'\u224B',c:"#326450"},{ id:"TileCypressTree",g:'\u2663',c:"#285532"},{ id:"TileSnowTree",g:'\u2663',c:"#dcebf5"},{ id:"TileMud",g:'\u224B',c:"#6e5032"},
+  { id:"TileVine",g:'\u2021',c:"#328232"},{ id:"TileBamboo",g:'\u2663',c:"#50963c"},{ id:"TileDryBush",g:'*',c:"#aa8c3c"},
+];
+const tileMap = {}; TILES.forEach(t => tileMap[t.id] = t);
+
+const SOLDIER_NAMES = [
+  "Alpha","Bravo","Charlie","Delta","Echo","Foxtrot","Golf","Hotel","India",
+  "Juliet","Kilo","Lima","Mike","November","Oscar","Papa","Quebec","Romeo",
+  "Sierra","Tango","Uniform","Victor","Whiskey","X-ray","Yankee","Zulu"
+];
+const RANK_NAMES = ["Rookie","Squaddie","Corporal","Sergeant","Captain","Commander"];
+
+const HUMAN_WEAPONS = ["pistol","rifle","heavy","auto","rocket","laser_pistol","laser_rifle","stun_rod"];
+const ALIEN_WEAPONS = ["plasma_pistol","plasma_rifle","heavy_plasma","alien_blaster","alien_cannon","alien_laser","alien_heavy_laser","alien_psi_bolt","alien_rocket","alien_grenade","chryssalid_claw","reaper_claw","alien_claw","alien_fang"];
+const ARMORS = ["none","personal","light","medium","heavy","power_suit","flight_suit"];
+const ALL_WEAPONS = [...new Set([...HUMAN_WEAPONS, ...ALIEN_WEAPONS])];
+
+const HARDCODED_ALIENS = [
+  { name:"Sectoid", hp:10, tu:50, acc:55, brav:40, react:50, str:8, psi:40, arm:5, weapon:"plasma_pistol", rank:0, aggr:3 },
+  { name:"Sectoid Navigator", hp:11, tu:52, acc:58, brav:45, react:52, str:8, psi:50, arm:6, weapon:"plasma_pistol", rank:1, aggr:3 },
+  { name:"Sectoid Commander", hp:14, tu:55, acc:62, brav:55, react:58, str:9, psi:70, arm:8, weapon:"plasma_rifle", rank:2, aggr:4 },
+  { name:"Floater", hp:15, tu:55, acc:60, brav:50, react:60, str:12, psi:10, arm:10, weapon:"plasma_rifle", rank:1, aggr:6 },
+  { name:"Floater Navigator", hp:16, tu:58, acc:63, brav:55, react:63, str:13, psi:18, arm:11, weapon:"plasma_rifle", rank:2, aggr:6 },
+  { name:"Floater Commander", hp:20, tu:62, acc:68, brav:65, react:68, str:15, psi:30, arm:14, weapon:"plasma_rifle", rank:3, aggr:7 },
+  { name:"Chryssalid", hp:14, tu:65, acc:70, brav:100, react:75, str:18, psi:0, arm:8, weapon:"chryssalid_claw", rank:1, aggr:10 },
+  { name:"Chryssalid Queen", hp:35, tu:60, acc:75, brav:100, react:80, str:25, psi:0, arm:12, weapon:"chryssalid_claw", rank:4, aggr:10 },
+  { name:"Muton", hp:25, tu:55, acc:55, brav:70, react:50, str:20, psi:0, arm:18, weapon:"plasma_rifle", rank:2, aggr:8 },
+  { name:"Muton Navigator", hp:27, tu:58, acc:58, brav:75, react:53, str:21, psi:0, arm:19, weapon:"plasma_rifle", rank:3, aggr:8 },
+  { name:"Muton Commander", hp:30, tu:62, acc:62, brav:85, react:58, str:23, psi:0, arm:22, weapon:"heavy_plasma", rank:4, aggr:9 },
+  { name:"Cyberdisc", hp:30, tu:50, acc:65, brav:100, react:60, str:15, psi:0, arm:22, weapon:"heavy_plasma", rank:2, aggr:7 },
+  { name:"Celatid", hp:12, tu:60, acc:60, brav:50, react:55, str:10, psi:0, arm:6, weapon:"plasma_pistol", rank:1, aggr:6 },
+  { name:"Ethereal", hp:18, tu:65, acc:70, brav:100, react:70, str:10, psi:80, arm:12, weapon:"plasma_rifle", rank:4, aggr:5 },
+  { name:"Ethereal Navigator", hp:20, tu:68, acc:73, brav:100, react:73, str:11, psi:90, arm:13, weapon:"plasma_rifle", rank:5, aggr:4 },
+  { name:"Ethereal Commander", hp:24, tu:72, acc:78, brav:100, react:78, str:13, psi:100, arm:16, weapon:"heavy_plasma", rank:6, aggr:4 },
+  { name:"Reaper", hp:50, tu:45, acc:50, brav:100, react:40, str:30, psi:0, arm:25, weapon:"reaper_claw", rank:3, aggr:9 },
+  { name:"Sectopod", hp:60, tu:40, acc:70, brav:100, react:50, str:25, psi:0, arm:30, weapon:"heavy_plasma", rank:5, aggr:8 },
+  { name:"Silacoid", hp:20, tu:40, acc:45, brav:80, react:35, str:16, psi:0, arm:20, weapon:"plasma_pistol", rank:1, aggr:4 },
+  { name:"Hyperworm", hp:8, tu:70, acc:50, brav:30, react:65, str:6, psi:0, arm:3, weapon:"plasma_pistol", rank:0, aggr:5 },
+];
+
+const SPECIES_PREFIXES = ["Void","Dark","Shadow","Blood","Storm","Iron","Crystal","Plasma","Necro","Xeno","Psi","Bio","Mech","Cyto","Nova","Quantum","Sonic","Phase","Flux","Vortex"];
+const SPECIES_SUFFIXES = ["id","oid","ian","ite","on","ar","ax","ox","is","us","or","an","ak","ul","in","os","um","ex","ix","oz"];
+const MORPH_TYPES = ["Humanoid","Quadruped","Insectoid","Crustacean","Avian","Serpentine","Crystalline","Gelatinous","Mechanoid","Amorphous","Arachnid","Cephalopod"];
+
+// ===== STATE =====
+let mapData = null;       // {width, height, tiles: [[id]]}
+let mapWidth = 0, mapHeight = 0;
+let grid = [];            // tile IDs for rendering
+let units = {};           // key: "x,y" -> {type:'soldier'|'alien'|'civilian', data:...}
+let unitIdCounter = 0;
+let speciesList = [];     // [{name, hp, tu, acc, brav, react, str, psi, arm, weapon, rank, aggr}]
+let placedAliens = [];
+
+// ===== UNIT CONFIG =====
+let currentUnitType = "soldier";
+
+function renderUnitConfig() {
+  const cfg = document.getElementById("unitConfig");
+  const type = document.getElementById("unitType").value;
+  currentUnitType = type;
+  if (type === "soldier") {
+    cfg.innerHTML = `
+      <div class="field"><label>Name:</label><input type="text" id="sName" value="Alpha" style="flex:1"></div>
+      <div class="field"><label>Rank:</label><select id="sRank" style="flex:1">${RANK_NAMES.map((r,i)=>'<option value="'+i+'">'+r+'</option>').join("")}</select></div>
+      <div class="field"><label>Weapon:</label><select id="sWeapon" style="flex:1">${HUMAN_WEAPONS.map(w=>'<option value="'+w+'">'+w+'</option>').join("")}</select></div>
+      <div class="field"><label>Armor:</label><select id="sArmor" style="flex:1">${ARMORS.map(a=>'<option value="'+a+'">'+a+'</option>').join("")}</select></div>
+      <div class="inline-fields">
+        <div class="field"><label>HP:</label><input type="number" id="sHP" value="28" min="1" max="255"></div>
+        <div class="field"><label>TU:</label><input type="number" id="sTU" value="52" min="1" max="255"></div>
+        <div class="field"><label>Acc:</label><input type="number" id="sAcc" value="72" min="1" max="255"></div>
+        <div class="field"><label>React:</label><input type="number" id="sReact" value="60" min="1" max="255"></div>
+        <div class="field"><label>Str:</label><input type="number" id="sStr" value="18" min="1" max="255"></div>
+      </div>`;
+  } else if (type === "alien") {
+    const speciesOpts = speciesList.length > 0
+      ? speciesList.map((s,i) => '<option value="'+i+'">'+s.name+'</option>').join("")
+      : '<option value="-1">No species loaded</option>';
+    cfg.innerHTML = `
+      <div class="field"><label>Species:</label><select id="aSpecies" style="flex:1">${speciesOpts}</select></div>
+      <div class="field"><label>Rank:</label><select id="aRank" style="flex:1">${[0,1,2,3,4,5,6].map(r=>'<option value="'+r+'">Rank '+r+'</option>').join("")}</select></div>
+      <div class="field"><label>Weapon:</label><select id="aWeapon" style="flex:1">${ALIEN_WEAPONS.map(w=>'<option value="'+w+'">'+w+'</option>').join("")}</select></div>
+      <div class="inline-fields">
+        <div class="field"><label>HP:</label><input type="number" id="aHP" value="10" min="1" max="255"></div>
+        <div class="field"><label>TU:</label><input type="number" id="aTU" value="50" min="1" max="255"></div>
+        <div class="field"><label>Acc:</label><input type="number" id="aAcc" value="55" min="1" max="255"></div>
+        <div class="field"><label>Brv:</label><input type="number" id="aBrav" value="40" min="1" max="255"></div>
+        <div class="field"><label>React:</label><input type="number" id="aReact" value="50" min="1" max="255"></div>
+        <div class="field"><label>Str:</label><input type="number" id="aStr" value="8" min="1" max="255"></div>
+        <div class="field"><label>Psi:</label><input type="number" id="aPsi" value="0" min="0" max="255"></div>
+        <div class="field"><label>Arm:</label><input type="number" id="aArm" value="5" min="0" max="255"></div>
+        <div class="field"><label>Aggr:</label><input type="number" id="aAggr" value="3" min="0" max="10"></div>
+      </div>`;
+    document.getElementById("aSpecies").addEventListener("change", onSpeciesSelect);
+  } else {
+    cfg.innerHTML = `
+      <div class="field"><label>Name:</label><input type="text" id="cName" value="Civilian" style="flex:1"></div>`;
+  }
+  updateUnitConfigFromMap();
+}
+
+function onSpeciesSelect() {
+  const sel = document.getElementById("aSpecies");
+  const idx = parseInt(sel.value);
+  if (idx >= 0 && idx < speciesList.length) {
+    const s = speciesList[idx];
+    document.getElementById("aHP").value = s.hp;
+    document.getElementById("aTU").value = s.tu;
+    document.getElementById("aAcc").value = s.acc;
+    document.getElementById("aBrav").value = s.brav;
+    document.getElementById("aReact").value = s.react;
+    document.getElementById("aStr").value = s.str;
+    document.getElementById("aPsi").value = s.psi;
+    document.getElementById("aArm").value = s.arm;
+    document.getElementById("aWeapon").value = s.weapon;
+    document.getElementById("aRank").value = s.rank;
+    document.getElementById("aAggr").value = s.aggr;
+  }
+}
+
+function getUnitConfig() {
+  const type = currentUnitType;
+  if (type === "soldier") {
+    const rank = parseInt(document.getElementById("sRank").value);
+    const name = document.getElementById("sName").value || SOLDIER_NAMES[0];
+    return { type, name, rank, weapon: document.getElementById("sWeapon").value, armor: document.getElementById("sArmor").value,
+      hp: parseInt(document.getElementById("sHP").value)||28, tu: parseInt(document.getElementById("sTU").value)||52,
+      accuracy: parseInt(document.getElementById("sAcc").value)||72, reactions: parseInt(document.getElementById("sReact").value)||60,
+      strength: parseInt(document.getElementById("sStr").value)||18 };
+  } else if (type === "alien") {
+    const si = parseInt(document.getElementById("aSpecies").value);
+    const species = si >= 0 && si < speciesList.length ? speciesList[si] : null;
+    return { type, speciesName: species ? species.name : "Unknown",
+      hp: parseInt(document.getElementById("aHP").value)||10, tu: parseInt(document.getElementById("aTU").value)||50,
+      accuracy: parseInt(document.getElementById("aAcc").value)||55, bravery: parseInt(document.getElementById("aBrav").value)||40,
+      reactions: parseInt(document.getElementById("aReact").value)||50, strength: parseInt(document.getElementById("aStr").value)||8,
+      psi: parseInt(document.getElementById("aPsi").value)||0, armour: parseInt(document.getElementById("aArm").value)||5,
+      weapon: document.getElementById("aWeapon").value, rank: parseInt(document.getElementById("aRank").value)||0,
+      aggression: parseInt(document.getElementById("aAggr").value)||3 };
+  } else {
+    return { type, name: document.getElementById("cName").value || "Civilian" };
+  }
+}
+
+function updateUnitConfigFromMap() {
+  // populate from first placed unit if any
+  const keys = Object.keys(units);
+  if (keys.length === 0) return;
+  const first = units[keys[0]];
+  if (currentUnitType === "soldier" && first.type === "soldier") {
+    const d = first.data;
+    document.getElementById("sName").value = d.name || "Alpha";
+    document.getElementById("sRank").value = d.rank || 0;
+    document.getElementById("sWeapon").value = d.weapon || "rifle";
+    document.getElementById("sArmor").value = d.armor || "personal";
+    document.getElementById("sHP").value = d.hp || 28;
+    document.getElementById("sTU").value = d.tu || 52;
+    document.getElementById("sAcc").value = d.accuracy || 72;
+    document.getElementById("sReact").value = d.reactions || 60;
+    document.getElementById("sStr").value = d.strength || 18;
+  }
+}
+
+// ===== MAP LOADING & RENDERING =====
+function loadMap(json) {
+  if (!json.tiles || !json.width || !json.height) {
+    alert("Invalid map JSON: missing width, height, or tiles");
+    return false;
+  }
+  mapData = json;
+  mapWidth = json.width;
+  mapHeight = json.height;
+  grid = json.tiles;
+  if (!grid || grid.length !== mapHeight) {
+    // rebuild from flat data
+    grid = json.tiles;
+  }
+  document.getElementById("mapInfo").textContent = "Map: "+mapWidth+"\u00D7"+mapHeight;
+  renderMap();
+  return true;
+}
+
+function renderMap() {
+  const container = document.getElementById("gridContainer");
+  if (!grid || grid.length === 0) { container.innerHTML = '<div class="empty-state">No map loaded</div>'; return; }
+  container.innerHTML = "";
+  for (let y = 0; y < mapHeight; y++) {
+    const row = document.createElement("div");
+    row.className = "grid-row";
+    for (let x = 0; x < mapWidth; x++) {
+      const id = grid[y] && grid[y][x] ? grid[y][x] : "TileGrass";
+      const t = tileMap[id] || TILES[0];
+      const cell = document.createElement("div");
+      cell.className = "cell";
+      cell.dataset.x = x;
+      cell.dataset.y = y;
+
+      const glyph = document.createElement("span");
+      glyph.className = "glyph";
+      glyph.textContent = t.g;
+      glyph.style.color = "#fff";
+      glyph.style.textShadow = "0 0 2px #000";
+      if (id === "TileGrass" || id === "TileSand" || id === "TileScree")
+        glyph.style.color = "rgba(255,255,255,0.25)";
+      cell.style.background = t.c;
+
+      // Unit indicator
+      const uk = x+","+y;
+      if (units[uk]) {
+        const ind = document.createElement("span");
+        ind.className = "indicator unit-"+units[uk].type[0];
+        cell.appendChild(ind);
+      }
+
+      const cl = document.createElement("span");
+      cl.className = "coord";
+      cl.textContent = x+","+y;
+      cell.appendChild(cl);
+
+      // Hover label
+      const hl = document.createElement("span");
+      hl.className = "hover-label";
+      if (units[uk]) {
+        const u = units[uk];
+        hl.textContent = (u.type==="soldier"?u.data.name:u.type==="alien"?u.data.speciesName:u.data.name)+" ("+x+","+y+")";
+      } else {
+        hl.textContent = x+","+y;
+      }
+      cell.appendChild(hl);
+
+      cell.appendChild(glyph);
+      cell.addEventListener("mousedown", e => {
+        e.preventDefault();
+        if (e.button === 2) { removeUnit(x, y); return; }
+        placeUnit(x, y);
+      });
+      cell.addEventListener("contextmenu", e => e.preventDefault());
+      row.appendChild(cell);
+    }
+    container.appendChild(row);
+  }
+  updatePlacedList();
+}
+
+// ===== UNIT PLACEMENT =====
+function placeUnit(x, y) {
+  if (x < 0 || x >= mapWidth || y < 0 || y >= mapHeight) return;
+  const key = x+","+y;
+  if (units[key]) return; // already occupied
+
+  const cfg = getUnitConfig();
+  const type = cfg.type;
+  let data;
+  if (type === "soldier") {
+    const rank = cfg.rank;
+    const rankPrefix = RANK_NAMES[rank] || "Rookie";
+    const name = cfg.name || SOLDIER_NAMES[Object.keys(units).length % SOLDIER_NAMES.length];
+    data = {
+      name: rankPrefix+". "+name,
+      rank: rank,
+      hp: cfg.hp, tu: cfg.tu, accuracy: cfg.accuracy,
+      reactions: cfg.reactions, strength: cfg.strength,
+      weapon: cfg.weapon, armor: cfg.armor,
+      x: x, y: y
+    };
+  } else if (type === "alien") {
+    data = {
+      name: cfg.speciesName,
+      hp: cfg.hp, tu: cfg.tu, accuracy: cfg.accuracy,
+      bravery: cfg.bravery, reactions: cfg.reactions,
+      strength: cfg.strength, psi: cfg.psi, armour: cfg.armour,
+      weapon: cfg.weapon, rank: cfg.rank, aggression: cfg.aggression,
+      damage_type: 0,
+      x: x, y: y
+    };
+  } else {
+    data = {
+      name: cfg.name || "Civilian",
+      x: x, y: y
+    };
+  }
+  units[key] = { type: type, data: data, id: unitIdCounter++ };
+  renderMap();
+}
+
+function removeUnit(x, y) {
+  const key = x+","+y;
+  if (units[key]) {
+    delete units[key];
+    renderMap();
+  }
+}
+
+function updatePlacedList() {
+  const list = document.getElementById("placedUnitsList");
+  const count = document.getElementById("placedCount");
+  const total = document.getElementById("unitCountLabel");
+  const keys = Object.keys(units);
+  count.textContent = keys.length;
+  total.textContent = "Units: "+keys.length;
+
+  if (keys.length === 0) {
+    list.innerHTML = '<div class="empty-state">No units placed. Configure a unit above and click the map.</div>';
+    return;
+  }
+  list.innerHTML = "";
+  keys.forEach(k => {
+    const u = units[k];
+    const [x, y] = k.split(",").map(Number);
+    const div = document.createElement("div");
+    div.className = "placed-unit";
+    let label = "";
+    if (u.type === "soldier") label = u.data.name;
+    else if (u.type === "alien") label = u.data.name + " #"+(u.id+1);
+    else label = u.data.name;
+    div.innerHTML = '<span class="dot '+u.type[0]+'"></span><span class="info">'+label+'</span><span class="pos">('+x+','+y+')</span><button class="rm" data-key="'+k+'">\u00D7</button>';
+    div.querySelector(".rm").addEventListener("click", e => { e.stopPropagation(); removeUnit(x, y); });
+    div.addEventListener("click", () => {
+      // Scroll map to this position
+      const panel = document.getElementById("mapPanel");
+      panel.scrollLeft = x * 22 - panel.clientWidth/2;
+      panel.scrollTop = y * 22 - panel.clientHeight/2;
+    });
+    list.appendChild(div);
+  });
+}
+
+// ===== SPECIES MANAGEMENT =====
+function renderSpeciesList() {
+  const list = document.getElementById("speciesList");
+  if (speciesList.length === 0) {
+    list.innerHTML = '<div class="empty-state">No species in library. Generate or load hardcoded aliens.</div>';
+    return;
+  }
+  list.innerHTML = "";
+  speciesList.forEach((s, i) => {
+    const div = document.createElement("div");
+    div.className = "roster-species";
+    div.innerHTML = '<span class="name">'+s.name+'</span><span class="stats">HP:'+s.hp+' TU:'+s.tu+' Acc:'+s.acc+' Brv:'+s.brav+' React:'+s.react+' Str:'+s.str+' Psi:'+s.psi+' Arm:'+s.arm+'</span><button class="rm" data-idx="'+i+'">\u00D7</button>';
+    div.querySelector(".rm").addEventListener("click", e => { e.stopPropagation(); speciesList.splice(i,1); renderSpeciesList(); });
+    list.appendChild(div);
+  });
+}
+
+function generateProceduralRoster() {
+  const count = 3 + Math.floor(Math.random() * 4); // 3-6
+  const newList = [];
+  const usedNames = new Set();
+  for (let i = 0; i < count; i++) {
+    let name;
+    do {
+      const p = SPECIES_PREFIXES[Math.floor(Math.random() * SPECIES_PREFIXES.length)];
+      const s = SPECIES_SUFFIXES[Math.floor(Math.random() * SPECIES_SUFFIXES.length)];
+      name = p + s;
+    } while (usedNames.has(name));
+    usedNames.add(name);
+    const morph = MORPH_TYPES[Math.floor(Math.random() * MORPH_TYPES.length)];
+    const hp = 8 + Math.floor(Math.random() * 30);
+    const tu = 35 + Math.floor(Math.random() * 35);
+    const acc = 40 + Math.floor(Math.random() * 35);
+    const brav = 30 + Math.floor(Math.random() * 70);
+    const react = 25 + Math.floor(Math.random() * 50);
+    const str = 6 + Math.floor(Math.random() * 20);
+    const psi = Math.floor(Math.random() * 60);
+    const arm = 3 + Math.floor(Math.random() * 20);
+    const wpn = ALIEN_WEAPONS[Math.floor(Math.random() * ALIEN_WEAPONS.length)];
+    const rank = Math.floor(Math.random() * 4);
+    const aggr = 2 + Math.floor(Math.random() * 7);
+    newList.push({ name: name + " ("+morph+")", hp, tu, acc, brav, react, str, psi, arm, weapon: wpn, rank, aggr });
+  }
+  speciesList = newList;
+  renderSpeciesList();
+  syncAlienConfig();
+}
+
+function loadHardcodedAliens() {
+  speciesList = HARDCODED_ALIENS.map(a => ({
+    name: a.name, hp: a.hp, tu: a.tu, acc: a.acc, brav: a.brav,
+    react: a.react, str: a.str, psi: a.psi, arm: a.arm,
+    weapon: a.weapon, rank: a.rank, aggr: a.aggr
+  }));
+  renderSpeciesList();
+  syncAlienConfig();
+}
+
+function syncAlienConfig() {
+  if (currentUnitType === "alien") {
+    renderUnitConfig();
+  }
+}
+
+// ===== EXPORT =====
+function exportMission() {
+  const name = document.getElementById("missionName").value || "Custom Mission";
+  const author = document.getElementById("missionAuthor").value || "Player";
+  const desc = document.getElementById("missionDesc").value || "";
+  const night = document.getElementById("nightToggle").checked;
+  const vType = document.getElementById("victoryType").value;
+
+  const map = {
+    type: "prebuilt",
+    width: mapWidth,
+    height: mapHeight,
+    tiles: grid
+  };
+
+  const soldiers = [];
+  const aliens = [];
+  const civilians = [];
+  Object.values(units).forEach(u => {
+    if (u.type === "soldier") soldiers.push(u.data);
+    else if (u.type === "alien") aliens.push(u.data);
+    else civilians.push(u.data);
+  });
+
+  let victory = { condition: vType };
+  if (vType === "survive_turns") {
+    victory.turns = parseInt(document.getElementById("victoryTurns").value) || 10;
+  } else if (vType === "reach_point") {
+    victory.target_x = parseInt(document.getElementById("victoryTx").value) || 0;
+    victory.target_y = parseInt(document.getElementById("victoryTy").value) || 0;
+    victory.min_soldiers = parseInt(document.getElementById("victoryMin").value) || 1;
+  }
+
+  const mission = {
+    name, author, description: desc,
+    date: new Date().toISOString().slice(0,10),
+    night,
+    map,
+    soldiers, aliens, civilians,
+    victory
+  };
+  return JSON.stringify(mission, null, 2);
+}
+
+function loadMissionJSON(data) {
+  if (!data.map || !data.map.tiles || !data.map.width || !data.map.height) {
+    alert("Invalid mission JSON: missing map data");
+    return false;
+  }
+  loadMap(data.map);
+  document.getElementById("missionName").value = data.name || "Custom Mission";
+  document.getElementById("missionAuthor").value = data.author || "Player";
+  document.getElementById("missionDesc").value = data.description || "";
+  document.getElementById("nightToggle").checked = !!data.night;
+
+  if (data.victory) {
+    document.getElementById("victoryType").value = data.victory.condition || "eliminate_all";
+    if (data.victory.condition === "survive_turns") {
+      document.getElementById("victoryTurns").value = data.victory.turns || 10;
+      document.getElementById("victoryParams").style.display = "block";
+    } else if (data.victory.condition === "reach_point") {
+      document.getElementById("victoryTx").value = data.victory.target_x || 0;
+      document.getElementById("victoryTy").value = data.victory.target_y || 0;
+      document.getElementById("victoryMin").value = data.victory.min_soldiers || 1;
+      document.getElementById("victoryParams").style.display = "block";
+    } else {
+      document.getElementById("victoryParams").style.display = "none";
+    }
+  }
+
+  units = {};
+  unitIdCounter = 0;
+  if (data.soldiers) data.soldiers.forEach(s => {
+    const key = s.x+","+s.y;
+    units[key] = { type: "soldier", data: s, id: unitIdCounter++ };
+  });
+  if (data.aliens) data.aliens.forEach(a => {
+    const key = a.x+","+a.y;
+    units[key] = { type: "alien", data: a, id: unitIdCounter++ };
+    // Ensure species list has this type
+    if (!speciesList.find(s => s.name === a.name)) {
+      speciesList.push({ name: a.name, hp: a.hp, tu: a.tu, acc: a.accuracy, brav: a.bravery, react: a.reactions, str: a.strength, psi: a.psi, arm: a.armour, weapon: a.weapon, rank: a.rank, aggr: a.aggression });
+    }
+  });
+  if (data.civilians) data.civilians.forEach(c => {
+    const key = c.x+","+c.y;
+    units[key] = { type: "civilian", data: c, id: unitIdCounter++ };
+  });
+  renderMap();
+  renderSpeciesList();
+  renderUnitConfig();
+  return true;
+}
+
+// ===== UI EVENTS =====
+document.addEventListener("DOMContentLoaded", () => {
+  // Tabs
+  document.querySelectorAll(".tab").forEach(tab => {
+    tab.addEventListener("click", () => {
+      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+      document.querySelectorAll(".tab-content").forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+      document.getElementById("tab"+tab.dataset.tab.charAt(0).toUpperCase()+tab.dataset.tab.slice(1)).classList.add("active");
+    });
+  });
+
+  // Unit type change
+  document.getElementById("unitType").addEventListener("change", renderUnitConfig);
+  renderUnitConfig();
+
+  // Victory type change
+  document.getElementById("victoryType").addEventListener("change", () => {
+    const v = document.getElementById("victoryType").value;
+    document.getElementById("victoryParams").style.display = v === "eliminate_all" ? "none" : "block";
+  });
+
+  // Load map
+  document.getElementById("loadMapBtn").addEventListener("click", () => document.getElementById("mapFileInput").click());
+  document.getElementById("mapFileInput").addEventListener("change", e => {
+    const f = e.target.files[0];
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        if (loadMap(JSON.parse(ev.target.result))) {
+          document.getElementById("exportArea").classList.remove("show");
+          document.getElementById("overlay").classList.remove("show");
+        }
+      } catch(err) { alert("Error loading map: "+err.message); }
+    };
+    reader.readAsText(f);
+    e.target.value = "";
+  });
+
+  // Export
+  document.getElementById("exportBtn").addEventListener("click", () => {
+    if (!mapData) { alert("Load a map first"); return; }
+    document.getElementById("exportText").value = exportMission();
+    document.getElementById("exportTitle").textContent = "Export Mission: "+document.getElementById("missionName").value;
+    document.getElementById("exportArea").classList.add("show");
+    document.getElementById("overlay").classList.add("show");
+  });
+  document.getElementById("closeExportBtn").addEventListener("click", () => {
+    document.getElementById("exportArea").classList.remove("show");
+    document.getElementById("overlay").classList.remove("show");
+  });
+  document.getElementById("overlay").addEventListener("click", () => {
+    document.getElementById("exportArea").classList.remove("show");
+    document.getElementById("overlay").classList.remove("show");
+  });
+  document.getElementById("copyBtn").addEventListener("click", () => {
+    const ta = document.getElementById("exportText");
+    ta.select(); document.execCommand("copy");
+  });
+  document.getElementById("downloadBtn").addEventListener("click", () => {
+    const blob = new Blob([document.getElementById("exportText").value], {type:"application/json"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = (document.getElementById("missionName").value||"mission").replace(/[^a-zA-Z0-9]/g,"_")+".json";
+    a.click();
+  });
+
+  // Load mission
+  document.getElementById("loadMissionBtn").addEventListener("click", () => document.getElementById("missionFileInput").click());
+  document.getElementById("missionFileInput").addEventListener("change", e => {
+    const f = e.target.files[0];
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        if (loadMissionJSON(JSON.parse(ev.target.result))) {
+          document.getElementById("exportArea").classList.remove("show");
+          document.getElementById("overlay").classList.remove("show");
+        }
+      } catch(err) { alert("Error loading mission: "+err.message); }
+    };
+    reader.readAsText(f);
+    e.target.value = "";
+  });
+
+  // Roster generation
+  document.getElementById("genRosterBtn").addEventListener("click", generateProceduralRoster);
+  document.getElementById("hardcodedBtn").addEventListener("click", loadHardcodedAliens);
+
+  // Clear all
+  document.getElementById("clearAllBtn").addEventListener("click", () => {
+    if (Object.keys(units).length === 0) return;
+    if (confirm("Remove all placed units?")) {
+      units = {}; unitIdCounter = 0; renderMap();
+    }
+  });
+
+  // Keyboard shortcut: hold Ctrl to see unit labels
+  document.addEventListener("keydown", e => {
+    if (e.key === "Control") {
+      document.querySelectorAll(".cell .hover-label").forEach(el => el.style.display = "block");
+    }
+  });
+  document.addEventListener("keyup", e => {
+    if (e.key === "Control") {
+      document.querySelectorAll(".cell .hover-label").forEach(el => el.style.display = "");
+    }
+  });
+});
+</script>
+</body>
+</html>
