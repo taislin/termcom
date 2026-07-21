@@ -77,7 +77,7 @@ body { font-family: 'Courier New', monospace; background: #1a1a2e; color: #e0e0e
     <div class="field">
       <label>Glyph</label>
       <input type="text" class="glyph-input" id="tileGlyph" value="*" maxlength="1">
-      <span class="help">ASCII only (a-z, A-Z, 0-9, punctuation)</span>
+      <span class="help">Any character (non-ASCII exports as \uXXXX)</span>
     </div>
     <div class="field">
       <label>Color</label>
@@ -271,7 +271,18 @@ function renderTileList() {
 }
 
 function exportJSON() {
-  return JSON.stringify({ tiles: customTiles }, null, 2);
+  // Deep clone to avoid mutating originals
+  const out = customTiles.map(t => ({ ...t, glyph: t.glyph || "*" }));
+  // Produce JSON then escape any non-ASCII glyph chars as \uXXXX
+  let json = JSON.stringify({ tiles: out }, null, 2);
+  json = json.replace(/"glyph": "([^"]+)"/g, (m, g) => {
+    const escaped = Array.from(g).map(ch => {
+      const cp = ch.charCodeAt(0);
+      return cp > 127 ? '\\u' + cp.toString(16).padStart(4, '0') : ch;
+    }).join('');
+    return '"glyph": "' + escaped + '"';
+  });
+  return json;
 }
 
 function loadJSON(text) {
@@ -280,7 +291,7 @@ function loadJSON(text) {
     const arr = data.tiles && Array.isArray(data.tiles) ? data.tiles : (Array.isArray(data) ? data : null);
     if (!arr) { alert("Invalid tile JSON"); return; }
     customTiles = arr.map(t => {
-      if (t.glyph && (t.glyph.length !== 1 || t.glyph.charCodeAt(0) > 127)) t.glyph = "*";
+      if (t.glyph && typeof t.glyph === "string" && t.glyph.length > 1) t.glyph = t.glyph[0];
       return t;
     });
     renderTileList();
@@ -301,14 +312,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
   document.getElementById("tileGlyph").addEventListener("input", (e) => {
-    e.target.value = e.target.value.replace(/[^\x00-\x7f]/g, "").slice(0, 1);
-    updatePreview();
-  });
-  document.getElementById("tileGlyph").addEventListener("paste", (e) => {
-    e.preventDefault();
-    const text = (e.clipboardData || window.clipboardData).getData("text");
-    const ch = text.replace(/[^\x00-\x7f]/g, "").slice(0, 1);
-    if (ch) document.getElementById("tileGlyph").value = ch;
+    e.target.value = e.target.value.slice(0, 1);
     updatePreview();
   });
   ["tileId","tileName","tilePassable","tileOpaque","tileDestructible","tileFlammable","tileExplodes","tileNoisy","tileCover","tileTU","tileDamage","tileCategory","tileDesc","tileBg"].forEach(id => {
@@ -319,7 +323,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("addBtn").addEventListener("click", () => {
     const t = getFormData();
     if (!t.id) { alert("Tile ID is required"); return; }
-    if (t.glyph.length !== 1 || t.glyph.charCodeAt(0) > 127) { alert("Glyph must be a single ASCII character (a-z, A-Z, 0-9, punctuation)"); return; }
+    if (t.glyph.length !== 1) { alert("Glyph must be a single character"); return; }
     const existing = customTiles.findIndex(c => c.id === t.id);
     if (existing >= 0) {
       customTiles[existing] = t;
