@@ -8,13 +8,7 @@ const path = require("path");
 const SRC_DIR = path.join(__dirname, "tile_data");
 const OUT_FILE = path.join(__dirname, "tile_data.js");
 
-function parseJSONC(text) {
-  // Strip single-line comments
-  text = text.replace(/\/\/.*$/gm, "");
-  // Strip multi-line comments
-  text = text.replace(/\/\*[\s\S]*?\*\//g, "");
-  return JSON.parse(text);
-}
+const { parseJSONC } = require("./jsonc.js");
 
 const files = fs.readdirSync(SRC_DIR)
   .filter(f => f.endsWith(".jsonc"))
