@@ -286,8 +286,8 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList, pla
 					ToX: target.X, ToY: target.Y,
 				})
 				fired = true
-			} else if (dist <= CloseAttackDist || (longRange && dist <= CoverSeekDist) || (ai.Unit.AlienType != nil && ai.Unit.AlienType.Aggression > 7)) {
-				// 5. Standard Attack: Melee if adjacent, otherwise ranged fire.
+			} else {
+				// 5. Standard Attack: Fire at target (melee if adjacent).
 				if dist <= MeleeDist {
 					actions = append(actions, AlienAction{
 						Type: "melee", Unit: ai.Unit, Target: target,
@@ -1103,6 +1103,18 @@ func (ai *AlienAI) handleFlank(nearest *Unit, m *BattleMap, humanUnits UnitList)
 	fx, fy := ai.findFlankPosition(nearest, nearest, m, humanUnits)
 	if (fx != ai.Unit.X || fy != ai.Unit.Y) && m.Passable(fx, fy) {
 		actions = ai.appendMove(actions, fx, fy)
+	}
+	// After moving, fire if the target is still reachable.
+	if ai.canFireAt(nearest) {
+		dx := float64(ai.Unit.X - nearest.X)
+		dy := float64(ai.Unit.Y - nearest.Y)
+		fdist := math.Sqrt(dx*dx + dy*dy)
+		ai.selectFireMode(int(fdist))
+		actions = append(actions, AlienAction{
+			Type: "fire", Unit: ai.Unit, Target: nearest,
+			FromX: ai.Unit.X, FromY: ai.Unit.Y,
+			ToX: nearest.X, ToY: nearest.Y,
+		})
 	}
 	ai.TurnsSince++
 	if ai.TurnsSince > 2 {

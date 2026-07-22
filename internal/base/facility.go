@@ -3,6 +3,7 @@ package base
 import (
 	"fmt"
 	"math/rand"
+	"strings"
 
 	"github.com/taislin/termcom/internal/data"
 	"github.com/taislin/termcom/internal/language"
@@ -673,6 +674,14 @@ func (b *Base) CanResearch(topic *data.ResearchTopic) bool {
 	}
 	for _, req := range topic.Requires {
 		if !b.HasResearch(req) {
+			return false
+		}
+	}
+	// For autopsy topics, require the corresponding corpse in storage
+	if strings.HasSuffix(topic.ID, "_autopsy") {
+		speciesName := strings.TrimSuffix(topic.ID, "_autopsy")
+		corpseID := "corpse_" + strings.ToLower(speciesName)
+		if b.Stores[corpseID] <= 0 {
 			return false
 		}
 	}

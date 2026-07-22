@@ -329,8 +329,8 @@ func TestAIUpdateFlankState(t *testing.T) {
 	ai := NewAlienAI(alien)
 	ai.State = AIFlank
 	actions := ai.Update(UnitList{alien}, m, UnitList{human}, nil, nil)
-	if len(actions) != 1 || actions[0].Type != "move" {
-		t.Errorf("expected move action during flank, got %d actions", len(actions))
+	if len(actions) < 1 || actions[0].Type != "move" {
+		t.Errorf("expected at least a move action during flank, got %d actions", len(actions))
 	}
 }
 

@@ -1022,6 +1022,7 @@ func generateVariant(rng *rand.Rand, sp *AlienSpecies, rank int, usedIcons map[r
 		ResistKinetic:   resistKinetic,
 		ResistPsionic:   resistPsionic,
 
+		AutopsyID:  sp.Name + "_autopsy",
 		Lore:       variantLore,
 		Morphology: m,
 	}

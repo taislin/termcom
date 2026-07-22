@@ -829,7 +829,7 @@ func (bs *Battlescape) Update() {
 	}
 
 	// Edge-scrolling: auto-pan when mouse is near screen borders
-	const edgeMargin = 3
+	const edgeMargin = 2
 	if bs.mouseActive && bs.Phase == PhasePlayerTurn && bs.PlayerLock == 0 && bs.FrameCount%2 == 0 {
 		w, h := bs.Game.ScreenSize()
 		dx, dy := 0, 0
@@ -1400,6 +1400,9 @@ func (bs *Battlescape) finishBattle() {
 				} else if !u.Alive && u.AlienType != nil {
 					if key, ok := corpseMap[u.AlienType.ShortName]; ok {
 						corpses[key] = true
+					} else if u.AlienType.AutopsyID != "" {
+						speciesName := strings.TrimSuffix(u.AlienType.AutopsyID, "_autopsy")
+						corpses["corpse_"+strings.ToLower(speciesName)] = true
 					}
 					// Higher rank aliens drop weapons more often
 					dropChance := 15 + u.AlienType.Rank*10
