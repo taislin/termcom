@@ -1,4 +1,4 @@
-# termcom — ASCII X-COM Roguelike 化重制版手册 (v0.50.5)
+# termcom — ASCII X-COM Roguelike 化重制版手册 (v0.51.18)
 
 ## 目录
 

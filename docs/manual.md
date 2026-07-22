@@ -1,4 +1,4 @@
-# termcom — ASCII X-COM Roguelike-ified Demake Manual (v0.49.15)
+# termcom — ASCII X-COM Roguelike-ified Demake Manual (v0.51.18)
 
 ## Table of Contents
 
@@ -381,6 +381,13 @@ Combat factors:
 
 Soldiers can only see in a straight line. Walls, trees, and rocks block LOS.
 Floors, doors, and grass do not.
+
+### Doors
+
+Doors (`+`) block movement and line of sight when closed. To open a door,
+walk through it — your soldier will automatically swing it open as they pass.
+Shooting at a closed door will also force it open. An open door is shown
+as `▏` (Left One Eighth Block), is fully passable, and provides no cover.
 
 ### Objects & Cover
 
@@ -907,6 +914,7 @@ A `[=]` button opens a touch-friendly on-screen control menu.
 ### Economy
 
 - Sell excess alien corpses and loot for cash
+
 - Monthly salaries add up — balance your roster against income
 - Council missions pay $100K bonus — prioritize them
 - Manufacture items to sell for profit in the early game

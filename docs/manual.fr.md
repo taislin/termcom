@@ -1,4 +1,4 @@
-# termcom — Manuel du Démake Roguelike ASCII de X-COM (v0.50.5)
+# termcom — Manuel du Démake Roguelike ASCII de X-COM (v0.51.18)
 
 ## Table des Matières
 

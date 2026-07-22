@@ -1,4 +1,4 @@
-# termcom — Manual do Demake Roguelike em ASCII X-COM (v0.50.5)
+# termcom — Manual do Demake Roguelike em ASCII X-COM (v0.51.18)
 
 ## Índice
 

@@ -1,4 +1,4 @@
-# termcom — ASCII X-COM 로그라이크화 리메이크 매뉴얼 (v0.50.5)
+# termcom — ASCII X-COM 로그라이크화 리메이크 매뉴얼 (v0.51.18)
 
 ## 목차
 

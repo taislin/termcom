@@ -1,4 +1,4 @@
-# termcom — ASCII X-COM ローグライク化デメイク マニュアル (v0.50.5)
+# termcom — ASCII X-COM ローグライク化デメイク マニュアル (v0.51.18)
 
 ## 目次
 
