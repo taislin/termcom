@@ -133,8 +133,7 @@ func (ms *ManufactureScreen) Render(ctx *engine.ScreenCtx) {
 	}
 
 	ctx.DrawPanel(0, h-1, w, 1, "", engine.StyleGray)
-	help := language.String("HELP_MANUFACTURE")
-	ctx.DrawString(1, h-1, help, engine.StyleGray)
+	ctx.DrawMarkupString(1, h-1, language.String("HELP_MANUFACTURE"), engine.StyleGray, engine.StyleHotkey)
 
 	if ms.Message != "" {
 		ctx.DrawString(2, h-2, ms.Message, engine.StyleYellow)
@@ -213,20 +212,43 @@ func (ms *ManufactureScreen) HandleMouse(e *tcell.EventMouse) {
 	x, y := e.Position()
 	_, h := ms.Game.ScreenSize()
 
-	// Handle help bar clicks (bottom bar)
+	// Handle help bar clicks (bottom bar) by parsing [key] tokens
 	if y == h-1 {
-		// Help bar: "j/k=Select  Enter=Build  [Esc]=Back"
-		switch {
-		case x >= 1 && x <= 3: // j/k=Select
-			// Scroll down
-			plans := ms.getBuildablePlans()
-			if ms.Selection < len(plans)-1 {
-				ms.Selection++
+		help := language.String("HELP_MANUFACTURE")
+		col := 1
+		runes := []rune(help)
+		for i := 0; i < len(runes); {
+			if runes[i] != '[' {
+				col += engine.StringWidth(string(runes[i]))
+				i++
+				continue
 			}
-		case x >= 5 && x <= 12: // Enter=Build
-			ms.startManufacture()
-		case x >= 14 && x <= 20: // [Esc]=Back
-			ms.Game.PopState()
+			segStart := col
+			end := i + 1
+			for end < len(runes) && runes[end] != ']' {
+				end++
+			}
+			if end >= len(runes) {
+				break
+			}
+			segEnd := col + engine.StringWidth(string(runes[i:end+1]))
+			if x >= segStart && x <= segEnd {
+				key := string(runes[i+1 : end])
+				switch key {
+				case "↑", "↓":
+					plans := ms.getBuildablePlans()
+					if ms.Selection < len(plans)-1 {
+						ms.Selection++
+					}
+				case "Enter":
+					ms.startManufacture()
+				case "Esc":
+					ms.Game.PopState()
+				}
+				return
+			}
+			col = segEnd
+			i = end + 1
 		}
 		return
 	}

@@ -3,10 +3,19 @@ package mapgen
 import (
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"strings"
 )
+
+// NestedPlacement defines a sub-chunk to stamp at an offset within the parent.
+type NestedPlacement struct {
+	ID     string `json:"id"`
+	X      int    `json:"x"`
+	Y      int    `json:"y"`
+	Weight int    `json:"weight,omitempty"`
+}
 
 // MapgenChunk represents a CDDA-style map definition loaded from JSON.
 // Rows are ASCII art; terrain maps each character to a tile type name.
@@ -22,6 +31,7 @@ type MapgenChunk struct {
 	Rows        []string          `json:"rows"`
 	Terrain     map[string]string `json:"terrain"`
 	Furniture   map[string]string `json:"furniture,omitempty"` // deprecated, merged into Terrain
+	Nested      []NestedPlacement `json:"place_nested,omitempty"`
 }
 
 func (c *MapgenChunk) EffectiveWeight() int {
@@ -31,27 +41,68 @@ func (c *MapgenChunk) EffectiveWeight() int {
 	return c.Weight
 }
 
-// registry holds all loaded chunks keyed by ID.
-var registry = map[string]*MapgenChunk{}
+// WeightedPick returns a random chunk from candidates respecting each chunk's
+// EffectiveWeight. Returns nil if candidates is empty.
+func WeightedPick(candidates []*MapgenChunk, rng *rand.Rand) *MapgenChunk {
+	if len(candidates) == 0 {
+		return nil
+	}
+	total := 0
+	for _, c := range candidates {
+		total += c.EffectiveWeight()
+	}
+	pick := rng.Intn(total)
+	accum := 0
+	for _, c := range candidates {
+		accum += c.EffectiveWeight()
+		if pick < accum {
+			return c
+		}
+	}
+	return candidates[len(candidates)-1]
+}
+
+// registry holds weighted pools of chunks keyed by ID.
+var registry = map[string][]*MapgenChunk{}
 
 // Reset clears the registry (used by tests).
 func Reset() {
-	registry = map[string]*MapgenChunk{}
+	registry = map[string][]*MapgenChunk{}
 }
 
-// Get returns a chunk by ID, or nil if not found.
+// Get returns the first chunk in the pool for the given ID, or nil if not
+// found. For weighted random selection from a multi-variant pool, use Pick.
 func Get(id string) *MapgenChunk {
+	pool := registry[id]
+	if len(pool) == 0 {
+		return nil
+	}
+	return pool[0]
+}
+
+// GetAll returns all variant chunks in the pool for the given ID, or nil.
+func GetAll(id string) []*MapgenChunk {
 	return registry[id]
 }
 
-// ByTag returns all chunks tagged with the given tag.
+// Pick returns a weighted-random chunk from the pool for the given ID, or nil
+// if no chunks are registered with that ID.
+func Pick(id string, rng *rand.Rand) *MapgenChunk {
+	return WeightedPick(registry[id], rng)
+}
+
+// ByTag returns all chunks (across all variant pools) tagged with the given
+// tag. Multiple variants of the same ID are each returned individually so that
+// callers can apply their own weighted selection.
 func ByTag(tag string) []*MapgenChunk {
 	var out []*MapgenChunk
-	for _, c := range registry {
-		for _, t := range c.Tags {
-			if t == tag {
-				out = append(out, c)
-				break
+	for _, pool := range registry {
+		for _, c := range pool {
+			for _, t := range c.Tags {
+				if t == tag {
+					out = append(out, c)
+					break
+				}
 			}
 		}
 	}
@@ -152,7 +203,7 @@ func LoadFile(path string) error {
 
 	finish := func(c *MapgenChunk) {
 		mergeFurniture(c)
-		registry[c.ID] = c
+		registry[c.ID] = append(registry[c.ID], c)
 	}
 
 	var chunks []MapgenChunk

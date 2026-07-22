@@ -228,7 +228,7 @@ func (es *EncyclopediaScreen) Render(ctx *ScreenCtx) {
 	}
 
 	ctx.DrawPanel(0, h-1, w, 1, "", StyleGray)
-	ctx.DrawString(1, h-1, language.String("HELP_ENCYCLOPEDIA"), StyleGray)
+	ctx.DrawMarkupString(1, h-1, language.String("HELP_ENCYCLOPEDIA"), StyleGray, StyleHotkey)
 }
 
 func (es *EncyclopediaScreen) filteredEntries() []EncycloEntry {
@@ -284,23 +284,50 @@ func (es *EncyclopediaScreen) HandleMouse(e *tcell.EventMouse) {
 	x, y := e.Position()
 	_, h := es.Game.ScreenSize()
 
-	// Handle help bar clicks (bottom bar)
+	// Handle help bar clicks (bottom bar) by parsing [key] tokens
 	if y == h-1 {
-		// Help bar: "[←]/[→]=Tab  [↑]/[↓]=Navigate  [Esc]=Back"
-		switch {
-		case x >= 1 && x <= 3: // [←]/[→]=Tab
-			// Previous tab
-			if es.Tab > 0 {
-				es.Tab--
-				es.Selection = 0
+		help := language.String("HELP_ENCYCLOPEDIA")
+		col := 1
+		runes := []rune(help)
+		for i := 0; i < len(runes); {
+			if runes[i] != '[' {
+				col += StringWidth(string(runes[i]))
+				i++
+				continue
 			}
-		case x >= 5 && x <= 10: // [↑]/[↓]=Navigate
-			// Scroll down
-			if es.Selection < len(es.Entries)-1 {
-				es.Selection++
+			segStart := col
+			end := i + 1
+			for end < len(runes) && runes[end] != ']' {
+				end++
 			}
-		case x >= 12 && x <= 18: // [Esc]=Back
-			es.Game.PopState()
+			if end >= len(runes) {
+				break
+			}
+			segEnd := col + StringWidth(string(runes[i:end+1]))
+			if x >= segStart && x <= segEnd {
+				key := string(runes[i+1 : end])
+				switch key {
+				case "←", "→":
+					if key == "←" && es.Tab > 0 {
+						es.Tab--
+						es.Selection = 0
+						es.Page = 0
+					} else if key == "→" && es.Tab < len(encTabs())-1 {
+						es.Tab++
+						es.Selection = 0
+						es.Page = 0
+					}
+				case "↑", "↓":
+					if es.Selection < len(es.Entries)-1 {
+						es.Selection++
+					}
+				case "Esc":
+					es.Game.PopState()
+				}
+				return
+			}
+			col = segEnd
+			i = end + 1
 		}
 		return
 	}

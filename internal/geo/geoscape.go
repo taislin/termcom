@@ -1915,6 +1915,7 @@ func (gs *Geoscape) confirmLaunch(target interface{}) {
 		interState := available[0]
 		interState.Status = "active"
 		inter := NewInterceptorFromState(interState, baseCity.X, baseCity.Y)
+		inter.SetMode(data.CombatMode(engine.Config.DefaultCombatMode))
 		inter.LaunchAtUFO(t)
 		gs.Interceptors = append(gs.Interceptors, inter)
 		// Resume real-time simulation so the interceptor actually flies to the UFO.

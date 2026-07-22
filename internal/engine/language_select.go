@@ -171,7 +171,48 @@ func (ls *LanguageSelectScreen) HandleMouse(e *tcell.EventMouse) {
 		return
 	}
 	x, y := e.Position()
-	w, _ := ls.Game.ScreenSize()
+	w, h := ls.Game.ScreenSize()
+
+	// Help bar clicks at y = h-2
+	if y == h-2 {
+		help := language.String("LANGUAGE_SELECT_HELP")
+		col := 1
+		runes := []rune(help)
+		for i := 0; i < len(runes); {
+			if runes[i] != '[' {
+				col += StringWidth(string(runes[i]))
+				i++
+				continue
+			}
+			segStart := col
+			end := i + 1
+			for end < len(runes) && runes[end] != ']' {
+				end++
+			}
+			if end >= len(runes) {
+				break
+			}
+			segEnd := col + StringWidth(string(runes[i:end+1]))
+			if x >= segStart && x <= segEnd {
+				key := string(runes[i+1 : end])
+				switch key {
+				case "↑", "↓":
+					ls.Selection++
+					if ls.Selection >= len(langList) {
+						ls.Selection = 0
+					}
+				case "Enter":
+					ls.confirm()
+				case "Esc":
+					ls.Game.SetState(StateMenu)
+				}
+				return
+			}
+			col = segEnd
+			i = end + 1
+		}
+		return
+	}
 
 	colX := []int{w/2 + langLeftCol, w/2 + langRightCol}
 

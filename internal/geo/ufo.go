@@ -35,18 +35,34 @@ type UFOType struct {
 	Points     int
 }
 
+var ufoWeaponNames = map[string]string{
+	"plasma_cannon":    "Plasma Cannon",
+	"plasma_burst":     "Plasma Burst Cannon",
+	"plasma_heavy":     "Heavy Plasma Cannon",
+	"plasma_beam":      "Plasma Beam",
+	"fusion_blast":     "Fusion Blast",
+	"alien_laser":      "Alien Laser",
+}
+
+func (u *UFOType) WeaponDisplayName() string {
+	if name, ok := ufoWeaponNames[u.Weapon]; ok {
+		return name
+	}
+	return u.Weapon
+}
+
 func (u *UFOType) DisplayName() string {
 	key := "UFO_" + strings.ToUpper(strings.ReplaceAll(u.Name, " ", "_"))
 	return language.String(key)
 }
 
 var UFOTypes = []UFOType{
-	{"Small Scout",   "SSC", 28, 10, 10, "plasma_pistol", 5},
-	{"Medium Scout",  "MSC", 24, 20, 20, "plasma_rifle", 10},
-	{"Large Scout",   "LSC", 20, 35, 35, "plasma_rifle", 15},
-	{"Harvester",     "HAR", 16, 50, 50, "plasma_rifle", 20},
-	{"Bomber",        "BMB", 12, 80, 80, "plasma_rifle", 30},
-	{"Transport",     "TRN", 10, 60, 60, "plasma_rifle", 15},
+	{"Small Scout",   "SSC", 28, 10, 10, "plasma_cannon",    5},
+	{"Medium Scout",  "MSC", 24, 20, 20, "plasma_burst",     10},
+	{"Large Scout",   "LSC", 20, 35, 35, "plasma_heavy",     15},
+	{"Harvester",     "HAR", 16, 50, 50, "plasma_beam",      20},
+	{"Bomber",        "BMB", 12, 80, 80, "fusion_blast",     30},
+	{"Transport",     "TRN", 10, 60, 60, "alien_laser",      15},
 }
 
 type UFO struct {

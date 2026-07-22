@@ -133,16 +133,38 @@ func (sp *SlotPickerScreen) HandleMouse(e *tcell.EventMouse) {
 	_, h := sp.Game.ScreenSize()
 
 	if y == h-1 {
-		switch {
-		case x >= 1 && x <= 3:
-			sp.Selection--
-			if sp.Selection < 0 {
-				sp.Selection = 0
+		help := language.String("SLOT_PICKER_BAR")
+		col := 1
+		runes := []rune(help)
+		for i := 0; i < len(runes); {
+			if runes[i] != '[' {
+				col += StringWidth(string(runes[i]))
+				i++
+				continue
 			}
-		case x >= 5 && x <= 10:
-			sp.confirm()
-		case x >= 12 && x <= 18:
-			sp.Game.PopState()
+			segStart := col
+			end := i + 1
+			for end < len(runes) && runes[end] != ']' {
+				end++
+			}
+			if end >= len(runes) {
+				break
+			}
+			segEnd := col + StringWidth(string(runes[i:end+1]))
+			if x >= segStart && x <= segEnd {
+				key := string(runes[i+1 : end])
+				switch key {
+				case "↑", "↓":
+					sp.moveSelection(-1)
+				case "Enter":
+					sp.confirm()
+				case "Esc":
+					sp.Game.PopState()
+				}
+				return
+			}
+			col = segEnd
+			i = end + 1
 		}
 		return
 	}

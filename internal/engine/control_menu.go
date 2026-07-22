@@ -145,7 +145,7 @@ func (cm *ControlMenu) Render(s *ScreenRaw) {
 
 	// Hamburger button (only when the bar is not pinned to the bottom).
 	if !cm.AlwaysShow {
-		s.DrawString(w-4, 0, "[=]", StyleHighlight)
+		s.DrawString(w-4, 0, "[=]", StyleOrange)
 	}
 
 	// Draw panel background

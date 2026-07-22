@@ -59,6 +59,8 @@ body { font-family: 'Courier New', monospace; background: #1a1a2e; color: #e0e0e
 .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 999; }
 .overlay.show { display: block; }
 #loadInput { display: none; }
+.status-bar { padding: 4px 12px; background: #0a0a14; border-top: 1px solid #0f3460; font-size: 12px; color: #a0c4ff; min-height: 22px; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.status-bar .hint { color: #666; font-style: italic; }
 </style>
 </head>
 <body>
@@ -67,7 +69,7 @@ body { font-family: 'Courier New', monospace; background: #1a1a2e; color: #e0e0e
   <h2>TILES<button class="ct-btn" id="loadTilesBtn">+Custom</button><span class="ct-count" id="ctCount"></span></h2>
   <div class="tile-list" id="tileList"></div>
 </div>
-<input type="file" id="tilesInput" accept=".json" style="display:none">
+<input type="file" id="tilesInput" accept=".json,.jsonc" style="display:none">
 
 <div class="main">
   <div class="toolbar">
@@ -84,11 +86,12 @@ body { font-family: 'Courier New', monospace; background: #1a1a2e; color: #e0e0e
     <button id="exportBtn">Export JSON</button>
     <button id="loadBtn" class="secondary">Load JSON</button>
     <button id="previewBtn" class="secondary">Preview</button>
-    <input type="file" id="loadInput" accept=".json">
+    <input type="file" id="loadInput" accept=".json,.jsonc">
   </div>
   <div class="canvas-wrap" id="canvasWrap">
     <div class="grid-container" id="gridContainer"></div>
   </div>
+  <div class="status-bar" id="statusBar"><span class="hint">Hover over a tile for details</span></div>
 </div>
 
 <div class="preview-panel" id="previewPanel">
@@ -105,19 +108,22 @@ body { font-family: 'Courier New', monospace; background: #1a1a2e; color: #e0e0e
   <textarea id="exportText" readonly></textarea>
 </div>
 
+<script src="jsonc.js"></script>
 <script src="tile_data.js"></script>
 <script>
 // ===== TILE DEFINITIONS =====
 const TILES = TILE_DATA;
 
+const EMPTY_TILE = { id: "__empty__", g: "\u00B7", c: "#333333", pa: true, op: false, de: false, cv: 0, desc: "No override (use default terrain)" };
 const tileMap = {};
 TILES.forEach(t => tileMap[t.id] = t);
+tileMap[EMPTY_TILE.id] = EMPTY_TILE;
 let customTiles = [];
 const COMMON_TAGS = ["farm","rural","urban","forest","desert","polar","ufo","alien","coastal","mountain","swamp","jungle"];
 
 // ===== STATE =====
 let grid = [];
-let selTile = TILES.find(t => t.id === "TileGrass");
+let selTile = TILES.length > 0 ? TILES.find(t => t.id === "TileGrass") || TILES[0] : null;
 let w = 9, h = 9;
 
 function initGrid() {
@@ -125,7 +131,7 @@ function initGrid() {
   for (let y = 0; y < h; y++) {
     grid[y] = [];
     for (let x = 0; x < w; x++) {
-      grid[y][x] = "TileGrass";
+      grid[y][x] = "__empty__";
     }
   }
 }
@@ -134,6 +140,21 @@ function renderTileList() {
   const el = document.getElementById("tileList");
   el.innerHTML = "";
   const allTiles = [...TILES, ...customTiles];
+  if (allTiles.length === 0) {
+    const msg = document.createElement("div");
+    msg.style.cssText = "font-size:11px;color:#666;padding:16px 8px;text-align:center;";
+    msg.textContent = "Load tiles via +Custom above";
+    el.appendChild(msg);
+    document.getElementById("ctCount").textContent = "";
+    return;
+  }
+  // Empty tile first
+  const emptyDiv = document.createElement("div");
+  emptyDiv.className = "tile-item" + (selTile && selTile.id === EMPTY_TILE.id ? " active" : "");
+  emptyDiv.dataset.tileId = EMPTY_TILE.id;
+  emptyDiv.innerHTML = '<div class="preview" style="background:#333;color:#666;font-size:18px">\u00D8</div><span class="name" style="color:#888;font-style:italic">Empty</span><span class="glyph" style="color:#555">\u00B7</span>';
+  emptyDiv.addEventListener("click", () => selectTile(EMPTY_TILE.id));
+  el.appendChild(emptyDiv);
   allTiles.forEach((t, i) => {
     if (i === TILES.length && customTiles.length > 0) {
       const sep = document.createElement("div");
@@ -152,7 +173,8 @@ function renderTileList() {
 }
 
 function selectTile(id) {
-  selTile = tileMap[id] || TILES[0];
+  if (!tileMap[id] && TILES.length === 0 && customTiles.length === 0) return;
+  selTile = tileMap[id] || TILES[0] || customTiles[0];
   document.querySelectorAll(".tile-item").forEach(el => {
     el.classList.toggle("active", el.dataset.tileId === selTile.id);
   });
@@ -170,17 +192,17 @@ function renderGrid() {
     row.className = "grid-row";
     for (let x = 0; x < w; x++) {
       const id = grid[y][x] || "TileGrass";
-      const t = tileMap[id] || TILES[0];
+      const t = tileMap[id] || TILES[0] || customTiles[0];
       const cell = document.createElement("div");
       cell.className = "cell";
       cell.dataset.x = x;
       cell.dataset.y = y;
-      cell.textContent = t.g;
-      cell.style.background = t.c;
+      cell.textContent = t ? t.g : "·";
+      cell.style.background = t ? t.c : "#1a1a2e";
       cell.style.color = "#fff";
       cell.style.textShadow = "0 0 2px #000";
       // Darken empty-style tiles for contrast
-      if (t.id === "TileGrass" || t.id === "TileSand" || t.id === "TileScree") {
+      if (t && (t.id === "TileGrass" || t.id === "TileSand" || t.id === "TileScree")) {
         cell.style.color = "rgba(255,255,255,0.3)";
       }
       const coord = document.createElement("span");
@@ -189,19 +211,22 @@ function renderGrid() {
       cell.appendChild(coord);
       cell.addEventListener("click", () => placeTile(x, y));
       cell.addEventListener("contextmenu", e => { e.preventDefault(); placeTile(x, y, true); });
+      cell.addEventListener("mouseenter", () => showTileInfo(id, x, y));
       row.appendChild(cell);
     }
     container.appendChild(row);
   }
   updateInfo();
+  container.addEventListener("mouseleave", () => {
+    document.getElementById("statusBar").innerHTML = '<span class="hint">Hover over a tile for details</span>';
+  });
   renderPreview();
 }
 
 function placeTile(x, y, erase) {
   if (!selTile) return;
-  grid[y][x] = erase ? "TileGrass" : selTile.id;
+  grid[y][x] = (erase || selTile.id === EMPTY_TILE.id) ? "__empty__" : selTile.id;
   renderGrid();
-  // restore selection highlight
   selectTile(selTile.id);
 }
 
@@ -212,10 +237,10 @@ function renderPreview() {
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
       const id = grid[y][x] || "TileGrass";
-      const t = tileMap[id] || TILES[0];
+      const t = tileMap[id] || TILES[0] || customTiles[0];
       const span = document.createElement("span");
-      span.textContent = t.g;
-      span.style.color = t.c;
+      span.textContent = t ? t.g : "·";
+      span.style.color = t ? t.c : "#555";
       fragment.appendChild(span);
     }
     if (y < h - 1) fragment.appendChild(document.createTextNode("\n"));
@@ -235,13 +260,24 @@ function updateInfo() {
   // no info bar for now
 }
 
+function showTileInfo(id, x, y) {
+  const t = tileMap[id] || TILES[0] || customTiles[0];
+  if (!t) { document.getElementById("statusBar").textContent = "[" + x + "," + y + "] unknown"; return; }
+  const props = [];
+  props.push(t.pa ? "passable" : "blocking");
+  if (t.cv) props.push("cover " + t.cv + "%");
+  if (t.op) props.push("opaque");
+  const desc = t.desc || t.nm || t.id;
+  document.getElementById("statusBar").innerHTML = "<span>[" + x + "," + y + "] <b>" + t.id + "</b> \u2022 " + desc + " \u2022 glyph: " + t.g + " \u2022 " + props.join(" | ") + "</span>";
+}
+
 // ===== EXPORT =====
 function exportJSON() {
   const used = {};
   for (let y = 0; y < h; y++)
     for (let x = 0; x < w; x++) {
       const id = grid[y][x] || "TileGrass";
-      if (id !== "TileGrass") used[id] = true;
+      if (id !== "TileGrass" && id !== "__empty__") used[id] = true;
     }
 
   const sorted = Object.keys(used).sort();
@@ -268,7 +304,7 @@ function exportJSON() {
     let row = "";
     for (let x = 0; x < w; x++) {
       const id = grid[y][x] || "TileGrass";
-      row += id === "TileGrass" ? "." : (gm[id] || ".");
+      row += (id === "TileGrass" || id === "__empty__") ? "." : (gm[id] || ".");
     }
     rows.push(row);
   }
@@ -327,7 +363,7 @@ document.addEventListener("DOMContentLoaded", () => {
     for (let y = 0; y < h; y++) {
       newGrid[y] = [];
       for (let x = 0; x < w; x++) {
-        newGrid[y][x] = (grid[y] && grid[y][x]) ? grid[y][x] : "TileGrass";
+        newGrid[y][x] = (grid[y] && grid[y][x]) ? grid[y][x] : "__empty__";
       }
     }
     grid = newGrid;
@@ -387,7 +423,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const reader = new FileReader();
     reader.onload = (ev) => {
       try {
-        const data = JSON.parse(ev.target.result);
+        const data = parseJSONC(ev.target.result);
         if (!data.rows || !data.width || !data.height) {
           alert("Invalid chunk JSON: missing rows, width, or height");
           return;
@@ -410,8 +446,8 @@ document.addEventListener("DOMContentLoaded", () => {
           for (let x = 0; x < w; x++) {
             const ch = data.rows[y] ? data.rows[y][x] : ".";
             // default terrain glyphs
-            const defaultTerrain = { ".":"TileFloor", "#":"TileWall", "+":"TileDoor", "\u25A1":"TileWindow", "\u00B7":"TileGrass", "\u2663":"TileTree", "\u2229":"TileRock", "\u2248":"TileWater", "\u2261":"TileUFOFloor", "\u2588":"TileUFOWall", "\u2592":"TileStairs", "\u2593":"TileStairsDown", "\u2591":"TilePavement", "\u2217":"TileSnow", "\u224B":"TileMarsh", "\u2020":"TileBush", "\u2502":"TileFence", "\u2022":"TileObject" };
-            grid[y][x] = rev[ch] || defaultTerrain[ch] || "TileGrass";
+            const defaultTerrain = { ".":"__empty__", "#":"TileWall", "+":"TileDoor", "\u25A1":"TileWindow", "\u00B7":"TileGrass", "\u2663":"TileTree", "\u2229":"TileRock", "\u2248":"TileWater", "\u2261":"TileUFOFloor", "\u2588":"TileUFOWall", "\u2592":"TileStairs", "\u2593":"TileStairsDown", "\u2591":"TilePavement", "\u2217":"TileSnow", "\u224B":"TileMarsh", "\u2020":"TileBush", "\u2502":"TileFence", "\u2022":"TileObject" };
+            grid[y][x] = rev[ch] || defaultTerrain[ch] || "__empty__";
           }
         }
         renderGrid();
@@ -444,9 +480,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const reader = new FileReader();
     reader.onload = (ev) => {
       try {
-        const data = JSON.parse(ev.target.result);
+        const data = parseJSONC(ev.target.result);
         const arr = data.tiles && Array.isArray(data.tiles) ? data.tiles : (Array.isArray(data) ? data : null);
-        if (!arr || arr.length === 0) { alert("No tiles found in JSON"); return; }
+        if (!arr || arr.length === 0) { alert("No tiles found in JSON/JSONC"); return; }
         let added = 0;
         arr.forEach(t => {
           if (!t.id || !t.glyph) return;
@@ -468,7 +504,9 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         if (added > 0) {
           renderTileList();
-          selectTile(selTile.id);
+          if (!selTile && TILES.length > 0) selectTile(TILES[0].id);
+          else if (!selTile && customTiles.length > 0) selectTile(customTiles[0].id);
+          else if (selTile) selectTile(selTile.id);
         }
         if (added !== arr.length) {
           const skipped = arr.length - added;

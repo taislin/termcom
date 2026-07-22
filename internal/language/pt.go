@@ -838,6 +838,19 @@ func init() {
 		"HELP_STRAT_V2":      ">Derrota: Atividade Aliens alcan\u00e7a 100%",
 		"HELP_STRAT_V3":      ">Miss\u00f5es por resolver aumentam atividade +10%",
 
+		"HELP_DOG_TITLE":    "COMBATE AÉREO",
+		"HELP_DOG_CONTROLS": "Controles",
+		"HELP_DOG_FIRE":     "[F] Fogo — Atirar na nave alienígena",
+		"HELP_DOG_CLOSE":    "[→] Avançar — Reduzir distância (melhor precisão)",
+		"HELP_DOG_FAR":      "[←] Recuar — Aumentar distância (mais seguro)",
+		"HELP_DOG_BREAK":    "[B] Desengajar — Tentar abandonar o combate",
+		"HELP_DOG_ESC":      "[Esc] Voltar — Recuperar o interceptor",
+		"HELP_DOG_TIPS":     "Dicas",
+		"HELP_DOG_T1":       "Quanto mais perto, melhor a precisão, mas mais dano recebido.",
+		"HELP_DOG_T2":       "Modo Ataque dá +10% de precisão; Modo Retirada dá -10%.",
+		"HELP_DOG_T3":       "Tentar fugir tem 70% de chance. Se falhar, o OVNÍ dispara grátis.",
+		"HELP_DOG_T4":       "O modo de combate pode ser configurado nas Opções.",
+
 		// ── Cidades ─────────────────────────────────────────
 		"CITY_NEW_YORK":     "Nova York",
 		"CITY_LOS_ANGELES":  "Los Angeles",
@@ -914,6 +927,7 @@ func init() {
 		"OPTIONS_OFF":              "DESL",
 		"OPTIONS_HELP":             "[\u2190]/[\u2192]=Ajustar  [\u2191]/[\u2193]=Selecionar  [Enter]=Alternar  [Esc]=Voltar",
 		"OPTIONS_REPLAY_TUTORIAL":  "Repetir Tutorial",
+		"OPTIONS_COMBAT_MODE":     "Modo de Combate Padrão",
 
 		// ── Weather ───────────────────────────────────────
 		"BATTLE_MOD_ALIEN_AMBUSH":   "MODIFICADOR DE MISS\u00c3O: Emboscada Alien - aliens em vigil\u00e2ncia",
@@ -967,9 +981,13 @@ func init() {
 		"DEBRIEF_VICTORY":              "VITÓRIA",
 		"DEBRIEF_VICTORY_PROMPT":       "Prima Enter, Espaço ou Esc para ver o ecrã de vitória",
 		"DOGFIGHT_HIT":                 "ACERTO -%d!",
+		"MSG_UFO_ESCAPED":                 "%s escapou para o espaço profundo!",
+		"DOGFIGHT_UFO_RETREATING":         "OVNI está tentando recuar!",
 		"DOGFIGHT_MISS":                "FALHOU",
 		"DOGFIGHT_SEPARATOR":           " | -%d",
 		"DOGFIGHT_UFO_DESTROYED":       "OVNI DESTRUÍDO!",
+		"DOGFIGHT_BREAKING_OFF":        "Tentando desengajar...",
+		"DOGFIGHT_ESCAPE_FAILED":       "Fuga falhou! O UFO dispara!",
 		"DTYPE_EXPLOSIVE":              "Explosivo",
 		"DTYPE_KINETIC":                "Cinético",
 		"DTYPE_LASER":                  "Laser",

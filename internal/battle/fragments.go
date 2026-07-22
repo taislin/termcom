@@ -110,7 +110,23 @@ func resolveTileType(name string) TileType {
 // ApplyMapgenChunk stamps a chunk onto a BattleMap at (startX, startY).
 // Space characters (' ') are treated as transparent — the underlying tile is
 // preserved. This enables nested mapgen (stamping a UFO on top of a forest).
+// Nested chunks (place_nested) are stamped recursively at their offsets using
+// the first variant of each pool. For weighted random selection from
+// multi-variant pools, use ApplyMapgenChunkRNG.
 func ApplyMapgenChunk(m *BattleMap, startX, startY int, chunk *mapgen.MapgenChunk) {
+	applyMapgenChunkDepth(m, startX, startY, chunk, 0, nil)
+}
+
+// ApplyMapgenChunkRNG is like ApplyMapgenChunk but uses rng for weighted
+// random selection from multi-variant nested pools (place_nested).
+func ApplyMapgenChunkRNG(m *BattleMap, startX, startY int, chunk *mapgen.MapgenChunk, rng *rand.Rand) {
+	applyMapgenChunkDepth(m, startX, startY, chunk, 0, rng)
+}
+
+func applyMapgenChunkDepth(m *BattleMap, startX, startY int, chunk *mapgen.MapgenChunk, depth int, rng *rand.Rand) {
+	if depth > 10 || chunk == nil {
+		return
+	}
 	for dy, row := range chunk.Rows {
 		for dx := 0; dx < len(row); dx++ {
 			ch := string(row[dx])
@@ -130,10 +146,38 @@ func ApplyMapgenChunk(m *BattleMap, startX, startY int, chunk *mapgen.MapgenChun
 			}
 		}
 	}
+	for _, n := range chunk.Nested {
+		var nested *mapgen.MapgenChunk
+		if rng != nil {
+			nested = mapgen.Pick(n.ID, rng)
+		} else {
+			nested = mapgen.Get(n.ID)
+		}
+		if nested != nil {
+			applyMapgenChunkDepth(m, startX+n.X, startY+n.Y, nested, depth+1, rng)
+		}
+	}
 }
 
 // ApplyMapgenChunkRotated stamps a chunk with rotation (0-3 quarter-turns).
+// Nested chunks (place_nested) are stamped with the same rotation applied to
+// their offsets and to the nested chunk itself. The first variant of each
+// nested pool is used. For weighted random selection from multi-variant pools,
+// use ApplyMapgenChunkRotatedRNG.
 func ApplyMapgenChunkRotated(m *BattleMap, startX, startY, rot int, chunk *mapgen.MapgenChunk) {
+	applyMapgenChunkRotatedDepth(m, startX, startY, rot, chunk, 0, nil)
+}
+
+// ApplyMapgenChunkRotatedRNG is like ApplyMapgenChunkRotated but uses rng for
+// weighted random selection from multi-variant nested pools (place_nested).
+func ApplyMapgenChunkRotatedRNG(m *BattleMap, startX, startY, rot int, chunk *mapgen.MapgenChunk, rng *rand.Rand) {
+	applyMapgenChunkRotatedDepth(m, startX, startY, rot, chunk, 0, rng)
+}
+
+func applyMapgenChunkRotatedDepth(m *BattleMap, startX, startY, rot int, chunk *mapgen.MapgenChunk, depth int, rng *rand.Rand) {
+	if depth > 10 || chunk == nil {
+		return
+	}
 	rot &= 3
 	resolved := make([][]TileType, chunk.Height)
 	for dy, row := range chunk.Rows {
@@ -183,6 +227,28 @@ func ApplyMapgenChunkRotated(m *BattleMap, startX, startY, rot int, chunk *mapge
 				m.Tiles[ty][tx].Lit = true
 			}
 		}
+	}
+
+	for _, n := range chunk.Nested {
+		var nested *mapgen.MapgenChunk
+		if rng != nil {
+			nested = mapgen.Pick(n.ID, rng)
+		} else {
+			nested = mapgen.Get(n.ID)
+		}
+		if nested == nil {
+			continue
+		}
+		nx, ny := n.X, n.Y
+		switch rot {
+		case 1:
+			nx, ny = chunk.Height-1-n.Y, n.X
+		case 2:
+			nx, ny = chunk.Width-1-n.X, chunk.Height-1-n.Y
+		case 3:
+			nx, ny = n.Y, chunk.Width-1-n.X
+		}
+		applyMapgenChunkRotatedDepth(m, startX+nx, startY+ny, rot, nested, depth+1, rng)
 	}
 }
 
@@ -236,30 +302,8 @@ func AssembleMap(biome string, w, h int, rng *rand.Rand) *BattleMap {
 		return m
 	}
 
-	// weightedPick returns a random chunk from candidates, respecting each
-	// chunk's weight. Higher-weight chunks appear proportionally more often.
 	weightedPick := func(candidates []*mapgen.MapgenChunk) *mapgen.MapgenChunk {
-		total := 0
-		for _, c := range candidates {
-			w := c.EffectiveWeight()
-			if w < 1 {
-				w = 1
-			}
-			total += w
-		}
-		pick := rng.Intn(total)
-		accum := 0
-		for _, c := range candidates {
-			w := c.EffectiveWeight()
-			if w < 1 {
-				w = 1
-			}
-			accum += w
-			if pick < accum {
-				return c
-			}
-		}
-		return candidates[len(candidates)-1]
+		return mapgen.WeightedPick(candidates, rng)
 	}
 
 	type placed struct{ x, y, w, h int }
@@ -288,7 +332,7 @@ func AssembleMap(biome string, w, h int, rng *rand.Rand) *BattleMap {
 					}
 				}
 				if !overlap {
-					ApplyMapgenChunkRotated(m, px, py, 0, pierChunk)
+					ApplyMapgenChunkRotatedRNG(m, px, py, 0, pierChunk, rng)
 					positions = append(positions, placed{px, py, pierChunk.Width, pierChunk.Height})
 					pierPlaced++
 				}
@@ -314,7 +358,7 @@ func AssembleMap(biome string, w, h int, rng *rand.Rand) *BattleMap {
 					}
 				}
 				if !overlap {
-					ApplyMapgenChunkRotated(m, px, py, 0, tideChunk)
+					ApplyMapgenChunkRotatedRNG(m, px, py, 0, tideChunk, rng)
 					positions = append(positions, placed{px, py, tideChunk.Width, tideChunk.Height})
 					tidePlaced++
 				}
@@ -361,7 +405,7 @@ func AssembleMap(biome string, w, h int, rng *rand.Rand) *BattleMap {
 	ax, ay := w/2-anchor.Width/2, h/2-anchor.Height/2
 	if (roadReserved == nil || !roadReserved(ax, ay)) &&
 		(waterDepth == 0 || ay >= waterDepth) {
-		ApplyMapgenChunkRotated(m, ax, ay, rot, anchor)
+		ApplyMapgenChunkRotatedRNG(m, ax, ay, rot, anchor, rng)
 		positions = append(positions, placed{ax, ay, anchor.Width, anchor.Height})
 	}
 
@@ -411,7 +455,7 @@ func AssembleMap(biome string, w, h int, rng *rand.Rand) *BattleMap {
 		if waterDepth > 0 && fy < waterDepth {
 			continue
 		}
-		ApplyMapgenChunkRotated(m, fx, fy, r, c)
+		ApplyMapgenChunkRotatedRNG(m, fx, fy, r, c, rng)
 		positions = append(positions, placed{fx, fy, cw, ch})
 	}
 

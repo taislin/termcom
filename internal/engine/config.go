@@ -44,6 +44,7 @@ type GlobalConfig struct {
 	TutorialShown      bool   `json:"tutorial_shown"`
 	TouchMode          bool   `json:"touch_mode"`
 	TouchButtonSize    int    `json:"touch_button_size"`   // rows per touch button; 4 = compact
+	DefaultCombatMode  int    `json:"default_combat_mode"` // 0=cautious, 1=attack, 2=breakoff
 }
 
 // Config is the live configuration. It is a pointer so that LoadConfig can
@@ -65,6 +66,7 @@ var Config = &GlobalConfig{
 	SfxVolume:          10,
 	Language:           "en",
 	TouchButtonSize:    4,
+	DefaultCombatMode:  0,
 }
 
 func storeConfig(c *GlobalConfig) {

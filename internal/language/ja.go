@@ -838,6 +838,19 @@ func init() {
 		"HELP_STRAT_V2":      ">敗北: エイリアン活動が100%に到達",
 		"HELP_STRAT_V3":      ">未解決ミッションで活動レベル+10%上昇",
 
+		"HELP_DOG_TITLE":    "空中戦",
+		"HELP_DOG_CONTROLS": "操作",
+		"HELP_DOG_FIRE":     "[F] 発射 — エイリアン機に射撃",
+		"HELP_DOG_CLOSE":    "[→] 前進 — 距離を縮める（精度向上）",
+		"HELP_DOG_FAR":      "[←] 撤退 — 距離を広げる（より安全）",
+		"HELP_DOG_BREAK":    "[B] 離脱 — 戦闘離脱を試みる",
+		"HELP_DOG_ESC":      "[Esc] 戻る — 改修機を呼び戻す",
+		"HELP_DOG_TIPS":     "ヒント",
+		"HELP_DOG_T1":       "近いほど命中率が高いが、受けけるダメージも多い。",
+		"HELP_DOG_T2":       "攻撃モードは+10%精度、離脱モードは-10%精度。",
+		"HELP_DOG_T3":       "離脱は70%の確率で成功。失敗するとUFOの無料攻撃を受ける。",
+		"HELP_DOG_T4":       "戦闘モードはオプションで設定できる。",
+
 		// ── 都市 ─────────────────────────────────────────
 		"CITY_NEW_YORK":     "ニューヨーク",
 		"CITY_LOS_ANGELES":  "ロサンゼルス",
@@ -910,6 +923,7 @@ func init() {
 		"OPTIONS_OFF":              "OFF",
 		"OPTIONS_HELP":             "[\u2190]/[\u2192]=\u8abf\u6574  [\u2191]/[\u2193]=\u9078\u629e  [Enter]=\u5207\u308a\u66ff\u3048  [Esc]=\u623b\u308b",
 		"OPTIONS_REPLAY_TUTORIAL":  "チュートリアルを再生",
+		"OPTIONS_COMBAT_MODE":     "デフォルト戦闘モード",
 		"CONFIRM_QUIT":             "終了してもよろしいですか？",
 		"CONFIRM_QUIT_HINT":        "[Y] = はい   [N] = いいえ",
 		"CONFIRM_BATTLE_EXIT":      "全隊員が失われます。任務を放棄しますか？",
@@ -964,9 +978,13 @@ func init() {
 
 		// ── Dogfight ──────────────────────────────────────
 		"DOGFIGHT_HIT":           "命中 -%d!",
+		"MSG_UFO_ESCAPED":           "%sは深宇宙に逃れ去った！",
+		"DOGFIGHT_UFO_RETREATING":   "UFOが撤退しようとしている！",
 		"DOGFIGHT_MISS":          "外れた",
 		"DOGFIGHT_SEPARATOR":     " | -%d",
 		"DOGFIGHT_UFO_DESTROYED": "UFO撃破！",
+		"DOGFIGHT_BREAKING_OFF":  "離脱を試みています...",
+		"DOGFIGHT_ESCAPE_FAILED": "離脱失敗！UFOが攻撃します！",
 
 		// ── Damage Types ──────────────────────────────────
 		"DTYPE_EXPLOSIVE": "爆発",

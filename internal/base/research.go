@@ -406,16 +406,59 @@ func (rs *ResearchScreen) HandleMouse(e *tcell.EventMouse) {
 	_, h := rs.Game.ScreenSize()
 
 	if y == h-1 {
-		switch {
-		case x >= 1 && x <= 3:
-			entries := rs.getAllTopics()
-			if rs.Selection < len(entries)-1 {
-				rs.Selection++
+		help := language.String("HELP_RESEARCH")
+		if rs.ShowTree && !engine.Layout.IsMobile() {
+			help = language.String("HELP_RESEARCH_TREE")
+		}
+		col := 1
+		runes := []rune(help)
+		for i := 0; i < len(runes); {
+			if runes[i] != '[' {
+				col += engine.StringWidth(string(runes[i]))
+				i++
+				continue
 			}
-		case x >= 5 && x <= 12:
-			rs.startResearch()
-		case x >= 14 && x <= 20:
-			rs.Game.PopState()
+			segStart := col
+			end := i + 1
+			for end < len(runes) && runes[end] != ']' {
+				end++
+			}
+			if end >= len(runes) {
+				break
+			}
+			segEnd := col + engine.StringWidth(string(runes[i:end+1]))
+			if x >= segStart && x <= segEnd {
+				key := string(runes[i+1 : end])
+				switch key {
+				case "↑", "↓":
+					entries := rs.getAllTopics()
+					if rs.Selection < len(entries)-1 {
+						rs.Selection++
+					}
+				case "Enter":
+					rs.startResearch()
+				case "T":
+					if rs.ShowTree {
+						rs.ShowTree = false
+					} else if !engine.Layout.IsMobile() {
+						rs.ShowTree = true
+					}
+				case "I":
+					if len(rs.Base.LiveAliens) > 0 && rs.Base.TotalLabs() > 0 {
+						rs.InterrogateMode = true
+						rs.Message = language.String("RESEARCH_INTERROGATE_PROMPT")
+					} else if len(rs.Base.LiveAliens) == 0 {
+						rs.Message = language.String("MSG_INTERROGATE_NO_ALIEN")
+					} else {
+						rs.Message = language.String("MSG_INTERROGATE_NO_LABS")
+					}
+				case "Esc":
+					rs.Game.PopState()
+				}
+				return
+			}
+			col = segEnd
+			i = end + 1
 		}
 		return
 	}

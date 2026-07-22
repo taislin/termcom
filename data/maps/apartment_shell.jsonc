@@ -1,0 +1,41 @@
+{
+  "id": "apartment_shell",
+  "description": "Apartment building floor — two unit slots nested via place_nested",
+  "width": 10,
+  "height": 11,
+  "no_rotate": true,
+  "weight": 1,
+  "tags": [
+    "urban"
+  ],
+  "rows": [
+    "WWWW+WWWWW",
+    "W........W",
+    "W........W",
+    "W........W",
+    "W........W",
+    "WWWWWWWWWW",
+    "W........W",
+    "W........W",
+    "W........W",
+    "W........W",
+    "WWWW+WWWWW"
+  ],
+  "terrain": {
+    ".": "TileFloor",
+    "W": "TileWall",
+    "+": "TileDoor"
+  },
+  "place_nested": [
+    {
+      "id": "apartment_interior",
+      "x": 1,
+      "y": 1
+    },
+    {
+      "id": "apartment_interior",
+      "x": 1,
+      "y": 6
+    }
+  ]
+}

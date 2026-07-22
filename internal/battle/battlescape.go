@@ -3220,7 +3220,7 @@ func (bs *Battlescape) renderQuitConfirm(ctx *engine.ScreenCtx, w, h int) {
 	msg := language.String("CONFIRM_BATTLE_EXIT")
 	ctx.DrawString(x+(boxW-engine.StringWidth(msg))/2, y+2, msg, engine.StyleYellow)
 	hint := language.String("CONFIRM_BATTLE_EXIT_HINT")
-	ctx.DrawString(x+(boxW-engine.StringWidth(hint))/2, y+3, hint, engine.StyleHotkey)
+	ctx.DrawString(x+(boxW-engine.StringWidth(hint))/2, y+3, hint, engine.StyleOrange)
 }
 
 // openInventory opens the inventory overlay for the selected soldier.
@@ -3449,7 +3449,7 @@ func (bs *Battlescape) renderInventory(ctx *engine.ScreenCtx, w, h int) {
 		}
 		line := fmt.Sprintf("%s %s x%d", mark, data.ItemDisplayName(key), qty)
 		ctx.DrawString(x+2, cur, line, engine.StyleDefault)
-		ctx.DrawString(x+boxW-20, cur, "[U]se [D]rop", engine.StyleHotkey)
+		ctx.DrawString(x+boxW-20, cur, "[U]se [D]rop", engine.StyleOrange)
 		cur++
 		flatPos += qty
 	}
@@ -3470,7 +3470,7 @@ func (bs *Battlescape) renderInventory(ctx *engine.ScreenCtx, w, h int) {
 		}
 		line := fmt.Sprintf("%s %s", mark, data.ItemDisplayName(item))
 		ctx.DrawString(x+2, cur, line, engine.StyleDefault)
-		ctx.DrawString(x+boxW-18, cur, "[P]ick up", engine.StyleHotkey)
+		ctx.DrawString(x+boxW-18, cur, "[P]ick up", engine.StyleOrange)
 		cur++
 	}
 	if nGround == 0 {
@@ -3482,7 +3482,7 @@ func (bs *Battlescape) renderInventory(ctx *engine.ScreenCtx, w, h int) {
 
 	// Key hints
 	hintStr := "[I] Close  [↑↓] Select  [Tab] Tab"
-	ctx.DrawString(x+(boxW-engine.StringWidth(hintStr))/2, cur, hintStr, engine.StyleHotkey)
+	ctx.DrawString(x+(boxW-engine.StringWidth(hintStr))/2, cur, hintStr, engine.StyleOrange)
 }
 
 func (bs *Battlescape) phaseStr() string {

@@ -97,6 +97,7 @@ internal/
   data/techgen.go          Procedural tech tree generator (DAG, tiers, cost variance)
   data/procedural.go       Procedural alien species + morphology + portrait generation
   save/save.go             Save/load system (JSON, version migration v1-v3)
+  mapgen/mapgen.go        CDDA-style mapgen chunk loader (JSON fragments, weighted pools, place_nested)
   language/               Multi-language system (en, zh, es, fr, ru, pt, ja, ko)
   audio/audio_common.go    Platform-independent audio dispatch
   audio/audio_windows.go   Windows MIDI-based sound synthesis
@@ -127,6 +128,8 @@ internal/
 - Line-of-sight uses Bresenham raycasting
 - Cover system: tiles have 0-100% damage reduction (walls 80%, rocks 70%, trees 60%, bushes 40%)
 - Procedural alien species + morphology + portraits per run
+- Weighted variant pools: multiple JSON fragments with the same `id` form a weighted pool; `Get(id)` returns a random variant respecting `weight`.
+- Chunk nesting (`place_nested`): chunks can stamp sub-chunks at offsets; nested offsets rotate with the parent. Max recursion depth 10.
 
 ### Key Bindings (Geoscape)
 | Key | Action |

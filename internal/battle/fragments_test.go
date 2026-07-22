@@ -114,6 +114,82 @@ func TestValidateMapFullyWalled(t *testing.T) {
 	}
 }
 
+func TestWeightedVariantPool(t *testing.T) {
+	mapgen.Reset()
+	if err := mapgen.LoadDir("../../data/maps"); err != nil {
+		t.Fatalf("load maps: %v", err)
+	}
+	all := mapgen.GetAll("apartment_interior")
+	if len(all) != 3 {
+		t.Fatalf("expected 3 apartment_interior variants, got %d", len(all))
+	}
+	weights := make([]int, len(all))
+	for i, c := range all {
+		weights[i] = c.EffectiveWeight()
+	}
+	// 100 + 100 + 30 = 230 total
+	if weights[0] != 100 || weights[1] != 100 || weights[2] != 30 {
+		t.Fatalf("unexpected weights: %v", weights)
+	}
+}
+
+func TestChunkNesting(t *testing.T) {
+	mapgen.Reset()
+	if err := mapgen.LoadDir("../../data/maps"); err != nil {
+		t.Fatalf("load maps: %v", err)
+	}
+	shell := mapgen.Get("apartment_shell")
+	if shell == nil {
+		t.Fatalf("apartment_shell chunk not loaded")
+	}
+	if len(shell.Nested) != 2 {
+		t.Fatalf("expected 2 nested placements, got %d", len(shell.Nested))
+	}
+	m := NewBattleMap(20, 20)
+	ApplyMapgenChunk(m, 5, 5, shell)
+	// The shell defines interior at offset (1,1) relative to the shell.
+	// Each interior is 4x4 and contains a chair ('c'), desk ('d'), or bed ('b').
+	hasInteriorFurniture := false
+	for y := 0; y < m.LevelHeight; y++ {
+		for x := 0; x < m.Width; x++ {
+			tt := m.At(x, y).Type
+			if tt == TileChair || tt == TileDesk || tt == TileBed || tt == TileLocker {
+				hasInteriorFurniture = true
+			}
+		}
+	}
+	if !hasInteriorFurniture {
+		t.Errorf("expected nested apartment interior furniture on the map")
+	}
+}
+
+func TestChunkNestingRotation(t *testing.T) {
+	mapgen.Reset()
+	if err := mapgen.LoadDir("../../data/maps"); err != nil {
+		t.Fatalf("load maps: %v", err)
+	}
+	shell := mapgen.Get("apartment_shell")
+	if shell == nil {
+		t.Fatalf("apartment_shell chunk not loaded")
+	}
+	for rot := 0; rot < 4; rot++ {
+		m := NewBattleMap(20, 20)
+		ApplyMapgenChunkRotated(m, 5, 5, rot, shell)
+		hasInterior := false
+		for y := 0; y < m.LevelHeight; y++ {
+			for x := 0; x < m.Width; x++ {
+				tt := m.At(x, y).Type
+				if tt == TileChair || tt == TileDesk || tt == TileBed || tt == TileLocker {
+					hasInterior = true
+				}
+			}
+		}
+		if !hasInterior {
+			t.Errorf("rot %d: no nested interior furniture found", rot)
+		}
+	}
+}
+
 func TestAllGeneratorsValid(t *testing.T) {
 	generators := []func() *BattleMap{
 		func() *BattleMap { return GenerateForest(50, 50) },

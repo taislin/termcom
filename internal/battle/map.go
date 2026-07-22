@@ -1220,7 +1220,7 @@ func GenerateTerrorSite(w, h int, seed int64) *BattleMap {
 	buildingIDs := []string{
 		"urban_building", "urban_apartment", "urban_shop", "urban_corner_store",
 		"urban_warehouse", "urban_tower", "urban_parking_lot", "urban_rooftop",
-		"urban_rubble", "bus_stop_cover", "ruined_shack",
+		"urban_rubble", "apartment_shell", "bus_stop_cover", "ruined_shack",
 	}
 
 	// Fill each lot with one or more buildings (a block holds a cluster of
@@ -1290,7 +1290,7 @@ func GenerateTerrorSite(w, h int, seed int64) *BattleMap {
 			if hitRoad {
 				continue
 			}
-			ApplyMapgenChunkRotated(m, ax, ay, 0, c)
+			ApplyMapgenChunkRotatedRNG(m, ax, ay, 0, c, rng)
 			placedBuildings = append(placedBuildings, placed{ax, ay, c.Width, c.Height})
 			placedInLot++
 			// Stop early once the block is reasonably filled.
@@ -1322,7 +1322,7 @@ func GenerateTerrorSite(w, h int, seed int64) *BattleMap {
 			if !ok {
 				continue
 			}
-			ApplyMapgenChunkRotated(m, cx, cy, 0, carChunk)
+			ApplyMapgenChunkRotatedRNG(m, cx, cy, 0, carChunk, rng)
 			carsPlaced++
 		}
 	}

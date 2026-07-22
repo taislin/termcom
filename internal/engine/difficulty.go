@@ -115,7 +115,50 @@ func (ds *DifficultyScreen) HandleMouse(e *tcell.EventMouse) {
 		return
 	}
 	x, y := e.Position()
-	w, _ := ds.Game.ScreenSize()
+	w, h := ds.Game.ScreenSize()
+
+	// Help bar clicks at y = h-1
+	if y == h-1 {
+		help := language.String("HELP_DIFFICULTY")
+		col := 2
+		runes := []rune(help)
+		for i := 0; i < len(runes); {
+			if runes[i] != '[' {
+				col += StringWidth(string(runes[i]))
+				i++
+				continue
+			}
+			segStart := col
+			end := i + 1
+			for end < len(runes) && runes[end] != ']' {
+				end++
+			}
+			if end >= len(runes) {
+				break
+			}
+			segEnd := col + StringWidth(string(runes[i:end+1]))
+			if x >= segStart && x <= segEnd {
+				key := string(runes[i+1 : end])
+				switch key {
+				case "↑", "↓":
+					ds.Selection++
+					if ds.Selection >= len(Difficulties) {
+						ds.Selection = 0
+					}
+				case "Enter":
+					ds.Game.Difficulty = ds.Selection
+					ds.Game.Funds = int64(float64(startingFunds) * Difficulties[ds.Selection].FundsScale)
+					if ds.OnConfirm != nil {
+						ds.OnConfirm(ds.Selection)
+					}
+				}
+				return
+			}
+			col = segEnd
+			i = end + 1
+		}
+		return
+	}
 
 	if y >= 4 && y < 4+len(Difficulties) && x < w {
 		ds.Selection = y - 4

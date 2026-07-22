@@ -857,6 +857,19 @@ func init() {
 		"HELP_STRAT_V2":      ">Defeat: Alien Activity reaches 100%",
 		"HELP_STRAT_V3":      ">Unresolved missions raise activity +10%",
 
+		"HELP_DOG_TITLE":    "DOGFIGHT",
+		"HELP_DOG_CONTROLS": "Controls",
+		"HELP_DOG_FIRE":     "[F] Fire — Shoot at the alien craft",
+		"HELP_DOG_CLOSE":    "[→] Advance — Move closer (better accuracy)",
+		"HELP_DOG_FAR":      "[←] Retreat — Increase distance (safer)",
+		"HELP_DOG_BREAK":    "[B] Break Off — Attempt to disengage",
+		"HELP_DOG_ESC":      "[Esc] Back — Recall interceptor",
+		"HELP_DOG_TIPS":     "Tips",
+		"HELP_DOG_T1":       "Closer range means better accuracy but you take more damage.",
+		"HELP_DOG_T2":       "Attack mode gives +10% accuracy; Breakoff mode gives -10%.",
+		"HELP_DOG_T3":       "Breaking off has a 70% chance to escape. If it fails, the UFO gets a free shot.",
+		"HELP_DOG_T4":       "Your combat mode can be set in Options.",
+
 		// ── Cities ─────────────────────────────────────────
 		"CITY_NEW_YORK":     "New York",
 		"CITY_LOS_ANGELES":  "Los Angeles",
@@ -929,6 +942,7 @@ func init() {
 		"OPTIONS_OFF":              "OFF",
 		"OPTIONS_HELP":             "[\u2190]/[\u2192]=Adjust  [\u2191]/[\u2193]=Select  [Enter]=Toggle  [Esc]=Back",
 		"OPTIONS_REPLAY_TUTORIAL":  "Replay Tutorial",
+		"OPTIONS_COMBAT_MODE":     "Default Combat Mode",
 		"CONFIRM_QUIT":             "ARE YOU SURE YOU WANT TO QUIT?",
 		"CONFIRM_QUIT_HINT":        "[Y] = Yes   [N] = No",
 		"CONFIRM_BATTLE_EXIT":      "ALL SQUAD MEMBERS WILL BE LOST. ABANDON MISSION?",
@@ -985,9 +999,13 @@ func init() {
 
 		// ── Dogfight ──────────────────────────────────────
 		"DOGFIGHT_HIT":           "HIT -%d!",
+		"MSG_UFO_ESCAPED":           "%s escaped into deep space!",
+		"DOGFIGHT_UFO_RETREATING":   "UFO is trying to retreat!",
 		"DOGFIGHT_MISS":          "MISS",
 		"DOGFIGHT_SEPARATOR":     " | -%d",
 		"DOGFIGHT_UFO_DESTROYED": "UFO DESTROYED!",
+		"DOGFIGHT_BREAKING_OFF":  "Attempting to disengage...",
+		"DOGFIGHT_ESCAPE_FAILED": "Escape failed! UFO fires!",
 
 		// ── Damage Types ──────────────────────────────────
 		"DTYPE_EXPLOSIVE": "Explosive",

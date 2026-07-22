@@ -38,4 +38,8 @@ func (gos *GameOverScreen) HandleKey(e *tcell.EventKey) {
 	}
 }
 
-func (gos *GameOverScreen) HandleMouse(e *tcell.EventMouse) {}
+func (gos *GameOverScreen) HandleMouse(e *tcell.EventMouse) {
+	if e.Buttons()&tcell.Button1 != 0 {
+		gos.Game.Quit()
+	}
+}

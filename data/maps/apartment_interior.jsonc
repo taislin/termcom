@@ -1,0 +1,64 @@
+[
+  {
+    "id": "apartment_interior",
+    "description": "Apartment unit — bedroom/living split",
+    "width": 8,
+    "height": 4,
+    "no_rotate": true,
+    "weight": 100,
+    "rows": [
+      "b..c.d..",
+      "....d..l",
+      "..l.....",
+      "c......."
+    ],
+    "terrain": {
+      ".": "TileFloor",
+      "b": "TileBed",
+      "d": "TileDesk",
+      "c": "TileChair",
+      "l": "TileLocker"
+    }
+  },
+  {
+    "id": "apartment_interior",
+    "description": "Apartment unit — open plan studio",
+    "width": 8,
+    "height": 4,
+    "no_rotate": true,
+    "weight": 100,
+    "rows": [
+      "c.d.l...",
+      "..l.....",
+      "....c.d.",
+      ".......l"
+    ],
+    "terrain": {
+      ".": "TileFloor",
+      "c": "TileChair",
+      "d": "TileDesk",
+      "l": "TileLocker"
+    }
+  },
+  {
+    "id": "apartment_interior",
+    "description": "Apartment unit — cluttered (rare)",
+    "width": 8,
+    "height": 4,
+    "no_rotate": true,
+    "weight": 30,
+    "rows": [
+      "bcd..l..",
+      "l...c...",
+      ".l..d..c",
+      "...d...."
+    ],
+    "terrain": {
+      ".": "TileFloor",
+      "b": "TileBed",
+      "d": "TileDesk",
+      "c": "TileChair",
+      "l": "TileLocker"
+    }
+  }
+]

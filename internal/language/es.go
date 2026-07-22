@@ -837,6 +837,19 @@ func init() {
 		"HELP_STRAT_V2":      ">Derrota: La actividad alien\u00edgena alcanza el 100%",
 		"HELP_STRAT_V3":      ">Las misiones sin resolver aumentan la actividad +10%",
 
+		"HELP_DOG_TITLE":    "COMBATE AÉREO",
+		"HELP_DOG_CONTROLS": "Controles",
+		"HELP_DOG_FIRE":     "[F] Disparar — Abrir fuego contra la nave alienígena",
+		"HELP_DOG_CLOSE":    "[→] Avanzar — Reducir distancia (mejor precisión)",
+		"HELP_DOG_FAR":      "[←] Retirarse — Aumentar distancia (más seguro)",
+		"HELP_DOG_BREAK":    "[B] Desenganchar — Intentar abandonar el combate",
+		"HELP_DOG_ESC":      "[Esc] Volver — Recibir al interceptor",
+		"HELP_DOG_TIPS":     "Consejos",
+		"HELP_DOG_T1":       "A menor distancia, mayor precisión pero más daño recibido.",
+		"HELP_DOG_T2":       "Modo Ataque da +10% precisión; Modo Retirada da -10%.",
+		"HELP_DOG_T3":       "Intentar escapar tiene 70% de probabilidad. Si falla, el OVNI dispara gratis.",
+		"HELP_DOG_T4":       "El modo de combate se puede configurar en Opciones.",
+
 		// ── Ciudades ─────────────────────────────────────────
 		"CITY_NEW_YORK":     "Nueva York",
 		"CITY_LOS_ANGELES":  "Los Ángeles",
@@ -913,6 +926,7 @@ func init() {
 		"OPTIONS_OFF":              "NO",
 		"OPTIONS_HELP":             "[\u2190]/[\u2192]=Ajustar  [\u2191]/[\u2193]=Seleccionar  [Enter]=Alternar  [Esc]=Volver",
 		"OPTIONS_REPLAY_TUTORIAL":  "Repetir Tutorial",
+		"OPTIONS_COMBAT_MODE":     "Modo de Combate Predeterminado",
 
 		// ── Batalla ──────────────────────────────────────
 
@@ -964,9 +978,13 @@ func init() {
 
 		// ── Combate Aéreo ─────────────────────────────────
 		"DOGFIGHT_HIT":           "¡GOLPE -%d!",
+		"MSG_UFO_ESCAPED":           "¡%s escapó al espacio profundo!",
+		"DOGFIGHT_UFO_RETREATING":   "¡El OVNI está intentando retirarse!",
 		"DOGFIGHT_MISS":          "FALLO",
 		"DOGFIGHT_SEPARATOR":     " | -%d",
 		"DOGFIGHT_UFO_DESTROYED": "¡OVNI DESTRUIDO!",
+		"DOGFIGHT_BREAKING_OFF":  "Intentando desenganchar...",
+		"DOGFIGHT_ESCAPE_FAILED": "Escape fallido! ¡UFO dispara!",
 
 		// ── Tipos de Daño ─────────────────────────────────
 		"DTYPE_EXPLOSIVE": "Explosivo",

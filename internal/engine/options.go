@@ -255,6 +255,11 @@ func (os *OptionsScreen) toggle() {
 		SaveConfig()
 		os.Game.RegisterScreen(StateTutorial, NewTutorialScreen(os.Game, nil))
 		os.Game.PushState(StateTutorial)
+	case 14:
+		Config.DefaultCombatMode++
+		if Config.DefaultCombatMode > 2 {
+			Config.DefaultCombatMode = 0
+		}
 	}
 }
 
@@ -333,6 +338,8 @@ func (os *OptionsScreen) HandleMouse(e *tcell.EventMouse) {
 			optIndex = 12 // language
 		} else if y == startY+14 && x >= baseX && x < baseX+boolHitWidth {
 			optIndex = 13 // tutorial
+		} else if y == startY+20 && x >= baseX && x < baseX+boolHitWidth {
+			optIndex = 14 // combat mode
 		}
 	}
 	if optIndex < 0 {
@@ -383,6 +390,14 @@ func (os *OptionsScreen) applyOptionDelta(idx, dir int) {
 		os.cycleLang(dir)
 	case 13:
 		// No left/right adjustment for tutorial action
+	case 14:
+		Config.DefaultCombatMode += dir
+		if Config.DefaultCombatMode < 0 {
+			Config.DefaultCombatMode = 2
+		}
+		if Config.DefaultCombatMode > 2 {
+			Config.DefaultCombatMode = 0
+		}
 	}
 }
 

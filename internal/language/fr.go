@@ -838,6 +838,19 @@ func init() {
 		"HELP_STRAT_V2":      ">Défaite : L'Activité Extraterrestre atteint 100%",
 		"HELP_STRAT_V3":      ">Les missions non résolues augmentent l'activité de +10%",
 
+		"HELP_DOG_TITLE":    "COMBAT AÉRIEN",
+		"HELP_DOG_CONTROLS": "Contrôles",
+		"HELP_DOG_FIRE":     "[F] Feu — Tirer sur l'engin alien",
+		"HELP_DOG_CLOSE":    "[→] Avancer — Réduire la distance (meilleure précision)",
+		"HELP_DOG_FAR":      "[←] Reculer — Augmenter la distance (plus sûr)",
+		"HELP_DOG_BREAK":    "[B] Désengager — Tenter de se désengager",
+		"HELP_DOG_ESC":      "[Esc] Retour — Rappeler l'intercepteur",
+		"HELP_DOG_TIPS":     "Astuces",
+		"HELP_DOG_T1":       "À courte portée, meilleure précision mais plus de dégâts reçus.",
+		"HELP_DOG_T2":       "Mode Attaque donne +10% précision ; Mode Retraite donne -10%.",
+		"HELP_DOG_T3":       "La tentative de fuite a 70% de chances. Si elle échoue, le SOU tire gratuitement.",
+		"HELP_DOG_T4":       "Le mode de combat peut être réglé dans les Options.",
+
 		// ── Villes ─────────────────────────────────────────
 		"CITY_NEW_YORK":     "New York",
 		"CITY_LOS_ANGELES":  "Los Angeles",
@@ -914,6 +927,7 @@ func init() {
 		"OPTIONS_OFF":              "ÉTE",
 		"OPTIONS_HELP":             "[\u2190]/[\u2192]=R\u00e9gler  [\u2191]/[\u2193]=S\u00e9lectionner  [Enter]=Basculer  [Esc]=Retour",
 		"OPTIONS_REPLAY_TUTORIAL":  "Revoir le Tutoriel",
+		"OPTIONS_COMBAT_MODE":     "Mode de Combat par Défaut",
 
 
 		"BATTLE_LEVEL_FMT":          " [N%d]",
@@ -968,9 +982,13 @@ func init() {
 		"DEBRIEF_VICTORY":              "VICTOIRE",
 		"DEBRIEF_VICTORY_PROMPT":       "Appuyez sur Entrée, Espace ou Esc pour voir l'écran de victoire",
 		"DOGFIGHT_HIT":                 "TOUCHÉ -%d !",
+		"MSG_UFO_ESCAPED":                 "%s s'est échappé dans l'espace profond!",
+		"DOGFIGHT_UFO_RETREATING":         "Le SOU tente de se retirer!",
 		"DOGFIGHT_MISS":                "RATÉ",
 		"DOGFIGHT_SEPARATOR":           " | -%d",
 		"DOGFIGHT_UFO_DESTROYED":       "OVNI DÉTRUIT !",
+		"DOGFIGHT_BREAKING_OFF":        "Tentative de désengagement...",
+		"DOGFIGHT_ESCAPE_FAILED":       "Échec de la fuite! SOU tire!",
 		"DTYPE_EXPLOSIVE":              "Explosif",
 		"DTYPE_KINETIC":                "Cinétique",
 		"DTYPE_LASER":                  "Laser",

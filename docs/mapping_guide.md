@@ -48,7 +48,7 @@ Scatter chunks may partially overlap; terrain tiles that are already placed take
 
 ## JSON Fragment Format
 
-Fragments are JSON files stored in `data/maps/`. Each file contains a single fragment definition.
+Fragments are JSON files stored in `data/maps/`. A file may contain a single fragment object or an array of fragment objects.
 
 ```json
 {
@@ -80,7 +80,7 @@ Fragments are JSON files stored in `data/maps/`. Each file contains a single fra
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `id` | Yes | Unique identifier. Used as the filename (without `.json`). Must not collide with other chunk IDs. |
+| `id` | Yes | Chunk identifier. Multiple chunks with the same `id` form a **weighted variant pool** — the game picks randomly respecting each variant's `weight`. |
 | `tags` | Yes | One or more biome tags from the biome reference below. |
 | `width` | Yes | Width in tiles (columns). |
 | `height` | Yes | Height in tiles (rows). |
@@ -89,6 +89,7 @@ Fragments are JSON files stored in `data/maps/`. Each file contains a single fra
 | `rows` | Yes | Array of strings forming the ASCII grid. Each string must be exactly `width` characters. Must have `height` rows. |
 | `terrain` | Yes | Maps ASCII glyphs to TileType names for ground/structural tiles. |
 | `furniture` | No | Maps ASCII glyphs to TileType names for furniture/objects on top of terrain. If a glyph appears in both `terrain` and `furniture`, `terrain` wins. |
+| `place_nested` | No | Array of nested chunk placements (see [Chunk Nesting](#chunk-nesting) below). |
 
 ### Glyph Rules
 
@@ -96,6 +97,90 @@ Fragments are JSON files stored in `data/maps/`. Each file contains a single fra
 - Box drawing, technical symbols, and miscellaneous symbols are fine.
 - Each glyph in `rows` must have a mapping in either `terrain` or `furniture`.
 - Space (` `) is reserved for empty/untouched tiles and is not mapped.
+
+### Weighted Variant Pools
+
+Multiple chunks sharing the same `id` are treated as variants. When the game picks a chunk by ID (e.g. via `place_nested`), it selects randomly from all variants proportionally to their `weight`.
+
+**Example:** Three apartment interior variants in one file:
+
+```json
+[
+  {
+    "id": "apartment_interior",
+    "description": "Bedroom/living split",
+    "width": 8, "height": 4,
+    "weight": 100,
+    "rows": ["b..c.d..","....d..l","..l.....","c......."],
+    "terrain": { ".": "TileFloor", "b": "TileBed", "d": "TileDesk", "c": "TileChair", "l": "TileLocker" }
+  },
+  {
+    "id": "apartment_interior",
+    "description": "Open plan studio",
+    "width": 8, "height": 4,
+    "weight": 100,
+    "rows": ["c.d.l...","..l.....","....c.d.",".......l"],
+    "terrain": { ".": "TileFloor", "c": "TileChair", "d": "TileDesk", "l": "TileLocker" }
+  },
+  {
+    "id": "apartment_interior",
+    "description": "Cluttered (rare)",
+    "width": 8, "height": 4,
+    "weight": 30,
+    "rows": ["bcd..l..","l...c...",".l..d..c","...d...."],
+    "terrain": { ".": "TileFloor", "b": "TileBed", "d": "TileDesk", "c": "TileChair", "l": "TileLocker" }
+  }
+]
+```
+
+Here the bedroom and living room variants each have weight 100 (43% chance each), while the cluttered variant has weight 30 (13% chance).
+
+### Chunk Nesting (place_nested)
+
+A chunk can stamp sub-chunks at fixed offsets using `place_nested`. This enables a two-tier architecture where a building shell defines rooms and each room references interior variants from a weighted pool.
+
+**`place_nested` entry fields:**
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `id` | Yes | ID of the nested chunk to stamp. May reference a weighted variant pool. |
+| `x` | Yes | X offset within the parent chunk. |
+| `y` | Yes | Y offset within the parent chunk. |
+
+Nested chunks are stamped after the parent's own rows, in the order listed. Recursion is supported up to 10 levels deep. When the parent is rotated, nested offsets are rotated accordingly and the nested chunk inherits the rotation.
+
+**Example:** A building shell that stamps apartment interiors at two positions:
+
+```json
+{
+  "id": "apartment_shell",
+  "description": "Apartment floor with two unit slots",
+  "width": 10,
+  "height": 10,
+  "no_rotate": true,
+  "weight": 1,
+  "tags": ["urban"],
+  "rows": [
+    "WWWWWWWWWW",
+    "W........W",
+    "W........W",
+    "W........W",
+    "W+WWWWWW+W",
+    "W........W",
+    "W........W",
+    "W........W",
+    "W........W",
+    "WWWWWWWWWW"
+  ],
+  "terrain": { ".": "TileFloor", "W": "TileWall", "+": "TileDoor" },
+  "place_nested": [
+    { "id": "apartment_interior", "x": 1, "y": 1 },
+    { "id": "apartment_interior", "x": 1, "y": 5 }
+  ]
+}
+```
+
+Each time `apartment_shell` is placed, two 8×4 `apartment_interior` chunks are stamped at offsets (1,1) and (1,5), filling each half of the shell. Since `apartment_interior` has three weighted variants, each unit gets a random interior layout.
 
 ## AssembleMap Logic
 

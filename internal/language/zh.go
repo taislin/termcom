@@ -835,6 +835,19 @@ func init() {
 		"HELP_STRAT_V2":      ">\u5931\u8d25\uff1a\u5916\u661f\u6d3b\u52a8\u8fbe\u5230 100%",
 		"HELP_STRAT_V3":      ">\u672a\u89e3\u51b3\u7684\u4efb\u52a1\u4f7f\u6d3b\u52a8\u589e\u52a0 +10%",
 
+		"HELP_DOG_TITLE":    "空战",
+		"HELP_DOG_CONTROLS": "操作",
+		"HELP_DOG_FIRE":     "[F] 开火 — 射击外星飞船",
+		"HELP_DOG_CLOSE":    "[→] 前进 — 缩小距离（提高命中率）",
+		"HELP_DOG_FAR":      "[←] 撤退 — 增加距离（更安全）",
+		"HELP_DOG_BREAK":    "[B] 脱离 — 尝试脱离战斗",
+		"HELP_DOG_ESC":      "[Esc] 返回 — 召回拦截机",
+		"HELP_DOG_TIPS":     "提示",
+		"HELP_DOG_T1":       "距离越近命中率越高，但受到的伤害也越大。",
+		"HELP_DOG_T2":       "攻击模式+10%命中率；脱离模式-10%命中率。",
+		"HELP_DOG_T3":       "脱离有70%概率成功。失败时UFO会获得一次免费攻击。",
+		"HELP_DOG_T4":       "战斗模式可在选项中设置。",
+
 		// ── 城市 ─────────────────────────────────────────
 		"CITY_NEW_YORK":     "\u7ebd\u7ea6",
 		"CITY_LOS_ANGELES":  "\u6d1b\u6749\u77f6",
@@ -911,6 +924,7 @@ func init() {
 		"OPTIONS_OFF":              "\u5173",
 		"OPTIONS_HELP":             "[\u2190]/[\u2192]=\u8c03\u6574  [\u2191]/[\u2193]=\u9009\u62e9  [Enter]=\u5207\u6362  [Esc]=\u8fd4\u56de",
 		"OPTIONS_REPLAY_TUTORIAL":  "\u91cd\u64ad\u6559\u7a0b",
+		"OPTIONS_COMBAT_MODE":     "\u9ed8\u8ba4\u6218\u6597\u6a21\u5f0f",
 
 
 		"BATTLE_LEVEL_FMT":          " [L%d]",
@@ -963,9 +977,13 @@ func init() {
 		"DEBRIEF_VICTORY":              "胜利",
 		"DEBRIEF_VICTORY_PROMPT":       "按 Enter、Space 或 Esc 查看胜利画面",
 		"DOGFIGHT_HIT":                 "命中 -%d！",
+		"MSG_UFO_ESCAPED":                 "%s 逃入深空了！",
+		"DOGFIGHT_UFO_RETREATING":         "UFO正在试图撤退！",
 		"DOGFIGHT_MISS":                "未命中",
 		"DOGFIGHT_SEPARATOR":           " | -%d",
 		"DOGFIGHT_UFO_DESTROYED":       "UFO 被击毁！",
+		"DOGFIGHT_BREAKING_OFF":        "正在尝试脱离...",
+		"DOGFIGHT_ESCAPE_FAILED":       "逃脱失败！UFO开火！",
 		"DTYPE_EXPLOSIVE":              "爆炸",
 		"DTYPE_KINETIC":                "动能",
 		"DTYPE_LASER":                  "激光",

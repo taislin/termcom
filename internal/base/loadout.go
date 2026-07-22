@@ -155,7 +155,76 @@ func (ls *LoadoutScreen) Render(ctx *engine.ScreenCtx) {
 	}
 }
 
-func (ls *LoadoutScreen) HandleMouse(e *tcell.EventMouse) {}
+func (ls *LoadoutScreen) HandleMouse(e *tcell.EventMouse) {
+	buttons := e.Buttons()
+	if buttons == 0 {
+		return
+	}
+	x, y := e.Position()
+	w, h := ls.Game.ScreenSize()
+
+	// Help bar clicks at y = h-1
+	if y == h-1 {
+		help := "[↑/↓] Select  [A]uto-equip all  [E]quip  [Esc] Back"
+		col := 1
+		runes := []rune(help)
+		for i := 0; i < len(runes); {
+			if runes[i] != '[' {
+				col += engine.StringWidth(string(runes[i]))
+				i++
+				continue
+			}
+			segStart := col
+			end := i + 1
+			for end < len(runes) && runes[end] != ']' {
+				end++
+			}
+			if end >= len(runes) {
+				break
+			}
+			segEnd := col + engine.StringWidth(string(runes[i:end+1]))
+			if x >= segStart && x <= segEnd {
+				key := string(runes[i+1 : end])
+				switch key {
+				case "↑", "↓":
+					if ls.SelectedSol < len(ls.Base.Soldiers)-1 {
+						ls.SelectedSol++
+					}
+				case "A":
+					ls.autoEquipAll()
+				case "E":
+					ls.openEquip()
+				case "Esc":
+					ls.Game.PopState()
+				}
+				return
+			}
+			col = segEnd
+			i = end + 1
+		}
+		return
+	}
+
+	// Click on soldier rows for selection
+	if len(ls.Base.Soldiers) == 0 {
+		return
+	}
+	startY := 4
+	for i := range ls.Base.Soldiers {
+		yy := startY + i
+		if yy >= h-2 {
+			break
+		}
+		if y == yy && x >= 2 && x < w-2 {
+			ls.SelectedSol = i
+			// Right-click opens equip
+			if buttons&tcell.ButtonMask(3) != 0 {
+				ls.openEquip()
+			}
+			return
+		}
+	}
+}
 
 func (ls *LoadoutScreen) HandleKey(e *tcell.EventKey) {
 	switch e.Key() {

@@ -19,6 +19,8 @@ func NewHelpScreen(g *Game, prev GameState) *HelpScreen {
 		page = 1
 	case StateBattlescape:
 		page = 2
+	case StateDogfight:
+		page = 5
 	}
 	return &HelpScreen{Game: g, Page: page}
 }
@@ -183,6 +185,23 @@ func (hs *HelpScreen) getPages() []helpPage {
 				">" + language.String("HELP_STRAT_V1"),
 				">" + language.String("HELP_STRAT_V2"),
 				">" + language.String("HELP_STRAT_V3"),
+			},
+		},
+		{
+			title: language.String("HELP_DOG_TITLE"),
+			lines: []string{
+				"#" + language.String("HELP_DOG_CONTROLS"),
+				">" + language.String("HELP_DOG_FIRE"),
+				">" + language.String("HELP_DOG_CLOSE"),
+				">" + language.String("HELP_DOG_FAR"),
+				">" + language.String("HELP_DOG_BREAK"),
+				">" + language.String("HELP_DOG_ESC"),
+				"",
+				"#" + language.String("HELP_DOG_TIPS"),
+				">" + language.String("HELP_DOG_T1"),
+				">" + language.String("HELP_DOG_T2"),
+				">" + language.String("HELP_DOG_T3"),
+				">" + language.String("HELP_DOG_T4"),
 			},
 		},
 	}
