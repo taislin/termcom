@@ -223,7 +223,11 @@ func (bs *Battlescape) handleMouse(e *tcell.EventMouse) {
 
 		if unit != nil && unit.Faction == FactionAlien && unit.Alive {
 			bs.HoveredUnit = unit
-			if bs.State.CursorState == StateTargeting && bs.CursorX == mx && bs.CursorY == my {
+			// Fire mode or move mode with enemy: fire immediately
+			if bs.Selected != nil && bs.Phase == PhasePlayerTurn {
+				bs.CursorX, bs.CursorY = mx, my
+				bs.State.TargetUnit = unit
+				bs.State.CursorState = StateTargeting
 				bs.FireWeapon()
 				bs.State.CursorState = StateInspect
 			} else {
@@ -237,14 +241,11 @@ func (bs *Battlescape) handleMouse(e *tcell.EventMouse) {
 		// Target destructible terrain (streetlamps, pipes, fuel pumps…)
 		if bs.Selected != nil && bs.Phase == PhasePlayerTurn &&
 			bs.Map.IsDestructible(mx, my) && unit == nil {
-			if bs.State.CursorState == StateTargeting && bs.CursorX == mx && bs.CursorY == my {
-				bs.FireWeapon()
-				bs.State.CursorState = StateInspect
-			} else {
-				bs.CursorX, bs.CursorY = mx, my
-				bs.State.CursorState = StateTargeting
-				bs.State.TargetUnit = nil
-			}
+			bs.CursorX, bs.CursorY = mx, my
+			bs.State.TargetUnit = nil
+			bs.State.CursorState = StateTargeting
+			bs.FireWeapon()
+			bs.State.CursorState = StateInspect
 			return
 		}
 
@@ -257,7 +258,10 @@ func (bs *Battlescape) handleMouse(e *tcell.EventMouse) {
 
 		if bs.Selected != nil && bs.Phase == PhasePlayerTurn {
 			bs.CursorX, bs.CursorY = mx, my
-			bs.State.CursorState = StateMovePlan
+			// Fire mode: don't switch to move on empty space
+			if bs.State.CursorState != StateTargeting {
+				bs.State.CursorState = StateMovePlan
+			}
 			bs.HoveredUnit = nil
 			bs.updateMovePath()
 		} else {
