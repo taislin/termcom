@@ -1887,6 +1887,12 @@ func (bs *Battlescape) MoveSelected() {
 	dest := path[best]
 	u.X, u.Y = dest[0], dest[1]
 	u.TU -= totalCost + crouchExtra
+	// Open any closed doors the unit walked through.
+	for i := 1; i <= best; i++ {
+		if bs.Map.At(path[i][0], path[i][1]).Type == TileDoor {
+			bs.Map.Set(path[i][0], path[i][1], TileDoorOpen)
+		}
+	}
 	audio.PlayMove()
 	bs.AddMessage(fmt.Sprintf(language.String("MSG_MOVED"), u.Soldier.Name, u.X, u.Y))
 	// Stepping on broken glass / debris alerts nearby aliens.

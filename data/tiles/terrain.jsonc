@@ -196,5 +196,20 @@
     "no": false,
     "mv": 4,
     "nm": "TILE_CLIFF_FACE"
+  },
+  // \u258F ▏ — Open door (replaces TileDoor after crossing/shooting)
+  {
+    "id": "TileDoorOpen",
+    "g": "\u258F",
+    "c": "#8c6432",
+    "pa": true,
+    "op": false,
+    "de": false,
+    "cv": 0,
+    "fl": false,
+    "ex": 0,
+    "no": false,
+    "mv": 4,
+    "nm": "TILE_DOOR"
   }
 ]

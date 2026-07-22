@@ -376,12 +376,19 @@ func (u *Unit) MoveTo(x, y int, m *BattleMap) bool {
 	// Walk the longer axis first, then the shorter (Manhattan order).
 	cx, cy := u.X, u.Y
 	stepCost := 0
+	touchDoor := func(tx, ty int) {
+		if m.At(tx, ty).Type == TileDoor {
+			m.Set(tx, ty, TileDoorOpen)
+		}
+	}
 	for i := 0; i < dx; i++ {
 		cx += sx
+		touchDoor(cx, cy)
 		stepCost += m.MoveCost(cx, cy, nil)
 	}
 	for i := 0; i < dy; i++ {
 		cy += sy
+		touchDoor(cx, cy)
 		stepCost += m.MoveCost(cx, cy, nil)
 	}
 	tuCost := stepCost
@@ -396,6 +403,8 @@ func (u *Unit) MoveTo(x, y int, m *BattleMap) bool {
 	}
 	u.X = x
 	u.Y = y
+	// Also open the destination if it's a door the unit now stands on.
+	touchDoor(x, y)
 	u.TU -= tuCost
 	u.HasMoved = true
 	return true

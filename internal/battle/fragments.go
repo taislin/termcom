@@ -11,6 +11,7 @@ var tileTypeByName = map[string]TileType{
 	"TileFloor":       TileFloor,
 	"TileWall":        TileWall,
 	"TileDoor":        TileDoor,
+	"TileDoorOpen":    TileDoorOpen,
 	"TileWindow":      TileWindow,
 	"TileGrass":       TileGrass,
 	"TileTree":        TileTree,

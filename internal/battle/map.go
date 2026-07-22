@@ -124,6 +124,8 @@ const (
 	// Wheel tiles
 	TileWheel      // Vehicle wheel
 	TileWheelSmall // Vehicle wheel (small)
+	// Open door (replacement after crossing/shooting a TileDoor)
+	TileDoorOpen // ▏ — passable, non-opaque, 0 cover, not destructible
 )
 
 // Tile represents a single cell on the tactical map.
@@ -526,22 +528,31 @@ func (m *BattleMap) IsDestructible(x, y int) bool {
 }
 
 func (m *BattleMap) DestroyWall(x, y int) bool {
-	if !m.IsDestructible(x, y) {
-		return false
-	}
 	if m.NumLevels <= 1 {
 		if x < 0 || x >= m.Width || y < 0 || y >= m.Height {
 			return false
 		}
+	} else {
+		arrayY := y + m.CurrentLevel*m.LevelHeight
+		if x < 0 || x >= m.Width || arrayY < 0 || arrayY >= m.Height {
+			return false
+		}
+	}
+	t := m.At(x, y)
+	if t.Type == TileDoor {
+		m.Set(x, y, TileDoorOpen)
+		return false
+	}
+	if !m.IsDestructible(x, y) {
+		return false
+	}
+	if m.NumLevels <= 1 {
 		tile := &m.Tiles[y][x]
 		tile.Lit = false
 		tile.Type = TileRubble
 		tile.Cover = TileCover(TileRubble)
 	} else {
 		arrayY := y + m.CurrentLevel*m.LevelHeight
-		if x < 0 || x >= m.Width || arrayY < 0 || arrayY >= m.Height {
-			return false
-		}
 		tile := &m.Tiles[arrayY][x]
 		tile.Lit = false
 		tile.Type = TileRubble
