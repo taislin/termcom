@@ -5,7 +5,7 @@ package language
 func init() {
 	register("ja", map[string]string{
 		// ── Menu ──────────────────────────────────────────
-		"MENU_TITLE":            "T U R N   B A S E D   T A C T I C S",
+		"MENU_TITLE":            "T A A N   S E I   S E N J U T S U",
 		"MENU_NEW_GAME":         "ニューゲーム",
 		"MENU_CONTINUE":         "コンティニュー",
 		"MENU_LOAD_GAME":        "ロード",
@@ -450,7 +450,7 @@ func init() {
 		"MSG_HIRED":                  "%sを採用しました。",
 		"MSG_INTERCEPTOR_PURCHASED":  "攻撃機を購入しました。",
 		"MSG_CANNOT_BUY_INTERCEPTOR": "攻撃機を購入できません！",
-		"MSG_PRESS_B_TO_REPLACE": " [Destroyed - Press [B] to replace]",
+		"MSG_PRESS_B_TO_REPLACE": " [破壊されました - [B]で交換]",
 		"MSG_NO_INTERCEPTORS":        "格納庫に攻撃機がいません。[B] で購入してください。",
 		"MSG_WEAPON_CHANGED":         "武器を %s に変更",
 		"SECTION_HANGARS":            "格納庫:",
@@ -537,10 +537,13 @@ func init() {
 		"SECTION_SOLDIER":    "兵士:",
 		"SECTION_EQUIPMENT":  "装備:",
 		"LABEL_WEAPON":       "武器:",
-		"LABEL_ARMOR":        "防具:",
-		"SECTION_AVAILABLE":  "倉庫で利用可能:",
-		"HELP_EQUIP":         "[\u2191]/[\u2193]=兵士  [1]=武器  [2]=防具  [Space]=装備  [A]=自動  [Esc]=戻る",
-		"HELP_EQUIP_TAB":     "[\u2191]/[\u2193]=兵士  [Tab]=切替  [1]=武器  [2]=防具  [Space]=装備  [A]=自動  [Esc]=戻る",
+		"LABEL_ARMOR":        "\u9632\u5177:",
+		"LABEL_BACKPACK":     "\u30d0\u30c3\u30af\u30d1\u30c3\u30af:",
+		"SECTION_BACKPACK":  "\u30d0\u30c3\u30af\u30d1\u30c3\u30af:",
+		"SECTION_AVAILABLE":  "\u5009\u5eab\u3067\u5229\u7528\u53ef\u80fd:",
+		"HELP_EQUIP":         "[\u2191]/[\u2193]=\u5175\u58eb  [1]=\u6b66\u5668  [2]=\u9632\u5177  [3]=\u30d0\u30c3\u30af  [Space]=\u88c5\u5099  [A]=\u81ea\u52d5  [Esc]=\u623b\u308b",
+		"HELP_EQUIP_TAB":     "[\u2191]/[\u2193]=\u5175\u58eb  [Tab]=\u5207\u66ff  [1]=\u6b66\u5668  [2]=\u9632\u5177  [3]=\u30d0\u30c3\u30af  [Space]=\u88c5\u5099  [A]=\u81ea\u52d5  [Esc]=\u623b\u308b",
+		"HELP_EQUIP_BACKPACK": "[\u2191]/[\u2193]=\u5175\u58eb  [+]/[-]=\u6570  [Space]=\u8ffd\u52a0  [Esc]=\u623b\u308b",
 		"MSG_NO_ITEMS":       "利用できるアイテムがありません！",
 		"MSG_EQUIPPED":       "%s を装備しました。",
 		"MSG_EQUIPPED_DONE":  "装備完了。",
@@ -912,7 +915,7 @@ func init() {
 		"CONFIRM_BATTLE_EXIT":      "全隊員が失われます。任務を放棄しますか？",
 		"CONFIRM_BATTLE_EXIT_HINT": "[Y] = 放棄   [N] = キャンセル",
 
-		"BATTLE_COVER_FMT":          " (\u25C8 %d%%)",
+
 		"BATTLE_LEVEL_FMT":          " [L%d]",
 		"BATTLE_MOD_ALIEN_AMBUSH":   "ミッションモディファイア: エイリアンの待ち伏せ - エイリアンがオーバーウォッチ状態",
 		"BATTLE_MOD_HEAVY_FOG":      "ミッションモディファイア: 濃霧 - 視界低下",
@@ -1239,7 +1242,7 @@ func init() {
 		"CTRL_AUTO_EQUIP":   "自動装備",
 		"CTRL_DISMISS":      "閉じる",
 		// ── Format Strings ──
-		"SOLDIER_FORMAT":          "%-12s %s  HP:%d/%d TU:%d ACC:%d BRA:%d STR:%d W:%s A:%s Kills:%d",
+		"SOLDIER_FORMAT":          "%-12s %s  HP:%d/%d TU:%d ACC:%d BRA:%d STR:%d W:%s A:%s 撃破:%d",
 		"BATTLE_COMPACT_BANNER":   "%s  HP:%d/%d  TU:%d/%d  %s",
 		"FACILITY_LINE_FORMAT":    "%-20s x%d $%dK%s",
 		"ADJACENCY_LINE_FORMAT":   "%-22s %d %s",

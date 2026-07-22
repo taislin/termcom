@@ -181,7 +181,7 @@ func NewAlienAI(u *Unit) *AlienAI {
 
 // Update evaluates the world state and returns a sequence of actions for the alien to take.
 func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList, plan *SquadPlan, tactics *engine.PlayerTactics) []AlienAction {
-	if !ai.Unit.Alive {
+	if !ai.Unit.Alive || ai.Unit.HP <= 0 {
 		return nil
 	}
 
@@ -198,10 +198,6 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList, pla
 	// share target positions even after an individual alien loses line of sight.
 	if ai.Memory != nil && nearest != nil {
 		ai.Memory.Report(nearest, nearest.X, nearest.Y, ai.Memory.Turn())
-	}
-
-	if ai.Unit.HP <= 0 {
-		return nil
 	}
 
 	ai.InCover = ai.evaluateCover(ai.Unit.X, ai.Unit.Y, m) > 0
@@ -257,7 +253,10 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList, pla
 		fired := false
 
 		if target != nil && ai.canFireAt(target) {
-			ai.selectFireMode(int(dist))
+			tdx := float64(target.X - ai.Unit.X)
+			tdy := float64(target.Y - ai.Unit.Y)
+			targetDist := math.Sqrt(tdx*tdx + tdy*tdy)
+			ai.selectFireMode(int(targetDist))
 			// 1. Suppress: If specialized role and in cover, maintain suppressive fire.
 			if role == RoleSuppressor && ai.InCover {
 				actions = append(actions, AlienAction{
@@ -267,7 +266,7 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList, pla
 				})
 				ai.State = AISuppress
 				fired = true
-			} else if role == RoleFlanker && dist > FlankDistThreshold && ai.Unit.TU >= FlankTUThreshold {
+			} else if role == RoleFlanker && targetDist > FlankDistThreshold && ai.Unit.TU >= FlankTUThreshold {
 				// 2. Flank: Move to a side position if specialized and distance allows.
 				ai.State = AIFlank
 			} else if ai.Unit.AlienType != nil && ai.Unit.AlienType.Psi > PsiSkillThreshold && ai.Unit.TU >= PsiTUThreshold && ai.rng.Intn(3) == 0 {
@@ -278,7 +277,7 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList, pla
 					ToX: target.X, ToY: target.Y,
 				})
 				fired = true
-			} else if ai.Unit.Weapon == "alien_grenade" && ai.Unit.TU >= GrenadeTUThreshold && dist <= GrenadeRangeMax && dist > GrenadeRangeMin {
+			} else if ai.Unit.Weapon == "alien_grenade" && ai.Unit.TU >= GrenadeTUThreshold && targetDist <= GrenadeRangeMax && targetDist > GrenadeRangeMin {
 				// 4. Grenade: Throw alien grenade at the target's position (AoE).
 				actions = append(actions, AlienAction{
 					Type: "grenade", Unit: ai.Unit, Target: target,
@@ -288,7 +287,7 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList, pla
 				fired = true
 			} else {
 				// 5. Standard Attack: Fire at target (melee if adjacent).
-				if dist <= MeleeDist {
+				if targetDist <= MeleeDist {
 					actions = append(actions, AlienAction{
 						Type: "melee", Unit: ai.Unit, Target: target,
 						FromX: ai.Unit.X, FromY: ai.Unit.Y,
@@ -1146,13 +1145,13 @@ func (ai *AlienAI) selectFireMode(dist int) {
 		return false
 	}
 	if dist <= FireModeAutoDist {
-		if tryMode(data.FireModeAuto) || tryMode(data.FireModeBurst) {
+		if tryMode(data.FireModeAuto) || tryMode(data.FireModeBurst) || tryMode(data.FireModeAimed) {
 			return
 		}
 	} else if dist <= FireModeBurstDist {
-		if tryMode(data.FireModeBurst) {
+		if tryMode(data.FireModeBurst) || tryMode(data.FireModeAimed) {
 			return
 		}
 	}
-	ai.Unit.FireMode = data.FireModeAimed
+	tryMode(data.FireModeAimed)
 }

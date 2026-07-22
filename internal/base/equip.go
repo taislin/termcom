@@ -14,7 +14,7 @@ type EquipScreen struct {
 	Game         *engine.Game
 	Base         *Base
 	SelectedSol  int
-	SelectedSlot int // 0=weapon, 1=armor
+	SelectedSlot int // 0=weapon, 1=armor, 2=backpack
 	CycleIdx     int
 	Message      string
 }
@@ -99,12 +99,17 @@ func (es *EquipScreen) Render(ctx *engine.ScreenCtx) {
 
 	weaponLabel := language.String("LABEL_WEAPON")
 	armorLabel := language.String("LABEL_ARMOR")
+	backpackLabel := language.String("LABEL_BACKPACK")
 	weaponStyle := engine.StyleDefault
 	armorStyle := engine.StyleDefault
-	if es.SelectedSlot == 0 {
+	backpackStyle := engine.StyleDefault
+	switch es.SelectedSlot {
+	case 0:
 		weaponStyle = engine.StyleHighlight
-	} else {
+	case 1:
 		armorStyle = engine.StyleHighlight
+	case 2:
+		backpackStyle = engine.StyleHighlight
 	}
 
 	wName := "---"
@@ -124,11 +129,13 @@ func (es *EquipScreen) Render(ctx *engine.ScreenCtx) {
 	ctx.DrawString(rightX+8, 3, wName, weaponStyle)
 	ctx.DrawString(rightX, 4, armorLabel, armorStyle)
 	ctx.DrawString(rightX+8, 4, aName, armorStyle)
+	ctx.DrawString(rightX, 5, backpackLabel, backpackStyle)
+	ctx.DrawString(rightX+8, 5, fmt.Sprintf("%d items", len(s.Inventory)), backpackStyle)
 
-	ctx.DrawString(rightX, 6, language.String("SECTION_AVAILABLE"), engine.StyleCyanBold)
+	ctx.DrawString(rightX, 7, language.String("SECTION_AVAILABLE"), engine.StyleCyanBold)
 
 	available := es.getAvailableItems()
-	y := 7
+	y := 8
 	for i, item := range available {
 		if y >= h-4 {
 			break
@@ -151,13 +158,38 @@ func (es *EquipScreen) Render(ctx *engine.ScreenCtx) {
 	}
 
 	if len(available) == 0 {
-		ctx.DrawString(rightX, 7, language.String("SECTION_NO_ITEMS"), engine.StyleGray)
+		ctx.DrawString(rightX, 8, language.String("SECTION_NO_ITEMS"), engine.StyleGray)
+	}
+
+	// Encumbrance and backpack contents
+	encY := y + 2
+	enc := s.Encumbrance()
+	limit := s.WeightLimit()
+	pen := s.TotalTUPenalty()
+	ctx.DrawString(rightX, encY, fmt.Sprintf("Weight: %d/%d  TU -%d", enc, limit, pen), engine.StyleYellow)
+	if enc > limit {
+		ctx.DrawString(rightX, encY+1, "OVER-ENCUMBERED!", engine.StyleRed)
+	}
+
+	if len(s.Inventory) > 0 {
+		ctx.DrawString(rightX, encY+3, language.String("SECTION_BACKPACK"), engine.StyleCyanBold)
+		bpy := encY + 4
+		for key, qty := range s.Inventory {
+			if bpy >= h-3 {
+				break
+			}
+			ctx.DrawString(rightX, bpy, fmt.Sprintf("%s x%d", data.ItemDisplayName(key), qty), engine.StyleDefault)
+			bpy++
+		}
 	}
 
 	ctx.DrawPanel(0, h-1, w, 1, "", engine.StyleGray)
 	help := language.String("HELP_EQUIP")
 	if len(available) > 0 {
 		help = language.String("HELP_EQUIP_TAB")
+	}
+	if es.SelectedSlot == 2 {
+		help = language.String("HELP_EQUIP_BACKPACK")
 	}
 	ctx.DrawMarkupString(1, h-1, help, engine.StyleGray, engine.StyleHotkey)
 
@@ -167,6 +199,9 @@ func (es *EquipScreen) Render(ctx *engine.ScreenCtx) {
 }
 
 func (es *EquipScreen) getAvailableItems() []string {
+	if es.SelectedSlot == 2 {
+		return es.getAvailableConsumables()
+	}
 	var items []string
 	if es.SelectedSlot == 0 {
 		for k := range data.RuleItems {
@@ -194,6 +229,19 @@ func (es *EquipScreen) getAvailableItems() []string {
 	return items
 }
 
+// getAvailableConsumables returns items that can go in the backpack slot.
+// These are items with a MaxCarry > 0 that exist in base stores.
+func (es *EquipScreen) getAvailableConsumables() []string {
+	var items []string
+	for k, ri := range data.RuleItems {
+		if ri.MaxCarry > 0 && es.Base.CountItem(k) > 0 {
+			items = append(items, k)
+		}
+	}
+	sort.Strings(items)
+	return items
+}
+
 func (es *EquipScreen) equipSelected() {
 	available := es.getAvailableItems()
 	if len(available) == 0 {
@@ -204,6 +252,11 @@ func (es *EquipScreen) equipSelected() {
 		es.CycleIdx = 0
 	}
 	item := available[es.CycleIdx]
+
+	if es.SelectedSlot == 2 {
+		es.adjustBackpackQty(item, 1)
+		return
+	}
 
 	if es.SelectedSlot == 0 {
 		if es.Base.EquipWeapon(es.SelectedSol, item) {
@@ -225,6 +278,41 @@ func (es *EquipScreen) equipSelected() {
 		} else {
 			es.Message = language.String("MSG_CANNOT_EQUIP")
 		}
+	}
+}
+
+// adjustBackpackQty adds (+1) or removes (-1) a quantity of the given item
+// from the selected soldier's backpack, transferring to/from base stores.
+func (es *EquipScreen) adjustBackpackQty(item string, delta int) {
+	s := es.Base.Soldiers[es.SelectedSol]
+	ri, ok := data.RuleItems[item]
+	if !ok {
+		return
+	}
+	if delta > 0 {
+		maxCarry := ri.MaxCarry
+		if maxCarry <= 0 {
+			maxCarry = 99
+		}
+		if s.CountItem(item) >= maxCarry {
+			es.Message = fmt.Sprintf("Max %d %s per soldier", maxCarry, ri.Name)
+			return
+		}
+		if es.Base.CountItem(item) <= 0 {
+			es.Message = language.String("MSG_NO_ITEMS")
+			return
+		}
+		es.Base.RemoveItem(item, 1)
+		s.AddItem(item)
+		es.Message = fmt.Sprintf("+1 %s", ri.Name)
+	} else {
+		if s.CountItem(item) <= 0 {
+			es.Message = fmt.Sprintf("No %s to remove", ri.Name)
+			return
+		}
+		s.RemoveItem(item)
+		es.Base.AddItem(item, 1)
+		es.Message = fmt.Sprintf("-1 %s", ri.Name)
 	}
 }
 
@@ -323,6 +411,23 @@ func (es *EquipScreen) HandleKey(e *tcell.EventKey) {
 			}
 		}
 		es.Message = ""
+	case tcell.KeyRune:
+		switch e.Str() {
+		case "+":
+			if es.SelectedSlot == 2 {
+				available := es.getAvailableItems()
+				if es.CycleIdx < len(available) {
+					es.adjustBackpackQty(available[es.CycleIdx], 1)
+				}
+			}
+		case "-":
+			if es.SelectedSlot == 2 {
+				available := es.getAvailableItems()
+				if es.CycleIdx < len(available) {
+					es.adjustBackpackQty(available[es.CycleIdx], -1)
+				}
+			}
+		}
 	}
 	switch e.Str() {
 	case "1":
@@ -331,6 +436,10 @@ func (es *EquipScreen) HandleKey(e *tcell.EventKey) {
 		es.Message = ""
 	case "2":
 		es.SelectedSlot = 1
+		es.CycleIdx = 0
+		es.Message = ""
+	case "3":
+		es.SelectedSlot = 2
 		es.CycleIdx = 0
 		es.Message = ""
 	case " ":
@@ -360,9 +469,9 @@ func (es *EquipScreen) HandleMouse(e *tcell.EventMouse) {
 		es.CycleIdx = 0
 	}
 
-	if y >= 7 && y < h-2 {
+	if y >= 8 && y < h-2 {
 		available := es.getAvailableItems()
-		idx := y - 7
+		idx := y - 8
 		if idx < len(available) {
 			es.CycleIdx = idx
 		}
@@ -373,6 +482,9 @@ func (es *EquipScreen) HandleMouse(e *tcell.EventMouse) {
 	}
 	if x > w/2 && y == 4 {
 		es.SelectedSlot = 1
+	}
+	if x > w/2 && y == 5 {
+		es.SelectedSlot = 2
 	}
 }
 

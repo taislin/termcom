@@ -77,7 +77,7 @@ type Unit struct {
 }
 
 func NewSoldierUnit(s *soldier.Soldier) *Unit {
-	penalty := s.TUPenalty()
+	penalty := s.TotalTUPenalty()
 	tu := s.TU - penalty
 	if tu < 0 {
 		tu = 0
@@ -328,7 +328,11 @@ func (u *Unit) resolveHits(rounds, hitChance int, w data.RuleItem, target *Unit,
 				m.GroundLoot[pos] = append(m.GroundLoot[pos], target.Weapon)
 			}
 			if target.Soldier != nil {
-				m.GroundLoot[pos] = append(m.GroundLoot[pos], target.Soldier.Inventory...)
+				for key, qty := range target.Soldier.Inventory {
+					for i := 0; i < qty; i++ {
+						m.GroundLoot[pos] = append(m.GroundLoot[pos], key)
+					}
+				}
 				target.Soldier.Inventory = nil
 			}
 		}

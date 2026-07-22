@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	CurrentVersion = 4
+	CurrentVersion = 5
 	saveFilePerm   = 0644 // owner read/write, group/other read
 	maxSlots       = 10
 	fundsDivK      = 1000
@@ -88,6 +88,7 @@ type SoldierSave struct {
 	Fatigue    int
 	WeaponAmmo int
 	Perks      []string
+	Inventory  map[string]int
 }
 
 type FacilitySave struct {
@@ -189,7 +190,21 @@ func migrateSave(data *SaveData) error {
 	if data.Version == 3 {
 		migrateV3toV4(data)
 	}
+	if data.Version == 4 {
+		migrateV4toV5(data)
+	}
 	return nil
+}
+
+func migrateV4toV5(data *SaveData) {
+	for _, b := range data.Bases {
+		for _, s := range b.Soldiers {
+			if s.Inventory == nil {
+				s.Inventory = make(map[string]int)
+			}
+		}
+	}
+	data.Version = 5
 }
 
 func migrateV3toV4(data *SaveData) {
@@ -242,6 +257,7 @@ func toSoldierSave(s *soldier.Soldier) *SoldierSave {
 		Reactions: s.Reactions, Strength: s.Strength, PsiSkill: s.PsiSkill, PsiStr: s.PsiStr,
 		Weapon: s.Weapon, Armor: s.Armor, Kills: s.Kills, Missions: s.Missions,
 		Wounds: s.Wounds, Fatigue: s.Fatigue, WeaponAmmo: s.WeaponAmmo, Perks: s.Perks,
+		Inventory: s.Inventory,
 	}
 }
 
@@ -317,6 +333,9 @@ func fromSoldierSave(ss *SoldierSave) *soldier.Soldier {
 	s.Fatigue = ss.Fatigue
 	s.Perks = ss.Perks
 	s.WeaponAmmo = ss.WeaponAmmo
+	if ss.Inventory != nil {
+		s.Inventory = ss.Inventory
+	}
 	return s
 }
 

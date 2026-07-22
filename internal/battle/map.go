@@ -52,8 +52,8 @@ const (
 	// Human furniture tiles
 	TileDesk        // Desk/workstation
 	TileChair       // Chair/seating (generic)
-	TileChairLeft   // Chair facing left (toward a table)
-	TileChairRight  // Chair facing right (toward a table)
+	TileChairLeft   // Chair (non-directional; legacy name)
+	TileChairRight  // Chair (non-directional; legacy name)
 	TileComputer    // Computer terminal
 	TileBed      // Bed/cot
 	TileLocker   // Locker/storage

@@ -74,7 +74,7 @@ type Soldier struct {
 	Wounds     int // days until healed
 	Fatigue    int // days until rested
 	Perks      []string
-	Inventory  []string // additional carried items
+	Inventory  map[string]int // carried items keyed by item key with quantities
 
 	// Transient per-mission XP counters (reset by PostMission, not persisted)
 	ExpFiring    int
@@ -108,14 +108,18 @@ func (s *Soldier) CanDeploy() bool {
 	return s.HP > 0 && s.Wounds == 0 && s.Fatigue == 0
 }
 
+// WeightLimit returns the maximum weight the soldier can carry before
+// suffering over-encumbrance penalties. Based on Strength.
+func (s *Soldier) WeightLimit() int { return s.Strength }
+
 func (s *Soldier) Encumbrance() int {
 	w := 0
 	if item, ok := data.RuleItems[s.Weapon]; ok {
 		w += item.Weight
 	}
-	for _, item := range s.Inventory {
-		if it, ok := data.RuleItems[item]; ok {
-			w += it.Weight
+	for key, qty := range s.Inventory {
+		if it, ok := data.RuleItems[key]; ok {
+			w += it.Weight * qty
 		}
 	}
 	return w
@@ -125,37 +129,57 @@ func (s *Soldier) TUPenalty() int {
 	return s.Encumbrance() / 5
 }
 
+// OverEncumbered returns additional TU penalty when carrying more than the
+// soldier's Strength-based weight limit. Returns 0 if within limit.
+func (s *Soldier) OverEncumbered() int {
+	over := s.Encumbrance() - s.WeightLimit()
+	if over <= 0 {
+		return 0
+	}
+	return over / 5
+}
+
+// TotalTUPenalty returns the combined TU penalty from normal encumbrance
+// and over-encumbrance.
+func (s *Soldier) TotalTUPenalty() int {
+	return s.TUPenalty() + s.OverEncumbered()
+}
+
 func (s *Soldier) AddItem(item string) {
-	s.Inventory = append(s.Inventory, item)
+	if s.Inventory == nil {
+		s.Inventory = make(map[string]int)
+	}
+	s.Inventory[item]++
 }
 
 func (s *Soldier) RemoveItem(item string) bool {
-	for i, it := range s.Inventory {
-		if it == item {
-			s.Inventory = append(s.Inventory[:i], s.Inventory[i+1:]...)
-			return true
-		}
+	if s.Inventory == nil {
+		return false
 	}
-	return false
+	n, ok := s.Inventory[item]
+	if !ok || n <= 0 {
+		return false
+	}
+	if n == 1 {
+		delete(s.Inventory, item)
+	} else {
+		s.Inventory[item] = n - 1
+	}
+	return true
 }
 
 func (s *Soldier) HasItem(item string) bool {
-	for _, it := range s.Inventory {
-		if it == item {
-			return true
-		}
+	if s.Inventory == nil {
+		return false
 	}
-	return false
+	return s.Inventory[item] > 0
 }
 
 func (s *Soldier) CountItem(item string) int {
-	n := 0
-	for _, it := range s.Inventory {
-		if it == item {
-			n++
-		}
+	if s.Inventory == nil {
+		return 0
 	}
-	return n
+	return s.Inventory[item]
 }
 
 func NewSoldier(name string) *Soldier {

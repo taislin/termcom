@@ -32,10 +32,10 @@
     "mv": 4,
     "nm": "TILE_CHAIR"
   },
-  // \u2143 ⅃ — Chair facing left
+  // \u25A6 ▦ — Chair (non-directional; was left-facing)
   {
     "id": "TileChairLeft",
-    "g": "\u2143",
+    "g": "\u25A6",
     "c": "#96643c",
     "pa": true,
     "op": false,
@@ -47,10 +47,10 @@
     "mv": 4,
     "nm": "TILE_CHAIR"
   },
-  // L — Chair facing right
+  // \u25A6 ▦ — Chair (non-directional; was right-facing)
   {
     "id": "TileChairRight",
-    "g": "L",
+    "g": "\u25A6",
     "c": "#96643c",
     "pa": true,
     "op": false,

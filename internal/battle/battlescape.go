@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
+	"sort"
 	"strings"
 
 	"github.com/gdamore/tcell/v3"
@@ -3160,7 +3161,7 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 	cursorStr := fmt.Sprintf(language.String("STATUS_CURSOR"), bs.CursorX, bs.CursorY, tileName)
 	coverStr := ""
 	if tile.Cover > 0 {
-		coverStr = language.Sprintf("BATTLE_COVER_FMT", tile.Cover)
+		coverStr = fmt.Sprintf(" (%c %d%%)", coverBlockChar(tile.Cover), tile.Cover)
 	}
 	cursorX := w - len(cursorStr) - len(coverStr) - 2
 	if bs.Selected != nil {
@@ -3235,15 +3236,42 @@ func (bs *Battlescape) openInventory() {
 	bs.InvTab = 0
 }
 
-// currentInvList returns the item list for the active tab.
+// currentInvList returns the item list for the active tab as a flattened
+// slice (one entry per item) for cursor-based access.
 func (bs *Battlescape) currentInvList() []string {
 	if bs.InvTab == 0 {
 		if bs.Selected != nil && bs.Selected.Soldier != nil {
-			return bs.Selected.Soldier.Inventory
+			return invFlat(bs.Selected.Soldier.Inventory)
 		}
 		return nil
 	}
 	return bs.Map.GroundLoot[[2]int{bs.Selected.X, bs.Selected.Y}]
+}
+
+// invFlat expands a quantity-keyed inventory map into a sorted flat list with
+// one entry per unit (e.g. map{"grenade":3} -> ["grenade","grenade","grenade"]).
+func invFlat(inv map[string]int) []string {
+	var list []string
+	for k, v := range inv {
+		for i := 0; i < v; i++ {
+			list = append(list, k)
+		}
+	}
+	sort.Strings(list)
+	return list
+}
+
+// invKeys returns the unique item keys from a quantity-keyed inventory map,
+// sorted alphabetically. Used for grouped display in the inventory UI.
+func invKeys(inv map[string]int) []string {
+	var keys []string
+	for k, v := range inv {
+		if v > 0 {
+			keys = append(keys, k)
+		}
+	}
+	sort.Strings(keys)
+	return keys
 }
 
 // invActivate uses or picks up the selected item.
@@ -3264,11 +3292,11 @@ func (bs *Battlescape) invUse() {
 	if bs.Selected == nil || bs.Selected.Soldier == nil {
 		return
 	}
-	items := bs.Selected.Soldier.Inventory
-	if bs.InvCursor < 0 || bs.InvCursor >= len(items) {
+	list := bs.currentInvList()
+	if bs.InvCursor < 0 || bs.InvCursor >= len(list) {
 		return
 	}
-	item := items[bs.InvCursor]
+	item := list[bs.InvCursor]
 	switch item {
 	case "medikit":
 		bs.Selected.Soldier.RemoveItem(item)
@@ -3292,11 +3320,11 @@ func (bs *Battlescape) invDrop() {
 	if bs.Selected == nil || bs.Selected.Soldier == nil {
 		return
 	}
-	items := bs.Selected.Soldier.Inventory
-	if bs.InvCursor < 0 || bs.InvCursor >= len(items) {
+	list := bs.currentInvList()
+	if bs.InvCursor < 0 || bs.InvCursor >= len(list) {
 		return
 	}
-	item := items[bs.InvCursor]
+	item := list[bs.InvCursor]
 	bs.Selected.Soldier.RemoveItem(item)
 	pos := [2]int{bs.Selected.X, bs.Selected.Y}
 	bs.Map.GroundLoot[pos] = append(bs.Map.GroundLoot[pos], item)
@@ -3335,10 +3363,10 @@ func (bs *Battlescape) renderInventory(ctx *engine.ScreenCtx, w, h int) {
 		return
 	}
 	s := bs.Selected.Soldier
-	items := s.Inventory
+	invKeys := invKeys(s.Inventory)
 	ground := bs.Map.GroundLoot[[2]int{bs.Selected.X, bs.Selected.Y}]
 
-	boxW := 52
+	boxW := 56
 	boxH := 6
 	// Count lines needed
 	lineCount := 0
@@ -3346,7 +3374,7 @@ func (bs *Battlescape) renderInventory(ctx *engine.ScreenCtx, w, h int) {
 	lineCount++ // weapon + armor
 	lineCount++ // blank
 	lineCount++ // "Backpack:" header
-	nInv := len(items)
+	nInv := len(invKeys)
 	for i := 0; i < nInv; i++ {
 		lineCount++
 	}
@@ -3377,8 +3405,14 @@ func (bs *Battlescape) renderInventory(ctx *engine.ScreenCtx, w, h int) {
 	cur := y + 1
 	// Soldier name + encumbrance
 	enc := s.Encumbrance()
+	limit := s.WeightLimit()
 	pen := s.TUPenalty()
-	nameStr := fmt.Sprintf("%s  Enc: %d (TU -%d)", s.Name, enc, pen)
+	overPen := s.OverEncumbered()
+	totalPen := pen + overPen
+	nameStr := fmt.Sprintf("%s  Enc: %d/%d (TU -%d)", s.Name, enc, limit, totalPen)
+	if overPen > 0 {
+		nameStr = fmt.Sprintf("%s  !ENC: %d/%d (TU -%d)", s.Name, enc, limit, totalPen)
+	}
 	ctx.DrawString(x+2, cur, nameStr, engine.StyleYellow)
 	cur++
 
@@ -3403,17 +3437,23 @@ func (bs *Battlescape) renderInventory(ctx *engine.ScreenCtx, w, h int) {
 	ctx.DrawString(x+2, cur, "Backpack:", engine.StyleCyan)
 	cur++
 	sel := bs.InvCursor
-	for i, item := range items {
+	// Track absolute position in the flat list to map cursor to grouped display.
+	flatPos := 0
+	for _, key := range invKeys {
+		qty := s.Inventory[key]
 		mark := "  "
-		if i == sel && bs.InvTab == 0 {
+		// Highlight this row if the cursor falls within this group's range.
+		withinGroup := bs.InvTab == 0 && sel >= flatPos && sel < flatPos+qty
+		if withinGroup {
 			mark = " >"
 		}
-		line := fmt.Sprintf("%s %s", mark, data.ItemDisplayName(item))
+		line := fmt.Sprintf("%s %s x%d", mark, data.ItemDisplayName(key), qty)
 		ctx.DrawString(x+2, cur, line, engine.StyleDefault)
 		ctx.DrawString(x+boxW-20, cur, "[U]se [D]rop", engine.StyleHotkey)
 		cur++
+		flatPos += qty
 	}
-	if nInv == 0 {
+	if len(invKeys) == 0 {
 		ctx.DrawString(x+4, cur, "(empty)", engine.StyleGray)
 		cur++
 	}
@@ -3712,23 +3752,23 @@ func (bs *Battlescape) drawUnitInfo(ctx *engine.ScreenCtx, sideX, sideY0, sideH 
 		sy++
 
 		enc := bs.Selected.Soldier.Encumbrance()
-		pen := bs.Selected.Soldier.TUPenalty()
+		pen := bs.Selected.Soldier.TotalTUPenalty()
 		ctx.DrawString(sideX, sy, language.Sprintf("SIDE_ENCUMBRANCE", enc, pen), engine.StyleYellow)
 		sy++
 
 		if len(bs.Selected.Soldier.Inventory) > 0 {
 			ctx.DrawString(sideX, sy, language.String("SIDE_INVENTORY"), engine.StyleDefault)
 			sy++
-			for _, item := range bs.Selected.Soldier.Inventory {
-				invName := data.ItemDisplayName(item)
-				if engine.StringWidth(invName) > bs.SidebarW-4 {
-					rs := []rune(invName)
+			for key, qty := range bs.Selected.Soldier.Inventory {
+				disp := fmt.Sprintf("%s x%d", data.ItemDisplayName(key), qty)
+				if engine.StringWidth(disp) > bs.SidebarW-4 {
+					rs := []rune(disp)
 					for len(rs) > 0 && engine.StringWidth(string(rs)) > bs.SidebarW-4 {
 						rs = rs[:len(rs)-1]
 					}
-					invName = string(rs)
+					disp = string(rs)
 				}
-				ctx.DrawString(sideX+2, sy, invName, engine.StyleGray)
+				ctx.DrawString(sideX+2, sy, disp, engine.StyleGray)
 				sy++
 			}
 		}
@@ -3866,6 +3906,26 @@ func (bs *Battlescape) cycleUnit(dir int) {
 	bs.Camera.SetTarget(bs.Selected.X, bs.Selected.Y)
 
 	bs.AddMessage(fmt.Sprintf(language.String("MSG_UNIT_SELECTED"), bs.Selected.Soldier.Name, bs.Selected.HP, bs.Selected.TU))
+}
+
+func coverBlockChar(cover int) rune {
+	blocks := []rune{
+		rune(0x2581), // ▁ Lower One Eighth Block
+		rune(0x2582), // ▂ Lower One Quarter Block
+		rune(0x2583), // ▃ Lower Three Eighths Block
+		rune(0x2584), // ▄ Lower Half Block
+		rune(0x2585), // ▅ Lower Five Eighths Block
+		rune(0x2586), // ▆ Lower Three Quarters Block
+		rune(0x2587), // ▇ Lower Seven Eighths Block
+		rune(0x2588), // █ Full Block
+	}
+	idx := (cover - 1) * 8 / 100
+	if idx < 0 {
+		idx = 0
+	} else if idx >= len(blocks) {
+		idx = len(blocks) - 1
+	}
+	return blocks[idx]
 }
 
 func tileTypeName(t TileType) string {

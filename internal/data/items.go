@@ -127,6 +127,7 @@ type RuleItem struct {
 	Auto      bool // can full-auto fire
 	BurstSize int  // rounds per burst (0 = no burst)
 	Strength  int // min strength to use
+	MaxCarry  int // max quantity a soldier can carry (0 = unlimited)
 	IsAmmo    bool
 	IsAlien   bool
 }
@@ -355,6 +356,7 @@ var RuleItems = map[string]RuleItem{
 		TU:         25,
 		Range:      1,
 		AmmoMax:    10,
+		MaxCarry:   3,
 		Strength:   5,
 	},
 	"motion_scanner": {
@@ -367,6 +369,7 @@ var RuleItems = map[string]RuleItem{
 		BattleType: BT_SCANNER,
 		TU:         10,
 		Range:      15,
+		MaxCarry:   1,
 	},
 	"proximity_mine": {
 		Type:       "STR_PROXIMITY_MINE",
@@ -379,6 +382,7 @@ var RuleItems = map[string]RuleItem{
 		Damage:     60,
 		TU:         20,
 		Range:      1,
+		MaxCarry:   3,
 	},
 	"psi_amp": {
 		Type:       "STR_PSI_AMP",
@@ -499,6 +503,7 @@ var RuleItems = map[string]RuleItem{
 		TU:         18,
 		Range:      8,
 		AmmoMax:    99,
+		MaxCarry:   6,
 		Strength:   6,
 		IsAlien:    true,
 	},

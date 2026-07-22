@@ -536,9 +536,12 @@ func init() {
 		"SECTION_EQUIPMENT":  "EQUIPMENT:",
 		"LABEL_WEAPON":       "Weapon:",
 		"LABEL_ARMOR":        "Armor:",
+		"LABEL_BACKPACK":     "Backpack:",
+		"SECTION_BACKPACK":  "BACKPACK:",
 		"SECTION_AVAILABLE":  "AVAILABLE IN STORES:",
-		"HELP_EQUIP":         "[\u2191]/[\u2193]=Soldier  [1]=Weapon  [2]=Armor  [Space]=Equip  [A]=Auto  [Esc]=Back",
-		"HELP_EQUIP_TAB":     "[\u2191]/[\u2193]=Soldier  [Tab]=Cycle  [1]=Wpn  [2]=Arm  [Space]=Equip  [A]=Auto  [Esc]=Back",
+		"HELP_EQUIP":         "[\u2191]/[\u2193]=Soldier  [1]=Weapon  [2]=Armor  [3]=Backpack  [Space]=Equip  [A]=Auto  [Esc]=Back",
+		"HELP_EQUIP_TAB":     "[\u2191]/[\u2193]=Soldier  [Tab]=Cycle  [1]=Wpn  [2]=Arm  [3]=Back  [Space]=Equip  [A]=Auto  [Esc]=Back",
+		"HELP_EQUIP_BACKPACK": "[\u2191]/[\u2193]=Soldier  [+]/[-]=Qty  [Space]=Add  [Esc]=Back",
 		"MSG_NO_ITEMS":       "No items available!",
 		"MSG_EQUIPPED":       "Equipped %s.",
 		"MSG_EQUIPPED_DONE":  "Equipped.",
@@ -932,7 +935,7 @@ func init() {
 		"CONFIRM_BATTLE_EXIT_HINT": "[Y] = Abandon   [N] = Cancel",
 
 		// ── Battle ────────────────────────────────────────
-		"BATTLE_COVER_FMT":          " (\u25C8 %d%%)",
+
 		"BATTLE_LEVEL_FMT":          " [L%d]",
 		"BATTLE_MOD_ALIEN_AMBUSH":   "MISSION MODIFIER: Alien Ambush - aliens in overwatch",
 		"BATTLE_MOD_HEAVY_FOG":      "MISSION MODIFIER: Heavy Fog - reduced visibility",

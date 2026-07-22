@@ -5,7 +5,7 @@ package language
 func init() {
 	register("ko", map[string]string{
 		// ── Menu ──────────────────────────────────────────
-		"MENU_TITLE":            "T U R N   B A S E D   T A C T I C S",
+		"MENU_TITLE":            "T E O N   J E   J E O N   S U L",
 		"MENU_NEW_GAME":         "새 게임",
 		"MENU_CONTINUE":         "계속하기",
 		"MENU_LOAD_GAME":        "게임 불러오기",
@@ -13,13 +13,13 @@ func init() {
 		"MENU_OPTIONS":          "설정",
 		"MENU_CUSTOM_BATTLE":    "사용자 정의 전투",
 		"MENU_WEBSITE":          "웹사이트",
-		"MENU_HELP":             "[\\u2191]/[\\u2193]=Select  [Enter]=Confirm  [Q]=Quit  [F5]=Save  [F9]=Load",
+		"MENU_HELP":             "[\u2191]/[\u2193]=선택  [Enter]=확인  [Q]=종료  [F5]=저장  [F9]=불러오기",
 		"MENU_UPDATE_AVAILABLE": "업데이트 가능",
 
 		// ── Difficulty ─────────────────────────────────────
 		"DIFFICULTY_TITLE":  "난이도 선택",
 		"DIFFICULTY_PROMPT": "도전 수준을 선택하세요:",
-		"HELP_DIFFICULTY":   "[\\u2191]/[\\u2193]=Select  [Enter]=Confirm",
+		"HELP_DIFFICULTY":   "[\u2191]/[\u2193]=선택  [Enter]=확인",
 
 		// ── Geoscape ──────────────────────────────────────
 		"GEOSCAPE":              "지구전략맵",
@@ -450,7 +450,7 @@ func init() {
 		"MSG_HIRED":                  "%s 고용됨.",
 		"MSG_INTERCEPTOR_PURCHASED":  "요격기 구매됨.",
 		"MSG_CANNOT_BUY_INTERCEPTOR": "요격기를 살 수 없습니다!",
-		"MSG_PRESS_B_TO_REPLACE": " [Destroyed - Press [B] to replace]",
+		"MSG_PRESS_B_TO_REPLACE": " [파괴됨 - [B]를 눌러 교체]",
 		"MSG_NO_INTERCEPTORS":        "격납고에 요격기 없음. 구매하려면 [B].",
 		"MSG_WEAPON_CHANGED":         "무기가 %s(으)로 변경됨",
 		"SECTION_HANGARS":            "격납고:",
@@ -537,10 +537,13 @@ func init() {
 		"SECTION_SOLDIER":    "병사:",
 		"SECTION_EQUIPMENT":  "장비:",
 		"LABEL_WEAPON":       "무기:",
-		"LABEL_ARMOR":        "방어구:",
-		"SECTION_AVAILABLE":  "저장고에 있는 물품:",
-		"HELP_EQUIP":         "[\\u2191]/[\\u2193]=Soldier  [1]=Weapon  [2]=Armor  [Space]=Equip  [A]=Auto  [Esc]=Back",
-		"HELP_EQUIP_TAB":     "[\\u2191]/[\\u2193]=Soldier  [Tab]=Cycle  [1]=Wpn  [2]=Arm  [Space]=Equip  [A]=Auto  [Esc]=Back",
+		"LABEL_ARMOR":        "\ubc29\uc5b4\uad6c:",
+		"LABEL_BACKPACK":     "\ubc31\ud329:",
+		"SECTION_BACKPACK":  "\ubc31\ud329:",
+		"SECTION_AVAILABLE":  "\uc800\uc7a5\uace0\uc5d0 \uc788\ub294 \ubb3c\ud488:",
+		"HELP_EQUIP":         "[\\u2191]/[\\u2193]=Soldier  [1]=Weapon  [2]=Armor  [3]=Backpack  [Space]=Equip  [A]=Auto  [Esc]=Back",
+		"HELP_EQUIP_TAB":     "[\\u2191]/[\\u2193]=Soldier  [Tab]=Cycle  [1]=Wpn  [2]=Arm  [3]=Back  [Space]=Equip  [A]=Auto  [Esc]=Back",
+		"HELP_EQUIP_BACKPACK": "[\\u2191]/[\\u2193]=Soldier  [+]/[-]=Qty  [Space]=Add  [Esc]=Back",
 		"MSG_NO_ITEMS":       "가용 물품이 없습니다!",
 		"MSG_EQUIPPED":       "%s 장착 완료.",
 		"MSG_EQUIPPED_DONE":  "장착 완료.",
@@ -913,7 +916,7 @@ func init() {
 		"CONFIRM_BATTLE_EXIT_HINT": "[Y] = 포기   [N] = 취소",
 
 		// ── Battle ────────────────────────────────────────
-		"BATTLE_COVER_FMT":          " (\\u25C8 %d%%)",
+
 		"BATTLE_LEVEL_FMT":          " [L%d]",
 		"BATTLE_MOD_ALIEN_AMBUSH":   "임무 수정자: 외계인 매복 - 외계인들이 경계 태세",
 		"BATTLE_MOD_HEAVY_FOG":      "임무 수정자: 짙은 안개 - 가시거리 감소",
@@ -1090,7 +1093,7 @@ func init() {
 		"FAC_BONUS_MANUFACTURE":      "\uc81c\uc870",
 		"FAC_BONUS_HP":               "HP",
 		"SIDE_HP_UNKNOWN":            "HP: ???",
-		"SIDE_ACC_UNKNOWN":           "ACC: ???",
+		"SIDE_ACC_UNKNOWN":           "명중: ???",
 		"SIDE_TU_UNKNOWN":            "TU: ???",
 
 		// ── Slot Picker ──────────────────────────────────
@@ -1211,7 +1214,7 @@ func init() {
 		"CTRL_AUTO_EQUIP":   "자동장비",
 		"CTRL_DISMISS":      "닫기",
 		// ── Format Strings ──
-		"SOLDIER_FORMAT":          "%-12s %s  HP:%d/%d TU:%d ACC:%d BRA:%d STR:%d W:%s A:%s Kills:%d",
+		"SOLDIER_FORMAT":          "%-12s %s  HP:%d/%d TU:%d ACC:%d BRA:%d STR:%d W:%s A:%s 처치:%d",
 		"BATTLE_COMPACT_BANNER":   "%s  HP:%d/%d  TU:%d/%d  %s",
 		"FACILITY_LINE_FORMAT":    "%-20s x%d $%dK%s",
 		"ADJACENCY_LINE_FORMAT":   "%-22s %d %s",

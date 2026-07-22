@@ -450,7 +450,7 @@ func init() {
 		"MSG_HIRED":                  "%s recrutado(a).",
 		"MSG_INTERCEPTOR_PURCHASED":  "Interceptor comprado.",
 		"MSG_CANNOT_BUY_INTERCEPTOR": "N\u00e3o \u00e9 poss\u00edvel comprar interceptor!",
-		"MSG_PRESS_B_TO_REPLACE": " [Destroyed - Press [B] to replace]",
+		"MSG_PRESS_B_TO_REPLACE": " [Destruído - Pressione [B] para substituir]",
 		"MSG_NO_INTERCEPTORS":        "Sem interceptores nos hangares. Prima [B] para comprar.",
 		"MSG_WEAPON_CHANGED":         "Arma alterada para %s",
 		"SECTION_HANGARS":            "HANGARES:",
@@ -538,9 +538,12 @@ func init() {
 		"SECTION_EQUIPMENT":  "EQUIPAMENTO:",
 		"LABEL_WEAPON":       "Arma:",
 		"LABEL_ARMOR":        "Armadura:",
+		"LABEL_BACKPACK":     "Mochila:",
+		"SECTION_BACKPACK":  "MOCHILA:",
 		"SECTION_AVAILABLE":  "DISPON\u00cdVEL NO ARMAZ\u00c9M:",
-		"HELP_EQUIP":         "[\u2191]/[\u2193]=Soldado  [1]=Arma  [2]=Armadura  [Espa\u00e7o]=Equipar  [A]=Auto  [Esc]=Voltar",
-		"HELP_EQUIP_TAB":     "[\u2191]/[\u2193]=Soldado  [Tab]=Circular  [1]=Arma  [2]=Armadura  [Espa\u00e7o]=Equipar  [A]=Auto  [Esc]=Voltar",
+		"HELP_EQUIP":         "[\u2191]/[\u2193]=Soldado  [1]=Arma  [2]=Armadura  [3]=Mochila  [Espa\u00e7o]=Equipar  [A]=Auto  [Esc]=Voltar",
+		"HELP_EQUIP_TAB":     "[\u2191]/[\u2193]=Soldado  [Tab]=Circular  [1]=Arma  [2]=Armadura  [3]=Moch  [Espa\u00e7o]=Equipar  [A]=Auto  [Esc]=Voltar",
+		"HELP_EQUIP_BACKPACK": "[\u2191]/[\u2193]=Soldado  [+]/[-]=Qtd  [Espa\u00e7o]=Adicionar  [Esc]=Voltar",
 		"MSG_NO_ITEMS":       "Nenhum item dispon\u00edvel!",
 		"MSG_EQUIPPED":       "Equipado %s.",
 		"MSG_EQUIPPED_DONE":  "Equipado.",
@@ -930,7 +933,7 @@ func init() {
 		"WEATHER_STORM":             "Tempestade",
 		"WEATHER_WIND":              "Vento",
 
-		"BATTLE_COVER_FMT":             " (\u25C8 %d%%)",
+
 		"BATTLE_LEVEL_FMT":             " [L%d]",
 		"CUSTOM_AUTHOR":                "Autor:  %s",
 		"CUSTOM_DATE":                  "Data:    %s",
@@ -1090,7 +1093,7 @@ func init() {
 		"FAC_BONUS_MANUFACTURE":      "fabricação",
 		"FAC_BONUS_HP":               "PV",
 		"SIDE_HP_UNKNOWN":            "HP: ???",
-		"SIDE_ACC_UNKNOWN":           "ACC: ???",
+		"SIDE_ACC_UNKNOWN":           "PREC: ???",
 		"SIDE_TU_UNKNOWN":            "TU: ???",
 
 		// ── Slot Picker ──────────────────────────────────
@@ -1211,7 +1214,7 @@ func init() {
 		"CTRL_AUTO_EQUIP":   "Auto-Equipar",
 		"CTRL_DISMISS":      "Dispensar",
 		// ── Format Strings ──
-		"SOLDIER_FORMAT":          "%-12s %s  HP:%d/%d TU:%d ACC:%d BRA:%d STR:%d W:%s A:%s Kills:%d",
+		"SOLDIER_FORMAT":          "%-12s %s  HP:%d/%d TU:%d ACC:%d BRA:%d STR:%d W:%s A:%s Abates:%d",
 		"BATTLE_COMPACT_BANNER":   "%s  HP:%d/%d  TU:%d/%d  %s",
 		"FACILITY_LINE_FORMAT":    "%-20s x%d $%dK%s",
 		"ADJACENCY_LINE_FORMAT":   "%-22s %d %s",
@@ -1333,7 +1336,7 @@ func init() {
 		"PERK_QUICK_LEARNER":           "Aprendiz Rápido",
 		"PERK_QUICK_LEARNER_DESC":      "+50% XP de batalhas",
 		"LABEL_INVENTORY":              "Inventário:",
-		"SIDE_ENCUMBRANCE":             "Enc: %d (UT -%d)",
+		"SIDE_ENCUMBRANCE":             "Carga: %d (UT -%d)",
 		"MSG_ADDED_INVENTORY":          "%s adicionado ao inventário.",
 	})
 }

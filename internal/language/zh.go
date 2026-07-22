@@ -448,7 +448,7 @@ func init() {
 		"MSG_HIRED":                  "%s\u5df2\u88ab\u62db\u52df\u3002",
 		"MSG_INTERCEPTOR_PURCHASED":  "\u6218\u6597\u673a\u5df2\u8d2d\u4e70\u3002",
 		"MSG_CANNOT_BUY_INTERCEPTOR": "\u65e0\u6cd5\u8d2d\u4e70\u6218\u6597\u673a\uff01",
-		"MSG_PRESS_B_TO_REPLACE": " [Destroyed - Press [B] to replace]",
+		"MSG_PRESS_B_TO_REPLACE": " [已摧毁 - 按[B]替换]",
 		"MSG_NO_INTERCEPTORS":        "\u673a\u5e93\u6ca1\u6709\u6218\u6597\u673a\u3002\u6309 [B] \u8d2d\u4e70\u3002",
 		"MSG_WEAPON_CHANGED":         "\u6b66\u5668\u5df2\u66f4\u6362\u4e3a %s",
 		"SECTION_HANGARS":            "\u673a\u5e93\uff1a",
@@ -536,9 +536,12 @@ func init() {
 		"SECTION_EQUIPMENT":  "\u88c5\u5907\uff1a",
 		"LABEL_WEAPON":       "\u6b66\u5668\uff1a",
 		"LABEL_ARMOR":        "\u62a4\u7532\uff1a",
+		"LABEL_BACKPACK":     "\u80cc\u5305\uff1a",
+		"SECTION_BACKPACK":  "\u80cc\u5305\uff1a",
 		"SECTION_AVAILABLE":  "\u4ed3\u5e93\u5e93\u5b58\uff1a",
-		"HELP_EQUIP":         "[\u2191]/[\u2193]=\u58eb\u5175  [1]=\u6b66\u5668  [2]=\u62a4\u7532  [\u7a7a\u683c]=\u88c5\u5907  [A]=\u81ea\u52a8  [Esc]=\u8fd4\u56de",
-		"HELP_EQUIP_TAB":     "[\u2191]/[\u2193]=\u58eb\u5175  [Tab]=\u5207\u6362  [1]=\u6b66\u5668  [2]=\u62a4\u7532  [\u7a7a\u683c]=\u88c5\u5907  [A]=\u81ea\u52a8  [Esc]=\u8fd4\u56de",
+		"HELP_EQUIP":         "[\u2191]/[\u2193]=\u58eb\u5175  [1]=\u6b66\u5668  [2]=\u62a4\u7532  [3]=\u80cc\u5305  [\u7a7a\u683c]=\u88c5\u5907  [A]=\u81ea\u52a8  [Esc]=\u8fd4\u56de",
+		"HELP_EQUIP_TAB":     "[\u2191]/[\u2193]=\u58eb\u5175  [Tab]=\u5207\u6362  [1]=\u6b66\u5668  [2]=\u62a4\u7532  [3]=\u80cc\u5305  [\u7a7a\u683c]=\u88c5\u5907  [A]=\u81ea\u52a8  [Esc]=\u8fd4\u56de",
+		"HELP_EQUIP_BACKPACK": "[\u2191]/[\u2193]=\u58eb\u5175  [+]/[-]=\u6570\u91cf  [\u7a7a\u683c]=\u6dfb\u52a0  [Esc]=\u8fd4\u56de",
 		"MSG_NO_ITEMS":       "\u6ca1\u6709\u53ef\u7528\u7269\u54c1\uff01",
 		"MSG_EQUIPPED":       "\u5df2\u88c5\u5907 %s\u3002",
 		"MSG_EQUIPPED_DONE":  "\u88c5\u5907\u5b8c\u6210\u3002",
@@ -909,7 +912,7 @@ func init() {
 		"OPTIONS_HELP":             "[\u2190]/[\u2192]=\u8c03\u6574  [\u2191]/[\u2193]=\u9009\u62e9  [Enter]=\u5207\u6362  [Esc]=\u8fd4\u56de",
 		"OPTIONS_REPLAY_TUTORIAL":  "\u91cd\u64ad\u6559\u7a0b",
 
-		"BATTLE_COVER_FMT":          " (\u25C8 %d%%)",
+
 		"BATTLE_LEVEL_FMT":          " [L%d]",
 		"BATTLE_MOD_ALIEN_AMBUSH":   "任务修改器：异形埋伏 - 异形处于警戒状态",
 		"BATTLE_MOD_HEAVY_FOG":      "任务修改器：浓雾 - 视野降低",
@@ -1085,7 +1088,7 @@ func init() {
 		"FAC_BONUS_MANUFACTURE":      "制造",
 		"FAC_BONUS_HP":               "HP",
 		"SIDE_HP_UNKNOWN":            "HP: ???",
-		"SIDE_ACC_UNKNOWN":           "ACC: ???",
+		"SIDE_ACC_UNKNOWN":           "命中: ???",
 		"SIDE_TU_UNKNOWN":            "TU: ???",
 
 		// ── Slot Picker ──────────────────────────────────
@@ -1206,7 +1209,7 @@ func init() {
 		"CTRL_AUTO_EQUIP":   "自动装备",
 		"CTRL_DISMISS":      "关闭",
 		// ── Format Strings ──
-		"SOLDIER_FORMAT":          "%-12s %s  HP:%d/%d TU:%d ACC:%d BRA:%d STR:%d W:%s A:%s Kills:%d",
+		"SOLDIER_FORMAT":          "%-12s %s  HP:%d/%d TU:%d ACC:%d BRA:%d STR:%d W:%s A:%s 击杀:%d",
 		"BATTLE_COMPACT_BANNER":   "%s  HP:%d/%d  TU:%d/%d  %s",
 		"FACILITY_LINE_FORMAT":    "%-20s x%d $%dK%s",
 		"ADJACENCY_LINE_FORMAT":   "%-22s %d %s",

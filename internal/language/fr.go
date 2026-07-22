@@ -5,7 +5,7 @@ package language
 func init() {
 	register("fr", map[string]string{
 		// ── Menu ──────────────────────────────────────────
-		"MENU_TITLE":            "T U R N   B A S E D   T A C T I C S",
+		"MENU_TITLE":            "T A C T I Q U E   A U   T O U R   P A R   T O U R",
 		"MENU_NEW_GAME":         "Nouvelle Partie",
 		"MENU_CONTINUE":         "Continuer",
 		"MENU_LOAD_GAME":        "Charger Partie",
@@ -450,7 +450,7 @@ func init() {
 		"MSG_HIRED":                  "%s engagé.",
 		"MSG_INTERCEPTOR_PURCHASED":  "Intercepteur acheté.",
 		"MSG_CANNOT_BUY_INTERCEPTOR": "Impossible d'acheter un intercepteur !",
-		"MSG_PRESS_B_TO_REPLACE": " [Destroyed - Press [B] to replace]",
+		"MSG_PRESS_B_TO_REPLACE": " [Détruit - Appuyez sur [B] pour remplacer]",
 		"MSG_NO_INTERCEPTORS":        "Aucun intercepteur dans les hangars. Appuyez sur [A] pour acheter.",
 		"MSG_WEAPON_CHANGED":         "Arme changée pour %s",
 		"SECTION_HANGARS":            "HANGARS :",
@@ -538,9 +538,12 @@ func init() {
 		"SECTION_EQUIPMENT":  "ÉQUIPEMENT :",
 		"LABEL_WEAPON":       "Arme :",
 		"LABEL_ARMOR":        "Armure :",
+		"LABEL_BACKPACK":     "Sac \u00e0 dos :",
+		"SECTION_BACKPACK":  "SAC \u00c0 DOS :",
 		"SECTION_AVAILABLE":  "DISPONIBLES EN STOCK :",
-		"HELP_EQUIP":         "[\u2191]/[\u2193]=Soldat  [1]=Arme  [2]=Armure  [Espace]=Équiper  [A]=Auto  [Esc]=Retour",
-		"HELP_EQUIP_TAB":     "[\u2191]/[\u2193]=Soldat  [Tab]=Cycle  [1]=Arme  [2]=Arm  [Espace]=Équiper  [A]=Auto  [Esc]=Retour",
+		"HELP_EQUIP":         "[\u2191]/[\u2193]=Soldat  [1]=Arme  [2]=Armure  [3]=Sac  [Espace]=\u00c9quiper  [A]=Auto  [Esc]=Retour",
+		"HELP_EQUIP_TAB":     "[\u2191]/[\u2193]=Soldat  [Tab]=Cycle  [1]=Arme  [2]=Arm  [3]=Sac  [Espace]=\u00c9quiper  [A]=Auto  [Esc]=Retour",
+		"HELP_EQUIP_BACKPACK": "[\u2191]/[\u2193]=Soldat  [+]/[-]=Qt\u00e9  [Espace]=Ajouter  [Esc]=Retour",
 		"MSG_NO_ITEMS":       "Aucun objet disponible !",
 		"MSG_EQUIPPED":       "%s équipé.",
 		"MSG_EQUIPPED_DONE":  "Équipé.",
@@ -912,7 +915,7 @@ func init() {
 		"OPTIONS_HELP":             "[\u2190]/[\u2192]=R\u00e9gler  [\u2191]/[\u2193]=S\u00e9lectionner  [Enter]=Basculer  [Esc]=Retour",
 		"OPTIONS_REPLAY_TUTORIAL":  "Revoir le Tutoriel",
 
-		"BATTLE_COVER_FMT":          " (\u25C8 %d%%)",
+
 		"BATTLE_LEVEL_FMT":          " [N%d]",
 		"BATTLE_MOD_ALIEN_AMBUSH":   "MODIFICATEUR DE MISSION : Embuscade extraterrestre - aliens en vigilance",
 		"BATTLE_MOD_HEAVY_FOG":      "MODIFICATEUR DE MISSION : Brouillard épais - visibilité réduite",
@@ -1090,7 +1093,7 @@ func init() {
 		"FAC_BONUS_MANUFACTURE":      "fabrication",
 		"FAC_BONUS_HP":               "PV",
 		"SIDE_HP_UNKNOWN":            "HP: ???",
-		"SIDE_ACC_UNKNOWN":           "ACC: ???",
+		"SIDE_ACC_UNKNOWN":           "PRT : ???",
 		"SIDE_TU_UNKNOWN":            "TU: ???",
 
 		// ── Slot Picker ──────────────────────────────────
@@ -1211,7 +1214,7 @@ func init() {
 		"CTRL_AUTO_EQUIP":   "Auto-Équip.",
 		"CTRL_DISMISS":      "Fermer",
 		// ── Format Strings ──
-		"SOLDIER_FORMAT":          "%-12s %s  HP:%d/%d TU:%d ACC:%d BRA:%d STR:%d W:%s A:%s Kills:%d",
+		"SOLDIER_FORMAT":          "%-12s %s  HP:%d/%d TU:%d ACC:%d BRA:%d STR:%d W:%s A:%s Morts:%d",
 		"BATTLE_COMPACT_BANNER":   "%s  HP:%d/%d  TU:%d/%d  %s",
 		"FACILITY_LINE_FORMAT":    "%-20s x%d $%dK%s",
 		"ADJACENCY_LINE_FORMAT":   "%-22s %d %s",
@@ -1333,7 +1336,7 @@ func init() {
 		"PERK_QUICK_LEARNER":           "Apprenant Rapide",
 		"PERK_QUICK_LEARNER_DESC":      "+50% XP des batailles",
 		"LABEL_INVENTORY":              "Inventaire :",
-		"SIDE_ENCUMBRANCE":             "Enc : %d (UT -%d)",
+		"SIDE_ENCUMBRANCE":             "Charge : %d (UT -%d)",
 		"MSG_ADDED_INVENTORY":          "%s ajouté à l'inventaire.",
 	})
 }
