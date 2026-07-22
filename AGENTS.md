@@ -174,6 +174,10 @@ internal/
 | Key | Action |
 |-----|--------|
 | F | Fire weapon at UFO |
+| [ / ← | Close distance |
+| ] / → | Increase distance |
+| - / ← | Close distance (alt) |
+| = / + | Increase distance (alt) |
 | M | Cycle combat mode (Attack/Cautious/Breakoff) |
 | B / Esc | Break off / Recall interceptor |
 | Any key | Dismiss result (UFO destroyed / interceptor destroyed / disengaged) |

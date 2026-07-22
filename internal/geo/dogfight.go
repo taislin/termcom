@@ -18,9 +18,10 @@ type DogfightScreen struct {
 	ufo         *UFO
 	ufoMaxHP    int
 
-	mode   data.CombatMode
-	state  string // "player_turn" or "done"
-	result string // "ufo_destroyed" / "inter_destroyed" / "disengaged"
+	mode     data.CombatMode
+	state    string // "player_turn" or "done"
+	result   string // "ufo_destroyed" / "inter_destroyed" / "disengaged"
+	rangePct float64
 
 	log1 string
 	log2 string
@@ -38,6 +39,13 @@ func NewDogfightScreen(game *engine.Game, gs *Geoscape, inter *Interceptor, ufo 
 	if city := gs.CityByID(ufo.CurrentNode()); city != nil {
 		cityName = city.LangName()
 	}
+	startRange := rangeFractionCautious
+	switch inter.Mode {
+	case data.CombatAttack:
+		startRange = rangeFractionAttack
+	case data.CombatBreakoff:
+		startRange = rangeFractionBreakoff
+	}
 	return &DogfightScreen{
 		game:        game,
 		gs:          gs,
@@ -46,6 +54,7 @@ func NewDogfightScreen(game *engine.Game, gs *Geoscape, inter *Interceptor, ufo 
 		ufoMaxHP:    ufoMaxHP,
 		mode:        inter.Mode,
 		state:       "player_turn",
+		rangePct:    startRange,
 		cityName:    cityName,
 	}
 }
@@ -63,6 +72,10 @@ func (ds *DogfightScreen) HandleKey(ev *tcell.EventKey) {
 	switch ev.Key() {
 	case tcell.KeyEscape:
 		ds.breakOff()
+	case tcell.KeyLeft:
+		ds.adjustRange(-0.1)
+	case tcell.KeyRight:
+		ds.adjustRange(0.1)
 	default:
 		switch ev.Str() {
 		case "f", "F":
@@ -71,11 +84,72 @@ func (ds *DogfightScreen) HandleKey(ev *tcell.EventKey) {
 			ds.cycleMode()
 		case "b", "B":
 			ds.breakOff()
+		case "[", "{":
+			ds.adjustRange(-0.1)
+		case "]", "}":
+			ds.adjustRange(0.1)
+		case "-", "_":
+			ds.adjustRange(-0.1)
+		case "=", "+":
+			ds.adjustRange(0.1)
 		}
 	}
 }
 
 func (ds *DogfightScreen) HandleMouse(*tcell.EventMouse) {}
+
+func (ds *DogfightScreen) adjustRange(delta float64) {
+	ds.rangePct += delta
+	if ds.rangePct < 0.05 {
+		ds.rangePct = 0.05
+	}
+	if ds.rangePct > 1.0 {
+		ds.rangePct = 1.0
+	}
+}
+
+func (ds *DogfightScreen) fireAtRange(rangePct float64) int {
+	if ds.interceptor.Ammo <= 0 {
+		return 0
+	}
+
+	// Range-based accuracy: close = better, far = worse
+	accuracy := ds.interceptor.EffectiveAccuracy()
+	if rangePct > effectiveRangeRatioThreshold {
+		accuracy = int(float64(accuracy) * (1.0 - (rangePct-effectiveRangeRatioThreshold)*rangeFalloffMultiplier))
+	}
+
+	switch ds.mode {
+	case data.CombatAttack:
+		accuracy += modeAccuracyAttackBonus
+	case data.CombatBreakoff:
+		accuracy -= modeAccuracyBreakoffPenalty
+	}
+
+	if accuracy < accuracyMin {
+		accuracy = accuracyMin
+	}
+	if accuracy > accuracyMax {
+		accuracy = accuracyMax
+	}
+
+	ds.interceptor.Ammo--
+	if rand.Intn(100) >= accuracy {
+		return 0
+	}
+
+	damage := ds.interceptor.Weapon.Damage + rand.Intn(ds.interceptor.Weapon.Damage/damageVarianceDivisor+1)
+	if rand.Intn(100) < critChancePct {
+		damage = damage * critMultiplierNum / critMultiplierDen
+	}
+
+	ds.ufo.Type.Toughness -= damage
+	if ds.ufo.Type.Toughness <= 0 {
+		ds.ufo.Active = false
+		return -1
+	}
+	return damage
+}
 
 func (ds *DogfightScreen) fire() {
 	if ds.interceptor.Ammo <= 0 {
@@ -84,7 +158,7 @@ func (ds *DogfightScreen) fire() {
 		return
 	}
 
-	damage := ds.interceptor.FireAt(ds.ufo)
+	damage := ds.fireAtRange(ds.rangePct)
 	audio.PlayShoot()
 
 	ds.log3, ds.log2 = ds.log2, ds.log1
@@ -240,12 +314,53 @@ func (ds *DogfightScreen) Render(ctx *engine.ScreenCtx) {
 		ctx.DrawString(2, logY+2, ds.log3, engine.StyleYellow)
 	}
 
+	// Range bar
+	barX := 2
+	barY := panelY + panelH + 2
+	barLen = w - 4
+	if barLen > 60 {
+		barLen = 60
+	}
+	if barLen < 10 {
+		barLen = 10
+	}
+	ctx.SetCell(barX, barY, '[', engine.StyleDefault)
+	ctx.SetCell(barX+barLen-1, barY, ']', engine.StyleDefault)
+
+	interPos := 1
+	alienPos := 1 + int(ds.rangePct*float64(barLen-3))
+	if alienPos >= barLen-1 {
+		alienPos = barLen - 2
+	}
+	if interPos == alienPos {
+		alienPos = interPos + 1
+		if alienPos >= barLen-1 {
+			alienPos = barLen - 2
+			interPos = alienPos - 1
+		}
+	}
+	for i := 1; i < barLen-1; i++ {
+		ch := '.'
+		if i == interPos {
+			ch = 'I'
+		} else if i == alienPos {
+			ch = 'A'
+		}
+		ctx.SetCell(barX+i, barY, ch, engine.StyleDefault)
+	}
+	rangeLabel := fmt.Sprintf(" %d%%", int(ds.rangePct*100))
+	ctx.DrawString(barX+barLen+1, barY, rangeLabel, engine.StyleGray)
+
 	// Action bar
 	actionY := h - 5
 	sep := "  "
 	xOff := 2
 	ctx.DrawString(xOff, actionY, "[F] Fire", engine.StyleOrange)
 	xOff += engine.StringWidth("[F] Fire") + engine.StringWidth(sep)
+	ctx.DrawString(xOff, actionY, "[[] Close", engine.StyleOrange)
+	xOff += engine.StringWidth("[[] Close") + engine.StringWidth(sep)
+	ctx.DrawString(xOff, actionY, "[]] Far", engine.StyleOrange)
+	xOff += engine.StringWidth("[]] Far") + engine.StringWidth(sep)
 	ctx.DrawString(xOff, actionY, "[M] Mode", engine.StyleOrange)
 	xOff += engine.StringWidth("[M] Mode") + engine.StringWidth(sep)
 	ctx.DrawString(xOff, actionY, "[B] Break Off", engine.StyleRed)
@@ -267,15 +382,6 @@ func (ds *DogfightScreen) Render(ctx *engine.ScreenCtx) {
 			ctx.DrawString(2, statusY, "Disengaged", engine.StyleYellow)
 		}
 		ctx.DrawString(2, statusY+1, "Press any key to continue", engine.StyleGray)
-	}
-
-	// Dogfight ASCII visual
-	visY := panelY + panelH + 5
-	if visY < statusY-4 {
-		centerX := w / 2
-		ctx.DrawString(centerX-6, visY, "  ◄══════►  ◉", engine.StyleCyan)
-		ctx.DrawString(centerX-7, visY+1, ds.interceptor.Name, engine.StyleDefault)
-		ctx.DrawString(centerX+8, visY+1, ds.ufo.Type.Short, engine.StyleRed)
 	}
 }
 
