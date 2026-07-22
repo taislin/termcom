@@ -158,8 +158,19 @@ Losing your last base ends the game.
 ### UFO Interception
 
 Press `L` to launch an interceptor at the nearest UFO. The interceptor pursues
-and engages in a short auto-resolved dogfight. The minimap shows the engagement
-with HP bars and hit/miss feedback.
+the target across the geoscape. When it reaches the UFO, a dedicated **Dogfight
+Screen** opens with turn-based combat:
+
+- **[F] Fire** — fires your interceptor's weapon, consuming 1 ammo. The UFO
+  fires back immediately. Repeat until one side is destroyed or you break off.
+- **[M] Mode** — cycle between Attack (+10% accuracy, closer range), Cautious
+  (balanced), and Breakoff (auto-disengage if heavily damaged).
+- **[B] / [Esc] Break Off** — recall the interceptor to base.
+
+Each hit depletes a portion of the target's HP; ammo is tracked per interceptor
+and **automatically rearmed** when the craft returns to base. The dogfight
+resolves when the UFO is destroyed (creating a crash site for tactical battle),
+the interceptor is destroyed, or the player breaks off.
 
 ### Alien Missions
 

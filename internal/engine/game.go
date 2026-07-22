@@ -47,6 +47,7 @@ const (
 	StateWeaponDesigner
 	StateSeed
 	StateLoadout
+	StateDogfight
 )
 
 type Screen interface {
@@ -410,10 +411,10 @@ func (g *Game) drainEvents() {
 					switch g.state {
 					case StateGeoscape, StateMenu:
 						g.Quit()
-					case StateBattlescape, StateDebrief:
-						if sc, ok := g.screens[g.state]; ok {
-							sc.HandleKey(e)
-						}
+				case StateBattlescape, StateDebrief, StateDogfight:
+					if sc, ok := g.screens[g.state]; ok {
+						sc.HandleKey(e)
+					}
 					default:
 						g.PopState()
 					}

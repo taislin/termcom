@@ -286,7 +286,8 @@ func (i *Interceptor) Disengage() {
 	i.TrailTick = 0
 	if i.State != nil {
 		i.State.HP = i.HP
-		i.State.Ammo = i.Ammo
+		// Auto-rearm on return to base
+		i.State.Ammo = i.Weapon.FireRate * ammoPerFireRate
 		if i.HP <= 0 {
 			i.State.Status = "destroyed"
 		} else {

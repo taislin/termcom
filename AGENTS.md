@@ -77,6 +77,7 @@ internal/
   geo/world.go             World map data (equirectangular ASCII)
   geo/ufo.go               UFO spawning, movement
   geo/interceptor.go       Interceptor launch, dogfight, weapon systems
+  geo/dogfight.go           Dedicated dogfight screen (turn-based, HP/ammo bars, fire/recall)
   geo/transfer.go          Transport movement between bases
   battle/battlescape.go    Battlescape: turn logic, TU, LOS, VFX, custom victory conditions
   battle/map.go            Tactical map generation (crash sites, terror, forest, etc.)
@@ -169,6 +170,14 @@ internal/
 | A | Auto-equip all soldiers (best weapon + armor) |
 | Esc | Back |
 
+### Key Bindings (Dogfight Screen)
+| Key | Action |
+|-----|--------|
+| F | Fire weapon at UFO |
+| M | Cycle combat mode (Attack/Cautious/Breakoff) |
+| B / Esc | Break off / Recall interceptor |
+| Any key | Dismiss result (UFO destroyed / interceptor destroyed / disengaged) |
+
 ### Key Bindings (Debrief Screen)
 | Key | Action |
 |-----|--------|
@@ -200,6 +209,7 @@ The menu auto-shows on first touch of each screen. Context-sensitive buttons per
 - **Geoscape**: Pause, Speed 1-4, Base, Launch, Save, Load, Help
 - **Battlescape**: Select, Move, Fire, Reload, End Turn, Grenade, Medikit, Crouch, Cycle, Help
 - **Base**: Facilities, Soldiers, Research, Manufacture, Transfer, Hangars, Back, Help
+- **Dogfight**: Fire, Mode, Break Off, Back, Help
 - **Other screens**: Back, Help
 
 **Responsive layouts (cols < 100):**

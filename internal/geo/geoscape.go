@@ -1035,86 +1035,9 @@ func (gs *Geoscape) dogfight(inter *Interceptor) {
 		return
 	}
 
-	// Resolve combat immediately
-	damage := inter.FireAt(ufo)
-	audio.PlayShoot()
-
-	var ufoDmg int
-	var interDestroyed bool
-
-	if damage == -1 {
-		// UFO destroyed — handle crash site / funding immediately
-		gs.Game.Funds += int64(ufo.Type.Points * 1000)
-		city := gs.CityByID(ufo.CurrentNode())
-		if city != nil && GetTile(city.X, city.Y) == 0 {
-			// lost at sea
-		} else {
-			gs.CrashSites = append(gs.CrashSites, &CrashSite{
-				UFOName: ufo.Type.Name,
-				NodeID:  ufo.CurrentNode(),
-				Seed:    rand.Int63(),
-			})
-		}
-		if inter.State != nil {
-			inter.State.Status = "available"
-			inter.State.HP = inter.HP
-		}
-	}
-
-	if ufo.Active && inter.HP > 0 {
-		ufoDmg = ufo.FireAtInterceptor(inter)
-		audio.PlayPlasmaFire()
-		if inter.State != nil {
-			inter.State.HP = inter.HP
-		}
-	}
-
-	if inter.HP <= 0 {
-		interDestroyed = true
-		if inter.State != nil {
-			inter.State.HP = 0
-			inter.State.Status = "destroyed"
-		}
-	}
-
-	// Set up animation state (messages are displayed when animation ends)
-	ufoMaxHP := ufo.Type.MaxHP
-	if ufoMaxHP <= 0 {
-		ufoMaxHP = ufo.Type.Toughness
-	}
-	ufoHP := ufo.Type.Toughness
-	if ufoHP < 0 {
-		ufoHP = 0
-	}
-	hitFlash := 0
-	if ufoDmg > 0 {
-		hitFlash = 8
-	}
-	ufoHitFlash := 0
-	if damage > 0 || damage == -1 {
-		ufoHitFlash = 6
-	}
-
-	gs.DogfightVisual = &DogfightAnim{
-		Active:      true,
-		Timer:       28,
-		Interceptor: inter,
-		UFO:         ufo,
-
-		InterHP:    inter.HP,
-		InterMaxHP: inter.MaxHP,
-		UFOHP:      ufoHP,
-		UFOMaxHP:   ufoMaxHP,
-
-		InterDamage:    damage,
-		UFODamage:      ufoDmg,
-		UFOAlive:       ufo.Active,
-		InterAlive:     inter.HP > 0,
-		InterDestroyed: interDestroyed,
-
-		HitFlash:    hitFlash,
-		UFOHitFlash: ufoHitFlash,
-	}
+	gs.Game.Paused = true
+	gs.Game.SetScreen(engine.StateDogfight, NewDogfightScreen(gs.Game, gs, inter, ufo))
+	gs.Game.PushState(engine.StateDogfight)
 }
 
 func (gs *Geoscape) spawnMission() {
