@@ -5,9 +5,26 @@ contre l'invasion alien.
 
 ## Lancer
 
+### Version Terminal
+
 ```bash
 go run ./cmd/termcom      # ou : make run
 ```
+
+### Version Navigateur (WASM)
+
+Pas de serveur backend nécessaire — s'exécute directement dans le navigateur.
+
+```bash
+# Compiler et servir
+cd cmd/termcom_wasm
+GOOS=js GOARCH=wasm go build -o ../../web_wasm/termcom.wasm .
+cd ../../web_wasm
+python -m http.server 8080
+# Ouvrir http://localhost:8080
+```
+
+Ou utilisez le script de compilation : `./scripts/build_wasm.sh`
 
 ## Boucle de Jeu
 

@@ -114,10 +114,45 @@ http://localhost:8080
 브라우저 버전은 다음을 지원합니다:
 
 - xterm.js를 통한 완전한 키보드 입력
-- WebSocket 기반 실시간 통신
 - 반응형 터미널 크기 조절
 - 모든 게임 기능 (Geoscape, Battlescape, 기지 관리)
 - **모바일 터치 플레이** — 탭하여 클릭, 길게 누르면 우클릭, 드래그하여 스크롤, 상황별 버튼이 있는 화면 제어 메뉴
+
+### 브라우저 버전 (WASM)
+
+> [!NOTE]
+> WASM 버전은 Go 백엔드 서버 없이 브라우저에서 네이티브로 렌더링됩니다.
+
+WASM 버전은 Go 게임 코어를 WebAssembly로 컴파일하고 TrueColor ANSI 지원이 있는 HTML Canvas 렌더러를 통해 브라우저에서 직접 렌더링합니다.
+
+**빠른 시작:**
+
+```bash
+# WASM 바이너리 빌드
+cd cmd/termcom_wasm
+GOOS=js GOARCH=wasm go build -o ../../web_wasm/termcom.wasm .
+
+# 로컬에서 서빙
+cd web_wasm
+python -m http.server 8080
+```
+
+또는 빌드 스크립트 사용:
+
+```bash
+./scripts/build_wasm.sh    # Linux/macOS
+.\scripts\build_wasm.ps1   # Windows
+```
+
+그런 다음 `http://localhost:8080`을 엽니다.
+
+**기능:**
+- 브라우저 네이티브 렌더링 (백엔드 서버 불필요)
+- TrueColor ANSI RGB 지원 Canvas 문자 그리드
+- 차별 렌더링 (변경된 셀만 다시 그리기)
+- CSS Transform을 통한 화면 흔들림 효과
+- 셀 크기에 따른 자동 폰트 크기 조정 (URL 매개변수 `?font=폰트이름`으로 오버라이드)
+- 모바일 터치 지원 (탭하여 클릭, 길게 눌러 우클릭, 드래그하여 스크롤)
 
 ### Android 네이티브 (실험적)
 

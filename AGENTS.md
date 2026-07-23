@@ -51,17 +51,21 @@ go build -ldflags="-X github.com/taislin/termcom/internal/engine.GameVersion=$(G
 cmd/
   termcom/              Main game entry point (with icon.ico + .syso)
   termcom_battle/       Interactive battle launcher (menu, custom battles)
+  termcom_wasm/         WASM entry point (browser, no backend)
   test_aliens/          Alien roster viewer (colored console output)
   webserver/            Web server for browser version (xterm.js)
 maps/
   *.json                Custom battle definitions (name, author, date, units, victory)
 internal/
+  datafs/datafs.go      Unified FS abstraction (os.DirFS for native, embedded for WASM)
   engine/game.go           Game state machine, main loop, input dispatch
   engine/screen.go         Low-level screen/cell rendering, FrameBuffer, styles
+  engine/screen_wasm.go    WASM tcell.Screen implementation (binary framebuffer)
+  engine/wasm_bridge.go    Go↔JS bridge (SetScreen, OnKey, termcomGetFrame)
   engine/custom_battle.go  Custom battle selection screen (split-panel, JSON loading)
   engine/debrief.go        After-action report screen (kills, casualties, stat gains, loot)
   engine/portrait.go       Soldier/alien portrait rendering (half-block PixelImage)
-  engine/vfx.go            True-color lighting, alpha blending
+  engine/vfx.go            True-color lighting, alpha blending (MarshalBinary color fix)
   engine/particles.go      Particle system with sync.Pool (explosions, smoke)
   engine/filters.go        Vision filters (night vision, thermal overlay)
   engine/water.go          Animated water with sine-wave color cycling
@@ -85,6 +89,7 @@ internal/
   battle/unit.go           Soldiers and aliens on the tactical map
   battle/ai.go             Alien AI (patrol, seek, attack, flee, flank, retreat, senses)
   battle/input.go          Battlescape input handling (mouse + keyboard)
+  battle/tiledef.go        Tile definitions (lazy-loads JSONC, datafs-first)
   base/base.go             Base management screen
   base/facility.go         Facility types, construction, base state, hangars
   base/equip.go            Soldier equipment screen
@@ -118,6 +123,17 @@ internal/
 - **Translations**: Every language file in `internal/language/` must be kept in sync. When adding or changing a string key, add/change it in ALL language files (en, zh, es, fr, ru, pt, ja, ko). The language files are: `en.go`, `zh.go`, `es.go`, `fr.go`, `ru.go`, `pt.go`, `ja.go`, `ko.go`. Never add a key to only one file.
 - **Version bumps**: Before every push (unless told otherwise), increment `VERSION` by +0.0.1 (e.g. 0.45 → 0.45.1). Only change the middle field when explicitly told. `GameVersion` in `internal/engine/config.go` reads from the `VERSION` file at startup via `init()`; the menu displays it as the centered subtitle. There is no per-language version string to update.
 - **Pre-commit checks**: Before committing, always run `make lint` (go vet + staticcheck). On Windows, run `go vet ./... && staticcheck ./...`. staticcheck MUST pass. Never commit code that staticcheck reports warnings on.
+
+### WASM / Browser Version
+- Build: `cd cmd/termcom_wasm && GOOS=js GOARCH=wasm go build -o ../../web_wasm/termcom.wasm .`
+- Or use: `./scripts/build_wasm.sh` (Linux/macOS) / `.\scripts\build_wasm.ps1` (Windows)
+- Data files (`data/`, `maps/`) are copied to `cmd/termcom_wasm/wasmdata/` at build time and embedded via `//go:embed`
+- `internal/datafs` provides unified FS abstraction: `os.DirFS(".")` for native, `fs.FS` for WASM
+- All data loaders (`tiledef.go`, `mapgen.go`, `alien_templates.go`, `wfc.go`) use `datafs` first, fall back to `os` for `..` paths
+- WASM entry point: `cmd/termcom_wasm/main.go` — registers all screens, sets up `datafs.Set(embeddedFS())`
+- Canvas renderer in `web_wasm/index.html` — differential rendering via dirty flag
+- Local testing: `cd web_wasm && python -m http.server 8080`
+- `.gitignore`: `*.wasm`, `web_wasm/wasm_exec.js`, `cmd/termcom_wasm/wasmdata/`
 
 ### Game Conventions (faithful to original X-COM)
 - Time Units (TU) for all actions in Battlescape

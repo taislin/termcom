@@ -114,10 +114,45 @@ http://localhost:8080
 浏览器版本支持：
 
 - 通过 xterm.js 实现完整的键盘输入
-- 基于 WebSocket 的实时通信
 - 响应式的终端尺寸调整
 - 全部游戏功能（Geoscape、Battlescape、基地管理）
 - **移动端触控游玩** — 点按即点击、长按为右键、拖拽为滚动，并带有上下文相关的屏幕控制菜单
+
+### 浏览器版本 (WASM)
+
+> [!NOTE]
+> WASM 版本无需 Go 后端服务器，直接在浏览器中原生渲染。
+
+WASM 版本将 Go 游戏核心编译为 WebAssembly，通过支持 TrueColor ANSI 的 HTML Canvas 渲染器直接在浏览器中渲染。
+
+**快速开始：**
+
+```bash
+# 构建 WASM 二进制文件
+cd cmd/termcom_wasm
+GOOS=js GOARCH=wasm go build -o ../../web_wasm/termcom.wasm .
+
+# 本地服务
+cd web_wasm
+python -m http.server 8080
+```
+
+或使用构建脚本：
+
+```bash
+./scripts/build_wasm.sh    # Linux/macOS
+.\scripts\build_wasm.ps1   # Windows
+```
+
+然后打开 `http://localhost:8080`。
+
+**特性：**
+- 浏览器原生渲染（无需后端服务器）
+- 支持 TrueColor ANSI RGB 的 Canvas 字符网格
+- 差分渲染（仅重绘变更的单元格）
+- 通过 CSS Transform 实现屏幕震动效果
+- 基于单元格尺寸的自动字体缩放（可通过 URL 参数 `?font=字体名` 覆盖）
+- 移动端触控支持（点按即点击、长按为右键、拖拽为滚动）
 
 ### Android 原生版本（实验性）
 

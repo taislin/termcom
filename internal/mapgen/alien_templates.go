@@ -4,7 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path/filepath"
+
+	"github.com/taislin/termcom/internal/datafs"
 )
 
 // AlienTemplate represents a single body-part pixel template loaded from JSON.
@@ -38,15 +39,20 @@ func ResetAliens() {
 // LoadAlienTemplates reads all .json/.jsonc files in dir and registers the
 // alien templates they contain.
 func LoadAlienTemplates(dir string) error {
-	entries, err := os.ReadDir(dir)
+	entries, err := datafs.ReadDir(dir)
 	if err != nil {
-		return fmt.Errorf("alien templates: read dir %s: %w", dir, err)
+		// Fallback: OS filesystem (supports .. paths, test environments)
+		osEntries, osErr := os.ReadDir(dir)
+		if osErr != nil {
+			return fmt.Errorf("alien templates: read dir %s: %w", dir, err)
+		}
+		entries = osEntries
 	}
 	for _, e := range entries {
 		if e.IsDir() || !IsJSONFile(e.Name()) {
 			continue
 		}
-		path := filepath.Join(dir, e.Name())
+		path := dir + "/" + e.Name()
 		if err := loadAlienFile(path); err != nil {
 			return err
 		}

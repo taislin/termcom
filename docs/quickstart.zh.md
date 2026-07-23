@@ -4,9 +4,26 @@
 
 ## 运行
 
+### 终端版本
+
 ```bash
 go run ./cmd/termcom      # 或：make run
 ```
+
+### 浏览器版本 (WASM)
+
+无需后端服务器 — 直接在浏览器中运行。
+
+```bash
+# 构建并启动
+cd cmd/termcom_wasm
+GOOS=js GOARCH=wasm go build -o ../../web_wasm/termcom.wasm .
+cd ../../web_wasm
+python -m http.server 8080
+# 打开 http://localhost:8080
+```
+
+或使用构建脚本：`./scripts/build_wasm.sh`
 
 ## 游戏循环
 

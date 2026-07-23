@@ -25,6 +25,35 @@ make lint          # Run go vet + staticcheck
 make clean         # Remove binary and coverage
 ```
 
+### WASM Build (Browser Version)
+
+```bash
+# Build WASM binary
+cd cmd/termcom_wasm
+GOOS=js GOARCH=wasm go build -o ../../web_wasm/termcom.wasm .
+
+# Or use build script
+./scripts/build_wasm.sh    # Linux/macOS
+.\scripts\build_wasm.ps1   # Windows
+
+# Test locally
+cd web_wasm
+python -m http.server 8080
+# Open http://localhost:8080
+```
+
+**Architecture:**
+- `cmd/termcom_wasm/main.go` — WASM entry point, registers screens, sets `datafs.Set(embeddedFS())`
+- `cmd/termcom_wasm/embed.go` — `//go:embed wasmdata` embeds data files
+- `internal/datafs/datafs.go` — Unified FS abstraction (`ReadFile`, `ReadDir`, `Glob`)
+- `internal/engine/screen_wasm.go` — tcell.Screen implementation for WASM (binary framebuffer)
+- `internal/engine/wasm_bridge.go` — Go↔JS bridge (SetScreen, OnKey, termcomGetFrame)
+- `web_wasm/index.html` — Canvas renderer with differential rendering
+
+**Data embedding:** Data files (`data/`, `maps/`) are copied to `cmd/termcom_wasm/wasmdata/` at build time, embedded via `//go:embed`, and served as `fs.FS` through `internal/datafs`. All data loaders use `datafs` first, fall back to `os` for `..` paths.
+
+**Font configuration:** Canvas auto-sizes font based on cell dimensions. Override with `?font=FontName` URL parameter.
+
 ## Testing
 
 ### Running Tests
@@ -248,6 +277,9 @@ go run ./cmd/termcom_battle
 cmd/
   termcom/              Main game entry point
   termcom_battle/       Test script: interactive battle launcher
+  termcom_wasm/         WASM entry point (browser, no backend)
+    main.go             Registers screens, sets up datafs
+    embed.go            //go:embed wasmdata (embedded data files)
   test_aliens/          Alien roster viewer (console output)
   test_map/             Map visualiser (tcell render of any generator)
   scenario_creator/     Interactive scenario JSON creator
@@ -255,6 +287,9 @@ cmd/
   webserver/            Web server (for remote play)
 maps/
   *.json                Custom battle definitions
+web_wasm/
+  index.html            Canvas renderer for WASM version
+  termcom.wasm          Built WASM binary (gitignored)
 tools/
   map_editor.html       Browser-based full map builder (chunk stamping + tile painting)
   area_editor.html      Browser-based chunk editor (small tile-grid fragments)
@@ -275,7 +310,7 @@ data/
   maps/
     *.json              Map fragment library (biome-tagged terrain chunks)
   tiles/
-    *.json              Custom tile definitions (dynamically loaded at startup)
+    *.jsonc             Custom tile definitions (dynamically loaded at startup)
   wfc/
     ufo.json            WFC tile library: UFO interiors
     urban.json          WFC tile library: urban buildings
@@ -283,9 +318,13 @@ data/
   aliens/
     *.json              Procedural alien sprite part definitions
 internal/
+  datafs/
+    datafs.go           Unified FS abstraction (os.DirFS native, embedded WASM)
   engine/
     game.go             Game loop, state machine
     screen.go           Rendering primitives (DrawPanel, DrawString, etc.)
+    screen_wasm.go      WASM tcell.Screen implementation (binary framebuffer)
+    wasm_bridge.go      Go↔JS bridge (SetScreen, OnKey, termcomGetFrame)
     custom_battle.go    Custom battle selection screen
     portrait.go         Soldier/alien portrait rendering
     ...                 (VFX, particles, camera, menu, help, options, etc.)
@@ -298,6 +337,7 @@ internal/
     ai.go               Alien AI behavior
     gas.go              Volumetric smoke/gas
     cluster.go          Clustered terrain (blob growth, poisson sampling)
+    tiledef.go          Tile definitions (lazy-loads JSONC, datafs-first)
     ...                 (input, movement, LOS, etc.)
   mapgen/
     mapgen.go           CDDA-style mapgen chunk loader (JSON fragments)
@@ -316,6 +356,9 @@ internal/
   save/                 Save/load system, version migration
   language/             Localization strings
   audio/                Platform-specific audio synthesis
+scripts/
+  build_wasm.sh         WASM build script (Linux/macOS)
+  build_wasm.ps1        WASM build script (Windows)
 ```
 
 ## Architecture Notes

@@ -4,9 +4,26 @@ Um demake X-COM em ASCII para o seu terminal. Comande a defesa da humanidade con
 
 ## Executar
 
+### Versão de Terminal
+
 ```bash
 go run ./cmd/termcom      # ou: make run
 ```
+
+### Versão do Navegador (WASM)
+
+Sem necessidade de servidor backend — executa diretamente no navegador.
+
+```bash
+# Compilar e servir
+cd cmd/termcom_wasm
+GOOS=js GOARCH=wasm go build -o ../../web_wasm/termcom.wasm .
+cd ../../web_wasm
+python -m http.server 8080
+# Abrir http://localhost:8080
+```
+
+Ou use o script de compilação: `./scripts/build_wasm.sh`
 
 ## Ciclo de Jogo
 

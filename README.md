@@ -81,31 +81,47 @@ go build -o termcom ./cmd/termcom
 ./termcom
 ```
 
-### Browser Version (Experimental)
+### Browser Version (WASM)
 
-> [!CAUTION]
-> The browser version is experimental and may have limited functionality compared to the terminal version.
- 
-The browser version allows you to play termcom in a web browser using xterm.js.
+> [!NOTE]
+> The WASM version renders natively in the browser without a Go backend server.
 
-1. Start the web server:
+The WASM version compiles the Go game core to WebAssembly and renders directly in the browser via an HTML Canvas renderer with true-color ANSI support.
+
+**Quick start:**
 
 ```bash
-go run ./cmd/webserver
+# Build WASM binary
+cd cmd/termcom_wasm
+GOOS=js GOARCH=wasm go build -o ../../web_wasm/termcom.wasm .
+
+# Serve locally
+cd web_wasm
+python -m http.server 8080
 ```
 
-2. Open your browser and navigate to:
+Or use the build script:
 
-```
-http://localhost:8080
+```bash
+./scripts/build_wasm.sh    # Linux/macOS
+.\scripts\build_wasm.ps1   # Windows
 ```
 
-The browser version supports:
-- Full keyboard input via xterm.js
-- WebSocket-based real-time communication
-- Responsive terminal resizing
-- All game features (Geoscape, Battlescape, Base Management)
-- **Mobile touch play** — tap to click, long-press for right-click, drag to scroll, on-screen control menu with context-sensitive buttons
+Then open `http://localhost:8080`.
+
+**Features:**
+- Native browser rendering (no backend server required)
+- Canvas-based character grid with true-color ANSI RGB support
+- Differential rendering (only changed cells are repainted)
+- Screen shake effects via CSS transforms
+- Auto-sized font (override with `?font=FontName` URL parameter)
+- Mobile touch support (tap to click, long-press for right-click, drag to scroll)
+- Responsive layout for narrow screens (cols < 100)
+
+**Build requirements:**
+- Go 1.25+ (with `GOOS=js GOARCH=wasm` support)
+- `wasm_exec.js` from your Go installation (`$(go env GOROOT)/misc/wasm/wasm_exec.js`)
+- Data files (`data/`, `maps/`) are embedded at build time
 
 ### Android Native (Experimental)
 

@@ -8,6 +8,7 @@ import (
 	"sync/atomic"
 
 	"github.com/gdamore/tcell/v3"
+	"github.com/taislin/termcom/internal/datafs"
 	"github.com/taislin/termcom/internal/mapgen"
 )
 
@@ -222,6 +223,20 @@ func boolPtrVal(p *bool, def bool) bool {
 
 // InitCustomTiles loads all .json/.jsonc files from data/tiles/ directory.
 func InitCustomTiles() {
+	// Try embedded/virtual filesystem first (WASM path)
+	if entries, err := datafs.ReadDir("data/tiles"); err == nil {
+		for _, e := range entries {
+			if e.IsDir() || !mapgen.IsJSONFile(e.Name()) {
+				continue
+			}
+			path := "data/tiles/" + e.Name()
+			if err := LoadCustomTiles(path); err != nil {
+				continue
+			}
+		}
+		return
+	}
+	// Fallback: real filesystem
 	dirs := []string{"data/tiles", "../data/tiles", "../../data/tiles"}
 	for _, d := range dirs {
 		entries, err := os.ReadDir(d)
@@ -234,7 +249,6 @@ func InitCustomTiles() {
 			}
 			path := filepath.Join(d, e.Name())
 			if err := LoadCustomTiles(path); err != nil {
-				// silently skip bad files
 				continue
 			}
 		}
@@ -310,7 +324,13 @@ type jsoncTileDef struct {
 // loadBuiltinTileLibrary loads tile definitions from data/tiles/*.jsonc
 // and registers them as the built-in tile library.
 func loadBuiltinTileLibrary() {
-	// Search for data/tiles/*.jsonc by walking up from cwd
+	// Try embedded/virtual filesystem first (WASM path)
+	if m, err := datafs.Glob("data/tiles/*.jsonc"); err == nil && len(m) > 0 {
+		loadTileFiles(m, datafs.ReadFile)
+		return
+	}
+
+	// Fallback: search real filesystem by walking up from cwd
 	cwd, _ := os.Getwd()
 	var matches []string
 	for _, root := range []string{cwd} {
@@ -332,6 +352,7 @@ func loadBuiltinTileLibrary() {
 			break
 		}
 	}
+
 	// Fallback: use runtime.Caller to find the source file directory
 	if len(matches) == 0 {
 		_, srcFile, _, ok := runtime.Caller(0)
@@ -352,11 +373,15 @@ func loadBuiltinTileLibrary() {
 			}
 		}
 	}
-	if len(matches) == 0 {
-		return
+
+	if len(matches) > 0 {
+		loadTileFiles(matches, os.ReadFile)
 	}
+}
+
+func loadTileFiles(matches []string, readFile func(string) ([]byte, error)) {
 	for _, path := range matches {
-		raw, err := os.ReadFile(path)
+		raw, err := readFile(path)
 		if err != nil {
 			continue
 		}

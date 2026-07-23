@@ -5,6 +5,7 @@
 *.dll
 *.so
 *.dylib
+*.wasm
 
 # Test binary
 *.test
@@ -33,6 +34,12 @@ saves/
 
 # Logs
 *.log
+
+# WASM runtime bridge (copied from Go toolchain)
+web_wasm/wasm_exec.js
+
+# WASM build data (copied by build script)
+cmd/termcom_wasm/wasmdata/
 termcom.code-workspace
 termcom.exe
 termcom_battle.exe

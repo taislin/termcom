@@ -4,9 +4,26 @@ An ASCII X-COM demake for your terminal. Command humanity's defense against alie
 
 ## Run
 
+### Terminal Version
+
 ```bash
 go run ./cmd/termcom      # or: make run
 ```
+
+### Browser Version (WASM)
+
+No backend server required — runs natively in the browser.
+
+```bash
+# Build and serve
+cd cmd/termcom_wasm
+GOOS=js GOARCH=wasm go build -o ../../web_wasm/termcom.wasm .
+cd ../../web_wasm
+python -m http.server 8080
+# Open http://localhost:8080
+```
+
+Or use the build script: `./scripts/build_wasm.sh`
 
 ## Gameplay Loop
 

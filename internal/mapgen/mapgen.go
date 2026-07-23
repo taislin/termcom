@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
-	"path/filepath"
 	"strings"
+
+	"github.com/taislin/termcom/internal/datafs"
 )
 
 // NestedPlacement defines a sub-chunk to stamp at an offset within the parent.
@@ -160,7 +161,12 @@ func stripJSONCComments(data []byte) []byte {
 
 // ReadFileJSONC reads a file and strips JSONC comments, returning clean JSON.
 func ReadFileJSONC(path string) ([]byte, error) {
-	data, err := os.ReadFile(path)
+	data, err := datafs.ReadFile(path)
+	if err == nil {
+		return stripJSONCComments(data), nil
+	}
+	// Fallback: OS filesystem (supports .. paths)
+	data, err = os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
@@ -176,15 +182,19 @@ func IsJSONFile(name string) bool {
 
 // LoadDir parses every .json/.jsonc file in dir into the global registry.
 func LoadDir(dir string) error {
-	entries, err := os.ReadDir(dir)
+	entries, err := datafs.ReadDir(dir)
 	if err != nil {
-		return fmt.Errorf("mapgen: read dir %s: %w", dir, err)
+		// Fallback: OS filesystem (supports .. paths, test environments)
+		entries, err = os.ReadDir(dir)
+		if err != nil {
+			return fmt.Errorf("mapgen: read dir %s: %w", dir, err)
+		}
 	}
 	for _, e := range entries {
 		if e.IsDir() || !IsJSONFile(e.Name()) {
 			continue
 		}
-		path := filepath.Join(dir, e.Name())
+		path := dir + "/" + e.Name()
 		if err := LoadFile(path); err != nil {
 			return err
 		}

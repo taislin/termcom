@@ -4,9 +4,26 @@
 
 ## 실행
 
+### 터미널 버전
+
 ```bash
 go run ./cmd/termcom      # 또는: make run
 ```
+
+### 브라우저 버전 (WASM)
+
+백엔드 서버 불필요 — 브라우저에서 직접 실행.
+
+```bash
+# 빌드 및 서빙
+cd cmd/termcom_wasm
+GOOS=js GOARCH=wasm go build -o ../../web_wasm/termcom.wasm .
+cd ../../web_wasm
+python -m http.server 8080
+# http://localhost:8080 열기
+```
+
+또는 빌드 스크립트 사용: `./scripts/build_wasm.sh`
 
 ## 게임 진행 루프
 

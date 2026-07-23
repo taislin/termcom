@@ -1,0 +1,84 @@
+name: Web Release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version: '1.25'
+
+      - name: Get Version
+        id: get_version
+        run: echo "VERSION=$(cat VERSION)" >> $GITHUB_ENV
+
+      - name: Build WASM
+        env:
+          GOOS: js
+          GOARCH: wasm
+        run: |
+          WASMDATA="cmd/termcom_wasm/wasmdata"
+          mkdir -p "$WASMDATA"
+          cp -r data "$WASMDATA/"
+          cp -r maps "$WASMDATA/"
+          go build -ldflags="-s -w -X github.com/taislin/termcom/internal/engine.GameVersion=${{ env.VERSION }}" -trimpath -o web_wasm/termcom.wasm ./cmd/termcom_wasm/
+          rm -rf "$WASMDATA"
+
+      - name: Copy wasm_exec.js
+        run: |
+          WASM_EXEC="$(go env GOROOT)/lib/wasm/wasm_exec.js"
+          if [ -f "$WASM_EXEC" ]; then
+            cp "$WASM_EXEC" web_wasm/
+          else
+            WASM_EXEC="$(go env GOROOT)/misc/wasm/wasm_exec.js"
+            if [ -f "$WASM_EXEC" ]; then
+              cp "$WASM_EXEC" web_wasm/
+            else
+              echo "WARNING: wasm_exec.js not found"
+            fi
+          fi
+
+      - name: Package
+        run: |
+          DIR="termcom-web-v${{ env.VERSION }}"
+          mkdir -p "$DIR"
+          cp web_wasm/index.html web_wasm/termcom.wasm web_wasm/wasm_exec.js "$DIR/"
+          zip -r "$DIR.zip" "$DIR"
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: termcom-web-v${{ env.VERSION }}
+          path: termcom-web-v${{ env.VERSION }}.zip
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: web-v${{ env.VERSION }}
+          name: Web Release v${{ env.VERSION }}
+          body: |
+            Static web deploy for termcom v${{ env.VERSION }}.
+
+            ### Deployment
+            1. Download `termcom-web-v${{ env.VERSION }}.zip`
+            2. Extract to any web server (no backend required)
+            3. Serve with any static HTTP server:
+               ```sh
+               cd termcom-web-v${{ env.VERSION }} && python3 -m http.server 8080
+               ```
+            4. Open http://localhost:8080
+
+            Requires a browser with WebAssembly support.
+          draft: true
+          files: termcom-web-v${{ env.VERSION }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

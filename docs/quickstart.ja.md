@@ -4,9 +4,26 @@
 
 ## 実行
 
+### ターミナル版
+
 ```bash
 go run ./cmd/termcom      # または: make run
 ```
+
+### ブラウザ版 (WASM)
+
+バックエンドサーバー不要 — ブラウザで直接実行。
+
+```bash
+# ビルド＆サーブ
+cd cmd/termcom_wasm
+GOOS=js GOARCH=wasm go build -o ../../web_wasm/termcom.wasm .
+cd ../../web_wasm
+python -m http.server 8080
+# http://localhost:8080 を開く
+```
+
+またはビルドスクリプトを使用：`./scripts/build_wasm.sh`
 
 ## ゲームループ
 

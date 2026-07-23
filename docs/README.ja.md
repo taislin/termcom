@@ -114,10 +114,45 @@ http://localhost:8080
 ブラウザ版は以下をサポートします：
 
 - xterm.js 経由の完全なキーボード入力
-- WebSocket ベースのリアルタイム通信
 - レスポンシブなターミナル・リサイズ
 - 全ゲーム機能（Geoscape、Battlescape、基地管理）
 - **モバイルのタッチ操作** — タップでクリック、長押しで右クリック、ドラッグでスクロール、コンテキストに応じたボタンを持つ画面上制御メニュー
+
+### ブラウザ版（WASM）
+
+> [!NOTE]
+> WASM 版は Go バックエンドサーバーなしでブラウザにネイティブにレンダリングします。
+
+WASM 版は Go ゲームコアを WebAssembly にコンパイルし、TrueColor ANSI サポート付きの HTML Canvas レンダラを通じてブラウザに直接レンダリングします。
+
+**クイックスタート：**
+
+```bash
+# WASM バイナリをビルド
+cd cmd/termcom_wasm
+GOOS=js GOARCH=wasm go build -o ../../web_wasm/termcom.wasm .
+
+# ローカルでサーブ
+cd web_wasm
+python -m http.server 8080
+```
+
+またはビルドスクリプトを使用：
+
+```bash
+./scripts/build_wasm.sh    # Linux/macOS
+.\scripts\build_wasm.ps1   # Windows
+```
+
+その後 `http://localhost:8080` を開きます。
+
+**機能：**
+- ブラウザネイティブレンダリング（バックエンドサーバー不要）
+- TrueColor ANSI RGB サポート付き Canvas 文字グリッド
+- 差分レンダリング（変更されたセルのみ再描画）
+- CSS Transform を使った画面シェイクエフェクト
+- セルサイズに応じた自動フォントサイジング（URL パラメータ `?font=フォント名` で上書き可能）
+- モバイルタッチサポート（タップでクリック、長押しで右クリック、ドラッグでスクロール）
 
 ### Android ネイティブ版（実験的）
 

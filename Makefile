@@ -1,4 +1,4 @@
-.PHONY: build test lint coverage clean run android-aar android-apk android-install
+.PHONY: build test lint coverage clean run android-aar android-apk android-install wasm
 
 export PATH := /home/taislin/go/bin:$(PATH)
 export GOPATH := /home/taislin/gopath
@@ -37,3 +37,8 @@ android-apk: android-aar
 
 android-install: android-apk
 	cd android && gradle installDebug
+
+wasm:
+	GOOS=js GOARCH=wasm go build $(LDFLAGS) -o web_wasm/termcom.wasm ./cmd/termcom_wasm/
+	cp $(shell go env GOROOT)/lib/wasm/wasm_exec.js web_wasm/
+	@echo "WASM build complete: web_wasm/"

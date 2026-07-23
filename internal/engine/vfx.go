@@ -91,10 +91,28 @@ func (fb *FrameBuffer) MarshalBinary() []byte {
 		data[off+0] = byte(r)
 		data[off+1] = byte(r >> 8)
 		fr, fg, fbCol := cd.Fg.RGB()
+		if fr < 0 {
+			fr = 255
+		}
+		if fg < 0 {
+			fg = 255
+		}
+		if fbCol < 0 {
+			fbCol = 255
+		}
 		data[off+2] = byte(fr)
 		data[off+3] = byte(fg)
 		data[off+4] = byte(fbCol)
 		br, bg, bb := cd.Bg.RGB()
+		if br < 0 {
+			br = 0
+		}
+		if bg < 0 {
+			bg = 0
+		}
+		if bb < 0 {
+			bb = 0
+		}
 		data[off+5] = byte(br)
 		data[off+6] = byte(bg)
 		data[off+7] = byte(bb)

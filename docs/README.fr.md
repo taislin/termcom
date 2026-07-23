@@ -114,10 +114,45 @@ http://localhost:8080
 La version navigateur prend en charge :
 
 - Entrée clavier complète via xterm.js
-- Communication temps réel basée sur WebSocket
 - Redimensionnement de terminal réactif
 - Toutes les fonctionnalités du jeu (Geoscape, Battlescape, Gestion de base)
 - **Jeu tactile mobile** — tape pour cliquer, appuie longuement pour le clic droit, glisse pour défiler, menu de contrôle à l'écran avec des boutons contextuels
+
+### Version navigateur (WASM)
+
+> [!NOTE]
+> La version WASM s'affiche nativement dans le navigateur sans serveur backend Go.
+
+La version WASM compile le cœur du jeu Go en WebAssembly et affiche directement dans le navigateur via un render Canvas HTML avec support couleur ANSI vrai.
+
+**Démarrage rapide :**
+
+```bash
+# Compiler le binaire WASM
+cd cmd/termcom_wasm
+GOOS=js GOARCH=wasm go build -o ../../web_wasm/termcom.wasm .
+
+# Servir localement
+cd web_wsm
+python -m http.server 8080
+```
+
+Ou utilisez le script de compilation :
+
+```bash
+./scripts/build_wasm.sh    # Linux/macOS
+.\scripts\build_wasm.ps1   # Windows
+```
+
+Puis ouvrez `http://localhost:8080`.
+
+**Fonctionnalités :**
+- Rendu natif dans le navigateur (pas de serveur backend requis)
+- Grille de caractères Canvas avec support couleur ANSI vrai
+- Rendu différentiel (seules les cellules modifiées sont repeintes)
+- Effets de secousse d'écran via transformations CSS
+- Police auto-dimensionnée (remplacez avec paramètre URL `?font=NomPolice`)
+- Support tactile mobile (tapez pour cliquer, appui long pour clic droit, glissez pour défiler)
 
 ### Android natif (Expérimental)
 

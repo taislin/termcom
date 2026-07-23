@@ -4,9 +4,26 @@ Una demake de X-COM en ASCII para vuestra terminal. Comandad la defensa de la hu
 
 ## Ejecutar
 
+### Versión de Terminal
+
 ```bash
 go run ./cmd/termcom      # o: make run
 ```
+
+### Versión de Navegador (WASM)
+
+No requiere servidor backend — ejecuta directamente en el navegador.
+
+```bash
+# Compilar y ejecutar
+cd cmd/termcom_wasm
+GOOS=js GOARCH=wasm go build -o ../../web_wasm/termcom.wasm .
+cd ../../web_wasm
+python -m http.server 8080
+# Abrir http://localhost:8080
+```
+
+O use el script de compilación: `./scripts/build_wasm.sh`
 
 ## Bucle de jugabilidad
 
