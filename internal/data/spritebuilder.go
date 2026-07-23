@@ -1071,8 +1071,14 @@ func stampTorso(result *AlienPixels, template []string, ox, oy int, allowWeapon 
 func stampWeapon(result *AlienPixels, template []string, ox, oy int) {
 	for y, row := range template {
 		ty := oy + y
+		if ty < 0 || ty >= SpriteH {
+			continue
+		}
 		for x, ch := range row {
 			dx := x + ox
+			if dx < 0 || dx >= SpriteW {
+				continue
+			}
 			switch ch {
 			case 'X':
 				result.Weapon[ty][dx] = true

@@ -1,26 +1,26 @@
 {
   "description": "Urban corner store map chunk",
-  "height": 5,
   "id": "urban_corner_store",
-  "rows": [
-    "WWWWWW",
-    "N.d..N",
-    "W..s.W",
-    "W.c..N",
-    "WW+WWW"
-  ],
   "tags": [
     "urban"
   ],
+  "width": 6,
+  "height": 5,
+  "rows": [
+    "ffffff",
+    "fedeaf",
+    "fedebf",
+    "gddddg",
+    "fgcfgf"
+  ],
   "terrain": {
-    "+": "TileDoor",
-    ".": "TileFloor",
-    "N": "TileWindow",
-    "W": "TileWall",
-    "c": "TileComputer",
-    "d": "TileDesk",
-    "s": "TileStorage"
+    "a": "TileChair",
+    "b": "TileDesk",
+    "c": "TileDoor",
+    "d": "TileFloor",
+    "e": "TileStorage",
+    "f": "TileWall",
+    "g": "TileWindow"
   },
-  "weight": 2,
-  "width": 6
+  "weight": 2
 }

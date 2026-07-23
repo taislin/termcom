@@ -324,8 +324,11 @@ func (bs *Battlescape) handleSmartClick(mx, my int, unit *Unit) {
 
 	if bs.Selected != nil && bs.Phase == PhasePlayerTurn {
 		bs.CursorX, bs.CursorY = mx, my
-		bs.State.CursorState = StateMove
-		bs.updateMovePath()
+		bs.MoveSelected()
+		bs.State.MovePath = nil
+		if bs.Selected != nil {
+			bs.CursorX, bs.CursorY = bs.Selected.X, bs.Selected.Y
+		}
 		return
 	}
 

@@ -1,6 +1,6 @@
 {
   "description": "Mountain ridge map chunk",
-"height": 5,
+  "height": 5,
   "id": "mountain_ridge",
   "no_rotate": true,
   "rows": [
@@ -14,7 +14,6 @@
     "mountain"
   ],
   "terrain": {
-    ".": "TileGrass",
     "B": "TileBoulder",
     "C": "TileCliffFace"
   },

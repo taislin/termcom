@@ -1,0 +1,28 @@
+{
+  "id": "urban_office_small",
+  "description": "Urban small office chunk",
+  "weight": 1,
+  "tags": [
+    "urban"
+  ],
+  "width": 7,
+  "height": 5,
+  "rows": [
+    "hhhhhhh",
+    "iaeaeai",
+    "hcebebh",
+    "hfeeegh",
+    "hhdhhhh"
+  ],
+  "terrain": {
+    "a": "TileChair",
+    "b": "TileComputer",
+    "c": "TileDesk",
+    "d": "TileDoor",
+    "e": "TileFloor",
+    "f": "TileLocker",
+    "g": "TileStorage",
+    "h": "TileWall",
+    "i": "TileWindow"
+  }
+}

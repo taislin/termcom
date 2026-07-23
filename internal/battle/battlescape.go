@@ -3627,7 +3627,7 @@ func (bs *Battlescape) drawModeBanner(ctx *engine.ScreenCtx, sideX, y int) {
 	for i := 0; i < bs.SidebarW; i++ {
 		ctx.SetCell(sideX+i, y, ' ', bannerStyle)
 	}
-	ctx.DrawString(sideX, y, fmt.Sprintf(" %s ", label), bannerStyle)
+	ctx.DrawString(sideX, y, fmt.Sprintf(" Mode: %s ", label), bannerStyle)
 }
 
 func (bs *Battlescape) sidebarLayout(ctx *engine.ScreenCtx, viewW, viewH, w, h int) (sideX, sideY0, sideH int) {

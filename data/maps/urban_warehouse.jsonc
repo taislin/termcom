@@ -1,27 +1,32 @@
 {
-  "description": "Urban warehouse map chunk",
-  "height": 8,
   "id": "urban_warehouse",
-  "rows": [
-    "WWWWWWWWWW",
-    "W.m.....mW",
-    "W...s....W",
-    "W.m...m..W",
-    "W........W",
-    "W..s..s..W",
-    "W.m.....mW",
-    "WWWWW+WWWW"
-  ],
+  "description": "Urban warehouse map chunk",
+  "weight": 1,
   "tags": [
     "urban"
   ],
+  "width": 10,
+  "height": 8,
+  "rows": [
+    "gggggggggg",
+    "gcfccccifg",
+    "gjcchhcccg",
+    "gdecccfchg",
+    "gcccccccag",
+    "gfchcihccg",
+    "gcfcccccfg",
+    "gggggbgggg"
+  ],
   "terrain": {
-    "+": "TileDoor",
-    ".": "TileFloor",
-    "W": "TileWall",
-    "m": "TileMachinery",
-    "s": "TileStorage"
-  },
-  "weight": 1,
-  "width": 10
+    "a": "TileDockCrate",
+    "b": "TileDoor",
+    "c": "TileFloor",
+    "d": "TileForklift",
+    "e": "TileForkliftRight",
+    "f": "TileMachinery",
+    "g": "TileMetalWall",
+    "h": "TileStorage",
+    "i": "TileTimber",
+    "j": "TileTractorCab"
+  }
 }

@@ -1,25 +1,24 @@
 {
-  "description": "Urban park large map chunk",
-"height": 8,
   "id": "urban_park_large",
-  "rows": [
-    "pppppppppp",
-    "p..tt..ttp",
-    "p..tt..ttp",
-    "pppppppppp",
-    "p..tt..ttp",
-    "p..tt..ttp",
-    "pppppppppp",
-    "pppppppppp"
-  ],
+  "description": "Urban park large map chunk",
+  "weight": 2,
   "tags": [
     "urban"
   ],
+  "width": 8,
+  "height": 8,
+  "rows": [
+    "a..aa..a",
+    "baabbaab",
+    "baabbaab",
+    "a..aa..a",
+    "baabbaab",
+    "baabbaab",
+    "a..aa..a",
+    "........"
+  ],
   "terrain": {
-    ".": "TileGrass",
-    "p": "TileGrass",
-    "t": "TileTree"
-  },
-  "weight": 2,
-  "width": 10
+    "a": "TileBush",
+    "b": "TileTree"
+  }
 }

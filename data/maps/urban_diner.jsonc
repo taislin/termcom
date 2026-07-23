@@ -1,27 +1,28 @@
 {
   "description": "Urban diner map chunk",
-  "height": 7,
   "id": "urban_diner",
+  "width": 10,
+  "height": 7,
   "rows": [
-    "WWWWWWWWWW",
-    "W........W",
-    "WCCC+CCCCW",
-    "Ws......sW",
-    "Ws.s..s.sW",
-    "Ws.s..s.sW",
-    "N...+....N"
+    "ffffffffff",
+    "fdddddcdef",
+    "fbbbcbffff",
+    "fddddddddf",
+    "fbaaddbaaf",
+    "fbabddbabf",
+    "ggggccgggg"
   ],
+  "terrain": {
+    "a": "TileChairLeft",
+    "b": "TileDesk",
+    "c": "TileDoor",
+    "d": "TileFloor",
+    "e": "TileStorage",
+    "f": "TileWall",
+    "g": "TileWindow"
+  },
   "tags": [
     "urban"
   ],
-  "terrain": {
-    "+": "TileDoor",
-    ".": "TileFloor",
-    "N": "TileWindow",
-    "W": "TileWall",
-    "C": "TileDesk",
-    "s": "TileStorage"
-  },
-  "weight": 2,
-  "width": 10
+  "weight": 2
 }

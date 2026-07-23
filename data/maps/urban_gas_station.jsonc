@@ -1,33 +1,34 @@
 {
   "description": "Urban gas station map chunk",
   "height": 10,
+  "width": 15,
   "id": "urban_gas_station",
   "no_rotate": true,
   "rows": [
-    "...............",
-    "WWWWWWWWWWWWWWW",
-    "W......s.s.s.sW",
-    "WCCCCC.s.s.s.sW",
-    "W.............W",
-    "WVWVWVW+WVWVWVW",
-    ".O...O...O...O.",
-    ".P...P...P...P.",
-    ".P...P...P...P.",
-    "..............."
+    "fffffffffffffff",
+    "hhhhhhhhhhhhhhh",
+    "hdadaddgdgdgdgh",
+    "hbbbbbdgdgdgdgh",
+    "hdddddddddddddh",
+    "hhiiihhchhiiihh",
+    "fffffffffffffff",
+    "fefffefffefffef",
+    "fefffefffefffef",
+    "fffffffffffffff"
   ],
   "tags": [
     "urban"
   ],
   "terrain": {
-    "+": "TileDoor",
-    ".": "TilePavement",
-    "V": "TileWindow",
-    "W": "TileWall",
-    "C": "TileDesk",
-    "O": "TileObject",
-    "P": "TileFuelPump",
-    "s": "TileStorage"
+    "a": "TileChair",
+    "b": "TileDesk",
+    "c": "TileDoor",
+    "d": "TileFloor",
+    "f": "TilePavement",
+    "g": "TileStorage",
+    "e": "TileFuelPump",
+    "h": "TileWall",
+    "i": "TileWindow"
   },
-  "weight": 2,
-  "width": 15
+  "weight": 2
 }

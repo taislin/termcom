@@ -1,37 +1,38 @@
 {
   "description": "Urban bank map chunk",
-  "height": 15,
   "id": "urban_bank",
+  "width": 15,
+  "height": 15,
   "rows": [
-    "WWWWWWWWWWWWWWW",
-    "N....D..D....N",
-    "W.............W",
-    "W..WW+WWWWW...W",
-    "W..W.C.C.C.W..W",
-    "W..W.......W..W",
-    "W..W.V.V.V.W..W",
-    "W..WWWWWWW.W..W",
-    "W..LW...LV.W..W",
-    "W..W.......W..W",
-    "W..WW...+W.W..W",
-    "N............N",
-    "W......D......W",
-    "W.............W",
-    "WWWWW+WWWWWWWWW"
+    "hhhhhhhhhhhhhhh",
+    "iffgfgfgfgfgffi",
+    "hgfffffffffffgh",
+    "hffhhehhhhhhffh",
+    "igfhfcfcfcfhfgi",
+    "hffhfffffffhffh",
+    "hgfhfafafafhfgh",
+    "hffhhhhhhhfhffh",
+    "igfghfffgafhfgi",
+    "hffhfbbbfffhffh",
+    "hhehhdddehhhehh",
+    "ifffffffffffffi",
+    "hfffffffffffffh",
+    "hbbbfffbbbbbbfh",
+    "hhhhhehhhhhhhhh"
   ],
+  "terrain": {
+    "a": "TileCabinet",
+    "b": "TileChair",
+    "c": "TileComputer",
+    "d": "TileDesk",
+    "e": "TileDoor",
+    "f": "TileFloor",
+    "g": "TileLocker",
+    "h": "TileWall",
+    "i": "TileWindow"
+  },
   "tags": [
     "urban"
   ],
-  "terrain": {
-    "+": "TileDoor",
-    ".": "TileFloor",
-    "N": "TileWindow",
-    "W": "TileWall",
-    "C": "TileComputer",
-    "D": "TileDesk",
-    "L": "TileLocker",
-    "V": "TileCabinet"
-  },
-  "weight": 2,
-  "width": 15
+  "weight": 2
 }

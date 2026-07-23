@@ -1,16 +1,16 @@
 {
   "description": "Bus stop cover map chunk",
-"height": 2,
+  "height": 2,
   "id": "bus_stop_cover",
   "rows": [
     "WWW",
-    "..."
+    "bbb"
   ],
   "tags": [
     "urban"
   ],
   "terrain": {
-    ".": "TilePavement",
+    "b": "TileChair",
     "W": "TileWall"
   },
   "weight": 3,

@@ -4,27 +4,28 @@
   "id": "urban_bodega",
   "no_rotate": true,
   "rows": [
-    "WWWWWWWWWW",
-    "N........N",
-    "N.DDD....N",
-    "N........N",
-    "N........N",
-    "W........W",
-    "N.CCC....N",
-    "N.CCC....N",
-    "N........N",
-    "WWWW+WWWWW"
+    "ffffffffff",
+    "fddaddedef",
+    "fdbbbdedef",
+    "fddddddddf",
+    "fdedededef",
+    "fdedededef",
+    "gddddddddg",
+    "gededdedeg",
+    "gededdedeg",
+    "fgggcggggf"
   ],
   "tags": [
     "urban"
   ],
   "terrain": {
-    "+": "TileDoor",
-    ".": "TileFloor",
-    "N": "TileWindow",
-    "W": "TileWall",
-    "C": "TileComputer",
-    "D": "TileDesk"
+    "a": "TileChair",
+    "b": "TileDesk",
+    "c": "TileDoor",
+    "d": "TileFloor",
+    "e": "TileStorage",
+    "f": "TileWall",
+    "g": "TileWindow"
   },
   "weight": 2,
   "width": 10
