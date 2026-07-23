@@ -1810,39 +1810,73 @@ func (bs *Battlescape) LeftClick() {
 	if bs.Phase != PhasePlayerTurn {
 		return
 	}
-	if bs.State.CursorState == StateMovePlan {
-		bs.State.CursorState = StateInspect
+	switch bs.State.CursorState {
+	case StateFire:
+		bs.FireWeapon()
+	case StateMove:
+		tx, ty := bs.CursorX, bs.CursorY
+		if bs.Map.Passable(tx, ty) && bs.Units.At(tx, ty) == nil {
+			bs.MoveSelected()
+		} else {
+			nx, ny := bs.findNearestPassable(tx, ty, 10)
+			if nx != tx || ny != ty {
+				bs.CursorX, bs.CursorY = nx, ny
+				bs.MoveSelected()
+			} else {
+				bs.AddMessage(language.String("MSG_CANNOT_MOVE"))
+			}
+		}
 		bs.State.MovePath = nil
-		return
+		if bs.Selected != nil {
+			bs.CursorX, bs.CursorY = bs.Selected.X, bs.Selected.Y
+		}
+	default:
+		unit := bs.Units.At(bs.CursorX, bs.CursorY)
+		if unit != nil && unit.Faction == 0 && unit.Alive && unit.Soldier != nil {
+			bs.SetSelected(unit)
+			bs.State.CursorState = StateSmart
+			bs.AddMessage(fmt.Sprintf(language.String("MSG_UNIT_SELECTED"), unit.Soldier.Name, unit.HP, unit.TU))
+			return
+		}
+		bs.State.CursorState = StateSmart
 	}
-	unit := bs.Units.At(bs.CursorX, bs.CursorY)
-	if unit != nil && unit.Faction == 0 && unit.Alive && unit.Soldier != nil {
-		bs.SetSelected(unit)
-		bs.State.CursorState = StateInspect
-		bs.AddMessage(fmt.Sprintf(language.String("MSG_UNIT_SELECTED"), unit.Soldier.Name, unit.HP, unit.TU))
-		return
-	}
-	bs.State.CursorState = StateInspect
 }
 
-// RightClick handles a right-click: in targeting mode fires, in move mode confirms movement,
-// otherwise enters move-planning mode.
+// RightClick handles a right-click: in smart mode enters move mode,
+// in fire mode cancels back to smart, in move mode confirms movement.
 func (bs *Battlescape) RightClick() {
 	if bs.Phase != PhasePlayerTurn {
 		return
 	}
-	if bs.State.CursorState == StateTargeting {
-		bs.FireWeapon()
-		return
-	}
-	if bs.State.CursorState == StateMovePlan {
-		bs.MoveSelected()
-		bs.State.CursorState = StateInspect
+	switch bs.State.CursorState {
+	case StateFire:
+		bs.State.CursorState = StateSmart
 		bs.State.MovePath = nil
-		return
+	case StateMove:
+		tx, ty := bs.CursorX, bs.CursorY
+		if bs.Map.Passable(tx, ty) && bs.Units.At(tx, ty) == nil {
+			bs.MoveSelected()
+		} else {
+			nx, ny := bs.findNearestPassable(tx, ty, 10)
+			if nx != tx || ny != ty {
+				bs.CursorX, bs.CursorY = nx, ny
+				bs.MoveSelected()
+			} else {
+				bs.AddMessage(language.String("MSG_CANNOT_MOVE"))
+			}
+		}
+		bs.State.MovePath = nil
+		if bs.Selected != nil {
+			bs.CursorX, bs.CursorY = bs.Selected.X, bs.Selected.Y
+		}
+	default:
+		bs.State.CursorState = StateMove
+		bs.State.MovePath = nil
+		if bs.Selected != nil {
+			bs.CursorX, bs.CursorY = bs.Selected.X, bs.Selected.Y
+		}
+		bs.updateMovePath()
 	}
-	bs.State.CursorState = StateMovePlan
-	bs.updateMovePath()
 }
 
 // MoveSelected moves the selected unit along the calculated path toward the cursor.
@@ -3569,13 +3603,31 @@ func (bs *Battlescape) drawSidebar(ctx *engine.ScreenCtx, viewW, viewH, w, h int
 		return
 	}
 	sideX, sideY0, sideH := bs.sidebarLayout(ctx, viewW, viewH, w, h)
+	bs.drawModeBanner(ctx, sideX, sideY0)
 	if bs.HoveredUnit != nil && bs.HoveredUnit != bs.Selected {
-		bs.drawTargetInfo(ctx, bs.HoveredUnit, sideX, sideY0, sideH)
+		bs.drawTargetInfo(ctx, bs.HoveredUnit, sideX, sideY0+1, sideH)
 		return
 	}
 	if bs.Selected != nil {
-		bs.drawUnitInfo(ctx, sideX, sideY0, sideH)
+		bs.drawUnitInfo(ctx, sideX, sideY0+1, sideH)
 	}
+}
+
+func (bs *Battlescape) drawModeBanner(ctx *engine.ScreenCtx, sideX, y int) {
+	label := bs.State.CursorState.String()
+	var bannerStyle tcell.Style
+	switch bs.State.CursorState {
+	case StateFire:
+		bannerStyle = tcell.StyleDefault.Background(color.Red).Foreground(color.XTerm15).Bold(true)
+	case StateMove:
+		bannerStyle = tcell.StyleDefault.Background(color.Green).Foreground(color.XTerm15).Bold(true)
+	default:
+		bannerStyle = tcell.StyleDefault.Background(color.Blue).Foreground(color.XTerm15).Bold(true)
+	}
+	for i := 0; i < bs.SidebarW; i++ {
+		ctx.SetCell(sideX+i, y, ' ', bannerStyle)
+	}
+	ctx.DrawString(sideX, y, fmt.Sprintf(" %s ", label), bannerStyle)
 }
 
 func (bs *Battlescape) sidebarLayout(ctx *engine.ScreenCtx, viewW, viewH, w, h int) (sideX, sideY0, sideH int) {
@@ -4103,14 +4155,16 @@ func (bs *Battlescape) ApplyCursorStyles(x, y int, style tcell.Style) tcell.Styl
 
 	if x == bs.CursorX && y == bs.CursorY {
 		switch bs.State.CursorState {
-		case StateInspect:
+		case StateSmart:
 			return engine.StyleHighlight
-		case StateTargeting:
+		case StateFire:
 			return style.Background(color.Red).Blink(true)
+		case StateMove:
+			return engine.StyleHighlight
 		}
 	}
 
-	if bs.State.CursorState == StateMovePlan {
+	if bs.State.CursorState == StateMove {
 		for _, p := range bs.State.MovePath {
 			if p[0] == x && p[1] == y {
 				return style.Background(color.DarkBlue)

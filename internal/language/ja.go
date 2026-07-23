@@ -191,9 +191,13 @@ func init() {
 		"SIDE_WEAPON":      "W: %s",
 		"SIDE_AMMO":        "弾薬: %d/%d",
 		"SIDE_FIRE_MODE":   "射撃モード: %s",
+		"SIDE_INPUT_MODE":  "入力モード: %s",
 		"FIRE_MODE_AIMED":  "狙い撃ち",
 		"FIRE_MODE_BURST":  "バースト",
 		"FIRE_MODE_AUTO":   "フルオート",
+		"MODE_SMART":       "スマート",
+		"MODE_FIRE":        "射撃",
+		"MODE_MOVE":        "移動",
 		"MSG_FIRE_MODE":    "射撃モード: %s",
 		"SIDE_ARMOR":       "A: %s",
 		"SIDE_POS":         "[%d,%d]",
@@ -381,7 +385,7 @@ func init() {
 		"MSG_VISION_NORMAL":  "通常視覚",
 
 		// Battlescape help bars
-		"HELP_BATTLESCAPE":   "[↑↓←→]=移動 [Enter]=選択 [Space]=計画/移動 [q]=切替 [f]=射撃 [Tab]=モード [r]=リロード [g]=手榴弾 [m]=Move [h]=メディキット [e]=終了 [c]=伏せ",
+		"HELP_BATTLESCAPE":   "[↑↓←→]=移動 [Enter]=選択 [Space]=計画/移動 [q]=切替 [x]=モード [Tab]=武器 [r]=リロード [g]=手榴弾 [h]=メディキット [e]=終了 [c]=伏せ",
 		"HELP_STAIRS_SUFFIX": " [<>]=階段",
 
 		// ── Base Management ───────────────────────────────

@@ -191,9 +191,13 @@ func init() {
 		"SIDE_WEAPON":      "A: %s",
 		"SIDE_AMMO":        "Muni\u00e7\u00e3o: %d/%d",
 		"SIDE_FIRE_MODE":   "Modo: %s",
+		"SIDE_INPUT_MODE":  "Entrada: %s",
 		"FIRE_MODE_AIMED":  "Mirado",
 		"FIRE_MODE_BURST":  "Rajada",
 		"FIRE_MODE_AUTO":   "Auto",
+		"MODE_SMART":       "Inteligente",
+		"MODE_FIRE":        "Fogo",
+		"MODE_MOVE":        "Mover",
 		"MSG_FIRE_MODE":    "Modo de fogo: %s",
 		"SIDE_ARMOR":       "Ar: %s",
 		"SIDE_POS":         "[%d,%d]",
@@ -381,7 +385,7 @@ func init() {
 		"MSG_VISION_NORMAL":  "VIS\u00c3O NORMAL",
 
 		// Battlescape help bars
-		"HELP_BATTLESCAPE":   "[↑↓←→]=Mover [Enter]=Selecionar [Espa\u00e7o]=Planear/Mover [q]=Circular [f]=Disparar [Tab]=Modo [r]=Recarregar [g]=Granada [m]=Move [h]=Kit m\u00e9dico [e]=Terminar [c]=Agachar",
+		"HELP_BATTLESCAPE":   "[↑↓←→]=Mover [Enter]=Selecionar [Espa\u00e7o]=Planear/Mover [q]=Circular [x]=Modo [Tab]=Arma [r]=Recarregar [g]=Granada [h]=Kit m\u00e9dico [e]=Terminar [c]=Agachar",
 		"HELP_STAIRS_SUFFIX": " [<>]=Escadas",
 
 		// ── Base Management ───────────────────────────────

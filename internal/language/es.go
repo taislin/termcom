@@ -191,9 +191,13 @@ func init() {
 		"SIDE_WEAPON":      "A: %s",
 		"SIDE_AMMO":        "Munici\u00f3n: %d/%d",
 		"SIDE_FIRE_MODE":   "Modo: %s",
+		"SIDE_INPUT_MODE":  "Entrada: %s",
 		"FIRE_MODE_AIMED":  "Apuntado",
 		"FIRE_MODE_BURST":  "Ráfaga",
 		"FIRE_MODE_AUTO":   "Auto",
+		"MODE_SMART":       "Inteligente",
+		"MODE_FIRE":        "Disparar",
+		"MODE_MOVE":        "Mover",
 		"MSG_FIRE_MODE":    "Modo de fuego: %s",
 		"SIDE_ARMOR":       "Ar: %s",
 		"SIDE_POS":         "[%d,%d]",
@@ -381,7 +385,7 @@ func init() {
 		"MSG_VISION_NORMAL":  "VISI\u00d3N NORMAL",
 
 		// Barras de ayuda de batalla
-		"HELP_BATTLESCAPE":   "[↑↓←→]=Mover [Enter]=Seleccionar [Espacio]=Planear/Mover [q]=Ciclo [f]=Disparar [Tab]=Modo [r]=Recargar [g]=Granada [m]=Move [h]=Medipack [e]=Terminar [c]=Agacharse",
+		"HELP_BATTLESCAPE":   "[↑↓←→]=Mover [Enter]=Seleccionar [Espacio]=Planear/Mover [q]=Ciclo [x]=Modo [Tab]=Arma [r]=Recargar [g]=Granada [h]=Medipack [e]=Terminar [c]=Agacharse",
 		"HELP_STAIRS_SUFFIX": " [<>]=Escaleras",
 
 		// ── Gesti\u00f3n de base ───────────────────────────────

@@ -513,8 +513,9 @@ func (ds *DogfightScreen) Render(ctx *engine.ScreenCtx) {
 	}
 	ctx.DrawString(ix+2, panelY+2, fmt.Sprintf("Ammo %s %d/%d", ammoBar, ds.interceptor.Ammo, ammoMax), ammoStyle)
 
-	// Weapon
-	ctx.DrawString(ix+2, panelY+3, fmt.Sprintf("Weapon: %s", ds.interceptor.Weapon.Name), engine.StyleDefault)
+	// Weapon and mode
+	ctx.DrawString(ix+2, panelY+3, fmt.Sprintf("W: %s", ds.interceptor.Weapon.Name), engine.StyleDefault)
+	ctx.DrawString(ix+2, panelY+4, ds.interceptor.Mode.String(), engine.StyleGray)
 
 	// UFO panel
 	ux := w/2 + 1

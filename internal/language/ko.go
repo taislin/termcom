@@ -191,9 +191,13 @@ func init() {
 		"SIDE_WEAPON":      "무:%s",
 		"SIDE_AMMO":        "탄약: %d/%d",
 		"SIDE_FIRE_MODE":   "사격 모드: %s",
+		"SIDE_INPUT_MODE":  "입력 모드: %s",
 		"FIRE_MODE_AIMED":  "정밀사격",
 		"FIRE_MODE_BURST":  "연사",
 		"FIRE_MODE_AUTO":   "자동",
+		"MODE_SMART":       "스마트",
+		"MODE_FIRE":        "발사",
+		"MODE_MOVE":        "이동",
 		"MSG_FIRE_MODE":    "사격 모드: %s",
 		"SIDE_ARMOR":       "방:%s",
 		"SIDE_POS":         "[%d,%d]",
@@ -381,7 +385,7 @@ func init() {
 		"MSG_VISION_NORMAL":  "일반 시야",
 
 		// Battlescape help bars
-		"HELP_BATTLESCAPE":   "이동 [↑↓←→]  선택 [Enter]  계획/이동 [Space]  순환 [q]  사격 [f]  모드 [Tab]  재장전 [r]  수류탄 [g]  이동 [m]  구급 [h]  턴종료 [e]  엎드리기 [c]",
+		"HELP_BATTLESCAPE":   "[↑↓←→]=이동 [Enter]=선택 [Space]=계획/이동 [q]=순환 [x]=모드 [Tab]=무기 [r]=재장전 [g]=수류탄 [h]=구급 [e]=턴종료 [c]=엎드리기",
 		"HELP_STAIRS_SUFFIX": "  [<>]=계단",
 
 		// ── Base Management ───────────────────────────────

@@ -189,9 +189,13 @@ func init() {
 		"SIDE_WEAPON":      "W: %s",
 		"SIDE_AMMO":        "Ammo: %d/%d",
 		"SIDE_FIRE_MODE":   "Mode: %s",
+		"SIDE_INPUT_MODE":  "Input: %s",
 		"FIRE_MODE_AIMED":  "Aimed",
 		"FIRE_MODE_BURST":  "Burst",
 		"FIRE_MODE_AUTO":   "Auto",
+		"MODE_SMART":       "Smart",
+		"MODE_FIRE":        "Fire",
+		"MODE_MOVE":        "Move",
 		"MSG_FIRE_MODE":    "Fire mode: %s",
 		"SIDE_ARMOR":       "A: %s",
 		"SIDE_POS":         "[%d,%d]",
@@ -379,7 +383,7 @@ func init() {
 		"MSG_VISION_NORMAL":  "NORMAL VISION",
 
 		// Battlescape help bars
-		"HELP_BATTLESCAPE":   "[↑↓←→]=Move [Enter]=Select [Space]=Plan/Move [q]=Cycle [f]=Fire [Tab]=Mode [r]=Reload [g]=Grenade [m]=Move [h]=Medikit [e]=End [c]=Crouch",
+		"HELP_BATTLESCAPE":   "[↑↓←→]=Move [Enter]=Select [Space]=Plan/Move [q]=Cycle [x]=Mode [Tab]=Weapon [r]=Reload [g]=Grenade [h]=Medikit [e]=End [c]=Crouch",
 		"HELP_STAIRS_SUFFIX": " [<>]=Stairs",
 
 		// ── Base Management ───────────────────────────────

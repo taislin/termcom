@@ -191,9 +191,13 @@ func init() {
 		"SIDE_WEAPON":      "О: %s",
 		"SIDE_AMMO":        "Патроны: %d/%d",
 		"SIDE_FIRE_MODE":   "Режим: %s",
+		"SIDE_INPUT_MODE":  "Ввод: %s",
 		"FIRE_MODE_AIMED":  "Прицельный",
 		"FIRE_MODE_BURST":  "Очередь",
 		"FIRE_MODE_AUTO":   "Авто",
+		"MODE_SMART":       "Умный",
+		"MODE_FIRE":        "Огонь",
+		"MODE_MOVE":        "Движение",
 		"MSG_FIRE_MODE":    "Режим огня: %s",
 		"SIDE_ARMOR":       "Б: %s",
 		"SIDE_POS":         "[%d,%d]",
@@ -381,7 +385,7 @@ func init() {
 		"MSG_VISION_NORMAL":  "ОБЫЧНОЕ ВИДЕНИЕ",
 
 		// Battlescape help bars
-		"HELP_BATTLESCAPE":   "[↑↓←→]=Движение [Enter]=Выбор [Space]=План/Движение [q]=Смена [f]=Огонь [Tab]=Режим [r]=Перезарядка [g]=Граната [m]=Move [h]=Медикит [e]=Конец хода [c]=Присесть",
+		"HELP_BATTLESCAPE":   "[↑↓←→]=Движение [Enter]=Выбор [Space]=План/Движение [q]=Смена [x]=Режим [Tab]=Оружие [r]=Перезарядка [g]=Граната [h]=Медикит [e]=Конец хода [c]=Присесть",
 		"HELP_STAIRS_SUFFIX": " [<>]=Лестница",
 
 		// ── Base Management ───────────────────────────────

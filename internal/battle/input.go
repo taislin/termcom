@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/taislin/termcom/internal/audio"
 	"github.com/taislin/termcom/internal/engine"
 	"github.com/taislin/termcom/internal/language"
 	"github.com/gdamore/tcell/v3"
@@ -12,15 +13,24 @@ import (
 type CursorState int
 
 const (
-	StateInspect CursorState = iota
-	StateMovePlan
-	StateTargeting
+	StateSmart CursorState = iota
+	StateFire
+	StateMove
 )
 
-// Camera pan step (tiles) for keyboard and wheel scrolling.
-const CamPanStep = 3
+func (s CursorState) String() string {
+	switch s {
+	case StateSmart:
+		return language.String("MODE_SMART")
+	case StateFire:
+		return language.String("MODE_FIRE")
+	case StateMove:
+		return language.String("MODE_MOVE")
+	}
+	return "?"
+}
 
-// Help-bar start column for hotkey hit-testing.
+const CamPanStep = 3
 const helpBarCol = 1
 
 type BattleState struct {
@@ -30,9 +40,6 @@ type BattleState struct {
 	TargetUnit   *Unit
 }
 
-// HandleEvent handles keyboard/mouse input for the battlescape.
-// IMPORTANT: Called methods (handleKey, handleMouse, etc.) must NOT acquire
-// bs.State.mu to avoid deadlock — this function already holds the lock.
 func (bs *Battlescape) HandleEvent(ev tcell.Event) {
 	bs.State.mu.Lock()
 	defer bs.State.mu.Unlock()
@@ -46,7 +53,6 @@ func (bs *Battlescape) HandleEvent(ev tcell.Event) {
 }
 
 func (bs *Battlescape) handleKey(e *tcell.EventKey) {
-	// Quit confirmation intercept
 	if bs.QuitConfirm {
 		switch {
 		case e.Str() == "y" || e.Str() == "Y" || e.Key() == tcell.KeyEnter:
@@ -58,7 +64,6 @@ func (bs *Battlescape) handleKey(e *tcell.EventKey) {
 		return
 	}
 
-	// Inventory overlay intercept
 	if bs.ShowInventory {
 		switch e.Key() {
 		case tcell.KeyUp:
@@ -100,67 +105,126 @@ func (bs *Battlescape) handleKey(e *tcell.EventKey) {
 	if bs.PlayerLock > 0 && bs.Phase == PhasePlayerTurn {
 		return
 	}
+
 	switch e.Key() {
 	case tcell.KeyEscape:
+		if bs.State.CursorState == StateFire || bs.State.CursorState == StateMove {
+			bs.State.CursorState = StateSmart
+			bs.State.MovePath = nil
+			bs.AddMessage(language.String("MODE_SMART"))
+			return
+		}
 		if bs.Phase == PhasePlayerTurn || bs.Phase == PhaseAlienTurn {
 			bs.QuitConfirm = true
 		}
 		return
-	case tcell.KeyUp: 
+
+	case tcell.KeyUp:
 		bs.MoveCursor(0, -1)
-		bs.updateMovePath()
-	case tcell.KeyDown: 
+		if bs.State.CursorState == StateMove {
+			bs.updateMovePath()
+		}
+	case tcell.KeyDown:
 		bs.MoveCursor(0, 1)
-		bs.updateMovePath()
-	case tcell.KeyLeft: 
+		if bs.State.CursorState == StateMove {
+			bs.updateMovePath()
+		}
+	case tcell.KeyLeft:
 		bs.MoveCursor(-1, 0)
-		bs.updateMovePath()
-	case tcell.KeyRight: 
+		if bs.State.CursorState == StateMove {
+			bs.updateMovePath()
+		}
+	case tcell.KeyRight:
 		bs.MoveCursor(1, 0)
-		bs.updateMovePath()
-	case tcell.KeyEnter: 
+		if bs.State.CursorState == StateMove {
+			bs.updateMovePath()
+		}
+
+	case tcell.KeyEnter:
 		bs.LeftClick()
+
 	case tcell.KeyTab:
 		bs.CycleFireMode()
 	}
-	
+
 	switch e.Str() {
 	case " ":
 		bs.RightClick()
+
 	case "w", "W":
-		bs.Camera.Pan(0, -CamPanStep)
-	case "a", "A":
-		bs.Camera.Pan(-CamPanStep, 0)
-	case "s", "S":
-		bs.Camera.Pan(0, CamPanStep)
-	case "d", "D":
-		bs.Camera.Pan(CamPanStep, 0)
-	case "q", "Q": bs.cycleUnit(1)
-	case "m", "M": 
-		bs.State.CursorState = StateMovePlan
-		if bs.Selected != nil {
-			bs.CursorX, bs.CursorY = bs.Selected.X, bs.Selected.Y
+		if bs.State.CursorState == StateSmart {
+			bs.Camera.Pan(0, -CamPanStep)
+		} else if bs.State.CursorState == StateMove {
+			bs.moveUnitOneTile(0, -1)
+		} else {
+			bs.MoveCursor(0, -1)
+			if bs.State.CursorState == StateMove {
+				bs.updateMovePath()
+			}
 		}
-		bs.updateMovePath()
-	case "f", "F": 
-		bs.State.CursorState = StateTargeting
-	case "e", "E": 
+	case "a", "A":
+		if bs.State.CursorState == StateSmart {
+			bs.Camera.Pan(-CamPanStep, 0)
+		} else if bs.State.CursorState == StateMove {
+			bs.moveUnitOneTile(-1, 0)
+		} else {
+			bs.MoveCursor(-1, 0)
+			if bs.State.CursorState == StateMove {
+				bs.updateMovePath()
+			}
+		}
+	case "s", "S":
+		if bs.State.CursorState == StateSmart {
+			bs.Camera.Pan(0, CamPanStep)
+		} else if bs.State.CursorState == StateMove {
+			bs.moveUnitOneTile(0, 1)
+		} else {
+			bs.MoveCursor(0, 1)
+			if bs.State.CursorState == StateMove {
+				bs.updateMovePath()
+			}
+		}
+	case "d", "D":
+		if bs.State.CursorState == StateSmart {
+			bs.Camera.Pan(CamPanStep, 0)
+		} else if bs.State.CursorState == StateMove {
+			bs.moveUnitOneTile(1, 0)
+		} else {
+			bs.MoveCursor(1, 0)
+			if bs.State.CursorState == StateMove {
+				bs.updateMovePath()
+			}
+		}
+
+	case "x", "X":
+		bs.State.CursorState = (bs.State.CursorState + 1) % 3
+		bs.State.MovePath = nil
+		if bs.State.CursorState == StateMove && bs.Selected != nil {
+			bs.CursorX, bs.CursorY = bs.Selected.X, bs.Selected.Y
+			bs.updateMovePath()
+		}
+		bs.AddMessage(bs.State.CursorState.String())
+
+	case "q", "Q":
+		bs.cycleUnit(1)
+
+	case "e", "E":
 		bs.EndTurn()
-	case "c", "C": 
+	case "c", "C":
 		bs.Crouch()
-	case "r", "R": 
+	case "r", "R":
 		bs.Reload()
-	case "g", "G": 
+	case "g", "G":
 		bs.Grenade()
-	case "p", "P": 
+	case "p", "P":
 		bs.PsiAttack()
-	case "h", "H": 
+	case "h", "H":
 		bs.UseMedikit()
-	case "y", "Y": 
+	case "y", "Y":
 		bs.UseMotionScanner()
-	case "t", "T": 
+	case "t", "T":
 		bs.PlaceMine()
-	case "o", "O": 
+	case "o", "O":
 		bs.Game.PushState(engine.StateOptions)
 	case "i", "I":
 		bs.openInventory()
@@ -185,7 +249,7 @@ func (bs *Battlescape) handleMouse(e *tcell.EventMouse) {
 
 	if buttons&tcell.WheelUp != 0 {
 		if mods&tcell.ModShift != 0 {
-			bs.Camera.Pan(-CamPanStep, 0) // Shift+WheelUp → pan left
+			bs.Camera.Pan(-CamPanStep, 0)
 		} else {
 			bs.Camera.Pan(0, -CamPanStep)
 		}
@@ -193,7 +257,7 @@ func (bs *Battlescape) handleMouse(e *tcell.EventMouse) {
 	}
 	if buttons&tcell.WheelDown != 0 {
 		if mods&tcell.ModShift != 0 {
-			bs.Camera.Pan(CamPanStep, 0) // Shift+WheelDown → pan right
+			bs.Camera.Pan(CamPanStep, 0)
 		} else {
 			bs.Camera.Pan(0, CamPanStep)
 		}
@@ -210,70 +274,19 @@ func (bs *Battlescape) handleMouse(e *tcell.EventMouse) {
 
 	if buttons&tcell.Button1 != 0 {
 		unit := bs.Units.At(mx, my)
+		mode := bs.State.CursorState
 
-		if unit != nil && unit.Faction == FactionHuman && unit.Alive {
-			bs.Selected = unit
-			bs.CursorX, bs.CursorY = mx, my
-			bs.State.CursorState = StateInspect
-			bs.State.MovePath = nil
-			bs.HoveredUnit = nil
-			bs.AddMessage(fmt.Sprintf(language.String("MSG_UNIT_SELECTED"), bs.Selected.Soldier.Name, bs.Selected.HP, bs.Selected.TU))
-			return
-		}
-
-		if unit != nil && unit.Faction == FactionAlien && unit.Alive {
-			bs.HoveredUnit = unit
-			// Fire mode or move mode with enemy: fire immediately
-			if bs.Selected != nil && bs.Phase == PhasePlayerTurn {
-				bs.CursorX, bs.CursorY = mx, my
-				bs.State.TargetUnit = unit
-				bs.State.CursorState = StateTargeting
-				bs.FireWeapon()
-				bs.State.CursorState = StateInspect
-			} else {
-				bs.CursorX, bs.CursorY = mx, my
-				bs.State.CursorState = StateTargeting
-				bs.State.TargetUnit = unit
-			}
-			return
-		}
-
-		// Target destructible terrain (streetlamps, pipes, fuel pumps…)
-		if bs.Selected != nil && bs.Phase == PhasePlayerTurn &&
-			bs.Map.IsDestructible(mx, my) && unit == nil {
-			bs.CursorX, bs.CursorY = mx, my
-			bs.State.TargetUnit = nil
-			bs.State.CursorState = StateTargeting
-			bs.FireWeapon()
-			bs.State.CursorState = StateInspect
-			return
-		}
-
-		if bs.State.CursorState == StateMovePlan && bs.CursorX == mx && bs.CursorY == my {
-			bs.MoveSelected()
-			bs.State.CursorState = StateInspect
-			bs.State.MovePath = nil
-			return
-		}
-
-		if bs.Selected != nil && bs.Phase == PhasePlayerTurn {
-			bs.CursorX, bs.CursorY = mx, my
-			// Fire mode: don't switch to move on empty space
-			if bs.State.CursorState != StateTargeting {
-				bs.State.CursorState = StateMovePlan
-			}
-			bs.HoveredUnit = nil
-			bs.updateMovePath()
-		} else {
-			bs.CursorX, bs.CursorY = mx, my
-			bs.State.CursorState = StateInspect
-			bs.State.MovePath = nil
-			bs.HoveredUnit = nil
+		switch mode {
+		case StateSmart:
+			bs.handleSmartClick(mx, my, unit)
+		case StateFire:
+			bs.handleFireClick(mx, my, unit)
+		case StateMove:
+			bs.handleMoveClick(mx, my, unit)
 		}
 		return
 	}
 
-	// Mouse hover (no button): show enemy info when hovering over aliens
 	if buttons == 0 {
 		unit := bs.Units.At(mx, my)
 		if unit != nil && unit.Faction == FactionAlien && unit.Alive {
@@ -284,8 +297,147 @@ func (bs *Battlescape) handleMouse(e *tcell.EventMouse) {
 	}
 }
 
+func (bs *Battlescape) handleSmartClick(mx, my int, unit *Unit) {
+	if unit != nil && unit.Faction == FactionHuman && unit.Alive {
+		bs.Selected = unit
+		bs.CursorX, bs.CursorY = mx, my
+		bs.State.CursorState = StateSmart
+		bs.State.MovePath = nil
+		bs.HoveredUnit = nil
+		bs.AddMessage(fmt.Sprintf(language.String("MSG_UNIT_SELECTED"), bs.Selected.Soldier.Name, bs.Selected.HP, bs.Selected.TU))
+		return
+	}
+
+	if unit != nil && unit.Faction == FactionAlien && unit.Alive {
+		bs.CursorX, bs.CursorY = mx, my
+		bs.FireWeapon()
+		return
+	}
+
+	if bs.Map.IsDestructible(mx, my) && unit == nil {
+		if bs.Selected != nil && bs.Phase == PhasePlayerTurn {
+			bs.CursorX, bs.CursorY = mx, my
+			bs.FireWeapon()
+			return
+		}
+	}
+
+	if bs.Selected != nil && bs.Phase == PhasePlayerTurn {
+		bs.CursorX, bs.CursorY = mx, my
+		bs.State.CursorState = StateMove
+		bs.updateMovePath()
+		return
+	}
+
+	bs.CursorX, bs.CursorY = mx, my
+	bs.State.CursorState = StateSmart
+	bs.State.MovePath = nil
+	bs.HoveredUnit = nil
+}
+
+func (bs *Battlescape) handleFireClick(mx, my int, unit *Unit) {
+	bs.CursorX, bs.CursorY = mx, my
+	if unit != nil && unit.Faction == FactionAlien && unit.Alive {
+		bs.FireWeapon()
+		return
+	}
+	if bs.Map.IsDestructible(mx, my) {
+		if bs.Selected != nil && bs.Phase == PhasePlayerTurn {
+			bs.FireWeapon()
+			return
+		}
+	}
+}
+
+func (bs *Battlescape) handleMoveClick(mx, my int, unit *Unit) {
+	if bs.Selected == nil || bs.Phase != PhasePlayerTurn {
+		bs.CursorX, bs.CursorY = mx, my
+		return
+	}
+
+	bs.CursorX, bs.CursorY = mx, my
+
+	// If target tile is passable, move normally
+	if bs.Map.Passable(mx, my) && bs.Units.At(mx, my) == nil {
+		bs.MoveSelected()
+		bs.State.MovePath = nil
+		if bs.Selected != nil {
+			bs.CursorX, bs.CursorY = bs.Selected.X, bs.Selected.Y
+		}
+		return
+	}
+
+	// Target is blocked — find nearest passable tile
+	nx, ny := bs.findNearestPassable(mx, my, 10)
+	if nx == mx && ny == my {
+		bs.AddMessage(language.String("MSG_CANNOT_MOVE"))
+		return
+	}
+	bs.CursorX, bs.CursorY = nx, ny
+	bs.MoveSelected()
+	bs.State.MovePath = nil
+	if bs.Selected != nil {
+		bs.CursorX, bs.CursorY = bs.Selected.X, bs.Selected.Y
+	}
+}
+
+func (bs *Battlescape) findNearestPassable(tx, ty, maxDist int) (int, int) {
+	for d := 1; d <= maxDist; d++ {
+		for x := tx - d; x <= tx+d; x++ {
+			for y := ty - d; y <= ty+d; y++ {
+				if x != tx-d && x != tx+d && y != ty-d && y != ty+d {
+					continue
+				}
+				if x < 0 || x >= bs.Map.Width || y < 0 || y >= bs.Map.Height {
+					continue
+				}
+				if bs.Map.Passable(x, y) && bs.Units.At(x, y) == nil {
+					return x, y
+				}
+			}
+		}
+	}
+	return tx, ty
+}
+
+func (bs *Battlescape) moveUnitOneTile(dx, dy int) {
+	if bs.Selected == nil || bs.Phase != PhasePlayerTurn {
+		return
+	}
+	nx, ny := bs.Selected.X+dx, bs.Selected.Y+dy
+	if nx < 0 || nx >= bs.Map.Width || ny < 0 || ny >= bs.Map.Height {
+		return
+	}
+	if !bs.Map.Passable(nx, ny) || bs.Units.At(nx, ny) != nil {
+		return
+	}
+	cost := bs.Map.MoveCost(nx, ny, &bs.Weather)
+	crouchExtra := 0
+	if bs.Selected.Crouching {
+		crouchExtra = 4
+	}
+	if cost+crouchExtra > bs.Selected.TU {
+		bs.AddMessage(language.String("MSG_CANNOT_MOVE"))
+		return
+	}
+	u := bs.Selected
+	u.X, u.Y = nx, ny
+	u.TU -= cost + crouchExtra
+	bs.CursorX, bs.CursorY = nx, ny
+	audio.PlayMove()
+	bs.AddMessage(fmt.Sprintf(language.String("MSG_MOVED"), u.Soldier.Name, u.X, u.Y))
+	if t := bs.Map.At(nx, ny).Type; t == TileGlass || t == TileDebris {
+		bs.EmitNoise(nx, ny, noiseAlertRadius)
+	}
+	if bs.Map.CollapseSkylight(nx, ny) {
+		bs.UnitFallsThroughSkylight(u)
+	}
+	bs.ComputeFOVForTeam()
+	bs.checkAlienReactionFire(u)
+}
+
 func (bs *Battlescape) updateMovePath() {
-	if bs.State.CursorState != StateMovePlan || bs.Selected == nil {
+	if bs.State.CursorState != StateMove || bs.Selected == nil {
 		bs.State.MovePath = nil
 		return
 	}
@@ -328,20 +480,18 @@ func (bs *Battlescape) dispatchHelpKey(key string) {
 	switch key {
 	case "q", "Q":
 		bs.cycleUnit(1)
-	case "f", "F":
-		if bs.Selected != nil && bs.Selected.Alive {
-			bs.State.CursorState = StateTargeting
+	case "x", "X":
+		bs.State.CursorState = (bs.State.CursorState + 1) % 3
+		bs.State.MovePath = nil
+		if bs.State.CursorState == StateMove && bs.Selected != nil {
+			bs.CursorX, bs.CursorY = bs.Selected.X, bs.Selected.Y
+			bs.updateMovePath()
 		}
+		bs.AddMessage(bs.State.CursorState.String())
 	case "r", "R":
 		bs.Reload()
 	case "g", "G":
 		bs.Grenade()
-	case "m", "M":
-		bs.State.CursorState = StateMovePlan
-		if bs.Selected != nil {
-			bs.CursorX, bs.CursorY = bs.Selected.X, bs.Selected.Y
-		}
-		bs.updateMovePath()
 	case "e", "E":
 		bs.EndTurn()
 	case "c", "C":
@@ -352,15 +502,23 @@ func (bs *Battlescape) dispatchHelpKey(key string) {
 		bs.RightClick()
 	case "\u2191":
 		bs.MoveCursor(0, -1)
-		bs.updateMovePath()
+		if bs.State.CursorState == StateMove {
+			bs.updateMovePath()
+		}
 	case "\u2193":
 		bs.MoveCursor(0, 1)
-		bs.updateMovePath()
+		if bs.State.CursorState == StateMove {
+			bs.updateMovePath()
+		}
 	case "\u2190":
 		bs.MoveCursor(-1, 0)
-		bs.updateMovePath()
+		if bs.State.CursorState == StateMove {
+			bs.updateMovePath()
+		}
 	case "\u2192":
 		bs.MoveCursor(1, 0)
-		bs.updateMovePath()
+		if bs.State.CursorState == StateMove {
+			bs.updateMovePath()
+		}
 	}
 }

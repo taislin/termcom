@@ -148,19 +148,25 @@ internal/
 ### Key Bindings (Battlescape)
 | Key | Action |
 |-----|--------|
-| Arrow keys / hjkl / WASD | Move cursor |
-| Space / Enter | Select unit / confirm |
+| Arrow keys | Move cursor |
+| W/A/S/D (Smart mode) | Pan map view |
+| W/A/S/D (Fire mode) | Move cursor |
+| W/A/S/D (Move mode) | Move selected unit 1 tile |
+| Enter | Select / confirm |
+| Space (Smart mode) | Enter Move mode |
+| Space (Fire mode) | Cancel to Smart |
+| Space (Move mode) | Confirm movement |
 | Q | Cycle soldiers |
-| F | Fire weapon |
 | R | Reload |
 | E / N | End turn |
 | G | Grenade |
-| M | Move mode |
+| X | Cycle input mode (Smart / Fire / Move) |
 | H | Use medikit |
 | C | Crouch |
 | V | Toggle vision mode (Normal / Night / Thermal) |
 | P | Psi attack |
-| Esc | Cancel / deselect |
+| Esc (Smart mode) | Quit confirm |
+| Esc (Fire / Move mode) | Return to Smart mode |
 | ? | Help |
 
 ### Key Bindings (Equipment)
@@ -197,6 +203,13 @@ internal/
 | Target/Attack | Left click on enemy |
 | Cancel | Right click |
 | Scroll | Mouse wheel |
+
+**Mouse behaviour per mode:**
+| Mode | Left click on empty | Left click on enemy | Left click on friendly | WASD |
+|------|---------------------|---------------------|------------------------|------|
+| Smart | Move selected unit | Fire weapon | Select unit | Pan map |
+| Fire | (move cursor) | Fire weapon | (no-op) | Move cursor |
+| Move | Move to tile (pathfinding) | Move as close as possible | (no-op) | Move cursor |
 
 ### Mobile Touch Controls
 Mobile layout activates automatically when the browser connects with `cols < 100`.
