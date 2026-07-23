@@ -3,6 +3,7 @@ package battle
 import (
 	"image"
 	"math/rand"
+	"sync"
 
 	"github.com/taislin/termcom/internal/data"
 )
@@ -19,7 +20,17 @@ const (
 )
 
 // TileRubbleCover is the cached cover value for rubble tiles.
-var TileRubbleCover = TileCover(TileRubble)
+var (
+	tileRubbleCover     int
+	tileRubbleCoverOnce sync.Once
+)
+
+func ensureTileRubbleCover() int {
+	tileRubbleCoverOnce.Do(func() {
+		tileRubbleCover = TileCover(TileRubble)
+	})
+	return tileRubbleCover
+}
 
 // CrashResult captures the outcome of a vehicle crash landing.
 type CrashResult struct {
@@ -67,7 +78,7 @@ func StampVehicleOnMap(
 			}
 			battleMap.Tiles[y][x] = Tile{
 				Type:      TileRubble,
-				Cover:     TileRubbleCover,
+				Cover:     ensureTileRubbleCover(),
 				Level:     0,
 				Rune:      '.',
 				BaseColor: 0,
@@ -206,7 +217,7 @@ func ExplodeTile(x, y int, battleMap *BattleMap, radius int) {
 		// 50% chance per point of damage to destroy
 		if rand.Intn(100) < damage*destroyProbPerDamage {
 			tile.Type = TileRubble
-			tile.Cover = TileRubbleCover
+			tile.Cover = ensureTileRubbleCover()
 			tile.Rune = '.'
 			tile.BaseColor = 0
 		}

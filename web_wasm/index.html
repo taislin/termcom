@@ -6,7 +6,6 @@
 <title>termcom</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html, body { width: 100%; height: 100%; overflow: hidden; background: #0a0a14; color: #aaa; font-family: monospace; }
@@ -25,9 +24,29 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #0a0a14; c
 #error h2 { margin-bottom: .5em; }
 #error p { margin: .3em 0; }
 #error .detail { font-size: .85em; color: #a88; }
+#fontBar {
+	position: fixed; top: 0; left: 0; right: 0; z-index: 10; height: 26px;
+	display: flex; align-items: center; gap: .5em;
+	padding: 4px 8px; background: rgba(10,10,20,0.85); font-size: 12px;
+	transition: opacity .3s, visibility .3s;
+	opacity: 0; visibility: hidden; pointer-events: none;
+}
+#fontBar.show { opacity: 1; visibility: visible; }
+#fontBar.show ~ #c { margin-top: 26px; }
+#c { transition: margin-top .3s; }
+#fontBar label { color: #888; white-space: nowrap; }
+#fontBar .hotkey { color: #555; margin-left: auto; }
+#fontPicker {
+	background: #1a1a2e; color: #ccc; border: 1px solid #444;
+	padding: 2px 4px; font-size: 12px; font-family: monospace;
+	outline: none; cursor: pointer; pointer-events: auto;
+}
+#fontPicker:focus { border-color: #68f; }
+#fontStatus { color: #666; font-size: 11px; display: none; }
 </style>
 </head>
 <body>
+<div id="fontBar"><label>Font:</label><select id="fontPicker"></select><span id="fontStatus">Loading…</span><span class="hotkey">[F1]</span></div>
 <div id="loading">
 	<div class="spinner"></div>
 	<div>Loading termcom…</div>
@@ -39,18 +58,84 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #0a0a14; c
 let CELL_W = 9;
 let CELL_H = 18;
 let FONT_SIZE = 14;
+let FONT_FAMILY = 'monospace';
+let CURRENT_FONT_KEY = 'system';
 
-// Font configuration — override via ?font= query parameter
-const urlFont = new URLSearchParams(window.location.search).get('font');
-const FONT_FAMILY = urlFont || '"Noto Sans Mono","Cascadia Code","JetBrains Mono","Fira Code","Source Code Pro","Consolas",monospace';
-// Font size set after measurement in measureFont()
+const FONTS = [
+	{ key: 'system',    label: 'System Monospace',     css: '',             family: 'monospace' },
+	{ key: 'noto',      label: 'Noto Sans Mono',       css: 'Noto+Sans+Mono',      family: '"Noto Sans Mono",monospace' },
+	{ key: 'jetbrains', label: 'JetBrains Mono',       css: 'JetBrains+Mono',      family: '"JetBrains Mono",monospace' },
+	{ key: 'firacode',  label: 'Fira Code',            css: 'Fira+Code',           family: '"Fira Code",monospace' },
+	{ key: 'cascadia',  label: 'Cascadia Code',        css: 'Cascadia+Code',       family: '"Cascadia Code",monospace' },
+	{ key: 'sourcepro', label: 'Source Code Pro',      css: 'Source+Code+Pro',     family: '"Source Code Pro",monospace' },
+	{ key: 'spacemono', label: 'Space Mono',           css: 'Space+Mono',         family: '"Space Mono",monospace' },
+	{ key: 'consolas',  label: 'Consolas',             css: '',             family: 'Consolas,monospace' },
+	{ key: 'unifont',   label: 'GNU Unifont',          css: 'unifont',      family: '"Unifont",monospace', cssUrl: 'https://cdn.jsdelivr.net/npm/@fontsource/unifont@5.2.5/index.css' },
+];
+
+const fontPicker = document.getElementById('fontPicker');
+const fontStatus = document.getElementById('fontStatus');
+const fontBar = document.getElementById('fontBar');
+
+FONTS.forEach(f => {
+	const opt = document.createElement('option');
+	opt.value = f.key;
+	opt.textContent = f.label;
+	fontPicker.appendChild(opt);
+});
+
+const urlFontKey = new URLSearchParams(window.location.search).get('font');
+const defaultKey = urlFontKey && FONTS.some(f => f.key === urlFontKey) ? urlFontKey : 'jetbrains';
+fontPicker.value = defaultKey;
+
+function applyFont(key) {
+	const font = FONTS.find(f => f.key === key);
+	if (!font) return;
+	CURRENT_FONT_KEY = key;
+	fontStatus.textContent = 'Loading…';
+	fontStatus.style.display = 'inline';
+	if (!font.css && !font.cssUrl) {
+		FONT_FAMILY = font.family;
+		afterFontLoad();
+		return;
+	}
+	const old = document.querySelector('link[data-font]');
+	if (old) old.remove();
+	const link = document.createElement('link');
+	link.rel = 'stylesheet';
+	link.setAttribute('data-font', '');
+	link.href = font.cssUrl || ('https://fonts.googleapis.com/css2?family=' + font.css + ':wght@400;700&display=swap');
+	link.onload = () => {
+			// Wait for the font to actually be rasterized before measuring
+			const primary = font.family.split(',')[0];
+			const loadIt = () => {
+				FONT_FAMILY = font.family;
+				afterFontLoad();
+			};
+			if (document.fonts && document.fonts.load) {
+				document.fonts.load('20px ' + primary, 'M').then(loadIt).catch(loadIt);
+			} else {
+				setTimeout(loadIt, 1000);
+			}
+		};
+	link.onerror = () => { fontStatus.textContent = 'Failed'; };
+	document.head.appendChild(link);
+}
+
+function afterFontLoad() {
+	measureFont();
+	resize();
+	prevData = null;
+	fontStatus.style.display = 'none';
+}
+
+fontPicker.addEventListener('change', () => applyFont(fontPicker.value));
 
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
 
 function measureFont() {
 	const probe = document.createElement('canvas').getContext('2d');
-	// Try a range of sizes to find a good readable one
 	for (let size = 20; size >= 10; size--) {
 		probe.font = size + 'px ' + FONT_FAMILY;
 		const m = probe.measureText('M');
@@ -59,7 +144,7 @@ function measureFont() {
 			? Math.ceil(probe.fontBoundingBoxAscent + probe.fontBoundingBoxDescent)
 			: Math.ceil(m.actualBoundingBoxDescent - m.actualBoundingBoxAscent) || size;
 		if (w > 0 && h > 0) {
-			FONT_SIZE = size;
+			FONT_SIZE = size + 2;
 			CELL_W = w + 2;
 			CELL_H = h + 2;
 			return;
@@ -69,7 +154,6 @@ function measureFont() {
 	CELL_W = 10;
 	CELL_H = 18;
 }
-measureFont();
 const loading = document.getElementById('loading');
 const errorDiv = document.getElementById('error');
 
@@ -84,22 +168,49 @@ let prevData = null;
 let prevW = 0, prevH = 0;
 
 const go = new Go();
-if (!WebAssembly.instantiateStreaming) {
-	showError('Browser not supported', 'This game requires WebAssembly. Try a modern browser like Chrome or Firefox.');
-} else {
-	WebAssembly.instantiateStreaming(fetch('termcom.wasm'), go.importObject).then(result => {
-		go.run(result.instance);
-		if (typeof termcomInit !== 'function') {
-			showError('Init failed', 'termcomInit not defined after WASM load.');
+
+async function loadWasmAndRun() {
+	let response;
+	try {
+		response = await fetch('termcom.wasm.gz');
+		if (!response.ok) response = null;
+	} catch (e) { response = null; }
+
+	if (!response) {
+		response = await fetch('termcom.wasm');
+		if (!response.ok) {
+			showError('Failed to load', 'Could not fetch termcom.wasm (HTTP ' + response.status + ').');
 			return;
 		}
-		termcomInit();
-		loading.style.display = 'none';
-		canvas.style.display = 'block';
-		resize();
-		canvas.focus();
-		requestAnimationFrame(renderLoop);
-	}).catch(err => {
+	}
+
+	let wasmBytes;
+	if (response.url.endsWith('.gz') && typeof DecompressionStream !== 'undefined') {
+		const stream = response.body.pipeThrough(new DecompressionStream('gzip'));
+		wasmBytes = await new Response(stream).arrayBuffer();
+	} else {
+		wasmBytes = await response.arrayBuffer();
+	}
+
+	const result = await WebAssembly.instantiate(wasmBytes, go.importObject);
+	go.run(result.instance);
+	if (typeof termcomInit !== 'function') {
+		showError('Init failed', 'termcomInit not defined after WASM load.');
+		return;
+	}
+	termcomInit();
+	applyFont(defaultKey);
+	loading.style.display = 'none';
+	canvas.style.display = 'block';
+	resize();
+	canvas.focus();
+	requestAnimationFrame(renderLoop);
+}
+
+if (!WebAssembly) {
+	showError('Browser not supported', 'This game requires WebAssembly. Try a modern browser like Chrome or Firefox.');
+} else {
+	loadWasmAndRun().catch(err => {
 		if (err.message && err.message.includes('MIME')) {
 			showError('MIME type error', 'The server must serve .wasm files as <code>application/wasm</code>. Try <code>python -m http.server 8080</code> or use a different server.');
 		} else {
@@ -204,6 +315,7 @@ function cellPos(e) {
 
 canvas.addEventListener('keydown', e => {
 	const key = e.key;
+	if (key === 'F1') { e.preventDefault(); fontBar.classList.toggle('show'); return; }
 	const handled = (() => {
 		if (key === 'ArrowUp' || key === 'ArrowDown' || key === 'ArrowLeft' || key === 'ArrowRight' ||
 		    key === 'Enter' || key === 'Escape' || key === 'Backspace' || key === 'Delete' ||

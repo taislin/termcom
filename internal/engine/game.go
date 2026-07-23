@@ -140,6 +140,17 @@ type Game struct {
 	lastState GameState
 
 	WebNotice string
+	WebWarning string
+
+	browserMode bool
+}
+
+func (g *Game) SetBrowserMode() {
+	g.browserMode = true
+}
+
+func (g *Game) IsBrowser() bool {
+	return g.browserMode
 }
 
 func (g *Game) GameOver(won bool, stats string) {
@@ -400,7 +411,12 @@ func (g *Game) drainEvents() {
 				if g.quitConfirm {
 					switch {
 					case e.Str() == "y" || e.Str() == "Y" || e.Key() == tcell.KeyEnter:
-						g.running = false
+						if g.browserMode {
+							g.quitConfirm = false
+							g.SetState(StateMenu)
+						} else {
+							g.running = false
+						}
 						return
 					case e.Str() == "n" || e.Str() == "N" || e.Key() == tcell.KeyEscape || e.Str() == "\x1b":
 						g.quitConfirm = false
@@ -434,7 +450,12 @@ func (g *Game) drainEvents() {
 					if e.Buttons() != tcell.ButtonNone {
 						x, y := e.Position()
 						if inRect(x, y, g.confirmYesRect) {
-							g.running = false
+							if g.browserMode {
+								g.quitConfirm = false
+								g.SetState(StateMenu)
+							} else {
+								g.running = false
+							}
 							return
 						}
 						if inRect(x, y, g.confirmNoRect) {
@@ -508,6 +529,11 @@ func (g *Game) Stop() {
 }
 
 func (g *Game) Quit() {
+	if g.browserMode {
+		g.quitConfirm = false
+		g.SetState(StateMenu)
+		return
+	}
 	if !Config.ConfirmDialogs {
 		g.running = false
 		return

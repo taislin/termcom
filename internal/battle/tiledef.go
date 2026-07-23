@@ -324,10 +324,18 @@ type jsoncTileDef struct {
 // loadBuiltinTileLibrary loads tile definitions from data/tiles/*.jsonc
 // and registers them as the built-in tile library.
 func loadBuiltinTileLibrary() {
-	// Try embedded/virtual filesystem first (WASM path)
-	if m, err := datafs.Glob("data/tiles/*.jsonc"); err == nil && len(m) > 0 {
-		loadTileFiles(m, datafs.ReadFile)
-		return
+	if entries, err := datafs.ReadDir("data/tiles"); err == nil {
+		var paths []string
+		for _, e := range entries {
+			if e.IsDir() || !mapgen.IsJSONFile(e.Name()) {
+				continue
+			}
+			paths = append(paths, "data/tiles/"+e.Name())
+		}
+		if len(paths) > 0 {
+			loadTileFiles(paths, datafs.ReadFile)
+			return
+		}
 	}
 
 	// Fallback: search real filesystem by walking up from cwd

@@ -88,26 +88,47 @@ func gameVersionStr() string {
 	return "v" + GameVersion
 }
 
+// Overridable save existence checks. Defaults to OS filesystem;
+// WASM replaces these with localStorage checks.
+var (
+	SaveExistsCheck     func(name string) bool = saveExistsOS
+	ContinueSaveEnabled func() bool             = continueSaveEnabledOS
+)
+
+func saveExistsOS(name string) bool {
+	_, err := os.Stat(name)
+	return err == nil
+}
+
+func continueSaveEnabledOS() bool {
+	_, err := os.Stat(SaveFile)
+	return err == nil
+}
+
 func HasSave() bool {
-	if _, err := os.Stat(SaveFile); err == nil {
+	if SaveExistsCheck(SaveFile) {
 		return true
 	}
 	for slot := 1; slot <= 10; slot++ {
-		if _, err := os.Stat(fmt.Sprintf("save_slot_%d.json", slot)); err == nil {
+		if SaveExistsCheck(savePath(slot)) {
 			return true
 		}
 	}
-	if _, err := os.Stat("autosave.json"); err == nil {
-		return true
-	}
-	return false
+	return SaveExistsCheck(autoSavePath())
 }
 
 // HasContinueSave returns true only if the main quick-save file exists,
 // which is the file that the "Continue" menu option actually loads.
 func HasContinueSave() bool {
-	_, err := os.Stat(SaveFile)
-	return err == nil
+	return ContinueSaveEnabled()
+}
+
+func autoSavePath() string { return "autosave.json" }
+func savePath(slot int) string {
+	if slot == 0 {
+		return "xcom_save.json"
+	}
+	return fmt.Sprintf("save_slot_%d.json", slot)
 }
 
 func (ms *MenuScreen) seedStars(w, h int) {
@@ -365,6 +386,9 @@ func (ms *MenuScreen) Render(ctx *ScreenCtx) {
 		ctx.DrawMarkupString(1, h-2, ms.Game.WebNotice, StyleCyanBold, StyleHotkey)
 	} else {
 		ctx.DrawMarkupString(1, h-2, language.String("MENU_HELP"), StyleGray, StyleHotkey)
+	}
+	if ms.Game.WebWarning != "" {
+		ctx.DrawString(1, h-4, ms.Game.WebWarning, StyleYellow)
 	}
 }
 

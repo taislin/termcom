@@ -19,6 +19,40 @@ const (
 	fundsDivK      = 1000
 )
 
+// Overridable save file I/O. Defaults to OS filesystem; WASM replaces these
+// with localStorage calls via syscall/js.
+var (
+	SaveWriteFile func(name string, data []byte) error = saveWriteFileOS
+	SaveReadFile  func(name string) ([]byte, error)    = saveReadFileOS
+	SaveExists    func(name string) bool               = saveExistsOS
+	SaveRemove    func(name string) error              = saveRemoveOS
+)
+
+func saveWriteFileOS(name string, data []byte) error {
+	tmp := name + ".tmp"
+	if err := os.WriteFile(tmp, data, saveFilePerm); err != nil {
+		return err
+	}
+	if err := os.Rename(tmp, name); err != nil {
+		os.Remove(tmp)
+		return err
+	}
+	return nil
+}
+
+func saveReadFileOS(name string) ([]byte, error) {
+	return os.ReadFile(name)
+}
+
+func saveExistsOS(name string) bool {
+	_, err := os.Stat(name)
+	return err == nil
+}
+
+func saveRemoveOS(name string) error {
+	return os.Remove(name)
+}
+
 type AlienBaseSave struct {
 	CityID          int
 	Threat          int
@@ -142,17 +176,7 @@ func SaveGame(path string, data *SaveData) error {
 	if err != nil {
 		return err
 	}
-	// Write to a temp file first, then rename, so a failure never leaves a
-	// truncated/corrupt save behind.
-	tmp := path + ".tmp"
-	if err := os.WriteFile(tmp, buf, saveFilePerm); err != nil {
-		return err
-	}
-	if err := os.Rename(tmp, path); err != nil {
-		os.Remove(tmp)
-		return err
-	}
-	return nil
+	return SaveWriteFile(path, buf)
 }
 
 func SaveGameToSlot(slot int, data *SaveData) error {
@@ -161,14 +185,12 @@ func SaveGameToSlot(slot int, data *SaveData) error {
 }
 
 func LoadGame(path string) (*SaveData, error) {
-	file, err := os.Open(path)
+	buf, err := SaveReadFile(path)
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
 	var data SaveData
-	err = json.NewDecoder(file).Decode(&data)
-	if err != nil {
+	if err := json.Unmarshal(buf, &data); err != nil {
 		return nil, err
 	}
 	if err := migrateSave(&data); err != nil {
@@ -235,7 +257,7 @@ func AutoSavePath() string {
 func ListSlots() []int {
 	var slots []int
 	for slot := 1; slot <= maxSlots; slot++ {
-		if _, err := os.Stat(SavePath(slot)); err == nil {
+		if SaveExists(SavePath(slot)) {
 			slots = append(slots, slot)
 		}
 	}
