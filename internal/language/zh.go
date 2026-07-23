@@ -1007,7 +1007,7 @@ func init() {
 		"GEO_AUTORESOLVE_VICTORY":      "自动决斗：在 %s 胜利！获得 $%dK。消灭 %d 名异形。",
 		"GEO_BASE_NAME_FMT":            "基地 %d",
 		"GEO_CAMPAIGN_COMPLETE":        "战役完成.H 胜利任务：%d",
-		"GEO_CRASH_LABEL":              "坠毁：%s",
+		"GEO_CRASH_LABEL":              "坠毁 [%s]: %s",
 		"GEO_MISSION_BASE_DEFENSE":     "基地防御 — %s",
 		"GEO_MISSION_CRASH_SITE":       "坠毁点 — %s",
 		"GEO_MISSION_FMT":              "任务：%s 于 %s",

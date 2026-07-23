@@ -6,6 +6,7 @@ import (
 
 	"github.com/gdamore/tcell/v3"
 	"github.com/taislin/termcom/internal/audio"
+	"github.com/taislin/termcom/internal/battle"
 	"github.com/taislin/termcom/internal/data"
 	"github.com/taislin/termcom/internal/engine"
 	"github.com/taislin/termcom/internal/language"
@@ -443,10 +444,12 @@ func (ds *DogfightScreen) finish() {
 		ds.gs.Game.Funds += int64(ds.ufo.Type.Points * 1000)
 		city := ds.gs.CityByID(ds.ufo.CurrentNode())
 		if city != nil && GetTile(city.X, city.Y) != 0 {
+			biome := battle.CrashBiomeFromCoords(city.X, city.Y)
 			ds.gs.CrashSites = append(ds.gs.CrashSites, &CrashSite{
 				UFOName: ds.ufo.Type.Name,
 				NodeID:  ds.ufo.CurrentNode(),
 				Seed:    rand.Int63(),
+				Biome:   biome,
 			})
 			ds.gs.Message = fmt.Sprintf(language.String("MSG_UFO_CRASHED"), ds.ufo.Type.DisplayName())
 		} else {

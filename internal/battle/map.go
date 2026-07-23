@@ -1050,19 +1050,55 @@ func ApplyCommands(m *BattleMap, cmds []MapCommand) {
 	}
 }
 
-// crashBiomeFromCoords maps world-map pixel coordinates (0-179, 0-89) to a
-// biome. The mapping is a deterministic function of position so that the same
-// location always gets the same terrain, giving the world a sense of place.
-func crashBiomeFromCoords(worldX, worldY int) string {
-	biomes := []string{
-		"forest", "desert", "polar", "rural",
-		"farm", "coastal", "mountain", "swamp", "jungle",
+// CrashBiomeFromCoords maps world-map pixel coordinates (0-179, 0-89) to a
+// biome using latitude-band weighted probabilities. The selection is
+// deterministic per coordinate so the same location always gets the same biome.
+func CrashBiomeFromCoords(worldX, worldY int) string {
+	type band struct {
+		start, end int
+		weights    map[string]int
 	}
-	idx := (worldX*73856093 + worldY*19349663) % len(biomes)
-	if idx < 0 {
-		idx = -idx
+	bands := []band{
+		// Far north/south: polar, some forest and mountain
+		{0, 15, map[string]int{"polar": 80, "forest": 10, "mountain": 10}},
+		{76, 89, map[string]int{"polar": 80, "forest": 10, "mountain": 10}},
+		// Mid latitudes: temperate mix
+		{16, 35, map[string]int{"forest": 25, "desert": 10, "farm": 15, "rural": 15, "coastal": 15, "urban": 15, "swamp": 5}},
+		{56, 75, map[string]int{"forest": 25, "desert": 10, "farm": 15, "rural": 15, "coastal": 15, "urban": 15, "swamp": 5}},
+		// Equatorial band: hot and wet
+		{36, 55, map[string]int{"mountain": 15, "desert": 25, "jungle": 30, "swamp": 20, "urban": 10}},
 	}
-	return biomes[idx]
+
+	var weights map[string]int
+	for _, b := range bands {
+		if worldY >= b.start && worldY <= b.end {
+			weights = b.weights
+			break
+		}
+	}
+	if weights == nil {
+		weights = bands[0].weights // fallback
+	}
+
+	// Build cumulative distribution
+	var biomes []string
+	var cum []int
+	total := 0
+	for name, w := range weights {
+		biomes = append(biomes, name)
+		total += w
+		cum = append(cum, total)
+	}
+
+	// Deterministic per coordinate
+	rng := rand.New(rand.NewSource(int64(worldX*100003 + worldY*159733)))
+	roll := rng.Intn(total)
+	for i, c := range cum {
+		if roll < c {
+			return biomes[i]
+		}
+	}
+	return biomes[len(biomes)-1]
 }
 
 // GenerateCrashSite creates a crash site map with a procedural UFO blueprint
@@ -1072,7 +1108,7 @@ func crashBiomeFromCoords(worldX, worldY int) string {
 func GenerateCrashSite(w, h int, seed int64, worldX, worldY int) (*BattleMap, *CrashResult) {
 	biome := "forest"
 	if worldX >= 0 && worldY >= 0 {
-		biome = crashBiomeFromCoords(worldX, worldY)
+		biome = CrashBiomeFromCoords(worldX, worldY)
 	}
 	rng := rand.New(rand.NewSource(seed))
 	m := AssembleMap(biome, w, h, rng)

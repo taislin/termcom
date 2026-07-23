@@ -4,13 +4,14 @@
   "id": "bus_stop_cover",
   "rows": [
     "WWW",
-    "bbb"
+    "bPb"
   ],
   "tags": [
     "urban"
   ],
   "terrain": {
     "b": "TileChair",
+    "P": "TilePavement",
     "W": "TileWall"
   },
   "weight": 3,

@@ -1011,7 +1011,7 @@ func init() {
 		"GEO_AUTORESOLVE_VICTORY":      "AUTO-RESOLVER: Vitória em %s! Ganhou $%dK. %d aliens eliminados.",
 		"GEO_BASE_NAME_FMT":            "Base %d",
 		"GEO_CAMPAIGN_COMPLETE":        "Campanha Completa.H Missões Ganhas: %d",
-		"GEO_CRASH_LABEL":              "Acidente: %s",
+		"GEO_CRASH_LABEL":              "Acidente [%s]: %s",
 		"GEO_MISSION_BASE_DEFENSE":     "Defesa da Base \u2014 %s",
 		"GEO_MISSION_CRASH_SITE":       "Local de Acidente \u2014 %s",
 		"GEO_MISSION_FMT":              "Missão: %s em %s",

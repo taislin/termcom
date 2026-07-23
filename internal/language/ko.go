@@ -1004,7 +1004,7 @@ func init() {
 		"GEO_AUTORESOLVE_VICTORY":      "자동전투: %s에서 승리! $%dK 획득. 외계인 %d마리 섬멸.",
 		"GEO_BASE_NAME_FMT":            "기지 %d",
 		"GEO_CAMPAIGN_COMPLETE":        "캠페인 완료.H 완료한 미션: %d",
-		"GEO_CRASH_LABEL":              "추락: %s",
+		"GEO_CRASH_LABEL":              "추락 [%s]: %s",
 		"GEO_MISSION_BASE_DEFENSE":     "기지 방어 \u2014 %s",
 		"GEO_MISSION_CRASH_SITE":       "추락 지점 \u2014 %s",
 		"GEO_MISSION_FMT":              "미션: %s (%s)",

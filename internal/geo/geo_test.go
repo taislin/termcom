@@ -660,7 +660,7 @@ func TestAutoresolveMissionBranches(t *testing.T) {
 func TestTransportArrivalStartsBattle(t *testing.T) {
 	g := &engine.Game{Funds: 1000000, GameTime: time.Date(1999, time.March, 1, 0, 0, 0, 0, time.UTC)}
 	gs := NewGeoscape(g)
-	cs := &CrashSite{UFOName: "Test UFO", NodeID: 2}
+	cs := &CrashSite{UFOName: "Test UFO", NodeID: 2, Biome: "forest"}
 	gs.DispatchTransport(cs)
 	if gs.Transport == nil {
 		t.Fatal("expected transport to be dispatched")

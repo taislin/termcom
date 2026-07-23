@@ -137,6 +137,7 @@ type CrashSite struct {
 	NodeID  int
 	Looted  bool
 	Seed    int64 // deterministic seed for procedural UFO blueprint
+	Biome   string
 }
 
 // Transport handles the movement of soldiers between bases.
@@ -2142,7 +2143,11 @@ func (gs *Geoscape) renderRegionTable(ctx *engine.ScreenCtx, x, y, w, h int) {
 			case *UFO:
 				name = fmt.Sprintf(language.String("GEO_UFO_LABEL"), target.Type.DisplayName())
 			case *CrashSite:
-				name = fmt.Sprintf(language.String("GEO_CRASH_LABEL"), localizeUFOName(target.UFOName))
+				biome := target.Biome
+				if biome == "" {
+					biome = "unknown"
+				}
+				name = fmt.Sprintf(language.String("GEO_CRASH_LABEL"), biome, localizeUFOName(target.UFOName))
 			}
 
 			prefix := "  "

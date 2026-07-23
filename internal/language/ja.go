@@ -1018,7 +1018,7 @@ func init() {
 		"GEO_AUTORESOLVE_VICTORY":  "自動解決: %s で勝利！ $%dK 獲得。エイリアン %d 体排除。",
 		"GEO_BASE_NAME_FMT":        "基地 %d",
 		"GEO_CAMPAIGN_COMPLETE":    "キャンペーン完了。ミッション成功数: %d",
-		"GEO_CRASH_LABEL":          "墜落: %s",
+		"GEO_CRASH_LABEL":          "墜落 [%s]: %s",
 		"GEO_MISSION_BASE_DEFENSE": "基地防衛 - %s",
 		"GEO_MISSION_CRASH_SITE":   "墜落現場 - %s",
 		"GEO_MISSION_FMT":          "ミッション: %s (%sにて)",
