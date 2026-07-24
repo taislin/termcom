@@ -5,7 +5,7 @@ go 1.25.0
 require (
 	github.com/clipperhouse/displaywidth v0.11.0
 	github.com/ebitengine/oto/v3 v3.4.0
-	github.com/mattn/go-runewidth v0.0.24
+	github.com/mattn/go-runewidth v0.0.27
 )
 
 require (
