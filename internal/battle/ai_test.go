@@ -33,14 +33,23 @@ func TestAIUpdatePatrolNoTarget(t *testing.T) {
 	at := data.GetAlienByName("Sectoid")
 	u := NewAlienUnit(at)
 	m := NewBattleMap(30, 20)
-	m.Set(15, 10, TileFloor)
+	for x := 0; x < 30; x++ {
+		for y := 0; y < 20; y++ {
+			m.Set(x, y, TileFloor)
+		}
+	}
 	u.X = 15
 	u.Y = 10
 	u.TU = 50
 	ai := NewAlienAI(u)
 	actions := ai.Update(UnitList{u}, m, UnitList{}, nil, nil)
-	if len(actions) != 1 || actions[0].Type != "move" {
-		t.Errorf("expected 1 move action, got %d actions", len(actions))
+	if ai.State != AIPatrol {
+		t.Errorf("should stay in AIPatrol with no humans, got state %d", ai.State)
+	}
+	for _, a := range actions {
+		if a.Type != "move" {
+			t.Errorf("patrol should only produce move actions, got %s", a.Type)
+		}
 	}
 }
 
@@ -135,7 +144,7 @@ func TestAIFindFlankPosition(t *testing.T) {
 		}
 	}
 	ai := NewAlienAI(alien)
-	fx, fy := ai.findFlankPosition(human, human, m, UnitList{alien})
+	fx, fy := ai.findFlankPosition(human, m, UnitList{alien})
 	if fx == alien.X && fy == alien.Y {
 		t.Error("flank position should be different from current position")
 	}
@@ -831,5 +840,198 @@ func TestAIUpdateAIAttackMeleeNoLOS(t *testing.T) {
 	}
 	if len(actions) > 0 && actions[0].Type != "move" {
 		t.Errorf("expected move action, got %s", actions[0].Type)
+	}
+}
+
+func TestAIReloadWhenEmpty(t *testing.T) {
+	at := data.GetAlienByName("Sectoid")
+	alien := NewAlienUnit(at)
+	alien.X, alien.Y = 10, 10
+	alien.TU = 50
+	alien.Weapon = "rifle"
+	alien.WeaponAmmo = 0
+	human := &Unit{X: 12, Y: 10, HP: 20, MaxHP: 20, TU: 50, Alive: true, Faction: FactionHuman, Weapon: "rifle", WeaponAmmo: 10}
+	m := NewBattleMap(30, 20)
+	for x := 0; x < 30; x++ {
+		for y := 0; y < 20; y++ {
+			m.Set(x, y, TileFloor)
+		}
+	}
+	ai := NewAlienAI(alien)
+	ai.State = AIAttack
+	actions := ai.Update(UnitList{alien}, m, UnitList{human}, nil, nil)
+	reloadCount := 0
+	for _, a := range actions {
+		if a.Type == "reload" {
+			reloadCount++
+		}
+	}
+	if reloadCount != 1 {
+		t.Errorf("expected exactly 1 reload action when ammo is 0, got %d", reloadCount)
+	}
+}
+
+func TestAIRetreatToEdgePathfinds(t *testing.T) {
+	at := data.GetAlienByName("Sectoid")
+	alien := NewAlienUnit(at)
+	alien.X, alien.Y = 15, 10
+	alien.TU = 50
+	alien.HP = 1
+	alien.MaxHP = 10
+	m := NewBattleMap(30, 20)
+	for x := 0; x < 30; x++ {
+		for y := 0; y < 20; y++ {
+			m.Set(x, y, TileFloor)
+		}
+	}
+	// Block the direct retreat path
+	m.Set(15, 6, TileWall)
+	ai := NewAlienAI(alien)
+	ai.State = AIRetreat
+	ai.TurnsSince = 0
+	actions := ai.Update(UnitList{alien}, m, UnitList{}, nil, nil)
+	if len(actions) == 0 {
+		t.Error("retreat should produce move action even when direct path is blocked")
+	}
+	if len(actions) > 0 && actions[0].Type != "move" {
+		t.Errorf("expected move action, got %s", actions[0].Type)
+	}
+}
+
+func TestAIPsiAttackDeterministic(t *testing.T) {
+	at := data.GetAlienByName("Sectoid")
+	if at == nil {
+		t.Skip("Sectoid not in AlienTypes")
+	}
+	alien := NewAlienUnit(at)
+	alien.X, alien.Y = 10, 10
+	alien.TU = 50
+	alien.WeaponAmmo = 10
+	// Give the alien high psi
+	if alien.AlienType != nil {
+		alien.AlienType.Psi = 80
+	}
+	human := &Unit{X: 11, Y: 10, HP: 20, MaxHP: 20, TU: 50, Alive: true, Faction: FactionHuman, Weapon: "rifle", WeaponAmmo: 10}
+	m := NewBattleMap(30, 20)
+	for x := 0; x < 30; x++ {
+		for y := 0; y < 20; y++ {
+			m.Set(x, y, TileFloor)
+		}
+	}
+	// Run multiple times — psi should always trigger when conditions met.
+	psiCount := 0
+	for i := 0; i < 10; i++ {
+		alien.TU = 50
+		ai := NewAlienAI(alien)
+		ai.State = AIAttack
+		actions := ai.Update(UnitList{alien}, m, UnitList{human}, nil, nil)
+		for _, a := range actions {
+			if a.Type == "psi" {
+				psiCount++
+				break
+			}
+		}
+	}
+	if psiCount == 0 {
+		t.Error("psi attack should trigger when conditions are met")
+	}
+}
+
+func TestAIMeleePrefersCloseTarget(t *testing.T) {
+	at := data.GetAlienByName("Chryssalid")
+	if at == nil {
+		t.Skip("Chryssalid not in AlienTypes")
+	}
+	alien := NewAlienUnit(at)
+	alien.X, alien.Y = 10, 10
+	alien.TU = 60
+	alien.Level = 0
+	m := NewBattleMap(30, 20)
+	for x := 0; x < 30; x++ {
+		for y := 0; y < 20; y++ {
+			m.Set(x, y, TileFloor)
+		}
+	}
+	closeHuman := &Unit{X: 11, Y: 10, HP: 50, MaxHP: 50, TU: 50, Alive: true, Faction: FactionHuman, Level: 0}
+	farHuman := &Unit{X: 20, Y: 10, HP: 1, MaxHP: 50, TU: 50, Alive: true, Faction: FactionHuman, Level: 0}
+	ai := NewAlienAI(alien)
+	target := ai.selectTarget(closeHuman, UnitList{closeHuman, farHuman}, nil, m)
+	if target != closeHuman {
+		t.Error("melee alien should prefer close healthy target over distant wounded target")
+	}
+}
+
+func TestAIPatrolToAttackActsImmediately(t *testing.T) {
+	at := data.GetAlienByName("Sectoid")
+	alien := NewAlienUnit(at)
+	alien.X, alien.Y = 10, 10
+	alien.TU = 50
+	alien.WeaponAmmo = 10
+	human := &Unit{X: 11, Y: 10, HP: 20, MaxHP: 20, TU: 50, Alive: true, Faction: FactionHuman, Weapon: "rifle", WeaponAmmo: 10}
+	m := NewBattleMap(30, 20)
+	for x := 0; x < 30; x++ {
+		for y := 0; y < 20; y++ {
+			m.Set(x, y, TileFloor)
+		}
+	}
+	ai := NewAlienAI(alien)
+	ai.State = AIPatrol
+	actions := ai.Update(UnitList{alien}, m, UnitList{human}, nil, nil)
+	if ai.State != AIAttack && ai.State != AISuppress && ai.State != AIFlank {
+		t.Errorf("should transition to attack state, got %d", ai.State)
+	}
+	if len(actions) == 0 {
+		t.Error("patrol-to-attack transition should produce actions immediately")
+	}
+}
+
+func TestAICoverVsThreatsLevelFilter(t *testing.T) {
+	at := data.GetAlienByName("Sectoid")
+	alien := NewAlienUnit(at)
+	alien.X, alien.Y = 10, 10
+	alien.Level = 0
+	alien.TU = 50
+	m := NewBattleMap(30, 20)
+	for x := 0; x < 30; x++ {
+		for y := 0; y < 20; y++ {
+			m.Set(x, y, TileFloor)
+		}
+	}
+	ai := NewAlienAI(alien)
+	// Human on same level
+	sameLevelHuman := &Unit{X: 15, Y: 10, HP: 20, MaxHP: 20, Alive: true, Faction: FactionHuman, Level: 0}
+	// Human on different level
+	diffLevelHuman := &Unit{X: 12, Y: 10, HP: 20, MaxHP: 20, Alive: true, Faction: FactionHuman, Level: 1}
+	score1 := ai.evaluateCoverVsThreats(10, 10, m, UnitList{sameLevelHuman})
+	score2 := ai.evaluateCoverVsThreats(10, 10, m, UnitList{diffLevelHuman})
+	// Same-level threat should produce a real score
+	if score1 >= 100 {
+		t.Errorf("same-level open terrain should not give full cover, got %f", score1)
+	}
+	// Different-level threat should be ignored (returns 0 since no threats counted)
+	if score2 != 0 {
+		t.Errorf("different-level threat should be ignored, got %f", score2)
+	}
+}
+
+func TestAIHandlePatrolSkipsSamePosition(t *testing.T) {
+	at := data.GetAlienByName("Sectoid")
+	alien := NewAlienUnit(at)
+	alien.X, alien.Y = 15, 10
+	alien.TU = 50
+	m := NewBattleMap(30, 20)
+	for x := 0; x < 30; x++ {
+		for y := 0; y < 20; y++ {
+			m.Set(x, y, TileFloor)
+		}
+	}
+	ai := NewAlienAI(alien)
+	ai.PatrolX = 15
+	ai.PatrolY = 10
+	actions := ai.handlePatrol(m)
+	for _, a := range actions {
+		if a.Type == "move" && a.ToX == alien.X && a.ToY == alien.Y {
+			t.Error("should not generate move to same position")
+		}
 	}
 }

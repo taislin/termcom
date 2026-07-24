@@ -1198,6 +1198,18 @@ func (bs *Battlescape) executeAlienAction(action AlienAction) {
 		}
 		bs.ComputeFOVForTeam()
 		bs.checkHumanReactionFire(action.Unit)
+	case "reload":
+		w, ok := data.RuleItems[action.Unit.Weapon]
+		if !ok || w.AmmoMax >= 99 {
+			return
+		}
+		if action.Unit.TU < 8 {
+			return
+		}
+		action.Unit.TU -= 8
+		action.Unit.WeaponAmmo = w.AmmoMax
+		audio.PlayReload()
+		bs.AddMessage(fmt.Sprintf(language.String("MSG_RELOADED"), w.DisplayName(), action.Unit.WeaponAmmo, w.AmmoMax))
 	case "grenade":
 		if action.Target == nil || !action.Target.Alive {
 			return
