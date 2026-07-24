@@ -252,6 +252,36 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList, pla
 		target := ai.selectTarget(nearest, humanUnits, plan, m)
 		fired := false
 
+		// Melee AI: rush nearest visible target, attack when adjacent.
+		isMelee := false
+		if w, ok := data.RuleItems[ai.Unit.Weapon]; ok && w.BattleType == data.BT_MELEE {
+			isMelee = true
+		}
+		if isMelee && target != nil {
+			if ai.Unit.TU >= 14 {
+				tdx := float64(target.X - ai.Unit.X)
+				tdy := float64(target.Y - ai.Unit.Y)
+				targetDist := math.Sqrt(tdx*tdx + tdy*tdy)
+				if targetDist <= MeleeDist {
+					actions = append(actions, AlienAction{
+						Type: "melee", Unit: ai.Unit, Target: target,
+						FromX: ai.Unit.X, FromY: ai.Unit.Y,
+						ToX: target.X, ToY: target.Y,
+					})
+				} else {
+					ax, ay := ai.advanceToward(target.X, target.Y, m, units)
+					if (ax != ai.Unit.X || ay != ai.Unit.Y) && m.Passable(ax, ay) {
+						actions = append(actions, AlienAction{
+							Type: "move", Unit: ai.Unit,
+							FromX: ai.Unit.X, FromY: ai.Unit.Y,
+							ToX: ax, ToY: ay,
+						})
+					}
+				}
+			}
+			break
+		}
+
 		if target != nil && ai.canFireAt(target) {
 			tdx := float64(target.X - ai.Unit.X)
 			tdy := float64(target.Y - ai.Unit.Y)

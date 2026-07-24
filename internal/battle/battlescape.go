@@ -1045,12 +1045,22 @@ func (bs *Battlescape) executeAlienAction(action AlienAction) {
 		if action.Target == nil || !action.Target.Alive {
 			return
 		}
-		if action.Unit.TU < 20 {
+		w, ok := data.RuleItems[action.Unit.Weapon]
+		if !ok {
 			return
 		}
-		action.Unit.TU -= 20
+		if action.Unit.TU < w.TU {
+			return
+		}
+		action.Unit.TU -= w.TU
 		audio.PlayMeleeFire()
-		damage := action.Unit.Strength + rand.Intn(10)
+		damage := w.Damage + rand.Intn(5)
+		if damage < 1 {
+			damage = 1
+		}
+		if c := action.Unit.AlienType; c != nil {
+			damage += c.Strength / 3
+		}
 		damage -= action.Target.Armour
 		if damage < 1 {
 			damage = 1
