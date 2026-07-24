@@ -46,6 +46,56 @@ const (
 	PatrolScanOffset     = 6
 	RetreatStep          = 4
 )
+
+// canMelee returns true if the alien has a BT_MELEE weapon with valid data.
+func (ai *AlienAI) canMelee() bool {
+	if ai.Unit.Weapon == "" {
+		return false
+	}
+	w, ok := data.RuleItems[ai.Unit.Weapon]
+	return ok && w.BattleType == data.BT_MELEE
+}
+
+// isAdjacent returns true if (ux, uy) is adjacent to (tx, ty) in Chebyshev distance.
+func isAdjacent(ux, uy, tx, ty int) bool {
+	dx := ux - tx
+	if dx < 0 {
+		dx = -dx
+	}
+	dy := uy - ty
+	if dy < 0 {
+		dy = -dy
+	}
+	return dx <= 1 && dy <= 1 && (dx+dy) > 0
+}
+
+// meleeWeaponTU returns the TU cost of the unit's melee weapon, default 14.
+func meleeWeaponTU(weapon string) int {
+	if w, ok := data.RuleItems[weapon]; ok {
+		return w.TU
+	}
+	return 14
+}
+
+// MeleeHitChance returns the hit chance for a melee attack, clamped 20-95.
+func MeleeHitChance(unit *Unit) int {
+	w, ok := data.RuleItems[unit.Weapon]
+	if !ok {
+		return 80
+	}
+	chance := w.Accuracy
+	if unit.Crouching {
+		chance = chance * 110 / 100
+	}
+	if chance > 95 {
+		chance = 95
+	}
+	if chance < 20 {
+		chance = 20
+	}
+	return chance
+}
+
 type AIState int
 
 const (
@@ -224,25 +274,44 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList, pla
 
 	switch ai.State {
 	case AIPatrol:
-		if nearest != nil && dist < VisualRangeThreshold {
-			ai.State = AIAttack
-			ai.LastSeenX = nearest.X
-			ai.LastSeenY = nearest.Y
-			ai.TurnsSince = 0
-		} else {
+		if nearest != nil {
+			if dist < VisualRangeThreshold || ai.canMelee() {
+				ai.State = AIAttack
+				ai.LastSeenX = nearest.X
+				ai.LastSeenY = nearest.Y
+				ai.TurnsSince = 0
+			}
+		}
+		// Melee hunt: advance toward the nearest human even without LOS.
+		if ai.State != AIAttack && ai.canMelee() {
+			if target := ai.findNearestAny(humanUnits); target != nil {
+				ai.State = AIAttack
+				ai.LastSeenX = target.X
+				ai.LastSeenY = target.Y
+				ai.TurnsSince = 0
+			}
+		}
+		if ai.State != AIAttack {
 			actions = append(actions, ai.handlePatrol(m)...)
 		}
 
 
 	case AIAttack:
-		// Attack: The core combat state. The alien targets a player, fires, or maneuvers.
 		if nearest == nil {
-			// Transition to Search if the target is lost.
-			ai.TurnsSince++
-			if ai.TurnsSince > 2 {
-				ai.State = AISearch
+			// Melee aliens: even without LOS, keep hunting the nearest human.
+			if ai.canMelee() {
+				if target := ai.findNearestAny(humanUnits); target != nil {
+					nearest = target
+					dist = 999
+				}
 			}
-			return nil
+			if nearest == nil {
+				ai.TurnsSince++
+				if ai.TurnsSince > 2 {
+					ai.State = AISearch
+				}
+				return nil
+			}
 		}
 
 		ai.LastSeenX = nearest.X
@@ -252,42 +321,63 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList, pla
 		target := ai.selectTarget(nearest, humanUnits, plan, m)
 		fired := false
 
-		// Melee AI: rush nearest visible target, attack when adjacent.
-		isMelee := false
-		if w, ok := data.RuleItems[ai.Unit.Weapon]; ok && w.BattleType == data.BT_MELEE {
-			isMelee = true
+		// Pre-validate weapon: skip combat if weapon is missing or invalid.
+		weaponValid := true
+		if ai.Unit.Weapon == "" {
+			weaponValid = false
+		} else if _, ok := data.RuleItems[ai.Unit.Weapon]; !ok {
+			weaponValid = false
 		}
-		if isMelee && target != nil {
-			if ai.Unit.TU >= 14 {
-				tdx := float64(target.X - ai.Unit.X)
-				tdy := float64(target.Y - ai.Unit.Y)
-				targetDist := math.Sqrt(tdx*tdx + tdy*tdy)
-				if targetDist <= MeleeDist {
+
+		// Melee AI: rush nearest visible target, attack when adjacent.
+		if weaponValid && ai.canMelee() && target != nil {
+			tuMelee := meleeWeaponTU(ai.Unit.Weapon)
+			if ai.Unit.TU >= tuMelee {
+				if isAdjacent(ai.Unit.X, ai.Unit.Y, target.X, target.Y) {
 					actions = append(actions, AlienAction{
 						Type: "melee", Unit: ai.Unit, Target: target,
 						FromX: ai.Unit.X, FromY: ai.Unit.Y,
 						ToX: target.X, ToY: target.Y,
 					})
+					fired = true
 				} else {
-					ax, ay := ai.advanceToward(target.X, target.Y, m, units)
+					reserve := tuMelee
+					ax, ay := ai.advanceTowardWithReserve(target.X, target.Y, m, units, reserve)
 					if (ax != ai.Unit.X || ay != ai.Unit.Y) && m.Passable(ax, ay) {
-						actions = append(actions, AlienAction{
-							Type: "move", Unit: ai.Unit,
-							FromX: ai.Unit.X, FromY: ai.Unit.Y,
-							ToX: ax, ToY: ay,
-						})
+						actions = ai.appendMove(actions, ax, ay)
 					}
+				}
+			}
+			// Post-attack maneuvering: if TU remain after melee, try to find cover.
+			if fired && ai.Unit.TU >= tuMelee+4 {
+				_, fx, fy := ai.findMeleeDisengage(target, m, humanUnits)
+				if (fx != ai.Unit.X || fy != ai.Unit.Y) && m.Passable(fx, fy) {
+					actions = ai.appendMove(actions, fx, fy)
+				}
+			}
+			// Coordinated melee: if this alien hasn't attacked yet and there are
+			// other melee aliens nearby, gang up on their target.
+			if !fired && target != nil && ai.Unit.TU >= tuMelee {
+				x, y := ai.findMeleePackTarget(target, m, units, humanUnits)
+				if (x != ai.Unit.X || y != ai.Unit.Y) && m.Passable(x, y) {
+					actions = ai.appendMove(actions, x, y)
+				} else if isAdjacent(ai.Unit.X, ai.Unit.Y, target.X, target.Y) {
+					actions = append(actions, AlienAction{
+						Type: "melee", Unit: ai.Unit, Target: target,
+						FromX: ai.Unit.X, FromY: ai.Unit.Y,
+						ToX: target.X, ToY: target.Y,
+					})
+					fired = true
 				}
 			}
 			break
 		}
 
-		if target != nil && ai.canFireAt(target) {
+		if target != nil && weaponValid && ai.canFireAt(target) {
 			tdx := float64(target.X - ai.Unit.X)
 			tdy := float64(target.Y - ai.Unit.Y)
 			targetDist := math.Sqrt(tdx*tdx + tdy*tdy)
 			ai.selectFireMode(int(targetDist))
-			// 1. Suppress: If specialized role and in cover, maintain suppressive fire.
 			if role == RoleSuppressor && ai.InCover {
 				actions = append(actions, AlienAction{
 					Type: "fire", Unit: ai.Unit, Target: target,
@@ -297,10 +387,8 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList, pla
 				ai.State = AISuppress
 				fired = true
 			} else if role == RoleFlanker && targetDist > FlankDistThreshold && ai.Unit.TU >= FlankTUThreshold {
-				// 2. Flank: Move to a side position if specialized and distance allows.
 				ai.State = AIFlank
 			} else if ai.Unit.AlienType != nil && ai.Unit.AlienType.Psi > PsiSkillThreshold && ai.Unit.TU >= PsiTUThreshold && ai.rng.Intn(3) == 0 {
-				// 3. Psi Attack: Use psionic abilities if strong enough and by chance.
 				actions = append(actions, AlienAction{
 					Type: "psi", Unit: ai.Unit, Target: target,
 					FromX: ai.Unit.X, FromY: ai.Unit.Y,
@@ -308,7 +396,6 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList, pla
 				})
 				fired = true
 			} else if ai.Unit.Weapon == "alien_grenade" && ai.Unit.TU >= GrenadeTUThreshold && targetDist <= GrenadeRangeMax && targetDist > GrenadeRangeMin {
-				// 4. Grenade: Throw alien grenade at the target's position (AoE).
 				actions = append(actions, AlienAction{
 					Type: "grenade", Unit: ai.Unit, Target: target,
 					FromX: ai.Unit.X, FromY: ai.Unit.Y,
@@ -316,8 +403,7 @@ func (ai *AlienAI) Update(units UnitList, m *BattleMap, humanUnits UnitList, pla
 				})
 				fired = true
 			} else {
-				// 5. Standard Attack: Fire at target (melee if adjacent).
-				if targetDist <= MeleeDist {
+				if targetDist <= float64(MeleeDist) {
 					actions = append(actions, AlienAction{
 						Type: "melee", Unit: ai.Unit, Target: target,
 						FromX: ai.Unit.X, FromY: ai.Unit.Y,
@@ -769,7 +855,82 @@ func (ai *AlienAI) retreatTarget(threat *Unit, m *BattleMap, units UnitList) (in
 }
 
 func (ai *AlienAI) advanceToward(tx, ty int, m *BattleMap, units UnitList) (int, int) {
-	return ai.GetNextPathStep(tx, ty, m, units)
+	return ai.advanceTowardWithReserve(tx, ty, m, units, 0)
+}
+
+func (ai *AlienAI) advanceTowardWithReserve(tx, ty int, m *BattleMap, units UnitList, reserveTU int) (int, int) {
+	if u := units.At(tx, ty); u != nil && u != ai.Unit {
+		return ai.advanceTowardAdjacentWithReserve(tx, ty, m, units, reserveTU)
+	}
+	path := AStar(ai.Unit.X, ai.Unit.Y, tx, ty, ai.Unit.Level, m, units, ai.Unit)
+	if len(path) < 2 {
+		return ai.Unit.X, ai.Unit.Y
+	}
+	budget := ai.Unit.TU - reserveTU
+	if budget <= 0 {
+		return ai.Unit.X, ai.Unit.Y
+	}
+	totalCost := 0
+	best := 0
+	for i := 1; i < len(path); i++ {
+		cost := m.MoveCost(path[i][0], path[i][1], nil)
+		if totalCost+cost > budget {
+			break
+		}
+		totalCost += cost
+		best = i
+	}
+	if best == 0 {
+		return ai.Unit.X, ai.Unit.Y
+	}
+	return path[best][0], path[best][1]
+}
+
+func (ai *AlienAI) advanceTowardAdjacentWithReserve(tx, ty int, m *BattleMap, units UnitList, reserveTU int) (int, int) {
+	h := m.Height
+	if m.NumLevels > 1 {
+		h = m.LevelHeight
+	}
+	budget := ai.Unit.TU - reserveTU
+	if budget <= 0 {
+		return ai.Unit.X, ai.Unit.Y
+	}
+	for dy := -1; dy <= 1; dy++ {
+		for dx := -1; dx <= 1; dx++ {
+			if dx == 0 && dy == 0 {
+				continue
+			}
+			nx, ny := tx+dx, ty+dy
+			if nx < 0 || nx >= m.Width || ny < 0 || ny >= h {
+				continue
+			}
+			if !m.Passable(nx, ny) {
+				continue
+			}
+			if u := units.At(nx, ny); u != nil && u != ai.Unit {
+				continue
+			}
+			path := AStar(ai.Unit.X, ai.Unit.Y, nx, ny, ai.Unit.Level, m, units, ai.Unit)
+			if len(path) < 2 {
+				continue
+			}
+			totalCost := 0
+			best := 0
+			for i := 1; i < len(path); i++ {
+				cost := m.MoveCost(path[i][0], path[i][1], nil)
+				if totalCost+cost > budget {
+					break
+				}
+				totalCost += cost
+				best = i
+			}
+			if best == 0 {
+				return ai.Unit.X, ai.Unit.Y
+			}
+			return path[best][0], path[best][1]
+		}
+	}
+	return ai.Unit.X, ai.Unit.Y
 }
 
 func (ai *AlienAI) nearestAlly(units UnitList) *Unit {
@@ -950,6 +1111,25 @@ func (ai *AlienAI) findNearest(humanUnits UnitList, m *BattleMap) (*Unit, float6
 		}
 	}
 	return nearest, bestDist
+}
+
+// findNearestAny finds the nearest human regardless of LOS (for melee hunting).
+func (ai *AlienAI) findNearestAny(humanUnits UnitList) *Unit {
+	var nearest *Unit
+	bestDist := 999.0
+	for _, h := range humanUnits {
+		if !h.Alive || h.Level != ai.Unit.Level {
+			continue
+		}
+		dx := float64(h.X - ai.Unit.X)
+		dy := float64(h.Y - ai.Unit.Y)
+		dist := math.Sqrt(dx*dx + dy*dy)
+		if dist < bestDist {
+			bestDist = dist
+			nearest = h
+		}
+	}
+	return nearest
 }
 
 type CivilianAI struct {
@@ -1184,4 +1364,100 @@ func (ai *AlienAI) selectFireMode(dist int) {
 		}
 	}
 	tryMode(data.FireModeAimed)
+}
+
+// findMeleeDisengage finds a safe tile to move to after a melee attack -
+// preferably away from the target or into cover. Returns (found, x, y).
+func (ai *AlienAI) findMeleeDisengage(target *Unit, m *BattleMap, units UnitList) (bool, int, int) {
+	bestX, bestY := ai.Unit.X, ai.Unit.Y
+	bestScore := -999.0
+	for dy := -1; dy <= 1; dy++ {
+		for dx := -1; dx <= 1; dx++ {
+			if dx == 0 && dy == 0 {
+				continue
+			}
+			nx, ny := ai.Unit.X+dx, ai.Unit.Y+dy
+			if nx < 0 || nx >= m.Width || ny < 0 || ny >= m.LevelHeight {
+				continue
+			}
+			if !m.Passable(nx, ny) {
+				continue
+			}
+			// Score: prefer tiles away from target and with cover.
+			score := ai.evaluateCoverVsThreats(nx, ny, m, units) * 10
+			tdx := float64(nx - target.X)
+			tdy := float64(ny - target.Y)
+			dist := math.Sqrt(tdx*tdx + tdy*tdy)
+			score += dist * 3
+			if score > bestScore {
+				bestScore = score
+				bestX, bestY = nx, ny
+			}
+		}
+	}
+	moved := bestX != ai.Unit.X || bestY != ai.Unit.Y
+	return moved, bestX, bestY
+}
+
+// findMeleePackTarget finds a position near a target that other melee units
+// are already engaging, encouraging pack/gang-up behavior.
+func (ai *AlienAI) findMeleePackTarget(target *Unit, m *BattleMap, units UnitList, humanUnits UnitList) (int, int) {
+	// Count nearby melee allies already engaging this target.
+	nearbyAllies := 0
+	for _, u := range units {
+		if u == ai.Unit || !u.Alive || u.Weapon == "" {
+			continue
+		}
+		if w, ok := data.RuleItems[u.Weapon]; !ok || w.BattleType != data.BT_MELEE {
+			continue
+		}
+		if isAdjacent(u.X, u.Y, target.X, target.Y) {
+			nearbyAllies++
+		}
+	}
+	if nearbyAllies == 0 {
+		// No pack to join - advance normally.
+		return ai.advanceToward(target.X, target.Y, m, units)
+	}
+	// Aim for a tile adjacent to the target that's not already occupied.
+	bestX, bestY := ai.Unit.X, ai.Unit.Y
+	bestScore := -999.0
+	for dy := -1; dy <= 1; dy++ {
+		for dx := -1; dx <= 1; dx++ {
+			if dx == 0 && dy == 0 {
+				continue
+			}
+			nx, ny := target.X+dx, target.Y+dy
+			if nx < 0 || nx >= m.Width || ny < 0 || ny >= m.LevelHeight {
+				continue
+			}
+			if !m.Passable(nx, ny) {
+				continue
+			}
+			occupied := false
+			for _, u := range units {
+				if u.Alive && u.X == nx && u.Y == ny && u.Level == ai.Unit.Level && u != ai.Unit {
+					occupied = true
+					break
+				}
+			}
+			if occupied {
+				continue
+			}
+			score := ai.evaluateCoverVsThreats(nx, ny, m, units)
+			// Prefer tiles further from the target (to approach from different angles).
+			fdx := float64(ai.Unit.X - nx)
+			fdy := float64(ai.Unit.Y - ny)
+			dist := math.Sqrt(fdx*fdx + fdy*fdy)
+			score -= dist * 0.5
+			if score > bestScore {
+				bestScore = score
+				bestX, bestY = nx, ny
+			}
+		}
+	}
+	if bestX == ai.Unit.X && bestY == ai.Unit.Y {
+		return ai.advanceToward(target.X, target.Y, m, units)
+	}
+	return bestX, bestY
 }

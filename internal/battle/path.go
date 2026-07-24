@@ -64,12 +64,13 @@ func passableFor(m *BattleMap, units UnitList, ignore *Unit, x, y, level int) bo
 	if x < 0 || y < 0 || x >= m.Width || y >= m.LevelHeight {
 		return false
 	}
+	// Use tile definition passability from JSONC.
 	t := m.AtLevel(x, y, level)
-	switch t.Type {
-	case TileFloor, TileDoor, TileGrass, TileUFOFloor, TileStairs, TileStairsDown, TilePavement, TileSand, TileSnow,
-		TileConsole, TileMachinery, TilePod, TilePowerSource, TileStorage, TileAlienTech,
-		TileDesk, TileChair, TileChairLeft, TileChairRight, TileComputer, TileBed, TileLocker, TileCabinet, TileRubble:
-	default:
+	if d := GetTileDef(t.Type); d != nil {
+		if !d.Passable {
+			return false
+		}
+	} else {
 		return false
 	}
 	if u := units.At(x, y); u != nil && u != ignore {
@@ -153,7 +154,10 @@ func (ai *AlienAI) reactionFirePenalty(x, y int, m *BattleMap, units UnitList) f
 		}
 		chance := u.Reactions*ReactionMult + u.Accuracy/ReactionAccDiv - int(dist)*ReactionDistPen
 		if chance < ReactionMinChance {
-			chance = 1
+			chance = ReactionMinChance
+		}
+		if chance > ReactionMaxChance {
+			chance = ReactionMaxChance
 		}
 		penalty += float64(chance)
 	}

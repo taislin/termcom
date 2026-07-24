@@ -342,6 +342,8 @@ func init() {
 		"MSG_ALIEN_KILL":            "%s eliminado!",
 		"MSG_ALIEN_MISS":            "Disparo alien falha!",
 		"MSG_ALIEN_MELEE":           "%s ataca %s com %d de dano!",
+		"MSG_ALIEN_MELEE_MISS":      "Ataque corpo a corpo de %s erra %s!",
+		"MSG_ALIEN_MELEE_BLOCKED":   "%s acerta %s mas o golpe é bloqueado pela cobertura!",
 		"MSG_REACTION_FIRE":         "%s reage! Dispara em %s!",
 		"MSG_REACTION_HIT":          "Acerto de rea\u00e7\u00e3o! %d de dano a %s (HP:%d)",
 		"MSG_REACTION_MISS":         "Disparo de rea\u00e7\u00e3o falha!",

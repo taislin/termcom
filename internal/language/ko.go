@@ -342,6 +342,8 @@ func init() {
 		"MSG_ALIEN_KILL":            "%s 제거됨!",
 		"MSG_ALIEN_MISS":            "외계인 사격 조준 실패!",
 		"MSG_ALIEN_MELEE":           "%s이(가) %s을(를) %d 데미지 공격!",
+		"MSG_ALIEN_MELEE_MISS":      "%s의 근접 공격이 %s을(를) 빗맞혔다!",
+		"MSG_ALIEN_MELEE_BLOCKED":   "%s이(가) %s을(를) 타격했지만 엄폐물에 막혔다!",
 		"MSG_REACTION_FIRE":         "%s이(가) 반응함! %s을(를) 사격!",
 		"MSG_REACTION_HIT":          "반응 사격 타격! %2$s에게 %1$d 데미지 (HP:%3$d)",
 		"MSG_REACTION_MISS":         "반응 사격 조준 실패!",

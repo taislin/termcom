@@ -73,10 +73,11 @@ const (
 	MineDamageBonus       = 20
 	ScannerTUCost         = 10
 	ScannerRange          = 15
-	ReactionMult          = 2
-	ReactionAccDiv        = 3
-	ReactionDistPen       = 5
-	ReactionMinChance     = 1
+	ReactionMult          = 1
+	ReactionAccDiv        = 4
+	ReactionDistPen       = 3
+	ReactionMinChance     = 10
+	ReactionMaxChance     = 85
 	AlienGrenadeStrBonus  = 20
 )
 
@@ -255,29 +256,24 @@ func (bs *Battlescape) GetMovementRange() map[[2]int]bool {
 	startX, startY := bs.Selected.X, bs.Selected.Y
 	maxTU := bs.Selected.TU
 
-	// BFS to find reachable tiles
 	type node struct {
 		x, y, tu int
 	}
 	queue := []node{{startX, startY, maxTU}}
-	visited := make(map[[2]int]bool)
-	visited[[2]int{startX, startY}] = true
+	// Track best remaining TU per tile so cheaper paths are not missed.
+	bestTU := make(map[[2]int]int)
+	bestTU[[2]int{startX, startY}] = maxTU
 
 	for len(queue) > 0 {
 		current := queue[0]
 		queue = queue[1:]
 
-		// Add current tile to reachable set
 		result[[2]int{current.x, current.y}] = true
 
-		// Check all 4 directions
 		dirs := [][2]int{{0, 1}, {0, -1}, {1, 0}, {-1, 0}}
 		for _, d := range dirs {
 			nx, ny := current.x+d[0], current.y+d[1]
 			if nx < 0 || nx >= bs.Map.Width || ny < 0 || ny >= bs.Map.Height {
-				continue
-			}
-			if visited[[2]int{nx, ny}] {
 				continue
 			}
 
@@ -285,12 +281,13 @@ func (bs *Battlescape) GetMovementRange() map[[2]int]bool {
 				continue
 			}
 
-			// TU cost varies by terrain type and weather.
 			cost := bs.Map.MoveCost(nx, ny, &bs.Weather)
-
 			remainingTU := current.tu - cost
 			if remainingTU >= 0 {
-				visited[[2]int{nx, ny}] = true
+				if prev, ok := bestTU[[2]int{nx, ny}]; ok && prev >= remainingTU {
+					continue
+				}
+				bestTU[[2]int{nx, ny}] = remainingTU
 				queue = append(queue, node{nx, ny, remainingTU})
 			}
 		}
@@ -656,6 +653,27 @@ type CustomUnitDef struct {
 	Armor      string // for soldiers
 }
 
+// snapToPassable finds the nearest passable tile to (x, y) within searchRadius.
+func snapToPassable(m *BattleMap, x, y, searchRadius int) (int, int) {
+	if m.Passable(x, y) {
+		return x, y
+	}
+	for r := 1; r <= searchRadius; r++ {
+		for dy := -r; dy <= r; dy++ {
+			for dx := -r; dx <= r; dx++ {
+				if dx == 0 && dy == 0 {
+					continue
+				}
+				nx, ny := x+dx, y+dy
+				if nx >= 0 && nx < m.Width && ny >= 0 && ny < m.Height && m.Passable(nx, ny) {
+					return nx, ny
+				}
+			}
+		}
+	}
+	return x, y
+}
+
 // NewCustomBattlescape creates a battlescape with explicit unit placements for custom battles.
 func NewCustomBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, m *BattleMap, units []CustomUnitDef, cv *CustomVictory, ufoName string) *Battlescape {
 	bs := &Battlescape{
@@ -709,8 +727,7 @@ func NewCustomBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier
 					s.Armor = def.Armor
 				}
 				u := NewSoldierUnit(s)
-				u.X = def.X
-				u.Y = def.Y
+				u.X, u.Y = snapToPassable(m, def.X, def.Y, 8)
 				u.IsNight = bs.IsNight
 				bs.Units = append(bs.Units, u)
 			}
@@ -730,26 +747,40 @@ func NewCustomBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier
 				DamageType: def.DamageType,
 				Aggression: def.Aggression,
 			}
-			u := NewAlienUnit(at)
-			u.X = def.X
-			u.Y = def.Y
-			u.IsNight = bs.IsNight
-			if m.Passable(u.X, u.Y) {
-				bs.Units = append(bs.Units, u)
-				ai := NewAlienAI(u)
-				ai.PatrolX = u.X + rand.Intn(6) - 3
-				ai.PatrolY = u.Y + rand.Intn(6) - 3
-				bs.AlienAIs = append(bs.AlienAIs, ai)
+			// Look up icon/style from hardcoded alien type by name.
+			for _, ht := range data.AlienTypes {
+				if ht.Name == def.Name {
+					at.Icon = ht.Icon
+					at.Style = ht.Style
+					at.FgColor = ht.FgColor
+					if ht.Morphology != nil {
+						morph := *ht.Morphology
+						at.Morphology = &morph
+					}
+					break
+				}
 			}
+			// Fallback: set a default icon so the alien is visible.
+			if at.Icon == 0 {
+				at.Icon = '\u03A9'
+			}
+			if at.Style == tcell.StyleDefault {
+				at.Style = tcell.StyleDefault.Foreground(color.XTerm9).Bold(true)
+			}
+			u := NewAlienUnit(at)
+			u.X, u.Y = snapToPassable(m, def.X, def.Y, 8)
+			u.IsNight = bs.IsNight
+			bs.Units = append(bs.Units, u)
+			ai := NewAlienAI(u)
+			ai.PatrolX = u.X + rand.Intn(6) - 3
+			ai.PatrolY = u.Y + rand.Intn(6) - 3
+			bs.AlienAIs = append(bs.AlienAIs, ai)
 		case 2: // civilian
 			u := NewCivilianUnit(def.Name)
-			u.X = def.X
-			u.Y = def.Y
+			u.X, u.Y = snapToPassable(m, def.X, def.Y, 8)
 			u.IsNight = bs.IsNight
-			if m.Passable(u.X, u.Y) {
-				bs.Units = append(bs.Units, u)
-				bs.CivilianAIs = append(bs.CivilianAIs, NewCivilianAI(u))
-			}
+			bs.Units = append(bs.Units, u)
+			bs.CivilianAIs = append(bs.CivilianAIs, NewCivilianAI(u))
 		}
 	}
 
@@ -1054,6 +1085,28 @@ func (bs *Battlescape) executeAlienAction(action AlienAction) {
 		}
 		action.Unit.TU -= w.TU
 		audio.PlayMeleeFire()
+
+		// Accuracy roll
+		hitChance := MeleeHitChance(action.Unit)
+		hit := rand.Intn(100) < hitChance
+
+		name := action.Target.Name()
+		if !hit {
+			bs.AddMessage(fmt.Sprintf(language.String("MSG_ALIEN_MELEE_MISS"), name))
+			return
+		}
+
+		// Cover check at melee range
+		if bs.Map != nil {
+			if tc := bs.Map.At(action.Target.X, action.Target.Y).Cover; tc > 0 {
+				if rand.Intn(100) < tc {
+					bs.AddMessage(fmt.Sprintf(language.String("MSG_ALIEN_MELEE_BLOCKED"), name))
+					return
+				}
+			}
+		}
+
+		// Base damage with variance
 		damage := w.Damage + rand.Intn(5)
 		if damage < 1 {
 			damage = 1
@@ -1061,10 +1114,24 @@ func (bs *Battlescape) executeAlienAction(action AlienAction) {
 		if c := action.Unit.AlienType; c != nil {
 			damage += c.Strength / 3
 		}
+
+		// Apply damage type and target resistances
+		dmgType := WeaponDamageType(action.Unit.Weapon)
+		if action.Target.AlienType != nil && dmgType >= 0 {
+			resist := action.Target.AlienType.Resist(dmgType)
+			if resist > 0 {
+				damage = damage * (100 - resist) / 100
+			} else if resist < 0 {
+				damage = damage * (100 - resist) / 100
+			}
+		}
+
+		// Flat armour reduction
 		damage -= action.Target.Armour
 		if damage < 1 {
 			damage = 1
 		}
+
 		action.Target.HP -= damage
 		if action.Target.HP <= 0 {
 			action.Target.Alive = false
@@ -1077,8 +1144,11 @@ func (bs *Battlescape) executeAlienAction(action AlienAction) {
 			Symbol: 'X',
 			Style:  engine.StyleRedBold,
 		}
-		name := action.Target.Name()
-		bs.AddMessage(fmt.Sprintf(language.String("MSG_ALIEN_MELEE"), action.Unit.AlienType.LangName(), name, damage))
+		alienName := "Alien"
+		if action.Unit.AlienType != nil {
+			alienName = action.Unit.AlienType.LangName()
+		}
+		bs.AddMessage(fmt.Sprintf(language.String("MSG_ALIEN_MELEE"), alienName, name, damage))
 		if !action.Target.Alive {
 			bs.AddMessage(fmt.Sprintf(language.String("MSG_ALIEN_KILL"), name))
 		}
@@ -1203,7 +1273,7 @@ func (bs *Battlescape) checkHumanReactionFire(movedAlien *Unit) {
 		return
 	}
 	for _, u := range bs.Units {
-		if u.Faction != 0 || !u.Alive {
+		if u.Faction != 0 || !u.Alive || u.ReactionUsed {
 			continue
 		}
 		if u.TU < MinReactionTU || u.Weapon == "" {
@@ -1228,6 +1298,9 @@ func (bs *Battlescape) checkHumanReactionFire(movedAlien *Unit) {
 		if chance < ReactionMinChance {
 			chance = ReactionMinChance
 		}
+		if chance > ReactionMaxChance {
+			chance = ReactionMaxChance
+		}
 		if rand.Intn(100) >= chance {
 			continue
 		}
@@ -1238,6 +1311,7 @@ func (bs *Battlescape) checkHumanReactionFire(movedAlien *Unit) {
 		if w.Range > 0 && dist > w.Range {
 			continue
 		}
+		u.ReactionUsed = true
 		bs.AddMessage(fmt.Sprintf(language.String("MSG_REACTION_FIRE"), u.Name(), movedAlien.Name()))
 		audio.PlayWeaponFire(u.Weapon)
 		bs.Status = StatusPlayerOverwatch
@@ -1261,7 +1335,7 @@ func (bs *Battlescape) checkAlienReactionFire(movedHuman *Unit) {
 	}
 	for _, ai := range bs.AlienAIs {
 		u := ai.Unit
-		if !u.Alive {
+		if !u.Alive || u.ReactionUsed {
 			continue
 		}
 		if u.TU < MinReactionTU || u.Weapon == "" {
@@ -1283,6 +1357,9 @@ func (bs *Battlescape) checkAlienReactionFire(movedHuman *Unit) {
 		if chance < ReactionMinChance {
 			chance = ReactionMinChance
 		}
+		if chance > ReactionMaxChance {
+			chance = ReactionMaxChance
+		}
 		if rand.Intn(100) >= chance {
 			continue
 		}
@@ -1293,6 +1370,7 @@ func (bs *Battlescape) checkAlienReactionFire(movedHuman *Unit) {
 		if w.Range > 0 && dist > w.Range {
 			continue
 		}
+		u.ReactionUsed = true
 		bs.AddMessage(fmt.Sprintf(language.String("MSG_REACTION_FIRE"), u.Name(), movedHuman.Name()))
 		audio.PlayWeaponFire(u.Weapon)
 		bs.Status = StatusAlienOverwatch
@@ -1527,6 +1605,13 @@ func (bs *Battlescape) finishAlienTurn() {
 	}
 	bs.checkReinforcements()
 	bs.checkVictory()
+
+	// Reset alien reaction flags for the new player turn.
+	for _, u := range bs.Units {
+		if u.Faction == FactionAlien {
+			u.ReactionUsed = false
+		}
+	}
 
 	oldSelected := bs.Selected
 	bs.SetSelected(nil)
@@ -1899,8 +1984,18 @@ func (bs *Battlescape) MoveSelected() {
 	}
 	path := bs.CalculatePath(bs.Selected.X, bs.Selected.Y, bs.CursorX, bs.CursorY)
 	if len(path) < 2 {
-		bs.AddMessage(language.String("MSG_CANNOT_MOVE"))
-		return
+		// No shortest path exists. Try BFS with TU budget to find furthest
+		// reachable tile in the general direction of the cursor.
+		bestX, bestY := bs.findReachableToward(bs.CursorX, bs.CursorY)
+		if bestX == bs.Selected.X && bestY == bs.Selected.Y {
+			bs.AddMessage(language.String("MSG_CANNOT_MOVE"))
+			return
+		}
+		path = bs.CalculatePath(bs.Selected.X, bs.Selected.Y, bestX, bestY)
+		if len(path) < 2 {
+			bs.AddMessage(language.String("MSG_CANNOT_MOVE"))
+			return
+		}
 	}
 	u := bs.Selected
 	crouchExtra := 0
@@ -1951,6 +2046,47 @@ func (bs *Battlescape) MoveSelected() {
 	}
 	bs.ComputeFOVForTeam()
 	bs.checkAlienReactionFire(u)
+}
+
+// findReachableToward finds the furthest tile reachable by the selected unit
+// in the general direction of (tx, ty), using a TU-budgeted BFS weighted by
+// how much the target is in the direction of travel.
+func (bs *Battlescape) findReachableToward(tx, ty int) (int, int) {
+	if bs.Selected == nil || bs.Selected.TU <= 0 {
+		return bs.Selected.X, bs.Selected.Y
+	}
+	bestX, bestY := bs.Selected.X, bs.Selected.Y
+	bestScore := -999.0
+	rangeMap := bs.GetMovementRange()
+	for pos := range rangeMap {
+		nx, ny := pos[0], pos[1]
+		// Score: prefer tiles closer to target (negative Manhattan distance)
+		// and further from start.
+		dx := tx - nx
+		if dx < 0 {
+			dx = -dx
+		}
+		dy := ty - ny
+		if dy < 0 {
+			dy = -dy
+		}
+		distToTarget := float64(dx + dy)
+		sdx := bs.Selected.X - nx
+		if sdx < 0 {
+			sdx = -sdx
+		}
+		sdy := bs.Selected.Y - ny
+		if sdy < 0 {
+			sdy = -sdy
+		}
+		distFromStart := float64(sdx + sdy)
+		score := -distToTarget + distFromStart*0.1
+		if score > bestScore {
+			bestScore = score
+			bestX, bestY = nx, ny
+		}
+	}
+	return bestX, bestY
 }
 
 // FireWeapon fires the selected unit's weapon at the target under the cursor.
@@ -2124,6 +2260,13 @@ func (bs *Battlescape) EndTurn() {
 
 	bs.AlienTurnQueue = nil
 	bs.AlienTurnIdx = 0
+
+	// Reset human reaction flags for the coming alien turn.
+	for _, u := range bs.Units {
+		if u.Faction == FactionHuman {
+			u.ReactionUsed = false
+		}
+	}
 
 	bs.AlienSquadPlan = bs.planSquadActions()
 
@@ -3049,6 +3192,9 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 			if u.AlienType != nil {
 				ch = u.AlienType.Icon
 			}
+			if ch == 0 {
+				ch = '\u03A9'
+			}
 			style = engine.StyleRedBold
 			if u.AlienType != nil {
 				style = u.AlienType.Style
@@ -3087,10 +3233,6 @@ func (bs *Battlescape) Render(ctx *engine.ScreenCtx) {
 		ctx.SetCell(sx, sy, ch, style)
 
 		if u == bs.Selected || u == bs.HoveredUnit {
-			// Ground the sprite with a dim selection shadow.
-			if sy+1 <= viewH {
-				ctx.SetCell(sx, sy+1, '▄', engine.StyleGray)
-			}
 			// Compact 3-cell HP pip bar on the tile above (green→yellow→red).
 			if sy-1 >= 1 {
 				ratio := float64(u.HP) / float64(u.MaxHP)

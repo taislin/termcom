@@ -340,6 +340,8 @@ func init() {
 		"MSG_ALIEN_KILL":            "%s \u5df2\u88ab\u6d88\u706d\uff01",
 		"MSG_ALIEN_MISS":            "\u5916\u661f\u4eba\u672a\u547d\u4e2d\uff01",
 		"MSG_ALIEN_MELEE":           "%s \u653b\u51fb %s\uff0c\u9020\u6210 %d \u4f24\u5bb3\uff01",
+		"MSG_ALIEN_MELEE_MISS":      "%s \u7684\u8fd1\u6218\u653b\u51fb\u672a\u547d\u4e2d %s\uff01",
+		"MSG_ALIEN_MELEE_BLOCKED":   "%s \u51fb\u4e2d %s \u4f46\u88ab\u906e\u62a4\u7269\u963b\u6321\uff01",
 		"MSG_REACTION_FIRE":         "%s \u53cd\u5e94\u5c04\u51fb\uff01\u5411 %s \u5f00\u706b\uff01",
 		"MSG_REACTION_HIT":          "\u53cd\u5e94\u5c04\u51fb\u547d\u4e2d\uff01\u5bf9 %[2]s \u9020\u6210 %[1]d \u4f24\u5bb3\uff08\u751f\u547d:%[3]d\uff09",
 		"MSG_REACTION_MISS":         "\u53cd\u5e94\u5c04\u51fb\u672a\u547d\u4e2d\uff01",

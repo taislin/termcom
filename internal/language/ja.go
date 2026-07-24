@@ -342,6 +342,8 @@ func init() {
 		"MSG_ALIEN_KILL":            "%s を排除！",
 		"MSG_ALIEN_MISS":            "エイリアンの射撃が外れた！",
 		"MSG_ALIEN_MELEE":           "%s が %s に %d ダメージ！",
+		"MSG_ALIEN_MELEE_MISS":      "%s の近接攻撃は %s に外れた！",
+		"MSG_ALIEN_MELEE_BLOCKED":   "%s が %s を攻撃したがカバーに防がれた！",
 		"MSG_REACTION_FIRE":         "%s が反応！%s に射撃！",
 		"MSG_REACTION_HIT":          "反応射撃命中！%[2]s に %[1]d ダメージ (HP:%[3]d)",
 		"MSG_REACTION_MISS":         "反応射撃が外れた！",

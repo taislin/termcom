@@ -71,9 +71,10 @@ type Unit struct {
 	FatalWounds int
 	BleedRate   int
 	Morale      int
-	HasMoved    bool
-	InOverwatch bool
-	FireMode    data.FireMode
+	HasMoved      bool
+	InOverwatch   bool
+	FireMode      data.FireMode
+	ReactionUsed  bool
 }
 
 func NewSoldierUnit(s *soldier.Soldier) *Unit {
@@ -110,6 +111,10 @@ func NewSoldierUnit(s *soldier.Soldier) *Unit {
 }
 
 func NewAlienUnit(at *data.AlienType) *Unit {
+	ammo := 0
+	if w, ok := data.RuleItems[at.Weapon]; ok {
+		ammo = w.AmmoMax
+	}
 	return &Unit{
 		Type:       1,
 		AlienType:  at,
@@ -125,7 +130,7 @@ func NewAlienUnit(at *data.AlienType) *Unit {
 		PsiStr:     at.ResistPsionic,
 		Armour:     at.Armour,
 		Weapon:     at.Weapon,
-		WeaponAmmo: data.RuleItems[at.Weapon].AmmoMax,
+		WeaponAmmo: ammo,
 		Alive:      true,
 		Faction:    1,
 		Morale:     100,

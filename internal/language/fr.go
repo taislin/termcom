@@ -342,6 +342,8 @@ func init() {
 		"MSG_ALIEN_KILL":            "%s éliminé !",
 		"MSG_ALIEN_MISS":            "Le tir extraterrestre rate !",
 		"MSG_ALIEN_MELEE":           "%s attaque %s pour %d dégâts !",
+		"MSG_ALIEN_MELEE_MISS":      "L'attaque de mêlée de %s rate %s !",
+		"MSG_ALIEN_MELEE_BLOCKED":   "%s frappe %s mais le coup est bloqué par l'abri !",
 		"MSG_REACTION_FIRE":         "%s réagit ! Tire sur %s !",
 		"MSG_REACTION_HIT":          "Touche de réaction ! %d dégâts à %s (PV:%d)",
 		"MSG_REACTION_MISS":         "Le tir de réaction rate !",

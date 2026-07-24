@@ -342,6 +342,8 @@ func init() {
 		"MSG_ALIEN_KILL":            "%s уничтожен!",
 		"MSG_ALIEN_MISS":            "Выстрел пришельца промахнулся!",
 		"MSG_ALIEN_MELEE":           "%s атакует %s! Урон: %d",
+		"MSG_ALIEN_MELEE_MISS":      "%s промахивается при атаке на %s!",
+		"MSG_ALIEN_MELEE_BLOCKED":   "%s попадает в %s но удар блокирован укрытием!",
 		"MSG_REACTION_FIRE":         "%s реагирует! Стреляет по %s!",
 		"MSG_REACTION_HIT":          "Реактивный выстрел попал! %d урона по %s (ОЗ:%d)",
 		"MSG_REACTION_MISS":         "Реактивный выстрел промахнулся!",

@@ -340,6 +340,8 @@ func init() {
 		"MSG_ALIEN_KILL":            "%s eliminated!",
 		"MSG_ALIEN_MISS":            "Alien shot misses!",
 		"MSG_ALIEN_MELEE":           "%s attacks %s for %d damage!",
+		"MSG_ALIEN_MELEE_MISS":      "%s melee attack misses %s!",
+		"MSG_ALIEN_MELEE_BLOCKED":   "%s hits %s but it's blocked by cover!",
 		"MSG_REACTION_FIRE":         "%s reacts! Fires at %s!",
 		"MSG_REACTION_HIT":          "Reaction hit! %d damage to %s (HP:%d)",
 		"MSG_REACTION_MISS":         "Reaction shot misses!",

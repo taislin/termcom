@@ -586,9 +586,250 @@ func TestAISearchInitialZeroPosition(t *testing.T) {
 		t.Errorf("expected patrol fallback when last seen is (0,0), got state %d", ai.State)
 	}
 	if len(actions) >= 1 && actions[0].Type == "move" {
-		// Moving away from (0,0) is acceptable (patrol generates moves).
 		if actions[0].ToX == 0 && actions[0].ToY == 0 {
 			t.Error("should not move toward (0,0)")
 		}
+	}
+}
+
+func TestCanMelee(t *testing.T) {
+	at := &data.AlienType{Weapon: "chryssalid_claw"}
+	alien := NewAlienUnit(at)
+	ai := NewAlienAI(alien)
+	if !ai.canMelee() {
+		t.Error("chryssalid_claw should be a melee weapon")
+	}
+
+	alien.Weapon = "rifle"
+	if ai.canMelee() {
+		t.Error("rifle should NOT be a melee weapon")
+	}
+
+	alien.Weapon = ""
+	if ai.canMelee() {
+		t.Error("empty weapon should NOT be melee")
+	}
+
+	alien.Weapon = "nonexistent"
+	if ai.canMelee() {
+		t.Error("nonexistent weapon should NOT be melee")
+	}
+}
+
+func TestIsAdjacent(t *testing.T) {
+	if !isAdjacent(5, 5, 5, 6) {
+		t.Error("(5,5)-(5,6) should be adjacent")
+	}
+	if !isAdjacent(5, 5, 6, 5) {
+		t.Error("(5,5)-(6,5) should be adjacent")
+	}
+	if !isAdjacent(5, 5, 6, 6) {
+		t.Error("(5,5)-(6,6) should be adjacent diagonally")
+	}
+	if !isAdjacent(5, 5, 4, 4) {
+		t.Error("(5,5)-(4,4) should be adjacent diagonally")
+	}
+	if isAdjacent(5, 5, 5, 5) {
+		t.Error("same tile should NOT be adjacent")
+	}
+	if isAdjacent(5, 5, 7, 5) {
+		t.Error("(5,5)-(7,5) should NOT be adjacent")
+	}
+	if isAdjacent(5, 5, 7, 7) {
+		t.Error("(5,5)-(7,7) should NOT be adjacent")
+	}
+}
+
+func TestMeleeWeaponTU(t *testing.T) {
+	if tu := meleeWeaponTU("chryssalid_claw"); tu <= 0 {
+		t.Errorf("chryssalid_claw TU should be positive, got %d", tu)
+	}
+	if tu := meleeWeaponTU("nonexistent"); tu != 14 {
+		t.Errorf("unknown weapon should default to 14 TU, got %d", tu)
+	}
+}
+
+func TestMeleeHitChance(t *testing.T) {
+	at := &data.AlienType{Weapon: "chryssalid_claw"}
+	u := NewAlienUnit(at)
+	chance := MeleeHitChance(u)
+	if chance < 20 || chance > 95 {
+		t.Errorf("hit chance %d out of expected range 20-95", chance)
+	}
+
+	u.Crouching = true
+	chanceCrouch := MeleeHitChance(u)
+	if chanceCrouch <= chance {
+		t.Errorf("crouching should improve melee hit chance: %d <= %d", chanceCrouch, chance)
+	}
+
+	u.Weapon = ""
+	chanceNoWeapon := MeleeHitChance(u)
+	if chanceNoWeapon != 80 {
+		t.Errorf("no weapon should default to 80, got %d", chanceNoWeapon)
+	}
+}
+
+func TestAIAdvanceTowardWithReserve(t *testing.T) {
+	at := data.GetAlienByName("Sectoid")
+	alien := NewAlienUnit(at)
+	m := NewBattleMap(30, 20)
+	for x := 0; x < 30; x++ {
+		for y := 0; y < 20; y++ {
+			m.Set(x, y, TileFloor)
+		}
+	}
+	alien.X, alien.Y = 10, 10
+	alien.TU = 50
+	ai := NewAlienAI(alien)
+
+	ax, ay := ai.advanceTowardWithReserve(25, 10, m, UnitList{alien}, 0)
+	if ax <= alien.X {
+		t.Errorf("should advance, ax=%d", ax)
+	}
+	dist := ax - alien.X
+	if dist < 3 {
+		t.Errorf("should cover more than 3 tiles with 50 TU, got %d", dist)
+	}
+	if dist > 12 {
+		t.Errorf("should cover at most floor(50/4)=12 tiles, got %d", dist)
+	}
+	if ay != alien.Y {
+		t.Errorf("should stay on same row, ay=%d", ay)
+	}
+
+	ax2, _ := ai.advanceTowardWithReserve(25, 10, m, UnitList{alien}, 30)
+	dist2 := ax2 - alien.X
+	if dist2 > 5 {
+		t.Errorf("with 30 reserve leaving 20 budget, should move <= 5 tiles, got %d", dist2)
+	}
+
+	ax3, ay3 := ai.advanceTowardWithReserve(25, 10, m, UnitList{alien}, 60)
+	if ax3 != alien.X || ay3 != alien.Y {
+		t.Errorf("with reserve exceeding TU, should not move, got (%d,%d)", ax3, ay3)
+	}
+}
+
+func TestAIAdvanceTowardAdjacentOccupied(t *testing.T) {
+	at := data.GetAlienByName("Sectoid")
+	alien := NewAlienUnit(at)
+	human := &Unit{X: 15, Y: 10, HP: 20, MaxHP: 20, TU: 50, Alive: true, Faction: FactionHuman, Weapon: "rifle", WeaponAmmo: 10}
+	m := NewBattleMap(30, 20)
+	for x := 0; x < 30; x++ {
+		for y := 0; y < 20; y++ {
+			m.Set(x, y, TileFloor)
+		}
+	}
+	alien.X, alien.Y = 10, 10
+	alien.TU = 50
+	ai := NewAlienAI(alien)
+
+	ax, ay := ai.advanceTowardWithReserve(human.X, human.Y, m, UnitList{alien, human}, 0)
+	if ax <= alien.X {
+		t.Errorf("should advance toward adjacent of occupied tile, ax=%d", ax)
+	}
+	if ax == human.X && ay == human.Y {
+		t.Error("should not path into occupied tile")
+	}
+}
+
+func TestAIFindNearestAny(t *testing.T) {
+	at := data.GetAlienByName("Sectoid")
+	alien := NewAlienUnit(at)
+	alien.X, alien.Y = 10, 10
+	alien.Level = 0
+	ai := NewAlienAI(alien)
+
+	human1 := &Unit{X: 20, Y: 10, HP: 20, MaxHP: 20, Alive: true, Faction: FactionHuman, Level: 0}
+	human2 := &Unit{X: 5, Y: 10, HP: 20, MaxHP: 20, Alive: true, Faction: FactionHuman, Level: 0}
+
+	target := ai.findNearestAny(UnitList{human1, human2})
+	if target != human2 {
+		t.Error("findNearestAny should return nearest human without LOS check")
+	}
+
+	human2.Level = 1
+	target = ai.findNearestAny(UnitList{human1, human2})
+	if target != human1 {
+		t.Error("should skip units on different level")
+	}
+}
+
+func TestAIUpdateMeleePatrolToAttackAnyRange(t *testing.T) {
+	at := data.GetAlienByName("Chryssalid")
+	if at == nil {
+		t.Skip("Chryssalid not in AlienTypes")
+	}
+	alien := NewAlienUnit(at)
+	m := NewBattleMap(40, 40)
+	for x := 0; x < 40; x++ {
+		for y := 0; y < 40; y++ {
+			m.Set(x, y, TileFloor)
+		}
+	}
+	alien.X, alien.Y = 5, 5
+	alien.TU = 60
+	ai := NewAlienAI(alien)
+
+	human := &Unit{X: 35, Y: 35, HP: 20, MaxHP: 20, TU: 50, Alive: true, Faction: FactionHuman, Weapon: "rifle", WeaponAmmo: 10}
+	_ = ai.Update(UnitList{alien}, m, UnitList{human}, nil, nil)
+	if ai.State != AIAttack {
+		t.Errorf("melee alien should enter AIAttack even without LOS, got state %d", ai.State)
+	}
+}
+
+func TestAIAdvanceTowardAdjacentBlocked(t *testing.T) {
+	at := data.GetAlienByName("Sectoid")
+	alien := NewAlienUnit(at)
+	human := &Unit{X: 5, Y: 5, HP: 20, MaxHP: 20, TU: 50, Alive: true, Faction: FactionHuman, Weapon: "rifle", WeaponAmmo: 10}
+	m := NewBattleMap(10, 10)
+	for x := 0; x < 10; x++ {
+		for y := 0; y < 10; y++ {
+			m.Set(x, y, TileFloor)
+		}
+	}
+	alien.X, alien.Y = 2, 5
+	alien.TU = 60
+	ai := NewAlienAI(alien)
+
+	for dy := -1; dy <= 1; dy++ {
+		for dx := -1; dx <= 1; dx++ {
+			if dx == 0 && dy == 0 {
+				continue
+			}
+			m.Set(5+dx, 5+dy, TileWall)
+		}
+	}
+	ax, ay := ai.advanceTowardWithReserve(human.X, human.Y, m, UnitList{alien, human}, 0)
+	if ax != alien.X || ay != alien.Y {
+		t.Errorf("should not move when all adjacent tiles are blocked, got (%d,%d)", ax, ay)
+	}
+}
+
+func TestAIUpdateAIAttackMeleeNoLOS(t *testing.T) {
+	at := data.GetAlienByName("Chryssalid")
+	if at == nil {
+		t.Skip("Chryssalid not in AlienTypes")
+	}
+	alien := NewAlienUnit(at)
+	m := NewBattleMap(40, 40)
+	for x := 0; x < 40; x++ {
+		for y := 0; y < 40; y++ {
+			m.Set(x, y, TileFloor)
+		}
+	}
+	alien.X, alien.Y = 5, 5
+	alien.TU = 60
+	ai := NewAlienAI(alien)
+	ai.State = AIAttack
+
+	human := &Unit{X: 30, Y: 5, HP: 20, MaxHP: 20, TU: 50, Alive: true, Faction: FactionHuman, Weapon: "rifle", WeaponAmmo: 10}
+	m.Set(20, 5, TileWall)
+	actions := ai.Update(UnitList{alien}, m, UnitList{human}, nil, nil)
+	if len(actions) == 0 {
+		t.Error("melee alien should produce move action toward nearest human even without LOS")
+	}
+	if len(actions) > 0 && actions[0].Type != "move" {
+		t.Errorf("expected move action, got %s", actions[0].Type)
 	}
 }
