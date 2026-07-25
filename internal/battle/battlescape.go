@@ -2117,6 +2117,15 @@ func (bs *Battlescape) FireWeapon() {
 			bs.AddMessage(language.String("MSG_TARGET_NO_LOS"))
 			return
 		}
+		w, ok := data.RuleItems[bs.Selected.Weapon]
+		if ok && w.AmmoMax < InfAmmoThreshold {
+			rounds := w.ModeRounds(bs.Selected.FireMode)
+			if rounds > 0 && bs.Selected.WeaponAmmo < rounds {
+				bs.AddMessage(language.String("MSG_OUT_OF_AMMO"))
+				return
+			}
+			bs.Selected.WeaponAmmo -= rounds
+		}
 		bs.Selected.TU -= 4
 		audio.PlayWeaponFire(bs.Selected.Weapon)
 		origType := bs.Map.At(bs.CursorX, bs.CursorY).Type

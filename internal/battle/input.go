@@ -314,7 +314,7 @@ func (bs *Battlescape) handleSmartClick(mx, my int, unit *Unit) {
 		return
 	}
 
-	if bs.Map.IsDestructible(mx, my) && unit == nil {
+	if bs.Map.IsDestructible(mx, my) && unit == nil && !bs.Map.Passable(mx, my) {
 		if bs.Selected != nil && bs.Phase == PhasePlayerTurn {
 			bs.CursorX, bs.CursorY = mx, my
 			bs.FireWeapon()
