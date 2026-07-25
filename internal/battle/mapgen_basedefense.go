@@ -207,25 +207,46 @@ func addBDBreaches(m *BattleMap, baseX, baseY, baseW, baseH, numRows int, rng *r
 	breachCount := 3 + rng.Intn(3)
 	for i := 0; i < breachCount; i++ {
 		side := rng.Intn(4)
-		var bx, by int
+		var bx, by, ix, iy int
 		switch side {
 		case 0:
 			bx = baseX + bdStride/2 + rng.Intn(max(baseW-bdStride, 1))
 			by = baseY - 1
+			ix, iy = bx, baseY+1
 		case 1:
 			bx = baseX + bdStride/2 + rng.Intn(max(baseW-bdStride, 1))
 			by = baseY + baseH
+			ix, iy = bx, baseY+baseH-2
 		case 2:
 			bx = baseX - 1
 			by = baseY + bdStride/2 + rng.Intn(max(baseH-bdStride, 1))
+			ix, iy = baseX+1, by
 		case 3:
 			bx = baseX + baseW
 			by = baseY + bdStride/2 + rng.Intn(max(baseH-bdStride, 1))
+			ix, iy = baseX+baseW-2, by
 		}
 
 		if bx >= 0 && bx < m.Width && by >= 0 && by < m.Height {
 			m.Set(bx, by, TileDoorOpen)
-			pts = append(pts, [2]int{bx, by})
+			for d := -1; d <= 1; d++ {
+				var dx, dy int
+				switch side {
+				case 0, 1:
+					dx = d
+				case 2, 3:
+					dy = d
+				}
+				nx, ny := bx+dx, by+dy
+				if nx >= 0 && nx < m.Width && ny >= 0 && ny < m.Height {
+					if m.At(nx, ny).Type == TileWall {
+						m.Set(nx, ny, TileDoorOpen)
+					}
+				}
+			}
+			if ix >= 0 && ix < m.Width && iy >= 0 && iy < m.Height {
+				pts = append(pts, [2]int{ix, iy})
+			}
 		}
 	}
 

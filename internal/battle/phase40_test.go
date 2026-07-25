@@ -179,6 +179,8 @@ func TestPsiAttackSuccess(t *testing.T) {
 }
 
 func TestReactionFireHumanTriggers(t *testing.T) {
+	testRandIntn = func(n int) int { return 0 }
+	defer func() { testRandIntn = nil }()
 	bs := newTestBattlescape(30, 30)
 	at := testAlienType()
 	if at == nil {
@@ -204,6 +206,8 @@ func TestReactionFireHumanTriggers(t *testing.T) {
 }
 
 func TestReactionFireAlienTriggers(t *testing.T) {
+	testRandIntn = func(n int) int { return 0 }
+	defer func() { testRandIntn = nil }()
 	bs := newTestBattlescape(30, 30)
 	at := testAlienType()
 	if at == nil {

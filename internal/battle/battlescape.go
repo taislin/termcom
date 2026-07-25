@@ -67,6 +67,8 @@ const (
 	GrenadeStrMult        = 2
 	GrenadeRange          = 6
 	GrenadeSplashSq       = 4
+
+
 	GrenadeSplashFalloff  = 5
 	GrenadeMinSplash      = 5
 	MineBaseDamage        = 60
@@ -80,6 +82,17 @@ const (
 	ReactionMaxChance     = 85
 	AlienGrenadeStrBonus  = 20
 )
+
+// testRandIntn, when non-nil, replaces math/rand.Intn in reaction fire
+// checks so tests can run deterministically.
+var testRandIntn func(n int) int
+
+func battleRandIntn(n int) int {
+	if testRandIntn != nil {
+		return testRandIntn(n)
+	}
+	return rand.Intn(n)
+}
 
 // Projectile represents a visual effect of a shot traveling across the map.
 type Projectile struct {
@@ -491,8 +504,7 @@ func NewBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, ufoN
 		}
 		u := NewSoldierUnit(s)
 		if ufoName == "Alien Base Assault" {
-			u.X = 3 + i*2
-			u.Y = 3
+			u.X, u.Y = snapToPassable(m, 4+i*2, bdBorder+1, 5)
 		} else {
 			u.X = 3 + i*2
 			u.Y = m.Height - 3
@@ -1321,7 +1333,7 @@ func (bs *Battlescape) checkHumanReactionFire(movedAlien *Unit) {
 		if chance > ReactionMaxChance {
 			chance = ReactionMaxChance
 		}
-		if rand.Intn(100) >= chance {
+		if battleRandIntn(100) >= chance {
 			continue
 		}
 		w, ok := data.RuleItems[u.Weapon]
@@ -1380,7 +1392,7 @@ func (bs *Battlescape) checkAlienReactionFire(movedHuman *Unit) {
 		if chance > ReactionMaxChance {
 			chance = ReactionMaxChance
 		}
-		if rand.Intn(100) >= chance {
+		if battleRandIntn(100) >= chance {
 			continue
 		}
 		w, ok := data.RuleItems[u.Weapon]
