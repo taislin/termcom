@@ -10,6 +10,7 @@ import (
 
 	"github.com/gdamore/tcell/v3"
 	"github.com/gdamore/tcell/v3/color"
+	"github.com/taislin/termcom/internal/base"
 	"github.com/taislin/termcom/internal/battle"
 	_ "github.com/taislin/termcom/internal/engine"
 	"github.com/taislin/termcom/internal/mapgen"
@@ -43,6 +44,7 @@ var generators = []genEntry{
 	{"mountain", "Mountain biome (AssembleMap)"},
 	{"swamp", "Swamp biome (AssembleMap)"},
 	{"jungle", "Jungle biome (AssembleMap)"},
+	{"base_defense", "Base defense (facility layout)"},
 	{"all", "All biomes (AssembleMap) — cycle with 'b' key"},
 }
 
@@ -182,6 +184,9 @@ func main() {
 		m = battle.AssembleMap(allBiomes[0], w, h, rng)
 		biomeIdx = 0
 		label = fmt.Sprintf("all biomes [%d/%d] %s (AssembleMap)", biomeIdx+1, len(allBiomes), allBiomes[0])
+	case "base_defense":
+		m = battle.GenerateBaseDefenseMap(mockBase(), rng)
+		label = "Base Defense"
 	default:
 		m, _ = battle.GenerateCrashSite(w, h, seed, -1, -1)
 		label = "Crash Site (fallback)"
@@ -521,6 +526,38 @@ func dumpMap(m *battle.BattleMap, label string) {
 			}
 			fmt.Println(sb.String())
 		}
+	}
+}
+
+func mockBase() *base.Base {
+	return &base.Base{
+		Name: "Test Base",
+		Facilities: []*base.Facility{
+			{Type: base.FacHangar, Row: 0, Col: 0},
+			{Type: base.FacLivingQuarters, Row: 0, Col: 1},
+			{Type: base.FacLivingQuarters, Row: 0, Col: 2},
+			{Type: base.FacLab, Row: 0, Col: 3},
+			{Type: base.FacLab, Row: 0, Col: 4},
+			{Type: base.FacWorkshop, Row: 0, Col: 5},
+			{Type: base.FacStorage, Row: 0, Col: 6},
+			{Type: base.FacRadar, Row: 0, Col: 7},
+			{Type: base.FacLivingQuarters, Row: 1, Col: 0},
+			{Type: base.FacLab, Row: 1, Col: 1},
+			{Type: base.FacWorkshop, Row: 1, Col: 2},
+			{Type: base.FacWorkshop, Row: 1, Col: 3},
+			{Type: base.FacStorage, Row: 1, Col: 4},
+			{Type: base.FacContainment, Row: 1, Col: 5},
+			{Type: base.FacPsiLab, Row: 1, Col: 6},
+			{Type: base.FacRadar, Row: 1, Col: 7},
+			{Type: base.FacHangar, Row: 2, Col: 0},
+			{Type: base.FacStorage, Row: 2, Col: 1},
+			{Type: base.FacContainment, Row: 2, Col: 2},
+			{Type: base.FacLivingQuarters, Row: 2, Col: 3},
+			{Type: base.FacLab, Row: 2, Col: 4},
+			{Type: base.FacWorkshop, Row: 2, Col: 5},
+			{Type: base.FacStorage, Row: 2, Col: 6},
+			{Type: base.FacRadar, Row: 2, Col: 7},
+		},
 	}
 }
 
