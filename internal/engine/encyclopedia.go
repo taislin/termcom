@@ -196,7 +196,7 @@ func (es *EncyclopediaScreen) Render(ctx *ScreenCtx) {
 			if e.Category == language.String("ENCYCLO_CAT_ALIENS") && e.AlienType != nil {
 				at := e.AlienType
 				bgColor := tcell.NewRGBColor(20, 20, 28)
-				alienImg := GenerateAlienSpriteFromSeed(int64(at.Icon), at.Morphology, bgColor)
+				alienImg := GenerateAlienSpriteFromSeed(at.SpeciesSeed, int64(at.Icon), at.Morphology, bgColor)
 
 				// Portrait on the right, starting below the description
 				pX := infoX + infoW - alienImg.Width - 4

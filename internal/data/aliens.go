@@ -187,6 +187,8 @@ type AlienType struct {
 	Morphology *Morphology // physical form (nil for hardcoded aliens)
 	Style      tcell.Style // Visual style on battlescape map
 	FgColor    tcell.Color // Foreground color for bloom / VFX (mirrors Style fg)
+
+	SpeciesSeed int64 // seed for species-wide pixel art template; variants share this, differ only in color
 }
 
 // LangName returns the localized alien name, falling back to the English Name
@@ -457,7 +459,24 @@ func init() {
 			AlienTypes[i].Style = tcell.StyleDefault.Foreground(ColorDefaultAlien).Bold(true)
 			AlienTypes[i].FgColor = ColorDefaultAlien
 		}
+		if AlienTypes[i].SpeciesSeed == 0 {
+			// Derive species seed from base name (before any space).
+			base := AlienTypes[i].Name
+			if idx := strings.IndexByte(base, ' '); idx > 0 {
+				base = base[:idx]
+			}
+			AlienTypes[i].SpeciesSeed = hashString(base)
+		}
 	}
+}
+
+// hashString returns a deterministic int64 from a string.
+func hashString(s string) int64 {
+	var h int64
+	for _, c := range s {
+		h = h*31 + int64(c)
+	}
+	return h
 }
 
 func pickColor(rng *rand.Rand, colors ...tcell.Color) tcell.Color {

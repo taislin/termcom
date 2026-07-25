@@ -3913,7 +3913,7 @@ func (bs *Battlescape) drawTargetInfo(ctx *engine.ScreenCtx, u *Unit, sideX, sid
 
 	if u.Faction == FactionAlien && u.AlienType != nil {
 		bgColor := tcell.NewRGBColor(20, 20, 28)
-		alienImg := engine.GenerateAlienSpriteFromSeed(int64(u.AlienType.Icon), u.AlienType.Morphology, bgColor)
+		alienImg := engine.GenerateAlienSpriteFromSeed(u.AlienType.SpeciesSeed, int64(u.AlienType.Icon), u.AlienType.Morphology, bgColor)
 		portW := alienImg.Width + 2
 		portX := sideX + bs.SidebarW - portW
 		ctx.DrawPixelImageFramed(portX, sideY0, alienImg, engine.StyleRed)

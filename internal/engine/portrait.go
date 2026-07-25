@@ -16,7 +16,8 @@ var (
 
 
 type spriteCacheKey struct {
-	seed          int64
+	morphSeed     int64
+	colorSeed     int64
 	bgR, bgG, bgB int32
 	mk            uint64
 }
@@ -982,15 +983,16 @@ func clampColor(v int32) int32 {
 
 // GenerateAlienSpriteFromSeed creates a PixelImage from a seeded sprite assembly,
 // using the alien's morphology to select trait-matched visual templates.
-// Results are cached per (seed, bgColor, morphology) since the sprite never changes.
-func GenerateAlienSpriteFromSeed(seed int64, m *data.Morphology, bgColor tcell.Color) *PixelImage {
+// morphSeed controls the pixel art template (shared across species variants),
+// colorSeed controls the body color (variant-specific).
+func GenerateAlienSpriteFromSeed(morphSeed, colorSeed int64, m *data.Morphology, bgColor tcell.Color) *PixelImage {
 	br, bg, bb := bgColor.RGB()
-	key := spriteCacheKey{seed: seed, bgR: br, bgG: bg, bgB: bb, mk: morphKey(m)}
+	key := spriteCacheKey{morphSeed: morphSeed, colorSeed: colorSeed, bgR: br, bgG: bg, bgB: bb, mk: morphKey(m)}
 	if v, ok := alienSpriteCache.Load(key); ok {
 		return v.(*PixelImage)
 	}
-	ap := data.GenerateAlienPixels(seed, m)
-	r, g, b := data.AlienColorFromSeed(seed)
+	ap := data.GenerateAlienPixels(morphSeed, m)
+	r, g, b := data.AlienColorFromSeed(colorSeed)
 	fgColor := tcell.NewRGBColor(r, g, b)
 	img := GenerateAlienPixelsImage(ap, fgColor, bgColor)
 	alienSpriteCache.Store(key, img)
