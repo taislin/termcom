@@ -357,7 +357,7 @@ func NewBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, ufoN
 	case "Supply Raid":
 		m = GenerateUFOInteriorWFC(50, 50, mapRng)
 	case "Alien Base Assault":
-		m = GenerateAlienBaseWFC(50, 50, mapRng)
+		m = GenerateBaseDefenseMap(b, mapRng)
 	case "Alien Research":
 		m = GenerateUFOInteriorWFC(50, 50, mapRng)
 	case "Building Assault":
@@ -490,8 +490,13 @@ func NewBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, ufoN
 			continue
 		}
 		u := NewSoldierUnit(s)
-		u.X = 3 + i*2
-		u.Y = m.Height - 3
+		if ufoName == "Alien Base Assault" {
+			u.X = 3 + i*2
+			u.Y = 3
+		} else {
+			u.X = 3 + i*2
+			u.Y = m.Height - 3
+		}
 		u.IsNight = bs.IsNight
 		bs.Units = append(bs.Units, u)
 	}
@@ -578,6 +583,9 @@ func NewBattlescape(g *engine.Game, b *base.Base, squad []*soldier.Soldier, ufoN
 				u.X = tile.X
 				u.Y = tile.Y
 			}
+		} else if len(m.BreachPoints) > 0 {
+			bp := m.BreachPoints[i%len(m.BreachPoints)]
+			u.X, u.Y = snapToPassable(m, bp[0], bp[1], 3)
 		} else {
 			u.X = 10 + randn(m.Width-14)
 			u.Y = 3 + randn(m.Height/2-4)

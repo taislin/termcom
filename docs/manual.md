@@ -152,7 +152,10 @@ and a small chance of casualties on loss.
 ### Base Defense
 
 If a mission targets a node with your base, responding launches a **Base Defense**
-battle. Losing a base defense destroys the base and its personnel.
+battle on a tactical map built from your base's facility layout — each room
+represents a facility (Living Quarters, Lab, Workshop, etc.) with appropriate
+furniture, connected by corridors. Aliens breach the perimeter from outside.
+Losing a base defense destroys the base and its personnel.
 Losing your last base ends the game.
 
 ### UFO Interception

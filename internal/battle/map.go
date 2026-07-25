@@ -349,6 +349,7 @@ type BattleMap struct {
 	Tiles        [][]Tile
 	Gas          *GasGrid
 	GroundLoot   map[[2]int][]string // items on the ground, keyed by tile position
+	BreachPoints [][2]int            // perimeter breach points for alien spawn
 }
 
 func NewBattleMap(w, h int) *BattleMap {
