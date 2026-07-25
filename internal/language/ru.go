@@ -319,6 +319,7 @@ func init() {
 		"MSG_GRENADE_DETONATED":     "Граната взорвалась на [%d,%d]!",
 		"MSG_ALIEN_GRENADE":         "%s бросает гранату на [%d,%d]!",
 		"MSG_NOT_ENOUGH_TU_MEDIKIT": "Недостаточно ОВ для использования медикита.",
+		"MSG_NO_MEDIKIT":             "Необходим медикит.",
 		"MSG_NOT_ENOUGH_TU_PSI":     "Недостаточно ОВ для пси-атаки.",
 		"MSG_NEED_SCANNER":          "Необходим сканер движения.",
 		"MSG_NOT_ENOUGH_TU_SCANNER": "Недостаточно ОВ для сканера.",

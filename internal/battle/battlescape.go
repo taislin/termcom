@@ -2140,7 +2140,14 @@ func (bs *Battlescape) FireWeapon() {
 		w, ok := data.RuleItems[bs.Selected.Weapon]
 		if ok && w.AmmoMax < InfAmmoThreshold {
 			rounds := w.ModeRounds(bs.Selected.FireMode)
-			if rounds > 0 && bs.Selected.WeaponAmmo < rounds {
+			if rounds < 0 {
+				rounds = bs.Selected.WeaponAmmo // auto mode: use all remaining ammo
+			}
+			if rounds <= 0 {
+				bs.AddMessage(language.String("MSG_OUT_OF_AMMO"))
+				return
+			}
+			if bs.Selected.WeaponAmmo < rounds {
 				bs.AddMessage(language.String("MSG_OUT_OF_AMMO"))
 				return
 			}
@@ -2884,7 +2891,15 @@ func (bs *Battlescape) UseMedikit() {
 		bs.AddMessage(language.String("MSG_NOT_ENOUGH_TU_MEDIKIT"))
 		return
 	}
-
+	// Check that the selected unit carries a medikit.
+	if bs.Selected.Soldier != nil && !bs.Selected.Soldier.HasItem("medikit") {
+		bs.AddMessage(language.String("MSG_NO_MEDIKIT"))
+		return
+	}
+	// Consume one medikit from inventory.
+	if bs.Selected.Soldier != nil {
+		bs.Selected.Soldier.RemoveItem("medikit")
+	}
 	healAmount := 10
 	if bs.Selected.Soldier != nil && bs.Selected.Soldier.HasBattleMod(soldier.BModFieldMedic) {
 		healAmount = 15
@@ -3532,7 +3547,6 @@ func (bs *Battlescape) invUse() {
 	item := list[bs.InvCursor]
 	switch item {
 	case "medikit":
-		bs.Selected.Soldier.RemoveItem(item)
 		bs.UseMedikit()
 	case "grenade":
 		bs.Selected.Soldier.RemoveItem(item)

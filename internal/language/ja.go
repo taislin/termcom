@@ -319,6 +319,7 @@ func init() {
 		"MSG_GRENADE_DETONATED":     "手榴弾が [%d,%d] で爆発！",
 		"MSG_ALIEN_GRENADE":         "%s が手榴弾を [%d,%d] に投げた！",
 		"MSG_NOT_ENOUGH_TU_MEDIKIT": "メディキットを使用するTUが足りません。",
+		"MSG_NO_MEDIKIT":             "メディキットを装備してください。",
 		"MSG_NOT_ENOUGH_TU_PSI":     "サイ攻撃を行うTUが足りません。",
 		"MSG_NEED_SCANNER":          "モーションスキャナーを装備してください。",
 		"MSG_NOT_ENOUGH_TU_SCANNER": "スキャナーを使用するTUが足りません。",

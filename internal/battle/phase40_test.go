@@ -89,6 +89,7 @@ func TestGrenadeDamage(t *testing.T) {
 	sel := NewSoldierUnit(soldier.NewSoldier("Grenadier"))
 	sel.X, sel.Y = 10, 10
 	sel.TU = 100
+	sel.Soldier.AddItem("medikit")
 	bs.Selected = sel
 	bs.Units = UnitList{sel}
 
@@ -116,6 +117,7 @@ func TestMedikitHeals(t *testing.T) {
 	ally.X, ally.Y = 10, 11
 	ally.HP = 5
 	ally.MaxHP = 20
+	sel.Soldier.AddItem("medikit")
 	bs.Selected = sel
 	bs.Units = UnitList{sel, ally}
 	bs.CursorX, bs.CursorY = 10, 11
@@ -139,6 +141,7 @@ func TestPsiAttackConsumesTU(t *testing.T) {
 	sel.X, sel.Y = 10, 10
 	sel.TU = 100
 	sel.Soldier.Weapon = "psi_amp"
+	sel.Soldier.AddItem("medikit")
 	bs.Selected = sel
 	alien := NewAlienUnit(at)
 	alien.X, alien.Y = 10, 11
@@ -163,6 +166,7 @@ func TestPsiAttackSuccess(t *testing.T) {
 	sel.TU = 100
 	sel.Soldier.Weapon = "psi_amp"
 	sel.Soldier.PsiSkill = 100
+	sel.Soldier.AddItem("medikit")
 	bs.Selected = sel
 	alien := NewAlienUnit(at)
 	alien.X, alien.Y = 10, 11

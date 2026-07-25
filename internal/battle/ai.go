@@ -1284,7 +1284,7 @@ func (ai *AlienAI) handleAttack(nearest *Unit, dist float64, humanUnits UnitList
 				actions = ai.appendMove(actions, fx, fy)
 			}
 		}
-	} else if !fired && ai.Unit.TU >= 20 && target != nil && ai.canFireAt(target) {
+	} else if !fired && target != nil && ai.canFireAt(target) {
 		ai.selectFireMode(int(dist))
 		actions = append(actions, AlienAction{
 			Type: "fire", Unit: ai.Unit, Target: target,
