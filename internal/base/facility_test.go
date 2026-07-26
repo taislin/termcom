@@ -323,6 +323,7 @@ func TestHasResearch(t *testing.T) {
 func TestCanResearch(t *testing.T) {
 	b := NewBase("Test", 0)
 	b.Facilities = append(b.Facilities, &Facility{Type: FacLab})
+	b.Stores["alloys"] = 1
 	topic := data.ResearchByID("alien_alloys")
 	if !b.CanResearch(topic) {
 		t.Error("should be able to research alien_alloys")
@@ -336,6 +337,7 @@ func TestCanResearch(t *testing.T) {
 func TestStartResearch(t *testing.T) {
 	b := NewBase("Test", 0)
 	b.Facilities = append(b.Facilities, &Facility{Type: FacLab})
+	b.Stores["alloys"] = 1
 	ok := b.StartResearch("alien_alloys")
 	if !ok {
 		t.Error("should start research")
@@ -351,6 +353,7 @@ func TestStartResearch(t *testing.T) {
 func TestAdvanceResearch(t *testing.T) {
 	b := NewBase("Test", 0)
 	b.Facilities = append(b.Facilities, &Facility{Type: FacLab})
+	b.Stores["alloys"] = 1
 	b.StartResearch("alien_alloys")
 	b.ActiveResearch.Cost = 10
 	b.ActiveResearch.Scientists = 5
@@ -482,6 +485,7 @@ func TestAssignScientists(t *testing.T) {
 	b := NewBase("Test", 0)
 	b.UnassignedScientists = 5
 	b.Facilities = append(b.Facilities, &Facility{Type: FacLab})
+	b.Stores["alloys"] = 1
 	b.StartResearch("alien_alloys")
 
 	ok := b.AssignScientists(3)
@@ -573,6 +577,8 @@ func TestAssignEngineersOutOfBounds(t *testing.T) {
 func TestStartResearchAlreadyActive(t *testing.T) {
 	b := NewBase("Test", 0)
 	b.Facilities = append(b.Facilities, &Facility{Type: FacLab})
+	b.Stores["alloys"] = 1
+	b.Stores["elerium"] = 1
 	b.StartResearch("alien_alloys")
 	if b.ActiveResearch == nil {
 		t.Fatal("first research should start")

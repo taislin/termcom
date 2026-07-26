@@ -57,6 +57,7 @@ func TestResearchGetChildren(t *testing.T) {
 func TestResearchStartResearch(t *testing.T) {
 	b := NewBase("Test", 0)
 	b.Facilities = append(b.Facilities, &Facility{Type: FacLab})
+	b.Stores["alloys"] = 1
 	rs := NewResearchScreen(&engine.Game{}, b)
 	rs.startResearch()
 	// Should set a message (success or failure)

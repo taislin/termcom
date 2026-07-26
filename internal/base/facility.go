@@ -710,6 +710,14 @@ func (b *Base) CanResearch(topic *data.ResearchTopic) bool {
 			return false
 		}
 	}
+	// For item-sample topics (e.g. elerium), require at least 1 of the item
+	// in storage so the lab can study it.
+	if topic.ID == "elerium" && b.Stores["elerium"] <= 0 {
+		return false
+	}
+	if topic.ID == "alien_alloys" && b.Stores["alloys"] <= 0 {
+		return false
+	}
 	return true
 }
 

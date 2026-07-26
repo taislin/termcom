@@ -15,6 +15,7 @@ type ManufacturePlan struct {
 	ItemKey   string
 	Days      int
 	Materials map[string]int
+	RequiresResearch string // optional: research topic ID needed to unlock this plan
 }
 
 func (p *ManufacturePlan) DisplayName() string {
@@ -34,15 +35,15 @@ var ManufacturePlans = []ManufacturePlan{
 	{Name: "Auto Cannon", ItemKey: "auto", Days: 6, Materials: map[string]int{"alloys": 3}},
 	{Name: "Rocket Launcher", ItemKey: "rocket", Days: 8, Materials: map[string]int{"alloys": 4, "elerium": 1}},
 	{Name: "Stun Rod", ItemKey: "stun_rod", Days: 2, Materials: map[string]int{"alloys": 1}},
-	{Name: "Laser Pistol", ItemKey: "laser_pistol", Days: 6, Materials: map[string]int{"alloys": 3, "elerium": 1}},
-	{Name: "Laser Rifle", ItemKey: "laser_rifle", Days: 10, Materials: map[string]int{"alloys": 5, "elerium": 2}},
-	{Name: "Plasma Pistol", ItemKey: "plasma_pistol", Days: 8, Materials: map[string]int{"alloys": 4, "elerium": 3}},
-	{Name: "Plasma Rifle", ItemKey: "plasma_rifle", Days: 14, Materials: map[string]int{"alloys": 8, "elerium": 4}},
-	{Name: "Heavy Plasma", ItemKey: "heavy_plasma", Days: 18, Materials: map[string]int{"alloys": 10, "elerium": 6}},
-	{Name: "Personal Armour", ItemKey: "personal", Days: 6, Materials: map[string]int{"alloys": 2}},
-	{Name: "Light Suit", ItemKey: "light", Days: 10, Materials: map[string]int{"alloys": 4, "elerium": 1}},
-	{Name: "Medium Suit", ItemKey: "medium", Days: 14, Materials: map[string]int{"alloys": 6, "elerium": 2}},
-	{Name: "Heavy Suit", ItemKey: "heavy", Days: 18, Materials: map[string]int{"alloys": 8, "elerium": 3}},
+	{Name: "Laser Pistol", ItemKey: "laser_pistol", Days: 6, Materials: map[string]int{"alloys": 3, "elerium": 1}, RequiresResearch: "laser_weapons"},
+	{Name: "Laser Rifle", ItemKey: "laser_rifle", Days: 10, Materials: map[string]int{"alloys": 5, "elerium": 2}, RequiresResearch: "laser_weapons"},
+	{Name: "Plasma Pistol", ItemKey: "plasma_pistol", Days: 8, Materials: map[string]int{"alloys": 4, "elerium": 3}, RequiresResearch: "plasma_weapons"},
+	{Name: "Plasma Rifle", ItemKey: "plasma_rifle", Days: 14, Materials: map[string]int{"alloys": 8, "elerium": 4}, RequiresResearch: "plasma_weapons"},
+	{Name: "Heavy Plasma", ItemKey: "heavy_plasma", Days: 18, Materials: map[string]int{"alloys": 10, "elerium": 6}, RequiresResearch: "heavy_plasma"},
+	{Name: "Personal Armour", ItemKey: "personal", Days: 6, Materials: map[string]int{"alloys": 2}, RequiresResearch: "personal_armour"},
+	{Name: "Light Suit", ItemKey: "light", Days: 10, Materials: map[string]int{"alloys": 4, "elerium": 1}, RequiresResearch: "light_suit"},
+	{Name: "Medium Suit", ItemKey: "medium", Days: 14, Materials: map[string]int{"alloys": 6, "elerium": 2}, RequiresResearch: "medium_suit"},
+	{Name: "Heavy Suit", ItemKey: "heavy", Days: 18, Materials: map[string]int{"alloys": 8, "elerium": 3}, RequiresResearch: "heavy_suit"},
 	{Name: "Medi-Kit", ItemKey: "medi_kit", Days: 3, Materials: map[string]int{"alloys": 1}},
 }
 
@@ -143,6 +144,10 @@ func (ms *ManufactureScreen) Render(ctx *engine.ScreenCtx) {
 func (ms *ManufactureScreen) getBuildablePlans() []ManufacturePlan {
 	var plans []ManufacturePlan
 	for _, plan := range ManufacturePlans {
+		// Check research unlock requirement
+		if plan.RequiresResearch != "" && !ms.Base.HasResearch(plan.RequiresResearch) {
+			continue
+		}
 		canBuild := true
 		for mat, qty := range plan.Materials {
 			if ms.Base.CountItem(mat) < qty {
