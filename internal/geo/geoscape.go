@@ -475,6 +475,15 @@ func NewGeoscapeFromSave(g *engine.Game, sd *save.SaveData) *Geoscape {
 		bases = append(bases, b)
 	}
 
+	// Re-register custom weapons in global RuleItems after load
+	for _, b := range bases {
+		for key, design := range b.CustomWeapons {
+			item := data.MakeDesignItem(*design)
+			item.Type = key
+			data.RuleItems[key] = item
+		}
+	}
+
 	cities := GetCities()
 	for _, b := range bases {
 		if b.CityID >= 0 && b.CityID < len(cities) {
@@ -1783,6 +1792,14 @@ func (gs *Geoscape) loadFromSaveData(sd *save.SaveData) {
 	gs.Bases = nil
 	for _, bs := range sd.Bases {
 		gs.Bases = append(gs.Bases, save.ToBase(bs))
+	}
+	// Re-register custom weapons in global RuleItems after load
+	for _, b := range gs.Bases {
+		for key, design := range b.CustomWeapons {
+			item := data.MakeDesignItem(*design)
+			item.Type = key
+			data.RuleItems[key] = item
+		}
 	}
 	for _, b := range gs.Bases {
 		b.SetProceduralAliens(gs.Game.AlienSpecies)

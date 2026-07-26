@@ -353,7 +353,8 @@ func (wd *WeaponDesignerScreen) build() {
 	// Register in RuleItems so battlescape can look up stats
 	data.RuleItems[item.Type] = item
 
-	wd.Base.CustomWeapons[item.Type] = &wd.Design
+	designCopy := wd.Design
+	wd.Base.CustomWeapons[item.Type] = &designCopy
 	wd.Base.Stores[item.Type] = 1
 
 	wd.nextID++

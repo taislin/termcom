@@ -325,6 +325,11 @@ func (pd *PlaneDesignerScreen) save() {
 	if pd.HangarID >= 0 && pd.HangarID < len(pd.Base.Hangars) {
 		pd.Base.Hangars[pd.HangarID].PlaneConfig = &cfg
 		pd.Base.Hangars[pd.HangarID].Name = pd.planeName()
+		// Map designer weapon index to interceptor weapon key
+		weaponKeys := []string{"cannon", "stingray", "avalanche", "plasma"}
+		if cfg.Weapon >= 0 && cfg.Weapon < len(weaponKeys) {
+			pd.Base.Hangars[pd.HangarID].WeaponKey = weaponKeys[cfg.Weapon]
+		}
 	}
 	pd.Game.PopState()
 }

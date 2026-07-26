@@ -481,6 +481,7 @@ func (bs *BaseScreen) dispatchHotkey(key string, viaMouse bool) {
 		}
 	case "e", "E":
 		if bs.Tab == 1 && len(bs.Base.Soldiers) > 0 {
+			bs.Game.SetScreen(engine.StateEquip, NewEquipScreen(bs.Game, bs.Base))
 			bs.Game.PushState(engine.StateEquip)
 		}
 	case "l", "L":
@@ -501,6 +502,7 @@ func (bs *BaseScreen) dispatchHotkey(key string, viaMouse bool) {
 	case "g", "G":
 		if viaMouse {
 			if bs.Tab == 0 {
+				bs.Game.SetScreen(engine.StatePlaneDesigner, NewPlaneDesignerScreen(bs.Game, bs.Base, bs.Selection))
 				bs.Game.PushState(engine.StatePlaneDesigner)
 			}
 		} else {
@@ -541,14 +543,16 @@ func (bs *BaseScreen) HandleMouse(e *tcell.EventMouse) {
 					bs.Selection = 0
 				case 'b', 'B', 's', 'S', 'h', 'H', 'd', 'D', 'e', 'E', 'r', 'R', 'm', 'M', 'g', 'G':
 					bs.dispatchHotkey(string(r), true)
-				case 'w', 'W':
-					if bs.Tab == 5 {
-						bs.Game.PushState(engine.StatePlaneDesigner)
-					}
-				case 'c', 'C':
-					if bs.Tab == 5 {
-						bs.Game.PushState(engine.StateWeaponDesigner)
-					}
+			case 'w', 'W':
+				if bs.Tab == 5 {
+					bs.Game.SetScreen(engine.StatePlaneDesigner, NewPlaneDesignerScreen(bs.Game, bs.Base, bs.Selection))
+					bs.Game.PushState(engine.StatePlaneDesigner)
+				}
+			case 'c', 'C':
+				if bs.Tab == 5 {
+					bs.Game.SetScreen(engine.StateWeaponDesigner, NewWeaponDesignerScreen(bs.Game, bs.Base))
+					bs.Game.PushState(engine.StateWeaponDesigner)
+				}
 				case '\u2190', '\u2192', '\u2191', '\u2193', 'n', 'N', 'p', 'P', 'l', 'L', 'q', 'Q', '\u001b':
 					if r == 'q' || r == 'Q' || r == '\u001b' {
 						bs.Game.PopState()

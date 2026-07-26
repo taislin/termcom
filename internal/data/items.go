@@ -682,6 +682,16 @@ var InterceptorWeapons = map[string]InterceptorWeapon{
 		Cost:            5000,
 		RearmCost:       500,
 	},
+	"plasma": {
+		Name:            "Plasma Beam",
+		Damage:          60,
+		Accuracy:        50,
+		Range:           50,
+		DogfightMaxRange: 0.85,
+		FireRate:        1,
+		Cost:            20000,
+		RearmCost:       3000,
+	},
 }
 
 // CombatMode defines interceptor engagement behavior.
