@@ -397,14 +397,17 @@ func (rs *ResearchScreen) startResearch() {
 }
 
 func (rs *ResearchScreen) HandleKey(e *tcell.EventKey) {
+	entries := rs.getAllTopics()
 	switch e.Key() {
 	case tcell.KeyUp:
 		rs.Selection--
 		if rs.Selection < 0 {
 			rs.Selection = 0
 		}
+		if rs.Selection >= len(entries) {
+			rs.Selection = len(entries) - 1
+		}
 	case tcell.KeyDown:
-		entries := rs.getAllTopics()
 		rs.Selection++
 		if rs.Selection >= len(entries) {
 			rs.Selection = len(entries) - 1

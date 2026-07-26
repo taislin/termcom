@@ -451,6 +451,7 @@ func init() {
 		"MSG_BUILDING":               "%s 건설 중 ($%dK)",
 		"MSG_INSUFFICIENT_FUNDS":     "자금 부족!",
 		"MSG_CANNOT_SELL_BUILDING":   "건설 중인 것은 팔 수 없습니다!",
+		"MSG_CANNOT_SELL":           "해당 유형의 시설이 없습니다!",
 		"MSG_SOLD":                   "%s을(를) $%dK에 판매",
 		"MSG_CANNOT_HIRE":            "고용할 자금이 부족합니다!",
 		"MSG_DISMISSED":              " 해고됨.",

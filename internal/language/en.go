@@ -449,6 +449,7 @@ func init() {
 		"MSG_BUILDING":               "Building %s ($%dK)",
 		"MSG_INSUFFICIENT_FUNDS":     "Insufficient funds!",
 		"MSG_CANNOT_SELL_BUILDING":   "Cannot sell under construction!",
+		"MSG_CANNOT_SELL":           "No facility of that type to sell!",
 		"MSG_SOLD":                   "Sold %s for $%dK",
 		"MSG_CANNOT_HIRE":            "Insufficient funds to hire!",
 		"MSG_DISMISSED":              " dismissed.",

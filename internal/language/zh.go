@@ -449,6 +449,7 @@ func init() {
 		"MSG_BUILDING":               "\u6b63\u5728\u5efa\u9020 %s\uff08$%dK\uff09",
 		"MSG_INSUFFICIENT_FUNDS":     "\u8d44\u91d1\u4e0d\u8db3\uff01",
 		"MSG_CANNOT_SELL_BUILDING":   "\u65e0\u6cd5\u51fa\u552e\u5728\u5efa\u4e2d\u7684\u8bbe\u65bd\uff01",
+		"MSG_CANNOT_SELL":           "\u6ca1\u6709\u8be5\u7c7b\u578b\u7684\u8bbe\u65bd\u53ef\u51fa\u552e\uff01",
 		"MSG_SOLD":                   "\u51fa\u552e %s\uff0c\u83b7\u5f97 $%dK",
 		"MSG_CANNOT_HIRE":            "\u8d44\u91d1\u4e0d\u8db3\uff0c\u65e0\u6cd5\u62db\u52df\uff01",
 		"MSG_DISMISSED":              " \u5df2\u89e3\u96c4\u3002",

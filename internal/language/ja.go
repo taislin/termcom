@@ -451,6 +451,7 @@ func init() {
 		"MSG_BUILDING":               "%s を建設中 ($%dK)",
 		"MSG_INSUFFICIENT_FUNDS":     "資金が不足しています！",
 		"MSG_CANNOT_SELL_BUILDING":   "建設中の施設は売却できません！",
+		"MSG_CANNOT_SELL":           "そのタイプの施設は売却できません！",
 		"MSG_SOLD":                   "%s を $%dK で売却",
 		"MSG_CANNOT_HIRE":            "資金不足で採用できません！",
 		"MSG_DISMISSED":              " を解雇しました。",

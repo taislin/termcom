@@ -451,6 +451,7 @@ func init() {
 		"MSG_BUILDING":               "Строится %s ($%dK)",
 		"MSG_INSUFFICIENT_FUNDS":     "Недостаточно средств!",
 		"MSG_CANNOT_SELL_BUILDING":   "Нельзя продать строящийся объект!",
+		"MSG_CANNOT_SELL":           "Нет сооружений этого типа для продажи!",
 		"MSG_SOLD":                   "Продано %s за $%dK",
 		"MSG_CANNOT_HIRE":            "Недостаточно средств для найма!",
 		"MSG_DISMISSED":              " уволен.",

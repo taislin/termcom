@@ -40,9 +40,12 @@ func (bs *BaseScreen) BuildFacility() {
 		ft := types[bs.Selection]
 		def := FacilityDefs[ft]
 		if bs.Game.Funds >= int64(def.Cost) {
-			bs.Game.Funds -= int64(def.Cost)
-			bs.Base.BuildFacility(ft)
-			bs.Message = fmt.Sprintf(language.String("MSG_BUILDING"), def.Name, def.Cost/1000)
+			if bs.Base.BuildFacility(ft) {
+				bs.Game.Funds -= int64(def.Cost)
+				bs.Message = fmt.Sprintf(language.String("MSG_BUILDING"), def.Name, def.Cost/1000)
+			} else {
+				bs.Message = language.String("MSG_INSUFFICIENT_FUNDS")
+			}
 		} else {
 			bs.Message = language.String("MSG_INSUFFICIENT_FUNDS")
 		}
@@ -50,35 +53,43 @@ func (bs *BaseScreen) BuildFacility() {
 }
 
 func (bs *BaseScreen) SellFacility() {
-	if bs.Tab == 0 && bs.Selection >= 0 && bs.Selection < len(bs.Base.Facilities) {
-		fac := bs.Base.Facilities[bs.Selection]
-		if fac.Building {
-			bs.Message = language.String("MSG_CANNOT_SELL_BUILDING")
+	if bs.Tab != 0 {
+		return
+	}
+	types := []FacilityType{FacLivingQuarters, FacLab, FacWorkshop, FacStorage, FacRadar, FacContainment, FacPsiLab, FacHangar}
+	if bs.Selection < 0 || bs.Selection >= len(types) {
+		return
+	}
+	targetType := types[bs.Selection]
+	// Find the first non-building facility of the selected type
+	for i, f := range bs.Base.Facilities {
+		if f.Type == targetType && !f.Building {
+			def := FacilityDefs[f.Type]
+			refund := int64(def.Cost) / 2
+			bs.Game.Funds += refund
+			bs.Base.Facilities = append(bs.Base.Facilities[:i], bs.Base.Facilities[i+1:]...)
+			bs.Message = fmt.Sprintf(language.String("MSG_SOLD"), FacilityDisplayName(f.Type), refund/1000)
+			if bs.Selection >= len(bs.Base.Facilities) {
+				bs.Selection = len(bs.Base.Facilities) - 1
+			}
+			if bs.Selection < 0 {
+				bs.Selection = 0
+			}
 			return
 		}
-		def := FacilityDefs[fac.Type]
-		refund := int64(def.Cost) / 2
-		bs.Game.Funds += refund
-		bs.Base.Facilities = append(bs.Base.Facilities[:bs.Selection], bs.Base.Facilities[bs.Selection+1:]...)
-		bs.Message = fmt.Sprintf(language.String("MSG_SOLD"), def.Name, refund/1000)
-		if bs.Selection >= len(bs.Base.Facilities) {
-			bs.Selection = len(bs.Base.Facilities) - 1
-		}
-		if bs.Selection < 0 {
-			bs.Selection = 0
-		}
 	}
+	bs.Message = language.String("MSG_CANNOT_SELL")
 }
 
 func (bs *BaseScreen) HireSoldier() {
-	if bs.Game.Funds < int64(HireCost) {
-		bs.Message = language.String("MSG_CANNOT_HIRE")
-		return
-	}
 	ok, msg := bs.Base.HireSoldier()
 	if ok {
-		bs.Game.Funds -= int64(HireCost)
-		bs.Message = msg + fmt.Sprintf(language.String("MSG_HIRE_COST_SUFFIX"), HireCost/1000)
+		if bs.Game.Funds >= int64(HireCost) {
+			bs.Game.Funds -= int64(HireCost)
+			bs.Message = msg + fmt.Sprintf(language.String("MSG_HIRE_COST_SUFFIX"), HireCost/1000)
+		} else {
+			bs.Message = language.String("MSG_CANNOT_HIRE")
+		}
 	} else {
 		bs.Message = msg
 	}
