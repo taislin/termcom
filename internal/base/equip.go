@@ -207,6 +207,11 @@ func (es *EquipScreen) getAvailableItems() []string {
 		for k, ri := range data.RuleItems {
 			if es.Base.CountItem(k) > 0 {
 				if ri.BattleType == data.BT_FIREARM || ri.BattleType == data.BT_MELEE || ri.BattleType == data.BT_PSIAMP {
+					// Skip custom weapon keys — they are already in RuleItems
+					// and would duplicate the CustomWeapons entries below.
+					if len(k) > 7 && k[:7] == "custom_" {
+						continue
+					}
 					items = append(items, k)
 				}
 			}

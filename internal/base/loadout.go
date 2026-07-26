@@ -242,6 +242,9 @@ func (ls *LoadoutScreen) getAvailableWeapons() []string {
 	var items []string
 	for k := range data.RuleItems {
 		if ls.Base.CountItem(k) > 0 {
+			if len(k) > 7 && k[:7] == "custom_" {
+				continue
+			}
 			items = append(items, k)
 		}
 	}

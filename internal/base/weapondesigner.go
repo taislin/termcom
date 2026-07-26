@@ -17,6 +17,7 @@ type WeaponDesignerScreen struct {
 	Param     int
 	Message   string
 	nextID    int
+	BuildCount int
 	cachedArt   []weaponCell
 	cachedDesign data.WeaponDesign
 }
@@ -139,6 +140,8 @@ func (wd *WeaponDesignerScreen) buildWeaponArt() []weaponCell {
 			opticChar = '\u2605'
 		}
 		cells = append(cells, drawWeaponCell(receiverStart+1, 0, opticChar, engine.StyleYellow))
+		// Optic rail on top of the barrel
+		cells = append(cells, drawWeaponCell(receiverStart+1, -1, opticChar, engine.StyleYellow))
 	}
 
 	receiverEnd := receiverStart + 2
@@ -186,7 +189,7 @@ func (wd *WeaponDesignerScreen) renderWeaponArt() []weaponCell {
 func (wd *WeaponDesignerScreen) renderStats(ctx *engine.ScreenCtx, sx, sy, sw, sh int) {
 	ctx.DrawString(sx, sy-1, language.String("WEAPON_STATS"), engine.StyleCyanBold)
 
-	damage, accuracy, tu, rng, ammoMax, strength, weight, _ := data.CalcDesignStats(wd.Design)
+	damage, accuracy, tu, rng, ammoMax, strength, weight, cost := data.CalcDesignStats(wd.Design)
 
 	rows := []struct {
 		label string
@@ -198,6 +201,7 @@ func (wd *WeaponDesignerScreen) renderStats(ctx *engine.ScreenCtx, sx, sy, sw, s
 		{language.String("WEAPON_STAT_TU"), fmt.Sprintf("%d TU", tu), engine.StyleYellow},
 		{language.String("WEAPON_STAT_RANGE"), fmt.Sprintf("%d", rng), engine.StyleCyan},
 		{language.String("WEAPON_STAT_AMMO"), fmt.Sprintf("%d", ammoMax), engine.StyleCyan},
+		{language.String("WEAPON_STAT_COST"), fmt.Sprintf("$%d", cost), engine.StyleOrange},
 		{language.String("WEAPON_STAT_WEIGHT"), fmt.Sprintf("%.1f kg", weight), engine.StyleGray},
 		{language.String("WEAPON_STAT_STR"), fmt.Sprintf("%d", strength), engine.StyleGray},
 	}
@@ -251,6 +255,13 @@ func (wd *WeaponDesignerScreen) renderParams(ctx *engine.ScreenCtx, px, py, cx i
 		}
 		ctx.DrawString(colX, colY, fmt.Sprintf("%-12s  < %s >", name, bar), style)
 	}
+	// Build count row
+	countY := py + 5
+	countStyle := engine.StyleDefault
+	if wd.Param == 5 {
+		countStyle = engine.StyleHighlight
+	}
+	ctx.DrawString(px, countY, fmt.Sprintf(language.String("WEAPON_PARAM_COUNT"), wd.BuildCount), countStyle)
 }
 
 func (wd *WeaponDesignerScreen) HandleKey(e *tcell.EventKey) {
@@ -259,12 +270,12 @@ func (wd *WeaponDesignerScreen) HandleKey(e *tcell.EventKey) {
 		audio.PlayMenuNav()
 		wd.Param--
 		if wd.Param < 0 {
-			wd.Param = 4
+			wd.Param = 5
 		}
 	case tcell.KeyDown:
 		audio.PlayMenuNav()
 		wd.Param++
-		if wd.Param > 4 {
+		if wd.Param > 5 {
 			wd.Param = 0
 		}
 	case tcell.KeyLeft:
@@ -276,7 +287,7 @@ func (wd *WeaponDesignerScreen) HandleKey(e *tcell.EventKey) {
 	case tcell.KeyTab:
 		audio.PlayMenuNav()
 		wd.Param++
-		if wd.Param > 4 {
+		if wd.Param > 5 {
 			wd.Param = 0
 		}
 	case tcell.KeyEnter:
@@ -330,6 +341,14 @@ func (wd *WeaponDesignerScreen) adjustParam(delta int) {
 		if wd.Design.Stock >= len(data.Stocks) {
 			wd.Design.Stock = 0
 		}
+	case 5: // build count
+		wd.BuildCount += delta
+		if wd.BuildCount < 1 {
+			wd.BuildCount = 99
+		}
+		if wd.BuildCount > 99 {
+			wd.BuildCount = 1
+		}
 	}
 }
 
@@ -339,7 +358,11 @@ func (wd *WeaponDesignerScreen) cost() int {
 }
 
 func (wd *WeaponDesignerScreen) build() {
-	cost := int64(wd.cost())
+	count := wd.BuildCount
+	if count < 1 {
+		count = 1
+	}
+	cost := int64(wd.cost()) * int64(count)
 	if wd.Game.Funds < cost {
 		wd.Message = language.String("WEAPON_MSG_INSUFFICIENT_FUNDS")
 		return
@@ -355,10 +378,14 @@ func (wd *WeaponDesignerScreen) build() {
 
 	designCopy := wd.Design
 	wd.Base.CustomWeapons[item.Type] = &designCopy
-	wd.Base.Stores[item.Type] = 1
+	wd.Base.Stores[item.Type] = count
 
 	wd.nextID++
-	wd.Message = fmt.Sprintf(language.String("WEAPON_MSG_BUILT"), data.WeaponDesignName(wd.Design))
+	if count > 1 {
+		wd.Message = fmt.Sprintf(language.String("WEAPON_MSG_BUILT_MULTI"), count, data.WeaponDesignName(wd.Design))
+	} else {
+		wd.Message = fmt.Sprintf(language.String("WEAPON_MSG_BUILT"), data.WeaponDesignName(wd.Design))
+	}
 	wd.Game.PopState()
 }
 
@@ -374,17 +401,21 @@ func (wd *WeaponDesignerScreen) HandleMouse(e *tcell.EventMouse) {
 	rightX := leftW + 4
 	paramY := h - 8
 
-	if y >= paramY+1 && y <= paramY+3 {
+	if y >= paramY+1 && y <= paramY+4 {
 		var idx int
 		if x < rightX {
-			idx = y - (paramY + 1)
+			if y > paramY+2 {
+				idx = 5 // build count row
+			} else {
+				idx = y - (paramY + 1)
+			}
 		} else {
 			if y > paramY+2 {
 				return
 			}
 			idx = y - (paramY + 1) + 3
 		}
-		if idx >= 0 && idx < 5 {
+		if idx >= 0 && idx < 6 {
 			wd.Param = idx
 			if x > 20 {
 				wd.adjustParam(1)
