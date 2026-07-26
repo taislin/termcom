@@ -970,11 +970,11 @@ func init() {
 		// ── Battle ────────────────────────────────────────
 
 		"BATTLE_LEVEL_FMT":          " [L%d]",
-		"BATTLE_MOD_ALIEN_AMBUSH":   "MISSION MODIFIER: Alien Ambush - aliens in overwatch",
-		"BATTLE_MOD_HEAVY_FOG":      "MISSION MODIFIER: Heavy Fog - reduced visibility",
-		"BATTLE_MOD_NIGHT_OPS":      "MISSION MODIFIER: Night Ops - forced night battle",
-		"BATTLE_MOD_REINFORCEMENTS": "MISSION MODIFIER: Reinforcements - extra alien wave incoming",
-		"BATTLE_MOD_TIME_LIMIT":     "MISSION MODIFIER: Time Limit - 15 turns remaining",
+		"BATTLE_MOD_ALIEN_AMBUSH":   "Alien Ambush - aliens in overwatch",
+		"BATTLE_MOD_HEAVY_FOG":      "Heavy Fog - reduced visibility",
+		"BATTLE_MOD_NIGHT_OPS":      "Night Ops - forced night battle",
+		"BATTLE_MOD_REINFORCEMENTS": "Reinforcements - extra alien wave incoming",
+		"BATTLE_MOD_TIME_LIMIT":     "Time Limit - 15 turns remaining",
 		"BATTLE_REINFORCEMENTS":     "REINFORCEMENTS: %d aliens arrive!",
 		"BATTLE_SURVIVE_TURNS":      "Survive %d turns!",
 		"BATTLE_SURVIVED_TURNS":     "Survived %d turns! Mission complete.",

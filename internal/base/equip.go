@@ -55,8 +55,8 @@ func (es *EquipScreen) Render(ctx *engine.ScreenCtx) {
 	)
 	framedH := portraitH/2 + 2 // rows occupied by the framed portrait
 
-	// Portrait sits at the bottom-left. Reserve the last two rows for the
-	// message + help bars and clamp so it never spills off a short screen.
+	// Portrait sits below the soldier list, anchored to the bottom.
+	// Reserve rows for the message bar (h-2) and help bar (h-1).
 	portY := h - 2 - framedH
 	if portY < 3 {
 		portY = 3

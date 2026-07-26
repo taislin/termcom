@@ -950,11 +950,11 @@ func init() {
 
 
 		"BATTLE_LEVEL_FMT":          " [N%d]",
-		"BATTLE_MOD_ALIEN_AMBUSH":   "MODIFICATEUR DE MISSION : Embuscade extraterrestre - aliens en vigilance",
-		"BATTLE_MOD_HEAVY_FOG":      "MODIFICATEUR DE MISSION : Brouillard épais - visibilité réduite",
-		"BATTLE_MOD_NIGHT_OPS":      "MODIFICATEUR DE MISSION : Opérations nocturnes - bataille nocturne forcée",
-		"BATTLE_MOD_REINFORCEMENTS": "MODIFICATEUR DE MISSION : Renforts - vague extraterrestre supplémentaire en approche",
-		"BATTLE_MOD_TIME_LIMIT":     "MODIFICATEUR DE MISSION : Limite de temps - 15 tours restants",
+		"BATTLE_MOD_ALIEN_AMBUSH":   "Embuscade extraterrestre - aliens en vigilance",
+		"BATTLE_MOD_HEAVY_FOG":      "Brouillard épais - visibilité réduite",
+		"BATTLE_MOD_NIGHT_OPS":      "Opérations nocturnes - bataille nocturne forcée",
+		"BATTLE_MOD_REINFORCEMENTS": "Renforts - vague extraterrestre supplémentaire en approche",
+		"BATTLE_MOD_TIME_LIMIT":     "Limite de temps - 15 tours restants",
 		"BATTLE_REINFORCEMENTS":     "RENFORTS : %d extraterrestres arrivent !",
 		"BATTLE_SURVIVE_TURNS":      "Survivez %d tours !",
 		"BATTLE_SURVIVED_TURNS":     "Survécu %d tours ! Mission réussie.",
