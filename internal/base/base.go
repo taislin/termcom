@@ -281,7 +281,11 @@ func (bs *BaseScreen) renderResearch(ctx *engine.ScreenCtx, x, y, w, h int) {
 		ctx.DrawString(x, y+2, fmt.Sprintf(language.String("SECTION_LABS_INFO"), labs), engine.StyleGray)
 	}
 	if bs.Base.ActiveResearch != nil && !bs.Base.ActiveResearch.Completed {
-		ctx.DrawString(x, y+4, fmt.Sprintf(language.String("INFO_ACTIVE"), bs.Base.ActiveResearch.TopicID), engine.StyleGreen)
+		name := bs.Base.ActiveResearch.TopicID
+		if t := data.ResearchByID(bs.Base.ActiveResearch.TopicID); t != nil {
+			name = t.DisplayName()
+		}
+		ctx.DrawString(x, y+4, fmt.Sprintf(language.String("INFO_ACTIVE"), name), engine.StyleGreen)
 	}
 }
 

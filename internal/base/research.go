@@ -31,6 +31,8 @@ type ResearchScreen struct {
 	Message         string
 	ShowTree        bool
 	InterrogateMode bool
+	scrollOffset    int // tracks list scroll position for mouse click adjustment
+	listStartY      int // row where the topic list begins (set during Render)
 }
 
 func NewResearchScreen(g *engine.Game, b *Base) *ResearchScreen {
@@ -52,41 +54,52 @@ func (rs *ResearchScreen) Render(ctx *engine.ScreenCtx) {
 		return
 	}
 
-	ctx.DrawString(2, 2, fmt.Sprintf(language.String("LABS_INFO"), rs.Base.TotalLabs(), rs.Base.Scientists), engine.StyleCyanBold)
+	// Dynamic layout: info lines start at row 2, topic list below them
+	infoY := 2 // current info row
+	ctx.DrawString(2, infoY, fmt.Sprintf(language.String("LABS_INFO"), rs.Base.TotalLabs(), rs.Base.Scientists), engine.StyleCyanBold)
+	infoY++
 
 	if rs.Base.ActiveResearch != nil && !rs.Base.ActiveResearch.Completed {
 		topic := data.ResearchByID(rs.Base.ActiveResearch.TopicID)
 		if topic != nil {
 			cost := rs.Base.ActiveResearch.Cost
-		if cost <= 0 {
-			cost = 1
-		}
-		pct := rs.Base.ActiveResearch.Progress * 100 / cost
-			ctx.DrawString(2, 3, fmt.Sprintf(language.String("RESEARCH_IN_PROGRESS"),
+			if cost <= 0 {
+				cost = 1
+			}
+			pct := rs.Base.ActiveResearch.Progress * 100 / cost
+			ctx.DrawString(2, infoY, fmt.Sprintf(language.String("RESEARCH_IN_PROGRESS"),
 				topic.DisplayName(), pct, rs.Base.ActiveResearch.Scientists), engine.StyleGreen)
-			ctx.DrawString(2, 4, fmt.Sprintf(language.String("RESEARCH_UNASSIGNED"), rs.Base.UnassignedScientists), engine.StyleYellow)
+			ctx.DrawString(2, infoY+1, fmt.Sprintf(language.String("RESEARCH_UNASSIGNED"), rs.Base.UnassignedScientists), engine.StyleYellow)
+			infoY += 2
 		}
 	}
 	if rs.Base.ActiveResearch == nil || rs.Base.ActiveResearch.Completed {
-		ctx.DrawString(2, 4, language.String("NO_ACTIVE_RESEARCH"), engine.StyleGray)
+		ctx.DrawString(2, infoY, language.String("NO_ACTIVE_RESEARCH"), engine.StyleGray)
+		infoY++
 	}
-
-	ctx.DrawString(2, 5, language.String("ALL_TOPICS"), engine.StyleCyanBold)
 
 	// Show captured aliens line
 	if len(rs.Base.LiveAliens) > 0 {
 		names := strings.Join(rs.Base.LiveAliens, ", ")
-		ctx.DrawString(2, 5, fmt.Sprintf(language.String("RESEARCH_CAPTURED_NAMES"), names), engine.StyleYellow)
+		ctx.DrawString(2, infoY, fmt.Sprintf(language.String("RESEARCH_CAPTURED_NAMES"), names), engine.StyleYellow)
+		infoY++
 	}
 	corpses := rs.Base.AlienCorpseTypes()
 	if len(corpses) > 0 {
 		names := strings.Join(corpses, ", ")
-		ctx.DrawString(2, 6, fmt.Sprintf(language.String("RESEARCH_CORPSES"), names), engine.StyleYellow)
+		ctx.DrawString(2, infoY, fmt.Sprintf(language.String("RESEARCH_CORPSES"), names), engine.StyleYellow)
+		infoY++
 	}
+
+	// Topic list header
+	ctx.DrawString(2, infoY, language.String("ALL_TOPICS"), engine.StyleCyanBold)
+	infoY++
+	rs.listStartY = infoY
+	listStartY := rs.listStartY
 
 	entries := rs.getAllTopics()
 	if len(entries) == 0 {
-		ctx.DrawString(2, 7, language.String("NO_TOPICS"), engine.StyleGray)
+		ctx.DrawString(2, listStartY, language.String("NO_TOPICS"), engine.StyleGray)
 		return
 	}
 	if rs.Selection >= len(entries) {
@@ -102,10 +115,19 @@ func (rs *ResearchScreen) Render(ctx *engine.ScreenCtx) {
 		listW = w/2 - 2
 	}
 
-	for i, entry := range entries {
-		if 7+i >= h-3 {
-			break
-		}
+	// Compute visible range with scrolling
+	maxRows := h - listStartY - 2 // leave room for help bar + message
+	if maxRows < 1 {
+		maxRows = 1
+	}
+	scrollOffset := 0
+	if rs.Selection >= maxRows {
+		scrollOffset = rs.Selection - maxRows + 1
+	}
+	rs.scrollOffset = scrollOffset
+
+	for i := scrollOffset; i < len(entries) && i-scrollOffset < maxRows; i++ {
+		entry := entries[i]
 		style := engine.StyleDefault
 		marker := "  "
 
@@ -152,7 +174,15 @@ func (rs *ResearchScreen) Render(ctx *engine.ScreenCtx) {
 			runes := []rune(displayLine)
 			displayLine = string(runes[:listW])
 		}
-		ctx.DrawString(2, 7+i, displayLine, style)
+		ctx.DrawString(2, listStartY+i-scrollOffset, displayLine, style)
+	}
+
+	// Show scroll indicator if content is clipped
+	if scrollOffset > 0 {
+		ctx.DrawString(w-4, listStartY, "\u2191", engine.StyleGray)
+	}
+	if scrollOffset+maxRows < len(entries) {
+		ctx.DrawString(w-4, h-3, "\u2193", engine.StyleGray)
 	}
 
 	if rs.ShowTree && !engine.Layout.IsMobile() {
@@ -160,7 +190,7 @@ func (rs *ResearchScreen) Render(ctx *engine.ScreenCtx) {
 		if rs.Selection >= 0 && rs.Selection < len(entries) {
 			selEntry = &entries[rs.Selection]
 		}
-		rs.renderTree(ctx, w/2+1, 7, w/2-2, h-10, selEntry)
+		rs.renderTree(ctx, w/2+1, listStartY, w/2-2, h-listStartY-3, selEntry)
 	}
 
 	ctx.DrawPanel(0, h-1, w, 1, "", engine.StyleGray)
@@ -463,8 +493,8 @@ func (rs *ResearchScreen) HandleMouse(e *tcell.EventMouse) {
 		return
 	}
 
-	if y >= 7 && y < h-2 {
-		rs.Selection = y - 7
+	if y >= rs.listStartY && y < h-2 {
+		rs.Selection = y - rs.listStartY + rs.scrollOffset
 	}
 
 	if x > 0 && y >= 3 && y <= 4 {

@@ -1778,6 +1778,9 @@ func (gs *Geoscape) loadFromSaveData(sd *save.SaveData) {
 	for _, bs := range sd.Bases {
 		gs.Bases = append(gs.Bases, save.ToBase(bs))
 	}
+	for _, b := range gs.Bases {
+		b.SetProceduralAliens(gs.Game.AlienSpecies)
+	}
 	if len(gs.Bases) == 0 {
 		b := base.NewBase("Base 1", 0)
 		gs.Bases = append(gs.Bases, b)

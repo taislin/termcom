@@ -640,11 +640,21 @@ func (b *Base) InterrogateAlien(alienName string) (string, bool) {
 	if b.HasResearch(autopsyID) {
 		if b.ActiveResearch != nil && !b.ActiveResearch.Completed {
 			b.ActiveResearch.Progress += b.ActiveResearch.Cost / 4
+			if b.ActiveResearch.Progress >= b.ActiveResearch.Cost {
+				b.UnassignedScientists += b.ActiveResearch.Scientists
+				b.CompletedResearch = append(b.CompletedResearch, b.ActiveResearch.TopicID)
+				b.applyResearchUnlocks(topic)
+				b.ActiveResearch = nil
+			}
 			benefit = true
 			topicName = topic.DisplayName()
 		}
 	} else if b.ActiveResearch != nil && b.ActiveResearch.TopicID == autopsyID && !b.ActiveResearch.Completed {
 		b.ActiveResearch.Progress = b.ActiveResearch.Cost
+		b.UnassignedScientists += b.ActiveResearch.Scientists
+		b.CompletedResearch = append(b.CompletedResearch, autopsyID)
+		b.applyResearchUnlocks(topic)
+		b.ActiveResearch = nil
 		benefit = true
 		topicName = topic.DisplayName()
 	} else {
@@ -664,8 +674,30 @@ func (b *Base) InterrogateAlien(alienName string) (string, bool) {
 }
 
 func (b *Base) applyResearchUnlocks(topic *data.ResearchTopic) {
-	b.UnlockedWeapons = append(b.UnlockedWeapons, topic.UnlockWeap...)
-	b.UnlockedArmor = append(b.UnlockedArmor, topic.UnlockArmor...)
+	for _, wpn := range topic.UnlockWeap {
+		found := false
+		for _, w := range b.UnlockedWeapons {
+			if w == wpn {
+				found = true
+				break
+			}
+		}
+		if !found {
+			b.UnlockedWeapons = append(b.UnlockedWeapons, wpn)
+		}
+	}
+	for _, arm := range topic.UnlockArmor {
+		found := false
+		for _, a := range b.UnlockedArmor {
+			if a == arm {
+				found = true
+				break
+			}
+		}
+		if !found {
+			b.UnlockedArmor = append(b.UnlockedArmor, arm)
+		}
+	}
 	for _, item := range topic.UnlockItems {
 		b.AddItem(item, 1)
 	}
@@ -769,6 +801,8 @@ func (b *Base) AdvanceResearch() []string {
 	b.ActiveResearch.Progress += int(float64(b.ActiveResearch.Scientists) * bonus)
 	if b.ActiveResearch.Progress >= b.ActiveResearch.Cost {
 		b.ActiveResearch.Completed = true
+		// Return assigned scientists to the pool before clearing the project
+		b.UnassignedScientists += b.ActiveResearch.Scientists
 		topic := data.ResearchByID(b.ActiveResearch.TopicID)
 		b.CompletedResearch = append(b.CompletedResearch, b.ActiveResearch.TopicID)
 		name := b.ActiveResearch.TopicID
@@ -864,6 +898,8 @@ func (b *Base) AdvanceManufacture() []string {
 		}
 		if job.Progress >= job.CostDays {
 			b.AddItem(job.ItemKey, job.Count)
+			// Return assigned engineers to the pool before dropping the job
+			b.UnassignedEngineers += job.Engineers
 			// Add to unlocked list if not already there
 			found := false
 			for _, w := range b.UnlockedWeapons {
