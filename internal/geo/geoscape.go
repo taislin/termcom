@@ -429,6 +429,7 @@ func (gs *Geoscape) processBattleResult() {
 
 func NewGeoscape(g *engine.Game) *Geoscape {
 	b := base.NewBase("Base 1", 0)
+	b.SetProceduralAliens(g.AlienSpecies)
 	b.Facilities = append(b.Facilities, &base.Facility{Type: base.FacLivingQuarters, Row: 0, Col: 0})
 	b.Facilities = append(b.Facilities, &base.Facility{Type: base.FacLab, Row: 0, Col: 1})
 	b.Facilities = append(b.Facilities, &base.Facility{Type: base.FacWorkshop, Row: 0, Col: 2})
@@ -473,6 +474,7 @@ func NewGeoscapeFromSave(g *engine.Game, sd *save.SaveData) *Geoscape {
 		if b.CityID >= 0 && b.CityID < len(cities) {
 			cities[b.CityID].HasRadar = true
 		}
+		b.SetProceduralAliens(g.AlienSpecies)
 	}
 
 	gs := &Geoscape{
@@ -901,6 +903,7 @@ func (gs *Geoscape) BuildBase() {
 	gs.Game.Funds -= cost
 	baseNum := len(gs.Bases) + 1
 	b := base.NewBase(fmt.Sprintf(language.String("GEO_BASE_NAME_FMT"), baseNum), gs.CursorNode)
+	b.SetProceduralAliens(gs.Game.AlienSpecies)
 	b.Facilities = append(b.Facilities, &base.Facility{Type: base.FacLivingQuarters, Row: 0, Col: 0})
 	b.Facilities = append(b.Facilities, &base.Facility{Type: base.FacStorage, Row: 0, Col: 1})
 	b.Facilities = append(b.Facilities, &base.Facility{Type: base.FacRadar, Row: 0, Col: 2})

@@ -3,6 +3,7 @@ package data
 import (
 	"fmt"
 	"math/rand"
+	"strings"
 )
 
 type ProceduralWeapon struct {
@@ -200,6 +201,20 @@ func RegisterProceduralItems(seed int64, aliens []*AlienSpecies) {
 			Health:    a.Health,
 			TUMod:     a.TUMod,
 			Value:     a.Value,
+		}
+	}
+
+	// Register corpse items for each procedural species so they appear
+	// in the base stores and can be displayed properly.
+	for _, sp := range aliens {
+		corpseKey := "corpse_" + strings.ToLower(sp.Name)
+		if _, exists := Items[corpseKey]; !exists {
+			Items[corpseKey] = Item{
+				Name:      sp.Name + " Corpse",
+				ShortName: "CRP",
+				Weight:    1,
+				Value:     200,
+			}
 		}
 	}
 }

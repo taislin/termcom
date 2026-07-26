@@ -3,6 +3,7 @@ package base
 import (
 	"fmt"
 	"math/rand"
+	"sort"
 	"strings"
 
 	"github.com/taislin/termcom/internal/data"
@@ -117,6 +118,7 @@ type Base struct {
 	Hangars              []*data.InterceptorState // Manage interceptors here
 	CustomWeapons        map[string]*data.WeaponDesign // player-designed weapons
 	LiveAliens           []string                 // Captured aliens
+	ProceduralAliens    []*data.AlienSpecies      // Procedural species for this run (set on game start)
 	AlienActivity        int
 }
 
@@ -446,20 +448,31 @@ func (b *Base) CountItem(item string) int {
 	return b.Stores[item]
 }
 
+// SetProceduralAliens stores the procedural alien species for this game run,
+// enabling interrogation and corpse display for procedurally generated species.
+func (b *Base) SetProceduralAliens(aliens []*data.AlienSpecies) {
+	b.ProceduralAliens = aliens
+}
+
 // AlienCorpseTypes returns the names of alien species whose corpses are in storage.
 func (b *Base) AlienCorpseTypes() []string {
-	corpseMap := map[string]string{
-		"corpse_sect":  "Sectoid",
-		"corpse_float": "Floater",
-		"corpse_muton": "Muton",
-		"corpse_ether": "Ethereal",
-	}
 	var result []string
-	for item, name := range corpseMap {
-		if b.Stores[item] > 0 {
+	for item := range b.Stores {
+		if strings.HasPrefix(item, "corpse_") && b.Stores[item] > 0 {
+			// Try to get a nice display name, fall back to the species name
+			name := data.ItemDisplayName(item)
+			if name == item {
+				speciesName := strings.TrimPrefix(item, "corpse_")
+				if len(speciesName) > 0 {
+					name = string(speciesName[0]-32) + speciesName[1:]
+				} else {
+					name = item
+				}
+			}
 			result = append(result, name)
 		}
 	}
+	sort.Strings(result)
 	return result
 }
 
@@ -597,6 +610,18 @@ func (b *Base) InterrogateAlien(alienName string) (string, bool) {
 
 	// Validate we can provide a benefit BEFORE consuming the alien
 	at := data.GetAlienByName(alienName)
+	if at == nil {
+		// Try procedural species
+		for _, sp := range b.ProceduralAliens {
+			if sp.Name == alienName {
+				at = &data.AlienType{
+					Name:      sp.Name,
+					AutopsyID: sp.Name + "_autopsy",
+				}
+				break
+			}
+		}
+	}
 	if at == nil {
 		return "", false
 	}
