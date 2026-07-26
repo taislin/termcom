@@ -133,11 +133,12 @@ type AlienBase struct {
 
 // CrashSite represents a landed UFO that can be explored for loot/tech.
 type CrashSite struct {
-	UFOName string
-	NodeID  int
-	Looted  bool
-	Seed    int64 // deterministic seed for procedural UFO blueprint
-	Biome   string
+	UFOName  string
+	NodeID   int
+	Looted   bool
+	Seed     int64 // deterministic seed for procedural UFO blueprint
+	Biome    string
+	HoursLeft float64 // hours before the crash site is removed
 }
 
 // Transport handles the movement of soldiers between bases.
@@ -655,6 +656,19 @@ func (gs *Geoscape) Update() {
 			}
 		}
 		gs.Missions = remaining
+
+		// Crash Site Timer Update: expire crash sites after their time runs out.
+		activeCS := make([]*CrashSite, 0, len(gs.CrashSites))
+		for _, cs := range gs.CrashSites {
+			if cs.Looted {
+				continue
+			}
+			cs.HoursLeft -= float64(minutes) / 60.0
+			if cs.HoursLeft > 0 {
+				activeCS = append(activeCS, cs)
+			}
+		}
+		gs.CrashSites = activeCS
 
 		// Update UFOs along network edges
 		for _, u := range gs.UFOs {
@@ -2136,17 +2150,25 @@ func (gs *Geoscape) getTargets() []interface{} {
 }
 
 func (gs *Geoscape) renderRegionTable(ctx *engine.ScreenCtx, x, y, w, h int) {
-	// Header
-	var hdr string
+	// Header — use dynamic column positions matching the data rows below
 	if gs.TargetSelectionMode {
-		hdr = language.String("GEO_HEADER_TARGET")
+		hdr := language.String("GEO_HEADER_TARGET")
+		if len(hdr) > w {
+			hdr = hdr[:w]
+		}
+		ctx.DrawString(x, y, hdr, engine.StyleCyanBold)
 	} else {
-		hdr = language.String("GEO_HEADER_REGION")
+		// Build header using the same percentage-based column positions as the data
+		ctx.DrawString(x, y, language.String("GEO_HEADER_REGION"), engine.StyleCyanBold)
+		tx := x + int(float64(w)*0.4)
+		ctx.DrawString(tx, y, language.String("GEO_HEADER_THREAT"), engine.StyleCyanBold)
+		rx := x + int(float64(w)*0.6)
+		ctx.DrawString(rx, y, language.String("GEO_HEADER_RADAR"), engine.StyleCyanBold)
+		ix := x + int(float64(w)*0.75)
+		ctx.DrawString(ix, y, language.String("GEO_HEADER_SQD"), engine.StyleCyanBold)
+		sx := x + int(float64(w)*0.85)
+		ctx.DrawString(sx, y, language.String("GEO_HEADER_STATUS"), engine.StyleCyanBold)
 	}
-	if len(hdr) > w {
-		hdr = hdr[:w]
-	}
-	ctx.DrawString(x, y, hdr, engine.StyleCyanBold)
 
 	sep := ""
 	for i := 0; i < w; i++ {

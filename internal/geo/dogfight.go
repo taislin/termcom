@@ -518,10 +518,11 @@ func (ds *DogfightScreen) finish() {
 		if city != nil && GetTile(city.X, city.Y) != 0 {
 			biome := battle.CrashBiomeFromCoords(city.X, city.Y)
 			ds.gs.CrashSites = append(ds.gs.CrashSites, &CrashSite{
-				UFOName: ds.ufo.Type.Name,
-				NodeID:  ds.ufo.CurrentNode(),
-				Seed:    rand.Int63(),
-				Biome:   biome,
+				UFOName:  ds.ufo.Type.Name,
+				NodeID:   ds.ufo.CurrentNode(),
+				Seed:     rand.Int63(),
+				Biome:    biome,
+				HoursLeft: 48.0, // expire after 48 game hours
 			})
 			ds.gs.Message = fmt.Sprintf(language.String("MSG_UFO_CRASHED"), ds.ufo.Type.DisplayName())
 		} else {
