@@ -635,12 +635,19 @@ func (gs *Geoscape) Update() {
 		// Alien Base Ticking: missions, defenders, threat escalation.
 		gs.tickAlienBases(gameMonth)
 
-		// Mission Timer Update: decrease remaining time and trigger consequences if expired.
+		// Mission Timer Update: decrease remaining time at a fixed rate of
+		// 1 game-minute per tick (independent of game speed), so the player
+		// gets a consistent real-time window to respond regardless of speed.
 		remaining := make([]*AlienMission, 0, len(gs.Missions))
 		for _, m := range gs.Missions {
-			m.HoursLeft -= float64(minutes) / 60.0
+			m.HoursLeft -= 1.0 / 60.0
 			if m.HoursLeft <= 0 {
 				cityNameStr := gs.cityName(m.NodeID)
+				// Clear the mission flag on the city so it no longer shows
+				// "MISSION" in the region table.
+				if city := gs.CityByID(m.NodeID); city != nil {
+					city.MissionHere = false
+				}
 				// Base defense mission that expired: the aliens overrun the base
 				if defBase := gs.HasBaseAt(m.NodeID); defBase != nil {
 					gs.Message = fmt.Sprintf(language.String("MSG_BASE_DESTROYED"), defBase.Name)
@@ -658,12 +665,14 @@ func (gs *Geoscape) Update() {
 		gs.Missions = remaining
 
 		// Crash Site Timer Update: expire crash sites after their time runs out.
+		// Decay at fixed rate (1 game-minute per tick) so the player has a
+		// consistent real-time window regardless of game speed.
 		activeCS := make([]*CrashSite, 0, len(gs.CrashSites))
 		for _, cs := range gs.CrashSites {
 			if cs.Looted {
 				continue
 			}
-			cs.HoursLeft -= float64(minutes) / 60.0
+			cs.HoursLeft -= 1.0 / 60.0
 			if cs.HoursLeft > 0 {
 				activeCS = append(activeCS, cs)
 			}
@@ -1135,11 +1144,11 @@ func (gs *Geoscape) spawnMission() {
 		return
 	}
 
-	turnsLeft := 24.0 // 24 game hours to respond
+	turnsLeft := 72.0 // 72 game hours (~3 days) to respond
 	if chosen == language.String("MISSION_ALIEN_BASE") {
-		turnsLeft = 12.0 // 12 game hours for base assaults
+		turnsLeft = 36.0 // 36 hours for base assaults
 	} else if chosen == language.String("MISSION_COUNCIL") {
-		turnsLeft = 36.0 // council gives more time but offers a bonus
+		turnsLeft = 96.0 // council gives more time but offers a bonus
 	}
 	mission := &AlienMission{
 		Type:      chosen,
@@ -1288,7 +1297,7 @@ func (gs *Geoscape) spawnMissionFromBase(ab *AlienBase) {
 	mission := &AlienMission{
 		Type:      chosen,
 		NodeID:    target.ID,
-		HoursLeft: 24.0,
+		HoursLeft: 72.0,
 	}
 	gs.Missions = append(gs.Missions, mission)
 	target.MissionHere = true

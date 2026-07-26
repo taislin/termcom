@@ -522,7 +522,7 @@ func (ds *DogfightScreen) finish() {
 				NodeID:   ds.ufo.CurrentNode(),
 				Seed:     rand.Int63(),
 				Biome:    biome,
-				HoursLeft: 48.0, // expire after 48 game hours
+				HoursLeft: 72.0, // expire after 72 game hours
 			})
 			ds.gs.Message = fmt.Sprintf(language.String("MSG_UFO_CRASHED"), ds.ufo.Type.DisplayName())
 		} else {
