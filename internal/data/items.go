@@ -19,6 +19,7 @@ const (
 	BT_MINDPROBE                // mind probe
 	BT_PSIAMP                   // psi amplifier
 	BT_FLARE                    // illumination flare
+	BT_SMOKE                    // smoke grenade
 	BT_CORPSE                   // alien corpse (research)
 )
 
@@ -384,6 +385,18 @@ var RuleItems = map[string]RuleItem{
 		Range:      1,
 		MaxCarry:   3,
 	},
+	"smoke_grenade": {
+		Type:       "STR_SMOKE_GRENADE",
+		Name:       "Smoke Grenade",
+		ShortName:  "SMK",
+		Weight:     2,
+		CostBuy:    2000,
+		CostSell:   1500,
+		BattleType: BT_SMOKE,
+		TU:         20,
+		Range:      6,
+		MaxCarry:   3,
+	},
 	"psi_amp": {
 		Type:       "STR_PSI_AMP",
 		Name:       "Psi-Amplifier",
@@ -598,6 +611,7 @@ var Items = map[string]Item{
 	"medikit":     {Name: "Medi-Kit", ShortName: "MDK", Weight: 2, Value: 6000},
 	"motion_scanner":{Name: "Motion Scanner", ShortName: "MSC", Weight: 3, Value: 5000},
 	"proximity_mine":{Name: "Proximity Mine", ShortName: "PRM", Weight: 3, Value: 4000},
+	"smoke_grenade": {Name: "Smoke Grenade", ShortName: "SMK", Weight: 2, Value: 2000},
 	"psi_amplifier":{Name: "Psi-Amplifier", ShortName: "PSI", Weight: 2, Value: 30000},
 	"ufo_nav":     {Name: "UFO Navigation", ShortName: "NAV", Weight: 5, Value: 15000, Alien: true},
 	"ufo_power":   {Name: "UFO Power Source", ShortName: "PWR", Weight: 8, Value: 20000, Alien: true},

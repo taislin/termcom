@@ -354,8 +354,8 @@ func TestRespondToSelectedMission(t *testing.T) {
 	gs.Missions = append(gs.Missions, &AlienMission{Type: language.String("MISSION_TERROR"), NodeID: 5, HoursLeft: 24})
 	gs.CursorNode = 5
 	gs.RespondToSelectedMission()
-	if !gs.Game.InState(engine.StateBattlescape) {
-		t.Errorf("expected battle state %v after responding", engine.StateBattlescape)
+	if !gs.Game.InState(engine.StateLoadout) {
+		t.Errorf("expected loadout state %v after responding", engine.StateLoadout)
 	}
 	if gs.ActiveMissionType != language.String("MISSION_TERROR") {
 		t.Errorf("expected ActiveMissionType TERROR, got %q", gs.ActiveMissionType)
@@ -622,8 +622,8 @@ func TestRespondToMission(t *testing.T) {
 	if !gs.Game.Paused {
 		t.Error("expected game to pause when squad deployed")
 	}
-	if !gs.Game.InState(engine.StateBattlescape) {
-		t.Error("expected battlescape state after responding to mission")
+	if !gs.Game.InState(engine.StateLoadout) {
+		t.Error("expected loadout state after responding to mission")
 	}
 }
 

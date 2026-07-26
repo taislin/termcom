@@ -15,7 +15,7 @@ func NewHelpScreen(g *Game, prev GameState) *HelpScreen {
 	switch prev {
 	case StateGeoscape:
 		page = 0
-	case StateBase, StateEquip, StateResearch, StateManufacture:
+	case StateBase, StateEquip, StateResearch, StateManufacture, StateLoadout:
 		page = 1
 	case StateBattlescape:
 		page = 2

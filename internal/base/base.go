@@ -10,6 +10,7 @@ import (
 	"github.com/taislin/termcom/internal/data"
 	"github.com/taislin/termcom/internal/engine"
 	"github.com/taislin/termcom/internal/language"
+	"github.com/taislin/termcom/internal/soldier"
 )
 
 const numTabs = 6
@@ -469,7 +470,9 @@ func (bs *BaseScreen) dispatchHotkey(key string, viaMouse bool) {
 		}
 	case "l", "L":
 		if bs.Tab == 1 && len(bs.Base.Soldiers) > 0 {
-			bs.Game.SetScreen(engine.StateLoadout, NewLoadoutScreen(bs.Game, bs.Base))
+			onLaunch := func(squad []*soldier.Soldier) {}
+			ls := NewLoadoutScreen(bs.Game, bs.Base, "", "", onLaunch)
+			bs.Game.SetScreen(engine.StateLoadout, ls)
 			bs.Game.PushState(engine.StateLoadout)
 		}
 	case "r", "R":

@@ -1,4 +1,4 @@
-# termcom — ASCII X-COM Roguelike-ified Demake Manual (v0.51.18)
+# termcom — ASCII X-COM Roguelike-ified Demake Manual (v0.52.12)
 
 ## Table of Contents
 
@@ -328,6 +328,38 @@ regear your squad after researching new tech.
 
 ---
 
+## Pre-Mission Loadout
+
+When you respond to a mission (press `M` on the Geoscape), the **Loadout Screen**
+appears instead of launching directly into battle. Here you can:
+
+1. **Select which healthy soldiers to deploy** — toggle each with `[Space]`
+2. **Equip selected soldiers** from base stores using the same controls as the
+   Equip screen
+3. **Press `[Enter]` or `[L]`** to launch the mission with the chosen squad
+
+### Controls
+
+| Key | Action |
+|-----|--------|
+| ↑/↓ | Select soldier |
+| Space | Toggle soldier (in/out of squad) |
+| 1 | Weapon slot |
+| 2 | Armour slot |
+| 3 | Inventory slot |
+| Tab | Cycle available items |
+| Space (in slot 3) | Add item to backpack |
+| + / - | Adjust backpack quantity |
+| Enter / L | Launch mission with selected soldiers |
+| Esc | Back |
+| Backspace / Delete | Remove equipped item |
+
+Only soldiers with `HP > 0` and no wounds/fatigue can be toggled on. Soldiers
+that are wounded appear greyed out. The bottom bar shows how many soldiers
+are selected out of total deployable.
+
+---
+
 ## Battlescape
 
 The Battlescape is turn-based tactical combat. You control a squad of soldiers
@@ -547,6 +579,7 @@ Soldiers can carry extra items in their inventory slot:
 - **Grenades** — thrown explosive with area damage
 - **Medikits** — heal yourself or an adjacent ally
 - **Motion Scanners** — detect nearby enemies
+- **Smoke Grenades** — thrown non-lethal, deploys a 4-tile-radius smoke cloud that blocks line-of-sight
 - **Proximity Mines** — place on the ground, detonates when an enemy walks over it
 - **Psi-Amps** — enable psi attacks (requires psi skill)
 - **Melee weapons** — Stun Rod for non-lethal takedowns

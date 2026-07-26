@@ -2712,6 +2712,58 @@ func (bs *Battlescape) Grenade() {
 	engine.SpawnSmoke(bs.Particles, ax-bs.ScrollX+1, ay-bs.ScrollY+1, 8)
 }
 
+// SmokeGrenade throws a smoke-only grenade that deploys a large smoke cloud
+// with no explosive damage.
+func (bs *Battlescape) SmokeGrenade() {
+	if bs.Selected == nil || bs.Phase != PhasePlayerTurn {
+		return
+	}
+	if bs.Selected.TU < GrenadeTUCost {
+		bs.AddMessage(language.String("MSG_NOT_ENOUGH_TU_GRENADE"))
+		return
+	}
+
+	grenadeRange := GrenadeRange
+	ax := bs.CursorX
+	ay := bs.CursorY
+	dx := ax - bs.Selected.X
+	dy := ay - bs.Selected.Y
+	dist := dx*dx + dy*dy
+	if dist > grenadeRange*grenadeRange {
+		bs.AddMessage(language.String("MSG_GRENADE_OUT_OF_RANGE"))
+		return
+	}
+
+	bs.Selected.TU -= GrenadeTUCost
+
+	// Deploy a cloud of smoke (GasSmoke) over a 3-tile radius
+	smokeRadius := 4
+	for dy := -smokeRadius; dy <= smokeRadius; dy++ {
+		for dx := -smokeRadius; dx <= smokeRadius; dx++ {
+			if dx*dx+dy*dy > smokeRadius*smokeRadius {
+				continue
+			}
+			tx, ty := ax+dx, ay+dy
+			density := 4 - int(math.Sqrt(float64(dx*dx+dy*dy)))
+			if density < 1 {
+				density = 1
+			}
+			if tx >= 0 && tx < bs.Map.Width && ty >= 0 && ty < bs.Map.Height && bs.Map.Passable(tx, ty) {
+				bs.Gas.Set(tx, ty, density, GasSmoke)
+			}
+		}
+	}
+
+	audio.PlayGrenade()
+	bs.AddMessage(fmt.Sprintf(language.String("MSG_SMOKE_GRENADE_DETONATED"), ax, ay))
+
+	if engine.Config.ScreenShake {
+		bs.Camera.TriggerShake(1.5)
+	}
+	engine.SpawnExplosion(bs.Particles, ax-bs.ScrollX+1, ay-bs.ScrollY+1, tcell.NewRGBColor(180, 180, 180), 16)
+	engine.SpawnSmoke(bs.Particles, ax-bs.ScrollX+1, ay-bs.ScrollY+1, 16)
+}
+
 // TriggerFuelPumpExplosions checks for fuel pumps in a radius around (cx,cy)
 // that were just destroyed and detonates them, dealing splash damage to units
 // and destroying nearby tiles. Called after any tile destruction that might
@@ -3551,6 +3603,9 @@ func (bs *Battlescape) invUse() {
 	case "grenade":
 		bs.Selected.Soldier.RemoveItem(item)
 		bs.Grenade()
+	case "smoke_grenade":
+		bs.Selected.Soldier.RemoveItem(item)
+		bs.SmokeGrenade()
 	case "motion_scanner":
 		bs.Selected.Soldier.RemoveItem(item)
 		bs.UseMotionScanner()

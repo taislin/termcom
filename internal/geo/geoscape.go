@@ -1370,17 +1370,7 @@ func (gs *Geoscape) RespondToMission(idx int) {
 		defBase = gs.ActiveBaseDefense
 	}
 
-	healthy := defBase.HealthySoldiers()
-	if len(healthy) == 0 {
-		gs.Message = language.String("MSG_NO_HEALTHY_SOLDIERS")
-		gs.MessageTimer = time.Now()
-		return
-	}
-
 	gs.PreBattleStats = make(map[string][6]int)
-	for _, s := range healthy {
-		gs.PreBattleStats[s.Name] = [6]int{s.HP, s.Accuracy, s.Reactions, s.Strength, s.Bravery, s.TU}
-	}
 
 	ufoName := language.String("MISSION_CRASH_SITE")
 	switch mission.Type {
@@ -1408,9 +1398,23 @@ func (gs *Geoscape) RespondToMission(idx int) {
 		ufoName = language.String("MISSION_TYPE_BASE")
 	}
 	gs.ActiveMissionType = mission.Type
-	bs := battle.NewBattlescape(gs.Game, defBase, healthy, ufoName, 0, -1, -1)
-	gs.Game.SetScreen(engine.StateBattlescape, bs)
-	gs.Game.PushState(engine.StateBattlescape)
+
+	// Instead of launching directly, show the loadout screen for
+	// soldier selection and equipment.
+	onLaunch := func(squad []*soldier.Soldier) {
+		for _, s := range squad {
+			gs.PreBattleStats[s.Name] = [6]int{s.HP, s.Accuracy, s.Reactions, s.Strength, s.Bravery, s.TU}
+		}
+		gs.Game.PopState() // pop loadout, returning to geoscape
+		// Re-pause since PopState may resume
+		gs.Game.Paused = true
+		bs := battle.NewBattlescape(gs.Game, defBase, squad, ufoName, 0, -1, -1)
+		gs.Game.SetScreen(engine.StateBattlescape, bs)
+		gs.Game.PushState(engine.StateBattlescape)
+	}
+	ls := base.NewLoadoutScreen(gs.Game, defBase, mission.Type, gs.cityName(mission.NodeID), onLaunch)
+	gs.Game.SetScreen(engine.StateLoadout, ls)
+	gs.Game.PushState(engine.StateLoadout)
 }
 
 func (gs *Geoscape) AutoresolveMission(idx int) {
