@@ -970,9 +970,9 @@ func (bs *Battlescape) spawnShotFX(shooter, target *Unit, damage int, hit, cover
 		Symbol: symbol,
 		Style:  style,
 	}
-	engine.SpawnMuzzleFlash(bs.Particles, shooter.X-bs.ScrollX+1, shooter.Y-bs.ScrollY+1)
+	engine.SpawnMuzzleFlash(bs.Particles, shooter.X, shooter.Y)
 	if hit {
-		engine.SpawnExplosion(bs.Particles, target.X-bs.ScrollX+1, target.Y-bs.ScrollY+1, color.NewRGBColor(255, 80, 30), 8)
+		engine.SpawnExplosion(bs.Particles, target.X, target.Y, color.NewRGBColor(255, 80, 30), 8)
 		if engine.Config.ScreenShake {
 			bs.Camera.TriggerShake(0.5)
 		}
@@ -1190,7 +1190,7 @@ func (bs *Battlescape) executeAlienAction(action AlienAction) {
 		}
 		action.Unit.TU -= 20
 		audio.PlayLaserFire()
-		engine.SpawnExplosion(bs.Particles, action.Target.X-bs.ScrollX+1, action.Target.Y-bs.ScrollY+1, color.NewRGBColor(120, 0, 200), 12)
+		engine.SpawnExplosion(bs.Particles, action.Target.X, action.Target.Y, color.NewRGBColor(120, 0, 200), 12)
 		if engine.Config.ScreenShake {
 			bs.Camera.TriggerShake(0.3)
 		}
@@ -1273,7 +1273,7 @@ func (bs *Battlescape) executeAlienAction(action AlienAction) {
 				tx, ty := ax+dx, ay+dy
 				if bs.Map.IsDestructible(tx, ty) {
 					if bs.Map.DestroyWall(tx, ty) {
-						SpawnRubble(bs.Particles, tx-bs.ScrollX+1, ty-bs.ScrollY+1)
+						SpawnRubble(bs.Particles, tx, ty)
 					}
 				}
 				if tx >= 0 && tx < bs.Map.Width && ty >= 0 && ty < bs.Map.Height {
@@ -1293,8 +1293,8 @@ func (bs *Battlescape) executeAlienAction(action AlienAction) {
 		if engine.Config.ScreenShake {
 			bs.Camera.TriggerShake(2.5)
 		}
-		engine.SpawnExplosion(bs.Particles, ax-bs.ScrollX+1, ay-bs.ScrollY+1, tcell.NewRGBColor(255, 180, 50), 24)
-		engine.SpawnSmoke(bs.Particles, ax-bs.ScrollX+1, ay-bs.ScrollY+1, 8)
+		engine.SpawnExplosion(bs.Particles, ax, ay, tcell.NewRGBColor(255, 180, 50), 24)
+		engine.SpawnSmoke(bs.Particles, ax, ay, 8)
 		bs.ComputeFOVForTeam()
 		bs.checkHumanReactionFire(action.Unit)
 	}
@@ -2158,7 +2158,7 @@ func (bs *Battlescape) FireWeapon() {
 		origType := bs.Map.At(bs.CursorX, bs.CursorY).Type
 		explRadius := bs.Map.ExplodesOnDestruction(bs.CursorX, bs.CursorY)
 		if bs.Map.DestroyWall(bs.CursorX, bs.CursorY) {
-			SpawnRubble(bs.Particles, bs.CursorX-bs.ScrollX+1, bs.CursorY-bs.ScrollY+1)
+			SpawnRubble(bs.Particles, bs.CursorX, bs.CursorY)
 		}
 		if explRadius > 0 {
 			bs.TriggerFuelPumpExplosions(bs.CursorX, bs.CursorY)
@@ -2202,10 +2202,10 @@ func (bs *Battlescape) FireWeapon() {
 	}
 	bs.recordPlayerShot(bs.Selected, target)
 	audio.PlayWeaponFire(bs.Selected.Weapon)
-	engine.SpawnMuzzleFlash(bs.Particles, bs.Selected.X-bs.ScrollX+1, bs.Selected.Y-bs.ScrollY+1)
+	engine.SpawnMuzzleFlash(bs.Particles, bs.Selected.X, bs.Selected.Y)
 	if hit {
 		audio.PlayHit()
-		engine.SpawnExplosion(bs.Particles, target.X-bs.ScrollX+1, target.Y-bs.ScrollY+1, tcell.NewRGBColor(255, 80, 30), 8)
+		engine.SpawnExplosion(bs.Particles, target.X, target.Y, tcell.NewRGBColor(255, 80, 30), 8)
 		if engine.Config.ScreenShake {
 			bs.Camera.TriggerShake(0.5)
 		}
@@ -2685,7 +2685,7 @@ func (bs *Battlescape) Grenade() {
 			tx, ty := ax+dx, ay+dy
 			if bs.Map.IsDestructible(tx, ty) {
 				if bs.Map.DestroyWall(tx, ty) {
-					SpawnRubble(bs.Particles, tx-bs.ScrollX+1, ty-bs.ScrollY+1)
+					SpawnRubble(bs.Particles, tx, ty)
 				}
 			}
 			if tx >= 0 && tx < bs.Map.Width && ty >= 0 && ty < bs.Map.Height {
@@ -2708,8 +2708,8 @@ func (bs *Battlescape) Grenade() {
 	if engine.Config.ScreenShake {
 		bs.Camera.TriggerShake(3.0)
 	}
-	engine.SpawnExplosion(bs.Particles, ax-bs.ScrollX+1, ay-bs.ScrollY+1, tcell.NewRGBColor(255, 180, 50), 24)
-	engine.SpawnSmoke(bs.Particles, ax-bs.ScrollX+1, ay-bs.ScrollY+1, 8)
+	engine.SpawnExplosion(bs.Particles, ax, ay, tcell.NewRGBColor(255, 180, 50), 24)
+	engine.SpawnSmoke(bs.Particles, ax, ay, 8)
 }
 
 // SmokeGrenade throws a smoke-only grenade that deploys a large smoke cloud
@@ -2760,8 +2760,8 @@ func (bs *Battlescape) SmokeGrenade() {
 	if engine.Config.ScreenShake {
 		bs.Camera.TriggerShake(1.5)
 	}
-	engine.SpawnExplosion(bs.Particles, ax-bs.ScrollX+1, ay-bs.ScrollY+1, tcell.NewRGBColor(180, 180, 180), 16)
-	engine.SpawnSmoke(bs.Particles, ax-bs.ScrollX+1, ay-bs.ScrollY+1, 16)
+	engine.SpawnExplosion(bs.Particles, ax, ay, tcell.NewRGBColor(180, 180, 180), 16)
+	engine.SpawnSmoke(bs.Particles, ax, ay, 16)
 }
 
 // TriggerFuelPumpExplosions checks for fuel pumps in a radius around (cx,cy)
@@ -2795,7 +2795,7 @@ func (bs *Battlescape) VentFreezeGas(cx, cy int) {
 			}
 		}
 	}
-	engine.SpawnSmoke(bs.Particles, cx-bs.ScrollX+1, cy-bs.ScrollY+1, 10)
+	engine.SpawnSmoke(bs.Particles, cx, cy, 10)
 	bs.AddMessage(language.String("MSG_CRYO_VENT"))
 	// Apply immediate chill to anyone standing in the burst.
 	bs.applyFreezeToUnits()
@@ -2873,8 +2873,8 @@ func (bs *Battlescape) TriggerFuelPumpExplosions(cx, cy int) {
 	if engine.Config.ScreenShake {
 		bs.Camera.TriggerShake(4.0)
 	}
-	engine.SpawnExplosion(bs.Particles, cx-bs.ScrollX+1, cy-bs.ScrollY+1, tcell.NewRGBColor(255, 100, 30), 32)
-	engine.SpawnSmoke(bs.Particles, cx-bs.ScrollX+1, cy-bs.ScrollY+1, 12)
+	engine.SpawnExplosion(bs.Particles, cx, cy, tcell.NewRGBColor(255, 100, 30), 32)
+	engine.SpawnSmoke(bs.Particles, cx, cy, 12)
 	bs.ComputeFOVForTeam()
 }
 
@@ -2927,7 +2927,7 @@ func (bs *Battlescape) UnitFallsThroughSkylight(u *Unit) {
 		u.Alive = false
 		bs.AddMessage(fmt.Sprintf(language.String("MSG_UNIT_DIED"), u.Name()))
 	}
-	SpawnRubble(bs.Particles, u.X-bs.ScrollX+1, u.Y-bs.ScrollY+1)
+	SpawnRubble(bs.Particles, u.X, u.Y)
 	name := u.Name()
 	bs.AddMessage(fmt.Sprintf(language.String("MSG_SKYLIGHT_FALL"), name))
 	if u == bs.Selected && u.Level != bs.Map.CurrentLevel {
@@ -3096,7 +3096,7 @@ func (bs *Battlescape) checkMineTriggers() {
 					bs.AddMessage(fmt.Sprintf(language.String("MSG_MINE_HIT"), u.Name(), damage, m.X, m.Y))
 				}
 				audio.PlayExplosion()
-				engine.SpawnExplosion(bs.Particles, m.X-bs.ScrollX+1, m.Y-bs.ScrollY+1,
+				engine.SpawnExplosion(bs.Particles, m.X, m.Y,
 					tcell.NewRGBColor(255, 180, 50), 20)
 				if engine.Config.ScreenShake {
 					bs.Camera.TriggerShake(3.0)
@@ -3155,7 +3155,7 @@ func (bs *Battlescape) PsiAttack() {
 		if engine.Config.ScreenShake {
 			bs.Camera.TriggerShake(0.3)
 		}
-		engine.SpawnExplosion(bs.Particles, target.X-bs.ScrollX+1, target.Y-bs.ScrollY+1, tcell.NewRGBColor(120, 0, 200), 12)
+		engine.SpawnExplosion(bs.Particles, target.X, target.Y, tcell.NewRGBColor(120, 0, 200), 12)
 		target.TU = 0
 		target.Panicked = true
 		if bs.Selected.Soldier != nil {

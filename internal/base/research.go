@@ -412,6 +412,12 @@ func (rs *ResearchScreen) HandleKey(e *tcell.EventKey) {
 		if rs.Selection >= len(entries) {
 			rs.Selection = len(entries) - 1
 		}
+	case tcell.KeyEnter:
+		if rs.InterrogateMode {
+			rs.doInterrogate()
+		} else {
+			rs.startResearch()
+		}
 	}
 	switch e.Str() {
 	case "\r":

@@ -227,6 +227,10 @@ func (ms *ManufactureScreen) HandleKey(e *tcell.EventKey) {
 		if ms.Selection < totalLen-1 {
 			ms.Selection++
 		}
+	case tcell.KeyEnter:
+		if ms.Selection < plansLen {
+			ms.startManufacture()
+		}
 	case tcell.KeyBackspace, tcell.KeyBackspace2, tcell.KeyDelete:
 		if ms.Selection >= plansLen {
 			idx := ms.Selection - plansLen
