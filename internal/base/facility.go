@@ -639,11 +639,14 @@ func (b *Base) InterrogateAlien(alienName string) (string, bool) {
 	topicName := ""
 	if b.HasResearch(autopsyID) {
 		if b.ActiveResearch != nil && !b.ActiveResearch.Completed {
+			boostTopic := data.ResearchByID(b.ActiveResearch.TopicID)
 			b.ActiveResearch.Progress += b.ActiveResearch.Cost / 4
 			if b.ActiveResearch.Progress >= b.ActiveResearch.Cost {
 				b.UnassignedScientists += b.ActiveResearch.Scientists
 				b.CompletedResearch = append(b.CompletedResearch, b.ActiveResearch.TopicID)
-				b.applyResearchUnlocks(topic)
+				if boostTopic != nil {
+					b.applyResearchUnlocks(boostTopic)
+				}
 				b.ActiveResearch = nil
 			}
 			benefit = true

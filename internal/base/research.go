@@ -334,6 +334,14 @@ func (rs *ResearchScreen) getAllTopics() []topicEntry {
 		} else if rs.Base.CanResearch(topic) {
 			status = topicAvailable
 		}
+		// Hide locked autopsy topics for aliens the player hasn't encountered
+		if status == topicLocked && strings.HasSuffix(topic.ID, "_autopsy") {
+			name := strings.TrimSuffix(topic.ID, "_autopsy")
+			corpseID := "corpse_" + strings.ToLower(name)
+			if rs.Base.Stores[corpseID] <= 0 {
+				continue
+			}
+		}
 		entries = append(entries, topicEntry{topic: topic, status: status})
 	}
 	sort.Slice(entries, func(i, j int) bool {
@@ -495,6 +503,13 @@ func (rs *ResearchScreen) HandleMouse(e *tcell.EventMouse) {
 
 	if y >= rs.listStartY && y < h-2 {
 		rs.Selection = y - rs.listStartY + rs.scrollOffset
+		entries := rs.getAllTopics()
+		if rs.Selection >= len(entries) {
+			rs.Selection = len(entries) - 1
+		}
+		if rs.Selection < 0 {
+			rs.Selection = 0
+		}
 	}
 
 	if x > 0 && y >= 3 && y <= 4 {
