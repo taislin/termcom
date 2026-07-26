@@ -991,6 +991,8 @@ func init() {
 		"DOGFIGHT_UFO_DESTROYED":       "UFO 被击毁！",
 		"DOGFIGHT_BREAKING_OFF":        "正在尝试脱离...",
 		"DOGFIGHT_ESCAPE_FAILED":       "逃脱失败！UFO开火！",
+		"DOGFIGHT_OUT_OF_RANGE":        "%s 超出射程！",
+		"DOGFIGHT_UFO_OUT_OF_RANGE":   "%s 超出射程！",
 		"DTYPE_EXPLOSIVE":              "爆炸",
 		"DTYPE_KINETIC":                "动能",
 		"DTYPE_LASER":                  "激光",

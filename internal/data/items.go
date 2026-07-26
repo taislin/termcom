@@ -607,13 +607,14 @@ var Items = map[string]Item{
 
 // InterceptorWeapon defines interceptor weapon stats.
 type InterceptorWeapon struct {
-	Name       string
-	Damage     int
-	Accuracy   int // base accuracy %
-	Range      int // max range in geoscape units
-	FireRate   int // shots per engagement (TU equivalent)
-	Cost       int
-	RearmCost  int
+	Name            string
+	Damage          int
+	Accuracy        int  // base accuracy %
+	Range           int  // max range in geoscape units
+	DogfightMaxRange float64 // max effective range on dogfight screen's 0.0-1.0 scale
+	FireRate        int  // shots per engagement (TU equivalent)
+	Cost            int
+	RearmCost       int
 }
 
 var interceptorWeaponKeys = map[string]string{
@@ -638,31 +639,34 @@ func (w InterceptorWeapon) DisplayName(key string) string {
 
 var InterceptorWeapons = map[string]InterceptorWeapon{
 	"avalanche": {
-		Name:       "Avalanche Launchers",
-		Damage:     40,
-		Accuracy:   55,
-		Range:      60,
-		FireRate:   1,
-		Cost:       12000,
-		RearmCost:  1500,
+		Name:            "Avalanche Launchers",
+		Damage:          40,
+		Accuracy:        55,
+		Range:           60,
+		DogfightMaxRange: 0.75,
+		FireRate:        1,
+		Cost:            12000,
+		RearmCost:       1500,
 	},
 	"stingray": {
-		Name:       "Stingray Missiles",
-		Damage:     25,
-		Accuracy:   70,
-		Range:      45,
-		FireRate:   2,
-		Cost:       8000,
-		RearmCost:  1000,
+		Name:            "Stingray Missiles",
+		Damage:          25,
+		Accuracy:        70,
+		Range:           45,
+		DogfightMaxRange: 0.55,
+		FireRate:        2,
+		Cost:            8000,
+		RearmCost:       1000,
 	},
 	"cannon": {
-		Name:       "Cannon (DEF-7)",
-		Damage:     15,
-		Accuracy:   85,
-		Range:      25,
-		FireRate:   3,
-		Cost:       5000,
-		RearmCost:  500,
+		Name:            "Cannon (DEF-7)",
+		Damage:          15,
+		Accuracy:        85,
+		Range:           25,
+		DogfightMaxRange: 0.35,
+		FireRate:        3,
+		Cost:            5000,
+		RearmCost:       500,
 	},
 }
 

@@ -988,6 +988,8 @@ func init() {
 		"DOGFIGHT_UFO_DESTROYED":       "외계인 우주선 격추!",
 		"DOGFIGHT_BREAKING_OFF":        "이탈 시도 중...",
 		"DOGFIGHT_ESCAPE_FAILED":       "이탈 실패! UFO가 공격합니다!",
+		"DOGFIGHT_OUT_OF_RANGE":        "%s 사거리 밖!",
+		"DOGFIGHT_UFO_OUT_OF_RANGE":   "%s 사거리 밖!",
 		"DTYPE_EXPLOSIVE":              "폭발성",
 		"DTYPE_KINETIC":                "운동 에너지",
 		"DTYPE_LASER":                  "레이저",

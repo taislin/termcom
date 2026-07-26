@@ -12,6 +12,17 @@ import (
 	"github.com/taislin/termcom/internal/language"
 )
 
+// ufoDogfightRange maps UFO weapon names to their max effective range on the
+// dogfight screen's 0.0-1.0 scale. Higher values mean longer reach.
+var ufoDogfightRange = map[string]float64{
+	"plasma_cannon": 0.30,
+	"plasma_burst":  0.35,
+	"plasma_heavy":  0.45,
+	"plasma_beam":   0.55,
+	"fusion_blast":  0.65,
+	"alien_laser":   0.25,
+}
+
 type DogfightScreen struct {
 	game        *engine.Game
 	gs          *Geoscape
@@ -28,6 +39,14 @@ type DogfightScreen struct {
 	log3 string
 
 	cityName string
+}
+
+func ufoWeaponMaxRange(ufo *UFO) float64 {
+	r, ok := ufoDogfightRange[ufo.Type.Weapon]
+	if !ok {
+		return 0.4 // default
+	}
+	return r
 }
 
 func NewDogfightScreen(game *engine.Game, gs *Geoscape, inter *Interceptor, ufo *UFO) *DogfightScreen {
@@ -267,6 +286,12 @@ func (ds *DogfightScreen) fire() {
 		return
 	}
 
+	if ds.rangePct > ds.interceptor.Weapon.DogfightMaxRange {
+		ds.log3, ds.log2 = ds.log2, ds.log1
+		ds.log1 = fmt.Sprintf(language.String("DOGFIGHT_OUT_OF_RANGE"), ds.interceptor.Weapon.DisplayName(ds.interceptor.WeaponKey))
+		return
+	}
+
 	damage := ds.fireAtRange(ds.rangePct)
 	audio.PlayShoot()
 
@@ -338,14 +363,35 @@ func (ds *DogfightScreen) ufoTakeTurn() {
 		return
 	}
 
-	// Otherwise, fight
-	ds.ufoAttack()
+	// Range-aware AI: UFO tries to fight from its weapon's effective range.
+	ufoMaxRng := ufoWeaponMaxRange(ds.ufo)
+	interMaxRng := ds.interceptor.Weapon.DogfightMaxRange
+
+	// If both weapons are in range or out of range at current distance,
+	// use HP-based adjustment.
+	ufoInRange := ds.rangePct <= ufoMaxRng
+	interInRange := ds.rangePct <= interMaxRng
+
+	if ufoInRange && !interInRange {
+		// UFO has range advantage — stay put and fire.
+		ds.ufoAttack()
+	} else if !ufoInRange && interInRange {
+		// UFO is outgunned — close distance to get in range.
+		ds.ufoAdjustRange()
+	} else if ufoInRange && interInRange {
+		// Even footing — fire then adjust.
+		ds.ufoAttack()
+		if ds.state == "player_turn" {
+			ds.ufoAdjustRange()
+		}
+	} else {
+		// Both out of range — close to get in fighting range.
+		ds.ufoAdjustRange()
+	}
+
 	if ds.state != "player_turn" {
 		return
 	}
-
-	// UFO adjusts range for optimal fighting position
-	ds.ufoAdjustRange()
 }
 
 func (ds *DogfightScreen) ufoRetreat() {
@@ -374,6 +420,12 @@ func (ds *DogfightScreen) ufoRetreat() {
 }
 
 func (ds *DogfightScreen) ufoAttack() {
+	ufoMaxRng := ufoWeaponMaxRange(ds.ufo)
+	if ds.rangePct > ufoMaxRng {
+		ds.log3, ds.log2 = ds.log2, ds.log1
+		ds.log1 = fmt.Sprintf(language.String("DOGFIGHT_UFO_OUT_OF_RANGE"), ds.ufo.Type.WeaponDisplayName())
+		return
+	}
 	ufoDmg := ds.ufo.FireAtInterceptor(ds.interceptor)
 	audio.PlayPlasmaFire()
 	if ufoDmg > 0 {
@@ -398,14 +450,34 @@ func (ds *DogfightScreen) ufoAdjustRange() {
 		delta = 0.2
 	}
 
-	if ufoHPPct > 0.6 {
-		if ds.rangePct > 0.5 {
-			ds.rangePct -= delta
+	ufoMaxRng := ufoWeaponMaxRange(ds.ufo)
+	interMaxRng := ds.interceptor.Weapon.DogfightMaxRange
+
+	// Target range: try to stay at a range where UFO can fire but interceptor can't.
+	targetRange := (ufoMaxRng + interMaxRng) / 2
+	if ufoMaxRng > interMaxRng {
+		// UFO outranges interceptor — stay just beyond interceptor's max.
+		targetRange = interMaxRng + 0.05
+		if targetRange > ufoMaxRng {
+			targetRange = ufoMaxRng
 		}
-	} else {
-		if ds.rangePct < 0.8 {
-			ds.rangePct += delta
-		}
+	}
+
+	// Adjust based on HP too.
+	if ufoHPPct < 0.6 {
+		targetRange += 0.1 // prefer distance when damaged
+	}
+	if targetRange > 0.85 {
+		targetRange = 0.85
+	}
+	if targetRange < 0.1 {
+		targetRange = 0.1
+	}
+
+	if ds.rangePct < targetRange-delta {
+		ds.rangePct += delta
+	} else if ds.rangePct > targetRange+delta {
+		ds.rangePct -= delta
 	}
 	ds.clampRange()
 }
@@ -516,8 +588,20 @@ func (ds *DogfightScreen) Render(ctx *engine.ScreenCtx) {
 	}
 	ctx.DrawString(ix+2, panelY+2, fmt.Sprintf("Ammo %s %d/%d", ammoBar, ds.interceptor.Ammo, ammoMax), ammoStyle)
 
-	// Weapon and mode
-	ctx.DrawString(ix+2, panelY+3, fmt.Sprintf("W: %s", ds.interceptor.Weapon.Name), engine.StyleDefault)
+	// Weapon + mode + range status on same line
+	interMaxRng := ds.interceptor.Weapon.DogfightMaxRange
+	ufoMaxRng := ufoWeaponMaxRange(ds.ufo)
+	interInRange := ds.rangePct <= interMaxRng
+	ufoInRange := ds.rangePct <= ufoMaxRng
+
+	weaponLine := fmt.Sprintf("W: %s", ds.interceptor.Weapon.Name)
+	rangeStr := fmt.Sprintf("max %.0f%% %s", interMaxRng*100, boolStr(interInRange))
+	interRngStyle := engine.StyleGreen
+	if !interInRange {
+		interRngStyle = engine.StyleRed
+	}
+	ctx.DrawString(ix+2, panelY+3, weaponLine, engine.StyleDefault)
+	ctx.DrawString(ix+2+engine.StringWidth(weaponLine)+1, panelY+3, rangeStr, interRngStyle)
 	ctx.DrawString(ix+2, panelY+4, ds.interceptor.Mode.String(), engine.StyleGray)
 
 	// UFO panel
@@ -533,8 +617,15 @@ func (ds *DogfightScreen) Render(ctx *engine.ScreenCtx) {
 	ufoStyle := engine.StyleRed
 	ctx.DrawString(ux+2, panelY+1, fmt.Sprintf("◉ %s %d/%d", ufoBar, ds.ufo.Type.Toughness, ds.ufoMaxHP), ufoStyle)
 
-	// UFO weapon
-	ctx.DrawString(ux+2, panelY+2, fmt.Sprintf("Weapon: %s", ds.ufo.Type.WeaponDisplayName()), engine.StyleDefault)
+	// UFO weapon + range status on same line
+	ufoWeaponStr := ds.ufo.Type.WeaponDisplayName()
+	ufoRngStr := fmt.Sprintf("max %.0f%% %s", ufoMaxRng*100, boolStr(ufoInRange))
+	ufoRngStyle := engine.StyleGreen
+	if !ufoInRange {
+		ufoRngStyle = engine.StyleRed
+	}
+	ctx.DrawString(ux+2, panelY+2, fmt.Sprintf("Weapon: %s", ufoWeaponStr), engine.StyleDefault)
+	ctx.DrawString(ux+2+engine.StringWidth(ufoWeaponStr)+11, panelY+2, ufoRngStr, ufoRngStyle)
 
 	// Range proximity bar — uses ▲ interceptor / ◉ alien on a track
 	rangeBarY := panelY + panelH + 1
@@ -546,9 +637,29 @@ func (ds *DogfightScreen) Render(ctx *engine.ScreenCtx) {
 	if rangeBarLen < 14 {
 		rangeBarLen = 14
 	}
-	// Draw track
+	// Draw track with weapon range zone markers
+	interMarkerX := rangeBarX + 2 + int(interMaxRng*float64(rangeBarLen-4))
+	ufoMarkerX := rangeBarX + 2 + int(ufoMaxRng*float64(rangeBarLen-4))
 	for i := 0; i < rangeBarLen; i++ {
-		ctx.SetCell(rangeBarX+i, rangeBarY, '─', engine.StyleGray)
+		r := '─'
+		style := engine.StyleGray
+		if i == 0 || i == rangeBarLen-1 {
+			r = '├'
+			if i == rangeBarLen-1 {
+				r = '┤'
+			}
+		}
+		if i == interMarkerX && interMarkerX > rangeBarX && interMarkerX < rangeBarX+rangeBarLen-1 {
+			r = '╡'
+		}
+		if i == ufoMarkerX && ufoMarkerX > rangeBarX && ufoMarkerX < rangeBarX+rangeBarLen-1 {
+			if r == '╡' {
+				r = '╫'
+			} else {
+				r = '╥'
+			}
+		}
+		ctx.SetCell(rangeBarX+i, rangeBarY, r, style)
 	}
 	// Position glyphs: interceptor at left (fixed), alien moves with range
 	interGlyphX := rangeBarX
@@ -564,6 +675,13 @@ func (ds *DogfightScreen) Render(ctx *engine.ScreenCtx) {
 	// Range label
 	rangeLabel := fmt.Sprintf(" %d%%", int(ds.rangePct*100))
 	ctx.DrawString(rangeBarX+rangeBarLen+1, rangeBarY, rangeLabel, engine.StyleGray)
+
+	// Range zone legend below the bar
+	legendY := rangeBarY + 1
+	ctx.DrawString(rangeBarX, legendY, " ▲ in", engine.StyleCyanBold)
+	ctx.DrawString(rangeBarX+5, legendY, fmt.Sprintf("| %s max %.0f%% ", boolStr(interInRange), interMaxRng*100), interRngStyle)
+	ctx.DrawString(rangeBarX+5+engine.StringWidth(fmt.Sprintf("| %s max %.0f%% ", boolStr(interInRange), interMaxRng*100)), legendY, " ◉", engine.StyleRedBold)
+	ctx.DrawString(rangeBarX+5+engine.StringWidth(fmt.Sprintf("| %s max %.0f%% ", boolStr(interInRange), interMaxRng*100))+2, legendY, fmt.Sprintf("| %s max %.0f%%", boolStr(ufoInRange), ufoMaxRng*100), ufoRngStyle)
 
 	// Log messages
 	logY := rangeBarY + 2
@@ -653,4 +771,11 @@ func makeHpBar(length int, pct float64) string {
 		}
 	}
 	return bar
+}
+
+func boolStr(v bool) string {
+	if v {
+		return "✓"
+	}
+	return "✗"
 }

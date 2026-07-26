@@ -992,6 +992,8 @@ func init() {
 		"DOGFIGHT_UFO_DESTROYED": "UFO撃破！",
 		"DOGFIGHT_BREAKING_OFF":  "離脱を試みています...",
 		"DOGFIGHT_ESCAPE_FAILED": "離脱失敗！UFOが攻撃します！",
+		"DOGFIGHT_OUT_OF_RANGE":     "%s の射程外！",
+		"DOGFIGHT_UFO_OUT_OF_RANGE": "%s の射程外！",
 
 		// ── Damage Types ──────────────────────────────────
 		"DTYPE_EXPLOSIVE": "爆発",

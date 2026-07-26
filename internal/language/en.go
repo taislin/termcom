@@ -1013,6 +1013,8 @@ func init() {
 		"DOGFIGHT_UFO_DESTROYED": "UFO DESTROYED!",
 		"DOGFIGHT_BREAKING_OFF":  "Attempting to disengage...",
 		"DOGFIGHT_ESCAPE_FAILED": "Escape failed! UFO fires!",
+		"DOGFIGHT_OUT_OF_RANGE":     "%s out of range!",
+		"DOGFIGHT_UFO_OUT_OF_RANGE": "%s out of range!",
 
 		// ── Damage Types ──────────────────────────────────
 		"DTYPE_EXPLOSIVE": "Explosive",

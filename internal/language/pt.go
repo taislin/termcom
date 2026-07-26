@@ -995,6 +995,8 @@ func init() {
 		"DOGFIGHT_UFO_DESTROYED":       "OVNI DESTRUÍDO!",
 		"DOGFIGHT_BREAKING_OFF":        "Tentando desengajar...",
 		"DOGFIGHT_ESCAPE_FAILED":       "Fuga falhou! O UFO dispara!",
+		"DOGFIGHT_OUT_OF_RANGE":        "%s fora de alcance!",
+		"DOGFIGHT_UFO_OUT_OF_RANGE":   "%s fora de alcance!",
 		"DTYPE_EXPLOSIVE":              "Explosivo",
 		"DTYPE_KINETIC":                "Cinético",
 		"DTYPE_LASER":                  "Laser",
