@@ -455,6 +455,12 @@ func NewGeoscape(g *engine.Game) *Geoscape {
 }
 
 func NewGeoscapeFromSave(g *engine.Game, sd *save.SaveData) *Geoscape {
+	// Regenerate species and research tree from the save's seed
+	g.SpeciesSeed = sd.SpeciesSeed
+	g.AlienSpecies, g.AlienTypes = data.GenerateSpecies(sd.SpeciesSeed)
+	data.InitResearchTree(sd.SpeciesSeed, g.AlienSpecies)
+	data.RegisterProceduralItems(sd.SpeciesSeed, g.AlienSpecies)
+
 	var bases []*base.Base
 	for _, bs := range sd.Bases {
 		bases = append(bases, save.ToBase(bs))
