@@ -617,7 +617,7 @@ func init() {
 		"MFG_DONE":           " [DONE]",
 		"MFG_BUILDABLE":      "BUILDABLE ITEMS:",
 		"MFG_NO_ITEMS":       "No items available. Collect more alloys/elerium.",
-		"HELP_MANUFACTURE":   "[\u2191]/[\u2193]=Select  [Enter]=Build  [Esc]=Back",
+		"HELP_MANUFACTURE":   "[\u2191\u2193]=Select  [Enter]=Build  [+]=Assign  [-]=Remove  [Del]=Cancel  [Esc]=Back",
 		"MSG_MFG_STARTED":    "Manufacturing started: %s",
 		"MSG_CANNOT_MFG":     "Cannot manufacture!",
 		"MFG_QUEUE_LINE":     "%s x%d (%d%%) Eng: %d [+/-] Assign",

@@ -619,7 +619,7 @@ func init() {
 		"MFG_DONE":           " [CONCLU\u00cdDO]",
 		"MFG_BUILDABLE":      "ITENS CONSTRU\u00cdVEIS:",
 		"MFG_NO_ITEMS":       "Nenhum item dispon\u00edvel. Colete mais ligas/elerium.",
-		"HELP_MANUFACTURE":   "[\u2191]/[\u2193]=Selecionar  [Enter]=Construir  [Esc]=Voltar",
+		"HELP_MANUFACTURE":   "[\u2191\u2193]=Sel  [Enter]=Const  [+]=Atrib  [-]=Remov  [Del]=Cancel  [Esc]=Voltar",
 		"MSG_MFG_STARTED":    "Fabrico iniciado: %s",
 		"MSG_CANNOT_MFG":     "N\u00e3o \u00e9 poss\u00edvel fabricar!",
 		"MFG_QUEUE_LINE":     "%s x%d (%d%%) Eng: %d [+/-] Atribuir",

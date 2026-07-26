@@ -849,10 +849,18 @@ func (b *Base) StartManufacture(item string, count int, materials map[string]int
 	for mat, qty := range materials {
 		b.RemoveItem(mat, qty*count)
 	}
+	// Look up the plan to get the correct days value
+	days := 5 + count*2 // fallback
+	for _, p := range ManufacturePlans {
+		if p.ItemKey == item {
+			days = p.Days * count
+			break
+		}
+	}
 	job := &ManufactureJob{
 		ItemKey:   item,
 		Count:     count,
-		CostDays:  5 + count*2,
+		CostDays:  days,
 		Materials: materials,
 		Engineers: 0,
 	}
@@ -885,6 +893,21 @@ func (b *Base) AssignEngineers(jobIdx, engineers int) bool {
 	return true
 }
 
+func (b *Base) CancelManufacture(idx int) {
+	if idx < 0 || idx >= len(b.ManufactureQueue) {
+		return
+	}
+	job := b.ManufactureQueue[idx]
+	// Refund materials
+	for mat, qty := range job.Materials {
+		b.AddItem(mat, qty*job.Count)
+	}
+	// Return engineers
+	b.UnassignedEngineers += job.Engineers
+	// Remove from queue
+	b.ManufactureQueue = append(b.ManufactureQueue[:idx], b.ManufactureQueue[idx+1:]...)
+}
+
 func (b *Base) AdvanceManufacture() []string {
 	var completed []string
 	bonus := b.AdjacentManufactureBonus()
@@ -901,15 +924,28 @@ func (b *Base) AdvanceManufacture() []string {
 			// Return assigned engineers to the pool before dropping the job
 			b.UnassignedEngineers += job.Engineers
 			// Add to unlocked list if not already there
-			found := false
-			for _, w := range b.UnlockedWeapons {
-				if w == job.ItemKey {
-					found = true
-					break
+			if _, isArmor := data.Armors[job.ItemKey]; isArmor {
+				found := false
+				for _, a := range b.UnlockedArmor {
+					if a == job.ItemKey {
+						found = true
+						break
+					}
 				}
-			}
-			if !found {
-				b.UnlockedWeapons = append(b.UnlockedWeapons, job.ItemKey)
+				if !found {
+					b.UnlockedArmor = append(b.UnlockedArmor, job.ItemKey)
+				}
+			} else {
+				found := false
+				for _, w := range b.UnlockedWeapons {
+					if w == job.ItemKey {
+						found = true
+						break
+					}
+				}
+				if !found {
+					b.UnlockedWeapons = append(b.UnlockedWeapons, job.ItemKey)
+				}
 			}
 			completed = append(completed, job.ItemKey)
 			job.Completed = true

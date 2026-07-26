@@ -619,7 +619,7 @@ func init() {
 		"MFG_DONE":           " [HECHO]",
 		"MFG_BUILDABLE":      "OBJETOS FABRICABLES:",
 		"MFG_NO_ITEMS":       "No hay objetos disponibles. Recogid m\u00e1s aleaciones/elerio.",
-		"HELP_MANUFACTURE":   "[\u2191]/[\u2193]=Seleccionar  [Enter]=Fabricar  [Esc]=Volver",
+		"HELP_MANUFACTURE":   "[\u2191\u2193]=Sel  [Enter]=Fabr  [+]=Asig  [-]=Quitar  [Supr]=Cancel  [Esc]=Volver",
 		"MSG_MFG_STARTED":    "Fabricaci\u00f3n empezada: %s",
 		"MSG_CANNOT_MFG":     "\u00a1No se puede fabricar!",
 		"MFG_QUEUE_LINE":     "%s x%d (%d%%) Ing: %d [+/-] Asignar",

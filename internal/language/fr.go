@@ -619,7 +619,7 @@ func init() {
 		"MFG_DONE":           " [TERMINÉ]",
 		"MFG_BUILDABLE":      "OBJETS FABRIQUABLES :",
 		"MFG_NO_ITEMS":       "Aucun objet disponible. Collectez plus d'alliages/élérium.",
-		"HELP_MANUFACTURE":   "[\u2191]/[\u2193]=Sélectionner  [Entrée]=Bâtir  [Esc]=Retour",
+		"HELP_MANUFACTURE":   "[\u2191\u2193]=Choisir  [Entrée]=Fabriquer  [+]=Affecter  [-]=Retirer  [Suppr]=Annuler  [Esc]=Retour",
 		"MSG_MFG_STARTED":    "Fabrication lancée : %s",
 		"MSG_CANNOT_MFG":     "Impossible de fabriquer !",
 		"MFG_QUEUE_LINE":     "%s x%d (%d%%) Ing : %d [+/-] Affecter",

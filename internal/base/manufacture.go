@@ -75,11 +75,32 @@ func (ms *ManufactureScreen) Render(ctx *engine.ScreenCtx) {
 
 	ctx.DrawString(2, 2, fmt.Sprintf(language.String("WORKSHOPS_INFO"), ms.Base.TotalWorkshops(), ms.Base.Engineers), engine.StyleCyanBold)
 
-	if len(ms.Base.ManufactureQueue) > 0 {
+	plans := ms.getBuildablePlans()
+	plansLen := len(plans)
+	queueLen := len(ms.Base.ManufactureQueue)
+	totalLen := plansLen + queueLen
+
+	// Clamp selection
+	if totalLen > 0 && ms.Selection >= totalLen {
+		ms.Selection = totalLen - 1
+	}
+	if ms.Selection < 0 {
+		ms.Selection = 0
+	}
+
+	// --- Queue section ---
+	if queueLen > 0 {
 		ctx.DrawString(2, 3, language.String("MFG_ACTIVE_QUEUE"), engine.StyleGreen)
+		maxQueueY := h/2 - 3
+		if maxQueueY > h-4 {
+			maxQueueY = h - 4
+		}
+		if maxQueueY < 4 {
+			maxQueueY = 4
+		}
 		y := 4
 		for i, job := range ms.Base.ManufactureQueue {
-			if y >= h-4 {
+			if y >= maxQueueY {
 				break
 			}
 			pct := 0
@@ -91,28 +112,35 @@ func (ms *ManufactureScreen) Render(ctx *engine.ScreenCtx) {
 				status += language.String("MFG_DONE")
 			}
 			style := engine.StyleDefault
-			if i == ms.Selection-len(ms.getBuildablePlans()) {
+			if ms.Selection >= plansLen && i == ms.Selection-plansLen {
 				style = engine.StyleHighlight
 			}
 			ctx.DrawString(2, y, status, style)
 			y++
 		}
 	}
-	unassignedY := 3
-	if len(ms.Base.ManufactureQueue) > 0 {
-		unassignedY = 4 + len(ms.Base.ManufactureQueue)
-	}
-	ctx.DrawString(2, unassignedY, fmt.Sprintf(language.String("MFG_UNASSIGNED"), ms.Base.UnassignedEngineers), engine.StyleYellow)
 
+	// --- Unassigned engineers ---
+	unassignedY := 3
+	if queueLen > 0 {
+		unassignedY = 4 + queueLen
+		if unassignedY > h/2-2 {
+			unassignedY = h/2 - 2
+		}
+	}
+	if unassignedY < 3 {
+		unassignedY = 3
+	}
+	if unassignedY < h-2 {
+		ctx.DrawString(2, unassignedY, fmt.Sprintf(language.String("MFG_UNASSIGNED"), ms.Base.UnassignedEngineers), engine.StyleYellow)
+	}
+
+	// --- Buildable plans section ---
 	ctx.DrawString(2, h/2, language.String("MFG_BUILDABLE"), engine.StyleCyanBold)
 
-	plans := ms.getBuildablePlans()
 	if len(plans) == 0 {
 		ctx.DrawString(2, h/2+2, language.String("MFG_NO_ITEMS"), engine.StyleGray)
 		return
-	}
-	if ms.Selection >= len(plans) {
-		ms.Selection = len(plans) - 1
 	}
 
 	startY := h/2 + 1
@@ -182,29 +210,58 @@ func (ms *ManufactureScreen) startManufacture() {
 }
 
 func (ms *ManufactureScreen) HandleKey(e *tcell.EventKey) {
-	plansLen := len(ms.getBuildablePlans())
+	plans := ms.getBuildablePlans()
+	plansLen := len(plans)
+	queueLen := len(ms.Base.ManufactureQueue)
+	totalLen := plansLen + queueLen
+	if totalLen == 0 {
+		return
+	}
+
 	switch e.Key() {
 	case tcell.KeyUp:
-		ms.Selection--
-		if ms.Selection < 0 {
-			ms.Selection = 0
+		if ms.Selection > 0 {
+			ms.Selection--
 		}
 	case tcell.KeyDown:
-		ms.Selection++
+		if ms.Selection < totalLen-1 {
+			ms.Selection++
+		}
+	case tcell.KeyBackspace, tcell.KeyBackspace2, tcell.KeyDelete:
 		if ms.Selection >= plansLen {
-			ms.Selection = plansLen - 1
+			idx := ms.Selection - plansLen
+			if idx < queueLen {
+				ms.Base.CancelManufacture(idx)
+				queueLen = len(ms.Base.ManufactureQueue)
+				totalLen = plansLen + queueLen
+				if ms.Selection >= totalLen && totalLen > 0 {
+					ms.Selection = totalLen - 1
+				}
+				if totalLen == 0 {
+					ms.Selection = 0
+				}
+			}
 		}
 	}
+
 	switch e.Str() {
 	case "\r":
-		ms.startManufacture()
+		if ms.Selection < plansLen {
+			ms.startManufacture()
+		}
 	case "+":
 		if ms.Selection >= plansLen {
-			ms.Base.AssignEngineers(ms.Selection-plansLen, 1)
+			idx := ms.Selection - plansLen
+			if idx < len(ms.Base.ManufactureQueue) {
+				ms.Base.AssignEngineers(idx, 1)
+			}
 		}
 	case "-":
 		if ms.Selection >= plansLen {
-			ms.Base.AssignEngineers(ms.Selection-plansLen, -1)
+			idx := ms.Selection - plansLen
+			if idx < len(ms.Base.ManufactureQueue) {
+				ms.Base.AssignEngineers(idx, -1)
+			}
 		}
 	}
 }
@@ -236,17 +293,46 @@ func (ms *ManufactureScreen) HandleMouse(e *tcell.EventMouse) {
 			if end >= len(runes) {
 				break
 			}
-			segEnd := col + engine.StringWidth(string(runes[i:end+1]))
+			segEnd := col + engine.StringWidth(string(runes[i+1 : end]))
 			if x >= segStart && x <= segEnd {
 				key := string(runes[i+1 : end])
 				switch key {
 				case "↑", "↓":
 					plans := ms.getBuildablePlans()
-					if ms.Selection < len(plans)-1 {
+					totalLen := len(plans) + len(ms.Base.ManufactureQueue)
+					if ms.Selection < totalLen-1 {
 						ms.Selection++
 					}
 				case "Enter":
 					ms.startManufacture()
+				case "+":
+					plansLen := len(ms.getBuildablePlans())
+					if ms.Selection >= plansLen {
+						idx := ms.Selection - plansLen
+						if idx < len(ms.Base.ManufactureQueue) {
+							ms.Base.AssignEngineers(idx, 1)
+						}
+					}
+				case "-":
+					plansLen := len(ms.getBuildablePlans())
+					if ms.Selection >= plansLen {
+						idx := ms.Selection - plansLen
+						if idx < len(ms.Base.ManufactureQueue) {
+							ms.Base.AssignEngineers(idx, -1)
+						}
+					}
+				case "Del":
+					plansLen := len(ms.getBuildablePlans())
+					if ms.Selection >= plansLen {
+						idx := ms.Selection - plansLen
+						if idx < len(ms.Base.ManufactureQueue) {
+							ms.Base.CancelManufacture(idx)
+							totalLen := plansLen + len(ms.Base.ManufactureQueue)
+							if ms.Selection >= totalLen && totalLen > 0 {
+								ms.Selection = totalLen - 1
+							}
+						}
+					}
 				case "Esc":
 					ms.Game.PopState()
 				}
@@ -258,12 +344,34 @@ func (ms *ManufactureScreen) HandleMouse(e *tcell.EventMouse) {
 		return
 	}
 
-	startY := h/2 + 1
-	if y >= startY && y < h-2 {
-		ms.Selection = y - startY
+	plans := ms.getBuildablePlans()
+	plansLen := len(plans)
+	queueLen := len(ms.Base.ManufactureQueue)
+
+	// Queue section click (top area)
+	if queueLen > 0 {
+		queueStartY := 4
+		if y >= queueStartY && y < h/2-1 {
+			idx := y - queueStartY
+			if idx < queueLen {
+				ms.Selection = plansLen + idx
+				return
+			}
+		}
 	}
 
-	if x > 0 && y == h-2 {
+	// Buildable plans section click (bottom area)
+	startY := h/2 + 1
+	if y >= startY && y < h-2 {
+		idx := y - startY
+		if idx < plansLen {
+			ms.Selection = idx
+		}
+		return
+	}
+
+	// Click on message line to start manufacture
+	if x > 0 && y == h-2 && ms.Selection < plansLen {
 		ms.startManufacture()
 	}
 }

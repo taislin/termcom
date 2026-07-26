@@ -617,7 +617,7 @@ func init() {
 		"MFG_DONE":           " [\u5b8c\u6210]",
 		"MFG_BUILDABLE":      "\u53ef\u5236\u9020\u7269\u54c1\uff1a",
 		"MFG_NO_ITEMS":       "\u6ca1\u6709\u53ef\u5236\u9020\u7269\u54c1\u3002\u8bf7\u6536\u96c6\u66f4\u591a\u5408\u91d1/\u514b\u91cc\u65af\u91cc\u57c3\u3002",
-		"HELP_MANUFACTURE":   "[\u2191]/[\u2193]=\u9009\u62e9  [Enter]=\u5236\u9020  [Esc]=\u8fd4\u56de",
+		"HELP_MANUFACTURE":   "[\u2191\u2193]=\u9009\u62e9  [Enter]=\u5236\u9020  [+]=[\u5206\u914d]  [-]=[\u79fb\u9664]  [Del]=[\u53d6\u6d88]  [Esc]=\u8fd4\u56de",
 		"MSG_MFG_STARTED":    "\u5236\u9020\u5df2\u5f00\u59cb\uff1a%s",
 		"MSG_CANNOT_MFG":     "\u65e0\u6cd5\u5236\u9020\uff01",
 		"MFG_QUEUE_LINE":     "%s x%d (%d%%) \u5de5\u7a0b\u5e08: %d [+/-] \u5206\u914d",

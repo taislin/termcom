@@ -619,7 +619,7 @@ func init() {
 		"MFG_DONE":           " [完了]",
 		"MFG_BUILDABLE":      "製造可能なアイテム:",
 		"MFG_NO_ITEMS":       "利用できるアイテムがありません。更多の合金/エレリウムを収集してください。",
-		"HELP_MANUFACTURE":   "[\u2191]/[\u2193]=選択  [Enter]=製造  [Esc]=戻る",
+		"HELP_MANUFACTURE":   "[\u2191\u2193]=選択  [Enter]=製造  [+]=配置  [-]=解除  [Del]=取消  [Esc]=戻る",
 		"MSG_MFG_STARTED":    "製造開始: %s",
 		"MSG_CANNOT_MFG":     "製造できません！",
 		"MFG_QUEUE_LINE":     "%s x%d (%d%%) 技師: %d [+/-] 配置",

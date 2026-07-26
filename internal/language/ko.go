@@ -619,7 +619,7 @@ func init() {
 		"MFG_DONE":           " [완료]",
 		"MFG_BUILDABLE":      "제조 가능한 물품:",
 		"MFG_NO_ITEMS":       "가용 물품 없음. 합금/엘레리움을 더 수집하십시오.",
-		"HELP_MANUFACTURE":   "[\\u2191]/[\\u2193]=Select  [Enter]=Build  [Esc]=Back",
+		"HELP_MANUFACTURE":   "[\u2191\u2193]=\uc120\ud0dd  [Enter]=\uc81c\uc870  [+]=[\ubc30\uc815]  [-]=[\ud574\uc81c]  [Del]=[\ucde8\uc18c]  [Esc]=\ub4a4\ub85c",
 		"MSG_MFG_STARTED":    "제조 시작: %s",
 		"MSG_CANNOT_MFG":     "제조할 수 없습니다!",
 		"MFG_QUEUE_LINE":     "%s x%d (%d%%) 공:%d [+/-] 배정",

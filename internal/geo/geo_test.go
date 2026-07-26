@@ -489,6 +489,10 @@ func TestMultiBaseManufactureAdvancesAllBases(t *testing.T) {
 		t.Fatal("base1 could not start manufacture")
 	}
 
+	// Override CostDays so jobs don't complete in one tick
+	gs.Bases[0].ManufactureQueue[0].CostDays = 10
+	gs.Bases[1].ManufactureQueue[0].CostDays = 10
+
 	// Assign engineers to both
 	gs.Bases[0].AssignEngineers(0, 3)
 	gs.Bases[1].AssignEngineers(0, 3)
