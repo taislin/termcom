@@ -204,9 +204,11 @@ func (es *EquipScreen) getAvailableItems() []string {
 	}
 	var items []string
 	if es.SelectedSlot == 0 {
-		for k := range data.RuleItems {
+		for k, ri := range data.RuleItems {
 			if es.Base.CountItem(k) > 0 {
-				items = append(items, k)
+				if ri.BattleType == data.BT_FIREARM || ri.BattleType == data.BT_MELEE || ri.BattleType == data.BT_PSIAMP {
+					items = append(items, k)
+				}
 			}
 		}
 		// Also include custom-designed weapons
@@ -284,6 +286,9 @@ func (es *EquipScreen) equipSelected() {
 // adjustBackpackQty adds (+1) or removes (-1) a quantity of the given item
 // from the selected soldier's backpack, transferring to/from base stores.
 func (es *EquipScreen) adjustBackpackQty(item string, delta int) {
+	if es.SelectedSol < 0 || es.SelectedSol >= len(es.Base.Soldiers) {
+		return
+	}
 	s := es.Base.Soldiers[es.SelectedSol]
 	ri, ok := data.RuleItems[item]
 	if !ok {
@@ -295,7 +300,7 @@ func (es *EquipScreen) adjustBackpackQty(item string, delta int) {
 			maxCarry = 99
 		}
 		if s.CountItem(item) >= maxCarry {
-			es.Message = fmt.Sprintf("Max %d %s per soldier", maxCarry, ri.Name)
+			es.Message = fmt.Sprintf(language.String("MSG_BACKPACK_MAX"), maxCarry, ri.Name)
 			return
 		}
 		if es.Base.CountItem(item) <= 0 {
@@ -304,15 +309,15 @@ func (es *EquipScreen) adjustBackpackQty(item string, delta int) {
 		}
 		es.Base.RemoveItem(item, 1)
 		s.AddItem(item)
-		es.Message = fmt.Sprintf("+1 %s", ri.Name)
+		es.Message = fmt.Sprintf(language.String("MSG_BACKPACK_ADD"), ri.Name)
 	} else {
 		if s.CountItem(item) <= 0 {
-			es.Message = fmt.Sprintf("No %s to remove", ri.Name)
+			es.Message = fmt.Sprintf(language.String("MSG_BACKPACK_NONE"), ri.Name)
 			return
 		}
 		s.RemoveItem(item)
 		es.Base.AddItem(item, 1)
-		es.Message = fmt.Sprintf("-1 %s", ri.Name)
+		es.Message = fmt.Sprintf(language.String("MSG_BACKPACK_REMOVE"), ri.Name)
 	}
 }
 
@@ -525,9 +530,11 @@ func (es *EquipScreen) clickEquipHelpBar(x int) {
 func (es *EquipScreen) dispatchEquipHelpKey(key string) {
 	switch key {
 	case "↑", "↓":
-		if es.CycleIdx < len(es.getAvailableItems())-1 {
-			es.CycleIdx++
+		if len(es.Base.Soldiers) == 0 {
+			return
 		}
+		es.SelectedSol = (es.SelectedSol + 1) % len(es.Base.Soldiers)
+		es.CycleIdx = 0
 	case "1":
 		es.SelectedSlot = 0
 	case "2":

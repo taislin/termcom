@@ -58,7 +58,18 @@ func (ls *LoadoutScreen) Render(ctx *engine.ScreenCtx) {
 		return
 	}
 
-	// Clamp cursor
+	// Clamp cursor and resize Selected if roster changed
+	if len(ls.Selected) != len(ls.Base.Soldiers) {
+		newSel := make([]bool, len(ls.Base.Soldiers))
+		for i := range newSel {
+			if i < len(ls.Selected) {
+				newSel[i] = ls.Selected[i]
+			} else {
+				newSel[i] = ls.Base.Soldiers[i].CanDeploy()
+			}
+		}
+		ls.Selected = newSel
+	}
 	if ls.Cursor < 0 {
 		ls.Cursor = 0
 	}
@@ -366,7 +377,7 @@ func (ls *LoadoutScreen) removeCurrentItem() {
 		s.Weapon = ""
 		s.WeaponAmmo = 0
 	case 2:
-		if s.Armor == "" {
+		if s.Armor == "" || s.Armor == "none" {
 			return
 		}
 		ls.Base.AddItem(s.Armor, 1)
@@ -393,7 +404,7 @@ func (ls *LoadoutScreen) removeCurrentItem() {
 func (ls *LoadoutScreen) launch() {
 	var squad []*soldier.Soldier
 	for i, s := range ls.Base.Soldiers {
-		if ls.Selected[i] && s.CanDeploy() {
+		if i < len(ls.Selected) && ls.Selected[i] && s.CanDeploy() {
 			squad = append(squad, s)
 		}
 	}
@@ -452,7 +463,9 @@ func (ls *LoadoutScreen) HandleKey(e *tcell.EventKey) {
 		ls.CycleIdx = 0
 		ls.Message = ""
 	case " ":
-		if ls.Cursor >= 0 && ls.Cursor < len(ls.Base.Soldiers) {
+		if ls.Slot > 0 {
+			ls.equipCurrent()
+		} else if ls.Cursor >= 0 && ls.Cursor < len(ls.Base.Soldiers) {
 			s := ls.Base.Soldiers[ls.Cursor]
 			if s.CanDeploy() {
 				ls.Selected[ls.Cursor] = !ls.Selected[ls.Cursor]
@@ -465,16 +478,16 @@ func (ls *LoadoutScreen) HandleKey(e *tcell.EventKey) {
 	if e.Key() == tcell.KeyEnter || e.Str() == "l" || e.Str() == "L" {
 		ls.launch()
 	}
-	// Space for consumables +/-
+	// +/- for equipping/removing items
 	available := ls.getAvailableItems()
 	if ls.CycleIdx < len(available) {
 		switch e.Str() {
 		case "+":
-			if ls.Slot == 3 {
+			if ls.Slot > 0 {
 				ls.equipCurrent()
 			}
 		case "-":
-			if ls.Slot == 3 {
+			if ls.Slot > 0 {
 				ls.removeCurrentItem()
 			}
 		}
