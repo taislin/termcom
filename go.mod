@@ -22,8 +22,8 @@ require (
 	github.com/gdamore/encoding v1.0.1 // indirect
 	github.com/gdamore/tcell/v3 v3.4.1
 	github.com/lucasb-eyer/go-colorful v1.4.0 // indirect
-	golang.org/x/sys v0.48.0 // indirect
-	golang.org/x/term v0.46.0
+	golang.org/x/sys v0.49.0 // indirect
+	golang.org/x/term v0.47.0
 	golang.org/x/text v0.40.0 // indirect
 )
 
